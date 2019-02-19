@@ -163,7 +163,8 @@ def print_statistics(procs, key, verb=False):
 
     # Compute statistics
     n_proc, l_min, l_ave, l_max, l_var = lbsStatistics.compute_function_statistics(
-        procs, lambda x: x.get_load())
+        procs,
+        lambda x: x.get_load())
 
     # Print detailed load information if requested
     if verb:
@@ -172,7 +173,7 @@ def print_statistics(procs, key, verb=False):
             print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
 
     # Always print summary
-    print "[NodeGossiper] {} per-processor loads: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g}".format(
+    print "[NodeGossiper] {} processor loads: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g}".format(
         key,
         l_min,
         l_ave,

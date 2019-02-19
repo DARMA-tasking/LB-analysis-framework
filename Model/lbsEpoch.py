@@ -3,8 +3,8 @@ lbsEpoch_module_aliases = {
     "random": "rnd",
     }
 for m in [
-    "sys",
     "random",
+    "math",
     ]:
     has_flag = "has_" + m
     try:
@@ -66,7 +66,19 @@ class Epoch:
         self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
 
         # Create n_o objects with uniformly distributed times in given range
-        obj = set([lbsObject.Object(i, rnd.uniform(t_min, t_max)) for i in range(n_o)])
+        obj = set([lbsObject.Object(
+            i,
+            rnd.uniform(t_min, t_max)) for i in range(n_o)])
+
+        # Compute and report object statistics
+        n_proc, t_min, t_ave, t_max, t_var = lbsStatistics.compute_function_statistics(
+            obj,
+            lambda x: x.get_time())
+        print "[Epoch] Object times: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g}".format(
+            t_min,
+            t_ave,
+            t_max,
+            math.sqrt(t_var))
 
         # Randomly assign objects to processors
         if s_s > 0:

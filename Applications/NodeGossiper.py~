@@ -167,7 +167,7 @@ def print_statistics(procs, key, verb=False):
 
     # Print detailed load information if requested
     if verb:
-        print "[NodeGossiper] {} per-processor loads:".format(key)
+        print "[NodeGossiper] {} processor loads:".format(key)
         for p in procs:
             print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
 
