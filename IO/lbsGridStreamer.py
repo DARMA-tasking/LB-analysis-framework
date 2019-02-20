@@ -81,7 +81,7 @@ class GridStreamer:
             output.SetPoints(points)
             output.SetVerts(verts)
 
-            # Assign field, point, and cell data to output for timestep index
+            # Assign field data to output for timestep index
             i = int(t_s)
             for f_name, f_list in field_arrays.items():
                 if n_steps != len(f_list):
@@ -93,6 +93,7 @@ class GridStreamer:
                     return
                 output.GetFieldData().AddArray(f_list[i])
 
+            # Assign data attributes to output for timestep index
             d_arr = data_arrays[i]
             output.GetPointData().AddArray(d_arr)
             output.GetCellData().AddArray(d_arr)

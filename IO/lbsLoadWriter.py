@@ -2,6 +2,7 @@
 lbsLoadWriter_module_aliases = {}
 for m in [
     "vtk",
+    "sys",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -34,19 +35,19 @@ class LoadWriter:
 
         # If VTK is not available, do not do anything
         if not has_vtk:
-            print "*  WARNING: Could not write to ExodusII file by lack of VTK"
+            print "** ERROR: Could not write to ExodusII file by lack of VTK"
             return
 
         # If no LBS epoch was provided, do not do anything
         if not isinstance(e, lbsEpoch.Epoch):
-            print "*  WARNING: Could not write to ExodusII file by lack of a LBS epoch"
+            print "** ERROR: Could not write to ExodusII file by lack of a LBS epoch"
             return
         else:
             self.epoch = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
-            print "*  WARNING: Could not write to ExodusII file by lack of a processor mapping"
+            print "** ERROR: Could not write to ExodusII file by lack of a processor mapping"
             return
         else:
             self.mapping = m
@@ -113,16 +114,15 @@ class LoadWriter:
                                                 stat_arrays,
                                                 load_arrays)
 
-        # Write to ExodusII file
-        print "[LoadWriter] Writing ExodusII mesh \"{}\"".format(self.file_name)
-        writer = vtk.vtkExodusIIWriter()
-        writer.SetFileName(self.file_name)
-        writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
-        writer.WriteAllTimeStepsOn()
-        writer.Update()
-
-        # Sanity check
+        # Write to ExodusII file when possible
         if streamer.Error:
-            print "*  WARNING: Failed to write \"{}\"".format(self.file_name)
+            print "**  ERROR: Failed to instantiate a grid streamer for \"{}\"".format(self.file_name)
+        else:
+            print "[LoadWriter] Writing ExodusII mesh \"{}\"".format(self.file_name)
+            writer = vtk.vtkExodusIIWriter()
+            writer.SetFileName(self.file_name)
+            writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
+            writer.WriteAllTimeStepsOn()
+            writer.Update()
 
 ########################################################################

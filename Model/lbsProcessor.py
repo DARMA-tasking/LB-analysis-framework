@@ -160,8 +160,4 @@ class Processor:
             # Normalize and return CMF
             return map(lambda x: x / sum_p, cmf)
 
-        # Unsupported scheme
-        else:
-            print "*  WARNING: unsupported scheme ({})".format(scheme)
-
 ########################################################################

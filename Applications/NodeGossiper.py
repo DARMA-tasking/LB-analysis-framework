@@ -93,9 +93,9 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(sys.argv[1:], "f:hk:n:o:p:s:t:vx:y:z:")
         except getopt.GetoptError:
-            print "*  WARNING: incorrect command line arguments. Ignoring those."
+            print "** ERROR: incorrect command line arguments."
             self.usage()
-            return
+            return True
 
         # Parse arguments and assign corresponding member variable values
         for o, a in opts:
@@ -139,6 +139,9 @@ class ggParameters:
                 x = float(a)
                 if x > 1.:
                     self.threshold = x
+
+	# No line parsing error occurred
+        return False
 
 ########################################################################
 def global_id_to_cartesian(id, grid_sizes):
@@ -197,7 +200,8 @@ if __name__ == '__main__':
     # Instantiate parameters and set values from command line arguments
     print "[NodeGossiper] Parsing command line arguments"
     params = ggParameters()
-    params.parse_command_line()
+    if params.parse_command_line():
+       sys.exit(1)
 
     # Initialize random number generator
     lbsStatistics.initialize()
@@ -210,6 +214,7 @@ if __name__ == '__main__':
         sampler_params = [5.0005e-2, 8.33e-4]
     else:
         print "** ERROR: unsupported sampler type {}".format(params.time_sampler)
+        sys.exit(1)
 
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     epoch.populate_from_sampler(params.n_objects,
