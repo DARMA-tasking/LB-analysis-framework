@@ -4,6 +4,7 @@ lbsStatistics_module_aliases = {
     }
 for m in [
     "random",
+    "math",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -22,6 +23,45 @@ def Initialize():
         
     # Seed pseudo-random number generator
     rnd.seed()
+
+########################################################################
+def sampler(distribution_name, parameters):
+    """Return a pseudo-random number generator based of requested type
+    """
+
+    # Uniform U(a,b) distribution
+    if distribution_name.lower() == "uniform":
+        if len(parameters) < 2:
+            print "** ERROR: not enough parameters in {} for {} distribution.".format(
+                parameters,
+                distribution_name)
+            return None
+
+        # Return uniform distribution over given interval
+        return lambda : rnd.uniform(parameters[0], parameters[1])
+
+    # Log-normal distribution with given mean and variance
+    if distribution_name.lower() == "lognormal":
+        if len(parameters) < 2:
+            print "** ERROR: not enough parameters in {} for {} distribution.".format(
+                parameters,
+                distribution_name)
+            return None
+
+        # Determine parameters of log-normal distribution
+        m2 = parameters[0] * parameters[0]
+        v = parameters[1]
+        r = math.sqrt(m2 + v)
+        mu = math.log(m2 / r)
+        sigma = math.sqrt(math.log(r * r / m2))
+
+        # Return log-normal distribution with given mean and variance
+        return lambda : rnd.lognormvariate(mu, sigma)
+
+    # Unsupported distribution type
+    else:
+        print "** ERROR: {} distribution is not supported."
+        return None
 
 ########################################################################
 def inverse_transform_sample(values, cmf):

@@ -50,6 +50,9 @@ class ggParameters:
         # Number of task objects
         self.n_objects = 1
 
+        # Object time sampler type
+        self.time_sampler = "uniform"
+
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_processors = 0
 
@@ -77,6 +80,7 @@ class ggParameters:
         print "\t [-k <nr>]   number of gossiping rounds"
         print "\t [-f <fo>]   gossiping fan-out value"
         print "\t [-t <rt>]   overload relative threshold"
+        print "\t [-s <st>]   time sampler (uniform or lognormal)"
         print "\t [-v]        make standard output more verbose"
         print "\t [-h]        help: print this message and exit"
 
@@ -123,8 +127,8 @@ class ggParameters:
                 if i > 0:
                     self.n_processors = i
             elif o == "-s":
-                if i > -1:
-                    self.n_proc_subset = i
+                if a.lower() in ("uniform", "lognormal"):
+                    self.time_sampler = a.lower()
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -195,19 +199,24 @@ if __name__ == '__main__':
     params = ggParameters()
     params.parse_command_line()
 
-    # Initialize statistics random number generator
+    # Initialize random number generator
     lbsStatistics.Initialize()
 
     # Create an epoch and randomly generate it
     epoch = lbsEpoch.Epoch()
-    t_min = 1.e-5
-    t_max = 1.e-1
+    if params.time_sampler == "uniform":
+        sampler_params = [1.e-5, 1.e-1]
+    elif params.time_sampler == "lognormal":
+        sampler_params = [5.0005e-2, 8.33e-4]
+    else:
+        print "** ERROR: unsupported sampler type {}".format(params.time_sampler)
+
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-    epoch.randomly_populate_procs_in_epoch(params.n_objects,
-                                           t_min,
-                                           t_max,
-                                           n_p,
-                                           params.n_processors)
+    epoch.populate_from_sampler(params.n_objects,
+                                params.time_sampler,
+                                sampler_params,
+                                n_p,
+                                params.n_processors)
 
     # Compute and print initial load information
     print_statistics(epoch.processors,
@@ -226,10 +235,11 @@ if __name__ == '__main__':
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
     # Instantiate epoch to ExodusII file writer
-    file_name = "NodeGossiper-n{}-p{}-o{}-i{}-k{}-f{}-t{}.e".format(
+    file_name = "NodeGossiper-n{}-p{}-o{}-{}-i{}-k{}-f{}-t{}.e".format(
         n_p,
         params.n_processors,
         params.n_objects,
+        params.time_sampler,
         params.n_iterations,
         params.n_rounds,
         params.fanout,

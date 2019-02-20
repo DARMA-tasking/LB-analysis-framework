@@ -43,32 +43,21 @@ class Epoch:
         return [p.get_id() for p in self.processors]
 
     ####################################################################
-    def randomly_populate_procs_in_epoch(self, n_o, t_min, t_max, n_p, s_s=0):
-        """Convenience method to randomly populate either all or n procs in an epoch
+    def populate_from_sampler(self, n_o, t_sampler, sampler_params, n_p, s_s=0):
+        """Use sampler to populate either all or n procs in an epoch
         """
 
-        # Sanity check
-        if t_max < t_min:
-            print "*  WARNING: minimum time ({}) larger than maximum time ({}). Swapping those.".format(t_min, t_max)
-            t_min, t_max = t_max, t_min
-        print "[Epoch] Object times vary within [{} ; {}]".format(t_min, t_max)
-            
-
-        # Create n_p processors
-        if s_s and s_s <= n_p:
-            print "[Epoch] Creating {} objects distributed across {} processors amongst {}".format(n_o, s_s, n_p)
-        else:
-            # Sanity check
-            if s_s > n_p:
-                print "*  WARNING: too many processors ({}) requested: only {} available.".format(s_s, n_p)
-                s_s = n_p
-            print "[Epoch] Creating {} objects distributed across {} processors".format(n_o, n_p)
-        self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
+        # Retrieve desired time sampler
+        time_sampler = lbsStatistics.sampler(t_sampler,
+                                             sampler_params)
 
         # Create n_o objects with uniformly distributed times in given range
+        print "[Epoch] Creating {} objects with {} pseudo-random times".format(
+            n_o,
+            t_sampler)
         obj = set([lbsObject.Object(
             i,
-            rnd.uniform(t_min, t_max)) for i in range(n_o)])
+            time_sampler()) for i in range(n_o)])
 
         # Compute and report object statistics
         n_proc, t_min, t_ave, t_max, t_var = lbsStatistics.compute_function_statistics(
@@ -79,6 +68,18 @@ class Epoch:
             t_ave,
             t_max,
             math.sqrt(t_var))
+
+        # Create n_p processors
+        self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
+
+        if s_s and s_s <= n_p:
+            print "[Epoch] Randomly assigning objects to {} processors amongst {}".format(s_s, n_p)
+        else:
+            # Sanity check
+            if s_s > n_p:
+                print "*  WARNING: too many processors ({}) requested: only {} available.".format(s_s, n_p)
+                s_s = n_p
+            print "[Epoch] Randomly assigning objects to {} processors".format(n_p)
 
         # Randomly assign objects to processors
         if s_s > 0:
