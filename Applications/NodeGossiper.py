@@ -200,7 +200,7 @@ if __name__ == '__main__':
     params.parse_command_line()
 
     # Initialize random number generator
-    lbsStatistics.Initialize()
+    lbsStatistics.initialize()
 
     # Create an epoch and randomly generate it
     epoch = lbsEpoch.Epoch()
@@ -245,7 +245,8 @@ if __name__ == '__main__':
         params.fanout,
         "{}".format(params.threshold).replace('.', '_'))
     writer = lbsLoadWriter.LoadWriter(epoch, grid_map, file_name)
-    writer.write(rt.load_distributions)
+    writer.write(rt.statistics,
+                 rt.load_distributions)
 
     # Compute and print final load information
     print_statistics(epoch.processors,

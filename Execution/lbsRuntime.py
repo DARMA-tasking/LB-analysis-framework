@@ -45,8 +45,16 @@ class Runtime:
             [p.get_load() for p in self.epoch.processors]]
 
         # Start by computing global load statistics to store average load
-        _, _, self.average_load, _, _ = lbsStatistics.compute_function_statistics(
-            self.epoch.processors, lambda x: x.get_load())
+        _, l_min, self.average_load, l_max, l_var = lbsStatistics.compute_function_statistics(
+            self.epoch.processors,
+            lambda x: x.get_load())
+
+        # Initialize run statistics
+        self.statistics = {
+            "minimum load": [l_min],
+            "maximum load": [l_max],
+            "load variance": [l_var],
+            "load imbalance": [l_max / self.average_load - 1.]}
 
     ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
@@ -76,11 +84,6 @@ class Runtime:
                 p_snd.underloaded = set()
                 p_snd.underloads = {}
 
-                # Update maximum load if needed
-                l_snd = p_snd.get_load()
-                if l_snd > l_max:
-                    l_max = l_snd
-
                 # Collect message when destination list is not empty
                 dst, msg = p_snd.initialize_underloads(procs,
                                                        self.average_load,
@@ -98,10 +101,6 @@ class Runtime:
                     print "\t proc_{} knows of underloaded procs {}".format(
                         p.get_id(),
                         p.underloaded)
-
-            # Compute load imbalance
-            print "[RunTime] Measured load imbalance = {}".format(
-                l_max / self.average_load - 1.)
 
             # Transfer overloads for given relative threshold
             print "[RunTime] Transferring overloads above relative threshold of {}".format(r_threshold)
@@ -169,10 +168,21 @@ class Runtime:
                                     l_o,
                                     i_dst)
                             
-
-
             # Append new load distribution to list
-            self.load_distributions.append(
-                [p.get_load() for p in self.epoch.processors])
+            loads = [p.get_load() for p in self.epoch.processors]
+            self.load_distributions.append(loads)
+                
+            # Compute and store descritptive statistics of load distribution
+            _, l_min, _, l_max, l_var = lbsStatistics.compute_function_statistics(
+                self.epoch.processors,
+                lambda x: x.get_load())
+            self.statistics["minimum load"].append(l_min)
+            self.statistics["maximum load"].append(l_max)
+            self.statistics["load variance"].append(l_min)
+
+            # Compute, store and report load imbalance
+            l_imb = l_max / self.average_load - 1.
+            print "[RunTime] Load imbalance = {}".format(l_imb)
+            self.statistics["load imbalance"].append(l_imb)
             
 ########################################################################

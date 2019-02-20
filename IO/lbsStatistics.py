@@ -19,7 +19,7 @@ for m in [
         globals()[has_flag] = False
 
 ########################################################################
-def Initialize():
+def initialize():
         
     # Seed pseudo-random number generator
     rnd.seed()

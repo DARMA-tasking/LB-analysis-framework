@@ -64,13 +64,15 @@ class LoadWriter:
             self.spacing = 1.0
 
     ####################################################################
-    def write(self, load_distributions):
+    def write(self, load_statistics, load_distributions):
         """Map processors to grid and write ExodusII file
         """
-
         # Retrieve epoch processors
         procs = self.epoch.processors
         n_p = len(procs)
+
+        # Create storage for statistics
+        stats = vtk.vtkFieldData()
 
         # Create storage for points at processors
         points = vtk.vtkPoints()
@@ -79,7 +81,18 @@ class LoadWriter:
         # Create storage for vertices at processors
         vertices = vtk.vtkCellArray()
 
-        # Create storage for processors loads
+        # Create and populate field data arrays for load statistics
+        stat_arrays = {}
+        for stat_name, stat_values in load_statistics.items():
+            # Create one singleton for each value of each statistic
+            for v in stat_values:
+                s_arr = vtk.vtkDoubleArray()
+                s_arr.SetNumberOfTuples(1)
+                s_arr.SetTuple1(0, v)
+                s_arr.SetName(stat_name)
+                stat_arrays.setdefault(stat_name, []).append(s_arr)
+
+        # Create attribute data arrays for processors loads
         load_arrays = []
         for _ in load_distributions:
             l_arr = vtk.vtkDoubleArray()
@@ -97,6 +110,7 @@ class LoadWriter:
         # Create grid streamer
         streamer = lbsGridStreamer.GridStreamer(points,
                                                 vertices,
+                                                stat_arrays,
                                                 load_arrays)
 
         # Write to ExodusII file

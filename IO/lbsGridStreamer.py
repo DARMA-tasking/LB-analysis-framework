@@ -21,26 +21,40 @@ class GridStreamer:
     """
 
   ####################################################################
-    def __init__(self, p, v, l):
+    def __init__(self, points, verts, field_arrays, data_arrays):
         """Class constructor
         """
 
         # Sanity checks
-        if not isinstance(p, vtk.vtkPoints):
-            print "*  WARNING: A vtkPoints instance is required as input"
+        self.Error = False
+        if not isinstance(points, vtk.vtkPoints):
+            print "** ERROR: A vtkPoints instance is required as points input"
             self.Error = True
             return
-        if not isinstance(v, vtk.vtkCellArray):
-            print "*  WARNING: A vtkCellArray instance is required as input"
+        if not isinstance(verts, vtk.vtkCellArray):
+            print "** ERROR: A vtkCellArray instance is required as vertices input"
             self.Error = True
             return
-        if not isinstance(l, list):
-            print "*  WARNING: A list of vtkDataArray instances is required as input"
+        if not isinstance(field_arrays, dict):
+            print "** ERROR: A dict of vtkDataArray instances is required as field data input"
+            self.Error = True
+        if not isinstance(data_arrays, list):
+            print "** ERROR: A list of vtkDataArray instances is required as cell/point data input"
             self.Error = True
             return
 
-        # Keep track of number of steps
-        n_steps = len(l)
+        # Keep track of requested number of steps
+        n_steps = len(data_arrays)
+
+        # More sanity checks
+        for f_name, f_list in field_arrays.items():
+            if n_steps != len(f_list):
+                print "** ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
+                    f_name,
+                    len(f_list),
+                    n_steps)
+                self.Error = True
+                return
 
         # Instantiate the streaming source
         print "[GridStreamer] Streaming {} load-balancing steps".format(n_steps)
@@ -53,25 +67,38 @@ class GridStreamer:
         info.Set(vtk.vtkStreamingDemandDrivenPipeline.TIME_STEPS(),
                  range(n_steps), n_steps)
         
-        # Implement request information method
+        # Implement RequestData() method for VTK pipeline
         def request_data_method():
+            # Retrieve information vector
             info = self.Algorithm.GetExecutive().GetOutputInformation().GetInformationObject(0)
-            i = info.Get(vtk.vtkStreamingDemandDrivenPipeline.UPDATE_TIME_STEP())
 
+            # Make the source is able to provide time steps
             output = self.Algorithm.GetPolyDataOutput()
-            output.Initialize()
-            output.GetInformation().Set(vtk.vtkDataObject.DATA_TIME_STEP(), i)
+            t_s = info.Get(vtk.vtkStreamingDemandDrivenPipeline.UPDATE_TIME_STEP())
+            output.GetInformation().Set(vtk.vtkDataObject.DATA_TIME_STEP(), t_s)
 
             # Assign topology and geometry to output
-            output.SetPoints(p)
-            output.SetVerts(v)
+            output.SetPoints(points)
+            output.SetVerts(verts)
 
-            # Assign data as both point and cell data
-            output.GetPointData().AddArray(l[int(i)])
-            output.GetCellData().AddArray(l[int(i)])
+            # Assign field, point, and cell data to output for timestep index
+            i = int(t_s)
+            for f_name, f_list in field_arrays.items():
+                if n_steps != len(f_list):
+                    print "** ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
+                        f_name,
+                        len(f_list),
+                        n_steps)
+                    self.Error = True
+                    return
+                output.GetFieldData().AddArray(f_list[i])
 
+            d_arr = data_arrays[i]
+            output.GetPointData().AddArray(d_arr)
+            output.GetCellData().AddArray(d_arr)
+
+        # Set VTK RequestData() to programmable source
         self.Algorithm.SetExecuteMethod(request_data_method)
-        self.Error = False
 
 ########################################################################
 
