@@ -15,7 +15,7 @@ for m in [
     except ImportError as e:
         print "*  WARNING: Failed to import " + m + ". {}.".format(e)
         globals()[has_flag] = False
- 
+
 from Model import lbsProcessor, lbsEpoch
 from IO    import lbsStatistics, lbsLoadWriter
 
@@ -105,18 +105,23 @@ class Runtime:
             # Transfer overloads for given relative threshold
             print "[RunTime] Transferring overloads above relative threshold of {}".format(r_threshold)
 
-            # Iterate over all processors and pick those above threshold load
+            # Iterate over processors and pick those with above threshold load
             l_thr = r_threshold * self.average_load
+            n_ignored = 0
+            n_transfers = 0
+            n_rejects = 0
             for p_src in procs:
                 # Skip overloaded processors unaware of underloaded ones
                 if not p_src.underloads:
+                    n_ignored += 1
                     continue
 
                 # Otherwise keep track if indices of underloaded processors
                 p_keys = p_src.underloads.keys()
 
                 # Compute excess load and attempt to transfer if any
-                l_exc = p_src.get_load() - l_thr
+                l_src = p_src.get_load()
+                l_exc = l_src - l_thr
                 if l_exc > 0.:
                     # Compute empirical CMF given known underloads
                     p_cmf = p_src.compute_cmf_underloads(self.average_load)
@@ -126,16 +131,18 @@ class Runtime:
                         print "\t proc_{} excess load = {}".format(
                             p_src.get_id(),
                             l_exc)
-                        print "\t CMF = {}".format(p_cmf)
+                        print "\t CMF_{} = {}".format(
+                            p_src.get_id(),
+                            p_cmf)
 
-                    # Offload objects as long as necessary and possible
+                    # Offload objects for as long as necessary and possible
                     obj_it = iter(p_src.objects)
                     while l_exc > 0.:
                         # Pick next object
                         try:
                             o = obj_it.next()
                         except:
-                            
+
                             # List of objects is exhausted, break out
                             break
 
@@ -147,7 +154,8 @@ class Runtime:
 
                         # Decide about proposed transfer
                         l_o = o.get_time()
-                        if p_dst.get_load() + l_o < self.average_load:
+                        #if p_dst.get_load() + l_o < 2. * self.average_load:
+                        if l_o < l_src - p_dst.get_load():
                             # Report on accepted object transfer when requested
                             if self.Verbose:
                                 print "\t\t transfering obj_{} ({}) to proc_{}".format(
@@ -160,18 +168,33 @@ class Runtime:
                             obj_it = iter(p_src.objects)
                             p_dst.objects.add(o)
                             l_exc -= l_o
+                            n_transfers +=1
                         else:
+                            # Transfer was declined
+                            n_rejects +=1
+
                             # Report on rejected object transfer when requested
                             if self.Verbose:
                                 print "\t\t proc_{2} declined transfer of obj_{0} ({1})".format(
                                     o.get_id(),
                                     l_o,
                                     i_dst)
-                            
+
+            # Report about what happened in that iteration
+            print "[RunTime] {} processors did not participate".format(n_ignored)
+            n_proposed = n_transfers + n_rejects
+            if n_proposed:
+                print "[RunTime] {} transfers occurred, {} were rejected ({}% of total)".format(
+                    n_transfers,
+                    n_rejects,
+                    100. * n_rejects / n_proposed)
+            else:
+                print "[RunTime] no transfers were proposed"
+
             # Append new load distribution to list
             loads = [p.get_load() for p in self.epoch.processors]
             self.load_distributions.append(loads)
-                
+
             # Compute and store descritptive statistics of load distribution
             _, l_min, _, l_max, l_var = lbsStatistics.compute_function_statistics(
                 self.epoch.processors,
@@ -184,5 +207,5 @@ class Runtime:
             l_imb = l_max / self.average_load - 1.
             print "[RunTime] Load imbalance = {}".format(l_imb)
             self.statistics["load imbalance"].append(l_imb)
-            
+
 ########################################################################

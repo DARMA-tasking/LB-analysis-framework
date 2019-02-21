@@ -186,6 +186,7 @@ def print_statistics(procs, key, verb=False):
         l_ave,
         l_max,
         math.sqrt(l_var))
+    print "[NodeGossiper] Load imbalance = {}".format(l_max / l_ave - 1.)
 
 ########################################################################
 if __name__ == '__main__':
@@ -206,8 +207,7 @@ if __name__ == '__main__':
     # Initialize random number generator
     lbsStatistics.initialize()
 
-    # Create an epoch and randomly generate it
-    epoch = lbsEpoch.Epoch()
+    # Create requested pseud-ramdom sampler
     if params.time_sampler == "uniform":
         sampler_params = [1.e-5, 1.e-1]
     elif params.time_sampler == "lognormal":
@@ -216,6 +216,8 @@ if __name__ == '__main__':
         print "** ERROR: unsupported sampler type {}".format(params.time_sampler)
         sys.exit(1)
 
+    # Create an epoch and randomly generate it
+    epoch = lbsEpoch.Epoch()
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     epoch.populate_from_sampler(params.n_objects,
                                 params.time_sampler,
@@ -236,7 +238,9 @@ if __name__ == '__main__':
                params.threshold)
 
     # Create mapping from processor to Cartesian grid
-    print "[NodeGossiper] Mapping {} processors into a {}x{}x{} rectilinear grid".format(n_p, *params.grid_size)
+    print "[NodeGossiper] Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
+        n_p,
+        *params.grid_size)
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
     # Instantiate epoch to ExodusII file writer
