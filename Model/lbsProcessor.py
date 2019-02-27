@@ -17,7 +17,7 @@ for m in [
     except ImportError as e:
         print "*  WARNING: Failed to import " + m + ". {}.".format(e)
         globals()[has_flag] = False
- 
+
 from Model import lbsObject
 
 ########################################################################
@@ -30,12 +30,15 @@ class Processor:
         # Member variables passed by constructor
         self.index   = i
         self.objects = set()
-        for obj in o: 
+        for obj in o:
             self.add_object(obj)
 
         # No underload information is known initially
         self.underloaded = set()
         self.underloads = {}
+
+        # No message was received initially
+        self.round_last_received = 0
 
     ####################################################################
     def get_id(self):
@@ -81,40 +84,33 @@ class Processor:
 
         # Initialize underload information at first pass
         if l < l_ave:
-            self.underloaded = set([self.index])
-            self.underloads[self.index] = l
-            
-            # Send underloads load to pseudo-random sample of procs
-            return rnd.sample(procs, f), (self.underloaded, self.underloads)
-            
+            self.underloaded = set([self])
+            self.underloads[self] = l
+
+            # Send underloads to pseudo-random sample of procs
+            n_procs = len(procs)
+            dests = rnd.sample(procs, f) if f < n_procs else rnd.sample(procs, n_procs)
+            return dests, (self.underloaded, self.underloads)
+
         # This processor is not underloaded if this point was reached
         return [], None
 
     ####################################################################
     def forward_underloads(self, procs, f):
-        """Formard underloads when received to sample of selected peers
+        """Formard underloads to sample of selected peers
         """
 
-        # Retrieve current load on this processor
-        l = self.get_load()
+        # Compute complement of set of underloaded processors
+        c_procs = procs.difference(self.underloaded)
 
-        # Propagate load only if needed
-        if l < l_ave:
-            # Initialize underload information at first pass
-            if not self.underloaded:
-                self.underloaded.add = set([self.index])
-                self.underloads[self.index] = l
-            
-            # Propagate load to pseudo-random sample of selected peers
-            selected = procs.difference(self.underloaded)
-            return rnd.sample(selected, f), (self.underloaded, self.underloads)
-
-        # This processor is not underloaded if this point was reached
-        return None, None
+        # Forward underloads to pseudo-random sample of procs
+        c_size = len(c_procs)
+        dests = rnd.sample(c_procs, f) if f < c_size else rnd.sample(c_procs, c_size)
+        return dests, (self.underloaded, self.underloads)
 
     ####################################################################
-    def process_message(self, msg):
-        """Update internal when message is received
+    def process_underload_message(self, msg, round_id):
+        """Update internals when underload message is received
         """
 
         # Sanity check
@@ -135,6 +131,9 @@ class Processor:
             print "** ERROR: cannot process message {} at processor {}. Exiting.".format(msg, self.get_id())
             sys.exit(1)
 
+        # Update last received message index
+        self.round_last_received = round_id
+
     ####################################################################
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
@@ -145,7 +144,7 @@ class Processor:
 
         # Distinguish between different PMF types
         if not pmf_type:
-            # Initialize ancillary values 
+            # Initialize ancillary values
             sum_p = 0.
             inv_l_ave = 1. / l_ave
 

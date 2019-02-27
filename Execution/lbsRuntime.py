@@ -3,6 +3,7 @@ lbsRuntime_module_aliases = {}
 for m in [
     "sys",
     "random",
+    "itertools",
     ]:
     has_flag = "has_" + m
     try:
@@ -75,6 +76,7 @@ class Runtime:
 
             # Initialize gossip process
             print "[RunTime] Spreading underload information with fanout = {}".format(f)
+            gossip_round = 1
             gossips = {}
             l_max = 0.
 
@@ -85,31 +87,64 @@ class Runtime:
                 p_snd.underloads = {}
 
                 # Collect message when destination list is not empty
-                dst, msg = p_snd.initialize_underloads(procs,
-                                                       self.average_load,
-                                                       f)
+                dst, msg = p_snd.initialize_underloads(procs, self.average_load, f)
                 for p_rcv in dst:
                     gossips.setdefault(p_rcv, []).append(msg)
 
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
-                map(p_rcv.process_message, msg_lst)
+                map(p_rcv.process_underload_message,
+                    msg_lst,
+                    [gossip_round] * len(msg_lst))
 
             # Report on current status when requested
             if self.Verbose:
                 for p in procs:
                     print "\t proc_{} knows of underloaded procs {}".format(
                         p.get_id(),
-                        p.underloaded)
+                        [p_u.get_id() for p_u in p.underloaded])
+
+
+            # Forward messages for as long as necessary and requested
+            while n_rounds > 1:
+                # Initiate next gossiping roung
+                print "[RunTime] Performing underload forwarding round {}".format(gossip_round)
+                gossip_round += 1
+                gossips.clear()
+
+                # Iterate over all processors
+                for p_snd in procs:
+                    # Check whether processor must relay previously received message
+                    if p_snd.round_last_received + 1 == gossip_round:
+                        # Collect message when destination list is not empty
+                        dst, msg = p_snd.forward_underloads(procs, f)
+                        for p_rcv in dst:
+                            gossips.setdefault(p_rcv, []).append(msg)
+
+                # Process all messages of first round
+                for p_rcv, msg_lst in gossips.items():
+                    map(p_rcv.process_underload_message,
+                        msg_lst,
+                        [gossip_round] * len(msg_lst))
+
+                # Report on current status when requested
+                if self.Verbose:
+                    for p in procs:
+                        print "\t proc_{} knows of underloaded procs {}".format(
+                            p.get_id(),
+                            [p_u.get_id() for p_u in p.underloaded])
+
+                # Decrease number of remaining gossiping rounds and proceed
+                n_rounds -= 1
 
             # Transfer overloads for given relative threshold
             print "[RunTime] Transferring overloads above relative threshold of {}".format(r_threshold)
-
-            # Iterate over processors and pick those with above threshold load
-            l_thr = r_threshold * self.average_load
             n_ignored = 0
             n_transfers = 0
             n_rejects = 0
+
+            # Iterate over processors and pick those with above threshold load
+            l_thr = r_threshold * self.average_load
             for p_src in procs:
                 # Skip overloaded processors unaware of underloaded ones
                 if not p_src.underloads:
@@ -147,10 +182,9 @@ class Runtime:
                             break
 
                         # Pseudo-randomly select destination proc
-                        i_dst = lbsStatistics.inverse_transform_sample(
+                        p_dst = lbsStatistics.inverse_transform_sample(
                             p_keys,
                             p_cmf)
-                        p_dst = self.epoch.processors[i_dst]
 
                         # Decide about proposed transfer
                         l_o = o.get_time()
@@ -161,7 +195,7 @@ class Runtime:
                                 print "\t\t transfering obj_{} ({}) to proc_{}".format(
                                     o.get_id(),
                                     l_o,
-                                    i_dst)
+                                    p_dst.get_id())
 
                             # Transfer object and decrease excess load
                             p_src.objects.remove(o)
@@ -178,7 +212,7 @@ class Runtime:
                                 print "\t\t proc_{2} declined transfer of obj_{0} ({1})".format(
                                     o.get_id(),
                                     l_o,
-                                    i_dst)
+                                    p_dst.get_id())
 
             # Report about what happened in that iteration
             print "[RunTime] {} processors did not participate".format(n_ignored)
