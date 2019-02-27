@@ -93,9 +93,7 @@ class Runtime:
 
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
-                map(p_rcv.process_underload_message,
-                    msg_lst,
-                    [gossip_round] * len(msg_lst))
+                map(p_rcv.process_underload_message, msg_lst)
 
             # Report on current status when requested
             if self.Verbose:
@@ -106,7 +104,7 @@ class Runtime:
 
 
             # Forward messages for as long as necessary and requested
-            while n_rounds > 1:
+            while gossip_round < n_rounds:
                 # Initiate next gossiping roung
                 print "[RunTime] Performing underload forwarding round {}".format(gossip_round)
                 gossip_round += 1
@@ -117,15 +115,13 @@ class Runtime:
                     # Check whether processor must relay previously received message
                     if p_snd.round_last_received + 1 == gossip_round:
                         # Collect message when destination list is not empty
-                        dst, msg = p_snd.forward_underloads(procs, f)
+                        dst, msg = p_snd.forward_underloads(gossip_round, procs, f)
                         for p_rcv in dst:
                             gossips.setdefault(p_rcv, []).append(msg)
 
                 # Process all messages of first round
                 for p_rcv, msg_lst in gossips.items():
-                    map(p_rcv.process_underload_message,
-                        msg_lst,
-                        [gossip_round] * len(msg_lst))
+                    map(p_rcv.process_underload_message, msg_lst)
 
                 # Report on current status when requested
                 if self.Verbose:
@@ -133,9 +129,6 @@ class Runtime:
                         print "\t proc_{} knows of underloaded procs {}".format(
                             p.get_id(),
                             [p_u.get_id() for p_u in p.underloaded])
-
-                # Decrease number of remaining gossiping rounds and proceed
-                n_rounds -= 1
 
             # Transfer overloads for given relative threshold
             print "[RunTime] Transferring overloads above relative threshold of {}".format(r_threshold)
