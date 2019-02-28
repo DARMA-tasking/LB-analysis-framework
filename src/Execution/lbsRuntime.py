@@ -181,8 +181,8 @@ class Runtime:
 
                         # Decide about proposed transfer
                         l_o = o.get_time()
-                        #if p_dst.get_load() + l_o < 2. * self.average_load:
-                        if l_o < l_src - p_dst.get_load():
+                        if p_dst.get_load() + l_o < self.average_load:
+                        #if l_o < l_src - p_dst.get_load():
                             # Report on accepted object transfer when requested
                             if self.Verbose:
                                 print "\t\t transfering obj_{} ({}) to proc_{}".format(
@@ -223,7 +223,7 @@ class Runtime:
             self.load_distributions.append(loads)
 
             # Compute and store descritptive statistics of load distribution
-            _, l_min, _, l_max, l_var = lbsStatistics.compute_function_statistics(
+            _, l_min, _, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
                 self.epoch.processors,
                 lambda x: x.get_load())
             self.statistics["minimum load"].append(l_min)
