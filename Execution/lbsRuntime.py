@@ -46,7 +46,7 @@ class Runtime:
             [p.get_load() for p in self.epoch.processors]]
 
         # Start by computing global load statistics to store average load
-        _, l_min, self.average_load, l_max, l_var = lbsStatistics.compute_function_statistics(
+        _, l_min, self.average_load, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
             self.epoch.processors,
             lambda x: x.get_load())
 

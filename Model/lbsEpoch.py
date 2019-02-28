@@ -47,9 +47,9 @@ class Epoch:
         """Use sampler to populate either all or n procs in an epoch
         """
 
-        # Retrieve desired time sampler
-        time_sampler = lbsStatistics.sampler(t_sampler,
-                                             sampler_params)
+        # Retrieve desired time sampler with its theoretical average
+        time_sampler, th_ave = lbsStatistics.sampler(t_sampler,
+                                                     sampler_params)
 
         # Create n_o objects with uniformly distributed times in given range
         print "[Epoch] Creating {} objects with {} pseudo-random times".format(
@@ -60,14 +60,16 @@ class Epoch:
             time_sampler()) for i in range(n_o)])
 
         # Compute and report object statistics
-        n_proc, t_min, t_ave, t_max, t_var = lbsStatistics.compute_function_statistics(
+        n_proc, t_min, t_mean, t_max, t_var, t_skw, t_krt = lbsStatistics.compute_function_statistics(
             obj,
             lambda x: x.get_time())
-        print "[Epoch] Object times: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g}".format(
+        print "[Epoch] Object times: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g} skew={:.6g} kurtex={:.6g}".format(
             t_min,
-            t_ave,
+            t_mean,
             t_max,
-            math.sqrt(t_var))
+            math.sqrt(t_var),
+            t_skw,
+            t_krt - 3)
 
         # Create n_p processors
         self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
@@ -95,6 +97,6 @@ class Epoch:
         # Compute and output global statistics
         print "[Epoch] Average object time: {} (theoretical: {})".format(
             lbsStatistics.compute_function_mean(obj, lambda x: x.get_time()),
-            .5 * (t_min + t_max))
+            th_ave)
 
 ########################################################################

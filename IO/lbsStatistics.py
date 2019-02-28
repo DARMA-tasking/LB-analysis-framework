@@ -38,7 +38,7 @@ def sampler(distribution_name, parameters):
             return None
 
         # Return uniform distribution over given interval
-        return lambda : rnd.uniform(parameters[0], parameters[1])
+        return lambda : rnd.uniform(parameters[0], parameters[1]), .5 * sum(parameters)
 
     # Log-normal distribution with given mean and variance
     if distribution_name.lower() == "lognormal":
@@ -54,14 +54,14 @@ def sampler(distribution_name, parameters):
         r = math.sqrt(m2 + v)
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
-
+        print parameters, mu, sigma
         # Return log-normal distribution with given mean and variance
-        return lambda : rnd.lognormvariate(mu, sigma)
+        return lambda : rnd.lognormvariate(mu, sigma), parameters[0]
 
     # Unsupported distribution type
     else:
         print "** ERROR: {} distribution is not supported."
-        return None
+        return None, None
 
 ########################################################################
 def inverse_transform_sample(values, cmf):
@@ -108,6 +108,8 @@ def compute_function_statistics(population, fct):
     f_max = - float('inf')
     f_ave = 0.
     f_ag2 = 0.
+    f_ag3 = 0.
+    f_ag4 = 0.
 
     # Stream population and to compute function statistics
     for x in population:
@@ -125,17 +127,23 @@ def compute_function_statistics(population, fct):
         if y > f_max:
             f_max = y
 
-        # Compute difference to mean
+        # Compute difference to mean and its inverse
         d = y - f_ave
+        A = d / n
 
-        # Update average
-        d_over_n = d / n
-        f_ave += d_over_n
+        # Update mean and difference to updated mean
+        f_ave += A
+        B = y - f_ave
 
-        # Update second order aggregate
-        f_ag2 += (n - 1) * d * d_over_n
+        # Update aggregates in this order as previous values required
+        r = n - 1
+        f_ag4 += A * (A * A * d * r * (n * (n - 3) + 3) + 6 * A * f_ag2 - 4 * f_ag3)
+        f_ag3 += A * (B * d * (n - 2) - 3 * f_ag2)
+        f_ag2 += d * B
 
-    # Return cardinality, min, mean, max, variance
-    return n, f_min, f_ave, f_max, f_ag2 / n
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis excess
+    var = f_ag2 / n
+    nvar = n * var
+    return n, f_min, f_ave, f_max, var, f_ag3 / (nvar * math.sqrt(var)), f_ag4 / (nvar * var) 
 
 ########################################################################

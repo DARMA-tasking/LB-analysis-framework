@@ -169,7 +169,7 @@ def print_statistics(procs, key, verb=False):
     key = key.title()
 
     # Compute statistics
-    n_proc, l_min, l_ave, l_max, l_var = lbsStatistics.compute_function_statistics(
+    n_proc, l_min, l_ave, l_max, l_var, l_skw, l_krt = lbsStatistics.compute_function_statistics(
         procs,
         lambda x: x.get_load())
 
@@ -180,12 +180,14 @@ def print_statistics(procs, key, verb=False):
             print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
 
     # Always print summary
-    print "[NodeGossiper] {} processor loads: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g}".format(
+    print "[NodeGossiper] {} processor loads: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g} skew={:.6g} kurtex={:.6g}".format(
         key,
         l_min,
         l_ave,
         l_max,
-        math.sqrt(l_var))
+        math.sqrt(l_var),
+        l_skw,
+        l_krt - 3)
     print "[NodeGossiper] Load imbalance = {}".format(l_max / l_ave - 1.)
 
 ########################################################################
