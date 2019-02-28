@@ -1,0 +1,15 @@
+Here we discuss the original \emph{informed transfer} algorithm of the
+\textsf{Grapevine} algorithm. We begin with line 6 of said algorithm:
+\[
+\mathtt{6:} \qquad \mathrm{\mathbf{if}} \; (L_X + load(O_i) < L_{avg})
+\; \mathrm{\mathbf{then}}
+\]
+
+This is motivated by our observations with our first experiments with
+a strict \textsf{Grapevine} implementation of a high rejection rate of
+this condition. Furthermore, this rejection rate only slowly and
+marginally decreased with the increase in the number of
+\emph{gossiping rounds} ($k$) in the first phase (gossip algorithm) of
+\textsf{Grapevine}. 
+
+

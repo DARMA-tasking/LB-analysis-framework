@@ -1,0 +1,77 @@
+In fact, we noticed that this finding can be explained by the fact
+that the condition set forth in the algorithm for each overloaded
+processor:
+\[
+\mathtt{4:} \quad \mathrm{\mathbf{while}} \; (L_i > (T \times L_{avg}))
+\]
+mandates that, after a variable number of iterations, each overloaded
+processor no longer is, up to a certain relative threshold $T$.
+This implies that, in the worst case, after completion of this loop,
+\begin{equation}
+\label{eq:imbalance}
+L_{\max} \le T \times L_{avg}
+\quad \Longleftrightarrow \quad
+\mathcal{I_P} < T - 1
+\end{equation}
+where $\mathcal{I}_D$ is the load imbalance of the distribution $D$ of
+objects across the entire set of processors. This amounts to
+saying that the objective function 
+that the algorithm tries to minimize is $F(P)=\mathcal{I_P}-T+1$ and
+stops when it reaches 0 (we observe that $L_{avg}$ is by definition a
+constant as no loss or gain of load may occur globally).
+
+The criterion in line \texttt{6} of the original algorithm does indeed
+guarantee that $L_{\max}$ can only decrease after a load transfer has
+occurred, as no underloaded processor may become overloaded. As a
+result, the new value of $F$ resulting from a transfer can only be
+smaller or equal to the preceding one.
+However, there is an important \emph{caveat} here, which is that all
+objects $O_i$ belonging to $p_i$ are tried until their (finite) list
+exhausted, ensuring termination of the while-loop in finite time --
+but this does not guarantee that \emph{any} transfer will have
+occurred. In order to ensure swift convergence of the algorithm, we
+therefore ought to minimize the \emph{rejection} rate of line
+\texttt{6}. 
+
+an overload transfer,  of the original algorithm is that,
+while it guarantees decreasing overloads while preventing 
+
+has only one variable ($L_{\max}$), i.e., the maximum norm of the
+loads, while the decision criterion enforces strict monotonicity for
+each underloaded processors (this should be compatible with a
+taxicab norm on the subset of underloaded processors).
+
+We firstly establish the following result
+\par\textbf{Proposition:}\\
+The following criterion:
+\[
+\mathtt{6:} \qquad \mathrm{\mathbf{if}} \; load(O_i) < L_i - L_X
+\; \mathrm{\mathbf{then}}
+\]
+is optimal for the considered objective function when $T=1$.
+\par\textit{Proof:}\\
+Consider a strictly overloaded processor $p_i$ and a strictly
+underloaded one $p_X$ in a set of processors $P$, whose \emph{local
+imbalance} 
+
+with global imbalance
+$\mathcal{I}_P$, with respective loads $L_i$ and $L_X$.
+By definition, 
+\[
+\frac{L_X}{L_{ave}} - 1 < \frac{L_i}{L_{ave}} - 1 \le \mathcal{I}
+\]
+with equality of the second inequality if and only if $P_i$ belongs to
+the subset of the most overloaded processors. Therefore, the local
+imbalance of these two processors is given by
+
+Consider now an objet $O\in P_i$, with contribution $l_O$ to $L_i$,
+which is transferred from $P_i$ to $P_X$. Denoting $\mathcal{I}_k$ the
+ of any given processor $P_k$, 
+enforce the following monotonicity condition:
+\[
+\mathcal{I}' \le \mathcal{I}
+\]
+which is equivalent to
+\[
+\mathcal{I}' \le \mathcal{I}
+\]
