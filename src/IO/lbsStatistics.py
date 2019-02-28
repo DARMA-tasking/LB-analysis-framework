@@ -54,7 +54,7 @@ def sampler(distribution_name, parameters):
         r = math.sqrt(m2 + v)
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
-        print parameters, mu, sigma
+
         # Return log-normal distribution with given mean and variance
         return lambda : rnd.lognormvariate(mu, sigma), parameters[0]
 
