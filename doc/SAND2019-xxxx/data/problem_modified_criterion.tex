@@ -1,0 +1,82 @@
+In fact, we noticed that this finding can be explained by the fact
+that the condition set forth in the algorithm for each overloaded
+processor:
+\[
+\mathtt{4:} \quad \mathrm{\mathbf{while}} \; (L_i > (T \times L_{avg}))
+\]
+mandates that, after a variable number of iterations, each overloaded
+processor no longer is, up to a certain relative threshold $T$.
+This implies that, in the worst case, after completion of this loop,
+\[
+\label{eq:imbalance}
+L_{\max} \le T \times L_{avg}
+\quad \Longleftrightarrow \quad
+\mathcal{I_P} < T - 1
+\]
+where $\mathcal{I}_D$ is the load imbalance of the distribution $D$ of
+objects across the entire set of processors. This amounts to
+saying that the objective function that the algorithm aims to minimize
+is $F(D)=\mathcal{I_D}-T+1$, and that a sufficient stopping criterion
+if $F(D)\ge0$ (we observe that $L_{avg}$ is by definition a constant
+as no loss or gain of load may occur globally). 
+
+However, $F(D)\ge0$ is by no means necessary, and it fact if it were,
+there would be no guarantee that the algorithm would terminate in
+finite time. This is however ensured by the fact that, given an
+underloaded processor, the criterion of line \texttt{6} is tested for
+all of its objects, of which there is only a finite number.
+While this ensures termination of the while-loop in finite time --
+this does not guarantee that \emph{any} transfer will have occurred at
+all.
+
+We now illustrate this problem with one representative test case
+with $o=10^4$ objects initially distributed across $p=2^4$
+amongst $n=2^{12}$ processors, of $i=10$ iterations of the original
+Grapevine algorithm (via our \textsf{NodeGossiper} simulator), each of
+each having $k=10$ gossiping rounds, with an overload threshold of
+$T=1.0$ and a fanout factor of $f=6$.
+We observe the following rejection rates caused by the criterion of line \texttt{6}:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\hline
+iteration & transfers & rejected & rejection rate\\
+(index)   & (number)  & (number) & (\%)\\
+\hline\hline
+ 1 & 9084 & 154931 & 94.46\\
+ 2 &    4 &   1654 & 99.76\\
+ 3 &    1 &   1130 & 99.91\\
+ 4 &    7 &   2682 & 99.74\\
+ 5 &    6 &   2396 & 99.75\\
+ 6 &    2 &   1143 & 99.83\\
+ 7 &    1 &   1041 & 99.90\\
+ 8 &    0 &    882 & 100.0\\
+ 9 &    0 &    882 & 100.0\\
+10 &    3 &   1405 & 99.79\\
+\hline
+\end{tabular}
+\end{center}
+These immediately hint at the fact that the decision criterion is too
+tight. And indeed, it enforces strict monotony for each of the
+underloaded processors; in other words, it uses the ``taxicab'' norm
+($\vert\vert\cdot\vert\vert_1$) to minimize in the
+$\vert\vert\cdot\vert\vert_\infty$ sense: this criterion is therefore
+not adapted to considered minimization problem.
+Another way to look at the problem is to see it as an attempt to
+decrease the load of underloaded processors while never allowing a
+single underloaded one to become overloaded -- even when this may
+improve the global imbalance.
+
+As a result, these almost full rejection rates, limits load-balancing
+to a noticeable decrease of $\mathcal{I}$ during the
+first iteration of the algorithm, after which esssentially no further
+improvements occur while $\mathcal{I}$ remains stuck in a local
+minimum. Furthermore, increasing $k$ and allowing for higher values of
+$T$ does not substantially affect the outcome on average (with the
+exception of the occasional convergence due to a nice original layout).
+This is illustrated in
+Figure~\ref{Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0}.
+
+
+
+

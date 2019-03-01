@@ -1,77 +1,155 @@
-In fact, we noticed that this finding can be explained by the fact
-that the condition set forth in the algorithm for each overloaded
-processor:
+In order to ensure a faster convergence of the algorithm, we propose
+the following adapted criterion:
+\par\textbf{Lemma~1:}\\
+The following alternate criterion:
 \[
-\mathtt{4:} \quad \mathrm{\mathbf{while}} \; (L_i > (T \times L_{avg}))
-\]
-mandates that, after a variable number of iterations, each overloaded
-processor no longer is, up to a certain relative threshold $T$.
-This implies that, in the worst case, after completion of this loop,
-\begin{equation}
-\label{eq:imbalance}
-L_{\max} \le T \times L_{avg}
-\quad \Longleftrightarrow \quad
-\mathcal{I_P} < T - 1
-\end{equation}
-where $\mathcal{I}_D$ is the load imbalance of the distribution $D$ of
-objects across the entire set of processors. This amounts to
-saying that the objective function 
-that the algorithm tries to minimize is $F(P)=\mathcal{I_P}-T+1$ and
-stops when it reaches 0 (we observe that $L_{avg}$ is by definition a
-constant as no loss or gain of load may occur globally).
-
-The criterion in line \texttt{6} of the original algorithm does indeed
-guarantee that $L_{\max}$ can only decrease after a load transfer has
-occurred, as no underloaded processor may become overloaded. As a
-result, the new value of $F$ resulting from a transfer can only be
-smaller or equal to the preceding one.
-However, there is an important \emph{caveat} here, which is that all
-objects $O_i$ belonging to $p_i$ are tried until their (finite) list
-exhausted, ensuring termination of the while-loop in finite time --
-but this does not guarantee that \emph{any} transfer will have
-occurred. In order to ensure swift convergence of the algorithm, we
-therefore ought to minimize the \emph{rejection} rate of line
-\texttt{6}. 
-
-an overload transfer,  of the original algorithm is that,
-while it guarantees decreasing overloads while preventing 
-
-has only one variable ($L_{\max}$), i.e., the maximum norm of the
-loads, while the decision criterion enforces strict monotonicity for
-each underloaded processors (this should be compatible with a
-taxicab norm on the subset of underloaded processors).
-
-We firstly establish the following result
-\par\textbf{Proposition:}\\
-The following criterion:
-\[
-\mathtt{6:} \qquad \mathrm{\mathbf{if}} \; load(O_i) < L_i - L_X
+\mathtt{6':} \qquad \mathrm{\mathbf{if}} \; load(O_i) < L_i - L_X
 \; \mathrm{\mathbf{then}}
-\]
-is optimal for the considered objective function when $T=1$.
+\] 
+ensures that the objective function $F$ monotonically decreases.
 \par\textit{Proof:}\\
 Consider a strictly overloaded processor $p_i$ and a strictly
-underloaded one $p_X$ in a set of processors $P$, whose \emph{local
-imbalance} 
+underloaded one $p_X$ in an processor/object distribution $D$, with
+respective loads $L_i$ and $L_X$.
+Consider also an object $O_i\in{p_i}$ such that $\ell=load(O_i) <
+L_i-L_X$ (both sides being necessarily positive by hypothesis on
+loads); we can thus distinguish the two following disjoint cases:
 
-with global imbalance
-$\mathcal{I}_P$, with respective loads $L_i$ and $L_X$.
-By definition, 
+\begin{enumerate}
+\item
+If $\ell \le \frac{1}{2}(L_i-L_X)$, then $L_i-\ell\ge{}L_X+\ell$ and
+thus $L_X+\ell\le L_i-\ell < L_i$.
+\item
+If $\ell > \frac{1}{2}(L_i-L_X)$, then $L_i-\ell<L_X+\ell$ and
+thus $L_i-\ell < L_X+\ell < L_i \Leftrightarrow \ell < L_i - L_X.$
+\end{enumerate}
+Therefore, we can assert that, overall,
+$\max{(L_i-\ell, L_X+\ell)} < L_i \Leftrightarrow \ell < L_i - L_X$.
+Now, recall that
 \[
-\frac{L_X}{L_{ave}} - 1 < \frac{L_i}{L_{ave}} - 1 \le \mathcal{I}
+F(D) = \frac{L_{\max}}{L_{ave}} - T
+\ge \frac{L_i}{L_{ave}} - T,
 \]
-with equality of the second inequality if and only if $P_i$ belongs to
-the subset of the most overloaded processors. Therefore, the local
-imbalance of these two processors is given by
+with equality if and only if $p_i$ is such that $L_i=L_{\max}$ in $D$
+(i.e., it has maximum load in the original distribution).
+Therefore, $\ell<L_i-L_X$ ensures that
+\begin{equation}
+\label{eq:imbalance-change}
+\frac{\max{(L_i-\ell, L_X+\ell)}}{L_{ave}} -T
+< \frac{L_i}{L_{ave}} - T \le F(D)
+\end{equation}
+Finally, when considering the new processor/load distribution $D'$ that
+results from the transfer of $O_i$ from $p_i$ to $p_X$, and denoting
+$L_i'=L_i-\ell$ and $L_X'=L_X+\ell$ their respective new loads, we are faced
+with a trichotomy of possible cases (the two first ones are not necessarily disjoint):
+\begin{enumerate}
+\item
+If $p_i$ is such that $L_i'=L_{\max}'$ in $D'$ (i.e., $p_i$ has
+maximum load in the new distribution), then
+$\max{(L_i-\ell,L_X+\ell)}=L_i-\ell=L_i'$ and
+(\ref{eq:imbalance-change}) yields: 
+\[
+F(D') = \frac{L_{\max}'}{L_{ave}} - T
+ = \frac{L_i'}{L_{ave}} - T = \frac{L_i -\ell}{L_{ave}} - T
+< \frac{L_i}{L_{ave}} - T \le F(D)
+\]
+\item
+If $p_X$ is such that $L_X'=L_{\max}'$ in $D'$ (i.e., $p_X$ has
+maximum load in the new distribution), then
+$\max{(L_i-\ell,L_X+\ell)}=L_X+\ell=L_X'$ and
+(\ref{eq:imbalance-change}) yields: 
+\[
+F(D') = \frac{L_{\max}'}{L_{ave}} - T
+ = \frac{L_X'}{L_{ave}} - T  = \frac{L_X+\ell}{L_{ave}} - T
+< \frac{L_i}{L_{ave}} - T \le F(D)
+\]
+\item 
+If a processor $p_Y\not\in\{p_i,p_X\}$ is such that $L_Y'=L_{\max}'$
+in $D'$ (i.e., neither $p_i$ nor $p_X$ have maximum load in the new
+distribution), then necessarily $L_Y'=L_Y$ because the transfer did not
+affect $p_Y$, and thus necessarily $L_Y'\le{}L_i$ and
+(\ref{eq:imbalance-change}) yields: 
+\[
+F(D') = \frac{L_{\max}'}{L_{ave}} - T
+ = \frac{L_Y'}{L_{ave}} - T  = \frac{L_Y}{L_{ave}} - T
+\le \frac{L_i}{L_{ave}} - T \le F(D).
+\]
+Furthermore, in this case, 
+$\frac{L_Y}{L_{ave}}-T\le\frac{L_i}{L_{ave}}-T$ is \emph{not} strict
+if and only if $P_Y$ also had maximum load in $D$; because there is
+only a finite number of such maximally-overloaded processors, we are
+guaranteed that in a finite number of iterations the inequality will
+become strict.
+\end{enumerate}
+We can therefore conclude that, overall,
+\[
+\ell < L_i - L_X \Longrightarrow F(D') < F(D).
+\]
+\hfill\qed\\
 
-Consider now an objet $O\in P_i$, with contribution $l_O$ to $L_i$,
-which is transferred from $P_i$ to $P_X$. Denoting $\mathcal{I}_k$ the
- of any given processor $P_k$, 
-enforce the following monotonicity condition:
+We remark that the new, modified criterion can be equivalently written
+as
 \[
-\mathcal{I}' \le \mathcal{I}
+\mathtt{6':} \qquad \mathrm{\mathbf{if}} \; L_X + load(O_i) < L_i
+\; \mathrm{\mathbf{then}}
 \]
-which is equivalent to
+which is indeed less strict than the the original one, for it allows,
+in particular, one underloaded processor to land in overloaded
+territory after a transfer. However, what is ensured is the maximum
+norm will not increase.
+In addition, Lemma~1 ensures that, as long as one can find at least
+one object satisfying this criterion on at least one overloaded
+processor, then the optimization can continue. However, once it is no
+longer possible to find such a combination, then $F$ may no longer
+decrease: this new criterion thus also provides a stopping criterion.
+
+While this criterion will provide more opportunities for overload
+transfers than the original one, one may wonder whether it could not
+be further relaxed, hereby allowing for even lower rejection rates.
+This question is quicly answered by the following, with the same
+notations a in Lemma~1:
+\par\textbf{Lemma~2:}\\
+If $p_i$ is a processor with maximum load in $D$, and
 \[
-\mathcal{I}' \le \mathcal{I}
+(\exists O_i \in p_i)\; (\exists p_X \in D) \quad \ell = load(O_i) \ge{} L_i - L_X
 \]
+then if $O_i$ is transferred from $p_X$ to $p_i$, the objective
+function $F$ does not decrease (and possibly increases).
+\par\textit{Proof:}\\
+If $p_i$ has maximum load in the object/load distribution $D$, and one
+can find $O_i\in{}p_i$ and $p_X\in{}D$, then by definition of $F$ one
+has, on one hand:
+\[
+\frac{L_X + \ell}{L_{ave}} - T \ge \frac{L_i}{L_{ave}} - T = F(D).
+\]
+On the other hand, in the new distribution $D'$ obtained by
+transferring $O_i$ from $p_i$ to $p_X$, one has:
+\[
+\frac{L_X + \ell}{L_{ave}} - T = \frac{L_X'}{L_{ave}}
+\le \frac{\max{L_{\cdot}'}}{L_{ave}} - T = F(D').
+\]
+Combining the two anove inequalities thus yields
+$F(D')\ge{}F(D)$. Furthermore, if $(O_i,p_x)$ is such that $L_X'$ is
+not a maximally-overloaded processor in the new distribution, then the
+latter inequality is strict, in which case $F$ increases.
+\hfill\qed.\\
+As a result of Lemma~1 and Lemma~2, we can now assert the following:
+\par\textbf{Proposition [Optimal Load-Transfer Criterion]:}\\
+The following alternate criterion:
+\[
+\mathtt{6':} \qquad \mathrm{\mathbf{if}} \; load(O_i) < L_i - L_X
+\; \mathrm{\mathbf{then}}
+\] 
+is optimal for the load transfer strategy of Algorithm~2.
+\par\textit{Proof:}\\
+From Lemma~1 we know that this alternate criterion ensures monotonic
+is sufficient to ensure that $F$ monotonically decrease.
+
+Furthermore, from Lemma~2 we know that is this criterion is not
+verified for at least one particular case, then $F$ will no longer
+monotonically decrease (and will possibly increase if $(O_i,p_X)$ is
+such that $L_X'$ is not maximal in $D'$.
+
+Therefore, alternate criterion \texttt{6'}, being necessary and
+sufficient, is optimal for the considered optimization strategy.
+\hfill\qed.\\

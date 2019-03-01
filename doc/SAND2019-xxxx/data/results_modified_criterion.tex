@@ -1,9 +1,60 @@
-We now present, in Figures~\ref{f1} and~\ref{f2}, the comparative behaviors in
-both terms of load imbalance and maximum load, in the case of $o=10^4$
-objects initially distributed across $p=2^4$ amongst $n=2^{12}$
-processors, of the \textsf{NodeGossiper} simulator with an overload
-threshold of $t=1.0$ and a fanout factor of $f=6$.
+We now study the results of the modified algorithm, with alternate
+criterion \texttt{6'}, when used in the \textsf{NodeGossiper}
+simulator for the same case as above.
 
-We note that the object times were pseudo-randomly generated with uniform
-sampling in $[10^{-5};10^{-1}]$, and that the $o$ objects were also
-uniformly pseudo-randomly assigned to a subset of $p$ processors.
+The new acceptance/rejection results are as follows:
+\begin{center}
+\begin{tabular}{lrrr}
+\hline
+iteration & transfers & rejected & rejection rate\\
+(index)   & (number)  & (number) & (\%)\\
+\hline\hline
+ 1 & 11292 &  648 & 5.427\\
+ 2 &  4044 & 3603 & 47.12\\
+ 3 &  2201 & 3412 & 60.79\\
+ 4 &  1324 & 3586 & 73.03\\
+ 5 &   765 & 3171 & 80.56\\
+ 6 &   410 & 2969 & 87.87\\
+ 7 &   247 & 2794 & 91.88\\
+ 8 &   159 & 2749 & 94.53\\
+ 9 &   120 & 2682 & 95.72\\
+10 &    72 & 2643 & 97.35\\
+\hline
+\end{tabular}
+\end{center}
+
+In contrast to what was happening with the original criterion
+\texttt{6}, we see now that the rejection rate is almost null
+initially, then slowly increases as the global imbalance rapidly decreases.
+In fact, with already more than acceptable values of $\mathcal{I}$,
+additional iterations continue to improve the outcome, hereby
+experimentally validating the preceding theoretical results. This is
+examplified by comparing the values of $\mathcal{I}$ in both cases:
+\begin{center}
+\begin{tabular}{lrr}
+\hline
+iteration & criterion \texttt{6}  & criterion \texttt{6'} \\
+(index)   & ($\mathcal{I}$) & ($\mathcal{I}$) \\
+\hline\hline
+ 0 & 280 &   280\\
+ 1 & 187 &  3.34\\
+ 2 & 187 &  1.60\\
+ 3 & 187 & 0.873\\
+ 4 & 185 & 0.632\\
+ 5 & 183 & 0.632 \\
+ 6 & 183 & 0.626 \\
+ 7 & 183 & 0.626 \\
+ 8 & 183 & 0.626 \\
+ 9 & 182 & 0.626 \\
+10 & 182 & 0.623 \\
+\hline
+\end{tabular}
+\end{center}
+We note, in particular, that the modified algorithm has not fully run
+its course after iteration $10$, and continues to improve
+$\mathcal{I}$, albeit modestly, while the original algorithm has
+essentially converged to a very sub-optimal local minimum and is no
+longer able to improve the overall imbalance after a few steps.
+This is illustrated 
+
+

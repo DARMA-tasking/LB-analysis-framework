@@ -10,11 +10,31 @@ chapters:
     include: informed_transfer.tex
     sections:
     - n: tex_subsection
-      title: A Compatible Decision Criterion
+      title: Convergence Problems
+      include: problem_modified_criterion.tex
+      sections:
+      - n: tex_figure
+        arguments:
+          width: 14cm
+          figure_file: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
+          caption_file: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
+          label: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
+    - n: tex_subsection
+      title: An Optimal Decision Criterion
       include: theory_modified_criterion.tex
     - n: tex_subsection
       title: Results with Modified Criterion
       include: results_modified_criterion.tex
+      sections:
+      - n: tex_figure
+        arguments:
+          width: 14cm
+          figure_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
+          caption_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
+          label: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
+    - n: tex_subsection
+      title: Rounds vs. Iterations
+      include: comparison-i-k.tex
       sections:
       - n: tex_figure
         arguments:

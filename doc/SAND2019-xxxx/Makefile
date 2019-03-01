@@ -2,13 +2,19 @@ ARG_PATH=/Users/pppebay/Documents/Git/arg/src
 DOC_NAME=SAND2019-LBS
 
 DATA=\
+	data/Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png \
+	data/Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex \
+	data/NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png \
+	data/NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex \
 	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png \
 	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png \
 	data/abstract.tex \
 	data/introduction.tex \
 	data/informed_transfer.tex \
+	data/problem_modified_criterion.tex \
 	data/theory_modified_criterion.tex \
-	data/results_modified_criterion.tex
+	data/results_modified_criterion.tex \
+	data/comparison-i-k.tex
 
 all: $(DOC_NAME).pdf
 
