@@ -41,10 +41,10 @@ chapters:
           width: 12cm
           figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.tex
-          label: f1
+          label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s
       - n: tex_figure
         arguments:
           width: 12cm
           figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.tex
-          label: f2
+          label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s
