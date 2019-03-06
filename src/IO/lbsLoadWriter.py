@@ -116,9 +116,11 @@ class LoadWriter:
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print "**  ERROR: Failed to instantiate a grid streamer for \"{}\"".format(self.file_name)
+            print "**  ERROR: Failed to instantiate a grid streamer for file {}".format(
+                self.file_name)
         else:
-            print "[LoadWriter] Writing ExodusII mesh \"{}\"".format(self.file_name)
+            print "[LoadWriter] Writing ExodusII file: {}".format(
+                self.file_name)
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())

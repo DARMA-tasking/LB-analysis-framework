@@ -51,7 +51,7 @@ class ggParameters:
         self.n_objects = 1
 
         # Object time sampler type
-        self.time_sampler = "uniform"
+        self.time_sampler = None
 
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_processors = 0
@@ -66,7 +66,7 @@ class ggParameters:
         self.threshold = 1.
 
         # Base name for reading VT log files to obtain load distribution
-        self.log_file = ""
+        self.log_file = None
 
     ####################################################################
     def usage(self):
@@ -146,6 +146,12 @@ class ggParameters:
             elif o == "-l":
                 self.log_file = a
 
+	# Ensure that at least one population strategy was chosen
+        if not (self.log_file or self.time_sampler):
+            print "** ERROR: a strategy to populate original epoch must be chosen."
+            self.usage()
+            return True
+
 	# No line parsing error occurred
         return False
 
@@ -212,32 +218,32 @@ if __name__ == '__main__':
     if params.parse_command_line():
        sys.exit(1)
 
-    nprocs = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-
-    if nprocs < 2:
-        print "** ERROR: Total number of procs must be > 1"
+    # Keep track of total number of procs
+    n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
+    if n_p < 2:
+        print "** ERROR: Total number of processors ({}) must be > 1".format(n_p)
         sys.exit(1)
 
     # Initialize random number generator
     lbsStatistics.initialize()
 
-    # Create requested pseud-ramdom sampler
-    if params.time_sampler == "uniform":
-        sampler_params = [1.e-5, 1.e-1]
-    elif params.time_sampler == "lognormal":
-        sampler_params = [5.0005e-2, 8.33e-4]
-    else:
-        print "** ERROR: unsupported sampler type {}".format(params.time_sampler)
-        sys.exit(1)
-
-    # Create an epoch and randomly generate it
+    # Create an epoch and populate it
     epoch = lbsEpoch.Epoch()
-    n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-    print n_p
-    if params.log_file != "":
-        print "log file={}".format(params.log_file)
+    if params.log_file:
+        # Populate epoch from log files
+        print "[NodeGossiper] Reading log file: {}".format(params.log_file)
         epoch.populate_from_log(n_p, params.log_file)
     else:
+        # Create requested pseud-ramdom sampler
+        if params.time_sampler == "uniform":
+            sampler_params = [1.e-5, 1.e-1]
+        elif params.time_sampler == "lognormal":
+            sampler_params = [5.0005e-2, 8.33e-4]
+        else:
+            print "** ERROR: unsupported sampler type {}".format(params.time_sampler)
+            sys.exit(1)
+
+        # Populate epoch pseudo-randomly
         epoch.populate_from_sampler(params.n_objects,
                                     params.time_sampler,
                                     sampler_params,
