@@ -65,6 +65,9 @@ class ggParameters:
         # Relative overload threshold for load transfer
         self.threshold = 1.
 
+        # Base name for reading VT log files to obtain load distribution
+        self.log_file = ""
+
     ####################################################################
     def usage(self):
         """Provide online help
@@ -81,6 +84,7 @@ class ggParameters:
         print "\t [-f <fo>]   gossiping fan-out value"
         print "\t [-t <rt>]   overload relative threshold"
         print "\t [-s <st>]   time sampler (uniform or lognormal)"
+        print "\t [-l <base>] base file name for reading VT load log files"
         print "\t [-v]        make standard output more verbose"
         print "\t [-h]        help: print this message and exit"
 
@@ -91,7 +95,7 @@ class ggParameters:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hk:n:o:p:s:t:vx:y:z:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hk:n:o:p:s:t:vx:y:z:l:")
         except getopt.GetoptError:
             print "** ERROR: incorrect command line arguments."
             self.usage()
@@ -139,6 +143,8 @@ class ggParameters:
                 x = float(a)
                 if x > 1.:
                     self.threshold = x
+            elif o == "-l":
+                self.log_file = a
 
 	# No line parsing error occurred
         return False
@@ -227,11 +233,16 @@ if __name__ == '__main__':
     # Create an epoch and randomly generate it
     epoch = lbsEpoch.Epoch()
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-    epoch.populate_from_sampler(params.n_objects,
-                                params.time_sampler,
-                                sampler_params,
-                                n_p,
-                                params.n_processors)
+
+    if params.log_file != "":
+        print "log file={}".format(params.log_file)
+        epoch.populate_from_log(n_p, params.log_file)
+    else:
+        epoch.populate_from_sampler(params.n_objects,
+                                    params.time_sampler,
+                                    sampler_params,
+                                    n_p,
+                                    params.n_processors)
 
     # Compute and print initial load information
     print_statistics(epoch.processors,
