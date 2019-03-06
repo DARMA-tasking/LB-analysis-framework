@@ -20,7 +20,7 @@ for m in [
 
 from Model import lbsObject, lbsProcessor
 from IO    import lbsStatistics
- 
+
 ########################################################################
 class Epoch:
     """A class representing the state of collection of processors with

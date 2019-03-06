@@ -20,7 +20,7 @@ for m in [
 
 ########################################################################
 def initialize():
-        
+
     # Seed pseudo-random number generator
     rnd.seed()
 
