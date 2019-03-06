@@ -28,12 +28,15 @@ class Epoch:
     """
 
     ####################################################################
-    def __init__(self, p=[]):
+    def __init__(self, p=[], iter=0):
         # List of processors may be passed by constructor
         self.processors = p
 
         # Initialize gossiping round
         self.round_index = 0
+
+        # Iteration/phase of this epoch
+        self.iteration = iter
 
     ####################################################################
     def get_processors_ids(self):
@@ -41,6 +44,13 @@ class Epoch:
         """
 
         return [p.get_id() for p in self.processors]
+
+    ####################################################################
+    def get_iter(self):
+        """Retrieve the iteration for this epoch
+        """
+
+        return self.iteration
 
     ####################################################################
     def populate_from_sampler(self, n_o, t_sampler, sampler_params, n_p, s_s=0):
@@ -104,5 +114,5 @@ class Epoch:
         """Populate this epoch by reading in a load profile from log files
         """
         reader = lbsLoadReaderVT.LoadReader(basename)
-        self.processors = reader.read_iter(n_p)
+        self.processors = reader.read_iter(n_p, self.iteration)
 ########################################################################
