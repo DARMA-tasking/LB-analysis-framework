@@ -45,7 +45,7 @@ with a trichotomy of possible cases (the two first ones are not necessarily disj
 \begin{enumerate}
 \item
 If $p_i$ is such that $L_i'=L_{\max}'$ in $D'$ (i.e., $p_i$ has
-maximum load in the new distribution), then
+maximum load in the new distribution $D'$), then
 $\max{(L_i-\ell,L_X+\ell)}=L_i-\ell=L_i'$ and
 (\ref{eq:imbalance-change}) yields: 
 \[
@@ -55,7 +55,7 @@ F(D') = \frac{L_{\max}'}{L_{ave}} - T
 \]
 \item
 If $p_X$ is such that $L_X'=L_{\max}'$ in $D'$ (i.e., $p_X$ has
-maximum load in the new distribution), then
+maximum load in the new distribution $D'$), then
 $\max{(L_i-\ell,L_X+\ell)}=L_X+\ell=L_X'$ and
 (\ref{eq:imbalance-change}) yields: 
 \[
@@ -66,7 +66,7 @@ F(D') = \frac{L_{\max}'}{L_{ave}} - T
 \item 
 If a processor $p_Y\not\in\{p_i,p_X\}$ is such that $L_Y'=L_{\max}'$
 in $D'$ (i.e., neither $p_i$ nor $p_X$ have maximum load in the new
-distribution), then necessarily $L_Y'=L_Y$ because the transfer did not
+distribution $D'$), then necessarily $L_Y'=L_Y$ because the transfer did not
 affect $p_Y$, and thus necessarily $L_Y'\le{}L_i$ and
 (\ref{eq:imbalance-change}) yields: 
 \[
