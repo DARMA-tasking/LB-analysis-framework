@@ -1,5 +1,5 @@
 ########################################################################
-lbsLoadWriter_module_aliases = {}
+lbsLoadReaderVT_module_aliases = {}
 for m in [
     "csv",
     "sys",
@@ -8,8 +8,8 @@ for m in [
     has_flag = "has_" + m.replace('.', '_')
     try:
         module_object = __import__(m)
-        if m in lbsLoadWriter_module_aliases:
-            globals()[lbsLoadWriter_module_aliases[m]] = module_object
+        if m in lbsLoadReaderVT_module_aliases:
+            globals()[lbsLoadReaderVT_module_aliases[m]] = module_object
         else:
             globals()[m] = module_object
         globals()[has_flag] = True
