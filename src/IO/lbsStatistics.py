@@ -20,7 +20,7 @@ for m in [
 
 ########################################################################
 def initialize():
-        
+
     # Seed pseudo-random number generator
     rnd.seed()
 
@@ -46,6 +46,10 @@ def sampler(distribution_name, parameters):
             print "** ERROR: not enough parameters in {} for {} distribution.".format(
                 parameters,
                 distribution_name)
+            return None
+
+        if r == 0:
+            print "** ERROR: r={} should not be zero.".format(r)
             return None
 
         # Determine parameters of log-normal distribution

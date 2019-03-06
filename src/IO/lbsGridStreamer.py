@@ -66,7 +66,7 @@ class GridStreamer:
                  [0, n_steps - 1], 2)
         info.Set(vtk.vtkStreamingDemandDrivenPipeline.TIME_STEPS(),
                  range(n_steps), n_steps)
-        
+
         # Implement RequestData() method for VTK pipeline
         def request_data_method():
             # Retrieve information vector
