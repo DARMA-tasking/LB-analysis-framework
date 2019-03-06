@@ -35,19 +35,19 @@ class LoadWriter:
 
         # If VTK is not available, do not do anything
         if not has_vtk:
-            print "** ERROR: Could not write to ExodusII file by lack of VTK"
+            print "** ERROR: [LoadWriter] Could not write to ExodusII file by lack of VTK"
             return
 
         # If no LBS epoch was provided, do not do anything
         if not isinstance(e, lbsEpoch.Epoch):
-            print "** ERROR: Could not write to ExodusII file by lack of a LBS epoch"
+            print "** ERROR: [LoadWriter] Could not write to ExodusII file by lack of a LBS epoch"
             return
         else:
             self.epoch = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
-            print "** ERROR: Could not write to ExodusII file by lack of a processor mapping"
+            print "** ERROR: [LoadWriter] Could not write to ExodusII file by lack of a processor mapping"
             return
         else:
             self.mapping = m
@@ -116,7 +116,7 @@ class LoadWriter:
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print "**  ERROR: Failed to instantiate a grid streamer for file {}".format(
+            print "**  ERROR: [LoadWriter] Failed to instantiate a grid streamer for file {}".format(
                 self.file_name)
         else:
             print "[LoadWriter] Writing ExodusII file: {}".format(

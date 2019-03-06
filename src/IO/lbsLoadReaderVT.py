@@ -62,64 +62,88 @@ class LoadReader:
         are read; else, only the iteration 'doiter' is read from the file.
         """
 
-        iter_map = dict()
+        # Retrieve file name for given node and make sure that it exists
         fname = self.node_file_name(node)
-
         if self.debug_mode:
-            print "[LoadReader] Reading file: {}".format(fname)
-
+            print "[LoadReaderVT] Reading file: {}".format(fname)
         if not os.path.isfile(fname):
-            print "** ERROR: [LoadReader] file='{}' does not exist.".format(fname)
+            print "** ERROR: [LoadReaderVT] File: {} does not exist.".format(fname)
             sys.exit(1)
 
+        # Initialize storage
+        iter_map = dict()
+
+        # Open specified input file
         with open(fname, 'r') as f:
             log = csv.reader(f, delimiter=',')
+            # Iterate over rows of input file
             for row in log:
-                entries = len(row)
-                if entries == 3:
+                n_entries = len(row)
+
+                # Handle three-entry case
+                if n_entries == 3:
                     # Parsing the three-entry case, thus this format:
-                    #   <iter/phase>, <object-id>, <time>
-                    (iter,id,time) = row
-
-                    # Convert these into integers and float before using them or
+                    #   <iteration/phase>, <object-id>, <time>
+                    # Converting these into integers and float before using them or
                     # inserting the values in the dictionary
-                    iter = int(iter)
-                    id   = int(id)
-                    time = float(time)
+                    try:
+                        iter_id, o_id = map(int, row[0:2])
+                        time = float(row[2])
+                    except:
+                        print "** ERROR: [LoadReaderVT] Incorrect row format:".format(row)
 
-                    if int(iter) == doiter or doiter == -1:
-                        obj = lbsObject.Object(id,time,iter)
+                    # Update processor if iteration was requested
+                    if iter_id == doiter or doiter == -1:
+                        # Instantiate object with retrieved parameters
+                        obj = lbsObject.Object(o_id, time, iter_id)
 
-                        if not iter in iter_map:
-                            iter_map[iter] = lbsProcessor.Processor(node)
+                        # If this iteration was never encoutered initialize proc object
+                        if not iter_id in iter_map:
+                            iter_map[iter_id] = lbsProcessor.Processor(node)
 
-                        iter_map[iter].add_object(obj)
+                        # Add object to processor
+                        iter_map[iter_id].add_object(obj)
 
+                        # Print debug information when requested
                         if self.debug_mode:
-                            print "[LoadReader] iter={},id={},time={}".format(iter,id,time)
-                elif entries == 4:
+                            print "[LoadReaderVT] iteration = {}, object id = {}, time = {}".format(
+                                iter_id,
+                                o_id,
+                                time)
+
+                # Handle four-entry case
+                elif n_entries == 4:
                     # @todo parse the four-entry case for communication
-                    print "** ERROR: [LoadReader] comm graph unimplemented"
+                    print "** ERROR: [LoadReaderVT] Comm graph unimplemented"
                     sys.exit(1)
                 else:
-                    print "** ERROR: [LoadReader] '{}' wrong len.".format(row)
+                    print "** ERROR: [LoadReaderVT] Wrong length: {}".format(row)
                     sys.exit(1)
 
+        # Print debug information when requested
         if self.debug_mode:
-            print "[LoadReader] Finished reading file: {}".format(fname)
+            print "[LoadReaderVT] Finished reading file: {}".format(fname)
 
+        # Return map of populated processors per iteration
         return iter_map
 
     ####################################################################
-    def read_iter(self, n_p, iter=0):
+    def read_iter(self, n_p, iter_id=0):
         """Read all the data in the range of procs [0..n_p) for a given
-        iteration `iter`. Collapse the iter_map dictionary from `read(..)` into
-        a list of processors to be returned for the given iteration.
+        iteration `iter_id`. Collapse the iter_map dictionary from `read(..)`
+        into a list of processors to be returned for the given iteration.
         """
+        
+        # Create storage for processors
         procs = [None] * n_p
+
+        # Iterate over all processors
         for p in range(n_p):
-            proc_iter_map = self.read(p, iter)
-            procs[p] = proc_iter_map[iter]
+            # Read data for given iteration and assign it to processor
+            proc_iter_map = self.read(p, iter_id)
+            procs[p] = proc_iter_map[iter_id]
+
+        # Return populated list of processors
         return procs
 
 ########################################################################

@@ -113,6 +113,11 @@ class Epoch:
     def populate_from_log(self, n_p, basename):
         """Populate this epoch by reading in a load profile from log files
         """
+
+        # Instantiate VT load reader
         reader = lbsLoadReaderVT.LoadReader(basename)
+
+        # Populate epoch with reader output
         self.processors = reader.read_iter(n_p, self.iteration)
+
 ########################################################################
