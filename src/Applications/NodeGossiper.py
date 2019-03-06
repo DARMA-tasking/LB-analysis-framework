@@ -233,7 +233,7 @@ if __name__ == '__main__':
     # Create an epoch and randomly generate it
     epoch = lbsEpoch.Epoch()
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-
+    print n_p
     if params.log_file != "":
         print "log file={}".format(params.log_file)
         epoch.populate_from_log(n_p, params.log_file)
