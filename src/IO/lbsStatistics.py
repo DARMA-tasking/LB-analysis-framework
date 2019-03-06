@@ -48,6 +48,10 @@ def sampler(distribution_name, parameters):
                 distribution_name)
             return None
 
+        if r == 0:
+            print "** ERROR: r={} should not be zero.".format(r)
+            return None
+
         # Determine parameters of log-normal distribution
         m2 = parameters[0] * parameters[0]
         v = parameters[1]
