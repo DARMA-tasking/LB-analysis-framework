@@ -146,9 +146,10 @@ class ggParameters:
             elif o == "-l":
                 self.log_file = a
 
-	# Ensure that at least one population strategy was chosen
-        if not (self.log_file or self.time_sampler):
-            print "** ERROR: a strategy to populate original epoch must be chosen."
+	# Ensure that exactly one population strategy was chosen
+        if (not (self.log_file or self.time_sampler)
+            or (self.log_file and self.time_sampler)):
+            print "** ERROR: exactly one strategy to populate initial epoch must be chosen."
             self.usage()
             return True
 
@@ -268,17 +269,28 @@ if __name__ == '__main__':
         *params.grid_size)
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
+    # Create output name based on epoch population strategy
+    if params.log_file:
+        output_name = "NodeGossiper-n{}-l{}-i{}-k{}-f{}-t{}.e".format(
+            n_p,
+            os.path.basename(params.log_file),
+            params.n_iterations,
+            params.n_rounds,
+            params.fanout,
+            "{}".format(params.threshold).replace('.', '_'))
+    else:
+        output_name = "NodeGossiper-n{}-p{}-o{}-s{}-i{}-k{}-f{}-t{}.e".format(
+            n_p,
+            params.n_processors,
+            params.n_objects,
+            params.time_sampler,
+            params.n_iterations,
+            params.n_rounds,
+            params.fanout,
+            "{}".format(params.threshold).replace('.', '_'))
+
     # Instantiate epoch to ExodusII file writer
-    file_name = "NodeGossiper-n{}-p{}-o{}-{}-i{}-k{}-f{}-t{}.e".format(
-        n_p,
-        params.n_processors,
-        params.n_objects,
-        params.time_sampler,
-        params.n_iterations,
-        params.n_rounds,
-        params.fanout,
-        "{}".format(params.threshold).replace('.', '_'))
-    writer = lbsLoadWriter.LoadWriter(epoch, grid_map, file_name)
+    writer = lbsLoadWriter.LoadWriter(epoch, grid_map, output_name)
     writer.write(rt.statistics,
                  rt.load_distributions)
 
