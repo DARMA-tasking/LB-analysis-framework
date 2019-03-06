@@ -206,6 +206,12 @@ if __name__ == '__main__':
     if params.parse_command_line():
        sys.exit(1)
 
+    nprocs = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
+
+    if nprocs < 2:
+        print "** ERROR: Total number of procs must be > 1"
+        sys.exit(1)
+
     # Initialize random number generator
     lbsStatistics.initialize()
 
