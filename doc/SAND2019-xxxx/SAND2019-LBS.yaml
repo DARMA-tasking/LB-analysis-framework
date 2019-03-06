@@ -1,7 +1,11 @@
 chapters:
+#######################################################
+# Add introduction chapter
 - n: tex_chapter
   title: Introduction
   include: introduction.tex
+#######################################################
+# Add chapter discussing limitations of Grapevine and improving it
 - n: tex_chapter
   title: Remarks on the Grapevine Load-Balancing Algorithm
   sections:
@@ -32,19 +36,27 @@ chapters:
           figure_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
-    - n: tex_subsection
-      title: Rounds vs. Iterations
-      include: comparison-i-k.tex
-      sections:
-      - n: tex_figure
-        arguments:
-          width: 12cm
-          figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png
-          caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.tex
-          label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s
-      - n: tex_figure
-        arguments:
-          width: 12cm
-          figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png
-          caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.tex
-          label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s
+  - n: tex_section
+    title: Rounds vs. Iterations
+    include: comparison-i-k.tex
+    sections:
+    - n: tex_figure
+      arguments:
+        width: 12cm
+        figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png
+        caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.tex
+        label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s
+    - n: tex_figure
+      arguments:
+        width: 12cm
+        figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png
+        caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.tex
+        label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s
+#######################################################
+# Add chapter on statistical properties of solvable cases
+- n: tex_chapter
+  title: Statistical Properties of Some Solvable Cases
+  sections:
+  - n: tex_section
+    title: Informed Transfer Criterion
+    include: informed_transfer.tex
