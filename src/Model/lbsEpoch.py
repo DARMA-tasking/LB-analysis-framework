@@ -19,7 +19,7 @@ for m in [
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsProcessor
-from IO    import lbsStatistics
+from IO    import lbsStatistics, lbsLoadReaderVT
 
 ########################################################################
 class Epoch:
@@ -99,4 +99,10 @@ class Epoch:
             lbsStatistics.compute_function_mean(obj, lambda x: x.get_time()),
             th_ave)
 
+    ####################################################################
+    def populate_from_log(self, n_p, basename):
+        """Populate this epoch by reading in a load profile from log files
+        """
+        reader = lbsLoadReaderVT.LoadReader(basename)
+        self.processors = reader.read_iter(n_p)
 ########################################################################
