@@ -32,7 +32,7 @@ def sampler(distribution_name, parameters):
     # Uniform U(a,b) distribution
     if distribution_name.lower() == "uniform":
         if len(parameters) < 2:
-            print "** ERROR: not enough parameters in {} for {} distribution.".format(
+            print "** ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
                 parameters,
                 distribution_name)
             return None
@@ -43,13 +43,13 @@ def sampler(distribution_name, parameters):
     # Log-normal distribution with given mean and variance
     if distribution_name.lower() == "lognormal":
         if len(parameters) < 2:
-            print "** ERROR: not enough parameters in {} for {} distribution.".format(
+            print "** ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
                 parameters,
                 distribution_name)
             return None
 
         if r == 0:
-            print "** ERROR: r={} should not be zero.".format(r)
+            print "** ERROR: [Statistics] r={} should not be zero.".format(r)
             return None
 
         # Determine parameters of log-normal distribution
@@ -64,7 +64,7 @@ def sampler(distribution_name, parameters):
 
     # Unsupported distribution type
     else:
-        print "** ERROR: {} distribution is not supported."
+        print "** ERROR: [Statistics] {} distribution is not supported."
         return None, None
 
 ########################################################################
@@ -95,6 +95,7 @@ def compute_function_mean(population, fct):
         return None
 
     # Return arithmetic mean is not zero
+    print "[Statistics] Computing population mean"
     return sum([fct(x) for x in population]) / n
 
 ########################################################################
@@ -107,6 +108,7 @@ def compute_function_statistics(population, fct):
         return 0, None, None, None, None
 
     # Initialize statistics
+    print "[Statistics] Computing population statistics"
     n = 0
     f_min = float('inf')
     f_max = - float('inf')

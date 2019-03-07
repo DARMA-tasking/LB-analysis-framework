@@ -193,15 +193,18 @@ def print_statistics(procs, key, verb=False):
             print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
 
     # Always print summary
-    print "[NodeGossiper] {} processor loads: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g} skew={:.6g} kurtex={:.6g}".format(
+    print "[NodeGossiper] {} processor loads (total={:.6g}):".format(
         key,
+        n_proc * l_ave)
+    print "\t minimum={:.6g} mean={:.6g} maximum={:.6g}".format(
         l_min,
         l_ave,
-        l_max,
+        l_max)
+    print "\t standard deviation={:.6g} skewness={:.6g} kurtosis excess={:.6g}".format(
         math.sqrt(l_var),
         l_skw,
         l_krt - 3)
-    print "[NodeGossiper] Load imbalance = {}".format(l_max / l_ave - 1.)
+    print "\t imbalance = {}".format(l_max / l_ave - 1.)
 
 ########################################################################
 if __name__ == '__main__':
