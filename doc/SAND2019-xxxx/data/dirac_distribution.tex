@@ -1,5 +1,5 @@
 By \emph{Dirac distribution}, we mean here the case where all objects
-are assigned to a single processor in the
+are assigned to a single processor in the non-empty
 collection~$\mathbf{P}$. Without any loss of generality for the sake
 of statistical properties, we can assume that this processor is $p_1$,
 and we therefore consider the load distribution
@@ -10,7 +10,7 @@ Also denoting $\vert{N}\vert$ the cardinality of ~$\mathbf{P}$, we
 obviously have the following statistics for $\mathcal{L}$:
 \begin{align*}
 \min{\mathcal{L}}
-&= \vert{L}\vert{} \;\mathrm{if}\;N=0;\;\vert{L}\vert{}\;\mathrm{otherwise},\\
+&= 0,\\
 \max{\mathcal{L}}
 &= \vert{L}\vert{},\\
 \overline{\mathcal{L}}
@@ -21,10 +21,10 @@ $\mathcal{L}$ as:
 \begin{align*}
 \sigma_{\mathcal{L}}^2
 &= \frac{1}{N}\sum_{i=1}^n\left(
-\vert{L}\vert{}\delta_1 - \frac{1}{N}\right)^2\\
-&= \frac{1}{N}\left[\left(
-\vert{L}\vert{} - \frac{1}{N}\right)^2 +\frac{N-1}{N^2}\right]\\
-&= \frac{\vert{L}\vert{}^2N-1}{N^2}
+\vert{L}\vert{}\delta_1 - \frac{\vert{L}\vert}{N}\right)^2\\
+&= \frac{\vert{L}\vert^2}{N}\left[\left(
+1 - \frac{1}{N}\right)^2 +\frac{N-1}{N^2}\right]\\
+&= \frac{\vert{L}\vert^2(N - 1)}{N^2}
 \underset{N\to\infty}{\sim}\frac{\vert{L}\vert{}^2}{N}.
 \end{align*}
 Concerning the third and fourth central moments of~$\mathcal{L}$, we
@@ -32,47 +32,40 @@ have on one hand:
 \begin{align*}
 \mu_{3,\mathcal{L}}
 &= \frac{1}{N}\sum_{i=1}^n\left(
-\vert{L}\vert{}\delta_1 - \frac{1}{N}\right)^3\\
-&= \frac{1}{N}\left[\left(
-\vert{L}\vert{} - \frac{1}{N}\right)^3 - \frac{N-1}{N^3}\right]\\
-&= \frac{(\vert{L}\vert{}N-1)^3 - N + 1}{N^4}\\
-&= \frac{\vert{L}\vert{}^3N^2 - 3\vert{L}\vert{}^2N
-+ 3\vert{L}\vert{}- 1}{N^3},\\
+\vert{L}\vert{}\delta_1 - \frac{\vert{L}\vert}{N}\right)^3\\
+&= \frac{\vert{L}\vert^3}{N}\left[\left(
+1 - \frac{1}{N}\right)^3 - \frac{N-1}{N^3}\right]\\
+&= \frac{\vert{L}\vert^3}{N}\times\frac{(N-1)^3 - N + 1}{N^3}\\
+&= \frac{\vert{L}\vert{}^3(N^2 - 3N + 2)}{N^3},
 \end{align*}
 and on the other hand:
 \begin{align*}
 \mu_{4,\mathcal{L}}
 &= \frac{1}{N}\sum_{i=1}^n\left(
-\vert{L}\vert{}\delta_1 - \frac{1}{N}\right)^4\\
-&= \frac{1}{N}\left[\left(
-\vert{L}\vert{} - \frac{1}{N}\right)^4 +\frac{N-1}{N^4}\right]\\
-&= \frac{(\vert{L}\vert{}N-1)^4 + N - 1}{N^5}\\
-&= \frac{\vert{L}\vert{}^4N^3 - 4\vert{L}\vert{}^3N^3
-+ 6\vert{L}\vert{}^2N - 4\vert{L}\vert{} + 1}{N^4}.\\
+\vert{L}\vert{}\delta_1 - \frac{\vert{L}\vert}{N}\right)^4\\
+&= \frac{\vert{L}\vert^4}{N}\left[\left(
+1 - \frac{1}{N}\right)^4 +\frac{N-1}{N^4}\right]\\
+&= \frac{\vert{L}\vert^4}{N}\times\frac{(N - 1)^4 + N - 1}{N^4}\\
+&= \frac{\vert{L}\vert{}^4(N^3 - 4N^2 + 6N -3)}{N^4}.
 \end{align*}
-The above results finally allow us to compute the skewness and
-kurtosis of the distribution, respectively as follows:
-\begin{align*}
-\gamma_{1,\mathcal{L}}
-&= \frac{\mu_{3,\mathcal{L}}}{\sigma_{\mathcal{L}}^3}\\
-&= \frac{\vert{L}\vert{}^3N^2-3\vert{L}\vert{}^2N+3\vert{L}\vert{}-1}
-{(\vert{L}\vert{}^2N-1)^{\sfrac{3}{2}}}
-\underset{N\to\infty}{\sim}\sqrt{N},
-\end{align*}
-and
-\begin{align*}
-\gamma_{2,\mathcal{L}}
-&= \frac{\mu_{4,\mathcal{L}}}{\sigma_{\mathcal{L}}^4}\\
-&= \frac{\vert{L}\vert{}^4N^3 - 4\vert{L}\vert{}^3N^3
-+ 6\vert{L}\vert{}^2N - 4\vert{L}\vert{} + 1}
-{(\vert{L}\vert{}^2N-1)^2}
-\underset{N\to\infty}{\sim}N.
-\end{align*}
-Finally, we can also observe that
+The above results allow us to compute the skewness and kurtosis of the
+distribution, when $N>1$, respectively as follows:
 \[
-\mathcal{I}_{\mathcal{L}}
-= 0 \;\mathrm{if}\;N=0;\;N-1\underset{N\to\infty}{\sim}N\;\mathrm{otherwise}.
+\gamma_{1,\mathcal{L}}
+= \frac{\mu_{3,\mathcal{L}}}{\sigma_{\mathcal{L}}^3}\\
+= \frac{N^2 - 3N + 2}{(N-1)^{\sfrac{3}{2}}}
+\underset{N\to\infty}{\sim}\sqrt{N},
 \]
+and
+\[
+\gamma_{2,\mathcal{L}}
+= \frac{\mu_{4,\mathcal{L}}}{\sigma_{\mathcal{L}}^4}\\
+= \frac{N^3 - 4N^2 + 6N -3}{(N - 1)^2}
+\underset{N\to\infty}{\sim}N.
+\]
+Finally, we observe that 
+$\mathcal{I}_{\mathcal{L}}= N-1\underset{N\to\infty}{\sim}N$.
+
 The results above shall be used for statistical verification of
 idealized cases, as upper bounds on worst-case scenarii (paying
 attention to the fact that most statistical packages report
