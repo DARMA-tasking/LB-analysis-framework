@@ -56,11 +56,14 @@ chapters:
 # Add chapter on statistical properties of solvable cases
 - n: tex_chapter
   title: Statistical Properties of Some Solvable Cases
-  latex: "The goal of this chapter is to exhibit the statistical properties of some cases for which those can be explicitly calculated, hereby providing the basis for reference non-regression testing as well as performance comparisons."
+  include: equi_distribution.tex
   sections:
   - n: tex_section
     title: The Dirac Distribution
     include: dirac_distribution.tex
+  - n: tex_section
+    title: The Equi-Distribution
+    include: equi_distribution.tex
 #######################################################
 # Add conclusion chapter
 - n: tex_chapter
