@@ -15,7 +15,9 @@ DATA=\
 	data/theory_modified_criterion.tex \
 	data/results_modified_criterion.tex \
 	data/comparison-i-k.tex \
+	data/equi_distribution.tex \
 	data/dirac_distribution.tex \
+	data/optimal_distribution.tex \
 	data/conclusion.tex
 
 all: $(DOC_NAME).pdf

@@ -62,8 +62,8 @@ chapters:
     title: The Dirac Distribution
     include: dirac_distribution.tex
   - n: tex_section
-    title: The Equi-Distribution
-    include: equi_distribution.tex
+    title: The Optimal Distribution
+    include: optimal_distribution.tex
 #######################################################
 # Add conclusion chapter
 - n: tex_chapter
