@@ -14,7 +14,9 @@ DATA=\
 	data/problem_modified_criterion.tex \
 	data/theory_modified_criterion.tex \
 	data/results_modified_criterion.tex \
-	data/comparison-i-k.tex
+	data/comparison-i-k.tex \
+	data/dirac_distribution.tex \
+	data/conclusion.tex
 
 all: $(DOC_NAME).pdf
 
