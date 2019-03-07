@@ -32,5 +32,18 @@ class Object:
         """
 
         return self.phase
+    ####################################################################
+    def has_comm(self):
+        """Return whether the object has communication graph data
+        """
+
+        return self.comm != None
+
+    ####################################################################
+    def get_comm(self):
+        """Return the comm links for this Object
+        """
+
+        return self.comm
 
 ########################################################################

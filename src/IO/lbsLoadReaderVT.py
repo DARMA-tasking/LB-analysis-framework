@@ -57,7 +57,7 @@ class LoadReader:
         return str(self.file_prefix) + "." + str(node) + ".out"
 
     ####################################################################
-    def read(self, node, doiter=-1):
+    def read(self, node, doiter=-1, comm=False):
         """Read the file for a given node/rank. If doiter==-1 then all iterations
         are read; else, only the iteration 'doiter' is read from the file.
         """
