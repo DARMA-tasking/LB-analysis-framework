@@ -201,8 +201,9 @@ if __name__ == '__main__':
     # Create an epoch and populate it
     epoch = lbsEpoch.Epoch()
     if params.log_file:
-        # Populate epoch from log files
-        epoch.populate_from_log(n_p, params.log_file)
+        # Populate epoch from log files and store number of objects
+        n_o = epoch.populate_from_log(n_p, params.log_file)
+
     else:
         # Create requested pseud-ramdom sampler
         if params.time_sampler == "uniform":
@@ -210,7 +211,8 @@ if __name__ == '__main__':
         elif params.time_sampler == "lognormal":
             sampler_params = [5.0005e-2, 8.33e-4]
         else:
-            print "** ERROR: unsupported sampler type {}".format(params.time_sampler)
+            print "** ERROR: unsupported sampler type {}".format(
+                params.time_sampler)
             sys.exit(1)
 
         # Populate epoch pseudo-randomly
@@ -220,11 +222,15 @@ if __name__ == '__main__':
                                     n_p,
                                     params.n_processors)
 
+        # Keep track of number of objects
+        n_o = params.n_objects
+
     # Compute and print initial load statistics
-    lbsStatistics.print_function_statistics(epoch.processors,
-                                            lambda x: x.get_load(),
-                                            "initial processor loads",
-                                            params.verbose)
+    lbsStatistics.print_function_statistics(
+        epoch.processors,
+        lambda x: x.get_load(),
+        "initial processor loads",
+        params.verbose)
 
     # Instantiate runtime
     rt = lbsRuntime.Runtime(epoch, params.verbose)
@@ -265,10 +271,27 @@ if __name__ == '__main__':
                  rt.load_distributions)
 
     # Compute and print final load statistics
-    lbsStatistics.print_function_statistics(epoch.processors,
-                                            lambda x: x.get_load(),
-                                            "final processor loads",
-                                            params.verbose)
+    _, _, l_ave, l_max, _, _, _ = lbsStatistics.print_function_statistics(
+        epoch.processors,
+        lambda x: x.get_load(),
+        "final processor loads",
+        params.verbose)
+    print "\t imbalance = {:.6g}".format(
+        l_max / l_ave - 1.)
+
+    # Report on optimal statistics
+    q, r = divmod(n_o, n_p)
+    ell = n_p * l_ave / n_o
+    print "[NodeGossiper] Optimal load statistics for {} objects with all times = {:.6g}".format(
+        n_o,
+        ell)
+    print "\t minimum = {:.6g}  maximum = {:.6g}".format(
+        q * ell,
+        (q + (1 if r else 0)) * ell)
+    print "\t standard deviation = {:.6g}".format(
+        ell * math.sqrt(r * (n_p - r)) / n_p)
+    print "\t imbalance = {:.6g}".format(
+        (n_p - r) / float(n_o) if r else 0.)
 
     # If this point is reached everything went fine
     print "[NodeGossiper] Process complete ###"
