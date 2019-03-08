@@ -38,7 +38,8 @@ def sampler(distribution_name, parameters):
             return None
 
         # Return uniform distribution over given interval
-        return lambda : rnd.uniform(parameters[0], parameters[1]), .5 * sum(parameters)
+        return lambda : rnd.uniform(*parameters), "U[{};{}]".format(
+            *parameters)
 
     # Log-normal distribution with given mean and variance
     if distribution_name.lower() == "lognormal":
@@ -48,19 +49,21 @@ def sampler(distribution_name, parameters):
                 distribution_name)
             return None
 
-        if r == 0:
-            print "** ERROR: [Statistics] r={} should not be zero.".format(r)
-            return None
-
         # Determine parameters of log-normal distribution
         m2 = parameters[0] * parameters[0]
         v = parameters[1]
         r = math.sqrt(m2 + v)
+        if r == 0:
+            print "** ERROR: [Statistics] r={} should not be zero.".format(r)
+            return None. None
+
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
 
         # Return log-normal distribution with given mean and variance
-        return lambda : rnd.lognormvariate(mu, sigma), parameters[0]
+        return lambda : rnd.lognormvariate(mu, sigma), "LogN({:.6g};{:.6g})".format(
+            mu,
+            sigma)
 
     # Unsupported distribution type
     else:
@@ -95,7 +98,7 @@ def compute_function_statistics(population, fct):
 
     # Initialize statistics
     n = 0
-    f_min = float('inf')
+    f_min = + float('inf')
     f_max = - float('inf')
     f_ave = 0.
     f_ag2 = 0.

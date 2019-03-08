@@ -9,8 +9,8 @@ class Object:
         # Member variables passed by constructor
         self.index           = i
         self.time            = t
-        self.communications  = c
         self.phase           = p
+        self.communications  = c
 
     ####################################################################
     def get_id(self):
@@ -40,7 +40,7 @@ class Object:
         return self.communications != None
 
     ####################################################################
-    def get_comm(self):
+    def get_communications(self):
         """Return the comm links for this Object
         """
 

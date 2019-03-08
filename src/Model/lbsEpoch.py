@@ -58,14 +58,13 @@ class Epoch:
         """
 
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, th_ave = lbsStatistics.sampler(t_sampler,
-                                                     sampler_params)
+        time_sampler, sampler_name = lbsStatistics.sampler(t_sampler,
+                                                           sampler_params)
 
         # Create n_o objects with uniformly distributed times in given range
-        print "[Epoch] Creating {} objects with {} random times (theoretical mean = {})".format(
+        print "[Epoch] Creating {} objects with times sampled from {}".format(
             n_o,
-            t_sampler,
-            th_ave)
+            sampler_name)
         obj = set([lbsObject.Object(
             i,
             time_sampler()) for i in range(n_o)])
