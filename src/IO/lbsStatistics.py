@@ -95,7 +95,6 @@ def compute_function_mean(population, fct):
         return None
 
     # Return arithmetic mean is not zero
-    print "[Statistics] Computing population mean"
     return sum([fct(x) for x in population]) / n
 
 ########################################################################
@@ -108,7 +107,6 @@ def compute_function_statistics(population, fct):
         return 0, None, None, None, None
 
     # Initialize statistics
-    print "[Statistics] Computing population statistics"
     n = 0
     f_min = float('inf')
     f_max = - float('inf')
@@ -151,5 +149,35 @@ def compute_function_statistics(population, fct):
     var = f_ag2 / n
     nvar = n * var
     return n, f_min, f_ave, f_max, var, f_ag3 / (nvar * math.sqrt(var)), f_ag4 / (nvar * var) 
+
+########################################################################
+def print_statistics(procs, var_name, verb=False):
+    """Compute some load statistics and print to standard output
+    """
+
+    # Compute statistics
+    n_proc, l_min, l_ave, l_max, l_var, l_skw, l_krt = compute_function_statistics(
+        procs,
+        lambda x: x.get_load())
+
+    # Print detailed load information if requested
+    if verb:
+        print "[Statistics] {}:".format(key)
+        for p in procs:
+            print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
+
+    # Always print summary
+    print "[Statistics] {} (total={:.6g}):".format(
+        var_name,
+        n_proc * l_ave)
+    print "\t minimum={:.6g} mean={:.6g} maximum={:.6g}".format(
+        l_min,
+        l_ave,
+        l_max)
+    print "\t standard deviation={:.6g} skewness={:.6g} kurtosis excess={:.6g}".format(
+        math.sqrt(l_var),
+        l_skw,
+        l_krt - 3)
+    print "\t imbalance = {}".format(l_max / l_ave - 1.)
 
 ########################################################################

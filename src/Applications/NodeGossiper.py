@@ -174,39 +174,6 @@ def global_id_to_cartesian(id, grid_sizes):
     return i, j, k
 
 ########################################################################
-def print_statistics(procs, key, verb=False):
-    """Compute some load statistics and print to standard output
-    """
-
-    # Key starts the sentence
-    key = key.title()
-
-    # Compute statistics
-    n_proc, l_min, l_ave, l_max, l_var, l_skw, l_krt = lbsStatistics.compute_function_statistics(
-        procs,
-        lambda x: x.get_load())
-
-    # Print detailed load information if requested
-    if verb:
-        print "[NodeGossiper] {} processor loads:".format(key)
-        for p in procs:
-            print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
-
-    # Always print summary
-    print "[NodeGossiper] {} processor loads (total={:.6g}):".format(
-        key,
-        n_proc * l_ave)
-    print "\t minimum={:.6g} mean={:.6g} maximum={:.6g}".format(
-        l_min,
-        l_ave,
-        l_max)
-    print "\t standard deviation={:.6g} skewness={:.6g} kurtosis excess={:.6g}".format(
-        math.sqrt(l_var),
-        l_skw,
-        l_krt - 3)
-    print "\t imbalance = {}".format(l_max / l_ave - 1.)
-
-########################################################################
 if __name__ == '__main__':
 
     # Print startup information
@@ -255,9 +222,9 @@ if __name__ == '__main__':
                                     params.n_processors)
 
     # Compute and print initial load information
-    print_statistics(epoch.processors,
-                     "initial",
-                     params.verbose)
+    lbsStatistics.print_statistics(epoch.processors,
+                                   "Initial processor loads",
+                                   params.verbose)
 
     # Instantiate runtime
     rt = lbsRuntime.Runtime(epoch, params.verbose)
@@ -298,9 +265,9 @@ if __name__ == '__main__':
                  rt.load_distributions)
 
     # Compute and print final load information
-    print_statistics(epoch.processors,
-                     "final",
-                     params.verbose)
+    lbsStatistics.print_statistics(epoch.processors,
+                                   "Final processor loads",
+                                   params.verbose)
 
     # If this point is reached everything went fine
     print "[NodeGossiper] Process complete ###"
