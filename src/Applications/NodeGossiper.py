@@ -224,7 +224,7 @@ if __name__ == '__main__':
     # Compute and print initial load statistics
     lbsStatistics.print_function_statistics(epoch.processors,
                                             lambda x: x.get_load(),
-                                            "Initial processor loads",
+                                            "initial processor loads",
                                             params.verbose)
 
     # Instantiate runtime
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     # Compute and print final load statistics
     lbsStatistics.print_function_statistics(epoch.processors,
                                             lambda x: x.get_load(),
-                                            "Final processor loads",
+                                            "final processor loads",
                                             params.verbose)
 
     # If this point is reached everything went fine

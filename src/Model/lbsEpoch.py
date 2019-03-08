@@ -113,4 +113,12 @@ class Epoch:
         # Populate epoch with reader output
         self.processors = reader.read_iter(n_p, self.iteration)
 
+        # Compute and report object statistics
+        obj = set()
+        for p in self.processors:
+            obj = obj.union(p.objects)
+        lbsStatistics.print_function_statistics(obj,
+                                                lambda x: x.get_time(),
+                                                "object times")
+
 ########################################################################
