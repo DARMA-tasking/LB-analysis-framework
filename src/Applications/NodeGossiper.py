@@ -202,7 +202,6 @@ if __name__ == '__main__':
     epoch = lbsEpoch.Epoch()
     if params.log_file:
         # Populate epoch from log files
-        print "[NodeGossiper] Reading log file: {}".format(params.log_file)
         epoch.populate_from_log(n_p, params.log_file)
     else:
         # Create requested pseud-ramdom sampler

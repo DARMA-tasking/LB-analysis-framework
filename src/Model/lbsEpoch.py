@@ -105,6 +105,9 @@ class Epoch:
         reader = lbsLoadReaderVT.LoadReader(basename)
 
         # Populate epoch with reader output
+        print "[Epoch] Reading objects from phase {} of file: {}".format(
+            self.iteration,
+            basename)
         self.processors = reader.read_iter(n_p, self.iteration)
 
         # Compute and report object statistics

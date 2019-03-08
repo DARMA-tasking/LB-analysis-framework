@@ -160,11 +160,11 @@ def print_function_statistics(values, function, var_name, verb=False):
 
     # Always print summary but use function descriptor only in verbose case
     if verb:
-        print "[Statistics] Computing descriptive statistics of {} (f):".format(
+        print "[Statistics] Descriptive statistics of {} (f):".format(
             var_name,
             n)
     else:
-        print "[Statistics] Computing descriptive statistics of {}:".format(
+        print "[Statistics] Descriptive statistics of {}:".format(
             var_name,
             n)
 
