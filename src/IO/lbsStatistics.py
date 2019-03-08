@@ -145,10 +145,18 @@ def compute_function_statistics(population, fct):
         f_ag3 += A * (B * d * (n - 2) - 3 * f_ag2)
         f_ag2 += d * B
 
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis excess
+    # Compute variance
     var = f_ag2 / n
-    nvar = n * var
-    return n, f_min, f_ave, f_max, var, f_ag3 / (nvar * math.sqrt(var)), f_ag4 / (nvar * var) 
+    
+    # Compute skewness and kurtosis depending on variance
+    if var > 0.:
+        nvar = n * var
+        g1, g2 = f_ag3 / (nvar * math.sqrt(var)), f_ag4 / (nvar * var)
+    else:
+        g1, g2 = float('nan'), float('nan')
+
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
+    return n, f_min, f_ave, f_max, var, g1, g2
 
 ########################################################################
 def print_statistics(procs, var_name, verb=False):
@@ -167,7 +175,7 @@ def print_statistics(procs, var_name, verb=False):
             print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
 
     # Always print summary
-    print "[Statistics] {} (total={:.6g}):".format(
+    print "[Statistics] {} (sum={:.6g}):".format(
         var_name,
         n_proc * l_ave)
     print "\t minimum={:.6g} mean={:.6g} maximum={:.6g}".format(
