@@ -52,7 +52,7 @@ class Runtime:
 
         # Initialize run statistics
         l_imb = l_max / self.average_load - 1.
-        print "[RunTime] Load imbalance(0) = {}".format(l_imb)
+        print "[RunTime] Load imbalance(0) = {:.6g}".format(l_imb)
         self.statistics = {
             "minimum load": [l_min],
             "maximum load": [l_max],

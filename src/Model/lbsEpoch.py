@@ -65,12 +65,12 @@ class Epoch:
         print "[Epoch] Creating {} objects with times sampled from {}".format(
             n_o,
             sampler_name)
-        obj = set([lbsObject.Object(
+        objects = set([lbsObject.Object(
             i,
             time_sampler()) for i in range(n_o)])
 
         # Compute and report object statistics
-        lbsStatistics.print_function_statistics(obj,
+        lbsStatistics.print_function_statistics(objects,
                                                 lambda x: x.get_time(),
                                                 "object times")
 
@@ -89,11 +89,11 @@ class Epoch:
         if s_s > 0:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
-            for o in obj:
+            for o in objects:
                 rnd.choice(proc_list).add_object(o)
         else:
             # Randomly assign objects to all processors
-            for o in obj:
+            for o in objects:
                 rnd.choice(self.processors).add_object(o)
 
     ####################################################################
@@ -111,11 +111,13 @@ class Epoch:
         self.processors = reader.read_iter(n_p, self.iteration)
 
         # Compute and report object statistics
-        obj = set()
+        objects = set()
         for p in self.processors:
-            obj = obj.union(p.objects)
-        lbsStatistics.print_function_statistics(obj,
+            objects = objects.union(p.objects)
+        lbsStatistics.print_function_statistics(objects,
                                                 lambda x: x.get_time(),
                                                 "object times")
+        # Return number of found objects
+        return len(objects)
 
 ########################################################################
