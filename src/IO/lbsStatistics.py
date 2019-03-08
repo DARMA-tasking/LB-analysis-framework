@@ -85,19 +85,6 @@ def inverse_transform_sample(values, cmf):
             return values[i]
 
 ########################################################################
-def compute_function_mean(population, fct):
-    """Compute mean of a function over a population
-    """
-
-    # Bail out early if population is empty
-    n = len(population)
-    if not n:
-        return None
-
-    # Return arithmetic mean is not zero
-    return sum([fct(x) for x in population]) / n
-
-########################################################################
 def compute_function_statistics(population, fct):
     """Compute descriptive statistics of a function over a population
     """

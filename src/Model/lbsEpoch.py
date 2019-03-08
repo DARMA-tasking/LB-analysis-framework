@@ -62,9 +62,10 @@ class Epoch:
                                                      sampler_params)
 
         # Create n_o objects with uniformly distributed times in given range
-        print "[Epoch] Creating {} objects with {} pseudo-random times".format(
+        print "[Epoch] Creating {} objects with {} random times (theoretical mean = {})".format(
             n_o,
-            t_sampler)
+            t_sampler,
+            th_ave)
         obj = set([lbsObject.Object(
             i,
             time_sampler()) for i in range(n_o)])
@@ -72,11 +73,12 @@ class Epoch:
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(obj,
                                                 lambda x: x.get_time(),
-                                                "Object times")
+                                                "object times")
 
         # Create n_p processors
         self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
 
+        # Randomly assign objects to processors
         if s_s and s_s <= n_p:
             print "[Epoch] Randomly assigning objects to {} processors amongst {}".format(s_s, n_p)
         else:
@@ -85,8 +87,6 @@ class Epoch:
                 print "*  WARNING: too many processors ({}) requested: only {} available.".format(s_s, n_p)
                 s_s = n_p
             print "[Epoch] Randomly assigning objects to {} processors".format(n_p)
-
-        # Randomly assign objects to processors
         if s_s > 0:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
@@ -96,11 +96,6 @@ class Epoch:
             # Randomly assign objects to all processors
             for o in obj:
                 rnd.choice(self.processors).add_object(o)
-
-        # Compute and output global statistics
-        print "[Epoch] Average object time: {} (theoretical: {})".format(
-            lbsStatistics.compute_function_mean(obj, lambda x: x.get_time()),
-            th_ave)
 
     ####################################################################
     def populate_from_log(self, n_p, basename):

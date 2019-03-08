@@ -51,11 +51,13 @@ class Runtime:
             lambda x: x.get_load())
 
         # Initialize run statistics
+        l_imb = l_max / self.average_load - 1.
+        print "[RunTime] Load imbalance(0) = {}".format(l_imb)
         self.statistics = {
             "minimum load": [l_min],
             "maximum load": [l_max],
             "load variance": [l_var],
-            "load imbalance": [l_max / self.average_load - 1.]}
+            "load imbalance": [l_imb]}
 
     ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
@@ -228,11 +230,11 @@ class Runtime:
                 lambda x: x.get_load())
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
-            self.statistics["load variance"].append(l_min)
+            self.statistics["load variance"].append(l_var)
 
             # Compute, store and report load imbalance
             l_imb = l_max / self.average_load - 1.
-            print "[RunTime] Load imbalance = {}".format(l_imb)
+            print "[RunTime] Load imbalance({}) = {}".format(i, l_imb)
             self.statistics["load imbalance"].append(l_imb)
 
 ########################################################################
