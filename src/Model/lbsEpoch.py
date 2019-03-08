@@ -70,16 +70,9 @@ class Epoch:
             time_sampler()) for i in range(n_o)])
 
         # Compute and report object statistics
-        n_proc, t_min, t_mean, t_max, t_var, t_skw, t_krt = lbsStatistics.compute_function_statistics(
-            obj,
-            lambda x: x.get_time())
-        print "[Epoch] Object times: min={:.6g} mean={:.6g} max={:.6g} stdev={:.6g} skew={:.6g} kurtex={:.6g}".format(
-            t_min,
-            t_mean,
-            t_max,
-            math.sqrt(t_var),
-            t_skw,
-            t_krt - 3)
+        lbsStatistics.print_function_statistics(obj,
+                                                lambda x: x.get_time(),
+                                                "Object times")
 
         # Create n_p processors
         self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
