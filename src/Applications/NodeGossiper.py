@@ -221,10 +221,11 @@ if __name__ == '__main__':
                                     n_p,
                                     params.n_processors)
 
-    # Compute and print initial load information
-    lbsStatistics.print_statistics(epoch.processors,
-                                   "Initial processor loads",
-                                   params.verbose)
+    # Compute and print initial load statistics
+    lbsStatistics.print_function_statistics(epoch.processors,
+                                            lambda x: x.get_load(),
+                                            "Initial processor loads",
+                                            params.verbose)
 
     # Instantiate runtime
     rt = lbsRuntime.Runtime(epoch, params.verbose)
@@ -264,10 +265,11 @@ if __name__ == '__main__':
     writer.write(rt.statistics,
                  rt.load_distributions)
 
-    # Compute and print final load information
-    lbsStatistics.print_statistics(epoch.processors,
-                                   "Final processor loads",
-                                   params.verbose)
+    # Compute and print final load statistics
+    lbsStatistics.print_function_statistics(epoch.processors,
+                                            lambda x: x.get_load(),
+                                            "Final processor loads",
+                                            params.verbose)
 
     # If this point is reached everything went fine
     print "[NodeGossiper] Process complete ###"

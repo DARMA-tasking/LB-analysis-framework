@@ -159,19 +159,19 @@ def compute_function_statistics(population, fct):
     return n, f_min, f_ave, f_max, var, g1, g2
 
 ########################################################################
-def print_statistics(procs, var_name, verb=False):
-    """Compute some load statistics and print to standard output
+def print_function_statistics(values, function, var_name, verb=False):
+    """Compute detailed statistics of function values and print to standard output
     """
-
+    functor = "index"
     # Compute statistics
     n_proc, l_min, l_ave, l_max, l_var, l_skw, l_krt = compute_function_statistics(
-        procs,
-        lambda x: x.get_load())
+        values,
+        function)
 
     # Print detailed load information if requested
     if verb:
         print "[Statistics] {}:".format(key)
-        for p in procs:
+        for p in values:
             print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
 
     # Always print summary
