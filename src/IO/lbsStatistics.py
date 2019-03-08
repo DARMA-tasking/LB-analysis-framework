@@ -146,46 +146,60 @@ def compute_function_statistics(population, fct):
         f_ag2 += d * B
 
     # Compute variance
-    var = f_ag2 / n
+    f_var = f_ag2 / n
     
     # Compute skewness and kurtosis depending on variance
-    if var > 0.:
-        nvar = n * var
-        g1, g2 = f_ag3 / (nvar * math.sqrt(var)), f_ag4 / (nvar * var)
+    if f_var > 0.:
+        nvar = n * f_var
+        f_g1, f_g2 = f_ag3 / (nvar * math.sqrt(f_var)), f_ag4 / (nvar * f_var)
     else:
-        g1, g2 = float('nan'), float('nan')
+        f_g1, f_g2 = float('nan'), float('nan')
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
-    return n, f_min, f_ave, f_max, var, g1, g2
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2
 
 ########################################################################
 def print_function_statistics(values, function, var_name, verb=False):
     """Compute detailed statistics of function values and print to standard output
     """
-    functor = "index"
+
     # Compute statistics
-    n_proc, l_min, l_ave, l_max, l_var, l_skw, l_krt = compute_function_statistics(
+    n, f_min, f_ave, f_max, f_var, f_g1, f_g2 = compute_function_statistics(
         values,
         function)
 
+    # Always print summary but use function descriptor only in verbose case
+    if verb:
+        print "[Statistics] Computing descriptive statistics of {} (f):".format(
+            var_name,
+            n)
+    else:
+        print "[Statistics] Computing descriptive statistics of {}:".format(
+            var_name,
+            n)
+
     # Print detailed load information if requested
     if verb:
-        print "[Statistics] {}:".format(key)
-        for p in values:
-            print "\t proc_{} load = {}".format(p.get_id(), p.get_load())
+        for v in values:
+            print "\t f({}) = {}".format(
+                v.get_id(),
+                function(v))
 
-    # Always print summary
-    print "[Statistics] {} (sum={:.6g}):".format(
-        var_name,
-        n_proc * l_ave)
-    print "\t minimum={:.6g} mean={:.6g} maximum={:.6g}".format(
-        l_min,
-        l_ave,
-        l_max)
-    print "\t standard deviation={:.6g} skewness={:.6g} kurtosis excess={:.6g}".format(
-        math.sqrt(l_var),
-        l_skw,
-        l_krt - 3)
-    print "\t imbalance = {}".format(l_max / l_ave - 1.)
+    # Print summary
+    print "\t cardinality = {:.6g}  sum = {:.6g}".format(
+        n,
+        n * f_ave)
+    print "\t minimum = {:.6g}  maximum = {:.6g}".format(
+        f_min,
+        f_max)
+    print "\t mean = {:.6g}  standard deviation = {:.6g}".format(
+        f_ave,
+        math.sqrt(f_var))
+    print "\t skewness = {:.6g}  kurtosis excess = {:.6g}".format(
+        f_g1,
+        f_g2 - 3)
+
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2
 
 ########################################################################
