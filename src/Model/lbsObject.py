@@ -7,10 +7,10 @@ class Object:
     ####################################################################
     def __init__(self, i, t, p=0, c=None):
         # Member variables passed by constructor
-        self.index = i
-        self.time  = t
-        self.comm  = c
-        self.phase = p
+        self.index           = i
+        self.time            = t
+        self.communications  = c
+        self.phase           = p
 
     ####################################################################
     def get_id(self):
@@ -33,17 +33,17 @@ class Object:
 
         return self.phase
     ####################################################################
-    def has_comm(self):
+    def has_communications(self):
         """Return whether the object has communication graph data
         """
 
-        return self.comm != None
+        return self.communications != None
 
     ####################################################################
     def get_comm(self):
         """Return the comm links for this Object
         """
 
-        return self.comm
+        return self.communications
 
 ########################################################################
