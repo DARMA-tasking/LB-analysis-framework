@@ -234,7 +234,7 @@ class Runtime:
 
             # Compute, store and report load imbalance
             l_imb = l_max / self.average_load - 1.
-            print "[RunTime] Load imbalance({}) = {}".format(i, l_imb)
+            print "[RunTime] Load imbalance({}) = {:.6g}".format(i, l_imb)
             self.statistics["load imbalance"].append(l_imb)
 
 ########################################################################
