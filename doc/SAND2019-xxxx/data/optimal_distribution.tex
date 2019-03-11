@@ -1,5 +1,5 @@
-By \emph{optimal distribution}, what is meant in what follows is the
-best possible load/processor distribution that may be achieved given
+By \emph{optimal distribution}, what is meant in what follows is
+the best possible load/processor distribution that may be achieved given
 the sets of processors~$\mathbf{P}$ and of objects~$\mathbf{O}$.
 It is not necessarily unique; in fact, except in the uni-processor
 case, it is not, because if one load distribution across
@@ -12,10 +12,37 @@ $\vert\mathbf{P}\vert$ divides $\vert\mathbf{O}\vert$, then any
 equi-distribution is optimal and is obtained by assigning exactly
 $\tfrac{\vert\mathbf{O}\vert}{\vert\mathbf{P}\vert}$ object(s) to each
 processor in $\mathbf{P}$.
-However, it is safe to assume that this ideal case will very seldom,
-if ever, be encountered in any real case.
+Although it is safe to assume that this ideal case will very seldom,
+if ever, be encountered in any real case, it is important that any
+proposed load-balancing algorithm be able to perform optimally with
+this case. We thus present below the respective results of the
+Grapevine algorithm with both original criterion \texttt{6} (left) and
+our modified criterion \texttt{6'}, for a case where
+$\mathbf{P}=10^2$, $\mathbf{O}=10^4$, $i=k=f=4$, $t=1.0$, and where
+the unit load is chosen to be $\ell=1$:
+\begin{center}
+\begin{tabular}{lcrr}
+\hline
+statistic & iteration & criterion \texttt{6} & criterion \texttt{6'} \\
+\hline\hline
+\multirow{2}{*}{$\min{\mathcal{L}}$}
+&$0$ &$80$   &$80$   \\ &$4$ &$99$    &$100$ \\\hline
+\multirow{2}{*}{$\max{\mathcal{L}}$}
+&$0$ &$123$  &$123$  \\ &$4$ &$116$   &$100$ \\\hline
+\multirow{2}{*}{$\sigma_{\mathcal{L}}$}
+&$0$ &$9.18$ &$9.18$ \\ &$4$ &$2.34$  &$0.00$ \\\hline
+\multirow{2}{*}{$\mathcal{I}_\mathcal{L}$}
+&$0$ &$0.23$ &$0.23$ \\ &$4$ &$0.16$  &$0$ \\\hline
+\end{tabular}
+\end{center}
+The above results demonstrate that even with small numbers of fanout,
+gossiping round, and iterations, our alternatre approach converges to
+the optimal solution whereas the original one does not, even with this
+simple academic case. This first baseline case is thus discriminating
+enough to be retained.
 
-We thus consider a slightly broader class of distributions, where all
+In order to extend the set of baseline cases, we now consider a
+slightly broader class of distributions, where all 
 objects still have equal load $\ell$, but where it is no longer
 required that $\vert\mathbf{P}\vert$ divide $\vert\mathbf{O}\vert$.
 In this context, denoting
