@@ -50,8 +50,9 @@ class ggParameters:
         # Number of task objects
         self.n_objects = 1
 
-        # Object time sampler type
-        self.time_sampler = None
+        # Object time sampler type and parameters
+        self.time_sampler_type = None
+        self.time_sampler_parameters = []
 
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_processors = 0
@@ -131,8 +132,14 @@ class ggParameters:
                 if i > 0:
                     self.n_processors = i
             elif o == "-s":
-                if a.lower() in ("uniform", "lognormal"):
-                    self.time_sampler = a.lower()
+                a_s = a.split(",")
+                if len(a_s):
+                    self.time_sampler_type = a_s[0].lower()
+                    for p in a_s[1:]:
+                        try:
+                            self.time_sampler_parameters.append(float(p))
+                        except:
+                            pass
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -147,8 +154,8 @@ class ggParameters:
                 self.log_file = a
 
 	# Ensure that exactly one population strategy was chosen
-        if (not (self.log_file or self.time_sampler)
-            or (self.log_file and self.time_sampler)):
+        if (not (self.log_file or self.time_sampler_type)
+            or (self.log_file and self.time_sampler_type)):
             print "** ERROR: exactly one strategy to populate initial epoch must be chosen."
             self.usage()
             return True
@@ -206,20 +213,21 @@ if __name__ == '__main__':
 
     else:
         # Create requested pseud-ramdom sampler
-        if params.time_sampler == "uniform":
-            sampler_params = [1., 1.]
-            #sampler_params = [1.e-5, 1.e-1]
-        elif params.time_sampler == "lognormal":
-            sampler_params = [5.0005e-2, 8.33e-4]
-        else:
-            print "** ERROR: unsupported sampler type {}".format(
-                params.time_sampler)
+        if params.time_sampler_type not in (
+            "uniform",
+            "lognormal"):
+            print "** ERROR: unsupported sampler type: {}".format(
+                params.time_sampler_type)
+            sys.exit(1)
+        if len(params.time_sampler_parameters) != 2:
+            print "** ERROR: not enough parameters for sampler type: {}".format(
+                params.time_sampler_type)
             sys.exit(1)
 
         # Populate epoch pseudo-randomly
         epoch.populate_from_sampler(params.n_objects,
-                                    params.time_sampler,
-                                    sampler_params,
+                                    params.time_sampler_type,
+                                    params.time_sampler_parameters,
                                     n_p,
                                     params.n_processors)
 
@@ -260,7 +268,7 @@ if __name__ == '__main__':
             n_p,
             params.n_processors,
             params.n_objects,
-            params.time_sampler,
+            params.time_sampler_type,
             params.n_iterations,
             params.n_rounds,
             params.fanout,
