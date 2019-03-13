@@ -15,18 +15,26 @@ our modified criterion \texttt{6'}, for a case where
 $\mathbf{P}=10^2$, $\mathbf{O}=10^4$, $i=k=f=4$, $t=1.0$, and where
 the unit load is chosen to be $\ell=1$:
 \begin{center}
-\begin{tabular}{lcrr}
+\begin{tabular}{lcccc}
 \hline
-statistic & iteration & criterion \texttt{6} & criterion \texttt{6'} \\
+statistic & optimal & iteration & criterion \texttt{6} & criterion \texttt{6'} \\
 \hline\hline
 \multirow{2}{*}{$\min{\mathcal{L}}$}
-&$0$ &$80$   &$80$   \\ &$4$ &$99$    &$100$ \\\hline
+&\multirow{2}{*}{$100$}
+&$0$ &\multicolumn{2}{c}{$80$} \\
+&&$4$ &$99$    &$100$ \\\hline
 \multirow{2}{*}{$\max{\mathcal{L}}$}
-&$0$ &$123$  &$123$  \\ &$4$ &$116$   &$100$ \\\hline
+&\multirow{2}{*}{$100$}
+&$0$ &\multicolumn{2}{c}{$123$} \\
+&&$4$ &$116$   &$100$ \\\hline
 \multirow{2}{*}{$\sigma_{\mathcal{L}}$}
-&$0$ &$9.18$ &$9.18$ \\ &$4$ &$2.34$  &$0.00$ \\\hline
+&\multirow{2}{*}{$0.00$}
+&$0$ &\multicolumn{2}{c}{$9.18$} \\
+&&$4$ &$2.34$  &$0.00$ \\\hline
 \multirow{2}{*}{$\mathcal{I}_\mathcal{L}$}
-&$0$ &$0.23$ &$0.23$ \\ &$4$ &$0.16$  &$0$ \\\hline
+&\multirow{2}{*}{$0.00$}
+&$0$ &\multicolumn{2}{c}{$0.23$} \\
+&&$4$ &$0.16$  &$0.00$ \\\hline
 \end{tabular}
 \end{center}
 The above results demonstrate that even with small numbers of fanout,
@@ -82,9 +90,9 @@ which amounts to the previously discussed distribution where
 $\vert\mathbf{P}\vert$ divides $\vert\mathbf{O}\vert$, that we already
 proved to be optimal.
 
-Furthermore, as soon $r\neq0$, any other distribution which
-would assign more than $q+1$ objects to at least one processor would
-have a larger imbalance, because the denominator
+Furthermore, as soon as $r\neq0$, any other distribution assigning
+more than $q+1$ objects to at least one processor has
+a larger imbalance, because the denominator
 $\overline{\mathcal{L}}$ in $\mathcal{I}_{\mathcal{L}}$ is fixed.
 Therefore, a distribution $\mathcal{L}$ of
 $\vert\mathbf{O}\vert$ objects with identical load $\ell$ across
@@ -124,12 +132,58 @@ This allows us to compute the variance of $\mathcal{L}$, as follows:
 + q^2\vert{\mathbf{P}}\vert^2 
 - (q\vert{\mathbf{P}}\vert+r)^2\right]\\
 &= \frac{\ell^2 r(\vert{\mathbf{P}}\vert - r)}
-{\vert{\mathbf{P}}\vert^2}.
+{\vert{\mathbf{P}}\vert^2}
+\le \frac{\ell^2}{4},
 \end{align*}
-We note that in the particular case where $r=0$, the latter result
-indeed yields the null variance.
-More generally, this result is not only useful in the case where
-all objects have identical load~$\ell$: rather, the statistics that we
-have derived above may also be used as approximations of the expected
-load-balancing results when the objects are of relatively homogenous
-sizes.
+with equality if and only if $\mathbf{P}=2r$.
+We note that in the particular case where $r=0$, we indeed retrieve
+the null variance result.
+
+As before, we are now testing the respective results of the
+Grapevine algorithm with both original criterion \texttt{6} (left) and
+our modified criterion \texttt{6'}, for the same case as above, except
+that now $\mathbf{P}=16^2$, which results in $r=16\neq0$ (and $q=39$).
+Because the algorithm endowed with the original criterion has already
+not been able to obtain an optimal distribution in the easier $r=0$
+case, it is safe to expect that it will also not attain an optimal one
+in this more complicated case. But it is interesting to test whether
+the algorithm equipped with alternate criterion instead still performs
+optimally in the case.
+With the same initial seeding of the sampler as before, we obtained
+the following results, compared against the optimal statistics
+computed from the preceding theoretical results:
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+statistic & optimal & iteration & criterion \texttt{6} & criterion \texttt{6'} \\
+\hline\hline
+\multirow{2}{*}{$\min{\mathcal{L}}$}
+&\multirow{2}{*}{$39$}
+&$0$ &\multicolumn{2}{c}{$22$} \\
+&&$4$ &$39$    &$39$ \\\hline
+\multirow{2}{*}{$\max{\mathcal{L}}$}
+&\multirow{2}{*}{$40$}
+&$0$ &\multicolumn{2}{c}{$57$} \\
+&&$4$ &$45$   &$40$ \\\hline
+\multirow{2}{*}{$\sigma_{\mathcal{L}}$}
+&\multirow{2}{*}{$0.2421$}
+&$0$ &\multicolumn{2}{c}{$5.928$} \\
+&&$4$ &$0.5192$  &$0.2421$ \\\hline
+\multirow{2}{*}{$\mathcal{I}_\mathcal{L}$}
+&\multirow{2}{*}{$0.024$}
+&$0$ &\multicolumn{2}{c}{$0.4592$} \\
+&&$4$ &$0.152$  &$0.024$ \\\hline
+\end{tabular}
+\end{center}
+We thus observe that once again, while (as expected) the original
+algorithm fails to discover an optimal distribution, our version
+incorporating modified criterion \texttt{6'} succeeds at doing so.
+
+We therefore propose that the two object iso-load cases (with $r=0$
+and with $r\neq0$ be systematically used as baseline test cases for
+all distributed load balancers.
+Furthermore, we also suggest to use the theoretical results not only
+in the idealized iso-load case, but also be used as approximations of
+the expected load-balancing results when the objects are of relatively
+homogenous sizes.
+
