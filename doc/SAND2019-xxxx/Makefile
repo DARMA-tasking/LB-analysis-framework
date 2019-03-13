@@ -18,6 +18,7 @@ DATA=\
 	data/equi_distribution.tex \
 	data/dirac_distribution.tex \
 	data/optimal_distribution.tex \
+	data/object_iso_load.tex \
 	data/conclusion.tex
 
 all: $(DOC_NAME).pdf

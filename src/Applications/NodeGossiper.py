@@ -207,7 +207,8 @@ if __name__ == '__main__':
     else:
         # Create requested pseud-ramdom sampler
         if params.time_sampler == "uniform":
-            sampler_params = [1.e-5, 1.e-1]
+            sampler_params = [1., 1.]
+            #sampler_params = [1.e-5, 1.e-1]
         elif params.time_sampler == "lognormal":
             sampler_params = [5.0005e-2, 8.33e-4]
         else:

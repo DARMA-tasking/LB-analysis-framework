@@ -64,6 +64,11 @@ chapters:
   - n: tex_section
     title: Optimal Distributions
     include: optimal_distribution.tex
+    sections:
+    - n: tex_subsection
+      title: Object Iso-Load Case
+      include: object_iso_load.tex
+
 #######################################################
 # Add conclusion chapter
 - n: tex_chapter
