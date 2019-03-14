@@ -15,35 +15,105 @@ statistic & iteration
 & $\varepsilon=1$ \\
 \hline\hline
 \multirow{2}{*}{$\min{\mathcal{L}}$}
-&$0$ &$22$ &$21.99$ &$22.03$ &$21.89$ &$22.14$ \\
-&$4$ &$\bf39$ &$38.99$ &$38.92$ &$37.97$ &$37.65$ \\\hline
+&$0$ &$23$    &$23.00$ &$22.99$ &$23.20$ &$23.45$ \\
+&$4$ &$\bf39$ &$38.99$ &$38.07$ &$38.11$ &$37.49$ \\\hline
 \multirow{2}{*}{$\max{\mathcal{L}}$}
-&$0$ &$57$ &$57.00$ &$56.98$ &$57.22$ &$59.48$ \\
-&$4$ &$\bf40$ &$40.00$ &$39.96$ &$40.20$ &$40.46$ \\\hline
+&$0$ &$61$    &$61.00$ &$61.03$ &$60.89$ &$66.37$ \\
+&$4$ &$\bf40$ &$40.00$ &$40.00$ &$40.05$ &$40.28$ \\\hline
+\multirow{2}{*}{$R_{\mathcal{L}}$}
+&$0$ &$38$    &$38.00$ &$38.04$ &$37.69$ &$42.92$ \\
+&$4$ &$\bf1$  &$1.01$  &$1.93$  &$1.94$  &$2.79$  \\\hline
 \multirow{2}{*}{$\sigma_{\mathcal{L}}$}
-&$0$ &$5.928$ &$5.928$ &$5.929$ &$5.96302$ &$6.921$ \\
-&$4$ &$\bf0.2421$ &$0.2406$ &$0.2283$ &$0.4097$ &$0.4358$ \\\hline
+&$0$ &$6.182$     &$6.182$  &$6.179$  &$6.217$ &$7.516$ \\
+&$4$ &$\bf0.2421$ &$0.2405$ &$0.2556$ &$0.3748$ &$0.3804$ \\\hline
 \multirow{2}{*}{$\mathcal{I}_\mathcal{L}$}
-&$0$ &$0.4592$ &$0.4591$ &$0.4588$ &$0.4647$ &$0.5211$ \\
-&$4$ &$\bf0.024$ &$0.02405$ &$0.02301$ &$0.02889$ &$0.03470$ \\\hline
+&$0$ &$0.5616$   &$0.5616$  &$0.5624$  &$0.5586$ &$0.6974$ \\
+&$4$ &$\bf0.024$ &$0.02399$ &$0.02393$ &$0.02525$ &$0.03020$ \\\hline
 \end{tabular}
 \end{center}
 \caption{\label{t:iso-load-not-divisible-epsilon-i4}
 Load/processor statistics before and after $4$ iterations of the
 original and modified algorithms, with $4$ gossiping rounds, when
 $\vert\mathbf{P}\vert$ does not divide $\vert\mathbf{O}\vert$, when
-uniform random noise of increasing magnitude is added to the iso-load
-case.}
+uniform random noise of increasing magnitude is added to the
+\textbf{iso-load case}.}
 \end{table}
 For instance, \emph{ceteris paribus} as compared to the case
-presentend in Table~\ref{t:iso-load-not-divisible}, but this time with 
+of Table~\ref{t:iso-load-not-divisible}, but now with 
 $load(O_i)\sim\mathcal{U}(1-\varepsilon;1+\varepsilon)$, we obtain the
-following results presented in in
-Table~\ref{t:iso-load-not-divisible-epsilon-i4},with one experiment for
-each of the reported values of~$\varepsilon below$ (now only
-considering the algorithm using alternate 
-criterion $\texttt{6'}$).
-
-At first glance we may be tempted to hypothesize that the iso-load
+results presented in Table~\ref{t:iso-load-not-divisible-epsilon-i4},
+with one experiment for each of the reported values of~$\varepsilon$
+(now only using alternate criterion $\texttt{6'}$).
+At first glance, we may be tempted to posit that the iso-load
 approximations provide good approximations unless the object loads are
-allowed to fluctuate within a few percentage points about the mean~$\ell$.
+allowed to fluctuate within a few percentage points about the
+mean~$\ell$, with a progressively worsening spread between processor
+loads, as indicated by the range statistic~$R_{\mathcal{L}}$.
+
+However, this is a false impression because the results in
+Table~\ref{t:iso-load-not-divisible-epsilon-i4} were obtained with
+$i=4$ iterations of the algorithm: this
+number, albeit sufficient to reach an optimal distribution in the
+iso-load case, results in stopping the convergence to a
+better-balanced solution in the other cases, which translates into
+rejection rates that have not converged to $0$.
+This observation is hinting at the fact that, when $\varepsilon\neq0$,
+the algorithm at its fourth iteration continues to improve the results
+in the $\Vert\cdot\Vert_{\infty}$ sense, and more markedly as
+$\varepsilon$ increases. 
+For instance, with $\varepsilon=1$ we still observe transfer
+acceptance rates higher than $10\%$ at iteration number~$4$.
+
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{lcccccc}
+\hline
+statistic & iteration
+& $\varepsilon=0$
+& $\varepsilon=10^{-3}$
+& $\varepsilon=10^{-2}$
+& $\varepsilon=10^{-1}$
+& $\varepsilon=1$ \\
+\hline\hline
+$\min{\mathcal{L}}$
+&$100$ &$\bf39$ &$39.00$ &$38.95$ &$39.07$ &$39.07$ \\\hline
+$\max{\mathcal{L}}$
+&$100$ &$\bf40$ &$40.00$ &$39.94$ &$39.54$ &$39.37$ \\\hline
+$R_{\mathcal{L}}$
+&$100$ &$\bf1$ &$1.00$ &$0.99$ &$0.47$ &$0.30$ \\\hline
+$\sigma_{\mathcal{L}}$
+&$100$ &$\bf0.2421$ &$0.2403$ &$0.2257$ &$0.2581$ &$0.03111$ \\\hline
+$\mathcal{I}_\mathcal{L}$
+&$100$ &$\bf0.024$ &$0.02384$ &$0.02243$ &$0.01205$ &$0.006778$ \\\hline
+\end{tabular}
+\end{center}
+\caption{\label{t:iso-load-not-divisible-epsilon-i100}
+Load/processor statistics after $100$ iterations of the
+original and modified algorithms, with $4$ gossiping rounds, when
+$\vert\mathbf{P}\vert$ does not divide $\vert\mathbf{O}\vert$, when
+uniform random noise of increasing magnitude is added to the
+\textbf{iso-load case}.}
+\end{table}
+And indeed, as illustrated in
+Table~\ref{t:iso-load-not-divisible-epsilon-i100}, when we let the
+algorithm run through $100$ iterations, we observe wholly different
+results: at that point all cases have converged, with rejection rates
+of $0\%$ since many iterations: specifically, we obtain \emph{better}
+load-balancing results, as the noise added to the atomic load~$\ell$
+provides flexibility in how the algorithm may compensate for the fact
+that $\vert\mathbf{P}\vert$ does not divide $\vert\mathbf{O}\vert$.
+In the strict iso-load case, there is just no way to reduce the
+load imbalance between the processors that contain~$q$ objects, and
+those that contain~$q+1$; in contrast, as~$\varepsilon$ increases, the
+runtime finds more opportunities to displace objects to better fill
+that gap. This is confirmed as the spread between the most underloaded
+and overloaded processors decreases as well.
+
+From these observations we can can conclude that the iso-load formulas
+of~\S\ref{s:object_iso_load} are \emph{not} good predictors of the
+final outcome of the algorithm when it is allowed to run to
+convergence in non-iso-load cases; however, they remain decent
+predictors of what is to be expected in a non-iso-load case when the
+number of iterations is clamped to that which is sufficient for
+convergence in the iso-load case. This will also therefore provide a
+good baseline testing case.

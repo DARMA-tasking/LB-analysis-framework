@@ -22,7 +22,7 @@ for m in [
 def initialize():
 
     # Seed pseudo-random number generator
-    rnd.seed(3)
+    rnd.seed(820)
 
 ########################################################################
 def sampler(distribution_name, parameters):

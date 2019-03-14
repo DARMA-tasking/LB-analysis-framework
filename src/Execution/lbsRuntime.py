@@ -2,7 +2,6 @@
 lbsRuntime_module_aliases = {}
 for m in [
     "sys",
-    "random",
     "itertools",
     ]:
     has_flag = "has_" + m
@@ -183,8 +182,8 @@ class Runtime:
 
                         # Decide about proposed transfer
                         l_o = o.get_time()
-                        if p_dst.get_load() + l_o < self.average_load:
-                        #if l_o < l_src - p_dst.get_load():
+                        #if p_dst.get_load() + l_o < self.average_load:
+                        if l_o < l_src - p_dst.get_load():
                             # Report on accepted object transfer when requested
                             if self.Verbose:
                                 print "\t\t transfering obj_{} ({}) to proc_{}".format(
