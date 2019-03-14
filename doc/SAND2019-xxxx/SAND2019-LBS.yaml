@@ -68,6 +68,9 @@ chapters:
     - n: tex_subsection
       title: Object Iso-Load Case
       include: object_iso_load.tex
+    - n: tex_subsection
+      title: Iso-Load Approximations
+      include: approximate_iso_load.tex
 
 #######################################################
 # Add conclusion chapter

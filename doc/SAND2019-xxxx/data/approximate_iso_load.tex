@@ -1,0 +1,49 @@
+It is a natural question to wonder whether the optimality results
+obtained in the idealized iso-load case may also be used as
+approximations of the expected load-balancing results when the objects
+are of relatively homogenous sizes.
+
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{lcccccc}
+\hline
+statistic & iteration
+& $\varepsilon=0$
+& $\varepsilon=10^{-3}$
+& $\varepsilon=10^{-2}$
+& $\varepsilon=10^{-1}$
+& $\varepsilon=1$ \\
+\hline\hline
+\multirow{2}{*}{$\min{\mathcal{L}}$}
+&$0$ &$22$ &$21.99$ &$22.03$ &$21.89$ &$22.14$ \\
+&$4$ &$\bf39$ &$38.99$ &$38.92$ &$37.97$ &$37.65$ \\\hline
+\multirow{2}{*}{$\max{\mathcal{L}}$}
+&$0$ &$57$ &$57.00$ &$56.98$ &$57.22$ &$59.48$ \\
+&$4$ &$\bf40$ &$40.00$ &$39.96$ &$40.20$ &$40.46$ \\\hline
+\multirow{2}{*}{$\sigma_{\mathcal{L}}$}
+&$0$ &$5.928$ &$5.928$ &$5.929$ &$5.96302$ &$6.921$ \\
+&$4$ &$\bf0.2421$ &$0.2406$ &$0.2283$ &$0.4097$ &$0.4358$ \\\hline
+\multirow{2}{*}{$\mathcal{I}_\mathcal{L}$}
+&$0$ &$0.4592$ &$0.4591$ &$0.4588$ &$0.4647$ &$0.5211$ \\
+&$4$ &$\bf0.024$ &$0.02405$ &$0.02301$ &$0.02889$ &$0.03470$ \\\hline
+\end{tabular}
+\end{center}
+\caption{\label{t:iso-load-not-divisible-epsilon-i4}
+Load/processor statistics before and after $4$ iterations of the
+original and modified algorithms, with $4$ gossiping rounds, when
+$\vert\mathbf{P}\vert$ does not divide $\vert\mathbf{O}\vert$, when
+uniform random noise of increasing magnitude is added to the iso-load
+case.}
+\end{table}
+For instance, \emph{ceteris paribus} as compared to the case
+presentend in Table~\ref{t:iso-load-not-divisible}, but this time with 
+$load(O_i)\sim\mathcal{U}(1-\varepsilon;1+\varepsilon)$, we obtain the
+following results presented in in
+Table~\ref{t:iso-load-not-divisible-epsilon-i4},with one experiment for
+each of the reported values of~$\varepsilon below$ (now only
+considering the algorithm using alternate 
+criterion $\texttt{6'}$).
+
+At first glance we may be tempted to hypothesize that the iso-load
+approximations provide good approximations unless the object loads are
+allowed to fluctuate within a few percentage points about the mean~$\ell$.
