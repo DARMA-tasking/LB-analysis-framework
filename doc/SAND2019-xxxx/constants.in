@@ -1,6 +1,7 @@
 classification=UUR
 number=LBS
 title=Some Results About Distributed Load Balancing
+abstract=abstract.tex
 organization=08753
 location=CA
 author=Philippe P. P\'eba\"y
