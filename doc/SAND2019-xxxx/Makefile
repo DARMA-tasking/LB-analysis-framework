@@ -25,7 +25,7 @@ DATA=\
 all: $(DOC_NAME).pdf
 
 $(DOC_NAME).pdf: $(DOC_NAME) $(DOC_NAME).yaml data *.in
-	$(ARG_PATH)/Applications/Assembler.py -s $(DOC_NAME).yaml -d data -r SAND -c constants.in -o $(DOC_NAME)
+	$(ARG_PATH)/Applications/Assembler.py -s $(DOC_NAME).yaml -d data -c constants.in -o $(DOC_NAME)
 	mv $(DOC_NAME)/$(DOC_NAME).pdf .
 
 $(DOC_NAME):
