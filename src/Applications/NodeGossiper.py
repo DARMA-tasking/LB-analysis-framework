@@ -302,7 +302,8 @@ if __name__ == '__main__':
     # Instantiate epoch to VT file writer
     vt_writer = lbsLoadWriterVT.LoadWriterVT(
         epoch,
-        "{}.in".format(output_stem))
+        "{}".format(output_stem),
+        "vom")
     vt_writer.write(params.time_step)
 
     # Instantiate epoch to ExodusII file writer
