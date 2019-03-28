@@ -1,14 +1,13 @@
 ########################################################################
-lbsLoadWriter_module_aliases = {}
+lbsLoadWriterExodusII_module_aliases = {}
 for m in [
     "vtk",
-    "sys",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
         module_object = __import__(m)
-        if m in lbsLoadWriter_module_aliases:
-            globals()[lbsLoadWriter_module_aliases[m]] = module_object
+        if m in lbsLoadWriterExodusII_module_aliases:
+            globals()[lbsLoadWriterExodusII_module_aliases[m]] = module_object
         else:
             globals()[m] = module_object
         globals()[has_flag] = True
@@ -20,12 +19,12 @@ from Model import lbsEpoch
 from IO import lbsGridStreamer
 
 ########################################################################
-class LoadWriter:
+class LoadWriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
   ####################################################################
-    def __init__(self, e, m, n, s=1.0):
+    def __init__(self, e, m, n=None, s=1.0):
         """Class constructor:
         e: Epoch instance
         m: Processor dict
@@ -35,19 +34,19 @@ class LoadWriter:
 
         # If VTK is not available, do not do anything
         if not has_vtk:
-            print "** ERROR: [LoadWriter] Could not write to ExodusII file by lack of VTK"
+            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of VTK"
             return
 
         # If no LBS epoch was provided, do not do anything
         if not isinstance(e, lbsEpoch.Epoch):
-            print "** ERROR: [LoadWriter] Could not write to ExodusII file by lack of a LBS epoch"
+            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch"
             return
         else:
             self.epoch = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
-            print "** ERROR: [LoadWriter] Could not write to ExodusII file by lack of a processor mapping"
+            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a processor mapping"
             return
         else:
             self.mapping = m
@@ -68,9 +67,9 @@ class LoadWriter:
     def write(self, load_statistics, load_distributions):
         """Map processors to grid and write ExodusII file
         """
-        # Retrieve epoch processors
-        procs = self.epoch.processors
-        n_p = len(procs)
+
+        # Retrieve number of epoch processors
+        n_p = len(self.epoch.processors)
 
         # Create storage for statistics
         stats = vtk.vtkFieldData()
@@ -102,24 +101,25 @@ class LoadWriter:
             load_arrays.append(l_arr)
 
         # Iterate over processors and populate grid
-        for i, p in enumerate(procs):
+        for i, p in enumerate(self.epoch.processors):
             points.SetPoint(i, [self.spacing * c for c in self.mapping(p)])
             vertices.InsertNextCell(1, [i])
             for l, l_arr in enumerate(load_arrays):
                 l_arr.SetTuple1(i, load_distributions[l][i])
 
         # Create grid streamer
-        streamer = lbsGridStreamer.GridStreamer(points,
-                                                vertices,
-                                                stat_arrays,
-                                                load_arrays)
+        streamer = lbsGridStreamer.GridStreamer(
+            points,
+            vertices,
+            stat_arrays,
+            load_arrays)
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print "**  ERROR: [LoadWriter] Failed to instantiate a grid streamer for file {}".format(
+            print "**  ERROR: [LoadWriterExodusII] Failed to instantiate a grid streamer for file {}".format(
                 self.file_name)
         else:
-            print "[LoadWriter] Writing ExodusII file: {}".format(
+            print "[LoadWriterExodusII] Writing ExodusII file: {}".format(
                 self.file_name)
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)

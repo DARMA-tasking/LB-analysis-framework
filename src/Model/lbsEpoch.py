@@ -28,15 +28,15 @@ class Epoch:
     """
 
     ####################################################################
-    def __init__(self, p=[], iter=0):
+    def __init__(self, p=[], t=0):
         # List of processors may be passed by constructor
         self.processors = p
 
+        # Default time-step/phase of this epoch
+        self.time_step = t
+
         # Initialize gossiping round
         self.round_index = 0
-
-        # Iteration/phase of this epoch
-        self.iteration = iter
 
     ####################################################################
     def get_processors_ids(self):
@@ -46,11 +46,11 @@ class Epoch:
         return [p.get_id() for p in self.processors]
 
     ####################################################################
-    def get_iter(self):
-        """Retrieve the iteration for this epoch
+    def get_time_step(self):
+        """Retrieve the time-step/phase for this epoch
         """
 
-        return self.iteration
+        return self.time_step
 
     ####################################################################
     def populate_from_sampler(self, n_o, t_sampler, sampler_params, n_p, s_s=0):
@@ -97,7 +97,7 @@ class Epoch:
                 rnd.choice(self.processors).add_object(o)
 
     ####################################################################
-    def populate_from_log(self, n_p, basename):
+    def populate_from_log(self, n_p, t_s, basename):
         """Populate this epoch by reading in a load profile from log files
         """
 
@@ -105,11 +105,11 @@ class Epoch:
         reader = lbsLoadReaderVT.LoadReader(basename)
 
         # Populate epoch with reader output
-        print "[Epoch] Reading objects from phase {} of file: {}".format(
-            self.iteration,
+        print "[Epoch] Reading objects from time-step {} of file: {}".format(
+            t_s,
             basename)
-        self.processors = reader.read_iter(n_p, self.iteration)
-
+        self.processors = reader.read_iteration(n_p, t_s)
+        
         # Compute and report object statistics
         objects = set()
         for p in self.processors:

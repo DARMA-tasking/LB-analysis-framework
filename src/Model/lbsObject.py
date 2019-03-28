@@ -5,11 +5,11 @@ class Object:
     """
 
     ####################################################################
-    def __init__(self, i, t, p=0, c=None):
+    def __init__(self, i, t, s, c=None):
         # Member variables passed by constructor
         self.index           = i
         self.time            = t
-        self.phase           = p
+        self.first           = s
         self.communications  = c
 
     ####################################################################
@@ -27,11 +27,12 @@ class Object:
         return self.time
 
     ####################################################################
-    def get_phase(self):
-        """Return object phase/iteration
+    def get_first_processor(self):
+        """Return processor to which object was originally attached
         """
 
-        return self.phase
+        return self.first
+
     ####################################################################
     def has_communications(self):
         """Return whether the object has communication graph data

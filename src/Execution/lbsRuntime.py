@@ -17,7 +17,7 @@ for m in [
         globals()[has_flag] = False
 
 from Model import lbsProcessor, lbsEpoch
-from IO    import lbsStatistics, lbsLoadWriter
+from IO    import lbsStatistics
 
 ########################################################################
 class Runtime:

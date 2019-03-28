@@ -25,11 +25,11 @@ if __name__ == '__main__':
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from Model     import lbsEpoch
         from Execution import lbsRuntime
-        from IO        import lbsLoadWriter, lbsStatistics
+        from IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
     else:
         from ..Model     import lbsEpoch
         from ..Execution import lbsRuntime
-        from ..IO        import lbsLoadWriter, lbsStatistics
+        from ..IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
 
 ########################################################################
 class ggParameters:
@@ -66,8 +66,14 @@ class ggParameters:
         # Relative overload threshold for load transfer
         self.threshold = 1.
 
-        # Base name for reading VT log files to obtain load distribution
+        # Time-step to obtain load distribution by reading VT log files 
+        self.time_step = 0
+
+        # File name stem to obtain load distribution by reading VT log files 
         self.log_file = None
+
+        # Base name to save computed object/processor mapping for VT
+        self.map_file = None
 
     ####################################################################
     def usage(self):
@@ -75,7 +81,7 @@ class ggParameters:
         """
 
         print "Usage:"
-        print "\t [-n <ni>]   number of load-balancing iterations"
+        print "\t [-i <ni>]   number of load-balancing iterations"
         print "\t [-x <npx>]  number of procs in x direction"
         print "\t [-y <npy>]  number of procs in y direction"
         print "\t [-z <npz>]  number of procs in z direction"
@@ -83,9 +89,11 @@ class ggParameters:
         print "\t [-p <np>]   number of initially used processors"
         print "\t [-k <nr>]   number of gossiping rounds"
         print "\t [-f <fo>]   gossiping fan-out value"
-        print "\t [-t <rt>]   overload relative threshold"
-        print "\t [-s <st>]   time sampler (uniform or lognormal)"
-        print "\t [-l <base>] base file name for reading VT load log files"
+        print "\t [-r <rt>]   overload relative threshold"
+        print "\t [-s <sot>]  sampler for object times: {uniform,lognormal}"
+        print "\t [-t <ts>]   time-step for reading VT load logs"
+        print "\t [-l <blog>] base file name for reading VT load logs"
+        print "\t [-m <bmap>] base file name for VT object/proc mapping"
         print "\t [-v]        make standard output more verbose"
         print "\t [-h]        help: print this message and exit"
 
@@ -96,7 +104,7 @@ class ggParameters:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hk:n:o:p:s:t:vx:y:z:l:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:")
         except getopt.GetoptError:
             print "** ERROR: incorrect command line arguments."
             self.usage()
@@ -113,9 +121,12 @@ class ggParameters:
                 return
             elif o == "-v":
                 self.verbose = True
-            elif o == "-n":
-                if i > 0:
+            elif o == "-i":
+                if i > -1:
                     self.n_iterations = i
+            elif o == "-t":
+                if i > -1:
+                    self.time_step = i
             elif o == "-x":
                 if i > 0:
                     self.grid_size[0] = i
@@ -146,12 +157,14 @@ class ggParameters:
             elif o == "-f":
                 if i > 0:
                     self.fanout = i
-            elif o == "-t":
+            elif o == "-r":
                 x = float(a)
                 if x > 1.:
                     self.threshold = x
             elif o == "-l":
                 self.log_file = a
+            elif o == "-m":
+                self.map_file = a
 
 	# Ensure that exactly one population strategy was chosen
         if (not (self.log_file or self.time_sampler_type)
@@ -179,6 +192,33 @@ def global_id_to_cartesian(id, grid_sizes):
 
     # Return Cartesian coordinates
     return i, j, k
+
+########################################################################
+def get_output_file_stem(params):
+    """Build the file name for a given rank/node
+    """
+
+    # Assemble output file stem name based on epoch population strategy
+    if params.log_file:
+        output_stem = "l{}-i{}-k{}-f{}".format(
+            os.path.basename(params.log_file),
+            params.n_iterations,
+            params.n_rounds,
+            params.fanout)
+    else:
+        output_stem = "p{}-o{}-s{}-i{}-k{}-f{}".format(
+            params.n_processors,
+            params.n_objects,
+            params.time_sampler_type,
+            params.n_iterations,
+            params.n_rounds,
+            params.fanout)
+
+    # Return assembled stem
+    return "NodeGossiper-n{}-{}-t{}".format(
+        n_p,
+        output_stem,
+        "{}".format(params.threshold).replace('.', '_'))
 
 ########################################################################
 if __name__ == '__main__':
@@ -209,7 +249,9 @@ if __name__ == '__main__':
     epoch = lbsEpoch.Epoch()
     if params.log_file:
         # Populate epoch from log files and store number of objects
-        n_o = epoch.populate_from_log(n_p, params.log_file)
+        n_o = epoch.populate_from_log(n_p,
+                                      params.time_step,
+                                      params.log_file)
 
     else:
         # Create requested pseud-ramdom sampler
@@ -254,30 +296,22 @@ if __name__ == '__main__':
         *params.grid_size)
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
-    # Create output name based on epoch population strategy
-    if params.log_file:
-        output_name = "NodeGossiper-n{}-l{}-i{}-k{}-f{}-t{}.e".format(
-            n_p,
-            os.path.basename(params.log_file),
-            params.n_iterations,
-            params.n_rounds,
-            params.fanout,
-            "{}".format(params.threshold).replace('.', '_'))
-    else:
-        output_name = "NodeGossiper-n{}-p{}-o{}-s{}-i{}-k{}-f{}-t{}.e".format(
-            n_p,
-            params.n_processors,
-            params.n_objects,
-            params.time_sampler_type,
-            params.n_iterations,
-            params.n_rounds,
-            params.fanout,
-            "{}".format(params.threshold).replace('.', '_'))
+    # Assemble output file name stem
+    output_stem = get_output_file_stem(params)
+
+    # Instantiate epoch to VT file writer
+    vt_writer = lbsLoadWriterVT.LoadWriterVT(
+        epoch,
+        "{}.in".format(output_stem))
+    vt_writer.write(params.time_step)
 
     # Instantiate epoch to ExodusII file writer
-    writer = lbsLoadWriter.LoadWriter(epoch, grid_map, output_name)
-    writer.write(rt.statistics,
-                 rt.load_distributions)
+    ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(
+        epoch,
+        grid_map,
+        "{}.e".format(output_stem))
+    ex_writer.write(rt.statistics,
+                    rt.load_distributions)
 
     # Compute and print final load statistics
     _, _, l_ave, l_max, _, _, _ = lbsStatistics.print_function_statistics(

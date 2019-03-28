@@ -24,14 +24,14 @@ class LoadReader:
     """A class to read VT's load stats output files. These CSV files conform
     to the following format:
 
-      <iter/phase>, <object-id>, <time>
-      <iter/phase>, <object-id1>, <object-id2>, <num-bytes>
+      <time_step/phase>, <object-id>, <time>
+      <time_step/phase>, <object-id1>, <object-id2>, <num-bytes>
 
     Each file is named as <base-name>.<node>.out, where <node> spans the number
     of MPI ranks that VT is utilizing.
 
     Each line in a given file specifies the load of each object that is
-    currently mapped to that VT node for a given iteration/phase. Lines with 3
+    currently mapped to that VT node for a given time_step/phase. Lines with 3
     entries specify load for an object in term of wall time. Lines with 4
     entries specify the communication volume between objects in bytes.
 
@@ -51,30 +51,31 @@ class LoadReader:
         self.debug_mode = debug
 
     ####################################################################
-    def node_file_name(self, node):
+    def get_node_trace_file_name(self, node):
         """Build the file name for a given rank/node
         """
-        return str(self.file_prefix) + "." + str(node) + ".out"
+
+        return "{}.{}.out".format(
+            self.file_prefix, node)
 
     ####################################################################
-    def read(self, node, doiter=-1, comm=False):
-        """Read the file for a given node/rank. If doiter==-1 then all iterations
-        are read; else, only the iteration 'doiter' is read from the file.
+    def read(self, node, time_step=-1, comm=False):
+        """Read the file for a given node/rank. If time_step==-1 then all
+        steps are read from the file; otherwise, only `time_step` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
-        fname = self.node_file_name(node)
-        if self.debug_mode:
-            print "[LoadReaderVT] Reading file: {}".format(fname)
-        if not os.path.isfile(fname):
-            print "** ERROR: [LoadReaderVT] File: {} does not exist.".format(fname)
+        file_name = self.get_node_trace_file_name(node)
+        print "[LoadReaderVT] Reading file: {}".format(file_name)
+        if not os.path.isfile(file_name):
+            print "** ERROR: [LoadReaderVT] File: {} does not exist.".format(file_name)
             sys.exit(1)
 
         # Initialize storage
         iter_map = dict()
 
         # Open specified input file
-        with open(fname, 'r') as f:
+        with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
             # Iterate over rows of input file
             for row in log:
@@ -83,31 +84,30 @@ class LoadReader:
                 # Handle three-entry case
                 if n_entries == 3:
                     # Parsing the three-entry case, thus this format:
-                    #   <iteration/phase>, <object-id>, <time>
+                    #   <time_step/phase>, <object-id>, <time>
                     # Converting these into integers and float before using them or
                     # inserting the values in the dictionary
                     try:
-                        iter_id, o_id = map(int, row[0:2])
+                        phase, o_id = map(int, row[:2])
                         time = float(row[2])
                     except:
                         print "** ERROR: [LoadReaderVT] Incorrect row format:".format(row)
 
                     # Update processor if iteration was requested
-                    if iter_id == doiter or doiter == -1:
+                    if time_step in (phase, -1):
                         # Instantiate object with retrieved parameters
-                        obj = lbsObject.Object(o_id, time, iter_id)
+                        obj = lbsObject.Object(o_id, time, phase)
 
                         # If this iteration was never encoutered initialize proc object
-                        if not iter_id in iter_map:
-                            iter_map[iter_id] = lbsProcessor.Processor(node)
+                        iter_map.setdefault(phase, lbsProcessor.Processor(node))
 
                         # Add object to processor
-                        iter_map[iter_id].add_object(obj)
+                        iter_map[phase].add_object(obj)
 
                         # Print debug information when requested
                         if self.debug_mode:
                             print "[LoadReaderVT] iteration = {}, object id = {}, time = {}".format(
-                                iter_id,
+                                phase,
                                 o_id,
                                 time)
 
@@ -122,15 +122,15 @@ class LoadReader:
 
         # Print debug information when requested
         if self.debug_mode:
-            print "[LoadReaderVT] Finished reading file: {}".format(fname)
+            print "[LoadReaderVT] Finished reading file: {}".format(file_name)
 
         # Return map of populated processors per iteration
         return iter_map
 
     ####################################################################
-    def read_iter(self, n_p, iter_id=0):
+    def read_iteration(self, n_p, time_step):
         """Read all the data in the range of procs [0..n_p) for a given
-        iteration `iter_id`. Collapse the iter_map dictionary from `read(..)`
+        iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
         into a list of processors to be returned for the given iteration.
         """
         
@@ -140,9 +140,17 @@ class LoadReader:
         # Iterate over all processors
         for p in range(n_p):
             # Read data for given iteration and assign it to processor
-            proc_iter_map = self.read(p, iter_id)
-            procs[p] = proc_iter_map[iter_id]
+            proc_iter_map = self.read(p, time_step)
 
+            # Try to retrieve processor information at given time-step
+            try:
+                procs[p] = proc_iter_map[time_step]
+            except KeyError:
+                print "** ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                    p,
+                    time_step)
+                sys.exit(1)
+            
         # Return populated list of processors
         return procs
 
