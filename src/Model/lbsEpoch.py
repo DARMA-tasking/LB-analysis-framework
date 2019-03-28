@@ -105,7 +105,7 @@ class Epoch:
         reader = lbsLoadReaderVT.LoadReader(basename)
 
         # Populate epoch with reader output
-        print "[Epoch] Reading objects from time-step {} of file: {}".format(
+        print "[Epoch] Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
             basename)
         self.processors = reader.read_iteration(n_p, t_s)

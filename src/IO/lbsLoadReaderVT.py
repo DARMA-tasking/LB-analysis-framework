@@ -21,13 +21,13 @@ from Model import lbsObject, lbsProcessor
 
 ########################################################################
 class LoadReader:
-    """A class to read VT's load stats output files. These CSV files conform
+    """A class to read VT Object Map files. These CSV files conform
     to the following format:
 
       <time_step/phase>, <object-id>, <time>
       <time_step/phase>, <object-id1>, <object-id2>, <num-bytes>
 
-    Each file is named as <base-name>.<node>.out, where <node> spans the number
+    Each file is named as <base-name>.<node>.vom, where <node> spans the number
     of MPI ranks that VT is utilizing.
 
     Each line in a given file specifies the load of each object that is
@@ -55,7 +55,7 @@ class LoadReader:
         """Build the file name for a given rank/node ID
         """
 
-        return "{}.{}.out".format(
+        return "{}.{}.vom".format(
             self.file_prefix, node_id)
 
     ####################################################################
@@ -66,9 +66,9 @@ class LoadReader:
 
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
-        print "[LoadReaderVT] Reading file: {}".format(file_name)
+        print "[LoadReaderVT] Reading {} VT object map".format(file_name)
         if not os.path.isfile(file_name):
-            print "** ERROR: [LoadReaderVT] File: {} does not exist.".format(file_name)
+            print "** ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
             sys.exit(1)
 
         # Initialize storage
