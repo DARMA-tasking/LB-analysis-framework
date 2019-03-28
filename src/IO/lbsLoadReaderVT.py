@@ -51,21 +51,21 @@ class LoadReader:
         self.debug_mode = debug
 
     ####################################################################
-    def get_node_trace_file_name(self, node):
-        """Build the file name for a given rank/node
+    def get_node_trace_file_name(self, node_id):
+        """Build the file name for a given rank/node ID
         """
 
         return "{}.{}.out".format(
-            self.file_prefix, node)
+            self.file_prefix, node_id)
 
     ####################################################################
-    def read(self, node, time_step=-1, comm=False):
+    def read(self, node_id, time_step=-1, comm=False):
         """Read the file for a given node/rank. If time_step==-1 then all
         steps are read from the file; otherwise, only `time_step` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
-        file_name = self.get_node_trace_file_name(node)
+        file_name = self.get_node_trace_file_name(node_id)
         print "[LoadReaderVT] Reading file: {}".format(file_name)
         if not os.path.isfile(file_name):
             print "** ERROR: [LoadReaderVT] File: {} does not exist.".format(file_name)
@@ -96,10 +96,10 @@ class LoadReader:
                     # Update processor if iteration was requested
                     if time_step in (phase, -1):
                         # Instantiate object with retrieved parameters
-                        obj = lbsObject.Object(o_id, time, phase)
+                        obj = lbsObject.Object(o_id, time, node_id)
 
                         # If this iteration was never encoutered initialize proc object
-                        iter_map.setdefault(phase, lbsProcessor.Processor(node))
+                        iter_map.setdefault(phase, lbsProcessor.Processor(node_id))
 
                         # Add object to processor
                         iter_map[phase].add_object(obj)
