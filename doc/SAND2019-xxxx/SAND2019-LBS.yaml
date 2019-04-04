@@ -89,6 +89,7 @@ chapters:
       arguments:
         width: 14cm
         figure_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.png
+        caption_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.tex
         label: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom
 
 #######################################################
