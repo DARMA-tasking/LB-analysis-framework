@@ -1,0 +1,49 @@
+The case used here is that of a run performed on 8 processors using
+the \textsf{Virtual Transport} (\textsf{VT}) asynchronous many 
+mapping was output every several time steps, using a data exchange
+format (\texttt{.vom}) that we created for that purpose.
+The \textsf{NodeGossiper} is endowed with both a reader and writer for
+this format, allowing it to compute a hopefully better-balanced object
+mapping than the one it was handed by the simulation code.
+
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{@{}lrrrrrrrrr@{}}
+\hline
+$\mathcal{D}$ &
+$\vert\mathcal{D}\vert$ &
+$\min{\mathcal{D}}$ & 
+$\overline{\mathcal{D}}$ & 
+$\max{\mathcal{D}}$ &
+$R_{\mathcal{D}}$ &
+$\sigma_{\mathcal{D}}$ &
+$\gamma_{1,\mathcal{D}}$ &
+$\gamma_{2,\mathcal{D}}$ &
+$\mathcal{I}_{\mathcal{D}}$ \\
+\hline\hline
+\textbf{O} &
+$100$     & $0.00026703$ & $0.042076$ & $0.30404$ &
+$0.30377$ & $0.074587$   &$2.8855$    & $9.8574$ &
+N/A \\\hline
+$\mathcal{L}$ &
+$8$      & $0.004673$ & $0.52595$ & $2.3209$ &
+$2.3162$ & $0.69632$  & $2.030$   & $5.5987$ &
+$3.4128$\\\hline
+\end{tabular}
+\end{center}
+\caption{\label{t:vt-example} Object mapping statistics of the initial
+object/processor load distribution of a \textsf{VT}-based simulation
+on~8 ranks.}
+\end{table}
+
+The experiment we are presenting used an object mapping of which some
+key statistical properties are shown in Table~\ref{t:vt-example}: the
+first row provides the values for the object times themselves, read
+from the \texttt{.vom} files, while the second line presents those for
+our variable of interest, the per-processor load~$\mathcal{L}$.
+We note in particular that this case was especially poorly balanced to
+boot, with the most heavily loaded rank being assigned $500$ times
+more work that the least loaded one, and an overall load imbalance
+almost half the size of the rank set.
+
+  

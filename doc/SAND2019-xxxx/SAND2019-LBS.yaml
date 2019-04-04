@@ -73,6 +73,25 @@ chapters:
       include: approximate_iso_load.tex
 
 #######################################################
+# Add chapter on application to a real case
+- n: tex_chapter
+  title: Application to a Small Yet Real Case
+  include: application.tex
+  sections:
+  - n: tex_section
+    title: Experimental Setting
+    include: experimental_setting.tex
+  - n: tex_section
+    title: Comparative Results
+    include: comparative_results.tex
+    sections:
+    - n: tex_figure
+      arguments:
+        width: 14cm
+        figure_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.png
+        label: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom
+
+#######################################################
 # Add conclusion chapter
 - n: tex_chapter
   title: Conclusion

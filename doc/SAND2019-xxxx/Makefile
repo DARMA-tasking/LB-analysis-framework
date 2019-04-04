@@ -20,6 +20,9 @@ DATA=\
 	data/optimal_distribution.tex \
 	data/object_iso_load.tex \
 	data/approximate_iso_load.tex \
+	data/application.tex \
+	data/experimental_setting.tex \
+	data/comparative_results.tex \
 	data/conclusion.tex
 
 all: $(DOC_NAME).pdf

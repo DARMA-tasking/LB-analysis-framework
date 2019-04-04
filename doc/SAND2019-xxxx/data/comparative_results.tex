@@ -1,0 +1,48 @@
+
+We compared the results obtained with the two different
+implementations (Grapevine algorithm with original criterion and
+\texttt{6}, vs. NodeGossiper with modified criterion \texttt{6'}) by
+using in both cases the following input parameters: $i=5$, $k=f=4$,
+and an overload threshold $t=1_0$, and identical seedings of the
+pseudo-random number generator used by the samplers in the two phases
+of the algorithm.
+
+\begin{table}[htb!]
+\begin{center}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\hline
+criterion &
+$\min{\mathcal{L}}$ & 
+$\max{\mathcal{L}}$ &
+$R_{\mathcal{L}}$ &
+$\sigma_{\mathcal{L}}$ &
+$\gamma_{1,\mathcal{L}}$ &
+$\gamma_{2,\mathcal{L}}$ &
+$\mathcal{I}_{\mathcal{L}}$ \\
+\hline\hline
+\texttt{6} &
+$0.28542$ & $1.7508$ & $1.4654$ &
+$0.46454$ & $2.2364$ & $6.0655$ &
+$2.3288$  \\\hline
+\texttt{6'} &
+$0.49539$  & $0.57315$ & $0.077759$ &
+$0.024726$ & $0.77394$ & $2.3940$ &
+$0.089739$ \\\hline
+\end{tabular}
+\end{center}
+\caption{\label{t:comparative_results} Object mapping statistics
+obtained after $5$ iterations of the load-balancing algorithm with
+both version of the decision criteria (\texttt{6} vs. \texttt{6'})
+when $k=f=4$.}
+\end{table}
+
+The results obtained for each experiment  presented in
+Table~\ref{t:comparative_results}. Cardinalities and averages are
+omitted as they are identical to those indicated in the last row of
+Table~\ref{t:vt-example}, as both are invariant because we do not
+allow the number of ranks (nor of course the total load) to change
+during the load-balancing process.
+This comparison speaks for itself, and we confirm with this real case
+what we had established from first principles and analytical cases.
+
+ 
