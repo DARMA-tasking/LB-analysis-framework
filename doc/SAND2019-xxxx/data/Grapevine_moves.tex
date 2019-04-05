@@ -1,0 +1,13 @@
+In contrast, as illustrated in
+Figure~\ref{Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom}, the original
+algorithm becomes quickly trapped in a local, very sub-optimal minimum.
+Indeed, once the most heavily loaded processor ($0$) has shipped all
+possible objects to the least loaded once without making them
+overloaded, the $3$ processors whose initial load is closest to the
+mean $\overline{\mathcal{L}}\approx0.52595$, albeit slightly
+underloaded, are forced by the same criterion $\texttt{6}$
+to rejected all proposed object transfers that can make them
+overloaded, even slightly.
+This results in a locked configuration where no global improvement can
+further occur, although the global imbalance~$\mathcal{I}$ remains
+high.

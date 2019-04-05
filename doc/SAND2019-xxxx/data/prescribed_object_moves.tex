@@ -1,0 +1,16 @@
+In this section, we use the VOM viewer that we created to generate 
+to create graphs representing the object move counts prescribed by 
+the load-balancer.
+In these graphs, vertices represent the processors, while edges
+represent object moves, and are endowed with two attributes: directed
+and undirected moves, i.e., respectively, the number of object
+transfers in each direction, and the total count of movements in both
+directions. 
+While the edge coloring scheme indicates the latter, overlaid arrows
+using the same color scale indicate the prescribed traffic in each
+direction.
+In particular, two-way traffic is indicated by pairs of opposing
+arrows, whereas in the case where object moves are prescribed in a
+single direction between two processors, a single overlaid arrow will
+indicate that -- it will also, as a result, have the same color as the
+edge over which it is drawn.

@@ -182,7 +182,9 @@ class Runtime:
 
                         # Decide about proposed transfer
                         l_o = o.get_time()
+                        # Use criterion 6
                         #if p_dst.get_load() + l_o < self.average_load:
+                        # Use criterion 6'
                         if l_o < l_src - p_dst.get_load():
                             # Report on accepted object transfer when requested
                             if self.Verbose:

@@ -8,6 +8,12 @@ DATA=\
 	data/NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex \
 	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png \
 	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png \
+	data/NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.png \
+	data/NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.tex \
+	data/Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.png \
+	data/Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.tex \
+	data/NodeGossiper_moves.tex \
+	data/Grapevine_moves.tex \
 	data/abstract.tex \
 	data/introduction.tex \
 	data/informed_transfer.tex \
@@ -22,7 +28,9 @@ DATA=\
 	data/approximate_iso_load.tex \
 	data/application.tex \
 	data/experimental_setting.tex \
+	data/experimental_statistics.tex \
 	data/comparative_results.tex \
+	data/prescribed_object_moves.tex \
 	data/conclusion.tex
 
 all: $(DOC_NAME).pdf

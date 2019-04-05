@@ -81,16 +81,38 @@ chapters:
   - n: tex_section
     title: Experimental Setting
     include: experimental_setting.tex
-  - n: tex_section
-    title: Comparative Results
-    include: comparative_results.tex
     sections:
     - n: tex_figure
       arguments:
         width: 14cm
+        figure_file: vt-example_rank_loads.png
+        caption_file: vt-example_rank_loads.tex
+        label: vt-example_rank_loads
+    - n: tex_paragraph
+      include: experimental_statistics.tex
+  - n: tex_section
+    title: Comparative Results
+    include: comparative_results.tex
+  - n: tex_section
+    title: Prescribed Object Moves
+    include: prescribed_object_moves.tex
+    sections:
+    - n: tex_figure
+      arguments:
+        width: 13cm
         figure_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.png
         caption_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.tex
         label: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom
+    - n: tex_paragraph
+      include: NodeGossiper_moves.tex
+    - n: tex_figure
+      arguments:
+        width: 14cm
+        figure_file: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.png
+        caption_file: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.tex
+        label: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom
+    - n: tex_paragraph
+      include: Grapevine_moves.tex
 
 #######################################################
 # Add conclusion chapter
