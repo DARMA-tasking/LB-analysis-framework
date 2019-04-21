@@ -37,6 +37,9 @@ chapters:
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
   - n: tex_section
+    title: Performance Model
+    include: performance-model.tex
+  - n: tex_section
     title: Rounds vs. Iterations
     include: comparison-i-k.tex
     sections:
