@@ -45,7 +45,7 @@ chapters:
     sections:
     - n: figure
       arguments:
-        width: 12cm
+        width: 14cm
         figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png
         caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.tex
         label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s

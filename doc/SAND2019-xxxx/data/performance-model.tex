@@ -6,10 +6,12 @@ The implementation of the \textsf{Grapevine} algorithm relies on having
 efficient termination detection, an extensively well-researched distributed
 computing problem. A distributed computation is globally terminated if every
 process is locally terminated and there is no message in transit between any
-processes. Termination detection is an important distributed problem that many
-non-bulk-synchronous algorithms rely on to correctly sequence operations across
-complex dynamic communication patterns. In \textsf{Grapevine}, it is used to
-determine when gossiping is finished and when all load transfers have occurred.
+processes. Termination detection is an important distributed problem,
+on which many non-bulk-synchronous algorithms rely in order to
+correctly sequence operations across complex dynamic communication
+patterns.
+In \textsf{Grapevine}, it is used to determine when gossiping is
+finished and when all load transfers have occurred.
 
 Chandy and Misra~\ref{chandy1986processes} prove the lower and upper bounds on
 the control message complexity $T_m$ for any termination detection algorithm,
@@ -23,7 +25,7 @@ Intuitively, the worst-case bound occurs when for every computation message, the
 termination detection algorithm is activated. The ``dynamic'' Dijkstra-Scholten
 termination algorithm~\ref{dijkstra1980termination} for diffusing computations
 utilizes an engagement tree to obtain this bound tightly but never performs
-better---even in ``best'' case situations---$\Theta(M)$. For distributed
+better---even in ``best'' case situations--- than $\Theta(M)$. For distributed
 applications in less tightly coupled applications or cases with partial
 processor engagement in the computation, this algorithm tends to perform well in
 practice. Thus, even the best case time complexity $T_c$ for the
