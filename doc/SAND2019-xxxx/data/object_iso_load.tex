@@ -42,7 +42,7 @@ then any  equi-distribution is optimal and is obtained by assigning
 exactly $\tfrac{\vert\mathbf{O}\vert}{\vert\mathbf{P}\vert}$ object(s)
 to each processor in $\mathbf{P}$.
 We therefore present in Table~\ref{t:iso-load-divisible} the
-respective results of the 
+respective results of the
 Grapevine algorithm with both original criterion \texttt{6} (left) and
 our modified criterion \texttt{6'}, for a case where
 $\mathbf{P}=10^2$, $\mathbf{O}=10^4$, $i=k=f=4$, $t=1.0$, and where
@@ -54,13 +54,13 @@ simple academic case. This first baseline case is thus discriminating
 enough to be retained.
 
 In order to extend the set of baseline cases, we now consider a
-slightly broader class of distributions, where all 
+slightly broader class of distributions, where all
 objects still have equal load $\ell$, but where it is no longer
 required that $\vert\mathbf{P}\vert$ divide $\vert\mathbf{O}\vert$.
 In this context, denoting
 $q=\lfloor\sfrac{\vert\mathbf{O}\vert}{\vert\mathbf{P}\vert}\rfloor$
 and $r=\vert\mathbf{O}\vert\bmod\vert\mathbf{P}\vert$, consider a
-distribution of $q$ objects on $\vert\mathbf{P}\vert-r$ processors 
+distribution of $q$ objects on $\vert\mathbf{P}\vert-r$ processors
 ($0\le{r}<\vert\mathbf{P}\vert$ by definition of the Euclidean
 division) and $q+1$ objects on the remaining $r$
 processors. All objects are indeed assigned because
@@ -139,7 +139,7 @@ This allows us to compute the variance of $\mathcal{L}$, as follows:
 - \frac{\vert\mathbf{O}\vert^2}{\vert\mathbf{P}\vert^2}\ell^2\\
 &= \frac{\ell^2}{\vert{\mathbf{P}}\vert^2}
 \left[r\vert{\mathbf{P}}\vert + 2qr\vert{\mathbf{P}}\vert
-+ q^2\vert{\mathbf{P}}\vert^2 
++ q^2\vert{\mathbf{P}}\vert^2
 - (q\vert{\mathbf{P}}\vert+r)^2\right]\\
 &= \frac{\ell^2 r(\vert{\mathbf{P}}\vert - r)}
 {\vert{\mathbf{P}}\vert^2}
@@ -191,7 +191,7 @@ original and modified algorithms, with $4$ gossiping rounds, in an
 iso-load case where $\vert\mathbf{P}\vert$ does not divide
 $\vert\mathbf{O}\vert$.}
 \end{table}
-For instance, keeping the same example as above, except 
+For instance, keeping the same example as above, except
 that now $\mathbf{P}=16^2$, which results in $r=16\neq0$ (and $q=39$),
 and the same initial seeding of the sampler, we obtained
 the results presented in Table~\ref{t:iso-load-not-divisible},

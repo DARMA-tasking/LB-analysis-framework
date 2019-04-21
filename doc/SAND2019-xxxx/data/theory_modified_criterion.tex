@@ -5,7 +5,7 @@ The following alternate criterion:
 \[
 \mathtt{6':} \qquad \mathrm{\mathbf{if}} \; load(O_i) < L_i - L_X
 \; \mathrm{\mathbf{then}}
-\] 
+\]
 ensures that the objective function $F$ monotonically decreases.
 \par\textit{Proof:}\\
 Consider a strictly overloaded processor $p_i$ and a strictly
@@ -47,7 +47,7 @@ with a trichotomy of possible cases (the two first ones are not necessarily disj
 If $p_i$ is such that $L_i'=L_{\max}'$ in $D'$ (i.e., $p_i$ has
 maximum load in the new distribution $D'$), then
 $\max{(L_i-\ell,L_X+\ell)}=L_i-\ell=L_i'$ and
-(\ref{eq:imbalance-change}) yields: 
+(\ref{eq:imbalance-change}) yields:
 \[
 F(D') = \frac{L_{\max}'}{L_{ave}} - T
  = \frac{L_i'}{L_{ave}} - T = \frac{L_i -\ell}{L_{ave}} - T
@@ -57,24 +57,24 @@ F(D') = \frac{L_{\max}'}{L_{ave}} - T
 If $p_X$ is such that $L_X'=L_{\max}'$ in $D'$ (i.e., $p_X$ has
 maximum load in the new distribution $D'$), then
 $\max{(L_i-\ell,L_X+\ell)}=L_X+\ell=L_X'$ and
-(\ref{eq:imbalance-change}) yields: 
+(\ref{eq:imbalance-change}) yields:
 \[
 F(D') = \frac{L_{\max}'}{L_{ave}} - T
  = \frac{L_X'}{L_{ave}} - T  = \frac{L_X+\ell}{L_{ave}} - T
 < \frac{L_i}{L_{ave}} - T \le F(D)
 \]
-\item 
+\item
 If a processor $p_Y\not\in\{p_i,p_X\}$ is such that $L_Y'=L_{\max}'$
 in $D'$ (i.e., neither $p_i$ nor $p_X$ have maximum load in the new
 distribution $D'$), then necessarily $L_Y'=L_Y$ because the transfer did not
 affect $p_Y$, and thus necessarily $L_Y'\le{}L_i$ and
-(\ref{eq:imbalance-change}) yields: 
+(\ref{eq:imbalance-change}) yields:
 \[
 F(D') = \frac{L_{\max}'}{L_{ave}} - T
  = \frac{L_Y'}{L_{ave}} - T  = \frac{L_Y}{L_{ave}} - T
 \le \frac{L_i}{L_{ave}} - T \le F(D).
 \]
-Furthermore, in this case, 
+Furthermore, in this case,
 $\frac{L_Y}{L_{ave}}-T\le\frac{L_i}{L_{ave}}-T$ is \emph{not} strict
 if and only if $P_Y$ also had maximum load in $D$; because there is
 only a finite number of such maximally-overloaded processors, we are
@@ -128,7 +128,7 @@ transferring $O_i$ from $p_i$ to $p_X$, one has:
 \frac{L_X + \ell}{L_{ave}} - T = \frac{L_X'}{L_{ave}}
 \le \frac{\max{L_{\cdot}'}}{L_{ave}} - T = F(D').
 \]
-Combining the two anove inequalities thus yields
+Combining the two above inequalities thus yields
 $F(D')\ge{}F(D)$. Furthermore, if $(O_i,p_x)$ is such that $L_X'$ is
 not a maximally-overloaded processor in the new distribution, then the
 latter inequality is strict, in which case $F$ increases.
@@ -139,7 +139,7 @@ The following alternate criterion:
 \[
 \mathtt{6':} \qquad \mathrm{\mathbf{if}} \; load(O_i) < L_i - L_X
 \; \mathrm{\mathbf{then}}
-\] 
+\]
 is optimal for the load transfer strategy of Algorithm~2.
 \par\textit{Proof:}\\
 From Lemma~1 we know that this alternate criterion ensures monotonic
