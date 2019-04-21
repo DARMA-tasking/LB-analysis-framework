@@ -19,7 +19,7 @@ chapters:
       sections:
       - n: figure
         arguments:
-          width: 14cm
+          width: 16cm
           figure_file: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
           caption_file: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
@@ -32,7 +32,7 @@ chapters:
       sections:
       - n: figure
         arguments:
-          width: 14cm
+          width: 16cm
           figure_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
@@ -87,7 +87,7 @@ chapters:
     sections:
     - n: figure
       arguments:
-        width: 14cm
+        width: 16cm
         figure_file: vt-example_rank_loads.png
         caption_file: vt-example_rank_loads.tex
         label: vt-example_rank_loads
@@ -110,7 +110,7 @@ chapters:
       include: NodeGossiper_moves.tex
     - n: figure
       arguments:
-        width: 14cm
+        width: 16cm
         figure_file: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.png
         caption_file: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.tex
         label: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom
