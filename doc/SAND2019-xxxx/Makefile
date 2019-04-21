@@ -7,7 +7,7 @@ DATA=\
 	data/NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png \
 	data/NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex \
 	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png \
-	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png \
+	data/NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.tex \
 	data/NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.png \
 	data/NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.tex \
 	data/Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.png \
