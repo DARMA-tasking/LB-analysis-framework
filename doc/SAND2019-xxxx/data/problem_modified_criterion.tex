@@ -2,14 +2,14 @@ In fact, we noticed that this finding can be explained by the fact
 that the condition set forth in the algorithm for each overloaded
 processor:
 \[
-\mathtt{4:} \quad \mathrm{\mathbf{while}} \; (L_i > (T \times L_{avg}))
+\mathtt{4:} \quad \mathrm{\mathbf{while}} \; (L_i > (T \times L_{ave}))
 \]
 mandates that, after a variable number of iterations, each overloaded
 processor no longer is, up to a certain relative threshold $T$.
 This implies that, in the worst case, after completion of this loop,
 \[
 \label{eq:imbalance}
-L_{\max} \le T \times L_{avg}
+L_{\max} \le T \times L_{ave}
 \quad \Longleftrightarrow \quad
 \mathcal{I_D} < T - 1
 \]
@@ -17,7 +17,7 @@ where $\mathcal{I}_D$ is the load imbalance of the distribution $D$ of
 objects across the entire set of processors. This amounts to
 saying that the objective function that the algorithm aims to minimize
 is $F(D)=\mathcal{I_D}-T+1$, and that a sufficient stopping criterion
-if $F(D)\ge0$ (we observe that $L_{avg}$ is by definition a constant
+if $F(D)\ge0$ (we observe that $L_{ave}$ is by definition a constant
 as no loss or gain of load may occur globally). 
 
 However, $F(D)\ge0$ is by no means necessary, and it fact if it were,
