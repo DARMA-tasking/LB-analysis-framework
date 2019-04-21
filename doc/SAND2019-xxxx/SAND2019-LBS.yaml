@@ -1,55 +1,55 @@
 chapters:
 #######################################################
 # Add introduction chapter
-- n: tex_chapter
+- n: chapter
   title: Introduction
   include: introduction.tex
 #######################################################
 # Add chapter discussing limitations of Grapevine and improving it
-- n: tex_chapter
+- n: chapter
   title: Remarks on the Grapevine Load-Balancing Algorithm
   sections:
-  - n: tex_section
+  - n: section
     title: Informed Transfer Criterion
     include: informed_transfer.tex
     sections:
-    - n: tex_subsection
+    - n: subsection
       title: Convergence Problems
       include: problem_modified_criterion.tex
       sections:
-      - n: tex_figure
+      - n: figure
         arguments:
           width: 14cm
           figure_file: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
           caption_file: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
-    - n: tex_subsection
+    - n: subsection
       title: An Optimal Decision Criterion
       include: theory_modified_criterion.tex
-    - n: tex_subsection
+    - n: subsection
       title: Results with Modified Criterion
       include: results_modified_criterion.tex
       sections:
-      - n: tex_figure
+      - n: figure
         arguments:
           width: 14cm
           figure_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
-  - n: tex_section
+  - n: section
     title: Performance Model
     include: performance-model.tex
-  - n: tex_section
+  - n: section
     title: Rounds vs. Iterations
     include: comparison-i-k.tex
     sections:
-    - n: tex_figure
+    - n: figure
       arguments:
         width: 12cm
         figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.png
         caption_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s.tex
         label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--0s-52s
-    - n: tex_figure
+    - n: figure
       arguments:
         width: 12cm
         figure_file: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s.png
@@ -57,69 +57,69 @@ chapters:
         label: NodeGossiper-n4096-p16-o10000-uniform-f6-t1_0--25s-52s
 #######################################################
 # Add chapter on statistical properties of solvable cases
-- n: tex_chapter
+- n: chapter
   title: Statistical Properties of Some Solvable Cases
   include: equi_distribution.tex
   sections:
-  - n: tex_section
+  - n: section
     title: Dirac Distributions
     include: dirac_distribution.tex
-  - n: tex_section
+  - n: section
     title: Optimal Distributions
     include: optimal_distribution.tex
     sections:
-    - n: tex_subsection
+    - n: subsection
       title: Object Iso-Load Case
       include: object_iso_load.tex
-    - n: tex_subsection
+    - n: subsection
       title: Iso-Load Approximations
       include: approximate_iso_load.tex
 
 #######################################################
 # Add chapter on application to a real case
-- n: tex_chapter
+- n: chapter
   title: Application to a Small Yet Real Case
   include: application.tex
   sections:
-  - n: tex_section
+  - n: section
     title: Experimental Setting
     include: experimental_setting.tex
     sections:
-    - n: tex_figure
+    - n: figure
       arguments:
         width: 14cm
         figure_file: vt-example_rank_loads.png
         caption_file: vt-example_rank_loads.tex
         label: vt-example_rank_loads
-    - n: tex_paragraph
+    - n: paragraph
       include: experimental_statistics.tex
-  - n: tex_section
+  - n: section
     title: Comparative Results
     include: comparative_results.tex
-  - n: tex_section
+  - n: section
     title: Prescribed Object Moves
     include: prescribed_object_moves.tex
     sections:
-    - n: tex_figure
+    - n: figure
       arguments:
         width: 13cm
         figure_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.png
         caption_file: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom.tex
         label: NodeGossiper-n8-lstats-i5-k4-f4-t1_0.0-vom
-    - n: tex_paragraph
+    - n: paragraph
       include: NodeGossiper_moves.tex
-    - n: tex_figure
+    - n: figure
       arguments:
         width: 14cm
         figure_file: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.png
         caption_file: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom.tex
         label: Grapevine-n8-lstats-i5-k4-f4-t1_0.0-vom
-    - n: tex_paragraph
+    - n: paragraph
       include: Grapevine_moves.tex
 
 #######################################################
 # Add conclusion chapter
-- n: tex_chapter
+- n: chapter
   title: Conclusion
   include: conclusion.tex
 
