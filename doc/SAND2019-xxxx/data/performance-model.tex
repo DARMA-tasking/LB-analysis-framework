@@ -13,7 +13,7 @@ patterns.
 In \textsf{Grapevine}, it is used to determine when gossiping is
 finished and when all load transfers have occurred.
 
-Chandy and Misra~\ref{chandy1986processes} prove the lower and upper bounds on
+Chandy and Misra~\cite{chandy1986processes} prove the lower and upper bounds on
 the control message complexity $T_m$ for any termination detection algorithm,
 where $\vert\mathbf{M}\vert$ is the total number of messages in an underlying computation and $\vert\mathbf{P}\vert$
 is the number of processors.
@@ -23,7 +23,7 @@ T_m = O(\vert\mathbf{M}\vert) = \Omega(\vert\mathbf{P}\vert).
 
 Intuitively, the worst-case bound occurs when for every computation message, the
 termination detection algorithm is activated. The ``dynamic'' Dijkstra-Scholten
-termination algorithm~\ref{dijkstra1980termination} for diffusing computations
+termination algorithm~\cite{dijkstra1980termination} for diffusing computations
 utilizes an engagement tree to obtain this bound tightly but never performs
 better---even in ``best'' case situations--- than $\Theta(\vert\mathbf{M}\vert)$. For distributed
 applications in less tightly coupled applications or cases with partial
@@ -57,25 +57,3 @@ G_c = (O(f\times k) + T_c) + (B + T_c).
 
 Todo: finish this section by expanding out $B$
 
-
-% @article{chandy1986processes,
-%   title={How processes learn},
-%   author={Chandy, K Mani and Misra, Jayadev},
-%   journal={Distributed computing},
-%   volume={1},
-%   number={1},
-%   pages={40--52},
-%   year={1986},
-%   publisher={Springer}
-% }
-
-% @article{dijkstra1980termination,
-%   title={Termination detection for diffusing computations},
-%   author={Dijkstra, Edsger W and Scholten, Carel S},
-%   journal={Information Processing Letters},
-%   volume={11},
-%   number={1},
-%   pages={1--4},
-%   year={1980},
-%   publisher={Elsevier}
-% }

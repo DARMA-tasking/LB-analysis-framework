@@ -116,5 +116,7 @@ chapters:
 - n: chapter
   title: Conclusion
   include: conclusion.tex
-
+  sections:
+  - n: paragraph
+    include: bibliography.tex
 #######################################################

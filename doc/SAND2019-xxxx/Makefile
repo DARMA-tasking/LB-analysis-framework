@@ -31,7 +31,8 @@ DATA=\
 	data/experimental_statistics.tex \
 	data/comparative_results.tex \
 	data/prescribed_object_moves.tex \
-	data/conclusion.tex
+	data/conclusion.tex \
+	data/bibliography.tex
 
 all: $(DOC_NAME).pdf
 
