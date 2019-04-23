@@ -18,7 +18,7 @@ the control message complexity $T_m$ for any termination detection algorithm,
 where $M$ is the total number of messages in an underlying computation and $P$
 is the number of processors.
 \[
-T_m = O(M) = \Omega(P)
+T_m = O(M) = \Omega(P).
 \]
 
 Intuitively, the worst-case bound occurs when for every computation message, the
@@ -32,7 +32,7 @@ practice. Thus, even the best case time complexity $T_c$ for the
 Dijkstra-Scholten algorithms is very costly (and is notably not scalable with
 respect to $P$):
 \[
-T_c = \Omega(P)
+T_c = \Omega(P).
 \]
 
 In contrast, in tightly-coupled cases when all processors are engaged in the
@@ -46,13 +46,13 @@ when utilizing termination to sequence phases in \textsf{Grapevine}. With the
 message complexity, we can also bound the time complexity for the 4-counter
 termination detection algorithm:
 \[
-T_c = O(M\cdot log(P)) = \Omega(2\cdot log(P))
+T_c = O(M\cdot log(P)) = \Omega(2\cdot log(P)).
 \]
 
 With $T_c$ in place, we bound the time complexity of the \textsf{Grapevine}
 algorithm, for a single iteration, denoted as $G_c$:
 \[
-G_c = (O(f\cdot k) + T_c) + (B + T_c)
+G_c = (O(f\cdot k) + T_c) + (B + T_c).
 \]
 
 Todo: finish this section by expanding out $B$
