@@ -15,44 +15,44 @@ finished and when all load transfers have occurred.
 
 Chandy and Misra~\ref{chandy1986processes} prove the lower and upper bounds on
 the control message complexity $T_m$ for any termination detection algorithm,
-where $M$ is the total number of messages in an underlying computation and $P$
+where $\vert\mathbf{M}\vert$ is the total number of messages in an underlying computation and $\vert\mathbf{P}\vert$
 is the number of processors.
 \[
-T_m = O(M) = \Omega(P).
+T_m = O(\vert\mathbf{M}\vert) = \Omega(\vert\mathbf{P}\vert).
 \]
 
 Intuitively, the worst-case bound occurs when for every computation message, the
 termination detection algorithm is activated. The ``dynamic'' Dijkstra-Scholten
 termination algorithm~\ref{dijkstra1980termination} for diffusing computations
 utilizes an engagement tree to obtain this bound tightly but never performs
-better---even in ``best'' case situations--- than $\Theta(M)$. For distributed
+better---even in ``best'' case situations--- than $\Theta(\vert\mathbf{M}\vert)$. For distributed
 applications in less tightly coupled applications or cases with partial
 processor engagement in the computation, this algorithm tends to perform well in
 practice. Thus, even the best case time complexity $T_c$ for the
 Dijkstra-Scholten algorithms is very costly (and is notably not scalable with
-respect to $P$):
+respect to $\vert\mathbf{P}\vert$):
 \[
-T_c = \Omega(P).
+T_c = \Omega(\vert\mathbf{P}\vert).
 \]
 
 In contrast, in tightly-coupled cases when all processors are engaged in the
-computation, as in the \textsf{Grapevine} algorithm, $O(M)$ is overly costly to
+computation, as in the \textsf{Grapevine} algorithm, $O(\vert\mathbf{M}\vert)$ is overly costly to
 assume in practice. Thus, the 4-counter, wave-based termination algorithm is
 often applied in these contexts that reaches a message complexity lower bound of
-$2\cdot P$ in the best case scenario, but costs $O(M\cdot P)$ in the worst
+$2\times \vert\mathbf{P}\vert$ in the best case scenario, but costs $O(\vert\mathbf{M}\vert\times \vert\mathbf{P}\vert)$ in the worst
 case. However, without arbitrary delays in the computation across all the
-processors, a small factor on top of $2\cdot P$ is a highly probable outcome
+processors, a small factor on top of $2\times \vert\mathbf{P}\vert$ is a highly probable outcome
 when utilizing termination to sequence phases in \textsf{Grapevine}. With the
 message complexity, we can also bound the time complexity for the 4-counter
 termination detection algorithm:
 \[
-T_c = O(M\cdot log(P)) = \Omega(2\cdot log(P)).
+T_c = O(\vert\mathbf{M}\vert\times \log(\vert\mathbf{P}\vert)) = \Omega(2\times \log(\vert\mathbf{P}\vert)).
 \]
 
 With $T_c$ in place, we bound the time complexity of the \textsf{Grapevine}
 algorithm, for a single iteration, denoted as $G_c$:
 \[
-G_c = (O(f\cdot k) + T_c) + (B + T_c).
+G_c = (O(f\times k) + T_c) + (B + T_c).
 \]
 
 Todo: finish this section by expanding out $B$
