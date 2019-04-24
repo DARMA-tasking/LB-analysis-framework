@@ -299,12 +299,13 @@ if __name__ == '__main__':
     # Assemble output file name stem
     output_stem = get_output_file_stem(params)
 
-    # Instantiate epoch to VT file writer
-    vt_writer = lbsLoadWriterVT.LoadWriterVT(
-        epoch,
-        "{}".format(output_stem),
-        "vom")
-    vt_writer.write(params.time_step)
+    # Instantiate epoch to VT file writer if started from a log file
+    if params.log_file:
+        vt_writer = lbsLoadWriterVT.LoadWriterVT(
+            epoch,
+            "{}".format(output_stem),
+            "vom")
+        vt_writer.write(params.time_step)
 
     # Instantiate epoch to ExodusII file writer
     ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(

@@ -67,7 +67,8 @@ class Epoch:
             sampler_name)
         objects = set([lbsObject.Object(
             i,
-            time_sampler()) for i in range(n_o)])
+            time_sampler(),
+            None) for i in range(n_o)])
 
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(objects,
@@ -90,11 +91,15 @@ class Epoch:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
             for o in objects:
-                rnd.choice(proc_list).add_object(o)
+                p = rnd.choice(proc_list)
+                p.add_object(o)
+                o.first = p.get_id()
         else:
             # Randomly assign objects to all processors
             for o in objects:
-                rnd.choice(self.processors).add_object(o)
+                p = rnd.choice(self.processors)
+                p.add_object(o)
+                o.first = p.get_id()
 
     ####################################################################
     def populate_from_log(self, n_p, t_s, basename):
