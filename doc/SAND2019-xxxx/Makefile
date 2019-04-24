@@ -20,6 +20,7 @@ DATA=\
 	data/problem_modified_criterion.tex \
 	data/theory_modified_criterion.tex \
 	data/results_modified_criterion.tex \
+	data/additional_results_modified_criterion.tex \
 	data/comparison-i-k.tex \
 	data/equi_distribution.tex \
 	data/dirac_distribution.tex \

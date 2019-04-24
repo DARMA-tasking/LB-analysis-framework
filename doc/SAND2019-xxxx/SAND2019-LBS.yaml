@@ -36,6 +36,8 @@ chapters:
           figure_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png
           caption_file: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.tex
           label: NodeGossiper-n4096-p16-o10000-uniform-i10-k10-f6-t1_0
+      - n: paragraph
+        include: additional_results_modified_criterion.tex
   - n: section
     title: Performance Model
     include: performance-model.tex

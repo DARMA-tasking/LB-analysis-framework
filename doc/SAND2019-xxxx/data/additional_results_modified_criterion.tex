@@ -1,0 +1,32 @@
+Furthermore, we illustrate below that, \emph{ceteris paribus}
+increasing the number of objects in order to obtain an
+object-to-processor ratio of $8$ (closer to our typical use case
+than the ratio of about $2.5$ used above) allows for even faster convergence:
+\begin{center}
+\begin{tabular}{@{}lrrrr@{}}
+\hline
+iteration & transfers & rejected & rejection rate & imbalance\\
+(index)   & (number)  & (number) & (\%) & ($\mathcal{I}$)\\
+\hline\hline
+ 0 &       &       &       &   270\\
+ 1 & 33761 &   269 & 0.790 &  1.52\\
+ 2 &  7179 &  3642 & 33.66 & 0.714\\
+ 3 &  4227 &  5946 & 58.45 & 0.399\\
+ 4 &  3304 &  9023 & 73.20 & 0.317\\
+ 5 &  2496 &  9570 & 79.31 & 0.273\\
+ 6 &  1978 & 10138 & 83.67 & 0.187\\
+ 7 &  1419 &  9895 & 87.46 & 0.139\\
+ 8 &  1026 &  9312 & 90.08 & 0.139\\
+ 9 &   692 &  8938 & 92.81 & 0.139\\
+10 &   463 &  8379 & 94.76 & 0.139\\
+\hline
+\end{tabular}
+\end{center}
+
+These results are consistent with what the intuition would assume:
+having relatively more objects per processor provides more flexibility
+for the load-balancer to exploit. 
+This is even further illustrated by the fact that, despite having
+attained an even better-balanced distribution than before ($0.139$
+vs. $0.623$), the algorithm continues to progress with even lower
+terminal rejection rates than before.
