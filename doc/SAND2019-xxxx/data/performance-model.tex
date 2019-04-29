@@ -50,10 +50,24 @@ T_c = O(\vert\mathbf{M}\vert\times \log(\vert\mathbf{P}\vert)) = \Omega(2\times 
 \]
 
 With $T_c$ in place, we bound the time complexity of the \textsf{Grapevine}
-algorithm, for a single iteration, denoted as $G_c$:
+algorithm, for a single iteration, denoted as $G_c$. We assume that $f$, the
+fanout during the gossip phase, is a small constant, where $f \ll P$.
+
 \[
-G_c = (O(f\times k) + T_c) + (B + T_c).
+G_c = (O(min(f\times min(k, log_f(\vert\mathbf{P}\vert))))) + T_c) + (B + T_c).
 \]
+where:
+\begin{align*}
+ k     & =  \mathrm{the\ number\ of\ gossiping\ rounds} \\
+ f     & =  \mathrm{the\ fanout\ during\ gossip\ where} f \ll \vert\mathbf{P}\vert
+\end{align*}
+% k * f
+% f > 1 and f << P
+% O == Theta(x * P)
+
+% log(P) + (f * g)
+% pick one (O(1))
+%
 
 Todo: finish this section by expanding out $B$
 
