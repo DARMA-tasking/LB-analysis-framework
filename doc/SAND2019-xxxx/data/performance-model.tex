@@ -54,12 +54,14 @@ algorithm, for a single iteration, denoted as $G_c$. We assume that $f$, the
 fanout during the gossip phase, is a small constant, where $f \ll P$.
 
 \[
-G_c = (O(f\times min(k, log_f(\vert\mathbf{P}\vert))) + T_c) + (B + T_c).
+G_c = O(f\times \mathrm{min}(k, log_f(\vert\mathbf{P}\vert)) + \vert\mathbf{O}\vert + 2 \times T_c)
 \]
 where:
 \begin{align*}
- k     & =  \mathrm{the\ number\ of\ gossiping\ rounds} \\
- f     & =  \mathrm{the\ fanout\ during\ gossip\ where} f \ll \vert\mathbf{P}\vert
+ k          & = \mathrm{the\ number\ of\ gossiping\ rounds} \\
+ f          & = \mathrm{the\ fanout\ during\ gossip\ where} f \ll \vert\mathbf{P}\vert \\
+ \mathbf{P} & = \mathrm{the\ set\ of\ processors} \\
+ \mathbf{O} & = \mathrm{the\ set\ of\ objects}
 \end{align*}
 % k * f
 % f > 1 and f << P
