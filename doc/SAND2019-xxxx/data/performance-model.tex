@@ -52,7 +52,6 @@ T_c = O(\vert\mathbf{M}\vert\times \log(\vert\mathbf{P}\vert)) = \Omega(2\times 
 With $T_c$ in place, we bound the time complexity of the \textsf{Grapevine}
 algorithm, for a single iteration, denoted as $G_c$. We assume that $f$, the
 fanout during the gossip phase, is a small constant, where $f \ll P$.
-
 \[
 G_c = O(f\times \mathrm{min}(k, \log_f(\vert\mathbf{P}\vert)) + \vert\mathbf{O}\vert + 2 \times T_c)
 \]
@@ -61,7 +60,7 @@ where:
  k          & = \mathrm{the\ number\ of\ gossiping\ rounds} \\
  f          & = \mathrm{the\ fanout\ during\ gossip\ where} f \ll \vert\mathbf{P}\vert \\
  \mathbf{P} & = \mathrm{the\ set\ of\ processors} \\
- \mathbf{O} & = \mathrm{the\ set\ of\ objects\ where\ } \vert\mathbf{O}\vert = O(\vert\mathbf{P}\vert)
+ \mathbf{O} & = \mathrm{the\ set\ of\ objects\ where\ } \vert\mathbf{O}\vert = O(\vert\mathbf{P}\vert).
 \end{align*}
 % k * f
 % f > 1 and f << P
@@ -73,9 +72,10 @@ where:
 
 The \textsf{Grapevine} algorithm, as originally described, can cost
 $\vert\mathbf{O}\vert$ in the worst case during the transfer phase. This is
-observed when a single processor's load $L_i$ is composed of all objects
+observed when the load~$L_i$ of a single processor is composed of all objects
 $\mathbf{O}$ in the system. The original algorithm contains a while loop that
 will attempt to reassign all these objects living a single processor during a
-single iteration of the \textsf{Grapevine} algorithm. For the \textsf{Grapevine}
-algorithm to be scalable in the worst case, we must bound the number of possible
-transfers each iteration by $\log(\vert\mathbf{P}\vert)$.
+single iteration of the \textsf{Grapevine} algorithm. For the
+\textsf{Grapevine} algorithm to be scalable in the worst case, we must
+bound the number of possible transfers at each iteration by
+$\log(\vert\mathbf{P}\vert)$. 
