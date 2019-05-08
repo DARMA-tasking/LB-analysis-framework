@@ -1,5 +1,6 @@
 report_type=SAND
 classification=UUR
+final=1
 number=LBS
 title=Some Results About Distributed Load Balancing
 abstract=abstract.tex
