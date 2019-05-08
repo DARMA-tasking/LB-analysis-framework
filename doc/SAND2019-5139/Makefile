@@ -1,5 +1,5 @@
 ARG_PATH=/Users/pppebay/Documents/Git/arg/src
-DOC_NAME=SAND2019-LBS
+DOC_NAME=SAND2019-5139
 
 DATA=\
 	data/Grapevine-n4096-p16-o10000-uniform-i10-k10-f6-t1_0.png \
