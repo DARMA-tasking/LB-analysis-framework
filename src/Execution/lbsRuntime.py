@@ -3,6 +3,7 @@ lbsRuntime_module_aliases = {}
 for m in [
     "sys",
     "itertools",
+    "math"
     ]:
     has_flag = "has_" + m
     try:
@@ -235,9 +236,14 @@ class Runtime:
 
             # Compute, store and report load imbalance
             l_imb = l_max / self.average_load - 1.
-            print "[RunTime] Load imbalance({}) = {:.6g}".format(
+            print ("[RunTime] Load imbalance({}) = {:.6g}; "
+                   "min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
                 i + 1,
-                l_imb)
+                l_imb,
+                l_min,
+                l_max,
+                self.average_load,
+                math.sqrt(l_var))
             self.statistics["load imbalance"].append(l_imb)
 
 ########################################################################
