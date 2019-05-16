@@ -58,10 +58,10 @@ class ggParameters:
         self.comm_sampler_type = None
         self.comm_sampler_parameters = []
 
-        # Object communication graph diameter (constant for now)
+        # Object communication graph degree (constant for now)
         self.comm_width = 0
 
-        # Object communication graph diameter (constant for now)
+        # Object communication graph analysis enabled
         self.comm_enabled = False
 
         # Size of subset to which objects are initially mapped (0 = all)
