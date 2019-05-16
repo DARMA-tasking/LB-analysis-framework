@@ -54,6 +54,16 @@ class ggParameters:
         self.time_sampler_type = None
         self.time_sampler_parameters = []
 
+        # Object communication graph time sampler type and parameters
+        self.comm_sampler_type = None
+        self.comm_sampler_parameters = []
+
+        # Object communication graph diameter (constant for now)
+        self.comm_width = 0
+
+        # Object communication graph diameter (constant for now)
+        self.comm_enabled = False
+
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_processors = 0
 
@@ -91,9 +101,11 @@ class ggParameters:
         print "\t [-f <fo>]   gossiping fan-out value"
         print "\t [-r <rt>]   overload relative threshold"
         print "\t [-s <sot>]  sampler for object times: {uniform,lognormal}"
+        print "\t [-S <sot>]  sampler for comm weights: {uniform,lognormal}"
         print "\t [-t <ts>]   time-step for reading VT load logs"
         print "\t [-l <blog>] base file name for reading VT load logs"
         print "\t [-m <bmap>] base file name for VT object/proc mapping"
+        print "\t [-c <nw>]   object communication neighbors (comm off if 0) "
         print "\t [-v]        make standard output more verbose"
         print "\t [-h]        help: print this message and exit"
 
@@ -104,7 +116,7 @@ class ggParameters:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:c:S:")
         except getopt.GetoptError:
             print "** ERROR: incorrect command line arguments."
             self.usage()
@@ -142,15 +154,16 @@ class ggParameters:
             elif o == "-p":
                 if i > 0:
                     self.n_processors = i
+            elif o == "-c":
+                if i > 0:
+                    self.comm_width = i
+                    self.comm_enabled = True
             elif o == "-s":
-                a_s = a.split(",")
-                if len(a_s):
-                    self.time_sampler_type = a_s[0].lower()
-                    for p in a_s[1:]:
-                        try:
-                            self.time_sampler_parameters.append(float(p))
-                        except:
-                            pass
+                self.time_sampler_type, self.time_sampler_parameters = parse_sampler(a)
+                #print "-s type={}, param={}".format(self.time_sampler_type, self.time_sampler_parameters)
+            elif o == "-S":
+                self.comm_sampler_type, self.comm_sampler_parameters = parse_sampler(a)
+                #print "-S type={}, param={}".format(self.comm_sampler_type, self.comm_sampler_parameters)
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -175,6 +188,43 @@ class ggParameters:
 
 	# No line parsing error occurred
         return False
+
+########################################################################
+def parse_sampler(cmd_str):
+    """Parse command line arguments specifying sampler type and input parameters
+       Example: "lognormal,1.0,10.0"
+    """
+
+    # Try to parse the sampler from `cmd_str`
+    sampler_type = ""
+    sampler_args = []
+    a_s = cmd_str.split(",")
+    if len(a_s):
+        sampler_type = a_s[0].lower()
+        for p in a_s[1:]:
+            try:
+                sampler_args.append(float(p))
+            except:
+                pass
+
+    # print "parsing type={}, param={}".format(sampler_type, sampler_args)
+
+    # Error check the sampler parsed from input string
+    if sampler_type not in (
+            "uniform",
+            "lognormal"):
+        print "** ERROR: unsupported sampler type: {}".format(
+            sampler_type)
+        sys.exit(1)
+    if len(sampler_args) != 2:
+        print ("** ERROR: expected two parameters for sampler type: {},"
+               " got {}").format(
+            sampler_args,
+            sampler_type)
+        sys.exit(1)
+
+    # Return the sampler parsed from the input argument
+    return sampler_type, sampler_args
 
 ########################################################################
 def global_id_to_cartesian(id, grid_sizes):
@@ -254,18 +304,6 @@ if __name__ == '__main__':
                                       params.log_file)
 
     else:
-        # Create requested pseud-ramdom sampler
-        if params.time_sampler_type not in (
-            "uniform",
-            "lognormal"):
-            print "** ERROR: unsupported sampler type: {}".format(
-                params.time_sampler_type)
-            sys.exit(1)
-        if len(params.time_sampler_parameters) != 2:
-            print "** ERROR: not enough parameters for sampler type: {}".format(
-                params.time_sampler_type)
-            sys.exit(1)
-
         # Populate epoch pseudo-randomly
         epoch.populate_from_sampler(params.n_objects,
                                     params.time_sampler_type,
