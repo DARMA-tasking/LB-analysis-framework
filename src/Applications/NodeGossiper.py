@@ -308,6 +308,9 @@ if __name__ == '__main__':
         epoch.populate_from_sampler(params.n_objects,
                                     params.time_sampler_type,
                                     params.time_sampler_parameters,
+                                    params.comm_width,
+                                    params.comm_sampler_type,
+                                    params.comm_sampler_parameters,
                                     n_p,
                                     params.n_processors)
 
