@@ -1,4 +1,4 @@
-ARG_PATH=/Users/pppebay/Documents/Git/arg/src
+ARG_PATH=~/Documents/Git/arg/src
 DOC_NAME=SAND2019-5139
 
 DATA=\

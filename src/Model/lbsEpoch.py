@@ -18,7 +18,7 @@ for m in [
         print "*  WARNING: Failed to import " + m + ". {}.".format(e)
         globals()[has_flag] = False
 
-from Model import lbsObject, lbsProcessor
+from Model import lbsObject, lbsProcessor, lbsObjComm, lbsEdge
 from IO    import lbsStatistics, lbsLoadReaderVT
 
 ########################################################################
@@ -53,22 +53,50 @@ class Epoch:
         return self.time_step
 
     ####################################################################
-    def populate_from_sampler(self, n_o, t_sampler, sampler_params, n_p, s_s=0):
+    def populate_from_sampler(self, n_o, ts, tsp, c_degree, cs, csp, n_p, s_s=0):
         """Use sampler to populate either all or n procs in an epoch
         """
 
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = lbsStatistics.sampler(t_sampler,
-                                                           sampler_params)
+        time_sampler, sampler_name = lbsStatistics.sampler(ts, tsp)
 
         # Create n_o objects with uniformly distributed times in given range
         print "[Epoch] Creating {} objects with times sampled from {}".format(
             n_o,
             sampler_name)
+
+        make_edges = lambda i, edge_pop: None
+        make_comm = lambda i: None
+        if c_degree > 0:
+            # Retrieve desired time sampler with its theoretical average
+            comm_sampler, comm_sampler_name = lbsStatistics.sampler(cs, csp)
+
+            print "[Epoch] Creating {} objects with comm weights sampled from {}".format(
+                n_o,
+                comm_sampler_name)
+
+            make_edges = lambda obj_id, edge_pop: { edge_pop[i]:lbsEdge.Edge(
+                obj_id,
+                edge_pop[i],
+                comm_sampler()) for i in range(c_degree) }
+
+            make_comm = lambda out: lbsObjComm.ObjComm([],out)
+
         objects = set([lbsObject.Object(
             i,
             time_sampler(),
-            None) for i in range(n_o)])
+            None,
+            make_comm(make_edges(i, rnd.sample([i for i in range(n_o)], c_degree)))
+            ) for i in range(n_o)])
+
+        for obj in objects:
+            comm = obj.get_communications()
+            print "i={}, edges={}".format(obj.get_id(), comm.get_out_edges())
+            for _, v in comm.get_out_edges().items():
+                print "in={}, out={}, weight={}".format(
+                    v.get_send_obj(),
+                    v.get_recv_obj(),
+                    v.get_weight())
 
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(objects,

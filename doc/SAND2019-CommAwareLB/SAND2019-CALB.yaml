@@ -1,0 +1,15 @@
+chapters:
+#######################################################
+# Add introduction chapter
+- n: chapter
+  title: Introduction
+  include: introduction.tex
+#######################################################
+# Add conclusion chapter
+- n: chapter
+  title: Conclusion
+  include: conclusion.tex
+  sections:
+  - n: paragraph
+    include: bibliography.tex
+#######################################################
