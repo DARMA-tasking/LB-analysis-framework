@@ -60,7 +60,7 @@ class LoadWriterVT:
         """Write one CSV file per rank/procesor containing with one object
         per line, with the following format:
 
-            <time_step/phase>, <object-id>, <time>
+            <source processor>, <object-id>, <time>
         """
 
         # Iterate over processors
