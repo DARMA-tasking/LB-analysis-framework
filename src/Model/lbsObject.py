@@ -9,7 +9,7 @@ class Object:
         # Member variables passed by constructor
         self.index           = i
         self.time            = t
-        self.first           = s
+        self.source          = s
         self.communications  = c
 
     ####################################################################
@@ -27,11 +27,11 @@ class Object:
         return self.time
 
     ####################################################################
-    def get_first_processor(self):
+    def get_source_processor(self):
         """Return processor to which object was originally attached
         """
 
-        return self.first
+        return self.source
 
     ####################################################################
     def has_communications(self):
