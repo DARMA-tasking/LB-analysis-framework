@@ -43,12 +43,12 @@ class LoadReader:
     """
 
   ####################################################################
-    def __init__(self, file_prefix, debug=False):
+    def __init__(self, file_prefix, vebose=False):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
 
-        # Enable debug mode with extra verbosity
-        self.debug_mode = debug
+        # Enable or disable verbose mode
+        self.verbose = verbose
 
     ####################################################################
     def get_node_trace_file_name(self, node_id):
@@ -105,7 +105,7 @@ class LoadReader:
                         iter_map[phase].add_object(obj)
 
                         # Print debug information when requested
-                        if self.debug_mode:
+                        if self.verbose:
                             print "[LoadReaderVT] iteration = {}, object id = {}, time = {}".format(
                                 phase,
                                 o_id,
@@ -120,8 +120,8 @@ class LoadReader:
                     print "** ERROR: [LoadReaderVT] Wrong length: {}".format(row)
                     sys.exit(1)
 
-        # Print debug information when requested
-        if self.debug_mode:
+        # Print more information when requested
+        if self.verbose:
             print "[LoadReaderVT] Finished reading file: {}".format(file_name)
 
         # Return map of populated processors per iteration

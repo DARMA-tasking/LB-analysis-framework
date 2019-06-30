@@ -1,20 +1,19 @@
 ########################################################################
 
-from Model import lbsObject, lbsEdge;
+from Model import lbsObject, lbsEdge
 
 ########################################################################
-class ObjComm:
-    """A class that holds the in and out edges for an object
-
+class ObjectCommunicator:
+    """A class holding the in and out communication edges for an object
     """
 
     ####################################################################
-    def __init__(self, in_edges, out_edges):
-        # The set of in edges for a given object
-        self.in_edges = in_edges
+    def __init__(self, i, o):
+        # The set of ingoing edges
+        self.in_edges = i
 
-        # The set of out edges for a given object
-        self.out_edges = out_edges
+        # The set of outgoing edges
+        self.out_edges = o
 
     ####################################################################
     def get_in_edges(self):

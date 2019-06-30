@@ -60,7 +60,7 @@ class LoadWriterVT:
         """Write one CSV file per rank/procesor containing with one object
         per line, with the following format:
 
-            <time_step/phase>, <object-id>, <time>
+            <source processor>, <object-id>, <time>
         """
 
         # Iterate over processors
@@ -84,7 +84,7 @@ class LoadWriterVT:
                 for o in p.objects:
                     # Write object to file and increment count
                     try:
-                        writer.writerow([o.get_first_processor(),
+                        writer.writerow([o.get_source_processor(),
                                          o.get_id(),
                                          o.get_time()])
                     except:
