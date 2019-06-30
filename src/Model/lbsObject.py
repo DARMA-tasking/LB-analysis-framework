@@ -42,7 +42,7 @@ class Object:
 
     ####################################################################
     def get_communications(self):
-        """Return the comm links for this Object
+        """Return the communication links for this object
         """
 
         return self.communications
