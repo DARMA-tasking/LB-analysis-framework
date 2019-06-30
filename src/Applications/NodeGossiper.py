@@ -299,7 +299,7 @@ if __name__ == '__main__':
     lbsStatistics.initialize()
 
     # Create an epoch and populate it
-    epoch = lbsEpoch.Epoch()
+    epoch = lbsEpoch.Epoch(0, params.verbose)
     if params.log_file:
         # Populate epoch from log files and store number of objects
         n_o = epoch.populate_from_log(n_p,

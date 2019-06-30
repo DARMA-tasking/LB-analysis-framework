@@ -28,15 +28,18 @@ class Epoch:
     """
 
     ####################################################################
-    def __init__(self, p=[], t=0):
-        # List of processors may be passed by constructor
-        self.processors = p
+    def __init__(self, t=0, verbose=False):
+        # Initialize empty list of processors
+        self.processors = []
 
         # Default time-step/phase of this epoch
         self.time_step = t
 
         # Initialize gossiping round
         self.round_index = 0
+
+        # Enable or disable verbose mode
+        self.verbose = verbose
 
     ####################################################################
     def get_processors_ids(self):
@@ -98,18 +101,19 @@ class Epoch:
                            c_degree)))
             ) for i in range(n_o)])
 
-        for obj in objects:
-            comm = obj.get_communicator()
-            print "i={}, edges={}".format(
-                obj.get_id(),
-                comm.get_out_edges() if comm else None
-                )
-            if comm:
-                for _, v in comm.get_out_edges().items():
-                    print "in={}, out={}, weight={}".format(
-                        v.get_send_obj(),
-                        v.get_recv_obj(),
-                        v.get_weight())
+        if self.verbose:
+            for obj in objects:
+                comm = obj.get_communicator()
+                print "[Epoch] i={}, edges={}".format(
+                    obj.get_id(),
+                    comm.get_out_edges() if comm else None
+                    )
+                if comm:
+                    for _, v in comm.get_out_edges().items():
+                        print "in={}, out={}, weight={}".format(
+                            v.get_send_obj(),
+                            v.get_recv_obj(),
+                            v.get_weight())
 
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(objects,
