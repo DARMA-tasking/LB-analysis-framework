@@ -101,6 +101,7 @@ class Epoch:
                            c_degree)))
             ) for i in range(n_o)])
 
+        # Print more information when requested
         if self.verbose:
             for obj in objects:
                 comm = obj.get_communicator()
