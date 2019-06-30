@@ -55,8 +55,8 @@ class ggParameters:
         self.time_sampler_parameters = []
 
         # Object communication graph time sampler type and parameters
-        self.communication_sampler_type = None
-        self.communication_sampler_parameters = []
+        self.weight_sampler_type = None
+        self.weight_sampler_parameters = []
 
         # Object communication graph degree (constant for now)
         self.communication_degree = 0
@@ -101,7 +101,7 @@ class ggParameters:
         print("\t [-f <fo>]   gossiping fan-out value")
         print("\t [-r <rt>]   overload relative threshold")
         print("\t [-t <ts>]   object times sampler: <ts> in {uniform,lognormal}")
-        print("\t [-c <cs>]   communications weights sampler: <cs> in {uniform,lognormal}")
+        print("\t [-w <ws>]   communications weights sampler: <cs> in {uniform,lognormal}")
         print("\t [-s <ts>]   time stepping for reading VT load logs")
         print("\t [-l <blog>] base file name for reading VT load logs")
         print("\t [-m <bmap>] base file name for VT object/proc mapping")
@@ -117,7 +117,7 @@ class ggParameters:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:d:c:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
         except getopt.GetoptError:
             print("** ERROR: incorrect command line arguments.")
             self.usage()
@@ -161,8 +161,8 @@ class ggParameters:
                     self.communication_enabled = True
             elif o == "-t":
                 self.time_sampler_type, self.time_sampler_parameters = parse_sampler(a)
-            elif o == "-c":
-                self.communication_sampler_type, self.communication_sampler_parameters = parse_sampler(a)
+            elif o == "-w":
+                self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(a)
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -179,8 +179,10 @@ class ggParameters:
                 self.map_file = a
 
 	# Ensure that exactly one population strategy was chosen
-        if (not (self.log_file or self.time_sampler_type)
-            or (self.log_file and self.time_sampler_type)):
+        if (not (self.log_file or
+                 (self.time_sampler_type and self.weight_sampler_type))
+            or (self.log_file and
+                (self.time_sampler_type or self.weight_sampler_type))):
             print("** ERROR: exactly one strategy to populate initial epoch must be chosen.")
             self.usage()
             return True
@@ -310,8 +312,8 @@ if __name__ == '__main__':
                                     params.time_sampler_type,
                                     params.time_sampler_parameters,
                                     params.communication_degree,
-                                    params.communication_sampler_type,
-                                    params.communication_sampler_parameters,
+                                    params.weight_sampler_type,
+                                    params.weight_sampler_parameters,
                                     n_p,
                                     params.n_processors)
 
