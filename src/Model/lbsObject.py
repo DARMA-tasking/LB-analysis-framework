@@ -1,6 +1,6 @@
 ########################################################################
 class Object:
-    """A class representing an instance of a class and its communication
+    """A class representing an object with time and communicator
     """
 
     ####################################################################
@@ -9,7 +9,7 @@ class Object:
         self.index           = i
         self.time            = t
         self.source          = s
-        self.communications  = c
+        self.communicator    = c
 
     ####################################################################
     def get_id(self):
@@ -33,17 +33,17 @@ class Object:
         return self.source
 
     ####################################################################
-    def has_communications(self):
+    def has_communicator(self):
         """Return whether the object has communication graph data
         """
 
-        return self.communications != None
+        return self.communicator != None
 
     ####################################################################
-    def get_communications(self):
+    def get_communicator(self):
         """Return the communication links for this object
         """
 
-        return self.communications
+        return self.communicator
 
 ########################################################################

@@ -18,7 +18,7 @@ for m in [
         print "*  WARNING: Failed to import " + m + ". {}.".format(e)
         globals()[has_flag] = False
 
-from Model import lbsObject, lbsProcessor, lbsObjComm, lbsEdge
+from Model import lbsObject, lbsProcessor, lbsObjectCommunicator, lbsEdge
 from IO    import lbsStatistics, lbsLoadReaderVT
 
 ########################################################################
@@ -65,38 +65,51 @@ class Epoch:
             n_o,
             sampler_name)
 
-        make_edges = lambda i, edge_pop: None
-        make_comm = lambda i: None
+        # Decide whether edges and communications must be created
         if c_degree > 0:
-            # Retrieve desired time sampler with its theoretical average
-            comm_sampler, comm_sampler_name = lbsStatistics.sampler(cs, csp)
+            # Retrieve desired communication weight sampler with its theoretical average
+            weight_sampler, weight_sampler_name = lbsStatistics.sampler(cs, csp)
 
-            print "[Epoch] Creating {} objects with comm weights sampled from {}".format(
+            print "[Epoch] Creating {} objects with communication weights sampled from {}".format(
                 n_o,
-                comm_sampler_name)
+                weight_sampler_name)
 
+            # Maker object edges with provided sampler for given degree
             make_edges = lambda obj_id, edge_pop: { edge_pop[i]:lbsEdge.Edge(
                 obj_id,
                 edge_pop[i],
-                comm_sampler()) for i in range(c_degree) }
+                weight_sampler()) for i in range(c_degree) }
 
-            make_comm = lambda out: lbsObjComm.ObjComm([],out)
+            # Make ojbect communicators with given weight
+            make_communicators = lambda out: lbsObjectCommunicator.ObjectCommunicator([], out)
+        else:
+            # Otherwise neither edges nor communicators are created
+            make_edges = lambda i, edge_pop: None
+            make_communicators = lambda i: None
 
+        # Create set of objects with given makers
         objects = set([lbsObject.Object(
             i,
             time_sampler(),
             None,
-            make_comm(make_edges(i, rnd.sample([i for i in range(n_o)], c_degree)))
+            make_communicators(make_edges(
+                i,
+                rnd.sample([i for i in range(n_o)],
+                           c_degree)))
             ) for i in range(n_o)])
 
         for obj in objects:
-            comm = obj.get_communications()
-            print "i={}, edges={}".format(obj.get_id(), comm.get_out_edges())
-            for _, v in comm.get_out_edges().items():
-                print "in={}, out={}, weight={}".format(
-                    v.get_send_obj(),
-                    v.get_recv_obj(),
-                    v.get_weight())
+            comm = obj.get_communicator()
+            print "i={}, edges={}".format(
+                obj.get_id(),
+                comm.get_out_edges() if comm else None
+                )
+            if comm:
+                for _, v in comm.get_out_edges().items():
+                    print "in={}, out={}, weight={}".format(
+                        v.get_send_obj(),
+                        v.get_recv_obj(),
+                        v.get_weight())
 
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(objects,
