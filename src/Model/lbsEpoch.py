@@ -15,7 +15,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("*  WARNING: Failed to import " + m + ". {}.".format(e))
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator, lbsEdge
@@ -64,26 +64,28 @@ class Epoch:
         time_sampler, sampler_name = lbsStatistics.sampler(ts, tsp)
 
         # Create n_o objects with uniformly distributed times in given range
-        print "[Epoch] Creating {} objects with times sampled from {}".format(
+        print("[Epoch] Creating {} objects with times sampled from {}".format(
             n_o,
-            sampler_name)
+            sampler_name))
 
         # Decide whether edges and communications must be created
         if c_degree > 0:
             # Retrieve desired communication weight sampler with its theoretical average
             weight_sampler, weight_sampler_name = lbsStatistics.sampler(cs, csp)
 
-            print "[Epoch] Creating {} objects with communication weights sampled from {}".format(
+            print("[Epoch] Creating {} objects with communication weights sampled from {}".format(
                 n_o,
-                weight_sampler_name)
+                weight_sampler_name))
 
             # Maker object edges with provided sampler for given degree
-            make_edges = lambda obj_id, edge_pop: { edge_pop[i]:lbsEdge.Edge(
-                obj_id,
-                edge_pop[i],
-                weight_sampler()) for i in range(c_degree) }
+            make_edges = lambda obj_id, edge_pop: {
+                edge_pop[i]:lbsEdge.Edge(
+                    obj_id,
+                    edge_pop[i],
+                    weight_sampler())
+                for i in range(c_degree)}
 
-            # Make ojbect communicators with given weight
+            # Make ojbect communicators with empty inbound and given outbound edges
             make_communicators = lambda out: lbsObjectCommunicator.ObjectCommunicator([], out)
         else:
             # Otherwise neither edges nor communicators are created
@@ -103,18 +105,26 @@ class Epoch:
 
         # Print more information when requested
         if self.verbose:
+            print("[Epoch] Created the following global communicator:")
             for obj in objects:
                 comm = obj.get_communicator()
-                print "[Epoch] i={}, edges={}".format(
-                    obj.get_id(),
-                    comm.get_out_edges() if comm else None
-                    )
-                if comm:
+
+                # Report if no communicator and proceed to next object
+                if not comm:
+                    print("\t object {}: no communicator".format(
+                        obj.get_id()))
+                    continue
+
+                # Report on inbound and outbound edges
+                out_edges = comm.get_in_edges()
+                print("\t outbound edges:")
+                for e in out_edges:
+                    print e
                     for _, v in comm.get_out_edges().items():
-                        print "in={}, out={}, weight={}".format(
+                        print("\t in={}, out={}, weight={}".format(
                             v.get_send_obj(),
                             v.get_recv_obj(),
-                            v.get_weight())
+                            v.get_weight()))
 
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(objects,
@@ -126,13 +136,17 @@ class Epoch:
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
-            print "[Epoch] Randomly assigning objects to {} processors amongst {}".format(s_s, n_p)
+            print("[Epoch] Randomly assigning objects to {} processors amongst {}".format(
+                s_s,
+                n_p))
         else:
             # Sanity check
             if s_s > n_p:
-                print "*  WARNING: too many processors ({}) requested: only {} available.".format(s_s, n_p)
+                print("*  WARNING: too many processors ({}) requested: only {} available.".format(
+                    s_s,
+                    n_p))
                 s_s = n_p
-            print "[Epoch] Randomly assigning objects to {} processors".format(n_p)
+            print("[Epoch] Randomly assigning objects to {} processors".format(n_p))
         if s_s > 0:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
@@ -156,9 +170,9 @@ class Epoch:
         reader = lbsLoadReaderVT.LoadReader(basename)
 
         # Populate epoch with reader output
-        print "[Epoch] Reading objects from time-step {} of VOM files with prefix {}".format(
+        print("[Epoch] Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
-            basename)
+            basename))
         self.processors = reader.read_iteration(n_p, t_s)
         
         # Compute and report object statistics
