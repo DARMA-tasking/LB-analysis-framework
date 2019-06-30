@@ -160,10 +160,8 @@ class ggParameters:
                     self.comm_enabled = True
             elif o == "-s":
                 self.time_sampler_type, self.time_sampler_parameters = parse_sampler(a)
-                #print "-s type={}, param={}".format(self.time_sampler_type, self.time_sampler_parameters)
             elif o == "-S":
                 self.comm_sampler_type, self.comm_sampler_parameters = parse_sampler(a)
-                #print "-S type={}, param={}".format(self.comm_sampler_type, self.comm_sampler_parameters)
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -195,19 +193,21 @@ def parse_sampler(cmd_str):
        Example: "lognormal,1.0,10.0"
     """
 
-    # Try to parse the sampler from `cmd_str`
-    sampler_type = ""
+    # Default return values
+    sampler_type = None
     sampler_args = []
-    a_s = cmd_str.split(",")
+
+    # Try to parse the sampler from `cmd_str`
+    a_s = cmd_str.split(',')
     if len(a_s):
         sampler_type = a_s[0].lower()
         for p in a_s[1:]:
             try:
-                sampler_args.append(float(p))
+                x = float(p)
             except:
-                pass
-
-    # print "parsing type={}, param={}".format(sampler_type, sampler_args)
+                print "** ERROR: `{}` cannot be converted to a float".format(p)
+                sys.exit(1)
+            sampler_args.append(x)
 
     # Error check the sampler parsed from input string
     if sampler_type not in (
@@ -219,8 +219,8 @@ def parse_sampler(cmd_str):
     if len(sampler_args) != 2:
         print ("** ERROR: expected two parameters for sampler type: {},"
                " got {}").format(
-            sampler_args,
-            sampler_type)
+            sampler_type,
+            len(sampler_args))
         sys.exit(1)
 
     # Return the sampler parsed from the input argument

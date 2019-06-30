@@ -1,4 +1,3 @@
-
 ########################################################################
 class Object:
     """A class representing an instance of a class and its communication

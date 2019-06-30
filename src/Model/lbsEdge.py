@@ -1,12 +1,10 @@
 ########################################################################
 
-from Model import lbsObject;
+from Model import lbsObject
 
 ########################################################################
 class Edge:
-    """A class representing the communication edge between two nodes (Object)
-    in the communication graph
-
+    """A class representing a communication edge between two Objects
     """
 
     ####################################################################
