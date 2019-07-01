@@ -1,10 +1,12 @@
 ########################################################################
 lbsEpoch_module_aliases = {
     "random": "rnd",
+    "numpy": "np",
     }
 for m in [
+    "sys",
     "random",
-    "math",
+    "numpy"
     ]:
     has_flag = "has_" + m
     try:
@@ -18,7 +20,7 @@ for m in [
         print("*  WARNING: Failed to import " + m + ". {}.".format(e))
         globals()[has_flag] = False
 
-from Model import lbsObject, lbsProcessor, lbsObjectCommunicator, lbsEdge
+from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
 
 ########################################################################
@@ -67,64 +69,62 @@ class Epoch:
         print("[Epoch] Creating {} objects with times sampled from {}".format(
             n_o,
             sampler_name))
+        objects = set([lbsObject.Object(
+            i,
+            time_sampler()
+            ) for i in range(n_o)])
 
-        # Decide whether edges and communications must be created
+        # Decide whether communications must be created
         if c_degree > 0:
             # Retrieve desired communication weight sampler with its theoretical average
             weight_sampler, weight_sampler_name = lbsStatistics.sampler(cs, csp)
 
-            print("[Epoch] Creating {} objects with communication weights sampled from {}".format(
-                n_o,
+            print("[Epoch] Creating {} sent communication(s) per object with weights sampled from {}".format(
+                c_degree,
                 weight_sampler_name))
 
-            # Maker object edges with provided sampler for given degree
-            make_edges = lambda obj_id, edge_pop: {
-                edge_pop[i]:lbsEdge.Edge(
-                    obj_id,
-                    edge_pop[i],
-                    weight_sampler())
-                for i in range(c_degree)}
-
-            # Make ojbect communicators with empty inbound and given outbound edges
-            make_communicators = lambda out: lbsObjectCommunicator.ObjectCommunicator([], out)
-        else:
-            # Otherwise neither edges nor communicators are created
-            make_edges = lambda i, edge_pop: None
-            make_communicators = lambda i: None
-
-        # Create set of objects with given makers
-        objects = set([lbsObject.Object(
-            i,
-            time_sampler(),
-            None,
-            make_communicators(make_edges(
-                i,
-                rnd.sample([i for i in range(n_o)],
-                           c_degree)))
-            ) for i in range(n_o)])
-
-        # Print more information when requested
-        if self.verbose:
-            print("[Epoch] Created the following global communicator:")
+            # Create communicator for each object with only sent communications
             for obj in objects:
-                comm = obj.get_communicator()
+                obj.set_communicator(lbsObjectCommunicator.ObjectCommunicator(
+                    {},
+                    {o: weight_sampler()
+                     for o in rnd.sample(
+                         objects.difference([obj]),
+                         c_degree)
+                     },
+                    obj.get_id()))
 
-                # Report if no communicator and proceed to next object
-                if not comm:
-                    print("\t object {}: no communicator".format(
-                        obj.get_id()))
-                    continue
+            # Create symmetric received communications
+            for obj in objects:
+                for k, v in obj.get_communicator().get_sent().items():
+                    k.get_communicator().get_received()[obj] = v
 
-                # Report on inbound and outbound edges
-                out_edges = comm.get_in_edges()
-                print("\t outbound edges:")
-                for e in out_edges:
-                    print e
-                    for _, v in comm.get_out_edges().items():
-                        print("\t in={}, out={}, weight={}".format(
-                            v.get_send_obj(),
-                            v.get_recv_obj(),
-                            v.get_weight()))
+        # Iterate over all object communicators to valid global communication graph
+        n_sent, n_recv = 0, 0
+        for obj in objects:
+            i = obj.get_id()
+            if self.verbose:
+                print("\tobject {}:".format(i))
+
+            # Retrieve communicator and proceed to next object if empty
+            comm = obj.get_communicator()
+            if not comm:
+                if self.verbose:
+                    print("\t  None")
+                continue
+
+            # Check and summarize communications and update global counters
+            n_out, n_in = comm.check_and_summarize('\t' if self.verbose else None)
+            n_sent += n_out
+            n_recv += n_in
+
+        # Perform sanity checks
+        if n_recv != n_sent:
+            print("** ERROR: number of sent and received communications differ: {} <> {}".format(
+                n_sent,
+                n_recv))
+            sys.exit(1)
+        print("[Epoch] Created {} sent/received communications".format(n_sent))
 
         # Compute and report object statistics
         lbsStatistics.print_function_statistics(objects,
