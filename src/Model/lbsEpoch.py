@@ -85,28 +85,25 @@ class Epoch:
             weight_sampler, weight_sampler_name = lbsStatistics.sampler(
                 cs,
                 cs_params)
+
+            # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
             degree_sampler, degree_sampler_name = lbsStatistics.sampler(
                 "binomial",
-                [c_degree / p_b, p_b])
-            print("[Epoch] Creating communications with weights sampled from {} and sent per objects from {}".format(
-                degree_sampler_name,
-                weight_sampler_name))
+                [min(n_o - 1, int(c_degree / p_b)), p_b])
+            print("[Epoch] Creating communications with weights sampled from {} and outgoing degrees from {}".format(
+                weight_sampler_name,
+                degree_sampler_name))
 
             # Create communicator for each object with only sent communications
             for obj in objects:
-                # Draw degree from sampler and cap it
-                degree = degree_sampler()
-                if degree > n_o - 1:
-                    degree = n_o - 1
-
                 # Create object communicator witj outgoing messages
                 obj.set_communicator(lbsObjectCommunicator.ObjectCommunicator(
                     {},
                     {o: weight_sampler()
                      for o in rnd.sample(
                          objects.difference([obj]),
-                         degree)
+                         degree_sampler())
                      },
                     obj.get_id()))
 
