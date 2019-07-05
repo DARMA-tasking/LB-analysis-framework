@@ -57,7 +57,7 @@ def sampler(distribution_name, parameters):
             return error_out(distribution_name, parameters)
 
         # Return binomial distribution with given number of Bernoulli trials
-        return lambda : np.random.uniform(*parameters), "B[{};{}]".format(
+        return lambda : np.random.binomial(*parameters), "B[{};{}]".format(
             *parameters)
 
     # Log-normal distribution with given mean and variance
