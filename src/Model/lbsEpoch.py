@@ -56,12 +56,14 @@ class Epoch:
         return self.time_step
 
     ####################################################################
-    def populate_from_sampler(self, n_o, ts, tsp, c_degree, cs, csp, n_p, s_s=0):
-        """Use sampler to populate either all or n procs in an epoch
+    def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
+        """Use samplers to populate either all or n procs in an epoch
         """
 
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = lbsStatistics.sampler(ts, tsp)
+        time_sampler, sampler_name = lbsStatistics.sampler(
+            ts,
+            ts_params)
 
         # Create n_o objects with uniformly distributed times in given range
         print("[Epoch] Creating {} objects with times sampled from {}".format(
@@ -80,9 +82,13 @@ class Epoch:
         # Decide whether communications must be created
         if c_degree > 0:
             # Instantiante communication samplers with requested properties
-            weight_sampler, weight_sampler_name = lbsStatistics.sampler(cs, csp)
+            weight_sampler, weight_sampler_name = lbsStatistics.sampler(
+                cs,
+                cs_params)
             p_b = .5
-            degree_sampler, degree_sampler_name = lbsStatistics.sampler("binomial", c_degree / p_b, p_b)
+            degree_sampler, degree_sampler_name = lbsStatistics.sampler(
+                "binomial",
+                c_degree / p_b, p_b)
             print("[Epoch] Creating communications with weights sampled from {} and sent per objects from {}".format(
                 degree_sampler_name,
                 weight_sampler_name))

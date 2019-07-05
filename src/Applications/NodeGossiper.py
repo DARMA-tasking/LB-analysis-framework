@@ -308,14 +308,14 @@ if __name__ == '__main__':
 
     else:
         # Populate epoch pseudo-randomly
-        epoch.populate_from_sampler(params.n_objects,
-                                    params.time_sampler_type,
-                                    params.time_sampler_parameters,
-                                    params.communication_degree,
-                                    params.weight_sampler_type,
-                                    params.weight_sampler_parameters,
-                                    n_p,
-                                    params.n_processors)
+        epoch.populate_from_samplers(params.n_objects,
+                                     params.time_sampler_type,
+                                     params.time_sampler_parameters,
+                                     params.communication_degree,
+                                     params.weight_sampler_type,
+                                     params.weight_sampler_parameters,
+                                     n_p,
+                                     params.n_processors)
 
         # Keep track of number of objects
         n_o = params.n_objects
