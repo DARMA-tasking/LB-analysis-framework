@@ -46,7 +46,7 @@ class ObjectCommunicator:
         return self.sent.get(o)
 
     ####################################################################
-    def check_and_summarize_one_way(self, direction, print_indent=None):
+    def summarize_unidirectional(self, direction, print_indent=None):
         """Summarize one-way communicator properties and check for errors
         """
 
@@ -55,8 +55,8 @@ class ObjectCommunicator:
             print("** ERROR: unknown direction string: {}".format(direction))
             sys.exit(1)
 
-        # Initialize counter
-        n = 0
+        # Initialize list of weights
+        weights = []
 
         # Iterate over one-way communications
         communications = self.sent if direction == "to" else self.received
@@ -67,8 +67,8 @@ class ObjectCommunicator:
                     self.object_index))
                 sys.exit(1)
 
-            # Update counter
-            n += 1
+            # Update list of weights
+            weights.append(v)
 
             # Report current communicaton item if requested
             if print_indent:
@@ -78,21 +78,21 @@ class ObjectCommunicator:
                     k.get_id(),
                     v))
 
-        # Return counter
-        return n
+        # Return list of weights
+        return weights
 
     ####################################################################
-    def check_and_summarize(self, print_indent=None):
+    def summarize(self, print_indent=None):
         """Summarize communicator properties and check for errors
         """
 
-        # Check and summarize sent communications
-        n_sent = self.check_and_summarize_one_way("to", print_indent)
+        # Summarize sent communications
+        w_sent = self.summarize_unidirectional("to", print_indent)
 
-        # Check and summarize received communications
-        n_recv = self.check_and_summarize_one_way("from", print_indent)
+        # Summarize received communications
+        w_recv = self.summarize_unidirectional("from", print_indent)
 
         # Return counters
-        return n_sent, n_recv
+        return w_sent, w_recv
 
 ########################################################################

@@ -1,12 +1,10 @@
 ########################################################################
 lbsEpoch_module_aliases = {
     "random": "rnd",
-    "numpy": "np",
     }
 for m in [
     "sys",
     "random",
-    "numpy"
     ]:
     has_flag = "has_" + m
     try:
@@ -74,13 +72,19 @@ class Epoch:
             time_sampler()
             ) for i in range(n_o)])
 
+        # Compute and report object time statistics
+        lbsStatistics.print_function_statistics(objects,
+                                                lambda x: x.get_time(),
+                                                "object times")
+
         # Decide whether communications must be created
         if c_degree > 0:
-            # Retrieve desired communication weight sampler with its theoretical average
+            # Instantiante communication samplers with requested properties
             weight_sampler, weight_sampler_name = lbsStatistics.sampler(cs, csp)
-
-            print("[Epoch] Creating {} sent communication(s) per object with weights sampled from {}".format(
-                c_degree,
+            p_b = .5
+            degree_sampler, degree_sampler_name = lbsStatistics.sampler("binomial", c_degree / p_b, p_b)
+            print("[Epoch] Creating communications with weights sampled from {} and sent per objects from {}".format(
+                degree_sampler_name,
                 weight_sampler_name))
 
             # Create communicator for each object with only sent communications
@@ -90,7 +94,7 @@ class Epoch:
                     {o: weight_sampler()
                      for o in rnd.sample(
                          objects.difference([obj]),
-                         c_degree)
+                         degree_sampler())
                      },
                     obj.get_id()))
 
@@ -100,7 +104,7 @@ class Epoch:
                     k.get_communicator().get_received()[obj] = v
 
         # Iterate over all object communicators to valid global communication graph
-        n_sent, n_recv = 0, 0
+        w_sent, w_recv = [], []
         for obj in objects:
             i = obj.get_id()
             if self.verbose:
@@ -114,22 +118,21 @@ class Epoch:
                 continue
 
             # Check and summarize communications and update global counters
-            n_out, n_in = comm.check_and_summarize('\t' if self.verbose else None)
-            n_sent += n_out
-            n_recv += n_in
+            w_out, w_in = comm.summarize('\t' if self.verbose else None)
+            w_sent += w_out
+            w_recv += w_in
 
         # Perform sanity checks
-        if n_recv != n_sent:
+        if len(w_recv) != len(w_sent):
             print("** ERROR: number of sent and received communications differ: {} <> {}".format(
-                n_sent,
-                n_recv))
+                len(n_sent),
+                len(n_recv)))
             sys.exit(1)
-        print("[Epoch] Created {} sent/received communications".format(n_sent))
 
-        # Compute and report object statistics
-        lbsStatistics.print_function_statistics(objects,
-                                                lambda x: x.get_time(),
-                                                "object times")
+        # Compute and report communication weight statistics
+        lbsStatistics.print_function_statistics(w_sent,
+                                                lambda x: x,
+                                                "communication weights")
 
         # Create n_p processors
         self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]

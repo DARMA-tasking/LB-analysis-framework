@@ -1,10 +1,12 @@
 ########################################################################
 lbsStatistics_module_aliases = {
     "random": "rnd",
+    "numpy" : "np",
     }
 for m in [
     "random",
     "math",
+    "numpy",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -21,8 +23,17 @@ for m in [
 ########################################################################
 def initialize():
 
-    # Seed pseudo-random number generator
+    # Seed pseudo-random number generators
     rnd.seed(820)
+    np.random.seed(820)
+
+########################################################################
+def error_out(distribution_name, parameters):
+
+    print "** ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
+        parameters,
+        distribution_name)
+    return None
 
 ########################################################################
 def sampler(distribution_name, parameters):
@@ -31,23 +42,29 @@ def sampler(distribution_name, parameters):
 
     # Uniform U(a,b) distribution
     if distribution_name.lower() == "uniform":
+        # 2 parameters are needed
         if len(parameters) < 2:
-            print "** ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
-                parameters,
-                distribution_name)
-            return None
+            return error_out(distribution_name, parameters)
 
         # Return uniform distribution over given interval
         return lambda : rnd.uniform(*parameters), "U[{};{}]".format(
             *parameters)
 
-    # Log-normal distribution with given mean and variance
-    if distribution_name.lower() == "lognormal":
+    # Binomial B(n,p) distribution
+    if distribution_name.lower() == "binomial":
+        # 2 parameters are needed
         if len(parameters) < 2:
-            print "** ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
-                parameters,
-                distribution_name)
-            return None
+            return error_out(distribution_name, parameters)
+
+        # Return binomial distribution with given number of Bernoulli trials
+        return lambda : np.random.uniform(*parameters), "B[{};{}]".format(
+            *parameters)
+
+    # Log-normal distribution with given mean and variance
+    elif distribution_name.lower() == "lognormal":
+        # 2 parameters are needed
+        if len(parameters) < 2:
+            return error_out(distribution_name, parameters)
 
         # Determine parameters of log-normal distribution
         m2 = parameters[0] * parameters[0]
@@ -55,8 +72,7 @@ def sampler(distribution_name, parameters):
         r = math.sqrt(m2 + v)
         if r == 0:
             print "** ERROR: [Statistics] r={} should not be zero.".format(r)
-            return None. None
-
+            return None, None
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
 
