@@ -32,27 +32,21 @@ class LoadWriterVT:
     """
 
   ####################################################################
-    def __init__(self, e, f, s):
+    def __init__(self, e, f="lbs_out", s="vom"):
         """Class constructor:
         e: Epoch instance
         f: file name stem
         s: suffix
         """
 
-        # If no LBS epoch was provided, do not do anything
+        # Ensure that provided epoch has correct type
         if not isinstance(e, lbsEpoch.Epoch):
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch"
+            print("** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch")
             return
-        else:
-            self.epoch = e
 
-        # Try to retrieve output file prefix from constructor parameter
-        try:
-            self.file_stem = "{}".format(f)
-        except:
-            self.file_stem = "lbs_out"
-
-        # Extension for this type of file
+        # Assign internals
+        self.epoch = e
+        self.file_stem = "{}".format(f)
         self.suffix = s
 
     ####################################################################
@@ -92,12 +86,12 @@ class LoadWriterVT:
 
             # Sanity check
             if n_u:
-                print "**  ERROR: [LoadWriterVT] {} objects could not be written to CSV file {}".format(
+                print("**  ERROR: {} objects could not be written to CSV file {}".format(
                     n_u,
-                    file_name)
+                    file_name))
             else:
-                print "[LoadWriterVT] Wrote {} objects to CSV file {}".format(
+                print("[LoadWriterVT] Wrote {} objects to CSV file {}".format(
                     len(p.objects),
-                    file_name)
+                    file_name))
 
 ########################################################################

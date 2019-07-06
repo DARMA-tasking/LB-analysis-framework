@@ -24,44 +24,40 @@ class LoadWriterExodusII:
     """
 
   ####################################################################
-    def __init__(self, e, m, n=None, s=1.0):
+    def __init__(self, e, m, f="lbs_out", s='e', gr=1.):
         """Class constructor:
         e: Epoch instance
-        m: Processor dict
-        n: file name string
-        s: spacing value
+        m: Processor dictionnary
+        f: file name stem
+        s: suffix
+        gr: grid_resolution value
         """
 
         # If VTK is not available, do not do anything
         if not has_vtk:
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of VTK"
+            print("** ERROR: Could not write to ExodusII file by lack of VTK")
             return
 
-        # If no LBS epoch was provided, do not do anything
+        # Ensure that provided epoch has correct type
         if not isinstance(e, lbsEpoch.Epoch):
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch"
+            print("** ERROR: Could not write to ExodusII file by lack of a LBS epoch")
             return
-        else:
-            self.epoch = e
+        self.epoch = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a processor mapping"
+            print("** ERROR: Could not write to ExodusII file by lack of a processor mapping")
             return
-        else:
-            self.mapping = m
+        self.mapping = m
 
-        # Try to retrieve output file name from constructor parameter
-        try:
-            self.file_name = "{}".format(n)
-        except:
-            self.file_name = "lbs_out.e"
+        # Assemble file name from constructor paramters
+        self.file_name = "{}.{}".format(f, s)
 
-        # Spacing between points
+        # Grid_resolution between points
         try:
-            self.spacing = float(s)
+            self.grid_resolution = float(gr)
         except:
-            self.spacing = 1.0
+            self.grid_resolution = 1.
 
     ####################################################################
     def write(self, load_statistics, load_distributions, weight_distributions):
@@ -111,7 +107,7 @@ class LoadWriterExodusII:
 
         # Iterate over processors and populate grid
         for i, p in enumerate(self.epoch.processors):
-            points.SetPoint(i, [self.spacing * c for c in self.mapping(p)])
+            points.SetPoint(i, [self.grid_resolution * c for c in self.mapping(p)])
             #edges.InsertNextCell(2, [i, i])
             for l, l_arr in enumerate(load_arrays):
                 l_arr.SetTuple1(i, load_distributions[l][i])
@@ -133,11 +129,11 @@ class LoadWriterExodusII:
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print "** ERROR: Failed to instantiate a grid streamer for file {}".format(
-                self.file_name)
+            print("** ERROR: Failed to instantiate a grid streamer for file {}".format(
+                self.file_name))
         else:
-            print "[LoadWriterExodusII] Writing ExodusII file: {}".format(
-                self.file_name)
+            print("[LoadWriterExodusII] Writing ExodusII file: {}".format(
+                self.file_name))
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())

@@ -352,8 +352,7 @@ if __name__ == '__main__':
     if params.log_file:
         vt_writer = lbsLoadWriterVT.LoadWriterVT(
             epoch,
-            "{}".format(output_stem),
-            "vom")
+            "{}".format(output_stem))
         vt_writer.write(params.time_step)
 
     # Instantiate epoch to ExodusII file writer
