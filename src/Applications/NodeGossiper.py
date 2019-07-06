@@ -357,7 +357,8 @@ if __name__ == '__main__':
         grid_map,
         "{}.e".format(output_stem))
     ex_writer.write(rt.statistics,
-                    rt.load_distributions)
+                    rt.load_distributions,
+                    rt.sent_distributions)
 
     # Compute and print final load statistics
     _, _, l_ave, l_max, _, _, _ = lbsStatistics.print_function_statistics(

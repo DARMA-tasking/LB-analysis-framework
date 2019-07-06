@@ -41,14 +41,25 @@ class Runtime:
         # Verbosity of runtime
         self.Verbose = v
 
-        # Start with initial distribution
-        self.load_distributions = [
-            [p.get_load() for p in self.epoch.processors]]
+        # Compute initial load and sent distributions
+        self.load_distributions = [map(
+            lambda x: x.get_load(),
+            self.epoch.processors)]
+        self.sent_distributions = [map(
+            lambda x: x.get_sent(),
+            self.epoch.processors)]
 
-        # Start by computing global load statistics to store average load
+        # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
             self.epoch.processors,
             lambda x: x.get_load())
+        n_w, _, w_ave, w_max, _, _, _ = lbsStatistics.compute_function_statistics(
+            reduce(lambda x,y: x+y,
+                   [l.values()
+                    for l in map(
+                        lambda x: x.get_sent(),
+                        self.epoch.processors)]),
+            lambda x: x)
 
         # Initialize run statistics
         l_imb = l_max / self.average_load - 1.
@@ -57,7 +68,10 @@ class Runtime:
             "minimum load": [l_min],
             "maximum load": [l_max],
             "load variance": [l_var],
-            "load imbalance": [l_imb]}
+            "load imbalance": [l_imb],
+            "number of communication edges": [n_w],
+            "average communication edge weight": [w_ave],
+            "maximum communication edge weight": [w_max]}
 
     ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
@@ -222,17 +236,31 @@ class Runtime:
             else:
                 print "[RunTime] no transfers were proposed"
 
-            # Append new load distribution to list
-            loads = [p.get_load() for p in self.epoch.processors]
-            self.load_distributions.append(loads)
+            # Append new load and sent distributions to existing lists
+            self.load_distributions.append(map(
+                lambda x: x.get_load(),
+                self.epoch.processors))
+            self.sent_distributions.append(map(
+                lambda x: x.get_sent(),
+                self.epoch.processors))
 
-            # Compute and store descritptive statistics of load distribution
+            # Compute and storeglobal load and weight descriptive statistics
             _, l_min, _, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
                 self.epoch.processors,
                 lambda x: x.get_load())
+            n_w, _, w_ave, w_max, _, _, _ = lbsStatistics.compute_function_statistics(
+                reduce(lambda x,y: x+y,
+                       [l.values()
+                        for l in map(
+                            lambda x: x.get_sent(),
+                            self.epoch.processors)]),
+                lambda x: x)
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
             self.statistics["load variance"].append(l_var)
+            self.statistics["number of communication edges"].append(n_w)
+            self.statistics["average communication edge weight"].append(w_ave)
+            self.statistics["maximum communication edge weight"].append(w_max)
 
             # Compute, store and report load imbalance
             l_imb = l_max / self.average_load - 1.

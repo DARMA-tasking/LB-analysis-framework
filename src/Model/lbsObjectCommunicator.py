@@ -4,18 +4,16 @@ class ObjectCommunicator:
     """
 
     ####################################################################
-    def __init__(self, r, s, i=None):
+    def __init__(self, r={}, s={}, i=None):
         
         # Index of object having this communicator if defined
         self.object_index = i
 
         # Map of communications received by object
-        if isinstance(r, dict):
-            self.received = r
+        self.received = r if isinstance(r, dict) else {}
 
         # Map of communications sent by object
-        if isinstance(s, dict):
-            self.sent = s
+        self.sent = s if isinstance(s, dict) else {}
 
     ####################################################################
     def get_received(self):

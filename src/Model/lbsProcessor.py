@@ -19,7 +19,7 @@ for m in [
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsMessage
-
+import time
 ########################################################################
 class Processor:
     """A class representing a processor to which objects are assigned
@@ -73,6 +73,18 @@ class Processor:
         """
 
         return sum([o.get_time() for o in self.objects])
+
+    ####################################################################
+    def get_sent(self):
+        """Return sent communications from processor aggregated per recipient
+        """
+
+        return reduce(
+            lambda x, y: {
+                k: x.get(k,0) + y.get(k,0)
+                for k in set(x.keys()).union(y.keys())},
+            [o.get_sent_by_ids() for o in self.objects],
+            {})
 
     ####################################################################
     def initialize_underloads(self, procs, l_ave, f):

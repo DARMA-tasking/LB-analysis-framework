@@ -37,6 +37,14 @@ class Object:
         return self.time
 
     ####################################################################
+    def get_sent_by_ids(self):
+        """Return sent communications per destination IDs
+        """
+
+        return {k.get_id(): v
+                for k,v in self.communicator.get_sent().items()}
+
+    ####################################################################
     def get_source_processor(self):
         """Return processor to which object was originally attached
         """

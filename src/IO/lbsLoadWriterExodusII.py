@@ -64,7 +64,7 @@ class LoadWriterExodusII:
             self.spacing = 1.0
 
     ####################################################################
-    def write(self, load_statistics, load_distributions):
+    def write(self, load_statistics, load_distributions, weight_distributions):
         """Map processors to grid and write ExodusII file
         """
 
@@ -78,8 +78,8 @@ class LoadWriterExodusII:
         points = vtk.vtkPoints()
         points.SetNumberOfPoints(n_p)
 
-        # Create storage for vertices at processors
-        vertices = vtk.vtkCellArray()
+        # Create storage for edges between processors
+        edges = vtk.vtkCellArray()
 
         # Create and populate field data arrays for load statistics
         stat_arrays = {}
@@ -100,23 +100,40 @@ class LoadWriterExodusII:
             l_arr.SetName("Load")
             load_arrays.append(l_arr)
 
+        # Create attribute data arrays for edge weights
+        weight_arrays = []
+        n_e = n_p * (n_p - 1)
+        for _ in weight_distributions:
+            w_arr = vtk.vtkDoubleArray()
+            w_arr.SetNumberOfTuples(n_e)
+            w_arr.SetName("Weight")
+            weight_arrays.append(w_arr)
+
         # Iterate over processors and populate grid
         for i, p in enumerate(self.epoch.processors):
             points.SetPoint(i, [self.spacing * c for c in self.mapping(p)])
-            vertices.InsertNextCell(1, [i])
+            #edges.InsertNextCell(2, [i, i])
             for l, l_arr in enumerate(load_arrays):
                 l_arr.SetTuple1(i, load_distributions[l][i])
+
+        # the second 0 is the index of the Origin in linesPolyData's points
+        # 2 is the index of P1 in linesPolyData's points
+        #line = vtkLine()
+        #line.GetPointIds().SetId(0, 0)
+        #line.GetPointIds().SetId(1, 2)
+        #lines.InsertNextCell(line)
 
         # Create grid streamer
         streamer = lbsGridStreamer.GridStreamer(
             points,
-            vertices,
+            edges,
             stat_arrays,
-            load_arrays)
+            load_arrays,
+            weight_arrays)
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print "**  ERROR: [LoadWriterExodusII] Failed to instantiate a grid streamer for file {}".format(
+            print "** ERROR: Failed to instantiate a grid streamer for file {}".format(
                 self.file_name)
         else:
             print "[LoadWriterExodusII] Writing ExodusII file: {}".format(
