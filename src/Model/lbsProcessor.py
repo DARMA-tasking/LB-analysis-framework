@@ -76,7 +76,7 @@ class Processor:
 
     ####################################################################
     def get_sent(self):
-        """Return communications sent from processor summed by recipient
+        """Aggregate all weights sent by processor by receiving object ID
         """
 
         return reduce(
