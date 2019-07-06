@@ -366,23 +366,21 @@ if __name__ == '__main__':
                     rt.sent_distributions)
 
     # Compute and print final processor load and link weight statistics
-    _, _, l_ave, l_max, _, _, _ = lbsStatistics.print_function_statistics(
+    _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
         epoch.processors,
         lambda x: x.get_load(),
         "final processor loads",
         params.verbose)
-    print("\t imbalance = {:.6g}".format(
-        l_max / l_ave - 1.))
     lbsStatistics.print_function_statistics(
         epoch.aggregate_edge_weights(),
         lambda x: x,
         "final link weights",
         params.verbose)
 
-    # Report on optimal statistics
+    # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    print("[NodeGossiper] Optimal load statistics for {} objects with all times = {:.6g}".format(
+    print("[NodeGossiper] Optimal load statistics for {} objects with iso-time = {:.6g}".format(
         n_o,
         ell))
     print("\t minimum = {:.6g}  maximum = {:.6g}".format(

@@ -50,24 +50,26 @@ class Runtime:
             self.epoch.processors)]
 
         # Compute global load and weight statistics and initialize average load
-        _, l_min, self.average_load, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
+        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
             self.epoch.processors,
             lambda x: x.get_load())
-        n_w, _, w_ave, w_max, _, _, _ = lbsStatistics.compute_function_statistics(
+        n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
             self.epoch.aggregate_edge_weights(),
             lambda x: x)
 
         # Initialize run statistics
-        l_imb = l_max / self.average_load - 1.
         print "[RunTime] Load imbalance(0) = {:.6g}".format(l_imb)
+        print "[RunTime] Weight imbalance(0) = {:.6g}".format(w_imb)
         self.statistics = {
-            "minimum load": [l_min],
-            "maximum load": [l_max],
-            "load variance": [l_var],
-            "load imbalance": [l_imb],
-            "number of communication edges": [n_w],
-            "average communication edge weight": [w_ave],
-            "maximum communication edge weight": [w_max]}
+            "minimum load"                  : [l_min],
+            "maximum load"                  : [l_max],
+            "load variance"                 : [l_var],
+            "load imbalance"                : [l_imb],
+            "number of communication edges" : [n_w],
+            "average communication weight"  : [w_ave],
+            "maximum communication weight"  : [w_max],
+            "communication weight variance" : [w_var],
+            "communication weight imbalance": [w_imb]}
 
     ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
@@ -241,29 +243,39 @@ class Runtime:
                 self.epoch.processors))
 
             # Compute and store global processor load and link weight statistics
-            _, l_min, _, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
+            _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
                 self.epoch.processors,
                 lambda x: x.get_load())
-            n_w, _, w_ave, w_max, _, _, _ = lbsStatistics.compute_function_statistics(
+            n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
                 self.epoch.aggregate_edge_weights(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
             self.statistics["load variance"].append(l_var)
+            self.statistics["load imbalance"].append(l_imb)
             self.statistics["number of communication edges"].append(n_w)
-            self.statistics["average communication edge weight"].append(w_ave)
-            self.statistics["maximum communication edge weight"].append(w_max)
+            self.statistics["average communication weight"].append(w_ave)
+            self.statistics["maximum communication weight"].append(w_max)
+            self.statistics["communication weight variance"].append(w_var)
+            self.statistics["communication weight imbalance"].append(w_imb)
 
-            # Compute, store and report load imbalance
-            l_imb = l_max / self.average_load - 1.
+            # Report partial statistics
+            iteration = i + 1
             print ("[RunTime] Load imbalance({}) = {:.6g}; "
                    "min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
-                i + 1,
+                iteration,
                 l_imb,
                 l_min,
                 l_max,
                 self.average_load,
                 math.sqrt(l_var))
-            self.statistics["load imbalance"].append(l_imb)
+            print ("[RunTime] Weight imbalance({}) = {:.6g}; "
+                   "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
+                iteration,
+                w_imb,
+                n_w,
+                w_max,
+                w_ave,
+                math.sqrt(w_var))
 
 ########################################################################

@@ -114,8 +114,8 @@ def compute_function_statistics(population, fct):
 
     # Initialize statistics
     n = 0
-    f_min = + float('inf')
-    f_max = - float('inf')
+    f_min = float('inf')
+    f_max = -float('inf')
     f_ave = 0.
     f_ag2 = 0.
     f_ag3 = 0.
@@ -161,8 +161,8 @@ def compute_function_statistics(population, fct):
     else:
         f_g1, f_g2 = float('nan'), float('nan')
 
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_max / f_ave - 1.
 
 ########################################################################
 def print_function_statistics(values, function, var_name, verb=False):
@@ -170,7 +170,7 @@ def print_function_statistics(values, function, var_name, verb=False):
     """
 
     # Compute statistics
-    n, f_min, f_ave, f_max, f_var, f_g1, f_g2 = compute_function_statistics(
+    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values,
         function)
 
@@ -192,20 +192,20 @@ def print_function_statistics(values, function, var_name, verb=False):
                 function(v))
 
     # Print summary
-    print "\t cardinality = {:.6g}  sum = {:.6g}".format(
+    print "\t cardinality = {:.6g}  sum = {:.6g}  imbalance = {:.6g}".format(
         n,
-        n * f_ave)
-    print "\t minimum = {:.6g}  maximum = {:.6g}".format(
+        n * f_ave,
+        f_imb)
+    print "\t minimum = {:.6g}  mean = {:.6g}  maximum = {:.6g}".format(
         f_min,
-        f_max)
-    print "\t mean = {:.6g}  standard deviation = {:.6g}".format(
         f_ave,
-        math.sqrt(f_var))
-    print "\t skewness = {:.6g}  kurtosis excess = {:.6g}".format(
+        f_max)
+    print "\t standard deviation = {:.6g}  skewness = {:.6g}  kurtosis excess = {:.6g}".format(
+        math.sqrt(f_var),
         f_g1,
         f_g2 - 3)
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 ########################################################################
