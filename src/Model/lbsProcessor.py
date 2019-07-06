@@ -76,7 +76,7 @@ class Processor:
 
     ####################################################################
     def get_sent(self):
-        """Return sent communications from processor aggregated per recipient
+        """Return communications sent from processor summed by recipient
         """
 
         return reduce(

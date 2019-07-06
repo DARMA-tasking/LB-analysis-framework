@@ -91,7 +91,7 @@ class Epoch:
             degree_sampler, degree_sampler_name = lbsStatistics.sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print("[Epoch] Creating communications with weights sampled from {} and outgoing degrees from {}".format(
+            print("[Epoch] Creating communications with weights sampled from {} and out-degrees from {}".format(
                 weight_sampler_name,
                 degree_sampler_name))
 
@@ -196,5 +196,15 @@ class Epoch:
                                                 "object times")
         # Return number of found objects
         return len(objects)
+
+    ####################################################################
+    def aggregate_edge_weights(self):
+        """Compute inter-processor communication weights for object ones
+        """
+
+        return reduce(lambda x, y: x + y,
+                      [l.values()
+                       for l in map(lambda x: x.get_sent(),
+                                    self.processors)])
 
 ########################################################################

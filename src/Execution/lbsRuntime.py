@@ -54,11 +54,7 @@ class Runtime:
             self.epoch.processors,
             lambda x: x.get_load())
         n_w, _, w_ave, w_max, _, _, _ = lbsStatistics.compute_function_statistics(
-            reduce(lambda x,y: x+y,
-                   [l.values()
-                    for l in map(
-                        lambda x: x.get_sent(),
-                        self.epoch.processors)]),
+            self.epoch.aggregate_edge_weights(),
             lambda x: x)
 
         # Initialize run statistics
@@ -244,16 +240,12 @@ class Runtime:
                 lambda x: x.get_sent(),
                 self.epoch.processors))
 
-            # Compute and storeglobal load and weight descriptive statistics
+            # Compute and store global processor load and link weight statistics
             _, l_min, _, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
                 self.epoch.processors,
                 lambda x: x.get_load())
             n_w, _, w_ave, w_max, _, _, _ = lbsStatistics.compute_function_statistics(
-                reduce(lambda x,y: x+y,
-                       [l.values()
-                        for l in map(
-                            lambda x: x.get_sent(),
-                            self.epoch.processors)]),
+                self.epoch.aggregate_edge_weights(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
