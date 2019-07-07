@@ -78,7 +78,7 @@ class LoadWriterVT:
                 for o in p.objects:
                     # Write object to file and increment count
                     try:
-                        writer.writerow([o.get_source_processor(),
+                        writer.writerow([o.get_processor_id(),
                                          o.get_id(),
                                          o.get_time()])
                     except:

@@ -41,6 +41,10 @@ class Epoch:
         # Enable or disable verbose mode
         self.verbose = verbose
 
+        # Start with empty edges cache
+        self.edges = {}
+        self.edges_cached = False
+
     ####################################################################
     def get_processors_ids(self):
         """Retrieve IDs of processors belonging to epoch
@@ -167,15 +171,15 @@ class Epoch:
             for o in objects:
                 p = rnd.choice(proc_list)
                 p.add_object(o)
-                o.first = p.get_id()
+                o.set_processor_id(p.get_id())
         else:
             # Randomly assign objects to all processors
             for o in objects:
                 p = rnd.choice(self.processors)
                 p.add_object(o)
-                o.first = p.get_id()
+                o.set_processor_id(p.get_id())
 
-        # Print
+        # Print debug information when requested
         if self.verbose:
             for p in self.processors:
                 print("\t{} <- {}".format(
@@ -204,26 +208,54 @@ class Epoch:
                                                 lambda x: x.get_time(),
                                                 "object times",
                                                 self.verbose)
+
         # Return number of found objects
         return len(objects)
 
     ####################################################################
-    def aggregate_edge_weights(self):
-        """Aggregate list of undirected communication link weights
-        """
-
-        return reduce(lambda x, y: x + y,
-                      [l.values()
-                       for l in map(lambda x: x.get_sent(),
-                                    self.processors)])
-
-    ####################################################################
-    def dict_edge_weights(self):
+    def compute_edges(self):
         """Compute and return map of communication link IDs to weights
         """
 
+        print("[Epoch] Computing inter-processor edges")
 
-        return 0
-        
+        # Iterate over processors
+        for p in self.processors:
+            # Retrieve sender processor ID
+            i = p.get_id()
+            if self.verbose:
+                print("\tprocessor {}:".format(i))
+
+            # Iterate over objects of current processor
+            for o in p.get_objects():
+                if self.verbose:
+                    print("\t* object {}:".format(o.get_id()))
+
+                # Iterate over recipient objects
+                for q, weight in o.get_sent().items():
+                    # Retrieve recipient processor ID
+                    j = q.get_processor_id()
+                    if self.verbose:
+                        print("\t  -> object {} assigned to {}: {}".format(
+                            q.get_id(), j, weight))
+
+                    # Skip processor-local communications
+                    if i == j:
+                        continue
+
+                    # Create or update an inter-processor edge
+                    index = frozenset([i, j])
+                    if index in self.edges:
+                        self.edges[index] += weight
+                    else:
+                        self.edges[index] = weight
+                    if self.verbose:
+                        print("\t=> edge {}--{}: {}".format(
+                            min(i, j),
+                            max(i, j),
+                            weight))
+
+        # Edge cache was fully updated
+        self.edges_cached = True
 
 ########################################################################

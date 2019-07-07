@@ -320,6 +320,9 @@ if __name__ == '__main__':
         # Keep track of number of objects
         n_o = params.n_objects
 
+    # Compute communication links
+    epoch.compute_edges()
+
     # Compute and print initial processor load and link weight statistics
     lbsStatistics.print_function_statistics(
         epoch.processors,
@@ -379,15 +382,14 @@ if __name__ == '__main__':
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    print("[NodeGossiper] Optimal load statistics for {} objects with iso-time = {:.6g}".format(
+    print("[NodeGossiper] Optimal load statistics for {} objects with iso-time: {:.6g}".format(
         n_o,
         ell))
-    print("\t minimum = {:.6g}  maximum = {:.6g}".format(
+    print("\tminimum: {:.6g}  maximum: {:.6g}".format(
         q * ell,
         (q + (1 if r else 0)) * ell))
-    print("\t standard deviation = {:.6g}".format(
-        ell * math.sqrt(r * (n_p - r)) / n_p))
-    print("\t imbalance = {:.6g}".format(
+    print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
+        ell * math.sqrt(r * (n_p - r)) / n_p,
         (n_p - r) / float(n_o) if r else 0.))
 
     # If this point is reached everything went fine

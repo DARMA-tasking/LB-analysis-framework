@@ -8,17 +8,17 @@ class Object:
     """
 
     ####################################################################
-    def __init__(self, i, t, s=None, c=None):
+    def __init__(self, i, t, p=None, c=None):
         # Object index
         self.index = i
 
         # Time required to perform the work of this object
         self.time = t
 
-        # Processor to which object was originally attached
-        self.source = s
+        # Processor to which object is currently assigned if defined
+        self.processor_id = p
 
-        # Communication graph of this object
+        # Communication graph of this object if defined
         self.communicator = c if isinstance(
             c, lbsObjectCommunicator.ObjectCommunicator) else None
 
@@ -37,19 +37,25 @@ class Object:
         return self.time
 
     ####################################################################
-    def get_sent_by_ids(self):
-        """Return sent communications per destination IDs
+    def get_sent(self):
+        """Return communications sent by object to other objects
         """
 
-        return {k.get_id(): v
-                for k,v in self.communicator.get_sent().items()}
+        return self.communicator.get_sent()
 
     ####################################################################
-    def get_source_processor(self):
-        """Return processor to which object was originally attached
+    def set_processor_id(self, p_id):
+        """Assign object to processor ID
         """
 
-        return self.source
+        self.processor_id = p_id
+
+    ####################################################################
+    def get_processor_id(self):
+        """Return ID of processor to which object is currently assigned
+        """
+
+        return self.processor_id
 
     ####################################################################
     def has_communicator(self):
