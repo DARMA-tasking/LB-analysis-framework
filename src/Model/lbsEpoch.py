@@ -21,6 +21,7 @@ for m in [
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
 
+import time
 ########################################################################
 class Epoch:
     """A class representing the state of collection of processors with
@@ -46,6 +47,13 @@ class Epoch:
         self.edges_cached = False
 
     ####################################################################
+    def get_processors(self):
+        """Retrieve processors belonging to epoch
+        """
+
+        return self.processors
+
+    ####################################################################
     def get_processors_ids(self):
         """Retrieve IDs of processors belonging to epoch
         """
@@ -58,6 +66,64 @@ class Epoch:
         """
 
         return self.time_step
+
+    ####################################################################
+    def compute_edges(self):
+        """Compute and return map of communication link IDs to weights
+        """
+
+        print("[Epoch] Computing inter-processor edges")
+
+        # Iterate over processors
+        for p in self.processors:
+            # Retrieve sender processor ID
+            i = p.get_id()
+            if self.verbose:
+                print("\tprocessor {}:".format(i))
+
+            # Iterate over objects of current processor
+            for o in p.get_objects():
+                if self.verbose:
+                    print("\t* object {}:".format(o.get_id()))
+
+                # Iterate over recipient objects
+                for q, weight in o.get_sent().items():
+                    # Retrieve recipient processor ID
+                    j = q.get_processor_id()
+                    if self.verbose:
+                        print("\t  -> object {} assigned to {}: {}".format(
+                            q.get_id(), j, weight))
+
+                    # Skip processor-local communications
+                    if i == j:
+                        continue
+
+                    # Create or update an inter-processor edge
+                    index = frozenset([i, j])
+                    if index in self.edges:
+                        self.edges[index] += weight
+                    else:
+                        self.edges[index] = weight
+                    if self.verbose:
+                        print("\t=> edge {}--{}: {}".format(
+                            min(i, j),
+                            max(i, j),
+                            weight))
+
+        # Edges cache was fully updated
+        self.edges_cached = True
+
+    ####################################################################
+    def get_edges(self):
+        """Retrieve edges belonging to epoch
+        """
+
+        # Force recompute if edges cache is not current
+        if not self.edges_cached:
+            self.compute_edges()
+
+        # Return cached edges
+        return self.edges
 
     ####################################################################
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
@@ -96,11 +162,12 @@ class Epoch:
             degree_sampler, degree_sampler_name = lbsStatistics.sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print("[Epoch] Creating communications with weights sampled from {} and out-degrees from {}".format(
+            print("[Epoch] Creating communications with (weights;out-degrees) sampled from ({};{})".format(
                 weight_sampler_name,
                 degree_sampler_name))
 
             # Create communicator for each object with only sent communications
+            start = time.time()
             for obj in objects:
                 # Create object communicator witj outgoing messages
                 obj.set_communicator(lbsObjectCommunicator.ObjectCommunicator(
@@ -111,6 +178,7 @@ class Epoch:
                          degree_sampler())
                      },
                     obj.get_id()))
+            print "DONE in {}s".format(time.time()-start)
 
             # Create symmetric received communications
             for obj in objects:
@@ -211,51 +279,5 @@ class Epoch:
 
         # Return number of found objects
         return len(objects)
-
-    ####################################################################
-    def compute_edges(self):
-        """Compute and return map of communication link IDs to weights
-        """
-
-        print("[Epoch] Computing inter-processor edges")
-
-        # Iterate over processors
-        for p in self.processors:
-            # Retrieve sender processor ID
-            i = p.get_id()
-            if self.verbose:
-                print("\tprocessor {}:".format(i))
-
-            # Iterate over objects of current processor
-            for o in p.get_objects():
-                if self.verbose:
-                    print("\t* object {}:".format(o.get_id()))
-
-                # Iterate over recipient objects
-                for q, weight in o.get_sent().items():
-                    # Retrieve recipient processor ID
-                    j = q.get_processor_id()
-                    if self.verbose:
-                        print("\t  -> object {} assigned to {}: {}".format(
-                            q.get_id(), j, weight))
-
-                    # Skip processor-local communications
-                    if i == j:
-                        continue
-
-                    # Create or update an inter-processor edge
-                    index = frozenset([i, j])
-                    if index in self.edges:
-                        self.edges[index] += weight
-                    else:
-                        self.edges[index] = weight
-                    if self.verbose:
-                        print("\t=> edge {}--{}: {}".format(
-                            min(i, j),
-                            max(i, j),
-                            weight))
-
-        # Edge cache was fully updated
-        self.edges_cached = True
 
 ########################################################################

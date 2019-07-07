@@ -320,17 +320,14 @@ if __name__ == '__main__':
         # Keep track of number of objects
         n_o = params.n_objects
 
-    # Compute communication links
-    epoch.compute_edges()
-
     # Compute and print initial processor load and link weight statistics
     lbsStatistics.print_function_statistics(
-        epoch.processors,
+        epoch.get_processors(),
         lambda x: x.get_load(),
         "initial processor loads",
         params.verbose)
     lbsStatistics.print_function_statistics(
-        epoch.aggregate_edge_weights(),
+        epoch.get_edges().values(),
         lambda x: x,
         "initial link weights",
         params.verbose)
@@ -369,12 +366,12 @@ if __name__ == '__main__':
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
-        epoch.processors,
+        epoch.get_processors(),
         lambda x: x.get_load(),
         "final processor loads",
         params.verbose)
     lbsStatistics.print_function_statistics(
-        epoch.aggregate_edge_weights(),
+        epoch.get_edges().values(),
         lambda x: x,
         "final link weights",
         params.verbose)
