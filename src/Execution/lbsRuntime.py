@@ -45,10 +45,7 @@ class Runtime:
         self.load_distributions = [map(
             lambda x: x.get_load(),
             self.epoch.processors)]
-        self.sent_distributions = [map(
-            lambda x: x.get_sent(),
-            self.epoch.processors)]
-
+        self.sent_distributions = [self.epoch.dict_edge_weights()]
         # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
             self.epoch.processors,
@@ -237,9 +234,6 @@ class Runtime:
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(
                 lambda x: x.get_load(),
-                self.epoch.processors))
-            self.sent_distributions.append(map(
-                lambda x: x.get_sent(),
                 self.epoch.processors))
 
             # Compute and store global processor load and link weight statistics

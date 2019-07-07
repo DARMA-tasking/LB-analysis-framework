@@ -170,37 +170,28 @@ def print_function_statistics(values, function, var_name, verb=False):
     """
 
     # Compute statistics
+    print "[Statistics] Descriptive statistics of {}:".format(var_name)
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values,
         function)
 
-    # Always print summary but use function descriptor only in verbose case
-    if verb:
-        print "[Statistics] Descriptive statistics of {} (f):".format(
-            var_name,
-            n)
-    else:
-        print "[Statistics] Descriptive statistics of {}:".format(
-            var_name,
-            n)
-
     # Print detailed load information if requested
     if verb:
-        for v in values:
-            print "\t f({}) = {}".format(
-                v.get_id(),
+        for i, v in enumerate(values):
+            print "\t{}: {}".format(
+                i,
                 function(v))
 
     # Print summary
-    print "\t cardinality = {:.6g}  sum = {:.6g}  imbalance = {:.6g}".format(
+    print "\tcardinality = {:.6g}  sum = {:.6g}  imbalance = {:.6g}".format(
         n,
         n * f_ave,
         f_imb)
-    print "\t minimum = {:.6g}  mean = {:.6g}  maximum = {:.6g}".format(
+    print "\tminimum = {:.6g}  mean = {:.6g}  maximum = {:.6g}".format(
         f_min,
         f_ave,
         f_max)
-    print "\t standard deviation = {:.6g}  skewness = {:.6g}  kurtosis excess = {:.6g}".format(
+    print "\tstandard deviation = {:.6g}  skewness = {:.6g}  kurtosis excess = {:.6g}".format(
         math.sqrt(f_var),
         f_g1,
         f_g2 - 3)

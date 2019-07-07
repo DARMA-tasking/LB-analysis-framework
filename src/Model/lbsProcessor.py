@@ -75,13 +75,13 @@ class Processor:
         return sum([o.get_time() for o in self.objects])
 
     ####################################################################
-    def get_sent(self):
+    def get_sent(self, exclude_self=True):
         """Aggregate all weights sent by processor by receiving object ID
         """
 
         return reduce(
             lambda x, y: {
-                k: x.get(k,0) + y.get(k,0)
+                k: x.get(k, 0) + y.get(k, 0)
                 for k in set(x.keys()).union(y.keys())},
             [o.get_sent_by_ids() for o in self.objects],
             {})

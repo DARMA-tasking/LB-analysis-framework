@@ -359,7 +359,7 @@ if __name__ == '__main__':
     ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(
         epoch,
         grid_map,
-        "{}.e".format(output_stem))
+        "{}".format(output_stem))
     ex_writer.write(rt.statistics,
                     rt.load_distributions,
                     rt.sent_distributions)

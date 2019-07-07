@@ -77,7 +77,8 @@ class Epoch:
         # Compute and report object time statistics
         lbsStatistics.print_function_statistics(objects,
                                                 lambda x: x.get_time(),
-                                                "object times")
+                                                "object times",
+                                                self.verbose)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -141,7 +142,8 @@ class Epoch:
         # Compute and report communication weight statistics
         lbsStatistics.print_function_statistics(w_sent,
                                                 lambda x: x,
-                                                "communication weights")
+                                                "communication weights",
+                                                self.verbose)
 
         # Create n_p processors
         self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
@@ -173,6 +175,13 @@ class Epoch:
                 p.add_object(o)
                 o.first = p.get_id()
 
+        # Print
+        if self.verbose:
+            for p in self.processors:
+                print("\t{} <- {}".format(
+                    p.get_id(),
+                    p.get_object_ids()))
+
     ####################################################################
     def populate_from_log(self, n_p, t_s, basename):
         """Populate this epoch by reading in a load profile from log files
@@ -193,18 +202,28 @@ class Epoch:
             objects = objects.union(p.objects)
         lbsStatistics.print_function_statistics(objects,
                                                 lambda x: x.get_time(),
-                                                "object times")
+                                                "object times",
+                                                self.verbose)
         # Return number of found objects
         return len(objects)
 
     ####################################################################
     def aggregate_edge_weights(self):
-        """Compute inter-processor communication weights for object ones
+        """Aggregate list of undirected communication link weights
         """
 
         return reduce(lambda x, y: x + y,
                       [l.values()
                        for l in map(lambda x: x.get_sent(),
                                     self.processors)])
+
+    ####################################################################
+    def dict_edge_weights(self):
+        """Compute and return map of communication link IDs to weights
+        """
+
+
+        return 0
+        
 
 ########################################################################
