@@ -108,9 +108,12 @@ def compute_function_statistics(population, fct):
     """Compute descriptive statistics of a function over a population
     """
 
+    # Shorthand for NaN
+    nan = float("nan")
+
     # Bail out early if population is empty
     if not len(population):
-        return 0, None, None, None, None
+        return 0, nan, nan, nan, nan, nan, nan, nan
 
     # Initialize statistics
     n = 0
@@ -159,7 +162,7 @@ def compute_function_statistics(population, fct):
         nvar = n * f_var
         f_g1, f_g2 = f_ag3 / (nvar * math.sqrt(f_var)), f_ag4 / (nvar * f_var)
     else:
-        f_g1, f_g2 = float('nan'), float('nan')
+        f_g1, f_g2 = nan, nan
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_max / f_ave - 1.

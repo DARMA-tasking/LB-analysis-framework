@@ -126,6 +126,13 @@ class Epoch:
         return self.edges
 
     ####################################################################
+    def invalidate_edges(self):
+        """Mark edges cache as being no longer current
+        """
+
+        self.edges_cached = False
+
+    ####################################################################
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an epoch
         """
@@ -162,9 +169,9 @@ class Epoch:
             degree_sampler, degree_sampler_name = lbsStatistics.sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print("[Epoch] Creating communications with (weights;out-degrees) sampled from ({};{})".format(
-                weight_sampler_name,
-                degree_sampler_name))
+            print("[Epoch] Creating communications with:")
+            print("\tweights sampled from {}".format(weight_sampler_name))
+            print("\tout-degrees sampled from {}".format(degree_sampler_name))
 
             # Create communicator for each object with only sent communications
             start = time.time()
@@ -178,7 +185,7 @@ class Epoch:
                          degree_sampler())
                      },
                     obj.get_id()))
-            print "DONE in {}s".format(time.time()-start)
+            print "\tgenerated in {:.6g} seconds".format(time.time()-start)
 
             # Create symmetric received communications
             for obj in objects:

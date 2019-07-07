@@ -41,17 +41,18 @@ class Runtime:
         # Verbosity of runtime
         self.Verbose = v
 
-        # Compute initial load and sent distributions
+        # Initialize load and sent distributions
         self.load_distributions = [map(
             lambda x: x.get_load(),
             self.epoch.processors)]
-        self.sent_distributions = [self.epoch.dict_edge_weights()]
+        self.sent_distributions = [self.epoch.get_edges()]
+
         # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
             self.epoch.processors,
             lambda x: x.get_load())
         n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
-            self.epoch.aggregate_edge_weights(),
+            self.epoch.get_edges().values(),
             lambda x: x)
 
         # Initialize run statistics
@@ -109,7 +110,7 @@ class Runtime:
             # Report on current status when requested
             if self.Verbose:
                 for p in procs:
-                    print "\t proc_{} knows of underloaded procs {}".format(
+                    print "\tunderloaded known to processor {}: {}".format(
                         p.get_id(),
                         [p_u.get_id() for p_u in p.underloaded])
 
@@ -137,7 +138,7 @@ class Runtime:
                 # Report on current status when requested
                 if self.Verbose:
                     for p in procs:
-                        print "\t proc_{} knows of underloaded procs {}".format(
+                        print "\tunderloaded known to processor {}: {}".format(
                             p.get_id(),
                             [p_u.get_id() for p_u in p.underloaded])
 
@@ -167,10 +168,10 @@ class Runtime:
 
                     # Report on picked object when requested
                     if self.Verbose:
-                        print "\t proc_{} excess load = {}".format(
+                        print "\tproc_{} excess load = {}".format(
                             p_src.get_id(),
                             l_exc)
-                        print "\t CMF_{} = {}".format(
+                        print "\tCMF_{} = {}".format(
                             p_src.get_id(),
                             p_cmf)
 
@@ -198,7 +199,7 @@ class Runtime:
                         if l_o < l_src - p_dst.get_load():
                             # Report on accepted object transfer when requested
                             if self.Verbose:
-                                print "\t\t transfering obj_{} ({}) to proc_{}".format(
+                                print "\t\ttransfering object {} ({}) to processor {}".format(
                                     o.get_id(),
                                     l_o,
                                     p_dst.get_id())
@@ -215,10 +216,13 @@ class Runtime:
 
                             # Report on rejected object transfer when requested
                             if self.Verbose:
-                                print "\t\t proc_{2} declined transfer of obj_{0} ({1})".format(
+                                print "\t\tprocessor {2} declined transfer of object {0} ({1})".format(
                                     o.get_id(),
                                     l_o,
                                     p_dst.get_id())
+
+            # Edges cache is no longer current
+            self.epoch.invalidate_edges()
 
             # Report about what happened in that iteration
             print "[RunTime] {} processors did not participate".format(n_ignored)
@@ -234,14 +238,15 @@ class Runtime:
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(
                 lambda x: x.get_load(),
-                self.epoch.processors))
+                self.epoch.get_processors()))
+            self.sent_distributions.append(self.epoch.get_edges())
 
             # Compute and store global processor load and link weight statistics
             _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
                 self.epoch.processors,
                 lambda x: x.get_load())
             n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
-                self.epoch.aggregate_edge_weights(),
+                self.epoch.get_edges().values(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
