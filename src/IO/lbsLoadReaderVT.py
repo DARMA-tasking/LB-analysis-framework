@@ -43,7 +43,7 @@ class LoadReader:
     """
 
   ####################################################################
-    def __init__(self, file_prefix, vebose=False):
+    def __init__(self, file_prefix, verbose=False):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
 
