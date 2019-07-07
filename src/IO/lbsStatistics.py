@@ -183,18 +183,20 @@ def print_function_statistics(values, function, var_name, verb=False):
                 function(v))
 
     # Print summary
-    print "\tcardinality = {:.6g}  sum = {:.6g}  imbalance = {:.6g}".format(
+    print "\tcardinality: {:.6g}  sum: {:.6g}  imbalance: {:.6g}".format(
         n,
         n * f_ave,
         f_imb)
-    print "\tminimum = {:.6g}  mean = {:.6g}  maximum = {:.6g}".format(
+    print "\tminimum: {:.6g}  mean: {:.6g}  maximum: {:.6g}".format(
         f_min,
         f_ave,
         f_max)
-    print "\tstandard deviation = {:.6g}  skewness = {:.6g}  kurtosis excess = {:.6g}".format(
+    print "\tstandard deviation: {:.6g}  variance: {:.6g}".format(
         math.sqrt(f_var),
+        f_var)
+    print "\tskewness: {:.6g}  kurtosis excess: {:.6g}".format(
         f_g1,
-        f_g2 - 3)
+        f_g2 - 3.)
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
