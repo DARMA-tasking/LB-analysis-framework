@@ -5,6 +5,7 @@ lbsEpoch_module_aliases = {
 for m in [
     "sys",
     "random",
+    "time",
     ]:
     has_flag = "has_" + m
     try:
@@ -21,7 +22,6 @@ for m in [
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
 
-import time
 ########################################################################
 class Epoch:
     """A class representing the state of collection of processors with
@@ -72,7 +72,9 @@ class Epoch:
         """Compute and return map of communication link IDs to weights
         """
 
+        # Compute edges from scratch
         print("[Epoch] Computing inter-processor edges")
+        self.edges = {}
 
         # Iterate over processors
         for p in self.processors:
