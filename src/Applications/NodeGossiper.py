@@ -362,7 +362,8 @@ if __name__ == '__main__':
         "{}".format(output_stem))
     ex_writer.write(rt.statistics,
                     rt.load_distributions,
-                    rt.sent_distributions)
+                    rt.sent_distributions,
+                    params.verbose)
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(

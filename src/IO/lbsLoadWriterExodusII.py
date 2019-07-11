@@ -12,7 +12,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 from Model import lbsEpoch
@@ -60,22 +60,21 @@ class LoadWriterExodusII:
             self.grid_resolution = 1.
 
     ####################################################################
-    def write(self, load_statistics, load_distributions, weight_distributions):
+    def write(self, load_statistics, load_distributions, weight_distributions, verbose=False):
         """Map processors to grid and write ExodusII file
         """
 
-        # Retrieve number of epoch processors
+        # Retrieve number of mesh points and bail out early if empty set
         n_p = len(self.epoch.processors)
+        if not n_p:
+            print("** ERROR: Empty list of processors, cannot write a mesh file")
+            return
 
-        # Create storage for statistics
-        stats = vtk.vtkFieldData()
-
-        # Create storage for points at processors
-        points = vtk.vtkPoints()
-        points.SetNumberOfPoints(n_p)
-
-        # Create storage for edges between processors
-        edges = vtk.vtkCellArray()
+        # Number of edges is fixed due to vtkExodusIIWriter limitation
+        n_e = n_p * (n_p - 1) / 2
+        print("[LoadWriterExodusII] Creating mesh with {} points and {} edges".format(
+            n_p,
+            n_e))
 
         # Create and populate field data arrays for load statistics
         stat_arrays = {}
@@ -91,38 +90,63 @@ class LoadWriterExodusII:
         # Create attribute data arrays for processors loads
         load_arrays = []
         for _ in load_distributions:
+            # Create and append new load array for points
             l_arr = vtk.vtkDoubleArray()
-            l_arr.SetNumberOfTuples(n_p)
             l_arr.SetName("Load")
+            l_arr.SetNumberOfTuples(n_p)
             load_arrays.append(l_arr)
 
-        # Create attribute data arrays for edge weights
-        weight_arrays = []
-        n_e = n_p * (n_p - 1)
-        for _ in weight_distributions:
-            w_arr = vtk.vtkDoubleArray()
-            w_arr.SetNumberOfTuples(n_e)
-            w_arr.SetName("Weight")
-            weight_arrays.append(w_arr)
-
-        # Iterate over processors and populate grid
+        # Iterate over processors and create mesh points
+        points = vtk.vtkPoints()
+        points.SetNumberOfPoints(n_p)
         for i, p in enumerate(self.epoch.processors):
-            points.SetPoint(i, [self.grid_resolution * c for c in self.mapping(p)])
-            #edges.InsertNextCell(2, [i, i])
+            # Insert point based on Cartesian coordinates
+            points.SetPoint(
+                i,
+                [self.grid_resolution * c for c in self.mapping(p)])
             for l, l_arr in enumerate(load_arrays):
                 l_arr.SetTuple1(i, load_distributions[l][i])
 
-        # the second 0 is the index of the Origin in linesPolyData's points
-        # 2 is the index of P1 in linesPolyData's points
-        #line = vtkLine()
-        #line.GetPointIds().SetId(0, 0)
-        #line.GetPointIds().SetId(1, 2)
-        #lines.InsertNextCell(line)
+        # Iterate over all possible links and create edges
+        lines = vtk.vtkCellArray()
+        edge_indices = {}
+        flat_index = 0
+        for i in range(n_p):
+            for j in range(i + 1, n_p):
+                # Insert new link based on endpoint indices
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, i)
+                line.GetPointIds().SetId(1, j)
+                lines.InsertNextCell(line)
+
+                # Update flat index map
+                edge_indices[flat_index] = frozenset([i, j])
+                flat_index += 1
+
+        # Create attribute data arrays for edge weights
+        weight_arrays = []
+        for i, w in enumerate(weight_distributions):
+            # Create and append new weight array for edges
+            w_arr = vtk.vtkDoubleArray()
+            w_arr.SetName("Weight")
+            w_arr.SetNumberOfTuples(n_e)
+            weight_arrays.append(w_arr)
+            
+            # Assign edge weight values
+            if verbose:
+                print("\titeration {} edges:".format(i))
+            for e in range(n_e):
+                w_arr.SetTuple1(e, w.get(edge_indices[e], float("nan")))
+                if verbose:
+                    print("\t {} ({}): {}".format(
+                        e,
+                        list(edge_indices[e]),
+                        w_arr.GetTuple1(e)))
 
         # Create grid streamer
         streamer = lbsGridStreamer.GridStreamer(
             points,
-            edges,
+            lines,
             stat_arrays,
             load_arrays,
             weight_arrays)
