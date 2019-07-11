@@ -16,7 +16,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print("*  WARNING: Failed to import " + m + ". {}.".format(e))
+        print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
@@ -107,10 +107,10 @@ class Epoch:
                     else:
                         self.edges[index] = weight
                     if self.verbose:
-                        print("\t=> edge {}--{}: {}".format(
+                        print("\t Edge processor {} -- processor {}: {}".format(
                             min(i, j),
                             max(i, j),
-                            weight))
+                            self.edges[index]))
 
         # Edges cache was fully updated
         self.edges_cached = True
