@@ -72,13 +72,19 @@ class Epoch:
         """Compute and return map of communication link IDs to weights
         """
 
-        # Compute edges from scratch
-        print("[Epoch] Computing inter-processor edges")
+        # Compute or re-compute edges from scratch
         self.edges = {}
+
+        # Initialize count of loaded processors
+        n_loaded = 0
 
         # Iterate over processors
         for p in self.processors:
-            # Retrieve sender processor ID
+            # Update count if processor is loaded
+            if p.get_load() > 0.:
+                n_loaded += 1
+
+            # Retrieve sender processor ID 
             i = p.get_id()
             if self.verbose:
                 print("\tprocessor {}:".format(i))
@@ -112,8 +118,18 @@ class Epoch:
                             max(i, j),
                             self.edges[index]))
 
+
         # Edges cache was fully updated
         self.edges_cached = True
+
+        # Report on computed edges
+        n_edges = len(self.edges)
+        n_possible = n_loaded * (n_loaded - 1) / 2
+        print("[Epoch] Computed {} communication links between {} loaded processors ({:.4g}% of maximum: {})".format(
+            n_edges,
+            n_loaded,
+            100. * n_edges / n_possible,
+            n_possible))
 
     ####################################################################
     def get_edges(self):
