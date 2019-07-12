@@ -73,10 +73,14 @@ class Epoch:
         """
 
         # Compute or re-compute edges from scratch
-        self.edges = {}
+        print("[Epoch] Computing inter-process communication edges")
 
         # Initialize count of loaded processors
         n_loaded = 0
+
+        # Initialize sum of total and processor-local weights
+        w_total = 0.
+        w_local = 0.
 
         # Iterate over processors
         for p in self.processors:
@@ -96,6 +100,9 @@ class Epoch:
 
                 # Iterate over recipient objects
                 for q, weight in o.get_sent().items():
+                    # Update total weight
+                    w_total += weight
+
                     # Retrieve recipient processor ID
                     j = q.get_processor_id()
                     if self.verbose:
@@ -104,6 +111,8 @@ class Epoch:
 
                     # Skip processor-local communications
                     if i == j:
+                        # Update sum of local weights and continue
+                        w_local += weight
                         continue
 
                     # Create or update an inter-processor edge
@@ -122,13 +131,18 @@ class Epoch:
         self.edges_cached = True
 
         # Report on computed edges
-        n_edges = len(self.edges)
-        n_possible = n_loaded * (n_loaded - 1) / 2
-        print("[Epoch] Computed {} communication links between {} loaded processors ({:.4g}% of maximum: {})".format(
-            n_edges,
-            n_loaded,
-            100. * n_edges / n_possible,
-            n_possible))
+        lbsStatistics.print_subset_statistics(
+            "Non-null communication edges between {} loaded processors".format(n_loaded),
+            "number of possible ones",
+            n_loaded * (n_loaded - 1) / 2,
+            "number of computed ones",
+            len(self.edges))
+        lbsStatistics.print_subset_statistics(
+            "Inter-object communication weights",
+            "total",
+            w_total,
+            "processor-local",
+            w_local)
 
     ####################################################################
     def get_edges(self):
