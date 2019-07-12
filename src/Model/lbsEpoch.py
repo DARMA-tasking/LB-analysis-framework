@@ -118,7 +118,6 @@ class Epoch:
                             max(i, j),
                             self.edges[index]))
 
-
         # Edges cache was fully updated
         self.edges_cached = True
 
