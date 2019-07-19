@@ -15,7 +15,7 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsEpoch
+from Model import lbsPhase
 from IO import lbsGridStreamer
 
 ########################################################################
@@ -26,7 +26,7 @@ class LoadWriterExodusII:
   ####################################################################
     def __init__(self, e, m, f="lbs_out", s='e', gr=1.):
         """Class constructor:
-        e: Epoch instance
+        e: Phase instance
         m: Processor dictionnary
         f: file name stem
         s: suffix
@@ -39,7 +39,7 @@ class LoadWriterExodusII:
             return
 
         # Ensure that provided epoch has correct type
-        if not isinstance(e, lbsEpoch.Epoch):
+        if not isinstance(e, lbsPhase.Phase):
             print("** ERROR: Could not write to ExodusII file by lack of a LBS epoch")
             return
         self.epoch = e

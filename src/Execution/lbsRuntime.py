@@ -17,7 +17,7 @@ for m in [
         print "*  WARNING: Failed to import " + m + ". {}.".format(e)
         globals()[has_flag] = False
 
-from Model import lbsProcessor, lbsEpoch
+from Model import lbsProcessor, lbsPhase
 from IO    import lbsStatistics
 
 ########################################################################
@@ -28,11 +28,11 @@ class Runtime:
     ####################################################################
     def __init__(self, e, v=False):
         """Class constructor:
-        e: Epoch instance
+        e: Phase instance
         """
 
         # If no LBS epoch was provided, do not do anything
-        if not isinstance(e, lbsEpoch.Epoch):
+        if not isinstance(e, lbsPhase.Phase):
             print "*  WARNING: Could not create a LBS runtime without an epoch"
             return
         else:

@@ -23,11 +23,11 @@ for m in [
 if __name__ == '__main__':
     if __package__ is None:
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from Model     import lbsEpoch
+        from Model     import lbsPhase
         from Execution import lbsRuntime
         from IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
     else:
-        from ..Model     import lbsEpoch
+        from ..Model     import lbsPhase
         from ..Execution import lbsRuntime
         from ..IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
 
@@ -299,7 +299,7 @@ if __name__ == '__main__':
     lbsStatistics.initialize()
 
     # Create an epoch and populate it
-    epoch = lbsEpoch.Epoch(0, params.verbose)
+    epoch = lbsPhase.Phase(0, params.verbose)
     if params.log_file:
         # Populate epoch from log files and store number of objects
         n_o = epoch.populate_from_log(n_p,

@@ -15,7 +15,7 @@ for m in [
         print "*  WARNING: Failed to import " + m + ". {}.".format(e)
         globals()[has_flag] = False
 
-from Model import lbsEpoch
+from Model import lbsPhase
 
 ########################################################################
 class LoadWriterVT:
@@ -34,13 +34,13 @@ class LoadWriterVT:
   ####################################################################
     def __init__(self, e, f="lbs_out", s="vom"):
         """Class constructor:
-        e: Epoch instance
+        e: Phase instance
         f: file name stem
         s: suffix
         """
 
         # Ensure that provided epoch has correct type
-        if not isinstance(e, lbsEpoch.Epoch):
+        if not isinstance(e, lbsPhase.Phase):
             print("** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch")
             return
 

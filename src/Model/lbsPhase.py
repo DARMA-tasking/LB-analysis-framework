@@ -1,5 +1,5 @@
 ########################################################################
-lbsEpoch_module_aliases = {
+lbsPhase_module_aliases = {
     "random": "rnd",
     }
 for m in [
@@ -10,8 +10,8 @@ for m in [
     has_flag = "has_" + m
     try:
         module_object = __import__(m)
-        if m in lbsEpoch_module_aliases:
-            globals()[lbsEpoch_module_aliases[m]] = module_object
+        if m in lbsPhase_module_aliases:
+            globals()[lbsPhase_module_aliases[m]] = module_object
         else:
             globals()[m] = module_object
         globals()[has_flag] = True
@@ -23,7 +23,7 @@ from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
 
 ########################################################################
-class Epoch:
+class Phase:
     """A class representing the state of collection of processors with
     objects at a given round
     """
@@ -73,7 +73,7 @@ class Epoch:
         """
 
         # Compute or re-compute edges from scratch
-        print("[Epoch] Computing inter-process communication edges")
+        print("[Phase] Computing inter-process communication edges")
 
         # Initialize count of loaded processors
         n_loaded = 0
@@ -174,7 +174,7 @@ class Epoch:
             ts_params)
 
         # Create n_o objects with uniformly distributed times in given range
-        print("[Epoch] Creating {} objects with times sampled from {}".format(
+        print("[Phase] Creating {} objects with times sampled from {}".format(
             n_o,
             sampler_name))
         objects = set([lbsObject.Object(
@@ -200,7 +200,7 @@ class Epoch:
             degree_sampler, degree_sampler_name = lbsStatistics.sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print("[Epoch] Creating communications with:")
+            print("[Phase] Creating communications with:")
             print("\tweights sampled from {}".format(weight_sampler_name))
             print("\tout-degrees sampled from {}".format(degree_sampler_name))
 
@@ -260,7 +260,7 @@ class Epoch:
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
-            print("[Epoch] Randomly assigning objects to {} processors amongst {}".format(
+            print("[Phase] Randomly assigning objects to {} processors amongst {}".format(
                 s_s,
                 n_p))
         else:
@@ -270,7 +270,7 @@ class Epoch:
                     s_s,
                     n_p))
                 s_s = n_p
-            print("[Epoch] Randomly assigning objects to {} processors".format(n_p))
+            print("[Phase] Randomly assigning objects to {} processors".format(n_p))
         if s_s > 0:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
@@ -301,7 +301,7 @@ class Epoch:
         reader = lbsLoadReaderVT.LoadReader(basename)
 
         # Populate epoch with reader output
-        print("[Epoch] Reading objects from time-step {} of VOM files with prefix {}".format(
+        print("[Phase] Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
             basename))
         self.processors = reader.read_iteration(n_p, t_s)
