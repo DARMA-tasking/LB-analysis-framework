@@ -41,6 +41,9 @@ class ggParameters:
         # Do not be verbose by default
         self.verbose = False
 
+        # By default use modified Grapevine criterion
+        self.criterion = 1
+
         # Number of load-balancing iterations
         self.n_iterations = 1
 
@@ -91,6 +94,9 @@ class ggParameters:
         """
 
         print("Usage:")
+        print("\t [-c <tc>]   transfer criterion:")
+        print("\t\t\t 0: Grapevine original")
+        print("\t\t\t 1: Grapevine with line 6 modification (default)")
         print("\t [-i <ni>]   number of load-balancing iterations")
         print("\t [-x <npx>]  number of procs in x direction")
         print("\t [-y <npy>]  number of procs in y direction")
@@ -117,7 +123,7 @@ class ggParameters:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hc:k:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
         except getopt.GetoptError:
             print("** ERROR: incorrect command line arguments.")
             self.usage()
@@ -134,6 +140,9 @@ class ggParameters:
                 sys.exit(0)
             elif o == "-v":
                 self.verbose = True
+            elif o == "-c":
+                if i in (0, 1):
+                    self.criterion = i 
             elif o == "-i":
                 if i > -1:
                     self.n_iterations = i
@@ -333,7 +342,7 @@ if __name__ == '__main__':
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(phase, params.verbose)
+    rt = lbsRuntime.Runtime(phase, params.criterion, params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,

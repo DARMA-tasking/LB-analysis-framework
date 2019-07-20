@@ -26,9 +26,10 @@ class Runtime:
     """
 
     ####################################################################
-    def __init__(self, p, v=False):
+    def __init__(self, p, c, v=False):
         """Class constructor:
         p: Phase instance
+        c: criterion index
         v: verbose mode True/False
         """
 
@@ -41,6 +42,9 @@ class Runtime:
 
         # Verbosity of runtime
         self.verbose = v
+
+        # Transfer critertion index
+        self.Criterion = c
 
         # Initialize load and sent distributions
         self.load_distributions = [map(
@@ -55,9 +59,6 @@ class Runtime:
         n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
-
-        # A transfer criterion is required for LB but none is assigned by default
-        self.Criterion = None
 
         # Initialize run statistics
         print("[RunTime] Load imbalance(0) = {:.6g}".format(
@@ -156,13 +157,16 @@ class Runtime:
             n_ignored = 0
             n_transfers = 0
             n_rejects = 0
-            original = False
-            if original:
-                self.Criterion = lbsGrapevineCriterion.GrapevineCriterion(
+
+            # Instantiate object transfer criterion
+            if not self.Criterion:
+                # Case 0: original Grapevine criterion
+                transfer_criterion = lbsGrapevineCriterion.GrapevineCriterion(
                     procs,
                     {"average_load": self.average_load})
             else:
-                self.Criterion = lbsModifiedGrapevineCriterion.ModifiedGrapevineCriterion(
+                # By default use modified Grapevine criterion
+                transfer_criterion = lbsModifiedGrapevineCriterion.ModifiedGrapevineCriterion(
                     procs)
 
             # Iterate over processors and pick those with above threshold load
@@ -209,7 +213,7 @@ class Runtime:
                             p_cmf)
 
                         # Decide about proposed transfer
-                        if self.Criterion.is_satisfied(o, p_src, p_dst):
+                        if transfer_criterion.is_satisfied(o, p_src, p_dst):
                             # Report on accepted object transfer when requested
                             if self.verbose:
                                 print("\t\ttransfering object {} ({}) to processor {}".format(
