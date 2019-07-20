@@ -2,7 +2,6 @@
 lbsRuntime_module_aliases = {}
 for m in [
     "sys",
-    "itertools",
     "math"
     ]:
     has_flag = "has_" + m
@@ -17,8 +16,9 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsProcessor, lbsPhase
-from IO    import lbsStatistics
+from Model     import lbsProcessor, lbsPhase
+from IO        import lbsStatistics
+from Execution import lbsGrapevineCriterion, lbsModifiedGrapevineCriterion
 
 ########################################################################
 class Runtime:
@@ -29,17 +29,18 @@ class Runtime:
     def __init__(self, p, v=False):
         """Class constructor:
         p: Phase instance
+        v: verbose mode True/False
         """
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, lbsPhase.Phase):
-            print("*  WARNING: Could not create a LBS runtime without an phase")
+            print("*  WARNING: Could not create a LBS runtime without a phase")
             return
         else:
             self.phase = p
 
         # Verbosity of runtime
-        self.Verbose = v
+        self.verbose = v
 
         # Initialize load and sent distributions
         self.load_distributions = [map(
@@ -54,6 +55,9 @@ class Runtime:
         n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
+
+        # A transfer criterion is required for LB but none is assigned by default
+        self.Criterion = None
 
         # Initialize run statistics
         print("[RunTime] Load imbalance(0) = {:.6g}".format(
@@ -111,7 +115,7 @@ class Runtime:
                 map(p_rcv.process_underload_message, msg_lst)
 
             # Report on current status when requested
-            if self.Verbose:
+            if self.verbose:
                 for p in procs:
                     print("\tunderloaded known to processor {}: {}".format(
                         p.get_id(),
@@ -140,18 +144,26 @@ class Runtime:
                     map(p_rcv.process_underload_message, msg_lst)
 
                 # Report on current status when requested
-                if self.Verbose:
+                if self.verbose:
                     for p in procs:
                         print("\tunderloaded known to processor {}: {}".format(
                             p.get_id(),
                             [p_u.get_id() for p_u in p.underloaded]))
 
-            # Transfer overloads for given relative threshold
+            # Initialize load-balancing step
             print("[RunTime] Transferring overloads above relative threshold of {}".format(
                 r_threshold))
             n_ignored = 0
             n_transfers = 0
             n_rejects = 0
+            original = False
+            if original:
+                self.Criterion = lbsGrapevineCriterion.GrapevineCriterion(
+                    procs,
+                    {"average_load": self.average_load})
+            else:
+                self.Criterion = lbsModifiedGrapevineCriterion.ModifiedGrapevineCriterion(
+                    procs)
 
             # Iterate over processors and pick those with above threshold load
             l_thr = r_threshold * self.average_load
@@ -172,7 +184,7 @@ class Runtime:
                     p_cmf = p_src.compute_cmf_underloads(self.average_load)
 
                     # Report on picked object when requested
-                    if self.Verbose:
+                    if self.verbose:
                         print("\tproc_{} excess load = {}".format(
                             p_src.get_id(),
                             l_exc))
@@ -197,33 +209,29 @@ class Runtime:
                             p_cmf)
 
                         # Decide about proposed transfer
-                        l_o = o.get_time()
-                        # Use criterion 6
-                        #if p_dst.get_load() + l_o < self.average_load:
-                        # Use criterion 6'
-                        if l_o < l_src - p_dst.get_load():
+                        if self.Criterion.is_satisfied(o, p_src, p_dst):
                             # Report on accepted object transfer when requested
-                            if self.Verbose:
+                            if self.verbose:
                                 print("\t\ttransfering object {} ({}) to processor {}".format(
                                     o.get_id(),
-                                    l_o,
+                                    o.get_time(),
                                     p_dst.get_id()))
 
                             # Transfer object and decrease excess load
                             p_src.objects.remove(o)
                             obj_it = iter(p_src.objects)
                             p_dst.objects.add(o)
-                            l_exc -= l_o
+                            l_exc -= o.get_time()
                             n_transfers +=1
                         else:
                             # Transfer was declined
                             n_rejects +=1
 
                             # Report on rejected object transfer when requested
-                            if self.Verbose:
+                            if self.verbose:
                                 print("\t\tprocessor {2} declined transfer of object {0} ({1})".format(
                                     o.get_id(),
-                                    l_o,
+                                    o.get_time(),
                                     p_dst.get_id()))
 
             # Edges cache is no longer current
