@@ -14,7 +14,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 from Model import lbsProcessor, lbsPhase
@@ -33,7 +33,7 @@ class Runtime:
 
         # If no LBS epoch was provided, do not do anything
         if not isinstance(e, lbsPhase.Phase):
-            print "*  WARNING: Could not create a LBS runtime without an epoch"
+            print("*  WARNING: Could not create a LBS runtime without an epoch")
             return
         else:
             self.epoch = e
@@ -56,8 +56,10 @@ class Runtime:
             lambda x: x)
 
         # Initialize run statistics
-        print "[RunTime] Load imbalance(0) = {:.6g}".format(l_imb)
-        print "[RunTime] Weight imbalance(0) = {:.6g}".format(w_imb)
+        print("[RunTime] Load imbalance(0) = {:.6g}".format(
+            l_imb))
+        print("[RunTime] Weight imbalance(0) = {:.6g}".format(
+            w_imb))
         self.statistics = {
             "minimum load"                  : [l_min],
             "maximum load"                  : [l_max],
@@ -83,11 +85,12 @@ class Runtime:
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
-            print "[RunTime] Starting iteration {}".format(
-                i + 1)
+            print("[RunTime] Starting iteration {}".format(
+                i + 1))
 
             # Initialize gossip process
-            print "[RunTime] Spreading underload information with fanout = {}".format(f)
+            print("[RunTime] Spreading underload information with fanout = {}".format(
+                f))
             gossip_round = 1
             gossips = {}
             l_max = 0.
@@ -110,15 +113,16 @@ class Runtime:
             # Report on current status when requested
             if self.Verbose:
                 for p in procs:
-                    print "\tunderloaded known to processor {}: {}".format(
+                    print("\tunderloaded known to processor {}: {}".format(
                         p.get_id(),
-                        [p_u.get_id() for p_u in p.underloaded])
+                        [p_u.get_id() for p_u in p.underloaded]))
 
 
             # Forward messages for as long as necessary and requested
             while gossip_round < n_rounds:
                 # Initiate next gossiping roung
-                print "[RunTime] Performing underload forwarding round {}".format(gossip_round)
+                print("[RunTime] Performing underload forwarding round {}".format(
+                    gossip_round))
                 gossip_round += 1
                 gossips.clear()
 
@@ -138,12 +142,13 @@ class Runtime:
                 # Report on current status when requested
                 if self.Verbose:
                     for p in procs:
-                        print "\tunderloaded known to processor {}: {}".format(
+                        print("\tunderloaded known to processor {}: {}".format(
                             p.get_id(),
-                            [p_u.get_id() for p_u in p.underloaded])
+                            [p_u.get_id() for p_u in p.underloaded]))
 
             # Transfer overloads for given relative threshold
-            print "[RunTime] Transferring overloads above relative threshold of {}".format(r_threshold)
+            print("[RunTime] Transferring overloads above relative threshold of {}".format(
+                r_threshold))
             n_ignored = 0
             n_transfers = 0
             n_rejects = 0
@@ -168,12 +173,12 @@ class Runtime:
 
                     # Report on picked object when requested
                     if self.Verbose:
-                        print "\tproc_{} excess load = {}".format(
+                        print("\tproc_{} excess load = {}".format(
                             p_src.get_id(),
-                            l_exc)
-                        print "\tCMF_{} = {}".format(
+                            l_exc))
+                        print("\tCMF_{} = {}".format(
                             p_src.get_id(),
-                            p_cmf)
+                            p_cmf))
 
                     # Offload objects for as long as necessary and possible
                     obj_it = iter(p_src.objects)
@@ -199,10 +204,10 @@ class Runtime:
                         if l_o < l_src - p_dst.get_load():
                             # Report on accepted object transfer when requested
                             if self.Verbose:
-                                print "\t\ttransfering object {} ({}) to processor {}".format(
+                                print("\t\ttransfering object {} ({}) to processor {}".format(
                                     o.get_id(),
                                     l_o,
-                                    p_dst.get_id())
+                                    p_dst.get_id()))
 
                             # Transfer object and decrease excess load
                             p_src.objects.remove(o)
@@ -216,24 +221,25 @@ class Runtime:
 
                             # Report on rejected object transfer when requested
                             if self.Verbose:
-                                print "\t\tprocessor {2} declined transfer of object {0} ({1})".format(
+                                print("\t\tprocessor {2} declined transfer of object {0} ({1})".format(
                                     o.get_id(),
                                     l_o,
-                                    p_dst.get_id())
+                                    p_dst.get_id()))
 
             # Edges cache is no longer current
             self.epoch.invalidate_edges()
 
             # Report about what happened in that iteration
-            print "[RunTime] {} processors did not participate".format(n_ignored)
+            print("[RunTime] {} processors did not participate".format(
+                n_ignored))
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                print "[RunTime] {} transfers occurred, {} were rejected ({}% of total)".format(
+                print("[RunTime] {} transfers occurred, {} were rejected ({}% of total)".format(
                     n_transfers,
                     n_rejects,
-                    100. * n_rejects / n_proposed)
+                    100. * n_rejects / n_proposed))
             else:
-                print "[RunTime] no transfers were proposed"
+                print("[RunTime] no transfers were proposed")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(
@@ -260,7 +266,7 @@ class Runtime:
 
             # Report partial statistics
             iteration = i + 1
-            print ("[RunTime] Load imbalance({}) = {:.6g}; "
+            print("[RunTime] Load imbalance({}) = {:.6g}; "
                    "min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
                 iteration,
                 l_imb,
@@ -268,7 +274,7 @@ class Runtime:
                 l_max,
                 self.average_load,
                 math.sqrt(l_var))
-            print ("[RunTime] Weight imbalance({}) = {:.6g}; "
+            print("[RunTime] Weight imbalance({}) = {:.6g}; "
                    "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
                 iteration,
                 w_imb,
