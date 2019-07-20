@@ -39,13 +39,13 @@ class LoadWriterVT:
         s: suffix
         """
 
-        # Ensure that provided epoch has correct type
+        # Ensure that provided phase has correct type
         if not isinstance(e, lbsPhase.Phase):
-            print("** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch")
+            print("** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase")
             return
 
         # Assign internals
-        self.epoch = e
+        self.phase = e
         self.file_stem = "{}".format(f)
         self.suffix = s
 
@@ -58,7 +58,7 @@ class LoadWriterVT:
         """
 
         # Iterate over processors
-        for p in self.epoch.processors:
+        for p in self.phase.processors:
             # Create file name for current processor
             file_name = "{}.{}.{}.{}".format(
                 self.file_stem,

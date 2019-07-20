@@ -33,7 +33,7 @@ class Phase:
         # Initialize empty list of processors
         self.processors = []
 
-        # Default time-step/phase of this epoch
+        # Default time-step/phase of this phase
         self.time_step = t
 
         # Initialize gossiping round
@@ -48,21 +48,21 @@ class Phase:
 
     ####################################################################
     def get_processors(self):
-        """Retrieve processors belonging to epoch
+        """Retrieve processors belonging to phase
         """
 
         return self.processors
 
     ####################################################################
     def get_processors_ids(self):
-        """Retrieve IDs of processors belonging to epoch
+        """Retrieve IDs of processors belonging to phase
         """
 
         return [p.get_id() for p in self.processors]
 
     ####################################################################
     def get_time_step(self):
-        """Retrieve the time-step/phase for this epoch
+        """Retrieve the time-step/phase for this phase
         """
 
         return self.time_step
@@ -146,7 +146,7 @@ class Phase:
 
     ####################################################################
     def get_edges(self):
-        """Retrieve edges belonging to epoch
+        """Retrieve edges belonging to phase
         """
 
         # Force recompute if edges cache is not current
@@ -165,7 +165,7 @@ class Phase:
 
     ####################################################################
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
-        """Use samplers to populate either all or n procs in an epoch
+        """Use samplers to populate either all or n procs in an phase
         """
 
         # Retrieve desired time sampler with its theoretical average
@@ -294,13 +294,13 @@ class Phase:
 
     ####################################################################
     def populate_from_log(self, n_p, t_s, basename):
-        """Populate this epoch by reading in a load profile from log files
+        """Populate this phase by reading in a load profile from log files
         """
 
         # Instantiate VT load reader
         reader = lbsLoadReaderVT.LoadReader(basename)
 
-        # Populate epoch with reader output
+        # Populate phase with reader output
         print("[Phase] Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
             basename))

@@ -26,17 +26,17 @@ class Runtime:
     """
 
     ####################################################################
-    def __init__(self, e, v=False):
+    def __init__(self, p, v=False):
         """Class constructor:
-        e: Phase instance
+        p: Phase instance
         """
 
-        # If no LBS epoch was provided, do not do anything
-        if not isinstance(e, lbsPhase.Phase):
-            print("*  WARNING: Could not create a LBS runtime without an epoch")
+        # If no LBS phase was provided, do not do anything
+        if not isinstance(p, lbsPhase.Phase):
+            print("*  WARNING: Could not create a LBS runtime without an phase")
             return
         else:
-            self.epoch = e
+            self.phase = p
 
         # Verbosity of runtime
         self.Verbose = v
@@ -44,15 +44,15 @@ class Runtime:
         # Initialize load and sent distributions
         self.load_distributions = [map(
             lambda x: x.get_load(),
-            self.epoch.processors)]
-        self.sent_distributions = [self.epoch.get_edges()]
+            self.phase.processors)]
+        self.sent_distributions = [self.phase.get_edges()]
 
         # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
-            self.epoch.processors,
+            self.phase.processors,
             lambda x: x.get_load())
         n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
-            self.epoch.get_edges().values(),
+            self.phase.get_edges().values(),
             lambda x: x)
 
         # Initialize run statistics
@@ -80,8 +80,8 @@ class Runtime:
         r_threshold: float relative overhead threshold
         """
 
-        # Build set of processors in the epoch
-        procs = set(self.epoch.processors)
+        # Build set of processors in the phase
+        procs = set(self.phase.processors)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
@@ -227,7 +227,7 @@ class Runtime:
                                     p_dst.get_id()))
 
             # Edges cache is no longer current
-            self.epoch.invalidate_edges()
+            self.phase.invalidate_edges()
 
             # Report about what happened in that iteration
             print("[RunTime] {} processors did not participate".format(
@@ -244,15 +244,15 @@ class Runtime:
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(
                 lambda x: x.get_load(),
-                self.epoch.get_processors()))
-            self.sent_distributions.append(self.epoch.get_edges())
+                self.phase.get_processors()))
+            self.sent_distributions.append(self.phase.get_edges())
 
             # Compute and store global processor load and link weight statistics
             _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
-                self.epoch.processors,
+                self.phase.processors,
                 lambda x: x.get_load())
             n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
-                self.epoch.get_edges().values(),
+                self.phase.get_edges().values(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)

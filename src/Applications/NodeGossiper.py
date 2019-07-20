@@ -183,7 +183,7 @@ class ggParameters:
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
                 (self.time_sampler_type or self.weight_sampler_type))):
-            print("** ERROR: exactly one strategy to populate initial epoch must be chosen.")
+            print("** ERROR: exactly one strategy to populate initial phase must be chosen.")
             self.usage()
             return True
 
@@ -251,7 +251,7 @@ def get_output_file_stem(params):
     """Build the file name for a given rank/node
     """
 
-    # Assemble output file stem name based on epoch population strategy
+    # Assemble output file stem name based on phase population strategy
     if params.log_file:
         output_stem = "l{}-i{}-k{}-f{}".format(
             os.path.basename(params.log_file),
@@ -298,17 +298,17 @@ if __name__ == '__main__':
     # Initialize random number generator
     lbsStatistics.initialize()
 
-    # Create an epoch and populate it
-    epoch = lbsPhase.Phase(0, params.verbose)
+    # Create an phase and populate it
+    phase = lbsPhase.Phase(0, params.verbose)
     if params.log_file:
-        # Populate epoch from log files and store number of objects
-        n_o = epoch.populate_from_log(n_p,
+        # Populate phase from log files and store number of objects
+        n_o = phase.populate_from_log(n_p,
                                       params.time_step,
                                       params.log_file)
 
     else:
-        # Populate epoch pseudo-randomly
-        epoch.populate_from_samplers(params.n_objects,
+        # Populate phase pseudo-randomly
+        phase.populate_from_samplers(params.n_objects,
                                      params.time_sampler_type,
                                      params.time_sampler_parameters,
                                      params.communication_degree,
@@ -322,18 +322,18 @@ if __name__ == '__main__':
 
     # Compute and print initial processor load and link weight statistics
     lbsStatistics.print_function_statistics(
-        epoch.get_processors(),
+        phase.get_processors(),
         lambda x: x.get_load(),
         "initial processor loads",
         params.verbose)
     lbsStatistics.print_function_statistics(
-        epoch.get_edges().values(),
+        phase.get_edges().values(),
         lambda x: x,
         "initial link weights",
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(epoch, params.verbose)
+    rt = lbsRuntime.Runtime(phase, params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
@@ -348,16 +348,16 @@ if __name__ == '__main__':
     # Assemble output file name stem
     output_stem = get_output_file_stem(params)
 
-    # Instantiate epoch to VT file writer if started from a log file
+    # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
         vt_writer = lbsLoadWriterVT.LoadWriterVT(
-            epoch,
+            phase,
             "{}".format(output_stem))
         vt_writer.write(params.time_step)
 
-    # Instantiate epoch to ExodusII file writer
+    # Instantiate phase to ExodusII file writer
     ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(
-        epoch,
+        phase,
         grid_map,
         "{}".format(output_stem))
     ex_writer.write(rt.statistics,
@@ -367,12 +367,12 @@ if __name__ == '__main__':
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
-        epoch.get_processors(),
+        phase.get_processors(),
         lambda x: x.get_load(),
         "final processor loads",
         params.verbose)
     lbsStatistics.print_function_statistics(
-        epoch.get_edges().values(),
+        phase.get_edges().values(),
         lambda x: x,
         "final link weights",
         params.verbose)

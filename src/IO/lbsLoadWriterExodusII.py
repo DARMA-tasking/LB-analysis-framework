@@ -38,11 +38,11 @@ class LoadWriterExodusII:
             print("** ERROR: Could not write to ExodusII file by lack of VTK")
             return
 
-        # Ensure that provided epoch has correct type
+        # Ensure that provided phase has correct type
         if not isinstance(e, lbsPhase.Phase):
-            print("** ERROR: Could not write to ExodusII file by lack of a LBS epoch")
+            print("** ERROR: Could not write to ExodusII file by lack of a LBS phase")
             return
-        self.epoch = e
+        self.phase = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
@@ -65,7 +65,7 @@ class LoadWriterExodusII:
         """
 
         # Retrieve number of mesh points and bail out early if empty set
-        n_p = len(self.epoch.processors)
+        n_p = len(self.phase.processors)
         if not n_p:
             print("** ERROR: Empty list of processors, cannot write a mesh file")
             return
@@ -99,7 +99,7 @@ class LoadWriterExodusII:
         # Iterate over processors and create mesh points
         points = vtk.vtkPoints()
         points.SetNumberOfPoints(n_p)
-        for i, p in enumerate(self.epoch.processors):
+        for i, p in enumerate(self.phase.processors):
             # Insert point based on Cartesian coordinates
             points.SetPoint(
                 i,
