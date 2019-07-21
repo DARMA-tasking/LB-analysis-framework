@@ -12,7 +12,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 ########################################################################

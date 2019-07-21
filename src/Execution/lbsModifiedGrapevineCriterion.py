@@ -1,19 +1,4 @@
 ########################################################################
-lbsModifiedGrapevineCriterion_module_aliases = {}
-for m in [
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsModifiedGrapevineCriterion_module_aliases:
-            globals()[lbsModifiedGrapevineCriterion_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
-
 from lbsCriterionBase import CriterionBase
 
 ########################################################################
@@ -22,9 +7,10 @@ class ModifiedGrapevineCriterion(CriterionBase):
     """
 
     ####################################################################
-    def __init__(self, l):
+    def __init__(self, l, _):
         """Class constructor:
         l: list of processors
+        _: no parameters needed
         """
 
         # Call superclass init

@@ -13,12 +13,12 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 from Model     import lbsProcessor, lbsPhase
 from IO        import lbsStatistics
-from Execution import lbsGrapevineCriterion, lbsModifiedGrapevineCriterion
+from Execution import lbsCriterion
 
 ########################################################################
 class Runtime:
@@ -159,15 +159,13 @@ class Runtime:
             n_rejects = 0
 
             # Instantiate object transfer criterion
-            if not self.Criterion:
-                # Case 0: original Grapevine criterion
-                transfer_criterion = lbsGrapevineCriterion.GrapevineCriterion(
-                    procs,
-                    {"average_load": self.average_load})
-            else:
-                # By default use modified Grapevine criterion
-                transfer_criterion = lbsModifiedGrapevineCriterion.ModifiedGrapevineCriterion(
-                    procs)
+            transfer_criterion = lbsCriterion.Criterion.factory(
+                self.Criterion,
+                procs,
+                {"average_load": self.average_load})
+            if not transfer_criterion:
+                print("** ERROR: cannot load-balance without a load transfer criterion")
+                sys.exit(1)
 
             # Iterate over processors and pick those with above threshold load
             l_thr = r_threshold * self.average_load
