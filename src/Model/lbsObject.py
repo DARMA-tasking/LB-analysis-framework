@@ -1,15 +1,26 @@
 ########################################################################
+
+from Model import lbsObjectCommunicator
+
+########################################################################
 class Object:
     """A class representing an object with time and communicator
     """
 
     ####################################################################
-    def __init__(self, i, t, s, c=None):
-        # Member variables passed by constructor
-        self.index           = i
-        self.time            = t
-        self.source          = s
-        self.communicator    = c
+    def __init__(self, i, t, p=None, c=None):
+        # Object index
+        self.index = i
+
+        # Time required to perform the work of this object
+        self.time = t
+
+        # Processor to which object is currently assigned if defined
+        self.processor_id = p
+
+        # Communication graph of this object if defined
+        self.communicator = c if isinstance(
+            c, lbsObjectCommunicator.ObjectCommunicator) else None
 
     ####################################################################
     def get_id(self):
@@ -26,11 +37,25 @@ class Object:
         return self.time
 
     ####################################################################
-    def get_source_processor(self):
-        """Return processor to which object was originally attached
+    def get_sent(self):
+        """Return communications sent by object to other objects
         """
 
-        return self.source
+        return self.communicator.get_sent()
+
+    ####################################################################
+    def set_processor_id(self, p_id):
+        """Assign object to processor ID
+        """
+
+        self.processor_id = p_id
+
+    ####################################################################
+    def get_processor_id(self):
+        """Return ID of processor to which object is currently assigned
+        """
+
+        return self.processor_id
 
     ####################################################################
     def has_communicator(self):
@@ -41,9 +66,18 @@ class Object:
 
     ####################################################################
     def get_communicator(self):
-        """Return the communication links for this object
+        """Return the communication graph for this object
         """
 
         return self.communicator
+
+    ####################################################################
+    def set_communicator(self, c):
+        """Assign the communication graph for this object
+        """
+
+        # Perform sanity check prior to assignment
+        if isinstance(c, lbsObjectCommunicator.ObjectCommunicator):
+            self.communicator = c
 
 ########################################################################

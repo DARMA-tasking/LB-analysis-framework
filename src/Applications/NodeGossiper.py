@@ -17,17 +17,17 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print("*  WARNING: Failed to import " + m + ". {}.".format(e))
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 if __name__ == '__main__':
     if __package__ is None:
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from Model     import lbsEpoch
+        from Model     import lbsPhase
         from Execution import lbsRuntime
         from IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
     else:
-        from ..Model     import lbsEpoch
+        from ..Model     import lbsPhase
         from ..Execution import lbsRuntime
         from ..IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
 
@@ -40,6 +40,9 @@ class ggParameters:
     def __init__(self):
         # Do not be verbose by default
         self.verbose = False
+
+        # By default use modified Grapevine criterion
+        self.criterion = 1
 
         # Number of load-balancing iterations
         self.n_iterations = 1
@@ -91,6 +94,9 @@ class ggParameters:
         """
 
         print("Usage:")
+        print("\t [-c <tc>]   transfer criterion:")
+        print("\t\t\t 0: Grapevine original")
+        print("\t\t\t 1: Grapevine with line 6 modification (default)")
         print("\t [-i <ni>]   number of load-balancing iterations")
         print("\t [-x <npx>]  number of procs in x direction")
         print("\t [-y <npy>]  number of procs in y direction")
@@ -117,7 +123,7 @@ class ggParameters:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hk:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
+            opts, args = getopt.getopt(sys.argv[1:], "f:hc:k:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
         except getopt.GetoptError:
             print("** ERROR: incorrect command line arguments.")
             self.usage()
@@ -134,6 +140,9 @@ class ggParameters:
                 sys.exit(0)
             elif o == "-v":
                 self.verbose = True
+            elif o == "-c":
+                if i in (0, 1, 2):
+                    self.criterion = i 
             elif o == "-i":
                 if i > -1:
                     self.n_iterations = i
@@ -183,7 +192,7 @@ class ggParameters:
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
                 (self.time_sampler_type or self.weight_sampler_type))):
-            print("** ERROR: exactly one strategy to populate initial epoch must be chosen.")
+            print("** ERROR: exactly one strategy to populate initial phase must be chosen.")
             self.usage()
             return True
 
@@ -251,7 +260,7 @@ def get_output_file_stem(params):
     """Build the file name for a given rank/node
     """
 
-    # Assemble output file stem name based on epoch population strategy
+    # Assemble output file stem name based on phase population strategy
     if params.log_file:
         output_stem = "l{}-i{}-k{}-f{}".format(
             os.path.basename(params.log_file),
@@ -298,37 +307,42 @@ if __name__ == '__main__':
     # Initialize random number generator
     lbsStatistics.initialize()
 
-    # Create an epoch and populate it
-    epoch = lbsEpoch.Epoch(0, params.verbose)
+    # Create an phase and populate it
+    phase = lbsPhase.Phase(0, params.verbose)
     if params.log_file:
-        # Populate epoch from log files and store number of objects
-        n_o = epoch.populate_from_log(n_p,
+        # Populate phase from log files and store number of objects
+        n_o = phase.populate_from_log(n_p,
                                       params.time_step,
                                       params.log_file)
 
     else:
-        # Populate epoch pseudo-randomly
-        epoch.populate_from_sampler(params.n_objects,
-                                    params.time_sampler_type,
-                                    params.time_sampler_parameters,
-                                    params.communication_degree,
-                                    params.weight_sampler_type,
-                                    params.weight_sampler_parameters,
-                                    n_p,
-                                    params.n_processors)
+        # Populate phase pseudo-randomly
+        phase.populate_from_samplers(params.n_objects,
+                                     params.time_sampler_type,
+                                     params.time_sampler_parameters,
+                                     params.communication_degree,
+                                     params.weight_sampler_type,
+                                     params.weight_sampler_parameters,
+                                     n_p,
+                                     params.n_processors)
 
         # Keep track of number of objects
         n_o = params.n_objects
 
-    # Compute and print initial load statistics
+    # Compute and print initial processor load and link weight statistics
     lbsStatistics.print_function_statistics(
-        epoch.processors,
+        phase.get_processors(),
         lambda x: x.get_load(),
         "initial processor loads",
         params.verbose)
+    lbsStatistics.print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x,
+        "initial link weights",
+        params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(epoch, params.verbose)
+    rt = lbsRuntime.Runtime(phase, params.criterion, params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
@@ -343,43 +357,46 @@ if __name__ == '__main__':
     # Assemble output file name stem
     output_stem = get_output_file_stem(params)
 
-    # Instantiate epoch to VT file writer if started from a log file
+    # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
         vt_writer = lbsLoadWriterVT.LoadWriterVT(
-            epoch,
-            "{}".format(output_stem),
-            "vom")
+            phase,
+            "{}".format(output_stem))
         vt_writer.write(params.time_step)
 
-    # Instantiate epoch to ExodusII file writer
+    # Instantiate phase to ExodusII file writer
     ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(
-        epoch,
+        phase,
         grid_map,
-        "{}.e".format(output_stem))
+        "{}".format(output_stem))
     ex_writer.write(rt.statistics,
-                    rt.load_distributions)
+                    rt.load_distributions,
+                    rt.sent_distributions,
+                    params.verbose)
 
-    # Compute and print final load statistics
-    _, _, l_ave, l_max, _, _, _ = lbsStatistics.print_function_statistics(
-        epoch.processors,
+    # Compute and print final processor load and link weight statistics
+    _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
+        phase.get_processors(),
         lambda x: x.get_load(),
         "final processor loads",
         params.verbose)
-    print("\t imbalance = {:.6g}".format(
-        l_max / l_ave - 1.))
+    lbsStatistics.print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x,
+        "final link weights",
+        params.verbose)
 
-    # Report on optimal statistics
+    # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    print("[NodeGossiper] Optimal load statistics for {} objects with all times = {:.6g}".format(
+    print("[NodeGossiper] Optimal load statistics for {} objects with iso-time: {:.6g}".format(
         n_o,
         ell))
-    print("\t minimum = {:.6g}  maximum = {:.6g}".format(
+    print("\tminimum: {:.6g}  maximum: {:.6g}".format(
         q * ell,
         (q + (1 if r else 0)) * ell))
-    print("\t standard deviation = {:.6g}".format(
-        ell * math.sqrt(r * (n_p - r)) / n_p))
-    print("\t imbalance = {:.6g}".format(
+    print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
+        ell * math.sqrt(r * (n_p - r)) / n_p,
         (n_p - r) / float(n_o) if r else 0.))
 
     # If this point is reached everything went fine

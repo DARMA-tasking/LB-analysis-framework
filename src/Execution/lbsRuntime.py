@@ -2,7 +2,6 @@
 lbsRuntime_module_aliases = {}
 for m in [
     "sys",
-    "itertools",
     "math"
     ]:
     has_flag = "has_" + m
@@ -14,11 +13,12 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsProcessor, lbsEpoch
-from IO    import lbsStatistics
+from Model     import lbsProcessor, lbsPhase
+from IO        import lbsStatistics
+from Execution import lbsCriterion
 
 ########################################################################
 class Runtime:
@@ -26,38 +26,55 @@ class Runtime:
     """
 
     ####################################################################
-    def __init__(self, e, v=False):
+    def __init__(self, p, c, v=False):
         """Class constructor:
-        e: Epoch instance
+        p: Phase instance
+        c: criterion index
+        v: verbose mode True/False
         """
 
-        # If no LBS epoch was provided, do not do anything
-        if not isinstance(e, lbsEpoch.Epoch):
-            print "*  WARNING: Could not create a LBS runtime without an epoch"
+        # If no LBS phase was provided, do not do anything
+        if not isinstance(p, lbsPhase.Phase):
+            print("*  WARNING: Could not create a LBS runtime without a phase")
             return
         else:
-            self.epoch = e
+            self.phase = p
 
         # Verbosity of runtime
-        self.Verbose = v
+        self.verbose = v
 
-        # Start with initial distribution
-        self.load_distributions = [
-            [p.get_load() for p in self.epoch.processors]]
+        # Transfer critertion index
+        self.Criterion = c
 
-        # Start by computing global load statistics to store average load
-        _, l_min, self.average_load, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
-            self.epoch.processors,
+        # Initialize load and sent distributions
+        self.load_distributions = [map(
+            lambda x: x.get_load(),
+            self.phase.processors)]
+        self.sent_distributions = [self.phase.get_edges()]
+
+        # Compute global load and weight statistics and initialize average load
+        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
+            self.phase.processors,
             lambda x: x.get_load())
+        n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
+            self.phase.get_edges().values(),
+            lambda x: x)
 
         # Initialize run statistics
-        l_imb = l_max / self.average_load - 1.
-        print "[RunTime] Load imbalance(0) = {:.6g}".format(l_imb)
+        print("[RunTime] Load imbalance(0) = {:.6g}".format(
+            l_imb))
+        print("[RunTime] Weight imbalance(0) = {:.6g}".format(
+            w_imb))
         self.statistics = {
-            "minimum load": [l_min],
-            "maximum load": [l_max],
-            "load variance": [l_var],
-            "load imbalance": [l_imb]}
+            "minimum load"                  : [l_min],
+            "maximum load"                  : [l_max],
+            "load variance"                 : [l_var],
+            "load imbalance"                : [l_imb],
+            "number of communication edges" : [n_w],
+            "average communication weight"  : [w_ave],
+            "maximum communication weight"  : [w_max],
+            "communication weight variance" : [w_var],
+            "communication weight imbalance": [w_imb]}
 
     ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
@@ -68,16 +85,17 @@ class Runtime:
         r_threshold: float relative overhead threshold
         """
 
-        # Build set of processors in the epoch
-        procs = set(self.epoch.processors)
+        # Build set of processors in the phase
+        procs = set(self.phase.processors)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
-            print "[RunTime] Starting iteration {}".format(
-                i + 1)
+            print("[RunTime] Starting iteration {}".format(
+                i + 1))
 
             # Initialize gossip process
-            print "[RunTime] Spreading underload information with fanout = {}".format(f)
+            print("[RunTime] Spreading underload information with fanout = {}".format(
+                f))
             gossip_round = 1
             gossips = {}
             l_max = 0.
@@ -98,17 +116,18 @@ class Runtime:
                 map(p_rcv.process_underload_message, msg_lst)
 
             # Report on current status when requested
-            if self.Verbose:
+            if self.verbose:
                 for p in procs:
-                    print "\t proc_{} knows of underloaded procs {}".format(
+                    print("\tunderloaded known to processor {}: {}".format(
                         p.get_id(),
-                        [p_u.get_id() for p_u in p.underloaded])
+                        [p_u.get_id() for p_u in p.underloaded]))
 
 
             # Forward messages for as long as necessary and requested
             while gossip_round < n_rounds:
                 # Initiate next gossiping roung
-                print "[RunTime] Performing underload forwarding round {}".format(gossip_round)
+                print("[RunTime] Performing underload forwarding round {}".format(
+                    gossip_round))
                 gossip_round += 1
                 gossips.clear()
 
@@ -126,17 +145,28 @@ class Runtime:
                     map(p_rcv.process_underload_message, msg_lst)
 
                 # Report on current status when requested
-                if self.Verbose:
+                if self.verbose:
                     for p in procs:
-                        print "\t proc_{} knows of underloaded procs {}".format(
+                        print("\tunderloaded known to processor {}: {}".format(
                             p.get_id(),
-                            [p_u.get_id() for p_u in p.underloaded])
+                            [p_u.get_id() for p_u in p.underloaded]))
 
-            # Transfer overloads for given relative threshold
-            print "[RunTime] Transferring overloads above relative threshold of {}".format(r_threshold)
+            # Initialize load-balancing step
+            print("[RunTime] Transferring overloads above relative threshold of {}".format(
+                r_threshold))
             n_ignored = 0
             n_transfers = 0
             n_rejects = 0
+
+            # Instantiate object transfer criterion
+            transfer_criterion = lbsCriterion.Criterion.factory(
+                self.Criterion,
+                procs,
+                self.phase.get_edges(),
+                {"average_load": self.average_load})
+            if not transfer_criterion:
+                print("** ERROR: cannot load-balance without a load transfer criterion")
+                sys.exit(1)
 
             # Iterate over processors and pick those with above threshold load
             l_thr = r_threshold * self.average_load
@@ -157,13 +187,13 @@ class Runtime:
                     p_cmf = p_src.compute_cmf_underloads(self.average_load)
 
                     # Report on picked object when requested
-                    if self.Verbose:
-                        print "\t proc_{} excess load = {}".format(
+                    if self.verbose:
+                        print("\tproc_{} excess load = {}".format(
                             p_src.get_id(),
-                            l_exc)
-                        print "\t CMF_{} = {}".format(
+                            l_exc))
+                        print("\tCMF_{} = {}".format(
                             p_src.get_id(),
-                            p_cmf)
+                            p_cmf))
 
                     # Offload objects for as long as necessary and possible
                     obj_it = iter(p_src.objects)
@@ -182,68 +212,86 @@ class Runtime:
                             p_cmf)
 
                         # Decide about proposed transfer
-                        l_o = o.get_time()
-                        # Use criterion 6
-                        #if p_dst.get_load() + l_o < self.average_load:
-                        # Use criterion 6'
-                        if l_o < l_src - p_dst.get_load():
+                        if transfer_criterion.is_satisfied(o, p_src, p_dst):
                             # Report on accepted object transfer when requested
-                            if self.Verbose:
-                                print "\t\t transfering obj_{} ({}) to proc_{}".format(
+                            if self.verbose:
+                                print("\t\ttransfering object {} ({}) to processor {}".format(
                                     o.get_id(),
-                                    l_o,
-                                    p_dst.get_id())
+                                    o.get_time(),
+                                    p_dst.get_id()))
 
                             # Transfer object and decrease excess load
                             p_src.objects.remove(o)
                             obj_it = iter(p_src.objects)
                             p_dst.objects.add(o)
-                            l_exc -= l_o
+                            l_exc -= o.get_time()
                             n_transfers +=1
                         else:
                             # Transfer was declined
                             n_rejects +=1
 
                             # Report on rejected object transfer when requested
-                            if self.Verbose:
-                                print "\t\t proc_{2} declined transfer of obj_{0} ({1})".format(
+                            if self.verbose:
+                                print("\t\tprocessor {2} declined transfer of object {0} ({1})".format(
                                     o.get_id(),
-                                    l_o,
-                                    p_dst.get_id())
+                                    o.get_time(),
+                                    p_dst.get_id()))
+
+            # Edges cache is no longer current
+            self.phase.invalidate_edges()
 
             # Report about what happened in that iteration
-            print "[RunTime] {} processors did not participate".format(n_ignored)
+            print("[RunTime] {} processors did not participate".format(
+                n_ignored))
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                print "[RunTime] {} transfers occurred, {} were rejected ({}% of total)".format(
+                print("[RunTime] {} transfers occurred, {} were rejected ({}% of total)".format(
                     n_transfers,
                     n_rejects,
-                    100. * n_rejects / n_proposed)
+                    100. * n_rejects / n_proposed))
             else:
-                print "[RunTime] no transfers were proposed"
+                print("[RunTime] no transfers were proposed")
 
-            # Append new load distribution to list
-            loads = [p.get_load() for p in self.epoch.processors]
-            self.load_distributions.append(loads)
+            # Append new load and sent distributions to existing lists
+            self.load_distributions.append(map(
+                lambda x: x.get_load(),
+                self.phase.get_processors()))
+            self.sent_distributions.append(self.phase.get_edges())
 
-            # Compute and store descritptive statistics of load distribution
-            _, l_min, _, l_max, l_var, _, _ = lbsStatistics.compute_function_statistics(
-                self.epoch.processors,
+            # Compute and store global processor load and link weight statistics
+            _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
+                self.phase.processors,
                 lambda x: x.get_load())
+            n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
+                self.phase.get_edges().values(),
+                lambda x: x)
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
             self.statistics["load variance"].append(l_var)
+            self.statistics["load imbalance"].append(l_imb)
+            self.statistics["number of communication edges"].append(n_w)
+            self.statistics["average communication weight"].append(w_ave)
+            self.statistics["maximum communication weight"].append(w_max)
+            self.statistics["communication weight variance"].append(w_var)
+            self.statistics["communication weight imbalance"].append(w_imb)
 
-            # Compute, store and report load imbalance
-            l_imb = l_max / self.average_load - 1.
-            print ("[RunTime] Load imbalance({}) = {:.6g}; "
+            # Report partial statistics
+            iteration = i + 1
+            print("[RunTime] Load imbalance({}) = {:.6g}; "
                    "min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
-                i + 1,
+                iteration,
                 l_imb,
                 l_min,
                 l_max,
                 self.average_load,
                 math.sqrt(l_var))
-            self.statistics["load imbalance"].append(l_imb)
+            print("[RunTime] Weight imbalance({}) = {:.6g}; "
+                   "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
+                iteration,
+                w_imb,
+                n_w,
+                w_max,
+                w_ave,
+                math.sqrt(w_var))
 
 ########################################################################

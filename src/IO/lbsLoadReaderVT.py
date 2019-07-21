@@ -14,7 +14,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsProcessor
@@ -43,7 +43,7 @@ class LoadReader:
     """
 
   ####################################################################
-    def __init__(self, file_prefix, vebose=False):
+    def __init__(self, file_prefix, verbose=False):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
 

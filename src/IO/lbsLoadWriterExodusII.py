@@ -12,10 +12,10 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsEpoch
+from Model import lbsPhase
 from IO import lbsGridStreamer
 
 ########################################################################
@@ -24,62 +24,57 @@ class LoadWriterExodusII:
     """
 
   ####################################################################
-    def __init__(self, e, m, n=None, s=1.0):
+    def __init__(self, e, m, f="lbs_out", s='e', gr=1.):
         """Class constructor:
-        e: Epoch instance
-        m: Processor dict
-        n: file name string
-        s: spacing value
+        e: Phase instance
+        m: Processor dictionnary
+        f: file name stem
+        s: suffix
+        gr: grid_resolution value
         """
 
         # If VTK is not available, do not do anything
         if not has_vtk:
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of VTK"
+            print("** ERROR: Could not write to ExodusII file by lack of VTK")
             return
 
-        # If no LBS epoch was provided, do not do anything
-        if not isinstance(e, lbsEpoch.Epoch):
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch"
+        # Ensure that provided phase has correct type
+        if not isinstance(e, lbsPhase.Phase):
+            print("** ERROR: Could not write to ExodusII file by lack of a LBS phase")
             return
-        else:
-            self.epoch = e
+        self.phase = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a processor mapping"
+            print("** ERROR: Could not write to ExodusII file by lack of a processor mapping")
             return
-        else:
-            self.mapping = m
+        self.mapping = m
 
-        # Try to retrieve output file name from constructor parameter
-        try:
-            self.file_name = "{}".format(n)
-        except:
-            self.file_name = "lbs_out.e"
+        # Assemble file name from constructor paramters
+        self.file_name = "{}.{}".format(f, s)
 
-        # Spacing between points
+        # Grid_resolution between points
         try:
-            self.spacing = float(s)
+            self.grid_resolution = float(gr)
         except:
-            self.spacing = 1.0
+            self.grid_resolution = 1.
 
     ####################################################################
-    def write(self, load_statistics, load_distributions):
+    def write(self, load_statistics, load_distributions, weight_distributions, verbose=False):
         """Map processors to grid and write ExodusII file
         """
 
-        # Retrieve number of epoch processors
-        n_p = len(self.epoch.processors)
+        # Retrieve number of mesh points and bail out early if empty set
+        n_p = len(self.phase.processors)
+        if not n_p:
+            print("** ERROR: Empty list of processors, cannot write a mesh file")
+            return
 
-        # Create storage for statistics
-        stats = vtk.vtkFieldData()
-
-        # Create storage for points at processors
-        points = vtk.vtkPoints()
-        points.SetNumberOfPoints(n_p)
-
-        # Create storage for vertices at processors
-        vertices = vtk.vtkCellArray()
+        # Number of edges is fixed due to vtkExodusIIWriter limitation
+        n_e = n_p * (n_p - 1) / 2
+        print("[LoadWriterExodusII] Creating mesh with {} points and {} edges".format(
+            n_p,
+            n_e))
 
         # Create and populate field data arrays for load statistics
         stat_arrays = {}
@@ -95,32 +90,74 @@ class LoadWriterExodusII:
         # Create attribute data arrays for processors loads
         load_arrays = []
         for _ in load_distributions:
+            # Create and append new load array for points
             l_arr = vtk.vtkDoubleArray()
-            l_arr.SetNumberOfTuples(n_p)
             l_arr.SetName("Load")
+            l_arr.SetNumberOfTuples(n_p)
             load_arrays.append(l_arr)
 
-        # Iterate over processors and populate grid
-        for i, p in enumerate(self.epoch.processors):
-            points.SetPoint(i, [self.spacing * c for c in self.mapping(p)])
-            vertices.InsertNextCell(1, [i])
+        # Iterate over processors and create mesh points
+        points = vtk.vtkPoints()
+        points.SetNumberOfPoints(n_p)
+        for i, p in enumerate(self.phase.processors):
+            # Insert point based on Cartesian coordinates
+            points.SetPoint(
+                i,
+                [self.grid_resolution * c for c in self.mapping(p)])
             for l, l_arr in enumerate(load_arrays):
                 l_arr.SetTuple1(i, load_distributions[l][i])
+
+        # Iterate over all possible links and create edges
+        lines = vtk.vtkCellArray()
+        edge_indices = {}
+        flat_index = 0
+        for i in range(n_p):
+            for j in range(i + 1, n_p):
+                # Insert new link based on endpoint indices
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, i)
+                line.GetPointIds().SetId(1, j)
+                lines.InsertNextCell(line)
+
+                # Update flat index map
+                edge_indices[flat_index] = frozenset([i, j])
+                flat_index += 1
+
+        # Create attribute data arrays for edge weights
+        weight_arrays = []
+        for i, w in enumerate(weight_distributions):
+            # Create and append new weight array for edges
+            w_arr = vtk.vtkDoubleArray()
+            w_arr.SetName("Weight")
+            w_arr.SetNumberOfTuples(n_e)
+            weight_arrays.append(w_arr)
+            
+            # Assign edge weight values
+            if verbose:
+                print("\titeration {} edges:".format(i))
+            for e in range(n_e):
+                w_arr.SetTuple1(e, w.get(edge_indices[e], float("nan")))
+                if verbose:
+                    print("\t {} ({}): {}".format(
+                        e,
+                        list(edge_indices[e]),
+                        w_arr.GetTuple1(e)))
 
         # Create grid streamer
         streamer = lbsGridStreamer.GridStreamer(
             points,
-            vertices,
+            lines,
             stat_arrays,
-            load_arrays)
+            load_arrays,
+            weight_arrays)
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print "**  ERROR: [LoadWriterExodusII] Failed to instantiate a grid streamer for file {}".format(
-                self.file_name)
+            print("** ERROR: Failed to instantiate a grid streamer for file {}".format(
+                self.file_name))
         else:
-            print "[LoadWriterExodusII] Writing ExodusII file: {}".format(
-                self.file_name)
+            print("[LoadWriterExodusII] Writing ExodusII file: {}".format(
+                self.file_name))
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())

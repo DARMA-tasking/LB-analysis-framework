@@ -12,10 +12,10 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print "*  WARNING: Failed to import " + m + ". {}.".format(e)
+        print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsEpoch
+from Model import lbsPhase
 
 ########################################################################
 class LoadWriterVT:
@@ -32,27 +32,21 @@ class LoadWriterVT:
     """
 
   ####################################################################
-    def __init__(self, e, f, s):
+    def __init__(self, e, f="lbs_out", s="vom"):
         """Class constructor:
-        e: Epoch instance
+        e: Phase instance
         f: file name stem
         s: suffix
         """
 
-        # If no LBS epoch was provided, do not do anything
-        if not isinstance(e, lbsEpoch.Epoch):
-            print "** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS epoch"
+        # Ensure that provided phase has correct type
+        if not isinstance(e, lbsPhase.Phase):
+            print("** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase")
             return
-        else:
-            self.epoch = e
 
-        # Try to retrieve output file prefix from constructor parameter
-        try:
-            self.file_stem = "{}".format(f)
-        except:
-            self.file_stem = "lbs_out"
-
-        # Extension for this type of file
+        # Assign internals
+        self.phase = e
+        self.file_stem = "{}".format(f)
         self.suffix = s
 
     ####################################################################
@@ -64,7 +58,7 @@ class LoadWriterVT:
         """
 
         # Iterate over processors
-        for p in self.epoch.processors:
+        for p in self.phase.processors:
             # Create file name for current processor
             file_name = "{}.{}.{}.{}".format(
                 self.file_stem,
@@ -84,7 +78,7 @@ class LoadWriterVT:
                 for o in p.objects:
                     # Write object to file and increment count
                     try:
-                        writer.writerow([o.get_source_processor(),
+                        writer.writerow([o.get_processor_id(),
                                          o.get_id(),
                                          o.get_time()])
                     except:
@@ -92,12 +86,12 @@ class LoadWriterVT:
 
             # Sanity check
             if n_u:
-                print "**  ERROR: [LoadWriterVT] {} objects could not be written to CSV file {}".format(
+                print("**  ERROR: {} objects could not be written to CSV file {}".format(
                     n_u,
-                    file_name)
+                    file_name))
             else:
-                print "[LoadWriterVT] Wrote {} objects to CSV file {}".format(
+                print("[LoadWriterVT] Wrote {} objects to CSV file {}".format(
                     len(p.objects),
-                    file_name)
+                    file_name))
 
 ########################################################################
