@@ -162,6 +162,7 @@ class Runtime:
             transfer_criterion = lbsCriterion.Criterion.factory(
                 self.Criterion,
                 procs,
+                self.phase.get_edges(),
                 {"average_load": self.average_load})
             if not transfer_criterion:
                 print("** ERROR: cannot load-balance without a load transfer criterion")

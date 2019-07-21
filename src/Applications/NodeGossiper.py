@@ -141,7 +141,7 @@ class ggParameters:
             elif o == "-v":
                 self.verbose = True
             elif o == "-c":
-                if i in (0, 1):
+                if i in (0, 1, 2):
                     self.criterion = i 
             elif o == "-i":
                 if i > -1:

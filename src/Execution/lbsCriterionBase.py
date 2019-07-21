@@ -24,28 +24,43 @@ class CriterionBase:
     """
 
     ####################################################################
-    def __init__(self, l, p=None):
+    def __init__(self, processors, edges, parameters=None):
         """Class constructor:
-        l: set of processors
-        p: optional parameters dictionary
+        processors: set of processors (lbsProcessor.Processor instances)
+        edges: dictionary of edges (frozensets)
+        parameters: optional parameters dictionary
         """
 
         # If no list of processors was was provided, do not do anything
-        if not isinstance(l, set):
+        if not isinstance(processors, set):
             print("** ERROR: Could not create a LBS criterion without a set of processors")
             return
 
         # Assert that all members of said list are indeed processor instances
-        n_p = len(l)
+        n_p = len(processors)
         if n_p != len(
-            filter(lambda x: isinstance(x, lbsProcessor.Processor), l)):
-            print("** ERROR: Could not create a LBS criterion without a set of processors")
+            filter(lambda x: isinstance(x, lbsProcessor.Processor), processors)):
+            print("** ERROR: Could not create a LBS criterion without a set of Processor instances")
             return
             
-        # Assign list of processors to criterion
-        self.processors = l
-        print("[CriterionBase] Assigned {} processors to base criterion".format(
-            n_p))
+        # If no dictionary of edges was was provided, do not do anything
+        if not isinstance(edges, dict):
+            print("** ERROR: Could not create a LBS criterion without a dictionary of edges")
+            return
+
+        # Assert that all members of said dictionary are indeed frozen sets
+        n_e = len(edges)
+        if n_e != len(
+            filter(lambda x: isinstance(x, frozenset), edges)):
+            print("** ERROR: Could not create a LBS criterion without a dictionary of frozen sets")
+            return
+
+        # Criterion keeps internal references to processors and edges
+        self.processors = processors
+        self.edges = edges
+        print("[CriterionBase] Assigned {} processors and {} edges to base criterion".format(
+            n_p,
+            n_e))
 
     ####################################################################
     @abc.abstractmethod

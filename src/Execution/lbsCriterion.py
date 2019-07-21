@@ -22,7 +22,7 @@ class Criterion(object):
 
     ####################################################################
     @staticmethod
-    def factory(criterion_idx, processors, parameters=None):
+    def factory(criterion_idx, processors, edges, parameters=None):
         """Produce the necessary concrete criterion
         """
 
@@ -30,6 +30,7 @@ class Criterion(object):
         c_name = {
             0: "GrapevineCriterion",
             1: "ModifiedGrapevineCriterion",
+            2: "StrictLocalizingCriterion",
             }.get(criterion_idx)
         if not c_name:
             print("** ERROR: unsupported criterion index: {}".format(
@@ -38,6 +39,7 @@ class Criterion(object):
 
         #Try to load corresponding module
         m_name = "Execution.lbs{}".format(c_name)
+        print m_name
         try:
             module = importlib.import_module(m_name)
         except:
@@ -55,7 +57,7 @@ class Criterion(object):
             return None
             
         # Instantiate and return object
-        ret_object = c_class(processors, parameters)
+        ret_object = c_class(processors, edges, parameters)
         print("[Criterion] Instantiated {} load transfer criterion".format(
             c_name))
         return ret_object

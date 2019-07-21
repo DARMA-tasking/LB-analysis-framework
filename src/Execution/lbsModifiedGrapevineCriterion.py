@@ -7,14 +7,15 @@ class ModifiedGrapevineCriterion(CriterionBase):
     """
 
     ####################################################################
-    def __init__(self, l, _):
+    def __init__(self, processors, edges, _):
         """Class constructor:
-        l: list of processors
-        _: no parameters needed
+        processors: set of processors (lbsProcessor.Processor instances)
+        edges: dictionary of edges (frozensets)
+        _: no parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(ModifiedGrapevineCriterion, self).__init__(l)
+        super(ModifiedGrapevineCriterion, self).__init__(processors, edges)
         print("[ModifiedGrapevineCriterion] Instantiated concrete criterion")
         
     ####################################################################

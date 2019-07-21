@@ -7,20 +7,20 @@ class GrapevineCriterion(CriterionBase):
     """
 
     ####################################################################
-    def __init__(self, l, p):
+    def __init__(self, processors, edges, parameters):
         """Class constructor:
-        l: list of processors
-        p: parameters dictionary:
+        processors: set of processors (lbsProcessor.Processor instances)
+        edges: dictionary of edges (frozensets)
+        parameters: optional parameters dictionary
             average_load: average load across all processors
-        v: verbose mode True/False
         """
 
         # Call superclass init
-        super(GrapevineCriterion, self).__init__(l, p)
+        super(GrapevineCriterion, self).__init__(processors, edges, parameters)
 
         # Keep track of average load across all processors
         key = "average_load"
-        ave_load =  p.get(key)
+        ave_load =  parameters.get(key)
         if ave_load:
             self.average_load = ave_load
             print("[GrapevineCriterion] Instantiated concrete criterion with average load: {}".format(
