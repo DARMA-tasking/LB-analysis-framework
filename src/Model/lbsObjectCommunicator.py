@@ -9,10 +9,10 @@ class ObjectCommunicator:
         # Index of object having this communicator if defined
         self.object_index = i
 
-        # Map of communications received by object
+        # Dictionary of communications received by object
         self.received = r if isinstance(r, dict) else {}
 
-        # Map of communications sent by object
+        # Dictionary of communications sent by object
         self.sent = s if isinstance(s, dict) else {}
 
     ####################################################################
@@ -23,8 +23,8 @@ class ObjectCommunicator:
         return self.received
 
     ####################################################################
-    def get_received_from(self, o):
-        """Return the weight of message received from an object if any
+    def get_received_from_object(self, o):
+        """Return the weight of a message received from an object if any
         """
 
         return self.received.get(o)
@@ -37,8 +37,8 @@ class ObjectCommunicator:
         return self.sent
 
     ####################################################################
-    def get_sent_to(self, o):
-        """Return the weight of message received from an object if any
+    def get_sent_to_object(self, o):
+        """Return the weight of a message received from an object if any
         """
 
         return self.sent.get(o)
