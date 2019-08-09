@@ -70,5 +70,14 @@ class CriterionBase:
 
         # Must be implemented by concrete subclass
         pass
+
+    ####################################################################
+    @abc.abstractmethod
+    def compute(self, object, proc_src, proc_dst):
+        """Return value of criterion for candidate object transfer
+        """
+
+        # Must be implemented by concrete subclass
+        pass
     
 ########################################################################
