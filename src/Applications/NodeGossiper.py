@@ -96,7 +96,9 @@ class ggParameters:
         print("Usage:")
         print("\t [-c <tc>]   transfer criterion:")
         print("\t\t\t 0: Grapevine original")
-        print("\t\t\t 1: Grapevine with line 6 modification (default)")
+        print("\t\t\t 1: Grapevine modified (default)")
+        print("\t\t\t 2: strict localizer")
+        print("\t\t\t 3: relaxed localizer")
         print("\t [-i <ni>]   number of load-balancing iterations")
         print("\t [-x <npx>]  number of procs in x direction")
         print("\t [-y <npy>]  number of procs in y direction")
@@ -201,7 +203,7 @@ class ggParameters:
 ########################################################################
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
-       Example: "lognormal,1.0,10.0"
+       Example: lognormal,1.0,10.0
     """
 
     # Default return values

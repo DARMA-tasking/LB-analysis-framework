@@ -42,6 +42,15 @@ class LoadReader:
                             --vt_lb_stats_file=<base-name>
     """
 
+    CommCategory = {
+        "SendRecv": 1,
+        "CollectionToNode": 2,
+        "NodeToCollection": 3,
+        "Broadcast": 4,
+        "CollectionToNodeBcast": 5,
+        "NodeToCollectionBcast": 6,
+        }
+
   ####################################################################
     def __init__(self, file_prefix, verbose=False):
         # The base directory and file name for the log files
@@ -66,9 +75,9 @@ class LoadReader:
 
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
-        print "[LoadReaderVT] Reading {} VT object map".format(file_name)
+        print("[LoadReaderVT] Reading {} VT object map".format(file_name))
         if not os.path.isfile(file_name):
-            print "** ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
+            print("** ERROR: [LoadReaderVT] File {} does not exist.".format(file_name))
             sys.exit(1)
 
         # Initialize storage
@@ -81,17 +90,17 @@ class LoadReader:
             for row in log:
                 n_entries = len(row)
 
-                # Handle three-entry case
+                # Handle three-entry case that corresponds to an object load
                 if n_entries == 3:
                     # Parsing the three-entry case, thus this format:
                     #   <time_step/phase>, <object-id>, <time>
-                    # Converting these into integers and float before using them or
+                    # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
                     except:
-                        print "** ERROR: [LoadReaderVT] Incorrect row format:".format(row)
+                        print("** ERROR: [LoadReaderVT] Incorrect row format:".format(row))
 
                     # Update processor if iteration was requested
                     if time_step in (phase, -1):
@@ -106,23 +115,28 @@ class LoadReader:
 
                         # Print debug information when requested
                         if self.verbose:
-                            print "[LoadReaderVT] iteration = {}, object id = {}, time = {}".format(
+                            print("[LoadReaderVT] iteration = {}, object id = {}, time = {}".format(
                                 phase,
                                 o_id,
-                                time)
+                                time))
 
-                # Handle four-entry case
-                elif n_entries == 4:
-                    # @todo parse the four-entry case for communication
-                    print "** ERROR: [LoadReaderVT] Comm graph unimplemented"
+                # Handle four-entry case that corresponds to a communication weight
+                elif n_entries == 5:
+                    # Parsing the five-entry case, thus this format:
+                    #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
+                    # Converting these into integers and floats before using them or
+                    # inserting the values in the dictionary
+                    print("** ERROR: [LoadReaderVT] Communication graph unimplemented")
                     sys.exit(1)
+                    
+                # Unrecognized line format
                 else:
-                    print "** ERROR: [LoadReaderVT] Wrong length: {}".format(row)
+                    print("** ERROR: [LoadReaderVT] Wrong line length: {}".format(row))
                     sys.exit(1)
 
         # Print more information when requested
         if self.verbose:
-            print "[LoadReaderVT] Finished reading file: {}".format(file_name)
+            print("[LoadReaderVT] Finished reading file: {}".format(file_name))
 
         # Return map of populated processors per iteration
         return iter_map
@@ -146,9 +160,9 @@ class LoadReader:
             try:
                 procs[p] = proc_iter_map[time_step]
             except KeyError:
-                print "** ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                print("** ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
                     p,
-                    time_step)
+                    time_step))
                 sys.exit(1)
             
         # Return populated list of processors

@@ -30,14 +30,6 @@ class GrapevineCriterion(CriterionBase):
                 key))
 
     ####################################################################
-    def is_satisfied(self, object, _, p_dst):
-        """Original Grapevine criterion based on Linfinity norm of loads
-        """
-
-        # Criterion only uses object and processor loads
-        return p_dst.get_load() + object.get_time() < self.average_load
-
-    ####################################################################
     def compute(self, object, _, p_dst):
         """Original Grapevine criterion based on Linfinity norm of loads
         """
