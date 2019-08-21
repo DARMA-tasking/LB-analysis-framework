@@ -25,11 +25,11 @@ if __name__ == '__main__':
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from Model     import lbsPhase
         from Execution import lbsRuntime
-        from IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
+        from IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
     else:
         from ..Model     import lbsPhase
         from ..Execution import lbsRuntime
-        from ..IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
+        from ..IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
 
 ########################################################################
 class ggParameters:
@@ -366,7 +366,7 @@ if __name__ == '__main__':
         vt_writer.write(params.time_step)
 
     # Instantiate phase to ExodusII file writer
-    ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(
+    ex_writer = lbsWriterExodusII.WriterExodusII(
         phase,
         grid_map,
         "{}".format(output_stem))

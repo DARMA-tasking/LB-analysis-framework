@@ -50,7 +50,7 @@ class Runtime:
         self.load_distributions = [map(
             lambda x: x.get_load(),
             self.phase.processors)]
-        self.sent_distributions = [self.phase.get_edges()]
+        self.sent_distributions = [{k:v for k,v in self.phase.get_edges().items()}]
 
         # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
@@ -255,7 +255,7 @@ class Runtime:
             self.load_distributions.append(map(
                 lambda x: x.get_load(),
                 self.phase.get_processors()))
-            self.sent_distributions.append(self.phase.get_edges())
+            self.sent_distributions.append({k:v for k,v in self.phase.get_edges().items()})
 
             # Compute and store global processor load and link weight statistics
             _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(

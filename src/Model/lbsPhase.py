@@ -224,7 +224,8 @@ class Phase:
                          degree_sampler())
                      },
                     obj.get_id()))
-            print "\tgenerated in {:.6g} seconds".format(time.time()-start)
+            print("\tgenerated in {:.6g} seconds".format(
+                time.time()-start))
 
             # Create symmetric received communications
             for obj in objects:

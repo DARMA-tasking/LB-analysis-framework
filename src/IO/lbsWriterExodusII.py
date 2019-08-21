@@ -1,13 +1,13 @@
 ########################################################################
-lbsLoadWriterExodusII_module_aliases = {}
+lbsWriterExodusII_module_aliases = {}
 for m in [
     "vtk",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
         module_object = __import__(m)
-        if m in lbsLoadWriterExodusII_module_aliases:
-            globals()[lbsLoadWriterExodusII_module_aliases[m]] = module_object
+        if m in lbsWriterExodusII_module_aliases:
+            globals()[lbsWriterExodusII_module_aliases[m]] = module_object
         else:
             globals()[m] = module_object
         globals()[has_flag] = True
@@ -19,7 +19,7 @@ from Model import lbsPhase
 from IO import lbsGridStreamer
 
 ########################################################################
-class LoadWriterExodusII:
+class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
@@ -72,7 +72,7 @@ class LoadWriterExodusII:
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = n_p * (n_p - 1) / 2
-        print("[LoadWriterExodusII] Creating mesh with {} points and {} edges".format(
+        print("[WriterExodusII] Creating mesh with {} points and {} edges".format(
             n_p,
             n_e))
 
@@ -156,7 +156,7 @@ class LoadWriterExodusII:
             print("** ERROR: Failed to instantiate a grid streamer for file {}".format(
                 self.file_name))
         else:
-            print("[LoadWriterExodusII] Writing ExodusII file: {}".format(
+            print("[WriterExodusII] Writing ExodusII file: {}".format(
                 self.file_name))
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)
