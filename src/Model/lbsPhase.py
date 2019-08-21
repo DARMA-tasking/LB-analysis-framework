@@ -131,12 +131,20 @@ class Phase:
         self.edges_cached = True
 
         # Report on computed edges
+        n_procs = len(self.processors)
+        n_edges = len(self.edges)
         lbsStatistics.print_subset_statistics(
-            "Non-null communication edges between {} loaded processors".format(n_loaded),
+            "Non-null communication edges between {} available processors".format(n_procs),
+            "number of possible ones",
+            n_procs * (n_procs - 1) / 2,
+            "number of computed ones",
+            n_edges)
+        lbsStatistics.print_subset_statistics(
+            "Non-null communication edges between the {} loaded processors".format(n_loaded),
             "number of possible ones",
             n_loaded * (n_loaded - 1) / 2,
             "number of computed ones",
-            len(self.edges))
+            n_edges)
         lbsStatistics.print_subset_statistics(
             "Inter-object communication weights",
             "total",

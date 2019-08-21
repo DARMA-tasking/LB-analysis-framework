@@ -176,7 +176,7 @@ class Runtime:
                     n_ignored += 1
                     continue
 
-                # Otherwise keep track if indices of underloaded processors
+                # Otherwise keep track of indices of underloaded processors
                 p_keys = p_src.underloads.keys()
 
                 # Compute excess load and attempt to transfer if any
@@ -202,7 +202,6 @@ class Runtime:
                         try:
                             o = obj_it.next()
                         except:
-
                             # List of objects is exhausted, break out
                             break
 
@@ -225,10 +224,10 @@ class Runtime:
                             obj_it = iter(p_src.objects)
                             p_dst.objects.add(o)
                             l_exc -= o.get_time()
-                            n_transfers +=1
+                            n_transfers += 1
                         else:
                             # Transfer was declined
-                            n_rejects +=1
+                            n_rejects += 1
 
                             # Report on rejected object transfer when requested
                             if self.verbose:

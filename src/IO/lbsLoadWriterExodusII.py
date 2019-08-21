@@ -24,13 +24,13 @@ class LoadWriterExodusII:
     """
 
   ####################################################################
-    def __init__(self, e, m, f="lbs_out", s='e', gr=1.):
+    def __init__(self, e, m, f="lbs_out", s='e', r=1.):
         """Class constructor:
         e: Phase instance
         m: Processor dictionnary
         f: file name stem
         s: suffix
-        gr: grid_resolution value
+        r: grid_resolution value
         """
 
         # If VTK is not available, do not do anything
@@ -55,7 +55,7 @@ class LoadWriterExodusII:
 
         # Grid_resolution between points
         try:
-            self.grid_resolution = float(gr)
+            self.grid_resolution = float(r)
         except:
             self.grid_resolution = 1.
 
