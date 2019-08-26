@@ -31,6 +31,7 @@ class Criterion(object):
             0: "GrapevineCriterion",
             1: "ModifiedGrapevineCriterion",
             2: "StrictLocalizingCriterion",
+            3: "RelaxedLocalizingCriterion",
             }.get(criterion_idx)
         if not c_name:
             print("** ERROR: unsupported criterion index: {}".format(
@@ -39,7 +40,6 @@ class Criterion(object):
 
         #Try to load corresponding module
         m_name = "Execution.lbs{}".format(c_name)
-        print m_name
         try:
             module = importlib.import_module(m_name)
         except:

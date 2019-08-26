@@ -19,11 +19,11 @@ class ModifiedGrapevineCriterion(CriterionBase):
         print("[ModifiedGrapevineCriterion] Instantiated concrete criterion")
         
     ####################################################################
-    def is_satisfied(self, object, p_src, p_dst):
-        """Original Grapevine criterion based on L1 norm of loads
+    def compute(self, object, p_src, p_dst):
+        """Modified Grapevine criterion based on L1 norm of loads
         """
 
         # Criterion only uses object and processor loads
-        return object.get_time() < p_src.get_load() - p_dst.get_load()
+        return p_src.get_load() - (p_dst.get_load() + object.get_time())
 
 ########################################################################

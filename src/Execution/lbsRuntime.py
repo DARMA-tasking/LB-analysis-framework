@@ -50,7 +50,7 @@ class Runtime:
         self.load_distributions = [map(
             lambda x: x.get_load(),
             self.phase.processors)]
-        self.sent_distributions = [self.phase.get_edges()]
+        self.sent_distributions = [{k:v for k,v in self.phase.get_edges().items()}]
 
         # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
@@ -176,7 +176,7 @@ class Runtime:
                     n_ignored += 1
                     continue
 
-                # Otherwise keep track if indices of underloaded processors
+                # Otherwise keep track of indices of underloaded processors
                 p_keys = p_src.underloads.keys()
 
                 # Compute excess load and attempt to transfer if any
@@ -202,7 +202,6 @@ class Runtime:
                         try:
                             o = obj_it.next()
                         except:
-
                             # List of objects is exhausted, break out
                             break
 
@@ -212,7 +211,7 @@ class Runtime:
                             p_cmf)
 
                         # Decide about proposed transfer
-                        if transfer_criterion.is_satisfied(o, p_src, p_dst):
+                        if transfer_criterion.compute(o, p_src, p_dst) > 0.:
                             # Report on accepted object transfer when requested
                             if self.verbose:
                                 print("\t\ttransfering object {} ({}) to processor {}".format(
@@ -225,17 +224,17 @@ class Runtime:
                             obj_it = iter(p_src.objects)
                             p_dst.objects.add(o)
                             l_exc -= o.get_time()
-                            n_transfers +=1
+                            n_transfers += 1
                         else:
                             # Transfer was declined
-                            n_rejects +=1
+                            n_rejects += 1
 
                             # Report on rejected object transfer when requested
                             if self.verbose:
-                                print("\t\tprocessor {2} declined transfer of object {0} ({1})".format(
+                                print("\t\tprocessor {} declined transfer of object {} ({})".format(
+                                    p_dst.get_id(),
                                     o.get_id(),
-                                    o.get_time(),
-                                    p_dst.get_id()))
+                                    o.get_time()))
 
             # Edges cache is no longer current
             self.phase.invalidate_edges()
@@ -256,7 +255,7 @@ class Runtime:
             self.load_distributions.append(map(
                 lambda x: x.get_load(),
                 self.phase.get_processors()))
-            self.sent_distributions.append(self.phase.get_edges())
+            self.sent_distributions.append({k:v for k,v in self.phase.get_edges().items()})
 
             # Compute and store global processor load and link weight statistics
             _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(

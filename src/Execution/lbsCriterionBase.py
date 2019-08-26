@@ -64,8 +64,8 @@ class CriterionBase:
 
     ####################################################################
     @abc.abstractmethod
-    def is_satisfied(self, object, proc_src, proc_dst):
-        """Tell whether object passes transfer criterion or not
+    def compute(self, object, proc_src, proc_dst):
+        """Return value of criterion for candidate object transfer
         """
 
         # Must be implemented by concrete subclass

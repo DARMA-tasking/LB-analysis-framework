@@ -25,11 +25,11 @@ if __name__ == '__main__':
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from Model     import lbsPhase
         from Execution import lbsRuntime
-        from IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
+        from IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
     else:
         from ..Model     import lbsPhase
         from ..Execution import lbsRuntime
-        from ..IO        import lbsLoadWriterVT, lbsLoadWriterExodusII, lbsStatistics
+        from ..IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
 
 ########################################################################
 class ggParameters:
@@ -96,7 +96,9 @@ class ggParameters:
         print("Usage:")
         print("\t [-c <tc>]   transfer criterion:")
         print("\t\t\t 0: Grapevine original")
-        print("\t\t\t 1: Grapevine with line 6 modification (default)")
+        print("\t\t\t 1: Grapevine modified (default)")
+        print("\t\t\t 2: strict localizer")
+        print("\t\t\t 3: relaxed localizer")
         print("\t [-i <ni>]   number of load-balancing iterations")
         print("\t [-x <npx>]  number of procs in x direction")
         print("\t [-y <npy>]  number of procs in y direction")
@@ -141,8 +143,7 @@ class ggParameters:
             elif o == "-v":
                 self.verbose = True
             elif o == "-c":
-                if i in (0, 1, 2):
-                    self.criterion = i 
+                self.criterion = i 
             elif o == "-i":
                 if i > -1:
                     self.n_iterations = i
@@ -202,7 +203,7 @@ class ggParameters:
 ########################################################################
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
-       Example: "lognormal,1.0,10.0"
+       Example: lognormal,1.0,10.0
     """
 
     # Default return values
@@ -365,7 +366,7 @@ if __name__ == '__main__':
         vt_writer.write(params.time_step)
 
     # Instantiate phase to ExodusII file writer
-    ex_writer = lbsLoadWriterExodusII.LoadWriterExodusII(
+    ex_writer = lbsWriterExodusII.WriterExodusII(
         phase,
         grid_map,
         "{}".format(output_stem))
