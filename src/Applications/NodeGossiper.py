@@ -38,7 +38,10 @@
 #
 # Questions? Contact darma@sandia.gov
 #
-########################################################################
+###############################################################################
+#@HEADER
+#
+###############################################################################
 NodeGossiper_module_aliases = {}
 for m in [
     "os",
@@ -62,20 +65,26 @@ for m in [
 if __name__ == '__main__':
     if __package__ is None:
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from Model     import lbsPhase
-        from Execution import lbsRuntime
-        from IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from Model              import lbsPhase
+        from Execution          import lbsRuntime
+        from IO                 import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ParaviewViewerBase     import ParaviewViewerBase
+        from PNGViewer          import PNGViewer
+        from AnimationViewer    import AnimationViewer
     else:
-        from ..Model     import lbsPhase
-        from ..Execution import lbsRuntime
-        from ..IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ..Model            import lbsPhase
+        from ..Execution        import lbsRuntime
+        from ..IO               import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ..ParaviewViewerBase   import ParaviewViewerBase
+        from ..PNGViewer        import PNGViewer
+        from ..AnimationViewer  import AnimationViewer
 
-########################################################################
+###############################################################################
 class ggParameters:
     """A class to describe NodeGossiper parameters
     """
 
-    ####################################################################
+    ###########################################################################
     def __init__(self):
         # Do not be verbose by default
         self.verbose = False
@@ -239,7 +248,7 @@ class ggParameters:
 	# No line parsing error occurred
         return False
 
-########################################################################
+###############################################################################
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
        Example: lognormal,1.0,10.0
@@ -278,7 +287,7 @@ def parse_sampler(cmd_str):
     # Return the sampler parsed from the input argument
     return sampler_type, sampler_args
 
-########################################################################
+###############################################################################
 def global_id_to_cartesian(id, grid_sizes):
     """Map global index to its Cartesian coordinates in a grid
     """
@@ -295,7 +304,7 @@ def global_id_to_cartesian(id, grid_sizes):
     # Return Cartesian coordinates
     return i, j, k
 
-########################################################################
+###############################################################################
 def get_output_file_stem(params):
     """Build the file name for a given rank/node
     """
@@ -322,7 +331,7 @@ def get_output_file_stem(params):
         output_stem,
         "{}".format(params.threshold).replace('.', '_'))
 
-########################################################################
+###############################################################################
 if __name__ == '__main__':
 
     # Print startup information
@@ -414,6 +423,11 @@ if __name__ == '__main__':
                     rt.sent_distributions,
                     params.verbose)
 
+    # Create a Viewer
+    reader = ParaviewViewerBase.createViews()
+    viewer = ParaviewViewerBase.factory("{}.e".format(output_stem), "")
+    viewer.saveView(reader)
+
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
         phase.get_processors(),
@@ -442,4 +456,4 @@ if __name__ == '__main__':
     # If this point is reached everything went fine
     print("[NodeGossiper] Process complete ###")
 
-########################################################################
+###############################################################################
