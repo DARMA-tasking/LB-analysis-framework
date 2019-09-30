@@ -1,4 +1,5 @@
 #
+#!/usr/bin/env python2.7
 #@HEADER
 ###############################################################################
 #
@@ -41,7 +42,6 @@
 ###############################################################################
 #@HEADER
 #
-#!/usr/bin/env python2.7
 ########################################################################
 NodeGossiper_module_aliases = {}
 for m in [
@@ -66,13 +66,19 @@ for m in [
 if __name__ == '__main__':
     if __package__ is None:
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from Model     import lbsPhase
-        from Execution import lbsRuntime
-        from IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from Model              import lbsPhase
+        from Execution          import lbsRuntime
+        from IO                 import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ParaviewViewerBase     import ParaviewViewerBase
+        from PNGViewer          import PNGViewer
+        from AnimationViewer    import AnimationViewer
     else:
-        from ..Model     import lbsPhase
-        from ..Execution import lbsRuntime
-        from ..IO        import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ..Model            import lbsPhase
+        from ..Execution        import lbsRuntime
+        from ..IO               import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ..ParaviewViewerBase   import ParaviewViewerBase
+        from ..PNGViewer        import PNGViewer
+        from ..AnimationViewer  import AnimationViewer
 
 ########################################################################
 class ggParameters:
@@ -417,6 +423,11 @@ if __name__ == '__main__':
                     rt.load_distributions,
                     rt.sent_distributions,
                     params.verbose)
+
+    # Create a Viewer
+    reader = ParaviewViewerBase.createViews()
+    viewer = ParaviewViewerBase.factory("{}.e".format(output_stem), "")
+    viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
