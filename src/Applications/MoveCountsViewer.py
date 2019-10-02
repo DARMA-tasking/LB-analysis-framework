@@ -239,7 +239,7 @@ class MoveCountsViewer:
             gtg.SetGlyphType(v)
             gtg.SetRenderer(renderer)
             if k:
-                gtg.SetScreenSize(50)
+                gtg.SetScreenSize(viewerParams.actor_vertices_screen_size)
                 gtg.FilledOn()
             glyphs.append(gtg)
 

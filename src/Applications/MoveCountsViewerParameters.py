@@ -15,6 +15,7 @@ class MoveCountsViewerParameters:
         self.renderer_background = [1, 1, 1]
 
         # Set actor_vertices parameters
+        self.actor_vertices_screen_size = 50 if viewer.interactive else 5000
         self.actor_vertices_color = [0, 0, 0]
         self.actor_vertices_opacity = 0.3 if viewer.interactive else 1
 
