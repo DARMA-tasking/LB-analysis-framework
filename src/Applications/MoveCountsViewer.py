@@ -325,6 +325,8 @@ class MoveCountsViewer:
         actor_edges.GetProperty().SetOpacity(viewerParams.actor_edges_opacity)
         actor_edges.GetProperty().SetLineWidth(viewerParams.actor_edges_line_width)
         renderer.AddViewProp(actor_edges)
+        # Reset camera to set it up based on edge actor
+        renderer.ResetCamera()
 
         # Scalar bar actor
         actor_bar = vtk.vtkScalarBarActor()
