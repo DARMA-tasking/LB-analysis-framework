@@ -1,10 +1,10 @@
-#
 #!/usr/bin/env python2.7
 #@HEADER
 ###############################################################################
 ParaviewViewerBase_module_aliases = {}
 for m in [
     "abc",
+    "getopt",
     "importlib",
     "os",
     "sys"
@@ -23,11 +23,62 @@ for m in [
 
 import paraview.simple as pv
 
-########################################################################
+###############################################################################
+class ViewerParameters:
+    """A class to describe ParaviewViewerBase parameters
+    """
+
+    ###########################################################################
+    def usage(self):
+        """Provide online help
+        """
+
+        print("Usage:")
+        print("\t [-f]        ExodusII file name")
+        print("\t [-h]        help: print this message and exit")
+        print('')
+
+    ###########################################################################
+    def parse_command_line(self):
+        """Parse command line
+        """
+
+        # Try to hash command line with respect to allowable flags
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "hf:")
+
+        except getopt.GetoptError:
+            print("** ERROR: incorrect command line arguments.")
+            self.usage()
+            return True
+
+        # Parse arguments and assign corresponding member variable values
+        for o, a in opts:
+            if o == "-h":
+                self.usage()
+                sys.exit(0)
+            elif o == "-f":
+                self.file_name = a
+
+        # Ensure that exactly one ExodusII file has been provided
+        if not self.file_name:
+            print("** ERROR: Provide an ExodusII file")
+            return True
+
+        # Set viewer type
+        self.viewer_type = None
+
+        # Set material library
+        self.material_library = pv.GetMaterialLibrary()
+
+        # No line parsing error occurred
+        return False
+
+###############################################################################
 class ParaviewViewerBase(object):
     __metaclass__ = abc.ABCMeta
 
-    ####################################################################
+    ###########################################################################
     @abc.abstractmethod
     def __init__(self, file_name=None, viewer_type=None):
 
@@ -40,32 +91,23 @@ class ParaviewViewerBase(object):
         # Material library
         self.material_library = pv.GetMaterialLibrary()
 
-    ####################################################################
+    ###########################################################################
     @staticmethod
-    def factory(viewer):
+    def factory(file_name, viewer_type):
         """Produce the necessary concrete backend instance
         """
 
-        file_name = viewer.get_file_name()
-        viewer_type = viewer.get_viewer_type()
-
-
         # Unspecified ExodusII file name
         if not file_name:
-            print "** ERROR: an ExodusII file name needs to be provided. Exiting."
-            sys.exit(1)
-
-        # Unspecified viewer type
-        if not viewer_type:
-            print "** ERROR: a viewer type needs to be provided. Exiting."
+            print("** ERROR: an ExodusII file name needs to be provided. Exiting.")
             sys.exit(1)
 
         # PNG viewer
-        elif viewer_type == "PNG":
+        if viewer_type == "PNG":
             try:
                 PNGViewer = getattr(importlib.import_module("PNGViewer"),
-                                    "PNGViewer")
-                ret_object = PNGViewer()
+                    "PNGViewer")
+                ret_object = PNGViewer(file_name, viewer_type)
             except:
                 ret_object = None
 
@@ -73,36 +115,46 @@ class ParaviewViewerBase(object):
         elif viewer_type == "Animation":
             try:
                 AnimationViewer = getattr(importlib.import_module("AnimationViewer"),
-                                    "AnimationViewer")
-                ret_object = AnimationViewer()
+                    "AnimationViewer")
+                ret_object = AnimationViewer(file_name, viewer_type)
             except:
                 ret_object = None
 
         # Paraview viewer
         elif viewer_type == "":
             try:
-                ret_object = ParaviewViewerBase()
+                ParaviewViewer = getattr(importlib.import_module("ParaviewViewer"),
+                    "ParaviewViewer")
+                ret_object = ParaviewViewer(file_name)
             except:
                 ret_object = None
 
+        # Unspecified viewer type
+        elif viewer_type == None:
+            print("** ERROR: a viewer type needs to be provided. Exiting.")
+            sys.exit(1)
+
         # Unsupported viewer type
         else:
-            print "** ERROR: {} viewer unsupported. Exiting.".format(viewer_type)
+            print("** ERROR: {} type viewer unsupported. Exiting.".format(
+                viewer_type))
             sys.exit(1)
 
         # Report not instantiated
         if not ret_object:
-            print "** ERROR: {} viewer not instantiated. Exiting.".format(viewer_type)
+            print("** ERROR: {} viewer not instantiated. Exiting.".format(
+                viewer_type))
             sys.exit(1)
 
         # Return instantiated object
         ret_object.file_name = file_name
         ret_object.viewer_type = viewer_type
         ret_object.material_library = pv.GetMaterialLibrary()
-        print "[ParaviewViewerBase] Instantiated {} viewer.".format(viewer_type)
+        print("[ParaviewViewerBase] Instantiated {} viewer.".format(
+            viewer_type))
         return ret_object
 
-    ####################################################################
+    ###########################################################################
     def get_file_name(self):
         """Convenience method to get file name
         """
@@ -110,7 +162,7 @@ class ParaviewViewerBase(object):
         # Return value of file name
         return self.file_name
 
-    ####################################################################
+    ###########################################################################
     def get_viewer_type(self):
         """Convenience method to get viewer type
         """
@@ -118,7 +170,7 @@ class ParaviewViewerBase(object):
         # Return value of viewer type
         return self.viewer_type
 
-    ####################################################################
+    ###########################################################################
     def createRenderView(self,
                          view_size=[1024, 1024]):
         """Create a new 'Render View'
@@ -149,7 +201,7 @@ class ParaviewViewerBase(object):
 
         return renderView
 
-    ####################################################################
+    ###########################################################################
     def createExodusIIReader(self, elt_var, pt_var):
         """Create a new 'ExodusIIReader'
         """
@@ -165,7 +217,7 @@ class ParaviewViewerBase(object):
 
         return reader
 
-    ####################################################################
+    ###########################################################################
     def createCalculator(self, reader, fct, var):
         """Create a new 'Calculator'
         """
@@ -176,7 +228,7 @@ class ParaviewViewerBase(object):
 
         return calculator
 
-    ####################################################################
+    ###########################################################################
     def createGlyph(self, input, type='Box', factor=0.1, mode="All Points"):
         """Create a new 'Glyph'
         """
@@ -190,7 +242,7 @@ class ParaviewViewerBase(object):
 
         return glyph
 
-    ####################################################################
+    ###########################################################################
     def createColorTransferFunction(self,
                                     var,
                                     colors=None,
@@ -214,7 +266,7 @@ class ParaviewViewerBase(object):
 
         return fct
 
-    ####################################################################
+    ###########################################################################
     def createOpacityTransferFunction(self, var, points=None):
         """Create an opacity transfer function/color map
         """
@@ -227,7 +279,7 @@ class ParaviewViewerBase(object):
 
         return fct
 
-    ####################################################################
+    ###########################################################################
     def createDisplay(self,
                       reader,
                       renderView,
@@ -286,7 +338,7 @@ class ParaviewViewerBase(object):
 
         return display
 
-    ####################################################################
+    ###########################################################################
     @abc.abstractmethod
     def saveView(self, reader):
         """Save view
@@ -294,7 +346,7 @@ class ParaviewViewerBase(object):
 
         pass
 
-    ####################################################################
+    ###########################################################################
     def createViews(self):
         """Create views
         """
@@ -339,17 +391,24 @@ class ParaviewViewerBase(object):
                          0.5,
                          0.0]
         # Create color transfert functions
-        weightLUT = self.createColorTransferFunction("Weight", weight_colors, [1., 1., 1.], 0.0)
-        weightPWF = self.createOpacityTransferFunction("Weight", weight_points)
+        weightLUT = self.createColorTransferFunction(
+            "Weight",
+            weight_colors,
+            [1., 1., 1.],
+            0.0)
+        weightPWF = self.createOpacityTransferFunction(
+            "Weight",
+            weight_points)
 
-        readerDisplay = self.createDisplay(reader,
-                                                renderView,
-                                                ['CELLS', 'Weight'],
-                                                weightLUT,
-                                                4.0,
-                                                None,
-                                                None,
-                                                weightPWF)
+        readerDisplay = self.createDisplay(
+            reader,
+            renderView,
+            ['CELLS', 'Weight'],
+            weightLUT,
+            4.0,
+            None,
+            None,
+            weightPWF)
 
         # Instantiate load colors and points
         load_colors = [0.0,
@@ -374,19 +433,28 @@ class ParaviewViewerBase(object):
                        0.0]
 
         # Create color transfert functions
-        loadLUT = self.createColorTransferFunction("Load", load_colors, [1.,1.,1.], None, "Never")
-        loadPWF = self.createOpacityTransferFunction("Load", load_points)
+        loadLUT = self.createColorTransferFunction(
+            "Load",
+            load_colors,
+            [1.,1.,1.],
+            None,
+            "Never")
+        loadPWF = self.createOpacityTransferFunction(
+            "Load",
+            load_points)
 
         # Create displays
-        glyphDisplay = self.createDisplay(glyph,
-                                               renderView,
-                                               ['POINTS', 'Load'],
-                                               loadLUT,
-                                               None,
-                                               0.005)
+        glyphDisplay = self.createDisplay(
+            glyph,
+            renderView,
+            ['POINTS', 'Load'],
+            loadLUT,
+            None,
+            0.005)
 
         # Activate glyph source
         pv.SetActiveSource(glyph)
 
         return reader
-########################################################################
+
+###############################################################################
