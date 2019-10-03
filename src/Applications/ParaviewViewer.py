@@ -1,16 +1,17 @@
 #!/usr/bin/env python2.7
-#@HEADER
+#@HEADER#
 ###############################################################################
-PNGViewer_module_aliases = {}
+ParaviewViewer_module_aliases = {}
 for m in [
     "os",
+    "pickle",
     "sys",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
         module_object = __import__(m)
-        if m in PNGViewer_module_aliases:
-            globals()[PNGViewer_module_aliases[m]] = module_object
+        if m in ParaviewViewer_module_aliases:
+            globals()[ParaviewViewer_module_aliases[m]] = module_object
         else:
             globals()[m] = module_object
         globals()[has_flag] = True
@@ -18,68 +19,68 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple as pv
-from ParaviewViewer    import ParaviewViewer
+from ParaviewViewerBase import ViewerParameters
+from ParaviewViewerBase import ParaviewViewerBase
 
 if __name__ == '__main__':
     if __package__ is None:
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from ParaviewViewerBase     import ViewerParameters
-        from ParaviewViewerBase     import ParaviewViewerBase
+        from PNGViewer              import PNGViewer
+        from AnimationViewer        import AnimationViewer
     else:
-        from ..ParaviewViewerBase   import ViewerParameters
-        from ..ParaviewViewerBase   import ParaviewViewerBase
+        from ..PNGViewer            import PNGViewer
+        from ..AnimationViewer      import AnimationViewer
 
 ###############################################################################
-class PNGViewer(ParaviewViewer):
-    """A concrete class providing a PNG Viewer
+class ParaviewViewer(ParaviewViewerBase):
+    """A concrete class providing a Paraview Viewer
     """
 
     ###########################################################################
     def __init__(self, file_name=None, viewer_type=None):
 
         # Call superclass init
-        super(PNGViewer, self).__init__(file_name, viewer_type)
+        super(ParaviewViewer, self).__init__(file_name, viewer_type)
 
     ###########################################################################
     def saveView(self, reader):
         """Save figure
         """
 
-        # Get animation scene
-        animationScene = pv.GetAnimationScene()
-        animationScene.PlayMode = "Snap To TimeSteps"
-
-        # Save animation images
-        print("[PNGViewer] ###  Generating PNG images...")
-        for t in reader.TimestepValues.GetData()[:]:
-            animationScene.AnimationTime = t
-            pv.WriteImage(self.file_name + ".%f.png" % t);
-        print("[PNGViewer] ### All PNG images generated.")
+        # Save images
+        from PNGViewer              import PNGViewer
+        from AnimationViewer        import AnimationViewer
+        self.__class__ = PNGViewer
+        self.saveView(reader)
+        self.__class__ = AnimationViewer
+        self.saveView(reader)
 
 ###############################################################################
 if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[PNGViewer] ### Started with Python {}.{}.{}".format(
+    print("[ParaviewViewer] ### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[PNGViewer] Parsing command line arguments")
+    print("[ParaviewViewer] Parsing command line arguments")
     params = ViewerParameters()
     params.parse_command_line()
-    pngViewer = ParaviewViewerBase.factory(params.file_name, "PNG")
+    viewer = ParaviewViewerBase.factory(params.file_name, "")
 
     # Create view from PNGViewer instance
-    reader = pngViewer.createViews()
+    reader = viewer.createViews()
 
     # Save generated view
-    pngViewer.saveView(reader)
+    viewer.__class__ = PNGViewer
+    viewer.saveView(reader)
+    viewer.__class__ = AnimationViewer
+    viewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print("[PNGViewer] {} file views generated ###".format(pngViewer.file_name))
+    print("[ParaviewViewer] {} file views generated ###".format(viewer.file_name))
 
 ###############################################################################

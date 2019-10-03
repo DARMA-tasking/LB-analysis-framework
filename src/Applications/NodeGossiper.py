@@ -1,4 +1,3 @@
-#
 #!/usr/bin/env python2.7
 #@HEADER
 ###############################################################################
@@ -40,9 +39,6 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
-#
-########################################################################
 NodeGossiper_module_aliases = {}
 for m in [
     "os",
@@ -65,27 +61,26 @@ for m in [
 
 if __name__ == '__main__':
     if __package__ is None:
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from Model              import lbsPhase
-        from Execution          import lbsRuntime
-        from IO                 import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        sys.path.append(
+            os.path.dirname(
+            os.path.dirname(
+            os.path.abspath(__file__))))
+        from Model                  import lbsPhase
+        from Execution              import lbsRuntime
+        from IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
         from ParaviewViewerBase     import ParaviewViewerBase
-        from PNGViewer          import PNGViewer
-        from AnimationViewer    import AnimationViewer
     else:
-        from ..Model            import lbsPhase
-        from ..Execution        import lbsRuntime
-        from ..IO               import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ..Model                import lbsPhase
+        from ..Execution            import lbsRuntime
+        from ..IO                   import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
         from ..ParaviewViewerBase   import ParaviewViewerBase
-        from ..PNGViewer        import PNGViewer
-        from ..AnimationViewer  import AnimationViewer
 
-########################################################################
+###############################################################################
 class ggParameters:
     """A class to describe NodeGossiper parameters
     """
 
-    ####################################################################
+    ###########################################################################
     def __init__(self):
         # Do not be verbose by default
         self.verbose = False
@@ -128,16 +123,16 @@ class ggParameters:
         # Relative overload threshold for load transfer
         self.threshold = 1.
 
-        # Time-step to obtain load distribution by reading VT log files 
+        # Time-step to obtain load distribution by reading VT log files
         self.time_step = 0
 
-        # File name stem to obtain load distribution by reading VT log files 
+        # File name stem to obtain load distribution by reading VT log files
         self.log_file = None
 
         # Base name to save computed object/processor mapping for VT
         self.map_file = None
 
-    ####################################################################
+    ###########################################################################
     def usage(self):
         """Provide online help
         """
@@ -157,24 +152,29 @@ class ggParameters:
         print("\t [-k <nr>]   number of gossiping rounds")
         print("\t [-f <fo>]   gossiping fan-out value")
         print("\t [-r <rt>]   overload relative threshold")
-        print("\t [-t <ts>]   object times sampler: <ts> in {uniform,lognormal}")
-        print("\t [-w <ws>]   communications weights sampler: <cs> in {uniform,lognormal}")
+        print("\t [-t <ts>]   object times sampler: "
+              "<ts> in {uniform,lognormal}")
+        print("\t [-w <ws>]   communications weights sampler: "
+              "<cs> in {uniform,lognormal}")
         print("\t [-s <ts>]   time stepping for reading VT load logs")
         print("\t [-l <blog>] base file name for reading VT load logs")
         print("\t [-m <bmap>] base file name for VT object/proc mapping")
-        print("\t [-d <d>]    object communication degree  (no communication if 0) ")
+        print("\t [-d <d>]    object communication degree "
+              "(no communication if 0) ")
         print("\t [-v]        make standard output more verbose")
         print("\t [-h]        help: print this message and exit")
         print('')
 
-    ####################################################################
+    ###########################################################################
     def parse_command_line(self):
         """Parse command line and fill grid gossiper parameters
         """
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "f:hc:k:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
+            opts, args = getopt.getopt(
+                sys.argv[1:],
+                "f:hc:k:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
         except getopt.GetoptError:
             print("** ERROR: incorrect command line arguments.")
             self.usage()
@@ -192,7 +192,7 @@ class ggParameters:
             elif o == "-v":
                 self.verbose = True
             elif o == "-c":
-                self.criterion = i 
+                self.criterion = i
             elif o == "-i":
                 if i > -1:
                     self.n_iterations = i
@@ -219,9 +219,11 @@ class ggParameters:
                     self.communication_degree = i
                     self.communication_enabled = True
             elif o == "-t":
-                self.time_sampler_type, self.time_sampler_parameters = parse_sampler(a)
+                (self.time_sampler_type,
+                self.time_sampler_parameters) = parse_sampler(a)
             elif o == "-w":
-                self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(a)
+                (self.weight_sampler_type,
+                 self.weight_sampler_parameters) = parse_sampler(a)
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -242,14 +244,15 @@ class ggParameters:
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
                 (self.time_sampler_type or self.weight_sampler_type))):
-            print("** ERROR: exactly one strategy to populate initial phase must be chosen.")
+            print("** ERROR: exactly one strategy to populate initial phase "
+                "must be chosen.")
             self.usage()
             return True
 
 	# No line parsing error occurred
         return False
 
-########################################################################
+###############################################################################
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
        Example: lognormal,1.0,10.0
@@ -288,7 +291,7 @@ def parse_sampler(cmd_str):
     # Return the sampler parsed from the input argument
     return sampler_type, sampler_args
 
-########################################################################
+###############################################################################
 def global_id_to_cartesian(id, grid_sizes):
     """Map global index to its Cartesian coordinates in a grid
     """
@@ -305,7 +308,7 @@ def global_id_to_cartesian(id, grid_sizes):
     # Return Cartesian coordinates
     return i, j, k
 
-########################################################################
+###############################################################################
 def get_output_file_stem(params):
     """Build the file name for a given rank/node
     """
@@ -332,7 +335,7 @@ def get_output_file_stem(params):
         output_stem,
         "{}".format(params.threshold).replace('.', '_'))
 
-########################################################################
+###############################################################################
 if __name__ == '__main__':
 
     # Print startup information
@@ -351,7 +354,8 @@ if __name__ == '__main__':
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
-        print("** ERROR: Total number of processors ({}) must be > 1".format(n_p))
+        print("** ERROR: Total number of processors ({}) must be > 1".format(
+            n_p))
         sys.exit(1)
 
     # Initialize random number generator
@@ -399,7 +403,8 @@ if __name__ == '__main__':
                params.threshold)
 
     # Create mapping from processor to Cartesian grid
-    print("[NodeGossiper] Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
+    print("[NodeGossiper] Mapping {} processors onto "
+        "a {}x{}x{} rectilinear grid".format(
         n_p,
         *params.grid_size))
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
@@ -425,8 +430,8 @@ if __name__ == '__main__':
                     params.verbose)
 
     # Create a Viewer
-    reader = ParaviewViewerBase.createViews()
     viewer = ParaviewViewerBase.factory("{}.e".format(output_stem), "")
+    reader = viewer.createViews()
     viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
@@ -444,7 +449,8 @@ if __name__ == '__main__':
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    print("[NodeGossiper] Optimal load statistics for {} objects with iso-time: {:.6g}".format(
+    print("[NodeGossiper] Optimal load statistics for {} objects "
+          "with iso-time: {:.6g}".format(
         n_o,
         ell))
     print("\tminimum: {:.6g}  maximum: {:.6g}".format(
@@ -457,4 +463,4 @@ if __name__ == '__main__':
     # If this point is reached everything went fine
     print("[NodeGossiper] Process complete ###")
 
-########################################################################
+###############################################################################
