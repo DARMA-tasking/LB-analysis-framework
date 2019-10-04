@@ -1,4 +1,4 @@
-#
+#!/usr/bin/env python2.7
 #@HEADER
 ###############################################################################
 #
@@ -43,8 +43,8 @@
 #
 # This script was written by Philippe P. Pebay, NexGen Analytics LC 2019
 # Please do not redistribute without permission
-
-########################################################################
+#
+###############################################################################
 MoveCountsViewer_module_aliases = {}
 for m in [
     "csv",
@@ -67,12 +67,12 @@ for m in [
 
 from MoveCountsViewerParameters        import MoveCountsViewerParameters
 
-########################################################################
+###############################################################################
 class MoveCountsViewer:
     """A class to describe MoveCountsViewer attributes
     """
 
-    ####################################################################
+    ###########################################################################
     def __init__(self):
 
         # Size of subset to which objects are initially mapped (0 = all)
@@ -93,7 +93,7 @@ class MoveCountsViewer:
         # Interactive call -- False by default
         self.interactive = False
 
-    ####################################################################
+    ###########################################################################
     def usage(self):
         """Provide online help
         """
@@ -108,7 +108,7 @@ class MoveCountsViewer:
         print("\t [-i]        interactive call")
         print('')
 
-    ####################################################################
+    ###########################################################################
     def parse_command_line(self):
         """Parse command line
         """
@@ -148,7 +148,7 @@ class MoveCountsViewer:
 	# No line parsing error occurred
         return False
 
-    ####################################################################
+    ###########################################################################
     def computeMoveCountsViewer(self):
         """Compute MoveCountsViewer
         """
@@ -161,7 +161,8 @@ class MoveCountsViewer:
         vertex_data = vtk.vtkIntArray()
         vertex_data.SetName(vertex_name)
 
-        # Create a directed graph with one vertex per processor and two sets of edges
+        # Create a directed graph with one vertex per processor
+        # and two sets of edges
         graph = vtk.vtkMutableDirectedGraph()
         graph.GetVertexData().AddArray(vertex_data)
         graph.GetVertexData().SetActiveScalars(vertex_name)
@@ -176,7 +177,10 @@ class MoveCountsViewer:
         directed_sizes = {}
         for i in range(self.n_processors):
             # Iterate over all files
-            with open("{}.{}.{}".format(self.input_file_name, i, self.input_file_suffix), 'r') as f:
+            with open("{}.{}.{}".format(
+                self.input_file_name,
+                i,
+                self.input_file_suffix), 'r') as f:
                 # Instantiate CSV reader
                 reader = csv.reader(f, delimiter=',')
 
@@ -188,11 +192,13 @@ class MoveCountsViewer:
 
                     # Add edge when source != destination
                     if src_id != i:
-                        directed_moves[(src_id, i)] = directed_moves.get((src_id, i), 0) + 1
+                        directed_moves[(src_id, i)] = directed_moves.get(
+                            (src_id, i), 0) + 1
 
         # Compute undirected move counts
         undirected_moves = {
-            (i, j): directed_moves.get((i, j), 0) + directed_moves.get((j, i), 0)
+            (i, j): directed_moves.get((i, j), 0) + directed_moves.get(
+                (j, i), 0)
             for (i, j), v in directed_moves.items()}
 
         # Keep track of extremal values
@@ -216,7 +222,8 @@ class MoveCountsViewer:
         for (k_s, k_d), v in directed_moves.items():
             graph.AddGraphEdge(k_s, k_d)
             directed_moves_edge.InsertNextValue(v)
-            undirected_moves_edge.InsertNextValue(undirected_moves.get((k_s, k_d)))
+            undirected_moves_edge.InsertNextValue(undirected_moves.get(
+                (k_s, k_d)))
 
         # Create renderer
         renderer = vtk.vtkRenderer()
@@ -249,8 +256,10 @@ class MoveCountsViewer:
         mapper_vertices.ScalarVisibilityOff()
         actor_vertices = vtk.vtkActor()
         actor_vertices.SetMapper(mapper_vertices)
-        actor_vertices.GetProperty().SetColor(viewerParams.actor_vertices_color)
-        actor_vertices.GetProperty().SetOpacity(viewerParams.actor_vertices_opacity)
+        actor_vertices.GetProperty().SetColor(
+            viewerParams.actor_vertices_color)
+        actor_vertices.GetProperty().SetOpacity(
+            viewerParams.actor_vertices_opacity)
         renderer.AddViewProp(actor_vertices)
 
         # Vertex labels
@@ -271,14 +280,17 @@ class MoveCountsViewer:
 
         # Create directed edge layout
         layout_directed_edges = vtk.vtkEdgeLayout()
-        layout_directed_edges.SetInputConnection(layout_vertices.GetOutputPort())
-        layout_directed_edges.SetLayoutStrategy(vtk.vtkPassThroughEdgeStrategy())
+        layout_directed_edges.SetInputConnection(
+            layout_vertices.GetOutputPort())
+        layout_directed_edges.SetLayoutStrategy(
+            vtk.vtkPassThroughEdgeStrategy())
 
         # Directed graph to edge lines
         directed_edges = vtk.vtkGraphToPolyData()
         directed_edges.SetInputConnection(layout_directed_edges.GetOutputPort())
         directed_edges.EdgeGlyphOutputOn()
-        directed_edges.SetEdgeGlyphPosition(viewerParams.actor_arrows_edge_glyph_position)
+        directed_edges.SetEdgeGlyphPosition(
+            viewerParams.actor_arrows_edge_glyph_position)
 
         # Arrow source and glyph
         arrow_source = vtk.vtkGlyphSource2D()
@@ -300,16 +312,20 @@ class MoveCountsViewer:
 
         # Create undirected edge layout
         layout_undirected_edges = vtk.vtkEdgeLayout()
-        layout_undirected_edges.SetInputConnection(layout_vertices.GetOutputPort())
-        layout_undirected_edges.SetLayoutStrategy(vtk.vtkPassThroughEdgeStrategy())
+        layout_undirected_edges.SetInputConnection(
+            layout_vertices.GetOutputPort())
+        layout_undirected_edges.SetLayoutStrategy(
+            vtk.vtkPassThroughEdgeStrategy())
 
         # Undirected graph to edge lines
         undirected_edges = vtk.vtkGraphToPolyData()
-        undirected_edges.SetInputConnection(layout_undirected_edges.GetOutputPort())
+        undirected_edges.SetInputConnection(
+            layout_undirected_edges.GetOutputPort())
 
         # NB: This is a workaround for a bug in VTK7, cf. below
         undirected_edges.Update()
-        undirected_edges.GetOutput().GetCellData().SetActiveScalars(undirected_moves_name)
+        undirected_edges.GetOutput().GetCellData().SetActiveScalars(
+            undirected_moves_name)
 
         # Undirected edge mapper and actor
         mapper_edges = vtk.vtkPolyDataMapper()
@@ -322,8 +338,10 @@ class MoveCountsViewer:
         mapper_edges.SelectColorArray(undirected_moves_name)
         actor_edges = vtk.vtkActor()
         actor_edges.SetMapper(mapper_edges)
-        actor_edges.GetProperty().SetOpacity(viewerParams.actor_edges_opacity)
-        actor_edges.GetProperty().SetLineWidth(viewerParams.actor_edges_line_width)
+        actor_edges.GetProperty().SetOpacity(
+            viewerParams.actor_edges_opacity)
+        actor_edges.GetProperty().SetLineWidth(
+            viewerParams.actor_edges_line_width)
         renderer.AddViewProp(actor_edges)
         # Reset camera to set it up based on edge actor
         renderer.ResetCamera()
@@ -337,9 +355,13 @@ class MoveCountsViewer:
         actor_bar.SetWidth(viewerParams.actor_bar_width)
         actor_bar.SetHeight(viewerParams.actor_bar_heigth)
         actor_bar.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
-        actor_bar.GetPositionCoordinate().SetValue(viewerParams.actor_bar_position[0], viewerParams.actor_bar_position[1])
-        actor_bar.GetTitleTextProperty().SetColor(viewerParams.actor_bar_title_color)
-        actor_bar.GetLabelTextProperty().SetColor(viewerParams.actor_bar_label_color)
+        actor_bar.GetPositionCoordinate().SetValue(
+            viewerParams.actor_bar_position[0],
+            viewerParams.actor_bar_position[1])
+        actor_bar.GetTitleTextProperty().SetColor(
+            viewerParams.actor_bar_title_color)
+        actor_bar.GetLabelTextProperty().SetColor(
+            viewerParams.actor_bar_label_color)
         actor_bar.SetLabelFormat("%g")
         renderer.AddViewProp(actor_bar)
 
@@ -372,11 +394,13 @@ class MoveCountsViewer:
             # Write PNG image
             writer = vtk.vtkPNGWriter()
             writer.SetInputConnection(wti.GetOutputPort())
-            writer.SetFileName("{}.{}".format(self.output_file_name, self.output_file_suffix))
+            writer.SetFileName("{}.{}".format(
+                self.output_file_name,
+                self.output_file_suffix))
             writer.Write()
 
 
-########################################################################
+###############################################################################
 if __name__ == '__main__':
 
     # Print startup information
@@ -392,4 +416,15 @@ if __name__ == '__main__':
     if params.parse_command_line():
        sys.exit(1)
 
+    # Exit if the number of processors is not provided or set to 0
+    if params.n_processors == 0:
+        print("** ERROR: At least one processor needs to be defined. Exiting.")
+        sys.exit(1)
+    elif (not params.input_file_name.strip()
+        or params.input_file_name.strip() == "''"):
+        print("** ERROR: A file name needs to be defined. Exiting.")
+        sys.exit(1)
+
     params.computeMoveCountsViewer()
+
+###############################################################################
