@@ -254,11 +254,11 @@ def print_subset_statistics(var_name, set_name, set_size, subset_name, subset_si
 
     # Print summary
     print("[Statistics] {}:".format(var_name))
-    print("\t{}: {:.6g}  {}: {:.6g} ({:.4g}%)".format(
+    print("\t{}: {:.6g}  {}: {:.6g} {}".format(
         set_name,
         set_size,
         subset_name,
         subset_size,
-        100. * subset_size / set_size))
+        "({:.4g}%)".format(100. * subset_size / set_size) if set_size else ''))
 
 ########################################################################

@@ -70,14 +70,14 @@ class StrictLocalizingCriterion(CriterionBase):
         # Iterate over sent messages
         for i in comm.get_sent().items():
             if p_src_id == i[0].get_processor_id():
-                # Bail out as soon as locality can be broken
-                return 0.
+                # Bail out as soon as locality is broken by transfer
+                return -1.
 
         # Iterate over received messages
         for i in comm.get_received().items():
             if p_src_id == i[0].get_processor_id():
-                # Bail out as soon as locality can be broken
-                return 0.
+                # Bail out as soon as locality is broken by transfer
+                return -1.
 
         # Criterion returns a positive value meaning acceptance
         return 1.

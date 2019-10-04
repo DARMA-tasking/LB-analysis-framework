@@ -254,8 +254,18 @@ class Runtime:
                             p_cmf)
 
                         # Decide about proposed transfer
-                        if transfer_criterion.compute(o, p_src, p_dst) > 0.:
-                            # Report on accepted object transfer when requested
+                        if transfer_criterion.compute(o, p_src, p_dst) < 0.:
+                            # Reject proposed transfer
+                            n_rejects += 1
+
+                            # Report on rejected object transfer when requested
+                            if self.verbose:
+                                print("\t\tprocessor {} declined transfer of object {} ({})".format(
+                                    p_dst.get_id(),
+                                    o.get_id(),
+                                    o.get_time()))
+                        else:
+                            # Accept proposed transfer
                             if self.verbose:
                                 print("\t\ttransfering object {} ({}) to processor {}".format(
                                     o.get_id(),
@@ -268,16 +278,6 @@ class Runtime:
                             p_dst.objects.add(o)
                             l_exc -= o.get_time()
                             n_transfers += 1
-                        else:
-                            # Transfer was declined
-                            n_rejects += 1
-
-                            # Report on rejected object transfer when requested
-                            if self.verbose:
-                                print("\t\tprocessor {} declined transfer of object {} ({})".format(
-                                    p_dst.get_id(),
-                                    o.get_id(),
-                                    o.get_time()))
 
             # Edges cache is no longer current
             self.phase.invalidate_edges()
