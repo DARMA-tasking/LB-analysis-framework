@@ -61,7 +61,7 @@ for m in [
 
 from Model     import lbsProcessor, lbsPhase
 from IO        import lbsStatistics
-from Execution import lbsCriterion
+from Execution import lbsCriterionBase
 
 ########################################################################
 class Runtime:
@@ -202,7 +202,7 @@ class Runtime:
             n_rejects = 0
 
             # Instantiate object transfer criterion
-            transfer_criterion = lbsCriterion.Criterion.factory(
+            transfer_criterion = lbsCriterionBase.CriterionBase.factory(
                 self.Criterion,
                 procs,
                 self.phase.get_edges(),
