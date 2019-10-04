@@ -1,5 +1,3 @@
-#
-#@HEADER
 ###############################################################################
 #
 #                       lbsRelaxedLocalizingCriterion.py
@@ -39,17 +37,14 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
-#
-########################################################################
 from lbsCriterionBase import CriterionBase
 
-########################################################################
+###############################################################################
 class RelaxedLocalizingCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    ####################################################################
+    ###########################################################################
     def __init__(self, processors, edges, _):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
@@ -61,7 +56,7 @@ class RelaxedLocalizingCriterion(CriterionBase):
         super(RelaxedLocalizingCriterion, self).__init__(processors, edges)
         print("[RelaxedLocalizingCriterion] Instantiated concrete criterion")
         
-    ####################################################################
+    ###########################################################################
     def compute(self, object, p_src, p_dst):
         """A criterion allowing for local disruptions for more locality 
         """
@@ -96,4 +91,4 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Criterion assesses difference in local communications
         return w_dst - w_src
 
-########################################################################
+###############################################################################
