@@ -30,7 +30,7 @@
 # ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
 # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# SUBSTITUTE GOlODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
@@ -83,6 +83,7 @@ class Criterion(object):
 
         #Try to load corresponding module
         m_name = "Execution.lbs{}".format(c_name)
+        module = importlib.import_module(m_name)
         try:
             module = importlib.import_module(m_name)
         except:
@@ -98,7 +99,7 @@ class Criterion(object):
                 c_name,
                 m_name))
             return None
-            
+
         # Instantiate and return object
         ret_object = c_class(processors, edges, parameters)
         print("[Criterion] Instantiated {} load transfer criterion".format(
