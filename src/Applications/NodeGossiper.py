@@ -176,55 +176,55 @@ class ggParameters:
                 i = int(a)
             except:
                 i = None
-            if o == "-h":
+            if o == '-h':
                 self.usage()
                 sys.exit(0)
-            elif o == "-v":
+            elif o == '-v':
                 self.verbose = True
-            elif o == "-c":
+            elif o == '-c':
                 self.criterion = i 
-            elif o == "-i":
+            elif o == '-i':
                 if i > -1:
                     self.n_iterations = i
-            elif o == "-s":
+            elif o == '-s':
                 if i > -1:
                     self.time_step = i
-            elif o == "-x":
+            elif o == '-x':
                 if i > 0:
                     self.grid_size[0] = i
-            elif o == "-y":
+            elif o == '-y':
                 if i > 0:
                     self.grid_size[1] = i
-            elif o == "-z":
+            elif o == '-z':
                 if i > 0:
                     self.grid_size[2] = i
-            elif o == "-o":
+            elif o == '-o':
                 if i > 0:
                     self.n_objects = i
-            elif o == "-p":
+            elif o == '-p':
                 if i > 0:
                     self.n_processors = i
-            elif o == "-d":
+            elif o == '-d':
                 if i > 0:
                     self.communication_degree = i
                     self.communication_enabled = True
-            elif o == "-t":
+            elif o == '-t':
                 self.time_sampler_type, self.time_sampler_parameters = parse_sampler(a)
-            elif o == "-w":
+            elif o == '-w':
                 self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(a)
-            elif o == "-k":
+            elif o == '-k':
                 if i > 0:
                     self.n_rounds = i
-            elif o == "-f":
+            elif o == '-f':
                 if i > 0:
                     self.fanout = i
-            elif o == "-r":
+            elif o == '-r':
                 x = float(a)
                 if x > 1.:
                     self.threshold = x
-            elif o == "-l":
+            elif o == '-l':
                 self.log_file = a
-            elif o == "-m":
+            elif o == '-m':
                 self.map_file = a
 
 	# Ensure that exactly one population strategy was chosen
