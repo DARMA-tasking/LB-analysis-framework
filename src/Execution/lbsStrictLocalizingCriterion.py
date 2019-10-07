@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#                       lbsRelaxedLocalizingCriterion.py
+#                       lbsStrictLocalizingCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -40,10 +40,10 @@
 from lbsCriterionBase import CriterionBase
 
 ###############################################################################
-class RelaxedLocalizingCriterion(CriterionBase):
-    """A concrete class for a relaxedly localizing criterion
+class StrictLocalizingCriterion(CriterionBase):
+    """A concrete class for a strictly localizing criterion
     """
-
+    
     ###########################################################################
     def __init__(self, processors, edges, _):
         """Class constructor:
@@ -53,42 +53,33 @@ class RelaxedLocalizingCriterion(CriterionBase):
         """
 
         # Call superclass init
-        super(RelaxedLocalizingCriterion, self).__init__(processors, edges)
-        print("[RelaxedLocalizingCriterion] Instantiated concrete criterion")
+        super(StrictLocalizingCriterion, self).__init__(processors, edges)
+        print("[StrictLocalizingCriterion] Instantiated concrete criterion")
         
     ###########################################################################
-    def compute(self, object, p_src, p_dst):
-        """A criterion allowing for local disruptions for more locality 
+    def compute(self, object, p_src, _):
+        """A criterion enforcing strict conservation of local communications
         """
+
+        # Keep track source processsor ID
+        p_src_id = p_src.get_id()
 
         # Retrieve object communications
         comm = object.get_communicator()
-        sent = comm.get_sent().items()
-        recv = comm.get_received().items()
 
-        # Retrieve ID of processor to which an object is assigned
-        p_id = (lambda x: x.get_processor_id())
+        # Iterate over sent messages
+        for i in comm.get_sent().items():
+            if p_src_id == i[0].get_processor_id():
+                # Bail out as soon as locality is broken by transfer
+                return -1.
 
-        # Test whether first component is source processor
-        is_s = (lambda x: p_id(x[0]) == p_src.get_id())
+        # Iterate over received messages
+        for i in comm.get_received().items():
+            if p_src_id == i[0].get_processor_id():
+                # Bail out as soon as locality is broken by transfer
+                return -1.
 
-        # Test whether first component is destination processor
-        is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
-
-        # Add value with second components of a collection
-        xPy1 = (lambda x, y: x + y[1])
-
-        # Aggregate communication weights with source
-        w_src = reduce(xPy1,
-                       filter(is_s, recv) + filter(is_s, sent),
-                       0.)
-
-        # Aggregate communication weights with destination
-        w_dst = reduce(xPy1,
-                       filter(is_d, recv) + filter(is_d, sent),
-                       0.)
-
-        # Criterion assesses difference in local communications
-        return w_dst - w_src
+        # Criterion returns a positive value meaning acceptance
+        return 1.
 
 ###############################################################################
