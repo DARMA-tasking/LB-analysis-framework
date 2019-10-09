@@ -152,7 +152,7 @@ class Processor:
         """
 
         # Compute complement of set of underloaded processors
-        c_procs = procs.difference(self.underloaded)
+        c_procs = procs.difference(self.underloaded).difference([self])
 
         # Create underload message tagged at current round
         msg = lbsMessage.Message(r, (self.underloaded, self.underloads))
