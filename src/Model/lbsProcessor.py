@@ -140,8 +140,8 @@ class Processor:
             # Create underload message tagged at first round
             msg = lbsMessage.Message(1, (self.underloaded, self.underloads))
 
-            # Broadcast underloads to pseudo-random sample of procs
-            return rnd.sample(procs, min(f, len(procs))), msg
+            # Broadcast underloads to pseudo-random sample of procs excluding self
+            return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
 
         # This processor is not underloaded if this point was reached
         return [], None
