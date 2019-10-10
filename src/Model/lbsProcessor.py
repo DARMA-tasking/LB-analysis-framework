@@ -140,8 +140,8 @@ class Processor:
             # Create underload message tagged at first round
             msg = lbsMessage.Message(1, (self.underloaded, self.underloads))
 
-            # Broadcast underloads to pseudo-random sample of procs
-            return rnd.sample(procs, min(f, len(procs))), msg
+            # Broadcast underloads to pseudo-random sample of procs excluding self
+            return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
 
         # This processor is not underloaded if this point was reached
         return [], None
@@ -152,7 +152,7 @@ class Processor:
         """
 
         # Compute complement of set of underloaded processors
-        c_procs = procs.difference(self.underloaded)
+        c_procs = procs.difference(self.underloaded).difference([self])
 
         # Create underload message tagged at current round
         msg = lbsMessage.Message(r, (self.underloaded, self.underloads))
