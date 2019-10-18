@@ -54,8 +54,11 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Call superclass init
         super(StrictLocalizingCriterion, self).__init__(processors, edges)
-        print("[StrictLocalizingCriterion] Instantiated concrete criterion")
-        
+        print(bcolors.HEADER
+            + "[StrictLocalizingCriterion] "
+            + bcolors.END
+            + "Instantiated concrete criterion")
+
     ###########################################################################
     def compute(self, object, p_src, _):
         """A criterion enforcing strict conservation of local communications

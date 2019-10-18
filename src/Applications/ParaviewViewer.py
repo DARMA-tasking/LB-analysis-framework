@@ -21,6 +21,7 @@ for m in [
 
 from ParaviewViewerBase import ViewerParameters
 from ParaviewViewerBase import ParaviewViewerBase
+from Tools              import bcolors
 
 if __name__ == '__main__':
     if __package__ is None:
@@ -60,15 +61,22 @@ if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[ParaviewViewer] ### Started with Python {}.{}.{}".format(
+    print(bcolors.HEADER
+        + "[ParaviewViewer] "
+        + bcolors.END
+        + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[ParaviewViewer] Parsing command line arguments")
+    print(bcolors.HEADER
+        + "[ParaviewViewer] "
+        + bcolors.END
+        + "Parsing command line arguments")
     params = ViewerParameters()
-    params.parse_command_line()
+    if params.parse_command_line():
+        sys.exit(1)
     viewer = ParaviewViewerBase.factory(params.file_name, "")
 
     # Create view from PNGViewer instance
@@ -81,6 +89,9 @@ if __name__ == '__main__':
     viewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print("[ParaviewViewer] {} file views generated ###".format(viewer.file_name))
+    print(bcolors.HEADER
+        + "[ParaviewViewer] "
+        + bcolors.END
+        + "{} file views generated ###".format(viewer.file_name))
 
 ###############################################################################

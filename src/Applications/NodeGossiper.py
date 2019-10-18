@@ -72,11 +72,13 @@ if __name__ == '__main__':
         from Execution              import lbsRuntime
         from IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
         #from ParaviewViewerBase     import ParaviewViewerBase
+        from Tools                  import bcolors
     else:
         from ..Model                import lbsPhase
         from ..Execution            import lbsRuntime
         from ..IO                   import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
         #from ..ParaviewViewerBase   import ParaviewViewerBase
+        from ..Tools                import bcolors
 
 ###############################################################################
 class ggParameters:
@@ -179,7 +181,9 @@ class ggParameters:
                 sys.argv[1:],
                 "f:hc:k:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
         except getopt.GetoptError:
-            print("** ERROR: incorrect command line arguments.")
+            print(bcolors.ERR
+                + "** ERROR: incorrect command line arguments."
+                + bcolors.END)
             self.usage()
             return True
 
@@ -247,8 +251,10 @@ class ggParameters:
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
                 (self.time_sampler_type or self.weight_sampler_type))):
-            print("** ERROR: exactly one strategy to populate initial phase "
-                "must be chosen.")
+            print(bcolors.ERR
+                + "** ERROR: exactly one strategy to populate initial phase "
+                "must be chosen."
+                + bcolors.END)
             self.usage()
             return True
 
@@ -273,7 +279,9 @@ def parse_sampler(cmd_str):
             try:
                 x = float(p)
             except:
-                print("** ERROR: `{}` cannot be converted to a float".format(p))
+                print(bcolors.ERR
+                    + "** ERROR: `{}` cannot be converted to a float".format(p)
+                    + bcolors.END)
                 sys.exit(1)
             sampler_args.append(x)
 
@@ -281,14 +289,18 @@ def parse_sampler(cmd_str):
     if sampler_type not in (
             "uniform",
             "lognormal"):
-        print("** ERROR: unsupported sampler type: {}".format(
-            sampler_type))
+        print(bcolors.ERR
+            + "** ERROR: unsupported sampler type: {}".format(
+            sampler_type)
+            + bcolors.END)
         sys.exit(1)
     if len(sampler_args) != 2:
-        print(("** ERROR: expected two parameters for sampler type: {},"
+        print(bcolors.ERR
+            + ("** ERROR: expected two parameters for sampler type: {},"
                " got {}").format(
             sampler_type,
-            len(sampler_args)))
+            len(sampler_args))
+            + bcolors.END)
         sys.exit(1)
 
     # Return the sampler parsed from the input argument
@@ -343,13 +355,19 @@ if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[NodeGossiper] ### Started with Python {}.{}.{}".format(
+    print(bcolors.HEADER
+        + "[NodeGossiper] "
+        + bcolors.END
+        + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[NodeGossiper] Parsing command line arguments")
+    print(bcolors.HEADER
+        + "[NodeGossiper] "
+        + bcolors.END
+        + "Parsing command line arguments")
     params = ggParameters()
     if params.parse_command_line():
        sys.exit(1)
@@ -357,8 +375,9 @@ if __name__ == '__main__':
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
-        print("** ERROR: Total number of processors ({}) must be > 1".format(
-            n_p))
+        print(bcolors.ERR
+            + "** ERROR: Total number of processors ({}) must be > 1".format(n_p)
+            + bcolors.END)
         sys.exit(1)
 
     # Initialize random number generator
@@ -406,8 +425,10 @@ if __name__ == '__main__':
                params.threshold)
 
     # Create mapping from processor to Cartesian grid
-    print("[NodeGossiper] Mapping {} processors onto "
-        "a {}x{}x{} rectilinear grid".format(
+    print(bcolors.HEADER
+        + "[NodeGossiper] "
+        + bcolors.END
+        + "Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
         n_p,
         *params.grid_size))
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
@@ -452,7 +473,10 @@ if __name__ == '__main__':
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    print("[NodeGossiper] Optimal load statistics for {} objects "
+    print(bcolors.HEADER
+        + "[NodeGossiper] "
+        + bcolors.END
+        + "Optimal load statistics for {} objects "
           "with iso-time: {:.6g}".format(
         n_o,
         ell))
@@ -464,6 +488,9 @@ if __name__ == '__main__':
         (n_p - r) / float(n_o) if r else 0.))
 
     # If this point is reached everything went fine
-    print("[NodeGossiper] Process complete ###")
+    print(bcolors.HEADER
+        + "[NodeGossiper] "
+        + bcolors.END
+        + " Process complete ###")
 
 ###############################################################################

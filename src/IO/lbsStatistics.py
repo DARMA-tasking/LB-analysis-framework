@@ -63,6 +63,7 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
+from Tools      import bcolors
 ########################################################################
 def initialize():
 
@@ -73,9 +74,11 @@ def initialize():
 ########################################################################
 def error_out(distribution_name, parameters):
 
-    print("** ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
+    print(bcolors.ERR
+        + "*  ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
         parameters,
-        distribution_name))
+        distribution_name)
+        + bcolors.END)
     return None
 
 ########################################################################
@@ -114,7 +117,9 @@ def sampler(distribution_name, parameters):
         v = parameters[1]
         r = math.sqrt(m2 + v)
         if r == 0:
-            print("** ERROR: [Statistics] r={} should not be zero.".format(r))
+            print(bcolors.ERR
+                + "*  ERROR: [Statistics] r={} should not be zero.".format(r)
+                + bcolors.END)
             return None, None
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
@@ -126,7 +131,13 @@ def sampler(distribution_name, parameters):
 
     # Unsupported distribution type
     else:
-        print("** ERROR: [Statistics] {} distribution is not supported.")
+        print(bcolors.ERR
+            + "*  ERROR: "
+            + bcolors.HEADER
+            + "[Statistics] "
+            + bcolors.END
+            + "{} distribution is not supported."
+            + bcolors.END)
         return None, None
 
 ########################################################################
@@ -216,7 +227,10 @@ def print_function_statistics(values, function, var_name, verb=False):
     """
 
     # Compute statistics
-    print("[Statistics] Descriptive statistics of {}:".format(var_name))
+    print(bcolors.HEADER
+        + "[Statistics] "
+        + bcolors.END
+        + "Descriptive statistics of {}:".format(var_name))
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values,
         function)
@@ -253,7 +267,10 @@ def print_subset_statistics(var_name, set_name, set_size, subset_name, subset_si
     """
 
     # Print summary
-    print("[Statistics] {}:".format(var_name))
+    print(bcolors.HEADER
+        + "[Statistics] "
+        + bcolors.END
+        + "{}:".format(var_name))
     print("\t{}: {:.6g}  {}: {:.6g} {}".format(
         set_name,
         set_size,

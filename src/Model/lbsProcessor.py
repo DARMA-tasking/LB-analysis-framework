@@ -58,7 +58,9 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
+        print(bcolors.ERR
+            + "*  ERROR: failed to import {}. {}.".format(m, e)
+            + bcolors.END)
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsMessage
@@ -111,7 +113,9 @@ class Processor:
 
         # Assert that object has the expected type
         if not isinstance(o, lbsObject.Object):
-            print("*  WARNING: attempted to add object of incorrect type {}. Ignoring it.".format(type(o)))
+            print(bcolors.WARN
+                + "*  WARNING: attempted to add object of incorrect type {}. Ignoring it.".format(type(o))
+            + bcolors.END)
             return
 
         # Passed object has expected type, add it
@@ -167,12 +171,18 @@ class Processor:
 
         # Assert that message has the expected type
         if not isinstance(msg, lbsMessage.Message):
-            print("*  WARNING: attempted to pass message of incorrect type {}. Ignoring it.".format(type(msg)))
+            print(bcolors.WARN
+                + "*  WARNING: attempted to pass message of incorrect type {}. Ignoring it.".format(
+                type(msg))
+                + bcolors.END)
 
         # Retrieve information from message
         info = msg.get_content()
         if len(info) < 2:
-            print("*  WARNING: incomplete message content: {}. Ignoring it.".format(info))
+            print(bcolors.WARN
+                + "*  WARNING: incomplete message content: {}. Ignoring it.".format(
+                info)
+                + bcolors.END)
             return
 
         # Union received set of underloaded procs with current one
@@ -185,7 +195,11 @@ class Processor:
         l1 = len(self.underloaded)
         l2 = len(self.underloads)
         if l1 != l2:
-            print("** ERROR: cannot process message {} at processor {}. Exiting.".format(info, self.get_id()))
+            print(bcolors.ERR
+                + "* ERROR: cannot process message {} at processor {}. Exiting.".format(
+                info,
+                self.get_id())
+                + bcolors.END)
             sys.exit(1)
 
         # Update last received message index

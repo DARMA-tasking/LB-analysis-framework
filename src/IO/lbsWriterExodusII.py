@@ -58,8 +58,9 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsPhase
-from IO import lbsGridStreamer
+from Model  import lbsPhase
+from IO     import lbsGridStreamer
+from Tools  import bcolors
 
 ########################################################################
 class WriterExodusII:
@@ -78,18 +79,24 @@ class WriterExodusII:
 
         # If VTK is not available, do not do anything
         if not has_vtk:
-            print("** ERROR: Could not write to ExodusII file by lack of VTK")
+            print(bcolors.ERR
+                + "*  ERROR: Could not write to ExodusII file by lack of VTK"
+                + bcolors.END)
             return
 
         # Ensure that provided phase has correct type
         if not isinstance(e, lbsPhase.Phase):
-            print("** ERROR: Could not write to ExodusII file by lack of a LBS phase")
+            print(bcolors.ERR
+                + "*  ERROR: Could not write to ExodusII file by lack of a LBS phase"
+                + bcolors.END)
             return
         self.phase = e
 
         # If no processor mapping was provided, do not do anything
         if not callable(m):
-            print("** ERROR: Could not write to ExodusII file by lack of a processor mapping")
+            print(bcolors.ERR
+                + "*  ERROR: Could not write to ExodusII file by lack of a processor mapping"
+                + bcolors.END)
             return
         self.mapping = m
 
@@ -110,12 +117,17 @@ class WriterExodusII:
         # Retrieve number of mesh points and bail out early if empty set
         n_p = len(self.phase.processors)
         if not n_p:
-            print("** ERROR: Empty list of processors, cannot write a mesh file")
+            print(bcolors.ERR
+                + "*  ERROR: Empty list of processors, cannot write a mesh file"
+                + bcolors.END)
             return
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = n_p * (n_p - 1) / 2
-        print("[WriterExodusII] Creating mesh with {} points and {} edges".format(
+        print(bcolors.HEADER
+            + "[WriterExodusII] "
+            + bcolors.END
+            + "Creating mesh with {} points and {} edges".format(
             n_p,
             n_e))
 
@@ -196,10 +208,15 @@ class WriterExodusII:
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print("** ERROR: Failed to instantiate a grid streamer for file {}".format(
-                self.file_name))
+            print(bcolors.ERR
+                + "*  ERROR: Failed to instantiate a grid streamer for file {}".format(
+                self.file_name)
+                + bcolors.END)
         else:
-            print("[WriterExodusII] Writing ExodusII file: {}".format(
+            print(bcolors.HEADER
+                + "[WriterExodusII] "
+                + bcolors.END
+                + "Writing ExodusII file: {}".format(
                 self.file_name))
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)

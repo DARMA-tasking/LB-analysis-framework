@@ -21,7 +21,8 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple as pv
+import paraview.simple  as pv
+from Tools              import bcolors
 
 ###############################################################################
 class ViewerParameters:
@@ -48,7 +49,9 @@ class ViewerParameters:
             opts, args = getopt.getopt(sys.argv[1:], "hf:")
 
         except getopt.GetoptError:
-            print("** ERROR: incorrect command line arguments.")
+            print(bcolors.ERR
+                + "** ERROR: incorrect command line arguments."
+                + bcolors.END)
             self.usage()
             return True
 
@@ -60,9 +63,12 @@ class ViewerParameters:
             elif o == "-f":
                 self.file_name = a
 
-        # Ensure that exactly one ExodusII file has been provided
-        if not self.file_name:
-            print("** ERROR: Provide an ExodusII file")
+        # If  invalid file name is provided
+        if (not self.file_name or self.file_name.strip() == "''"):
+            print(bcolors.ERR
+                + "** ERROR: Provide an ExodusII file"
+                + bcolors.END)
+            self.usage()
             return True
 
         # Set viewer type
@@ -99,7 +105,9 @@ class ParaviewViewerBase(object):
 
         # Unspecified ExodusII file name
         if not file_name:
-            print("** ERROR: an ExodusII file name needs to be provided. Exiting.")
+            print(bcolors.ERR
+                + "** ERROR: an ExodusII file name needs to be provided. Exiting."
+                + bcolors.END)
             sys.exit(1)
 
         # PNG viewer
@@ -131,27 +139,33 @@ class ParaviewViewerBase(object):
 
         # Unspecified viewer type
         elif viewer_type == None:
-            print("** ERROR: a viewer type needs to be provided. Exiting.")
+            print(bcolors.ERR
+                + "** ERROR: a viewer type needs to be provided. Exiting."
+                + bcolors.END)
             sys.exit(1)
 
         # Unsupported viewer type
         else:
-            print("** ERROR: {} type viewer unsupported. Exiting.".format(
-                viewer_type))
+            print(bcolors.ERR
+                + "** ERROR: {} type viewer unsupported. Exiting.".format(viewer_type)
+                + bcolors.END)
             sys.exit(1)
 
         # Report not instantiated
         if not ret_object:
-            print("** ERROR: {} viewer not instantiated. Exiting.".format(
-                viewer_type))
+            print(bcolors.ERR
+                + "** ERROR: {} viewer not instantiated. Exiting.".format(viewer_type)
+                + bcolors.END)
             sys.exit(1)
 
         # Return instantiated object
         ret_object.file_name = file_name
         ret_object.viewer_type = viewer_type
         ret_object.material_library = pv.GetMaterialLibrary()
-        print("[ParaviewViewerBase] Instantiated {} viewer.".format(
-            viewer_type))
+        print(bcolors.HEADER
+            + "[ParaviewViewerBase] "
+            + bcolors.END
+            + "Instantiated {} viewer.".format(viewer_type))
         return ret_object
 
     ###########################################################################

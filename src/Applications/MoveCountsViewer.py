@@ -65,7 +65,8 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from MoveCountsViewerParameters        import MoveCountsViewerParameters
+from MoveCountsViewerParameters         import MoveCountsViewerParameters
+from Tools                              import bcolors
 
 ###############################################################################
 class MoveCountsViewer:
@@ -106,6 +107,7 @@ class MoveCountsViewer:
         print("\t [-o]        output file name")
         print("\t [-t]        output file format suffix")
         print("\t [-i]        interactive call")
+        print("\t [-h]        help: print this message and exit")
         print('')
 
     ###########################################################################
@@ -115,9 +117,11 @@ class MoveCountsViewer:
 
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:i")
+            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
         except getopt.GetoptError:
-            print("** ERROR: incorrect command line arguments.")
+            print(bcolors.ERR
+                + "** ERROR: incorrect command line arguments."
+                + bcolors.END)
             self.usage()
             return True
 
@@ -145,7 +149,23 @@ class MoveCountsViewer:
             elif o == "-i":
                 self.interactive = True
 
-	# No line parsing error occurred
+        # If number of processors is not provided or set to 0
+        if params.n_processors == 0:
+            print(bcolors.ERR
+                + "** ERROR: At least one processor needs to be defined. Exiting."
+                + bcolors.END)
+            self.usage()
+            return True
+        # If  invalid file name is provided
+        elif (not params.input_file_name.strip()
+            or params.input_file_name.strip() == "''"):
+            print(bcolors.ERR
+                + "** ERROR: A file name needs to be defined. Exiting."
+                + bcolors.END)
+            self.usage()
+            return True
+
+	    # No line parsing error occurred
         return False
 
     ###########################################################################
@@ -405,25 +425,22 @@ if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[MoveCountsViewer] ### Started with Python {}.{}.{}".format(
+    print(bcolors.HEADER
+        + "[MoveCountsViewer] "
+        + bcolors.END
+        + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[MoveCountsViewer] Parsing command line arguments")
+    print(bcolors.HEADER
+        + "[MoveCountsViewer] "
+        + bcolors.END
+        + "Parsing command line arguments")
     params = MoveCountsViewer()
     if params.parse_command_line():
        sys.exit(1)
-
-    # Exit if the number of processors is not provided or set to 0
-    if params.n_processors == 0:
-        print("** ERROR: At least one processor needs to be defined. Exiting.")
-        sys.exit(1)
-    elif (not params.input_file_name.strip()
-        or params.input_file_name.strip() == "''"):
-        print("** ERROR: A file name needs to be defined. Exiting.")
-        sys.exit(1)
 
     params.computeMoveCountsViewer()
 

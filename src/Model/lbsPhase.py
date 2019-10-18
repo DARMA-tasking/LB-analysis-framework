@@ -64,6 +64,7 @@ for m in [
 
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
+from Tools import bcolors
 
 ########################################################################
 class Phase:
@@ -116,7 +117,10 @@ class Phase:
         """
 
         # Compute or re-compute edges from scratch
-        print("[Phase] Computing inter-process communication edges")
+        print(bcolors.HEADER
+            + "[Phase] "
+            + bcolors.END
+            + "Computing inter-process communication edges")
 
         # Initialize count of loaded processors
         n_loaded = 0
@@ -131,7 +135,7 @@ class Phase:
             if p.get_load() > 0.:
                 n_loaded += 1
 
-            # Retrieve sender processor ID 
+            # Retrieve sender processor ID
             i = p.get_id()
             if self.verbose:
                 print("\tprocessor {}:".format(i))
@@ -225,7 +229,10 @@ class Phase:
             ts_params)
 
         # Create n_o objects with uniformly distributed times in given range
-        print("[Phase] Creating {} objects with times sampled from {}".format(
+        print(bcolors.HEADER
+            + "[Phase] "
+            + bcolors.END
+            + "Creating {} objects with times sampled from {}".format(
             n_o,
             sampler_name))
         objects = set([lbsObject.Object(
@@ -251,7 +258,10 @@ class Phase:
             degree_sampler, degree_sampler_name = lbsStatistics.sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print("[Phase] Creating communications with:")
+            print(bcolors.HEADER
+                + "[Phase] "
+                + bcolors.END
+                + "Creating communications with:")
             print("\tweights sampled from {}".format(weight_sampler_name))
             print("\tout-degrees sampled from {}".format(degree_sampler_name))
 
@@ -296,9 +306,11 @@ class Phase:
 
         # Perform sanity checks
         if len(w_recv) != len(w_sent):
-            print("** ERROR: number of sent and received communications differ: {} <> {}".format(
+            print(bcolors.ERR
+                + "*  ERROR: number of sent and received communications differ: {} <> {}".format(
                 len(n_sent),
-                len(n_recv)))
+                len(n_recv))
+                + bcolors.END)
             sys.exit(1)
 
         # Compute and report communication weight statistics
@@ -312,17 +324,25 @@ class Phase:
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
-            print("[Phase] Randomly assigning objects to {} processors amongst {}".format(
+            print(bcolors.HEADER
+                + "[Phase] "
+                + bcolors.END
+                + "Randomly assigning objects to {} processors amongst {}".format(
                 s_s,
                 n_p))
         else:
             # Sanity check
             if s_s > n_p:
-                print("*  WARNING: too many processors ({}) requested: only {} available.".format(
+                print(bcolors.WARN
+                    + "*  WARNING: too many processors ({}) requested: only {} available.".format(
                     s_s,
-                    n_p))
+                    n_p)
+                    + bcolors.END)
                 s_s = n_p
-            print("[Phase] Randomly assigning objects to {} processors".format(n_p))
+            print(bcolors.HEADER
+                + "[Phase] "
+                + bcolors.END
+                + "Randomly assigning objects to {} processors".format(n_p))
         if s_s > 0:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
@@ -353,7 +373,10 @@ class Phase:
         reader = lbsLoadReaderVT.LoadReader(basename)
 
         # Populate phase with reader output
-        print("[Phase] Reading objects from time-step {} of VOM files with prefix {}".format(
+        print(bcolors.HEADER
+            + "[Phase] "
+            + bcolors.END
+            + "Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
             basename))
         self.processors = reader.read_iteration(n_p, t_s)

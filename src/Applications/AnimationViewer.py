@@ -18,8 +18,9 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple as pv
-from ParaviewViewer    import ParaviewViewer
+import paraview.simple  as pv
+from ParaviewViewer     import ParaviewViewer
+from Tools              import bcolors
 
 if __name__ == '__main__':
     if __package__ is None:
@@ -55,28 +56,44 @@ class AnimationViewer(ParaviewViewer):
             animationScene.AnimationTime = t
 
         # Save animation movie
-        print("[AnimationViewer] ###  Generating AVI animation...")
+        print(bcolors.HEADER
+            + "[AnimationViewer] "
+            + bcolors.END
+            + "###  Generating AVI animation...")
         pv.WriteAnimation(self.file_name+".avi",
                        Magnification=1,
                        Quality = 2,
                        FrameRate=1.0,
                        Compression=True)
-        print("[AnimationViewer] ### AVI animation generated.")
+        print(bcolors.HEADER
+            + "[AnimationViewer] "
+            + bcolors.END
+            + "### AVI animation generated.")
 
 ###############################################################################
 if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[AnimationViewer] ### Started with Python {}.{}.{}".format(
+    print(bcolors.HEADER
+        + "[AnimationViewer] "
+        + bcolors.END
+        + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[AnimationViewer] Parsing command line arguments")
+    print(bcolors.HEADER
+        + "[AnimationViewer] "
+        + bcolors.END
+        + "Parsing command line arguments")
     params = ViewerParameters()
-    params.parse_command_line()
+    if params.parse_command_line():
+        sys.exit(1)
+
+    # Check if arguments were correctly parsed
+
     animationViewer = ParaviewViewerBase.factory(params.file_name, "Animation")
 
     # Create view from AnimationViewer instance
@@ -86,7 +103,10 @@ if __name__ == '__main__':
     animationViewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print("[AnimationViewer] {} file views generated ###".format(
+    print(bcolors.HEADER
+        + "[AnimationViewer] "
+        + bcolors.END
+        + "{} file views generated ###".format(
         animationViewer.file_name))
 
 ###############################################################################

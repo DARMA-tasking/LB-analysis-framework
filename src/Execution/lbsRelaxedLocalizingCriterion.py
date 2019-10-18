@@ -37,7 +37,8 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-from lbsCriterionBase import CriterionBase
+from lbsCriterionBase   import CriterionBase
+from Tools              import bcolors
 
 ###############################################################################
 class RelaxedLocalizingCriterion(CriterionBase):
@@ -54,11 +55,14 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Call superclass init
         super(RelaxedLocalizingCriterion, self).__init__(processors, edges)
-        print("[RelaxedLocalizingCriterion] Instantiated concrete criterion")
-        
+        print(bcolors.HEADER
+            + "[RelaxedLocalizingCriterion] "
+            + bcolors.END
+            + "Instantiated concrete criterion")
+
     ###########################################################################
     def compute(self, object, p_src, p_dst):
-        """A criterion allowing for local disruptions for more locality 
+        """A criterion allowing for local disruptions for more locality
         """
 
         # Retrieve object communications

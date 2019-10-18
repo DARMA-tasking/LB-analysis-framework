@@ -42,7 +42,8 @@
 #@HEADER
 #
 ########################################################################
-from lbsCriterionBase import CriterionBase
+from lbsCriterionBase   import CriterionBase
+from Tools              import bcolors
 
 ########################################################################
 class ModifiedGrapevineCriterion(CriterionBase):
@@ -59,8 +60,11 @@ class ModifiedGrapevineCriterion(CriterionBase):
 
         # Call superclass init
         super(ModifiedGrapevineCriterion, self).__init__(processors, edges)
-        print("[ModifiedGrapevineCriterion] Instantiated concrete criterion")
-        
+        print(bcolors.HEADER
+            + "[ModifiedGrapevineCriterion] "
+            + bcolors.END
+            + "Instantiated concrete criterion")
+
     ####################################################################
     def compute(self, object, p_src, p_dst):
         """Modified Grapevine criterion based on L1 norm of loads

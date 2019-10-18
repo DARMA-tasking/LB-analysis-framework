@@ -1,8 +1,8 @@
-#
+#!/usr/bin/env python2.7
 #@HEADER
 ###############################################################################
 #
-#                           lbsGrapevineCriterion.py
+#                              MoveCountsViewer.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -39,51 +39,16 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
-#
-########################################################################
-from lbsCriterionBase   import CriterionBase
-from Tools              import bcolors
 
-########################################################################
-class GrapevineCriterion(CriterionBase):
-    """A concrete class for the original Grapevine criterion
-    """
+class bcolors:
+    HEADER      = "\033[95m"    # Purple
+    BLUE        = "\033[94m"    # Blue
+    GREEN       = "\033[92m"    # Green
+    # WARN        = "\033[93m"    # Yellow
+    WARN        = "\033[33m"    # Orange
+    ERR         = "\033[91m"    # Red
+    BOLD        = "\033[1m"
+    UNDERLINE   = "\033[4m"
+    END         = "\033[0m"
 
-    ####################################################################
-    def __init__(self, processors, edges, parameters):
-        """Class constructor:
-        processors: set of processors (lbsProcessor.Processor instances)
-        edges: dictionary of edges (frozensets)
-        parameters: optional parameters dictionary
-            average_load: average load across all processors
-        """
-
-        # Call superclass init
-        super(GrapevineCriterion, self).__init__(processors, edges, parameters)
-
-        # Keep track of average load across all processors
-        key = "average_load"
-        ave_load =  parameters.get(key)
-        if ave_load:
-            self.average_load = ave_load
-            print(bcolors.HEADER
-                + "[GrapevineCriterion] "
-                + bcolors.END
-                + "Instantiated concrete criterion with average load: {}".format(
-            ave_load))
-        else:
-            print(bcolors.ERR
-                + "*  ERROR: cannot instantiate criterion without {} parameter".format(
-                key)
-                + bcolors.END)
-
-    ####################################################################
-    def compute(self, object, _, p_dst):
-        """Original Grapevine criterion based on Linfinity norm of loads
-        """
-
-        # Criterion only uses object and processor loads
-        return self.average_load - (p_dst.get_load() + object.get_time())
-
-########################################################################
+###############################################################################

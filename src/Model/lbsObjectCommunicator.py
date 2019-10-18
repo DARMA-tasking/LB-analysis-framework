@@ -42,6 +42,8 @@
 #@HEADER
 #
 ########################################################################
+from Tools      import bcolors
+########################################################################
 class ObjectCommunicator:
     """A class holding received and sent messages for an object
     """
@@ -93,7 +95,9 @@ class ObjectCommunicator:
 
         # Assert that direction is of known type
         if not direction in ("to", "from"):
-            print("** ERROR: unknown direction string: {}".format(direction))
+            print(bcolors.ERR
+                + "*  ERROR: unknown direction string: {}".format(direction)
+                + bcolors.END)
             sys.exit(1)
 
         # Initialize list of weights
@@ -104,8 +108,10 @@ class ObjectCommunicator:
         for k, v in communications.items():
             # Sanity check
             if  k.get_id() == self.object_index:
-                print("** ERROR: object {} cannot send communication to itself.".format(
-                    self.object_index))
+                print(bcolors.ERR
+                    + "*  ERROR: object {} cannot send communication to itself.".format(
+                    self.object_index)
+                    + bcolors.END)
                 sys.exit(1)
 
             # Update list of weights
