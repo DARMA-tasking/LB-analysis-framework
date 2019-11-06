@@ -84,7 +84,7 @@ class Object:
         """Return communications sent by object to other objects
         """
 
-        return self.communicator.get_sent()
+        return self.communicator.get_sent() if self.communicator else {}
 
     ####################################################################
     def set_processor_id(self, p_id):
