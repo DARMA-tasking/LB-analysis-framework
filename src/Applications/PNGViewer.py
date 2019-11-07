@@ -18,7 +18,14 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple as pv
+try:
+    import paraview.simple as pv
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+    if not __name__ == '__main':
+        print("[PNGViewer] Failed to import paraview. Cannot save visual artifacts.")
+        sys.exit(0)
 from ParaviewViewer    import ParaviewViewer
 
 if __name__ == '__main__':
@@ -59,6 +66,11 @@ class PNGViewer(ParaviewViewer):
 
 ###############################################################################
 if __name__ == '__main__':
+
+    # Check if visualization library imported
+    if not has_paraview:
+        print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+        sys.exit(1)
 
     # Print startup information
     sv = sys.version_info

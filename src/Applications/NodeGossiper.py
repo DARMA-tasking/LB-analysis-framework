@@ -71,12 +71,20 @@ if __name__ == '__main__':
         from Model                  import lbsPhase
         from Execution              import lbsRuntime
         from IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
-        #from ParaviewViewerBase     import ParaviewViewerBase
+        try:
+            from ParaviewViewerBase     import ParaviewViewerBase
+            globals()["has_paraview"] = True
+        except:
+            globals()["has_paraview"] = False
     else:
         from ..Model                import lbsPhase
         from ..Execution            import lbsRuntime
         from ..IO                   import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
-        #from ..ParaviewViewerBase   import ParaviewViewerBase
+        try:
+            from ..ParaviewViewerBase   import ParaviewViewerBase
+            globals()["has_paraview"] = True
+        except:
+            globals()["has_paraview"] = False
 
 ###############################################################################
 class ggParameters:
@@ -433,9 +441,9 @@ if __name__ == '__main__':
                     params.verbose)
 
     # Create a Viewer
-    #viewer = ParaviewViewerBase.factory("{}.e".format(output_stem), "")
-    #reader = viewer.createViews()
-    #viewer.saveView(reader)
+    viewer = ParaviewViewerBase.factory("{}.e".format(output_stem), "")
+    reader = viewer.createViews()
+    viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
