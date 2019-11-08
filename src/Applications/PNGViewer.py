@@ -18,7 +18,14 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple as pv
+try:
+    import paraview.simple as pv
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+    if not __name__ == '__main':
+        print("[PNGViewer] Failed to import paraview. Cannot save visual artifacts.")
+        sys.exit(0)
 from ParaviewViewer    import ParaviewViewer
 
 if __name__ == '__main__':
@@ -36,10 +43,10 @@ class PNGViewer(ParaviewViewer):
     """
 
     ###########################################################################
-    def __init__(self, file_name=None, viewer_type=None):
+    def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # Call superclass init
-        super(PNGViewer, self).__init__(file_name, viewer_type)
+        super(PNGViewer, self).__init__(exodus, file_name, viewer_type)
 
     ###########################################################################
     def saveView(self, reader):
@@ -60,6 +67,11 @@ class PNGViewer(ParaviewViewer):
 ###############################################################################
 if __name__ == '__main__':
 
+    # Check if visualization library imported
+    if not has_paraview:
+        print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+        sys.exit(1)
+
     # Print startup information
     sv = sys.version_info
     print("[PNGViewer] ### Started with Python {}.{}.{}".format(
@@ -70,8 +82,9 @@ if __name__ == '__main__':
     # Instantiate parameters and set values from command line arguments
     print("[PNGViewer] Parsing command line arguments")
     params = ViewerParameters()
-    params.parse_command_line()
-    pngViewer = ParaviewViewerBase.factory(params.file_name, "PNG")
+    if params.parse_command_line():
+        sys.exit(1)
+    pngViewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "PNG")
 
     # Create view from PNGViewer instance
     reader = pngViewer.createViews()
