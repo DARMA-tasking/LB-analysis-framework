@@ -72,16 +72,16 @@ if __name__ == '__main__':
         from Execution              import lbsRuntime
         from IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
         try:
-            from ParaviewViewerBase     import ParaviewViewerBase
+            from ParaviewViewerBase import ParaviewViewerBase
             globals()["has_paraview"] = True
         except:
             globals()["has_paraview"] = False
     else:
-        from ..Model                import lbsPhase
-        from ..Execution            import lbsRuntime
-        from ..IO                   import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+        from ..Model                  import lbsPhase
+        from ..Execution              import lbsRuntime
+        from ..IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
         try:
-            from ..ParaviewViewerBase   import ParaviewViewerBase
+            from ..ParaviewViewerBase import ParaviewViewerBase
             globals()["has_paraview"] = True
         except:
             globals()["has_paraview"] = False
@@ -143,8 +143,8 @@ class ggParameters:
         # Base name to save computed object/processor mapping for VT
         self.map_file = None
 
-        # Prefix of Exodus type visualization output file
-        self.exodus = None
+        # Decide whether Exodus output should be written
+        self.exodus = False
 
     ###########################################################################
     def usage(self):
@@ -176,8 +176,7 @@ class ggParameters:
         print("\t [-d <d>]    object communication degree "
               "(no communication if 0) ")
         print("\t [-v]        make standard output more verbose")
-        print("\t [-e <exo>]  generate Exodus type visualization output: "
-              "prefix of output")
+        print("\t [-e]        generate Exodus type visualization output")
         print("\t [-h]        help: print this message and exit")
         print('')
 
@@ -190,7 +189,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "c:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:ve:h")
+                "c:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:veh")
         except getopt.GetoptError:
             print("** ERROR: incorrect command line arguments.")
             self.usage()
@@ -253,7 +252,7 @@ class ggParameters:
             elif o == '-v':
                 self.verbose = True
             elif o == '-e':
-                self.exodus = a
+                self.exodus = True
             elif o == '-h':
                 self.usage()
                 sys.exit(0)
