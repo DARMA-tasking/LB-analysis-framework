@@ -143,6 +143,9 @@ class ggParameters:
         # Base name to save computed object/processor mapping for VT
         self.map_file = None
 
+        # Prefix of Exodus type visualization output file
+        self.exodus = None
+
     ###########################################################################
     def usage(self):
         """Provide online help
@@ -173,6 +176,8 @@ class ggParameters:
         print("\t [-d <d>]    object communication degree "
               "(no communication if 0) ")
         print("\t [-v]        make standard output more verbose")
+        print("\t [-e <exo>]  generate Exodus type visualization output: "
+              "prefix of output")
         print("\t [-h]        help: print this message and exit")
         print('')
 
@@ -185,7 +190,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "f:hc:k:i:o:p:r:s:t:vx:y:z:l:m:d:w:")
+                "c:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:ve:h")
         except getopt.GetoptError:
             print("** ERROR: incorrect command line arguments.")
             self.usage()
@@ -197,19 +202,12 @@ class ggParameters:
                 i = int(a)
             except:
                 i = None
-            if o == '-h':
-                self.usage()
-                sys.exit(0)
-            elif o == '-v':
-                self.verbose = True
-            elif o == '-c':
+
+            if o == '-c':
                 self.criterion = i
             elif o == '-i':
                 if i > -1:
                     self.n_iterations = i
-            elif o == '-s':
-                if i > -1:
-                    self.time_step = i
             elif o == '-x':
                 if i > 0:
                     self.grid_size[0] = i
@@ -225,16 +223,6 @@ class ggParameters:
             elif o == '-p':
                 if i > 0:
                     self.n_processors = i
-            elif o == '-d':
-                if i > 0:
-                    self.communication_degree = i
-                    self.communication_enabled = True
-            elif o == "-t":
-                (self.time_sampler_type,
-                self.time_sampler_parameters) = parse_sampler(a)
-            elif o == "-w":
-                (self.weight_sampler_type,
-                 self.weight_sampler_parameters) = parse_sampler(a)
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -245,10 +233,30 @@ class ggParameters:
                 x = float(a)
                 if x > 1.:
                     self.threshold = x
+            elif o == "-t":
+                (self.time_sampler_type,
+                self.time_sampler_parameters) = parse_sampler(a)
+            elif o == "-w":
+                (self.weight_sampler_type,
+                self.weight_sampler_parameters) = parse_sampler(a)
+            elif o == '-s':
+                 if i > -1:
+                     self.time_step = i
             elif o == '-l':
                 self.log_file = a
             elif o == '-m':
                 self.map_file = a
+            elif o == '-d':
+                if i > 0:
+                    self.communication_degree = i
+                    self.communication_enabled = True
+            elif o == '-v':
+                self.verbose = True
+            elif o == '-e':
+                self.exodus = a
+            elif o == '-h':
+                self.usage()
+                sys.exit(0)
 
 	# Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
@@ -440,10 +448,15 @@ if __name__ == '__main__':
                     rt.sent_distributions,
                     params.verbose)
 
-    # Create a Viewer
-    viewer = ParaviewViewerBase.factory("{}.e".format(output_stem), "")
-    reader = viewer.createViews()
-    viewer.saveView(reader)
+    # If prefix parsed from command line
+    if params.exodus:
+        # Create a Viewer
+        viewer = ParaviewViewerBase.factory(
+            output_stem,
+            params.exodus,
+            "")
+        reader = viewer.createViews()
+        viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
