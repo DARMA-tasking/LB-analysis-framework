@@ -438,19 +438,20 @@ if __name__ == '__main__':
             "{}".format(output_stem))
         vt_writer.write(params.time_step)
 
-    # Instantiate phase to ExodusII file writer
-    ex_writer = lbsWriterExodusII.WriterExodusII(
-        phase,
-        grid_map,
-        "{}".format(output_stem))
-    ex_writer.write(rt.statistics,
-                    rt.load_distributions,
-                    rt.sent_distributions,
-                    params.verbose)
-
     # If prefix parsed from command line
     if params.exodus:
-        # Create a Viewer
+        # Instantiate phase to ExodusII file writer if requested
+        ex_writer = lbsWriterExodusII.WriterExodusII(
+            phase,
+            grid_map,
+            "{}".format(output_stem))
+        ex_writer.write(rt.statistics,
+                        rt.load_distributions,
+                        rt.sent_distributions,
+                        params.verbose)
+
+    # Create a viewer if paraview is available
+    if globals().get("has_paraview"):
         viewer = ParaviewViewerBase.factory(
             output_stem,
             params.exodus,
