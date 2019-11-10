@@ -42,7 +42,23 @@
 #@HEADER
 #
 ########################################################################
-from lbsCriterionBase import CriterionBase
+lbsModifiedGrapevineCriterion_module_aliases = {}
+for m in [
+    "bcolors",
+    ]:
+    has_flag = "has_" + m
+    try:
+        module_object = __import__(m)
+        if m in lbsModifiedGrapevineCriterion_module_aliases:
+            globals()[lbsModifiedGrapevineCriterion_module_aliases[m]] = module_object
+        else:
+            globals()[m] = module_object
+        globals()[has_flag] = True
+    except ImportError as e:
+        print("*  WARNING: Failed to import {}. {}.".format(m, e))
+        globals()[has_flag] = False
+
+from lbsCriterionBase   import CriterionBase
 
 ########################################################################
 class ModifiedGrapevineCriterion(CriterionBase):
@@ -59,8 +75,11 @@ class ModifiedGrapevineCriterion(CriterionBase):
 
         # Call superclass init
         super(ModifiedGrapevineCriterion, self).__init__(processors, edges)
-        print("[ModifiedGrapevineCriterion] Instantiated concrete criterion")
-        
+        print(bcolors.HEADER
+            + "[ModifiedGrapevineCriterion] "
+            + bcolors.END
+            + "Instantiated concrete criterion")
+
     ####################################################################
     def compute(self, object, p_src, p_dst):
         """Modified Grapevine criterion based on L1 norm of loads

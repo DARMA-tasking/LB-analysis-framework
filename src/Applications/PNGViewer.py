@@ -17,7 +17,6 @@ for m in [
     except ImportError as e:
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
-
 try:
     import paraview.simple as pv
     globals()["has_paraview"] = True
@@ -58,11 +57,17 @@ class PNGViewer(ParaviewViewer):
         animationScene.PlayMode = "Snap To TimeSteps"
 
         # Save animation images
-        print("[PNGViewer] ###  Generating PNG images...")
+        print(bcolors.HEADER
+            + "[PNGViewer] "
+            + bcolors.END
+            + "###  Generating PNG images...")
         for t in reader.TimestepValues.GetData()[:]:
             animationScene.AnimationTime = t
             pv.WriteImage(self.file_name + ".%f.png" % t);
-        print("[PNGViewer] ### All PNG images generated.")
+        print(bcolors.HEADER
+            + "[PNGViewer] "
+            + bcolors.END
+            + "### All PNG images generated.")
 
 ###############################################################################
 if __name__ == '__main__':
@@ -74,13 +79,19 @@ if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[PNGViewer] ### Started with Python {}.{}.{}".format(
+    print(bcolors.HEADER
+        + "[PNGViewer] "
+        + bcolors.END
+        + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[PNGViewer] Parsing command line arguments")
+    print(bcolors.HEADER
+        + "[PNGViewer] "
+        + bcolors.END
+        + "Parsing command line arguments")
     params = ViewerParameters()
     if params.parse_command_line():
         sys.exit(1)
@@ -93,6 +104,9 @@ if __name__ == '__main__':
     pngViewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print("[PNGViewer] {} file views generated ###".format(pngViewer.file_name))
+    print(bcolors.HEADER
+        + "[PNGViewer] "
+        + bcolors.END
+        + "{} file views generated ###".format(pngViewer.file_name))
 
 ###############################################################################

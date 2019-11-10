@@ -1,1 +1,5 @@
 *.pyc
+src/Applications/Include
+src/Applications/Lib
+src/Applications/Scripts
+src/Applications/tcl

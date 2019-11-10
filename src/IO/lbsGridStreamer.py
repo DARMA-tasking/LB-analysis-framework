@@ -45,6 +45,7 @@
 lbsGridStreamer_module_aliases = {}
 for m in [
     "vtk",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -71,46 +72,63 @@ class GridStreamer:
         # Sanity checks
         self.Error = False
         if not isinstance(points, vtk.vtkPoints):
-            print("** ERROR: A vtkPoints instance is required as points input")
+            print(bcolors.ERR
+                + "*  ERROR: A vtkPoints instance is required as points input"
+                + bcolors.END)
             self.Error = True
             return
         if not isinstance(lines, vtk.vtkCellArray):
-            print("** ERROR: A vtkCellArray instance is required as lines input")
+            print(bcolors.ERR
+                + "*  ERROR: A vtkCellArray instance is required as lines input"
+                + bcolors.END)
             self.Error = True
             return
         if not isinstance(field_arrays, dict):
-            print("** ERROR: A dict of vtkDataArray instances is required as field data input")
+            print(bcolors.ERR
+                + "*  ERROR: A dict of vtkDataArray instances is required as field data input"
+                + bcolors.END)
             self.Error = True
         if not isinstance(point_arrays, list):
-            print("** ERROR: A list of vtkDataArray instances is required as point data input")
+            print(bcolors.ERR
+                + "*  ERROR: A list of vtkDataArray instances is required as point data input"
+                + bcolors.END)
             self.Error = True
             return
         if not isinstance(cell_arrays, list):
-            print("** ERROR: A list of vtkDataArray instances is required as cell data input")
+            print(bcolors.ERR
+                + "*  ERROR: A list of vtkDataArray instances is required as cell data input"
+                + bcolors.END)
             self.Error = True
             return
 
         # Keep track of requested number of steps and check consistency
         n_steps = len(point_arrays)
         if n_steps != len(cell_arrays):
-            print("** ERROR: Number of point and cell arrays do not match: {} <> {}".format(
+            print(bcolors.ERR
+                + "*  ERROR: Number of point and cell arrays do not match: {} <> {}".format(
                 n_steps,
-                len(cell_arrays)))
+                len(cell_arrays))
+                + bcolors.END)
             self.Error = True
             return
 
         # More sanity checks
         for f_name, f_list in field_arrays.items():
             if n_steps != len(f_list):
-                print("** ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
+                print(bcolors.ERR
+                    + "*  ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
                     f_name,
                     len(f_list),
-                    n_steps))
+                    n_steps)
+                    + bcolors.END)
                 self.Error = True
                 return
 
         # Instantiate the streaming source
-        print("[GridStreamer] Streaming {} load-balancing steps".format(n_steps))
+        print(bcolors.HEADER
+            + "[GridStreamer] "
+            + bcolors.END
+            + "Streaming {} load-balancing steps".format(n_steps))
         self.Algorithm = vtk.vtkProgrammableSource()
 
         # Set source information
@@ -138,10 +156,12 @@ class GridStreamer:
             i = int(t_s)
             for f_name, f_list in field_arrays.items():
                 if n_steps != len(f_list):
-                    print("** ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
+                    print(bcolors.ERR
+                        + "*  ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
                         f_name,
                         len(f_list),
-                        n_steps))
+                        n_steps)
+                        + bcolors.END)
                     self.Error = True
                     return
                 output.GetFieldData().AddArray(f_list[i])
@@ -154,8 +174,3 @@ class GridStreamer:
         self.Algorithm.SetExecuteMethod(request_data_method)
 
 ########################################################################
-
-
-
-
-

@@ -46,6 +46,7 @@ lbsCriterionBase_module_aliases = {}
 for m in [
     "abc",
     "importlib",
+    "bcolors",
     ]:
     has_flag = "has_" + m
     try:
@@ -59,7 +60,7 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsProcessor, lbsObject
+from Model      import lbsProcessor, lbsObject
 
 ########################################################################
 class CriterionBase:
@@ -77,32 +78,43 @@ class CriterionBase:
 
         # If no list of processors was was provided, do not do anything
         if not isinstance(processors, set):
-            print("** ERROR: Could not create a LBS criterion without a set of processors")
+            print(bcolors.ERR
+                + "*  ERROR: Could not create a LBS criterion without a set of processors"
+                + bcolors.END)
             return
 
         # Assert that all members of said list are indeed processor instances
         n_p = len(processors)
         if n_p != len(
             filter(lambda x: isinstance(x, lbsProcessor.Processor), processors)):
-            print("** ERROR: Could not create a LBS criterion without a set of Processor instances")
+            print(bcolors.ERR
+                + "*  ERROR: Could not create a LBS criterion without a set of Processor instances"
+                + bcolors.END)
             return
             
         # If no dictionary of edges was was provided, do not do anything
         if not isinstance(edges, dict):
-            print("** ERROR: Could not create a LBS criterion without a dictionary of edges")
+            print(bcolors.ERR
+                + "*  ERROR: Could not create a LBS criterion without a dictionary of edges"
+                + bcolors.END)
             return
 
         # Assert that all members of said dictionary are indeed frozen sets
         n_e = len(edges)
         if n_e != len(
             filter(lambda x: isinstance(x, frozenset), edges)):
-            print("** ERROR: Could not create a LBS criterion without a dictionary of frozen sets")
+            print(bcolors.ERR
+                + "*  ERROR: Could not create a LBS criterion without a dictionary of frozen sets"
+                + bcolors.END)
             return
 
         # Criterion keeps internal references to processors and edges
         self.processors = processors
         self.edges = edges
-        print("[CriterionBase] Assigned {} processors and {} edges to base criterion".format(
+        print(bcolors.HEADER
+            + "[CriterionBase] "
+            + bcolors.END
+            + "Assigned {} processors and {} edges to base criterion".format(
             n_p,
             n_e))
 
@@ -120,8 +132,10 @@ class CriterionBase:
             3: "RelaxedLocalizingCriterion",
             }.get(criterion_idx)
         if not c_name:
-            print("** ERROR: unsupported criterion index: {}".format(
-                criterion_idx))
+            print(bcolors.ERR
+                + "*  ERROR: unsupported criterion index: {}".format(
+                criterion_idx)
+                + bcolors.END)
             return None
 
         #Try to load corresponding module
@@ -130,22 +144,29 @@ class CriterionBase:
         try:
             module = importlib.import_module(m_name)
         except:
-            print("** ERROR: could not load module `{}`".format(
-                m_name))
+            print(bcolors.ERR
+                + "*  ERROR: could not load module `{}`".format(
+                m_name)
+                + bcolors.END)
             return None
 
         # Try to get concrete criterion class from module
         try:
             c_class = getattr(module, c_name)
         except:
-            print("** ERROR: could not get class `{}` from module `{}`".format(
+            print(bcolors.ERR
+                + "*  ERROR: could not get class `{}` from module `{}`".format(
                 c_name,
-                m_name))
+                m_name)
+                + bcolors.END)
             return None
 
         # Instantiate and return object
         ret_object = c_class(processors, edges, parameters)
-        print("[Criterion] Instantiated {} load transfer criterion".format(
+        print(bcolors.HEADER
+            + "[Criterion] "
+            + bcolors.END
+            + "Instantiated {} load transfer criterion".format(
             c_name))
         return ret_object
 

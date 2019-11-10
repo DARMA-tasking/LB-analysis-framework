@@ -45,7 +45,8 @@
 lbsRuntime_module_aliases = {}
 for m in [
     "sys",
-    "math"
+    "math",
+    "bcolors"
     ]:
     has_flag = "has_" + m
     try:
@@ -59,9 +60,9 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model     import lbsProcessor, lbsPhase
-from IO        import lbsStatistics
-from Execution import lbsCriterionBase
+from Model      import lbsProcessor, lbsPhase
+from IO         import lbsStatistics
+from Execution  import lbsCriterionBase
 
 ########################################################################
 class Runtime:
@@ -78,7 +79,9 @@ class Runtime:
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, lbsPhase.Phase):
-            print("*  WARNING: Could not create a LBS runtime without a phase")
+            print(bcolors.WARN
+                + "*  WARNING: Could not create a LBS runtime without a phase"
+                + bcolors.END)
             return
         else:
             self.phase = p
@@ -104,9 +107,15 @@ class Runtime:
             lambda x: x)
 
         # Initialize run statistics
-        print("[RunTime] Load imbalance(0) = {:.6g}".format(
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Load imbalance(0) = {:.6g}".format(
             l_imb))
-        print("[RunTime] Weight imbalance(0) = {:.6g}".format(
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Weight imbalance(0) = {:.6g}".format(
             w_imb))
         self.statistics = {
             "minimum load"                  : [l_min],
@@ -133,11 +142,17 @@ class Runtime:
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
-            print("[RunTime] Starting iteration {}".format(
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Starting iteration {}".format(
                 i + 1))
 
             # Initialize gossip process
-            print("[RunTime] Spreading underload information with fanout = {}".format(
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Spreading underload information with fanout = {}".format(
                 f))
             gossip_round = 1
             gossips = {}
@@ -169,7 +184,10 @@ class Runtime:
             # Forward messages for as long as necessary and requested
             while gossip_round < n_rounds:
                 # Initiate next gossiping roung
-                print("[RunTime] Performing underload forwarding round {}".format(
+                print(bcolors.HEADER
+                    + "[RunTime] "
+                    + bcolors.END
+                    + "Performing underload forwarding round {}".format(
                     gossip_round))
                 gossip_round += 1
                 gossips.clear()
@@ -195,7 +213,10 @@ class Runtime:
                             [p_u.get_id() for p_u in p.underloaded]))
 
             # Initialize load-balancing step
-            print("[RunTime] Transferring overloads above relative threshold of {}".format(
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Transferring overloads above relative threshold of {}".format(
                 r_threshold))
             n_ignored = 0
             n_transfers = 0
@@ -208,7 +229,9 @@ class Runtime:
                 self.phase.get_edges(),
                 {"average_load": self.average_load})
             if not transfer_criterion:
-                print("** ERROR: cannot load-balance without a load transfer criterion")
+                print(bcolors.ERR
+                    + "*  ERROR: cannot load-balance without a load transfer criterion"
+                    + bcolors.END)
                 sys.exit(1)
 
             # Iterate over processors and pick those with above threshold load
@@ -283,16 +306,25 @@ class Runtime:
             self.phase.invalidate_edges()
 
             # Report about what happened in that iteration
-            print("[RunTime] {} processors did not participate".format(
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "{} processors did not participate".format(
                 n_ignored))
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                print("[RunTime] {} transfers occurred, {} were rejected ({}% of total)".format(
+                print(bcolors.HEADER
+                    + "[RunTime] "
+                    + bcolors.END
+                    + "{} transfers occurred, {} were rejected ({}% of total)".format(
                     n_transfers,
                     n_rejects,
                     100. * n_rejects / n_proposed))
             else:
-                print("[RunTime] no transfers were proposed")
+                print(bcolors.HEADER
+                    + "[RunTime] "
+                    + bcolors.END
+                    + "no transfers were proposed")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(
@@ -319,7 +351,10 @@ class Runtime:
 
             # Report partial statistics
             iteration = i + 1
-            print("[RunTime] Load imbalance({}) = {:.6g}; "
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Load imbalance({}) = {:.6g}; "
                    "min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
                 iteration,
                 l_imb,
@@ -327,7 +362,10 @@ class Runtime:
                 l_max,
                 self.average_load,
                 math.sqrt(l_var))
-            print("[RunTime] Weight imbalance({}) = {:.6g}; "
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Weight imbalance({}) = {:.6g}; "
                    "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
                 iteration,
                 w_imb,

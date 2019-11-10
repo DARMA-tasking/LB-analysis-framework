@@ -6,6 +6,7 @@ for m in [
     "os",
     "pickle",
     "sys",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -60,13 +61,19 @@ if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print("[ParaviewViewer] ### Started with Python {}.{}.{}".format(
+    print(bcolors.HEADER
+        + "[ParaviewViewer] "
+        + bcolors.END
+        + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
-    print("[ParaviewViewer] Parsing command line arguments")
+    print(bcolors.HEADER
+        + "[ParaviewViewer] "
+        + bcolors.END
+        + "Parsing command line arguments")
     params = ViewerParameters()
     if params.parse_command_line():
         sys.exit(1)
@@ -82,6 +89,9 @@ if __name__ == '__main__':
     viewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print("[ParaviewViewer] {} file views generated ###".format(viewer.file_name))
+    print(bcolors.HEADER
+        + "[ParaviewViewer] "
+        + bcolors.END
+        + "{} file views generated ###".format(viewer.file_name))
 
 ###############################################################################

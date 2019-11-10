@@ -61,7 +61,9 @@ class ViewerParameters:
             opts, args = getopt.getopt(sys.argv[1:], "he:f:")
 
         except getopt.GetoptError:
-            print("** ERROR: incorrect command line arguments.")
+            print(bcolors.ERR
+                + "** ERROR: incorrect command line arguments."
+                + bcolors.END)
             self.usage()
             return True
 
@@ -164,19 +166,23 @@ class ParaviewViewerBase(object):
 
         # Unspecified viewer type
         elif viewer_type == None:
-            print("** ERROR: a viewer type needs to be provided. Exiting.")
+            print(bcolors.ERR
+                + "** ERROR: a viewer type needs to be provided. Exiting."
+                + bcolors.END)
             sys.exit(1)
 
         # Unsupported viewer type
         else:
-            print("** ERROR: {} type viewer unsupported. Exiting.".format(
-                viewer_type))
+            print(bcolors.ERR
+                + "** ERROR: {} type viewer unsupported. Exiting.".format(viewer_type)
+                + bcolors.END)
             sys.exit(1)
 
         # Report not instantiated
         if not ret_object:
-            print("** ERROR: {} viewer not instantiated. Exiting.".format(
-                viewer_type))
+            print(bcolors.ERR
+                + "** ERROR: {} viewer not instantiated. Exiting.".format(viewer_type)
+                + bcolors.END)
             sys.exit(1)
 
         # Return instantiated object
@@ -184,8 +190,10 @@ class ParaviewViewerBase(object):
         ret_object.file_name = "{}.e".format(file_name)
         ret_object.viewer_type = viewer_type
         ret_object.material_library = pv.GetMaterialLibrary()
-        print("[ParaviewViewerBase] Instantiated {} viewer.".format(
-            viewer_type))
+        print(bcolors.HEADER
+            + "[ParaviewViewerBase] "
+            + bcolors.END
+            + "Instantiated {} viewer.".format(viewer_type))
         return ret_object
 
     ###########################################################################

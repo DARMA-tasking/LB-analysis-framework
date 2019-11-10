@@ -45,6 +45,7 @@
 lbsLoadWriterVT_module_aliases = {}
 for m in [
     "csv",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -58,7 +59,7 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsPhase
+from Model  import lbsPhase
 
 ########################################################################
 class LoadWriterVT:
@@ -84,7 +85,9 @@ class LoadWriterVT:
 
         # Ensure that provided phase has correct type
         if not isinstance(e, lbsPhase.Phase):
-            print("** ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase")
+            print(bcolors.ERR
+                + "*  ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase"
+                + bcolors.END)
             return
 
         # Assign internals
@@ -129,11 +132,16 @@ class LoadWriterVT:
 
             # Sanity check
             if n_u:
-                print("**  ERROR: {} objects could not be written to CSV file {}".format(
+                print(bcolors.ERR
+                    + "*  ERROR: {} objects could not be written to CSV file {}".format(
                     n_u,
-                    file_name))
+                    file_name)
+                    + bcolors.END)
             else:
-                print("[LoadWriterVT] Wrote {} objects to CSV file {}".format(
+                print(bcolors.HEADER
+                    + "[LoadWriterVT] "
+                    + bcolors.END
+                    + "Wrote {} objects to CSV file {}".format(
                     len(p.objects),
                     file_name))
 

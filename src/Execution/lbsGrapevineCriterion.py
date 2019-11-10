@@ -42,7 +42,23 @@
 #@HEADER
 #
 ########################################################################
-from lbsCriterionBase import CriterionBase
+lbsGrapevineCriterion_module_aliases = {}
+for m in [
+    "bcolors",
+    ]:
+    has_flag = "has_" + m
+    try:
+        module_object = __import__(m)
+        if m in lbsGrapevineCriterion_module_aliases:
+            globals()[lbsGrapevineCriterion_module_aliases[m]] = module_object
+        else:
+            globals()[m] = module_object
+        globals()[has_flag] = True
+    except ImportError as e:
+        print("*  WARNING: Failed to import {}. {}.".format(m, e))
+        globals()[has_flag] = False
+
+from lbsCriterionBase   import CriterionBase
 
 ########################################################################
 class GrapevineCriterion(CriterionBase):
@@ -66,11 +82,16 @@ class GrapevineCriterion(CriterionBase):
         ave_load =  parameters.get(key)
         if ave_load:
             self.average_load = ave_load
-            print("[GrapevineCriterion] Instantiated concrete criterion with average load: {}".format(
+            print(bcolors.HEADER
+                + "[GrapevineCriterion] "
+                + bcolors.END
+                + "Instantiated concrete criterion with average load: {}".format(
             ave_load))
         else:
-            print("** ERROR: cannot instantiate criterion without {} parameter".format(
-                key))
+            print(bcolors.ERR
+                + "*  ERROR: cannot instantiate criterion without {} parameter".format(
+                key)
+                + bcolors.END)
 
     ####################################################################
     def compute(self, object, _, p_dst):

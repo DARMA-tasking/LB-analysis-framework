@@ -42,6 +42,22 @@
 #@HEADER
 #
 ########################################################################
+lbsObjectCommunicator_module_alisases = {}
+for m in [
+    "bcolors",
+    ]:
+    has_flag = "has_" + m.replace('.', '_')
+    try:
+        module_object = __import__(m)
+        if m in lbsObjectCommunicator_module_alisases:
+            globals()[lbsObjectCommunicator_module_alisases[m]] = module_object
+        else:
+            globals()[m] = module_object
+        globals()[has_flag] = True
+    except ImportError as e:
+        print("** ERROR: failed to import {}. {}.".format(m, e))
+        globals()[has_flag] = False
+########################################################################
 class ObjectCommunicator:
     """A class holding received and sent messages for an object
     """
@@ -93,7 +109,9 @@ class ObjectCommunicator:
 
         # Assert that direction is of known type
         if not direction in ("to", "from"):
-            print("** ERROR: unknown direction string: {}".format(direction))
+            print(bcolors.ERR
+                + "*  ERROR: unknown direction string: {}".format(direction)
+                + bcolors.END)
             sys.exit(1)
 
         # Initialize list of weights
@@ -104,8 +122,10 @@ class ObjectCommunicator:
         for k, v in communications.items():
             # Sanity check
             if  k.get_id() == self.object_index:
-                print("** ERROR: object {} cannot send communication to itself.".format(
-                    self.object_index))
+                print(bcolors.ERR
+                    + "*  ERROR: object {} cannot send communication to itself.".format(
+                    self.object_index)
+                    + bcolors.END)
                 sys.exit(1)
 
             # Update list of weights

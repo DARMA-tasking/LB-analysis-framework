@@ -47,6 +47,7 @@ for m in [
     "csv",
     "sys",
     "os",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -60,7 +61,7 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Model import lbsObject, lbsProcessor
+from Model  import lbsObject, lbsProcessor
 
 ########################################################################
 class LoadReader:
@@ -120,7 +121,9 @@ class LoadReader:
         file_name = self.get_node_trace_file_name(node_id)
         print("[LoadReaderVT] Reading {} VT object map".format(file_name))
         if not os.path.isfile(file_name):
-            print("** ERROR: [LoadReaderVT] File {} does not exist.".format(file_name))
+            print(bcolors.ERR
+                + "*  ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
+                + bcolors.END)
             sys.exit(1)
 
         # Initialize storage
@@ -143,7 +146,9 @@ class LoadReader:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
                     except:
-                        print("** ERROR: [LoadReaderVT] Incorrect row format:".format(row))
+                        print(bcolors.ERR
+                            + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
+                            + bcolors.END)
 
                     # Update processor if iteration was requested
                     if time_step in (phase, -1):
@@ -158,7 +163,10 @@ class LoadReader:
 
                         # Print debug information when requested
                         if self.verbose:
-                            print("[LoadReaderVT] iteration = {}, object id = {}, time = {}".format(
+                            print(bcolors.HEADER
+                                + "[LoadReaderVT] "
+                                + bcolors.END
+                                + "iteration = {}, object id = {}, time = {}".format(
                                 phase,
                                 o_id,
                                 time))
@@ -170,7 +178,10 @@ class LoadReader:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
-                    print("** ERROR: [LoadReaderVT] Communication graph unimplemented")
+                    print(bcolors.ERR
+                        + "*  ERROR: [LoadReaderVT] Communication graph unimplemented"
+                        + bcolors.END)
+                    sys.exit(1)
                     
                 # Unrecognized line format
                 else:
@@ -179,7 +190,10 @@ class LoadReader:
 
         # Print more information when requested
         if self.verbose:
-            print("[LoadReaderVT] Finished reading file: {}".format(file_name))
+            print(bcolors.HEADER
+                + "[LoadReaderVT] "
+                + bcolors.END
+                + "Finished reading file: {}".format(file_name))
 
         # Return map of populated processors per iteration
         return iter_map
@@ -203,9 +217,11 @@ class LoadReader:
             try:
                 procs[p] = proc_iter_map[time_step]
             except KeyError:
-                print("** ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                print(bcolors.ERR
+                    + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
                     p,
-                    time_step))
+                    time_step)
+                    + bcolors.END)
                 sys.exit(1)
             
         # Return populated list of processors

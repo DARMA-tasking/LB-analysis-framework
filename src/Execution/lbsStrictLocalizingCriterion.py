@@ -37,6 +37,21 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
+lbsStrictLocalizingCriterion_module_aliases = {}
+for m in [
+    "bcolors",
+    ]:
+    has_flag = "has_" + m
+    try:
+        module_object = __import__(m)
+        if m in lbsStrictLocalizingCriterion_module_aliases:
+            globals()[lbsStrictLocalizingCriterion_module_aliases[m]] = module_object
+        else:
+            globals()[m] = module_object
+        globals()[has_flag] = True
+    except ImportError as e:
+        print("*  WARNING: Failed to import {}. {}.".format(m, e))
+        globals()[has_flag] = False
 from lbsCriterionBase import CriterionBase
 
 ###############################################################################
@@ -54,8 +69,11 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Call superclass init
         super(StrictLocalizingCriterion, self).__init__(processors, edges)
-        print("[StrictLocalizingCriterion] Instantiated concrete criterion")
-        
+        print(bcolors.HEADER
+            + "[StrictLocalizingCriterion] "
+            + bcolors.END
+            + "Instantiated concrete criterion")
+
     ###########################################################################
     def compute(self, object, p_src, _):
         """A criterion enforcing strict conservation of local communications
