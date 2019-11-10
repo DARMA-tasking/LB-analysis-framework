@@ -45,6 +45,7 @@
 lbsLoadWriterVT_module_aliases = {}
 for m in [
     "csv",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -59,7 +60,6 @@ for m in [
         globals()[has_flag] = False
 
 from Model  import lbsPhase
-from Tools  import bcolors
 
 ########################################################################
 class LoadWriterVT:

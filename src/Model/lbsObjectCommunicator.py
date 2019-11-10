@@ -42,7 +42,21 @@
 #@HEADER
 #
 ########################################################################
-from Tools      import bcolors
+lbsObjectCommunicator_module_alisases = {}
+for m in [
+    "bcolors",
+    ]:
+    has_flag = "has_" + m.replace('.', '_')
+    try:
+        module_object = __import__(m)
+        if m in lbsObjectCommunicator_module_alisases:
+            globals()[lbsObjectCommunicator_module_alisases[m]] = module_object
+        else:
+            globals()[m] = module_object
+        globals()[has_flag] = True
+    except ImportError as e:
+        print("** ERROR: failed to import {}. {}.".format(m, e))
+        globals()[has_flag] = False
 ########################################################################
 class ObjectCommunicator:
     """A class holding received and sent messages for an object

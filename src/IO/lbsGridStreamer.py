@@ -45,6 +45,7 @@
 lbsGridStreamer_module_aliases = {}
 for m in [
     "vtk",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -57,8 +58,6 @@ for m in [
     except ImportError as e:
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
-
-from Tools  import bcolors
 
 ########################################################################
 class GridStreamer:

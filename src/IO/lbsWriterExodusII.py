@@ -45,6 +45,7 @@
 lbsWriterExodusII_module_aliases = {}
 for m in [
     "vtk",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -60,7 +61,6 @@ for m in [
 
 from Model  import lbsPhase
 from IO     import lbsGridStreamer
-from Tools  import bcolors
 
 ########################################################################
 class WriterExodusII:

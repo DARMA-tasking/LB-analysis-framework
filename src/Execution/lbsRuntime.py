@@ -45,7 +45,8 @@
 lbsRuntime_module_aliases = {}
 for m in [
     "sys",
-    "math"
+    "math",
+    "bcolors"
     ]:
     has_flag = "has_" + m
     try:
@@ -62,7 +63,6 @@ for m in [
 from Model      import lbsProcessor, lbsPhase
 from IO         import lbsStatistics
 from Execution  import lbsCriterionBase
-from Tools      import bcolors
 
 ########################################################################
 class Runtime:

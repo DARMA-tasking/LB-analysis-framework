@@ -47,6 +47,7 @@
 ###############################################################################
 MoveCountsViewer_module_aliases = {}
 for m in [
+    "bcolors",
     "csv",
     "os",
     "getopt",
@@ -66,7 +67,6 @@ for m in [
         globals()[has_flag] = False
 
 from MoveCountsViewerParameters         import MoveCountsViewerParameters
-from Tools                              import bcolors
 
 ###############################################################################
 class MoveCountsViewer:

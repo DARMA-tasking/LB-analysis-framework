@@ -6,6 +6,7 @@ for m in [
     "os",
     "pickle",
     "sys",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -21,7 +22,6 @@ for m in [
 
 from ParaviewViewerBase import ViewerParameters
 from ParaviewViewerBase import ParaviewViewerBase
-from Tools              import bcolors
 
 if __name__ == '__main__':
     if __package__ is None:

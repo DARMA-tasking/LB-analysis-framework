@@ -49,6 +49,7 @@ for m in [
     "getopt",
     "math",
     "sys",
+    "bcolors"
    ]:
     has_flag = "has_" + m
     try:

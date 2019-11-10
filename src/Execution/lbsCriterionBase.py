@@ -46,6 +46,7 @@ lbsCriterionBase_module_aliases = {}
 for m in [
     "abc",
     "importlib",
+    "bcolors",
     ]:
     has_flag = "has_" + m
     try:
@@ -60,7 +61,6 @@ for m in [
         globals()[has_flag] = False
 
 from Model      import lbsProcessor, lbsObject
-from Tools      import bcolors
 
 ########################################################################
 class CriterionBase:

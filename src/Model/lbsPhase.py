@@ -49,6 +49,7 @@ for m in [
     "sys",
     "random",
     "time",
+    "bcolors",
     ]:
     has_flag = "has_" + m
     try:
@@ -64,7 +65,6 @@ for m in [
 
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
-from Tools import bcolors
 
 ########################################################################
 class Phase:

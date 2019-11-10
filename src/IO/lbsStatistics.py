@@ -50,6 +50,7 @@ for m in [
     "random",
     "math",
     "numpy",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -63,7 +64,6 @@ for m in [
         print("** ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from Tools      import bcolors
 ########################################################################
 def initialize():
 

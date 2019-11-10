@@ -47,6 +47,7 @@ for m in [
     "csv",
     "sys",
     "os",
+    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -61,7 +62,6 @@ for m in [
         globals()[has_flag] = False
 
 from Model  import lbsObject, lbsProcessor
-from Tools  import bcolors
 
 ########################################################################
 class LoadReader:
