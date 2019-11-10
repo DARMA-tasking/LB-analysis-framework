@@ -38,10 +38,10 @@ class ParaviewViewer(ParaviewViewerBase):
     """
 
     ###########################################################################
-    def __init__(self, file_name=None, viewer_type=None):
+    def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # Call superclass init
-        super(ParaviewViewer, self).__init__(file_name, viewer_type)
+        super(ParaviewViewer, self).__init__(exodus, file_name, viewer_type)
 
     ###########################################################################
     def saveView(self, reader):
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     params = ViewerParameters()
     if params.parse_command_line():
         sys.exit(1)
-    viewer = ParaviewViewerBase.factory(params.file_name, "")
+    viewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "")
 
     # Create view from PNGViewer instance
     reader = viewer.createViews()

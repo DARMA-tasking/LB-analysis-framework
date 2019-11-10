@@ -18,9 +18,15 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple  as pv
-from ParaviewViewer     import ParaviewViewer
-from Tools              import bcolors
+try:
+    import paraview.simple as pv
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+    if not __name__ == '__main':
+        print("[AnimationViewer] Failed to import paraview. Cannot save visual artifacts.")
+        sys.exit(0)
+from ParaviewViewer    import ParaviewViewer
 
 if __name__ == '__main__':
     if __package__ is None:
@@ -37,10 +43,10 @@ class AnimationViewer(ParaviewViewer):
     """
 
     ###########################################################################
-    def __init__(self, file_name=None, viewer_type=None):
+    def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # Call superclass init
-        super(AnimationViewer, self).__init__(file_name, viewer_type)
+        super(AnimationViewer, self).__init__(exodus, file_name, viewer_type)
 
     ###########################################################################
     def saveView(self, reader):
@@ -73,6 +79,11 @@ class AnimationViewer(ParaviewViewer):
 ###############################################################################
 if __name__ == '__main__':
 
+    # Check if visualization library imported
+    if not has_paraview:
+        print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+        sys.exit(1)
+
     # Print startup information
     sv = sys.version_info
     print(bcolors.HEADER
@@ -93,8 +104,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Check if arguments were correctly parsed
-
-    animationViewer = ParaviewViewerBase.factory(params.file_name, "Animation")
+    animationViewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "Animation")
 
     # Create view from AnimationViewer instance
     reader = animationViewer.createViews()

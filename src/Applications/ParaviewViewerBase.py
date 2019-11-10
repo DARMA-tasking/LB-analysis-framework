@@ -21,8 +21,14 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-import paraview.simple  as pv
-from Tools              import bcolors
+try:
+    import paraview.simple as pv
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+    if not __name__ == '__main':
+        print("*  WARNING: Failed to import paraview. Cannot save visual artifacts.")
+        sys.exit(0)
 
 ###############################################################################
 class ViewerParameters:
@@ -35,7 +41,8 @@ class ViewerParameters:
         """
 
         print("Usage:")
-        print("\t [-f]        ExodusII file name")
+        print("\t [-e]        ExodusII file name")
+        print("\t [-f]        visualization file name")
         print("\t [-h]        help: print this message and exit")
         print('')
 
@@ -44,9 +51,14 @@ class ViewerParameters:
         """Parse command line
         """
 
+        # Check if visualization library imported
+        if not has_paraview:
+            print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+            sys.exit(1)
+
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hf:")
+            opts, args = getopt.getopt(sys.argv[1:], "he:f:")
 
         except getopt.GetoptError:
             print(bcolors.ERR
@@ -60,16 +72,19 @@ class ViewerParameters:
             if o == "-h":
                 self.usage()
                 sys.exit(0)
+            elif o == "-e":
+                self.exodus = a
             elif o == "-f":
                 self.file_name = a
 
-        # If  invalid file name is provided
-        if (not self.file_name or self.file_name.strip() == "''"):
-            print(bcolors.ERR
-                + "** ERROR: Provide an ExodusII file"
-                + bcolors.END)
-            self.usage()
+        # Ensure that exactly one ExodusII file has been provided
+        if not self.exodus:
+            print("** ERROR: Provide an ExodusII file")
             return True
+
+        # Set default visualization file name prefix
+        if not self.file_name:
+            self.file_name = self.exodus
 
         # Set viewer type
         self.viewer_type = None
@@ -86,10 +101,18 @@ class ParaviewViewerBase(object):
 
     ###########################################################################
     @abc.abstractmethod
-    def __init__(self, file_name=None, viewer_type=None):
+    def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
-        # ExodusII file to be displayed and saved
-        self.file_name = file_name
+        # Check if visualization library imported
+        if not has_paraview:
+            print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+            sys.exit(1)
+
+        # ExodusII file to be displayed
+        self.exodus = "{}.e".format(exodus)
+
+        # visualization file name
+        self.file_name = "{}.e".format(file_name)
 
         # Viewer type
         self.viewer_type = viewer_type
@@ -99,23 +122,27 @@ class ParaviewViewerBase(object):
 
     ###########################################################################
     @staticmethod
-    def factory(file_name, viewer_type):
+    def factory(exodus, file_name, viewer_type):
         """Produce the necessary concrete backend instance
         """
 
         # Unspecified ExodusII file name
-        if not file_name:
-            print(bcolors.ERR
-                + "** ERROR: an ExodusII file name needs to be provided. Exiting."
-                + bcolors.END)
+        if not exodus:
+            print("** ERROR: an ExodusII file name needs to be provided. Exiting.")
             sys.exit(1)
+
+        # Unspecified visualization file name
+        if (not file_name) or file_name == "''":
+            print("** WARNING: visualization file name has not been provided."
+                  "Using ExodusII file name by default.")
+            file_name = exodus
 
         # PNG viewer
         if viewer_type == "PNG":
             try:
                 PNGViewer = getattr(importlib.import_module("PNGViewer"),
                     "PNGViewer")
-                ret_object = PNGViewer(file_name, viewer_type)
+                ret_object = PNGViewer(exodus, file_name, viewer_type)
             except:
                 ret_object = None
 
@@ -124,7 +151,7 @@ class ParaviewViewerBase(object):
             try:
                 AnimationViewer = getattr(importlib.import_module("AnimationViewer"),
                     "AnimationViewer")
-                ret_object = AnimationViewer(file_name, viewer_type)
+                ret_object = AnimationViewer(exodus, file_name, viewer_type)
             except:
                 ret_object = None
 
@@ -133,7 +160,7 @@ class ParaviewViewerBase(object):
             try:
                 ParaviewViewer = getattr(importlib.import_module("ParaviewViewer"),
                     "ParaviewViewer")
-                ret_object = ParaviewViewer(file_name)
+                ret_object = ParaviewViewer(exodus, file_name)
             except:
                 ret_object = None
 
@@ -159,7 +186,8 @@ class ParaviewViewerBase(object):
             sys.exit(1)
 
         # Return instantiated object
-        ret_object.file_name = file_name
+        ret_object.exodus = "{}.e".format(exodus)
+        ret_object.file_name = "{}.e".format(file_name)
         ret_object.viewer_type = viewer_type
         ret_object.material_library = pv.GetMaterialLibrary()
         print(bcolors.HEADER
@@ -169,11 +197,19 @@ class ParaviewViewerBase(object):
         return ret_object
 
     ###########################################################################
-    def get_file_name(self):
-        """Convenience method to get file name
+    def get_exodus(self):
+        """Convenience method to get ExodusII file name
         """
 
-        # Return value of file name
+        # Return value of ExodusII file name
+        return self.exodus
+
+    ###########################################################################
+    def get_file_name(self):
+        """Convenience method to get visualization file name
+        """
+
+        # Return value of visualization file name
         return self.file_name
 
     ###########################################################################
@@ -220,7 +256,7 @@ class ParaviewViewerBase(object):
         """Create a new 'ExodusIIReader'
         """
 
-        reader = pv.ExodusIIReader(FileName=[self.file_name])
+        reader = pv.ExodusIIReader(FileName=[self.exodus])
         reader.GenerateObjectIdCellArray = 0
         reader.GenerateGlobalElementIdArray = 0
         reader.ElementVariables = [elt_var]
