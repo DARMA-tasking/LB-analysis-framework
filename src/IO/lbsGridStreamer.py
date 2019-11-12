@@ -44,8 +44,8 @@
 ########################################################################
 lbsGridStreamer_module_aliases = {}
 for m in [
-    "vtk",
     "bcolors",
+    "vtk",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:

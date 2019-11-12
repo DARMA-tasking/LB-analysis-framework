@@ -46,6 +46,7 @@ lbsProcessor_module_aliases = {
     "random": "rnd",
     }
 for m in [
+    "bcolors",
     "random",
     "sys",
     ]:
@@ -58,9 +59,7 @@ for m in [
             globals()[m] = module_object
         globals()[has_flag] = True
     except ImportError as e:
-        print(bcolors.ERR
-            + "*  ERROR: failed to import {}. {}.".format(m, e)
-            + bcolors.END)
+        print("*  ERROR: failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsMessage
@@ -196,7 +195,7 @@ class Processor:
         l2 = len(self.underloads)
         if l1 != l2:
             print(bcolors.ERR
-                + "* ERROR: cannot process message {} at processor {}. Exiting.".format(
+                + "** ERROR: cannot process message {} at processor {}. Exiting.".format(
                 info,
                 self.get_id())
                 + bcolors.END)

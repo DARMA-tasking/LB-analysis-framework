@@ -43,14 +43,14 @@
 #
 ########################################################################
 lbsStatistics_module_aliases = {
-    "random": "rnd",
     "numpy" : "np",
+    "random": "rnd",
     }
 for m in [
-    "random",
+    "bcolors",
     "math",
     "numpy",
-    "bcolors",
+    "random",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
