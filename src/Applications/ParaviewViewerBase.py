@@ -142,10 +142,10 @@ class ParaviewViewerBase(object):
 
         # Unspecified visualization file name
         if (not file_name) or file_name == "''":
-            print(bcolors.WARNING
-                + "** WARNING: visualization file name has not been provided."
+            print(bcolors.WARN
+                + "** WARNING: visualization file name has not been provided. "
                   "Using ExodusII file name by default."
-                + bcolor.END)
+                + bcolors.END)
             file_name = exodus
 
         # PNG viewer

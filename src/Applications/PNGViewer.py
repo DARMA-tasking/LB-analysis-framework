@@ -77,7 +77,7 @@ if __name__ == '__main__':
     if not has_paraview:
         print(bcolors.ERR
             + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
-            + bcolor.END)
+            + bcolors.END)
         sys.exit(1)
 
     # Print startup information
