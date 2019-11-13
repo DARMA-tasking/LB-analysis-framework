@@ -45,8 +45,8 @@
 lbsCriterionBase_module_aliases = {}
 for m in [
     "abc",
-    "importlib",
     "bcolors",
+    "importlib",
     ]:
     has_flag = "has_" + m
     try:

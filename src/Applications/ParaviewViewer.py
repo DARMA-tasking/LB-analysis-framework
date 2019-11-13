@@ -3,10 +3,10 @@
 ###############################################################################
 ParaviewViewer_module_aliases = {}
 for m in [
+    "bcolors",
     "os",
     "pickle",
     "sys",
-    "bcolors",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:

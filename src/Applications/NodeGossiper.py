@@ -44,12 +44,12 @@
 ###############################################################################
 NodeGossiper_module_aliases = {}
 for m in [
-    "os",
-    "subprocess",
+    "bcolors",
     "getopt",
     "math",
+    "os",
+    "subprocess",
     "sys",
-    "bcolors"
    ]:
     has_flag = "has_" + m
     try:

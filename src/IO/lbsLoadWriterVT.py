@@ -44,8 +44,8 @@
 ########################################################################
 lbsLoadWriterVT_module_aliases = {}
 for m in [
-    "csv",
     "bcolors",
+    "csv",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:

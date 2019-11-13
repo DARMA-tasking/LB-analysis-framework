@@ -4,6 +4,7 @@
 ParaviewViewerBase_module_aliases = {}
 for m in [
     "abc",
+    "bcolors",
     "getopt",
     "importlib",
     "os",
@@ -53,7 +54,9 @@ class ViewerParameters:
 
         # Check if visualization library imported
         if not has_paraview:
-            print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+            print(bcolors.ERR
+                + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
+                + bcolors.END)
             sys.exit(1)
 
         # Try to hash command line with respect to allowable flags
@@ -79,7 +82,9 @@ class ViewerParameters:
 
         # Ensure that exactly one ExodusII file has been provided
         if not self.exodus:
-            print("** ERROR: Provide an ExodusII file")
+            print(bcolors.ERR
+                + "** ERROR: Provide an ExodusII file"
+                + bcolors.END)
             return True
 
         # Set default visualization file name prefix
@@ -105,7 +110,9 @@ class ParaviewViewerBase(object):
 
         # Check if visualization library imported
         if not has_paraview:
-            print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+            print(bcolors.ERR
+                + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
+                + bcolors.END)
             sys.exit(1)
 
         # ExodusII file to be displayed
@@ -128,13 +135,17 @@ class ParaviewViewerBase(object):
 
         # Unspecified ExodusII file name
         if not exodus:
-            print("** ERROR: an ExodusII file name needs to be provided. Exiting.")
+            print(bcolors.ERR
+                + "** ERROR: an ExodusII file name needs to be provided. Exiting."
+                + bcolors.END)
             sys.exit(1)
 
         # Unspecified visualization file name
         if (not file_name) or file_name == "''":
-            print("** WARNING: visualization file name has not been provided."
-                  "Using ExodusII file name by default.")
+            print(bcolors.WARN
+                + "** WARNING: visualization file name has not been provided. "
+                  "Using ExodusII file name by default."
+                + bcolors.END)
             file_name = exodus
 
         # PNG viewer

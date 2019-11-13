@@ -44,9 +44,9 @@
 ########################################################################
 lbsRuntime_module_aliases = {}
 for m in [
-    "sys",
+    "bcolors",
     "math",
-    "bcolors"
+    "sys",
     ]:
     has_flag = "has_" + m
     try:

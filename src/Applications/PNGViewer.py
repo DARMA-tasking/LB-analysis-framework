@@ -3,6 +3,7 @@
 ###############################################################################
 PNGViewer_module_aliases = {}
 for m in [
+    "bcolors",
     "os",
     "sys",
     ]:
@@ -74,7 +75,9 @@ if __name__ == '__main__':
 
     # Check if visualization library imported
     if not has_paraview:
-        print("* ERROR: failed to import paraview. Cannot save visual artifacts.Exiting.")
+        print(bcolors.ERR
+            + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
+            + bcolors.END)
         sys.exit(1)
 
     # Print startup information

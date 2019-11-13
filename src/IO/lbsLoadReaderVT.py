@@ -44,10 +44,10 @@
 ########################################################################
 lbsLoadReaderVT_module_aliases = {}
 for m in [
-    "csv",
-    "sys",
-    "os",
     "bcolors",
+    "csv",
+    "os",
+    "sys",
     ]:
     has_flag = "has_" + m.replace('.', '_')
     try:
@@ -119,7 +119,10 @@ class LoadReader:
 
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
-        print("[LoadReaderVT] Reading {} VT object map".format(file_name))
+        print(bcolors.HEADER
+            + "[LoadReaderVT] "
+            + bcolors.END
+            + "Reading {} VT object map".format(file_name))
         if not os.path.isfile(file_name):
             print(bcolors.ERR
                 + "*  ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
@@ -185,7 +188,9 @@ class LoadReader:
                     
                 # Unrecognized line format
                 else:
-                    print("** ERROR: [LoadReaderVT] Wrong line length: {}".format(row))
+                    print(bcolors.ERR
+                        + "** ERROR: [LoadReaderVT] Wrong line length: {}".format(row)
+                        + bcolors.END)
                     sys.exit(1)
 
         # Print more information when requested

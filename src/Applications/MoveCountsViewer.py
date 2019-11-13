@@ -49,8 +49,8 @@ MoveCountsViewer_module_aliases = {}
 for m in [
     "bcolors",
     "csv",
-    "os",
     "getopt",
+    "os",
     "sys",
     "vtk"
    ]:
