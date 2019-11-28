@@ -1,14 +1,4 @@
-One key assumption to statistically-based fully-distributed
-load-balancing, using Grapevine-like algorithms, is that of
-\emph{persistence} of object loads as the computation progresses.
-
-Albeit relatively intuitive, this notion does not appear to have
-received, to-date, a general treatment in the open literature.
-We are therefore now proposing a general methodology for the
-quantitative assessment of this concept, in particular in (but not
-limited to) the context of per-object loads.
-
-We start by recalling that,  given a population of $X$ (in our case
+We begin by recalling that,  given a population of $X$ (in our case
 with finite cardinality $n=\lvert{X}\rvert$) with arithmetic mean
 $\mu(X)\neq0$, its \emph{coefficient of variation} is
 defined as follows:
@@ -36,8 +26,8 @@ error would be more suitable).
 Furthermore, in order to capture persistence over
 $k\in\llbracket2;+\infty[$ successive simulation phases (or steps), we
 compute this the coefficient of variation of the quantity of interest
-across as sliding window of length $k$, also know as
-\emph{\textsc{Fano} index} as $c_V(X_{i,k})$ where $X_{i,k}$ denotes
+(here, per-object times) across as sliding window of length $k$, as
+$c_V(X_{i,-k})$ where $X_{i,-k}$ denotes 
 the subset of values in $X$ with indices $i-k+1$ to $i$, where
 $i\in\llbracket{k-1};+\infty[$ is the phase index of interest
 (assuming that the initial phase corresponds to $i=0$).

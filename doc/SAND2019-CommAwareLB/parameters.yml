@@ -17,7 +17,5 @@ final: no
 abstract: abstract.tex
 title: "A Distributed Communication-Aware Load-Balancing Algorithm"
 location: CA
-author: Philippe P. P\'eba\"y
-organization: 08753
-author: Jonathan Lifflander
+author: Philippe P. P\'eba\"y \& Jonathan Lifflander
 organization: 08753
