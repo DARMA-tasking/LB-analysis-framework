@@ -1,7 +1,10 @@
-# Set up ParaView Python environment
+# Set environment variable
+DOC_NAME=SAND2019-CALB
 UNAME=$(uname)
 PARAVIEW_VERSION=5.6.2
+ARG_PATH=~/Documents/Git/arg
 
+# Set ParaView environoment
 if [ "$UNAME" = "Linux" ] ; then
         if [ -z ${PARAVIEW_PATH} ] ; then
                 export PARAVIEW_PATH="/opt/paraview-${PARAVIEW_VERSION}"
@@ -14,7 +17,6 @@ elif [ "$UNAME" = "Darwin" ] ; then
         #fi
         export DYLD_FALLBACK_LIBRARY_PATH="${PARAVIEW_PATH}/Contents/Libraries"
         export PYTHONPATH="${PYTHONPATH}:${PARAVIEW_PATH}/Contents/Python"
-        echo $DYLD_FALLBACK_LIBRARY_PATH
 elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
         if [ "$ProgramW6432" != "" ] ; then
                 export PROG="$PROGRAMFILES"
@@ -33,27 +35,14 @@ echo PYTHONPATH=${PYTHONPATH}
 python -c 'import sys; print("Encoding is {}".format("UCS4" if sys.maxunicode > 65536 else "UCS2"))'
 python -c 'import paraview.vtk as vtk; print("Python VTK module is {}".format(vtk))'
 
-# Clean-up
-rm -fR @NAME@.@EXT@ mutables.yml @NAME@ artifact
+# Clean up
+rm -fR ${DOC_NAME} mutables.yml
 
+# Run Generator to create pre-defined artifacts
+#python ${ARG_PATH}/src/Applications/Generator.py
 
-# Substitute report name
-sed -e 's/@NAME@/Report-crush/g' -i'' test.tmp 2> /dev/null ||
- # execute sed -i '' if an error occured (macOS workaround)
-(sed -e 's/@NAME@/Report-crush/g' -i '' test.tmp)
+# Run Assembler to generate additional report artifacts and report
+python ${ARG_PATH}/src/Applications/Assembler.py
 
-# Substitute report extension
-sed -e 's/@EXT@/pdf/g' -i'' test.tmp 2> /dev/null ||
- # execute sed -i '' if an error occured (macOS workaround)
-(sed -e 's/@EXT@/pdf/g' -i '' test.tmp)
-
-# Execute runner
-sh test.tmp
-
-# Get runner exitcode
-exitcode=$?
-
-# Clean up runner
-rm -f test.tmp
-
-exit $exitcode
+# Move generated report to current directory
+mv ${DOC_NAME}/${DOC_NAME}.pdf .

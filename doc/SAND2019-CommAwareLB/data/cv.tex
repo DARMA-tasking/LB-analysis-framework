@@ -9,8 +9,8 @@ quantitative assessment of this concept, in particular in (but not
 limited to) the context of per-object loads.
 
 We start by recalling that,  given a population of $X$ (in our case
-with finite cardinality $n_X=\lvert{X}\rvert$) with arithmetic mean
-$\mu(X)\neq0$, its \underline{coefficient of variation} is
+with finite cardinality $n=\lvert{X}\rvert$) with arithmetic mean
+$\mu(X)\neq0$, its \emph{coefficient of variation} is
 defined as follows:
 \[
 c_V(X) = \frac{\sigma_{n}(X)}{\mu(X)},
@@ -39,4 +39,5 @@ compute this the coefficient of variation of the quantity of interest
 across as sliding window of length $k$, also know as
 \emph{\textsc{Fano} index} as $c_V(X_{i,k})$ where $X_{i,k}$ denotes
 the subset of values in $X$ with indices $i-k+1$ to $i$, where
-$i\in\\lbracket-1;+\infty[$ is the phase index of interest.
+$i\in\llbracket{k-1};+\infty[$ is the phase index of interest
+(assuming that the initial phase corresponds to $i=0$).

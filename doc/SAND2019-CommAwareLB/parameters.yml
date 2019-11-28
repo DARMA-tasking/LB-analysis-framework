@@ -1,0 +1,23 @@
+---
+# Parameters for SAND2019-CALB report
+
+# Command parameters
+#artifact: generator-artifacts.yml
+data: data
+mutables: mutables.yml
+output: SAND2019-CALB
+structure: SAND2019-CALB.yml
+
+# General report parameters
+backend_type: LaTeX
+classification: uur
+number: CALB
+report_type: SAND
+final: no
+abstract: abstract.tex
+title: "A Distributed Communication-Aware Load-Balancing Algorithm"
+location: CA
+author: Philippe P. P\'eba\"y
+organization: 08753
+author: Jonathan Lifflander
+organization: 08753
