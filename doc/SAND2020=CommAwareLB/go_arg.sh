@@ -42,7 +42,7 @@ rm -fR ${DOC_NAME} mutables.yml
 #python ${ARG_PATH}/src/Applications/Generator.py
 
 # Run Assembler to generate additional report artifacts and report
-python ${ARG_PATH}/src/Applications/Assembler.py
+python ${ARG_PATH}/src/Applications/ARG.py
 
 # Move generated report to current directory
 mv ${DOC_NAME}/${DOC_NAME}.pdf .
