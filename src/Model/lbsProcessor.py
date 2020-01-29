@@ -227,6 +227,6 @@ class Processor:
                 cmf.append(sum_p)
 
             # Normalize and return CMF
-            return map(lambda x: x / sum_p, cmf)
+            return [x / sum_p for x in cmf]
 
 ########################################################################

@@ -171,7 +171,7 @@ class Runtime:
 
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
-                map(p_rcv.process_underload_message, msg_lst)
+                list(map(p_rcv.process_underload_message, msg_lst))
 
             # Report on current status when requested
             if self.verbose:
@@ -179,7 +179,6 @@ class Runtime:
                     print("\tunderloaded known to processor {}: {}".format(
                         p.get_id(),
                         [p_u.get_id() for p_u in p.underloaded]))
-
 
             # Forward messages for as long as necessary and requested
             while gossip_round < n_rounds:
@@ -203,7 +202,7 @@ class Runtime:
 
                 # Process all messages of first round
                 for p_rcv, msg_lst in gossips.items():
-                    map(p_rcv.process_underload_message, msg_lst)
+                    list(map(p_rcv.process_underload_message, msg_lst))
 
                 # Report on current status when requested
                 if self.verbose:
@@ -237,70 +236,74 @@ class Runtime:
             # Iterate over processors and pick those with above threshold load
             l_thr = r_threshold * self.average_load
             for p_src in procs:
+                # Skip non-overloaded processors
+                l_src = p_src.get_load()
+                l_exc = l_src - l_thr
+                if not l_exc > 0.:
+                    continue
+
                 # Skip overloaded processors unaware of underloaded ones
                 if not p_src.underloads:
                     n_ignored += 1
                     continue
 
-                # Otherwise keep track of indices of underloaded processors
-                p_keys = p_src.underloads.keys()
+                # Compute empirical CMF given known underloads
+                p_cmf = p_src.compute_cmf_underloads(self.average_load)
 
-                # Compute excess load and attempt to transfer if any
-                l_src = p_src.get_load()
-                l_exc = l_src - l_thr
-                if l_exc > 0.:
-                    # Compute empirical CMF given known underloads
-                    p_cmf = p_src.compute_cmf_underloads(self.average_load)
+                # Report on overloaded processors when requested
+                if self.verbose:
+                    print("\texcess load of processor {}: {}".format(
+                        p_src.get_id(),
+                        l_exc))
+                    print("\tknown underloaded processors: {}".format(
+                        [u.get_id() for u in p_src.underloads]))
+                    print("\tCMF_{} = {}".format(
+                        p_src.get_id(),
+                        p_cmf))
 
-                    # Report on picked object when requested
-                    if self.verbose:
-                        print("\tproc_{} excess load = {}".format(
-                            p_src.get_id(),
-                            l_exc))
-                        print("\tCMF_{} = {}".format(
-                            p_src.get_id(),
-                            p_cmf))
+                # Keep track of indices of underloaded processors
+                p_keys = list(p_src.underloads.keys())
 
-                    # Offload objects for as long as necessary and possible
-                    obj_it = iter(p_src.objects)
-                    while l_exc > 0.:
-                        # Pick next object
-                        try:
-                            o = obj_it.next()
-                        except:
-                            # List of objects is exhausted, break out
-                            break
+                # Offload objects for as long as necessary and possible
+                obj_it = iter(p_src.objects)
+                while l_exc > 0.:
+                    # Pick next object
+                    try:
+                        o = next(obj_it)
+                    except:
+                        # List of objects is exhausted, break out
+                        break
 
-                        # Pseudo-randomly select destination proc
-                        p_dst = lbsStatistics.inverse_transform_sample(
-                            p_keys,
-                            p_cmf)
+                    # Pseudo-randomly select destination proc
+                    p_dst = lbsStatistics.inverse_transform_sample(
+                        p_keys,
+                        p_cmf)
 
-                        # Decide about proposed transfer
-                        if transfer_criterion.compute(o, p_src, p_dst) < 0.:
-                            # Reject proposed transfer
-                            n_rejects += 1
+                    # Decide about proposed transfer
+                    if transfer_criterion.compute(o, p_src, p_dst) < 0.:
+                        # Reject proposed transfer
+                        n_rejects += 1
 
-                            # Report on rejected object transfer when requested
-                            if self.verbose:
-                                print("\t\tprocessor {} declined transfer of object {} ({})".format(
-                                    p_dst.get_id(),
-                                    o.get_id(),
-                                    o.get_time()))
-                        else:
-                            # Accept proposed transfer
-                            if self.verbose:
-                                print("\t\ttransfering object {} ({}) to processor {}".format(
-                                    o.get_id(),
-                                    o.get_time(),
-                                    p_dst.get_id()))
+                        # Report on rejected object transfer when requested
+                        if self.verbose:
+                            print("\t\tprocessor {} declined transfer of object {} ({})".format(
+                                p_dst.get_id(),
+                                o.get_id(),
+                                o.get_time()))
+                    else:
+                        # Accept proposed transfer
+                        if self.verbose:
+                            print("\t\ttransfering object {} ({}) to processor {}".format(
+                                o.get_id(),
+                                o.get_time(),
+                                p_dst.get_id()))
 
-                            # Transfer object and decrease excess load
-                            p_src.objects.remove(o)
-                            obj_it = iter(p_src.objects)
-                            p_dst.objects.add(o)
-                            l_exc -= o.get_time()
-                            n_transfers += 1
+                        # Transfer object and decrease excess load
+                        p_src.objects.remove(o)
+                        obj_it = iter(p_src.objects)
+                        p_dst.objects.add(o)
+                        l_exc -= o.get_time()
+                        n_transfers += 1
 
             # Edges cache is no longer current
             self.phase.invalidate_edges()
@@ -324,7 +327,7 @@ class Runtime:
                 print(bcolors.HEADER
                     + "[RunTime] "
                     + bcolors.END
-                    + "no transfers were proposed")
+                    + "No transfers were proposed")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(
