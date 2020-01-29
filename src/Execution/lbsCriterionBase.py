@@ -139,7 +139,7 @@ class CriterionBase:
             return None
 
         #Try to load corresponding module
-        module = importlib.import_module(m_name)
+        m_name = "Execution.lbs{}".format(c_name)
         try:
             module = importlib.import_module(m_name)
         except:
