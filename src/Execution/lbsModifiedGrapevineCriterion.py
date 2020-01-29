@@ -58,7 +58,7 @@ for m in [
         print("*  WARNING: Failed to import {}. {}.".format(m, e))
         globals()[has_flag] = False
 
-from lbsCriterionBase   import CriterionBase
+from Execution.lbsCriterionBase   import CriterionBase
 
 ########################################################################
 class ModifiedGrapevineCriterion(CriterionBase):

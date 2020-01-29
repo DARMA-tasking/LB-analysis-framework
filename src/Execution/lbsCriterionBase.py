@@ -85,8 +85,8 @@ class CriterionBase:
 
         # Assert that all members of said list are indeed processor instances
         n_p = len(processors)
-        if n_p != len(
-            filter(lambda x: isinstance(x, lbsProcessor.Processor), processors)):
+        if n_p != len(list(
+            filter(lambda x: isinstance(x, lbsProcessor.Processor), processors))):
             print(bcolors.ERR
                 + "*  ERROR: Could not create a LBS criterion without a set of Processor instances"
                 + bcolors.END)
@@ -101,8 +101,8 @@ class CriterionBase:
 
         # Assert that all members of said dictionary are indeed frozen sets
         n_e = len(edges)
-        if n_e != len(
-            filter(lambda x: isinstance(x, frozenset), edges)):
+        if n_e != len(list(
+            filter(lambda x: isinstance(x, frozenset), edges))):
             print(bcolors.ERR
                 + "*  ERROR: Could not create a LBS criterion without a dictionary of frozen sets"
                 + bcolors.END)
@@ -140,7 +140,6 @@ class CriterionBase:
 
         #Try to load corresponding module
         m_name = "Execution.lbs{}".format(c_name)
-
         try:
             module = importlib.import_module(m_name)
         except:

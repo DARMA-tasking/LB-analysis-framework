@@ -354,24 +354,23 @@ class Runtime:
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Load imbalance({}) = {:.6g}; "
-                   "min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
+                + "Load imbalance({}) = {:.6g}; min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}".format(
                 iteration,
                 l_imb,
                 l_min,
                 l_max,
                 self.average_load,
-                math.sqrt(l_var))
+                math.sqrt(l_var)))
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
                 + "Weight imbalance({}) = {:.6g}; "
-                   "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}").format(
+                   "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}".format(
                 iteration,
                 w_imb,
                 n_w,
                 w_max,
                 w_ave,
-                math.sqrt(w_var))
+                math.sqrt(w_var)))
 
 ########################################################################
