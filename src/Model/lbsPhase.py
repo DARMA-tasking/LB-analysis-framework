@@ -88,7 +88,7 @@ class Phase:
 
         # Start with empty edges cache
         self.edges = {}
-        self.edges_cached = False
+        self.cached_edges = False
 
     ####################################################################
     def get_processors(self):
@@ -175,7 +175,7 @@ class Phase:
                             self.edges[index]))
 
         # Edges cache was fully updated
-        self.edges_cached = True
+        self.cached_edges = True
 
         # Report on computed edges
         n_procs = len(self.processors)
@@ -205,21 +205,27 @@ class Phase:
         """
 
         # Force recompute if edges cache is not current
-        if not self.edges_cached:
+        if not self.cached_edges:
             self.compute_edges()
 
         # Return cached edges
         return self.edges
 
     ####################################################################
-    def invalidate_edges(self):
-        """Mark edges cache as being no longer current
+    def invalidate_caches(self, cached_l):
+        """Reset all caches
         """
 
-        self.edges_cached = False
+        # Mark cached edges as no longer current
+        self.cached_edges = False
+
+        # Reset cached processor loads when relevant
+        if cached_l:
+            for p in self.processors:
+                p.reset_cached_load()
 
     ####################################################################
-    def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
+    def populate_from_samplers(self, n_o, cached_l, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an phase
         """
 
@@ -320,7 +326,7 @@ class Phase:
                                                 self.verbose)
 
         # Create n_p processors
-        self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
+        self.processors = [lbsProcessor.Processor(i, cached_l) for i in range(n_p)]
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
@@ -365,7 +371,7 @@ class Phase:
                     p.get_object_ids()))
 
     ####################################################################
-    def populate_from_log(self, n_p, t_s, basename):
+    def populate_from_log(self, n_p, cached_l, t_s, basename):
         """Populate this phase by reading in a load profile from log files
         """
 
@@ -379,7 +385,7 @@ class Phase:
             + "Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
             basename))
-        self.processors = reader.read_iteration(n_p, t_s)
+        self.processors = reader.read_iteration(n_p, cached_l, t_s)
         
         # Compute and report object statistics
         objects = set()

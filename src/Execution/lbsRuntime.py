@@ -129,7 +129,7 @@ class Runtime:
             "communication weight imbalance": [w_imb]}
 
     ####################################################################
-    def execute(self, n_iterations, n_rounds, f, r_threshold):
+    def execute(self, n_iterations, n_rounds, f, r_threshold, cached_l=False):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
@@ -213,11 +213,11 @@ class Runtime:
                             p.get_id(),
                             [p_u.get_id() for p_u in p.underloaded]))
 
-            # Initialize load-balancing step
+            # Initialize migration step
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Transferring overloads above relative threshold of {}".format(
+                + "Migrating overloads above relative threshold of {}".format(
                 r_threshold))
             n_ignored = 0
             n_transfers = 0
@@ -307,29 +307,28 @@ class Runtime:
                         l_exc -= o.get_time()
                         n_transfers += 1
 
-            # Edges cache is no longer current
-            self.phase.invalidate_edges()
-
-            # Report about what happened in that iteration
+            # Invalidate caches and report on what happened in that iteration
+            self.phase.invalidate_caches(cached_l)
             print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "{} processors did not participate".format(
-                n_ignored))
+                  + "[RunTime] "
+                  + bcolors.END
+                  + "Iteration complete ({} skipped processors)".format(
+                      n_ignored))
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 print(bcolors.HEADER
-                    + "[RunTime] "
-                    + bcolors.END
-                    + "{} transfers occurred, {} were rejected ({}% of total)".format(
-                    n_transfers,
-                    n_rejects,
-                    100. * n_rejects / n_proposed))
+                      + "[RunTime] "
+                      + bcolors.END
+                      + "{} proposed migrations, {} occurred, {} rejected ({:.4}%)".format(
+                          n_proposed,
+                          n_transfers,
+                          n_rejects,
+                          100. * n_rejects / n_proposed))
             else:
                 print(bcolors.HEADER
-                    + "[RunTime] "
-                    + bcolors.END
-                    + "No transfers were proposed")
+                      + "[RunTime] "
+                      + bcolors.END
+                      + "No transfers were proposed")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append(map(

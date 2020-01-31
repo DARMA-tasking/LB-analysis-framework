@@ -48,6 +48,7 @@ lbsProcessor_module_aliases = {
 for m in [
     "bcolors",
     "random",
+    "math",
     "sys",
     ]:
     has_flag = "has_" + m
@@ -63,19 +64,22 @@ for m in [
         globals()[has_flag] = False
 
 from Model import lbsObject, lbsMessage
-import time
+
 ########################################################################
 class Processor:
     """A class representing a processor to which objects are assigned
     """
 
     ####################################################################
-    def __init__(self, i, o=set()):
+    def __init__(self, i, c=False, o=set()):
         # Member variables passed by constructor
-        self.index   = i
+        self.index = i
         self.objects = set()
         for obj in o:
             self.add_object(obj)
+
+        # No load was cached initially when enabled
+        self.cached_load = -1 if c else math.inf
 
         # No underload information is known initially
         self.underloaded = set()
@@ -122,10 +126,30 @@ class Processor:
 
     ####################################################################
     def get_load(self):
-        """Return total load assigned to processor
+        """Return either cached or computed total load on processor
         """
 
-        return sum([o.get_time() for o in self.objects])
+        # Decide whether cached load shall be used
+        if self.cached_load < math.inf:
+            # Use cached load
+            if self.cached_load < 0:
+                # Compute cached load if not initialized
+                self.cached_load = sum([o.get_time() for o in self.objects])
+
+            # Return cached load
+            return self.cached_load
+        else:
+            # Return current load
+            return sum([o.get_time() for o in self.objects])
+
+    ####################################################################
+    def reset_cached_load(self):
+        """Reset cached load to invalid value
+        """
+
+        # Decide whether cached load shall be used
+        if self.cached_load < math.inf:
+            self.cached_load = -1
 
     ####################################################################
     def initialize_underloads(self, procs, l_ave, f):

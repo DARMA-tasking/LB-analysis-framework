@@ -112,7 +112,7 @@ class LoadReader:
             self.file_prefix, node_id)
 
     ####################################################################
-    def read(self, node_id, time_step=-1, comm=False):
+    def read(self, node_id, cached_l, time_step=-1, comm=False):
         """Read the file for a given node/rank. If time_step==-1 then all
         steps are read from the file; otherwise, only `time_step` is.
         """
@@ -159,7 +159,7 @@ class LoadReader:
                         obj = lbsObject.Object(o_id, time, node_id)
 
                         # If this iteration was never encoutered initialize proc object
-                        iter_map.setdefault(phase, lbsProcessor.Processor(node_id))
+                        iter_map.setdefault(phase, lbsProcessor.Processor(node_id, cached_l))
 
                         # Add object to processor
                         iter_map[phase].add_object(obj)
@@ -204,7 +204,7 @@ class LoadReader:
         return iter_map
 
     ####################################################################
-    def read_iteration(self, n_p, time_step):
+    def read_iteration(self, n_p, cached_l, time_step):
         """Read all the data in the range of procs [0..n_p) for a given
         iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
         into a list of processors to be returned for the given iteration.
@@ -216,7 +216,7 @@ class LoadReader:
         # Iterate over all processors
         for p in range(n_p):
             # Read data for given iteration and assign it to processor
-            proc_iter_map = self.read(p, time_step)
+            proc_iter_map = self.read(p, cached_l, time_step)
 
             # Try to retrieve processor information at given time-step
             try:

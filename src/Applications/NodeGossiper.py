@@ -117,6 +117,9 @@ class ggParameters:
         self.weight_sampler_type = None
         self.weight_sampler_parameters = []
 
+        # Asynchronous (cached) loads  enabled
+        self.asynchronous_loads_enabled = False
+
         # Object communication graph degree (constant for now)
         self.communication_degree = 0
 
@@ -174,6 +177,8 @@ class ggParameters:
         print("\t [-s <ts>]   time stepping for reading VT load logs")
         print("\t [-l <blog>] base file name for reading VT load logs")
         print("\t [-m <bmap>] base file name for VT object/proc mapping")
+        print("\t [-a]        use asynchronous (cached) processor loads "
+              "(disbled by default) ")
         print("\t [-d <d>]    object communication degree "
               "(no communication if 0) ")
         print("\t [-v]        make standard output more verbose")
@@ -190,7 +195,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "c:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:veh")
+                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:veh")
         except getopt.GetoptError:
             print(bcolors.ERR
                 + "** ERROR: incorrect command line arguments."
@@ -205,7 +210,12 @@ class ggParameters:
             except:
                 i = None
 
-            if o == '-c':
+            if o == '-h':
+                self.usage()
+                sys.exit(0)
+            elif o == '-a':
+                self.asynchronous_loads_enabled = True
+            elif o == '-c':
                 self.criterion = i
             elif o == '-i':
                 if i > -1:
@@ -256,9 +266,6 @@ class ggParameters:
                 self.verbose = True
             elif o == '-e':
                 self.exodus = True
-            elif o == '-h':
-                self.usage()
-                sys.exit(0)
 
 	# Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
@@ -397,17 +404,20 @@ if __name__ == '__main__':
     # Initialize random number generator
     lbsStatistics.initialize()
 
-    # Create an phase and populate it
+    # Create a phase and populate it
     phase = lbsPhase.Phase(0, params.verbose)
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
+                                      params.asynchronous_loads_enabled,
                                       params.time_step,
                                       params.log_file)
+
 
     else:
         # Populate phase pseudo-randomly
         phase.populate_from_samplers(params.n_objects,
+                                     params.asynchronous_loads_enabled,
                                      params.time_sampler_type,
                                      params.time_sampler_parameters,
                                      params.communication_degree,
@@ -436,7 +446,8 @@ if __name__ == '__main__':
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
-               params.threshold)
+               params.threshold,
+               params.asynchronous_loads_enabled)
 
     # Create mapping from processor to Cartesian grid
     print(bcolors.HEADER
