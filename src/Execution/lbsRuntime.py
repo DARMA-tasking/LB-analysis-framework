@@ -171,7 +171,8 @@ class Runtime:
 
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
-                list(map(p_rcv.process_underload_message, msg_lst))
+                for m in msg_lst:
+                    p_rcv.process_underload_message(m)
 
             # Report on current status when requested
             if self.verbose:
@@ -202,7 +203,8 @@ class Runtime:
 
                 # Process all messages of first round
                 for p_rcv, msg_lst in gossips.items():
-                    list(map(p_rcv.process_underload_message, msg_lst))
+                    for m in msg_lst:
+                        p_rcv.process_underload_message(m)
 
                 # Report on current status when requested
                 if self.verbose:
