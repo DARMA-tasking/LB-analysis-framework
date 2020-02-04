@@ -117,7 +117,7 @@ class ggParameters:
         self.weight_sampler_type = None
         self.weight_sampler_parameters = []
 
-        # Asynchronous (cached) loads  enabled
+        # Asynchronous (cached) recipient loads  enabled
         self.asynchronous_loads_enabled = False
 
         # Object communication graph degree (constant for now)
@@ -177,8 +177,8 @@ class ggParameters:
         print("\t [-s <ts>]   time stepping for reading VT load logs")
         print("\t [-l <blog>] base file name for reading VT load logs")
         print("\t [-m <bmap>] base file name for VT object/proc mapping")
-        print("\t [-a]        use asynchronous (cached) processor loads "
-              "(disbled by default) ")
+        print("\t [-a]        asynchronous provessor load caching"
+              "(disabled by default) ")
         print("\t [-d <d>]    object communication degree "
               "(no communication if 0) ")
         print("\t [-v]        make standard output more verbose")
