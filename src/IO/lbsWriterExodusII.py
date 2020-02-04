@@ -123,7 +123,7 @@ class WriterExodusII:
             return
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
-        n_e = n_p * (n_p - 1) / 2
+        n_e = int(n_p * (n_p - 1) / 2)
         print(bcolors.HEADER
             + "[WriterExodusII] "
             + bcolors.END
