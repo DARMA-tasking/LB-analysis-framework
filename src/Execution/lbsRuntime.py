@@ -227,14 +227,31 @@ class Runtime:
 
                 # Update viewers on underloaded processors known to this one
                 p.add_as_overloaded_viewer(p.get_known_underloaded())
+                
+            # Report on viewers of underloaded processors
+            viewers_cardinalities = []
+            for p in procs:
+                # Skip non underloaded processors
+                if not p.get_load() < self.average_load:
+                    continue
 
-            # Report on viewers of underloaded processors when requested
-            if self.verbose:
-                for p in procs:
+                # Retrieve cardinality of viewers
+                viewers = p.get_overloaded_viewers()
+                viewers_cardinalities.append(len(viewers))
+
+                # Report on processor viewers when requested
+                if self.verbose:
                     print("\toverloaded viewers of processor {}: {}".format(
                         p.get_id(),
-                        [p_o.get_id() for p_o in p.get_overloaded_viewers()]))
-                        
+                        [p_o.get_id() for p_o in viewers]))
+
+            # Compute and print statistics of viewers cardinalities
+            lbsStatistics.print_function_statistics(
+                viewers_cardinalities,
+                lambda x: x,
+                "viewers cardinalities",
+                self.verbose)
+            
             # Initialize migration step
             print(bcolors.HEADER
                 + "[RunTime] "

@@ -155,7 +155,7 @@ class Processor:
 
         # Add self as viewer of each of provided underloaded processors
         for p in underloaded_processors:
-            self.overloaded_viewers.add(p)
+            p.overloaded_viewers.add(self)
 
     ####################################################################
     def get_load(self):
@@ -205,18 +205,20 @@ class Processor:
         l = self.get_load()
 
         # Initialize underload information at first pass
-        if l < l_ave:
-            self.known_underloaded = set([self])
-            self.known_underloads[self] = l
 
-            # Create underload message tagged at first round
-            msg = lbsMessage.Message(1, (self.known_underloaded, self.known_underloads))
+        # Return empty underload information if processor not underloaded
+        if not l < l_ave:
+            return [], None
+            
+        # Make underloaded processor aware of being underloaded
+        self.known_underloaded = set([self])
+        self.known_underloads[self] = l
 
-            # Broadcast underloads to pseudo-random sample of procs excluding self
-            return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
+        # Create underload message tagged at first round
+        msg = lbsMessage.Message(1, (self.known_underloaded, self.known_underloads))
 
-        # This processor is not underloaded if this point was reached
-        return [], None
+        # Broadcast underloads to pseudo-random sample of procs excluding self
+        return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
 
     ####################################################################
     def forward_underloads(self, r, procs, f):
