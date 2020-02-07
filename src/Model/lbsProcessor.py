@@ -81,9 +81,12 @@ class Processor:
         # No load was cached initially when enabled
         self.cached_load = -1 if c else math.inf
 
-        # No underload information is known initially
-        self.underloaded = set()
-        self.underloads = {}
+        # No information about underloads is known initially
+        self.known_underloaded = set()
+        self.known_underloads = {}
+
+        # No overloaded viewers exist initially
+        self.overloaded_viewers = set()
 
         # No message was received initially
         self.round_last_received = 0
@@ -101,6 +104,20 @@ class Processor:
         """
 
         return self.objects
+
+    ####################################################################
+    def get_known_underloaded(self):
+        """Return underloaded peers know to self
+        """
+
+        return self.known_underloaded
+
+    ####################################################################
+    def get_known_underloads(self):
+        """Return underloads peers know to self
+        """
+
+        return self.known_underloads
 
     ####################################################################
     def get_object_ids(self):
@@ -152,6 +169,18 @@ class Processor:
             self.cached_load = -1
 
     ####################################################################
+    def reset_all_load_information(self):
+        """Reset all underload information known to self
+        """
+
+        # Reset information about known underloaded peers
+        self.known_underloaded = set()
+        self.known_underloads = {}
+
+        # Reset information about overloaded viwewer peers
+        self.overloaded_viewers = set()
+
+    ####################################################################
     def initialize_underloads(self, procs, l_ave, f):
         """Initialize underloads when needed to sample of selected peers
         """
@@ -161,11 +190,11 @@ class Processor:
 
         # Initialize underload information at first pass
         if l < l_ave:
-            self.underloaded = set([self])
-            self.underloads[self] = l
+            self.known_underloaded = set([self])
+            self.known_underloads[self] = l
 
             # Create underload message tagged at first round
-            msg = lbsMessage.Message(1, (self.underloaded, self.underloads))
+            msg = lbsMessage.Message(1, (self.known_underloaded, self.known_underloads))
 
             # Broadcast underloads to pseudo-random sample of procs excluding self
             return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
@@ -179,10 +208,10 @@ class Processor:
         """
 
         # Compute complement of set of underloaded processors
-        c_procs = procs.difference(self.underloaded).difference([self])
+        c_procs = procs.difference(self.known_underloaded).difference([self])
 
         # Create underload message tagged at current round
-        msg = lbsMessage.Message(r, (self.underloaded, self.underloads))
+        msg = lbsMessage.Message(r, (self.known_underloaded, self.known_underloads))
 
         # Forward underloads to pseudo-random sample of procs
         return rnd.sample(c_procs, min(f, len(c_procs))), msg
@@ -209,14 +238,14 @@ class Processor:
             return
 
         # Union received set of underloaded procs with current one
-        self.underloaded.update(info[0])
+        self.known_underloaded.update(info[0])
 
         # Update underload information
-        self.underloads.update(info[1])
+        self.known_underloads.update(info[1])
 
         # Sanity check
-        l1 = len(self.underloaded)
-        l2 = len(self.underloads)
+        l1 = len(self.known_underloaded)
+        l2 = len(self.known_underloads)
         if l1 != l2:
             print(bcolors.ERR
                 + "** ERROR: cannot process message {} at processor {}. Exiting.".format(
@@ -243,7 +272,7 @@ class Processor:
             inv_l_ave = 1. / l_ave
 
             # Iterate over all underloads
-            for l in self.underloads.values():
+            for l in self.known_underloads.values():
                 # Update CMF
                 sum_p += 1. - inv_l_ave * l
 

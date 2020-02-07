@@ -160,9 +160,8 @@ class Runtime:
 
             # Iterate over all processors
             for p_snd in procs:
-                # Reset underload information
-                p_snd.underloaded = set()
-                p_snd.underloads = {}
+                # Reset underload information known by sender
+                p_snd.reset_all_load_information()
 
                 # Collect message when destination list is not empty
                 dst, msg = p_snd.initialize_underloads(procs, self.average_load, f)
@@ -179,7 +178,7 @@ class Runtime:
                 for p in procs:
                     print("\tunderloaded known to processor {}: {}".format(
                         p.get_id(),
-                        [p_u.get_id() for p_u in p.underloaded]))
+                        [p_u.get_id() for p_u in p.get_known_underloaded()]))
 
             # Forward messages for as long as necessary and requested
             while gossip_round < n_rounds:
@@ -211,7 +210,7 @@ class Runtime:
                     for p in procs:
                         print("\tunderloaded known to processor {}: {}".format(
                             p.get_id(),
-                            [p_u.get_id() for p_u in p.underloaded]))
+                            [p_u.get_id() for p_u in p.get_known_underloaded()]))
 
             # Initialize migration step
             print(bcolors.HEADER
@@ -245,7 +244,8 @@ class Runtime:
                     continue
 
                 # Skip overloaded processors unaware of underloaded ones
-                if not p_src.underloads:
+                underloads = p_src.get_known_underloads()
+                if not underloads:
                     n_ignored += 1
                     continue
 
@@ -258,13 +258,13 @@ class Runtime:
                         p_src.get_id(),
                         l_exc))
                     print("\tknown underloaded processors: {}".format(
-                        [u.get_id() for u in p_src.underloads]))
+                        [u.get_id() for u in underloads]))
                     print("\tCMF_{} = {}".format(
                         p_src.get_id(),
                         p_cmf))
 
-                # Keep track of indices of underloaded processors
-                p_keys = list(p_src.underloads.keys())
+                # Store keys of underloaded processors
+                p_keys = list(underloads.keys())
 
                 # Offload objects for as long as necessary and possible
                 obj_it = iter(p_src.objects)
