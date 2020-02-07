@@ -248,10 +248,11 @@ class Processor:
         l2 = len(self.known_underloads)
         if l1 != l2:
             print(bcolors.ERR
-                + "** ERROR: cannot process message {} at processor {}. Exiting.".format(
-                info,
-                self.get_id())
-                + bcolors.END)
+                  + "** ERROR: cannot process message at processor {}: {}<>{}. Exiting.".format(
+                      self.get_id(),
+                      l1,
+                      l2)
+                  + bcolors.END)
             sys.exit(1)
 
         # Update last received message index
