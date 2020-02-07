@@ -106,6 +106,13 @@ class Processor:
         return self.objects
 
     ####################################################################
+    def get_object_ids(self):
+        """Return IDs of objects assigned to processor
+        """
+
+        return [o.get_id() for o in self.objects]
+
+    ####################################################################
     def get_known_underloaded(self):
         """Return underloaded peers know to self
         """
@@ -120,11 +127,11 @@ class Processor:
         return self.known_underloads
 
     ####################################################################
-    def get_object_ids(self):
-        """Return IDs of objects assigned to processor
+    def get_overloaded_viewers(self):
+        """Return overloaded peers knowing about self
         """
 
-        return [o.get_id() for o in self.objects]
+        return self.overloaded_viewers
 
     ####################################################################
     def add_object(self, o):
@@ -134,12 +141,21 @@ class Processor:
         # Assert that object has the expected type
         if not isinstance(o, lbsObject.Object):
             print(bcolors.WARN
-                + "*  WARNING: attempted to add object of incorrect type {}. Ignoring it.".format(type(o))
-            + bcolors.END)
+                  + "*  WARNING: attempted to add object of incorrect type {}. Ignoring it.".format(type(o))
+                  + bcolors.END)
             return
 
         # Passed object has expected type, add it
         self.objects.add(o)
+
+    ####################################################################
+    def add_as_overloaded_viewer(self, underloaded_processors):
+        """Add self as viewer to underloaded peers
+        """
+
+        # Add self as viewer of each of provided underloaded processors
+        for p in underloaded_processors:
+            self.overloaded_viewers.add(p)
 
     ####################################################################
     def get_load(self):

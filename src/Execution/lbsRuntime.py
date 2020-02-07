@@ -173,7 +173,7 @@ class Runtime:
                 for m in msg_lst:
                     p_rcv.process_underload_message(m)
 
-            # Report on current status when requested
+            # Report on gossiping status when requested
             if self.verbose:
                 for p in procs:
                     print("\tunderloaded known to processor {}: {}".format(
@@ -205,13 +205,36 @@ class Runtime:
                     for m in msg_lst:
                         p_rcv.process_underload_message(m)
 
-                # Report on current status when requested
+                # Report on gossiping status when requested
                 if self.verbose:
                     for p in procs:
                         print("\tunderloaded known to processor {}: {}".format(
                             p.get_id(),
                             [p_u.get_id() for p_u in p.get_known_underloaded()]))
 
+            # Determine overload threshold
+            l_thr = r_threshold * self.average_load
+
+            # Build reverse lookup of underloaded to overloaded viewers
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Building maps of underloaded processors to overloaded viewers")
+            for p in procs:
+                # Skip non-overloaded processors
+                if not p.get_load() - l_thr > 0.:
+                    continue
+
+                # Update viewers on underloaded processors known to this one
+                p.add_as_overloaded_viewer(p.get_known_underloaded())
+
+            # Report on viewers of underloaded processors when requested
+            if self.verbose:
+                for p in procs:
+                    print("\toverloaded viewers of processor {}: {}".format(
+                        p.get_id(),
+                        [p_o.get_id() for p_o in p.get_overloaded_viewers()]))
+                        
             # Initialize migration step
             print(bcolors.HEADER
                 + "[RunTime] "
@@ -235,11 +258,9 @@ class Runtime:
                 sys.exit(1)
 
             # Iterate over processors and pick those with above threshold load
-            l_thr = r_threshold * self.average_load
             for p_src in procs:
                 # Skip non-overloaded processors
-                l_src = p_src.get_load()
-                l_exc = l_src - l_thr
+                l_exc = p_src.get_load() - l_thr
                 if not l_exc > 0.:
                     continue
 
