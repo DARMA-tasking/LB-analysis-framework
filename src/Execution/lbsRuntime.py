@@ -216,10 +216,6 @@ class Runtime:
             l_thr = r_threshold * self.average_load
 
             # Build reverse lookup of underloaded to overloaded viewers
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Building maps of underloaded processors to overloaded viewers")
             for p in procs:
                 # Skip non-overloaded processors
                 if not p.get_load() - l_thr > 0.:
@@ -239,19 +235,25 @@ class Runtime:
                 viewers = p.get_overloaded_viewers()
                 viewers_cardinalities.append(len(viewers))
 
-                # Report on processor viewers when requested
+                # Report on viewers of underloaded processor when requested
                 if self.verbose:
                     print("\toverloaded viewers of processor {}: {}".format(
                         p.get_id(),
                         [p_o.get_id() for p_o in viewers]))
 
-            # Compute and print statistics of viewers cardinalities
-            lbsStatistics.print_function_statistics(
+            # Compute statistics of viewers cardinalities
+            n_u, v_min, v_ave, v_max, _, _, _, _ = lbsStatistics.compute_function_statistics(
                 viewers_cardinalities,
-                lambda x: x,
-                "viewers cardinalities",
-                self.verbose)
-            
+                lambda x: x)
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Found average of {} viewers (min: {} max: {}) for {} underloaded processors".format(
+                      v_min,
+                      v_ave,
+                      v_max,
+                      n_u))
+
             # Initialize migration step
             print(bcolors.HEADER
                 + "[RunTime] "
