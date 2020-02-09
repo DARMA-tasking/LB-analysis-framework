@@ -135,19 +135,41 @@ class Processor:
 
     ####################################################################
     def add_object(self, o):
-        """Assign object to processor
+        """Assign object to self
         """
 
-        # Assert that object has the expected type
+        # Assert that given object has the expected type
         if not isinstance(o, lbsObject.Object):
             print(bcolors.WARN
                   + "*  WARNING: attempted to add object of incorrect type {}. Ignoring it.".format(type(o))
                   + bcolors.END)
             return
 
-        # Passed object has expected type, add it
+        # Given object has expected type, add it
         self.objects.add(o)
 
+    ####################################################################
+    def remove_object(self, o, p_dst):
+        """Remove from self object sent to peer
+        """
+
+        # Remove object from those assigned to self
+        self.objects.remove(o)
+
+        # Update known underloads
+        l_o = o.get_time()
+        l_dst = self.known_underloads[p_dst]
+        if l_dst + l_o > sum([o.get_time() for o in self.objects]):
+            # Remove destination from underloaded if more loaded than self
+            self.known_underloaded.remove(p_dst)
+            del self.known_underloads[p_dst]
+        else:
+            # Update load
+            self.known_underloads[p_dst] += l_o
+
+        # Return removed object time
+        return l_o
+        
     ####################################################################
     def add_as_overloaded_viewer(self, underloaded_processors):
         """Add self as viewer to underloaded peers

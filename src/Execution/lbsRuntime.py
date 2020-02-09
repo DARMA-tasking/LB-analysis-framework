@@ -225,7 +225,7 @@ class Runtime:
                 p.add_as_overloaded_viewer(p.get_known_underloaded())
                 
             # Report on viewers of underloaded processors
-            viewers_cardinalities = []
+            viewers_counts = {}
             for p in procs:
                 # Skip non underloaded processors
                 if not p.get_load() < self.average_load:
@@ -233,7 +233,7 @@ class Runtime:
 
                 # Retrieve cardinality of viewers
                 viewers = p.get_overloaded_viewers()
-                viewers_cardinalities.append(len(viewers))
+                viewers_counts[p] = len(viewers)
 
                 # Report on viewers of underloaded processor when requested
                 if self.verbose:
@@ -241,14 +241,14 @@ class Runtime:
                         p.get_id(),
                         [p_o.get_id() for p_o in viewers]))
 
-            # Compute statistics of viewers cardinalities
+            # Report viewers counts to underloaded processors
             n_u, v_min, v_ave, v_max, _, _, _, _ = lbsStatistics.compute_function_statistics(
-                viewers_cardinalities,
+                viewers_counts.values(),
                 lambda x: x)
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Found average of {} viewers (min: {} max: {}) for {} underloaded processors".format(
+                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} underloaded processors".format(
                       v_min,
                       v_ave,
                       v_max,
@@ -260,9 +260,7 @@ class Runtime:
                 + bcolors.END
                 + "Migrating overloads above relative threshold of {}".format(
                 r_threshold))
-            n_ignored = 0
-            n_migrates = 0
-            n_rejects = 0
+            n_ignored, n_migrates, n_rejects = 0, 0, 0
 
             # Instantiate object migration criterion
             migrate_criterion = lbsCriterionBase.CriterionBase.factory(
@@ -340,13 +338,11 @@ class Runtime:
                                 o.get_time(),
                                 p_dst.get_id()))
 
-                        # Migrate object and decrease excess load
-                        p_src.objects.remove(o)
-                        obj_it = iter(p_src.objects)
-                        p_dst.objects.add(o)
-                        l_exc -= o.get_time()
+                        # Migrate object
+                        l_exc -= p_src.remove_object(o, p_dst)
+                        p_dst.add_object(o)
                         n_migrates += 1
-
+ 
             # Invalidate caches and report on what happened in that iteration
             self.phase.invalidate_caches(cached_l)
             print(bcolors.HEADER
