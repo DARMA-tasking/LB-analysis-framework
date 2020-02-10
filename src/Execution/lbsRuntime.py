@@ -87,6 +87,9 @@ class Runtime:
         else:
             self.phase = p
 
+        # Use of actual destination load when relevant for criterion
+        self.actual_dst_load = a
+
         # Verbosity of runtime
         self.verbose = v
 
@@ -268,7 +271,8 @@ class Runtime:
                 self.Criterion,
                 procs,
                 self.phase.get_edges(),
-                {"average_load": self.average_load})
+                {"average_load": self.average_load,
+                 "actual_destination_load": self.actual_dst_load})
             if not migrate_criterion:
                 print(bcolors.ERR
                     + "*  ERROR: cannot load-balance without a load migration criterion"
