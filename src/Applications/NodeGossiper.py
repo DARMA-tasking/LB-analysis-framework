@@ -93,9 +93,6 @@ class ggParameters:
 
     ###########################################################################
     def __init__(self):
-        # Do not be verbose by default
-        self.verbose = False
-
         # By default use modified Grapevine criterion
         self.criterion = 1
 
@@ -143,8 +140,14 @@ class ggParameters:
         # Base name to save computed object/processor mapping for VT
         self.map_file = None
 
+        # Decide whether actual destination loads should be computed
+        self.actual_dst_load = False
+
         # Decide whether Exodus output should be written
         self.exodus = False
+
+        # Do not be verbose by default
+        self.verbose = False
 
     ###########################################################################
     def usage(self):
@@ -435,7 +438,7 @@ if __name__ == '__main__':
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(phase, params.criterion, params,actual_dst_load, params.verbose)
+    rt = lbsRuntime.Runtime(phase, params.criterion, params.actual_dst_load, params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
