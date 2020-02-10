@@ -66,7 +66,7 @@ class ModifiedGrapevineCriterion(CriterionBase):
     """
 
     ####################################################################
-    def __init__(self, processors, edges, _):
+    def __init__(self, processors, edges, parameters):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
         edges: dictionary of edges (frozensets)
@@ -80,12 +80,17 @@ class ModifiedGrapevineCriterion(CriterionBase):
             + bcolors.END
             + "Instantiated concrete criterion")
 
+        # Use either actual or locally known destination loads
+        self.actual_dst_load = parameters.get("actual_destination_load", False)
+
     ####################################################################
     def compute(self, object, p_src, p_dst):
         """Modified Grapevine criterion based on L1 norm of loads
         """
 
         # Criterion only uses object and processor loads
-        return p_src.get_load() - (p_dst.get_load() + object.get_time())
+        return p_src.get_load() - (
+            p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)
+            + object.get_time())
 
 ########################################################################

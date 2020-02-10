@@ -71,15 +71,12 @@ class Processor:
     """
 
     ####################################################################
-    def __init__(self, i, c=False, o=set()):
+    def __init__(self, i, o=set()):
         # Member variables passed by constructor
         self.index = i
         self.objects = set()
         for obj in o:
             self.add_object(obj)
-
-        # No load was cached initially when enabled
-        self.cached_load = -1 if c else math.inf
 
         # No information about underloads is known initially
         self.known_underloaded = set()
@@ -134,19 +131,18 @@ class Processor:
         return self.overloaded_viewers
 
     ####################################################################
-    def add_object(self, o):
+    def add_object(self, o, l_ave=None):
         """Assign object to self
         """
 
-        # Assert that given object has the expected type
-        if not isinstance(o, lbsObject.Object):
-            print(bcolors.WARN
-                  + "*  WARNING: attempted to add object of incorrect type {}. Ignoring it.".format(type(o))
-                  + bcolors.END)
-            return
-
-        # Given object has expected type, add it
+        # Add object from those assigned to self
         self.objects.add(o)
+
+        # Check whether addition makes load above underload threshold
+        if l_ave and not sum([o.get_time() for o in self.objects]) < l_ave:
+            # Remove self from underloaded when present
+            self.known_underloaded.discard(self)
+            self.known_underloads.pop(self, None)
 
     ####################################################################
     def remove_object(self, o, p_dst):
@@ -180,31 +176,18 @@ class Processor:
             p.overloaded_viewers.add(self)
 
     ####################################################################
-    def get_load(self):
-        """Return either cached or computed total load on processor
+    def get_known_underload(self, p):
+        """Return known peer underload when available or infinity
         """
 
-        # Decide whether cached load shall be used
-        if self.cached_load < math.inf:
-            # Use cached load
-            if self.cached_load < 0:
-                # Compute cached load if not initialized
-                self.cached_load = sum([o.get_time() for o in self.objects])
-
-            # Return cached load
-            return self.cached_load
-        else:
-            # Return current load
-            return sum([o.get_time() for o in self.objects])
+        return self.known_underloads.get(p, math.inf)
 
     ####################################################################
-    def reset_cached_load(self):
-        """Reset cached load to invalid value
+    def get_load(self):
+        """Return computed total load on processor
         """
 
-        # Decide whether cached load shall be used
-        if self.cached_load < math.inf:
-            self.cached_load = -1
+        return sum([o.get_time() for o in self.objects])
 
     ####################################################################
     def reset_all_load_information(self):
@@ -225,8 +208,6 @@ class Processor:
 
         # Retrieve current load on this processor
         l = self.get_load()
-
-        # Initialize underload information at first pass
 
         # Return empty underload information if processor not underloaded
         if not l < l_ave:

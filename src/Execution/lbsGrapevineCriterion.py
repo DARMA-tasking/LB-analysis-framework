@@ -70,7 +70,7 @@ class GrapevineCriterion(CriterionBase):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
         edges: dictionary of edges (frozensets)
-        parameters: optional parameters dictionary
+        parameters: parameters dictionary
             average_load: average load across all processors
         """
 
@@ -93,12 +93,17 @@ class GrapevineCriterion(CriterionBase):
                 key)
                 + bcolors.END)
 
+        # Use either actual or locally known destination loads
+        self.actual_dst_load = parameters.get("actual_destination_load", False)
+
     ####################################################################
     def compute(self, object, _, p_dst):
         """Original Grapevine criterion based on Linfinity norm of loads
         """
 
         # Criterion only uses object and processor loads
-        return self.average_load - (p_dst.get_load() + object.get_time())
+        return self.average_load - (
+            p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)
+            + object.get_time())
 
 ########################################################################

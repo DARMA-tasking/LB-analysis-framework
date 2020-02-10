@@ -212,20 +212,14 @@ class Phase:
         return self.edges
 
     ####################################################################
-    def invalidate_caches(self, cached_l):
-        """Reset all caches
+    def invalidate_edge_cache(self):
+        """Mark cached edges as no longer current
         """
 
-        # Mark cached edges as no longer current
         self.cached_edges = False
 
-        # Reset cached processor loads when relevant
-        if cached_l:
-            for p in self.processors:
-                p.reset_cached_load()
-
     ####################################################################
-    def populate_from_samplers(self, n_o, cached_l, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
+    def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an phase
         """
 
@@ -326,7 +320,7 @@ class Phase:
                                                 self.verbose)
 
         # Create n_p processors
-        self.processors = [lbsProcessor.Processor(i, cached_l) for i in range(n_p)]
+        self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
@@ -371,7 +365,7 @@ class Phase:
                     p.get_object_ids()))
 
     ####################################################################
-    def populate_from_log(self, n_p, cached_l, t_s, basename):
+    def populate_from_log(self, n_p, t_s, basename):
         """Populate this phase by reading in a load profile from log files
         """
 
@@ -385,7 +379,7 @@ class Phase:
             + "Reading objects from time-step {} of VOM files with prefix {}".format(
             t_s,
             basename))
-        self.processors = reader.read_iteration(n_p, cached_l, t_s)
+        self.processors = reader.read_iteration(n_p, t_s)
         
         # Compute and report object statistics
         objects = set()

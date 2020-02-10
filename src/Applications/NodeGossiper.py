@@ -116,9 +116,6 @@ class ggParameters:
         self.weight_sampler_type = None
         self.weight_sampler_parameters = []
 
-        # Asynchronous (cached) recipient loads  enabled
-        self.asynchronous_loads_enabled = False
-
         # Object communication graph degree (constant for now)
         self.communication_degree = 0
 
@@ -176,11 +173,10 @@ class ggParameters:
         print("\t [-s <ts>]   time stepping for reading VT load logs")
         print("\t [-l <blog>] base file name for reading VT load logs")
         print("\t [-m <bmap>] base file name for VT object/proc mapping")
-        print("\t [-a]        asynchronous provessor load caching"
-              "(disabled by default) ")
         print("\t [-d <d>]    object communication degree "
               "(no communication if 0) ")
         print("\t [-v]        make standard output more verbose")
+        print("\t [-a]        use actual destination loads")
         print("\t [-e]        generate Exodus type visualization output")
         print("\t [-h]        help: print this message and exit")
         print('')
@@ -212,8 +208,6 @@ class ggParameters:
             if o == '-h':
                 self.usage()
                 sys.exit(0)
-            elif o == '-a':
-                self.asynchronous_loads_enabled = True
             elif o == '-c':
                 self.criterion = i
             elif o == '-i':
@@ -244,10 +238,10 @@ class ggParameters:
                 x = float(a)
                 if x > 1.:
                     self.threshold = x
-            elif o == "-t":
+            elif o == '-t':
                 (self.time_sampler_type,
-                self.time_sampler_parameters) = parse_sampler(a)
-            elif o == "-w":
+                self.tme_sampler_parameters) = parse_sampler(a)
+            elif o == '-w':
                 (self.weight_sampler_type,
                 self.weight_sampler_parameters) = parse_sampler(a)
             elif o == '-s':
@@ -261,10 +255,12 @@ class ggParameters:
                 if i > 0:
                     self.communication_degree = i
                     self.communication_enabled = True
-            elif o == '-v':
-                self.verbose = True
+            elif o == '-a':
+                self.actual_dst_load = True
             elif o == '-e':
                 self.exodus = True
+            elif o == '-v':
+                self.verbose = True
 
 	# Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
@@ -408,7 +404,6 @@ if __name__ == '__main__':
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
-                                      params.asynchronous_loads_enabled,
                                       params.time_step,
                                       params.log_file)
 
@@ -416,7 +411,6 @@ if __name__ == '__main__':
     else:
         # Populate phase pseudo-randomly
         phase.populate_from_samplers(params.n_objects,
-                                     params.asynchronous_loads_enabled,
                                      params.time_sampler_type,
                                      params.time_sampler_parameters,
                                      params.communication_degree,
@@ -441,12 +435,11 @@ if __name__ == '__main__':
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(phase, params.criterion, params.verbose)
+    rt = lbsRuntime.Runtime(phase, params.criterion, params,actual_dst_load, params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
-               params.threshold,
-               params.asynchronous_loads_enabled)
+               params.threshold)
 
     # Create mapping from processor to Cartesian grid
     print(bcolors.HEADER

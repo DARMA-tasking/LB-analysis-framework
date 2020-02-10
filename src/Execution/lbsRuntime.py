@@ -70,11 +70,12 @@ class Runtime:
     """
 
     ####################################################################
-    def __init__(self, p, c, v=False):
+    def __init__(self, p, c, a=False, v=False):
         """Class constructor:
         p: Phase instance
         c: criterion index
-        v: verbose mode True/False
+        a: use actual destination load [FALSE/True]
+        v: verbose mode [FALSE/True]
         """
 
         # If no LBS phase was provided, do not do anything
@@ -129,7 +130,7 @@ class Runtime:
             "communication weight imbalance": [w_imb]}
 
     ####################################################################
-    def execute(self, n_iterations, n_rounds, f, r_threshold, cached_l=False):
+    def execute(self, n_iterations, n_rounds, f, r_threshold):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
@@ -340,11 +341,11 @@ class Runtime:
 
                         # Migrate object
                         l_exc -= p_src.remove_object(o, p_dst)
-                        p_dst.add_object(o)
+                        p_dst.add_object(o, self.average_load)
                         n_migrates += 1
  
-            # Invalidate caches and report on what happened in that iteration
-            self.phase.invalidate_caches(cached_l)
+            # Invalidate cache of edges
+            self.phase.invalidate_edge_cache()
             print(bcolors.HEADER
                   + "[RunTime] "
                   + bcolors.END
