@@ -345,6 +345,7 @@ class Runtime:
 
                         # Migrate object
                         l_exc -= p_src.remove_object(o, p_dst)
+                        obj_it = iter(p_src.objects)
                         p_dst.add_object(o, self.average_load)
                         n_migrates += 1
  

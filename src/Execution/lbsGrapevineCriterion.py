@@ -103,7 +103,9 @@ class GrapevineCriterion(CriterionBase):
 
         # Criterion only uses object and processor loads
         return self.average_load - (
-            p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)
+            (p_dst.get_load()
+             if self.actual_dst_load
+             else p_src.get_known_underload(p_dst))
             + object.get_time())
 
 ########################################################################

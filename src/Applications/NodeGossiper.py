@@ -438,7 +438,10 @@ if __name__ == '__main__':
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(phase, params.criterion, params.actual_dst_load, params.verbose)
+    rt = lbsRuntime.Runtime(phase,
+                            params.criterion,
+                            params.actual_dst_load,
+                            params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
