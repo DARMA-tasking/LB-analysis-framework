@@ -292,26 +292,14 @@ class Runtime:
                     n_ignored += 1
                     continue
 
-                # Compute empirical CMF given known underloads
-                p_cmf = p_src.compute_cmf_underloads(self.average_load)
-
-                # Report on overloaded processors when requested
-                if self.verbose:
-                    print("\texcess load of processor {}: {}".format(
-                        p_src.get_id(),
-                        l_exc))
-                    print("\tknown underloaded processors: {}".format(
-                        [u.get_id() for u in underloads]))
-                    print("\tCMF_{} = {}".format(
-                        p_src.get_id(),
-                        p_cmf))
-
-                # Store keys of underloaded processors
-                p_keys = list(underloads.keys())
-
                 # Offload objects for as long as necessary and possible
                 obj_it = iter(p_src.objects)
                 while l_exc > 0.:
+                    # Leave this processor if it ran out of known underloaded
+                    p_keys = list(p_src.get_known_underloads().keys())
+                    if not p_keys:
+                        break
+
                     # Pick next object
                     try:
                         o = next(obj_it)
@@ -319,10 +307,24 @@ class Runtime:
                         # List of objects is exhausted, break out
                         break
 
+                    # Compute empirical CMF given known underloads
+                    p_cmf = p_src.compute_cmf_underloads(self.average_load)
+
                     # Pseudo-randomly select destination proc
                     p_dst = lbsStatistics.inverse_transform_sample(
                         p_keys,
                         p_cmf)
+
+                    # Report on overloaded processor when requested
+                    if self.verbose:
+                        print("\texcess load of processor {}: {}".format(
+                            p_src.get_id(),
+                            l_exc))
+                        print("\tknown underloaded processors: {}".format(
+                            [u.get_id() for u in underloads]))
+                        print("\tCMF_{} = {}".format(
+                            p_src.get_id(),
+                            p_cmf))
 
                     # Decide about proposed transfer
                     if transfer_criterion.compute(o, p_src, p_dst) < 0.:
@@ -344,6 +346,12 @@ class Runtime:
                                 p_dst.get_id()))
 
                         # Transfer object
+                        if p_dst not in p_src.known_underloads:
+                            print(p_src, p_dst)
+                            print(p_src.get_id(), p_dst.get_id())
+                            print(sorted([p.get_id() for p in p_src.known_underloads]))
+                            print(sorted([p.get_id() for p in p_keys]))
+                            sys.exit(1)
                         l_exc -= p_src.remove_object(o, p_dst)
                         obj_it = iter(p_src.objects)
                         p_dst.add_object(o, self.average_load)

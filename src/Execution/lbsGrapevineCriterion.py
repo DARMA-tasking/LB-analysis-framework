@@ -97,7 +97,7 @@ class GrapevineCriterion(CriterionBase):
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
     ####################################################################
-    def compute(self, object, _, p_dst):
+    def compute(self, object, p_src, p_dst):
         """Original Grapevine criterion based on Linfinity norm of loads
         """
 
