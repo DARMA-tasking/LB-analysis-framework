@@ -93,7 +93,7 @@ class Runtime:
         # Verbosity of runtime
         self.verbose = v
 
-        # Migrate critertion index
+        # Transfer critertion index
         self.Criterion = c
 
         # Initialize load and sent distributions
@@ -258,24 +258,24 @@ class Runtime:
                       v_max,
                       n_u))
 
-            # Initialize migration step
+            # Initialize transfer step
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
                 + "Migrating overloads above relative threshold of {}".format(
                 r_threshold))
-            n_ignored, n_migrates, n_rejects = 0, 0, 0
+            n_ignored, n_transfers, n_rejects = 0, 0, 0
 
-            # Instantiate object migration criterion
-            migrate_criterion = lbsCriterionBase.CriterionBase.factory(
+            # Instantiate object transfer criterion
+            transfer_criterion = lbsCriterionBase.CriterionBase.factory(
                 self.Criterion,
                 procs,
                 self.phase.get_edges(),
                 {"average_load": self.average_load,
                  "actual_destination_load": self.actual_dst_load})
-            if not migrate_criterion:
+            if not transfer_criterion:
                 print(bcolors.ERR
-                    + "*  ERROR: cannot load-balance without a load migration criterion"
+                    + "*  ERROR: cannot load-balance without a load transfer criterion"
                     + bcolors.END)
                 sys.exit(1)
 
@@ -324,30 +324,30 @@ class Runtime:
                         p_keys,
                         p_cmf)
 
-                    # Decide about proposed migration
-                    if migrate_criterion.compute(o, p_src, p_dst) < 0.:
-                        # Reject proposed migrate
+                    # Decide about proposed transfer
+                    if transfer_criterion.compute(o, p_src, p_dst) < 0.:
+                        # Reject proposed transfer
                         n_rejects += 1
 
-                        # Report on rejected object migration when requested
+                        # Report on rejected object transfer when requested
                         if self.verbose:
-                            print("\t\tprocessor {} declined migration of object {} ({})".format(
+                            print("\t\tprocessor {} declined transfer of object {} ({})".format(
                                 p_dst.get_id(),
                                 o.get_id(),
                                 o.get_time()))
                     else:
-                        # Accept proposed migration
+                        # Accept proposed transfer
                         if self.verbose:
                             print("\t\tmigrating object {} ({}) to processor {}".format(
                                 o.get_id(),
                                 o.get_time(),
                                 p_dst.get_id()))
 
-                        # Migrate object
+                        # Transfer object
                         l_exc -= p_src.remove_object(o, p_dst)
                         obj_it = iter(p_src.objects)
                         p_dst.add_object(o, self.average_load)
-                        n_migrates += 1
+                        n_transfers += 1
  
             # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
@@ -356,21 +356,21 @@ class Runtime:
                   + bcolors.END
                   + "Iteration complete ({} skipped processors)".format(
                       n_ignored))
-            n_proposed = n_migrates + n_rejects
+            n_proposed = n_transfers + n_rejects
             if n_proposed:
                 print(bcolors.HEADER
                       + "[RunTime] "
                       + bcolors.END
-                      + "{} proposed migrations, {} occurred, {} rejected ({:.4}%)".format(
+                      + "{} proposed transfers, {} occurred, {} rejected ({:.4}%)".format(
                           n_proposed,
-                          n_migrates,
+                          n_transfers,
                           n_rejects,
                           100. * n_rejects / n_proposed))
             else:
                 print(bcolors.HEADER
                       + "[RunTime] "
                       + bcolors.END
-                      + "No migrations were proposed")
+                      + "No transfers were proposed")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append([
