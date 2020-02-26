@@ -243,7 +243,7 @@ class ggParameters:
                     self.threshold = x
             elif o == '-t':
                 (self.time_sampler_type,
-                self.tme_sampler_parameters) = parse_sampler(a)
+                self.time_sampler_parameters) = parse_sampler(a)
             elif o == '-w':
                 (self.weight_sampler_type,
                 self.weight_sampler_parameters) = parse_sampler(a)
