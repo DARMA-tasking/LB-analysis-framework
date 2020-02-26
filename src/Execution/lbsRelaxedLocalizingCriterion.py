@@ -40,6 +40,7 @@
 lbsRelaxedLocalizingCriterion_module_aliases = {}
 for m in [
     "bcolors",
+    "functools",
     ]:
     has_flag = "has_" + m
     try:
@@ -98,14 +99,16 @@ class RelaxedLocalizingCriterion(CriterionBase):
         xPy1 = (lambda x, y: x + y[1])
 
         # Aggregate communication weights with source
-        w_src = reduce(xPy1,
-                       filter(is_s, recv) + filter(is_s, sent),
-                       0.)
+        w_src = functools.reduce(xPy1,
+                                 list(filter(is_s, recv))
+                                 + list(filter(is_s, sent)),
+                                 0.)
 
         # Aggregate communication weights with destination
-        w_dst = reduce(xPy1,
-                       filter(is_d, recv) + filter(is_d, sent),
-                       0.)
+        w_dst = functools.reduce(xPy1,
+                                 list(filter(is_d, recv))
+                                 + list(filter(is_d, sent)),
+                                 0.)
 
         # Criterion assesses difference in local communications
         return w_dst - w_src
