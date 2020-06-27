@@ -140,14 +140,19 @@ class LoadReader:
                 n_entries = len(row)
 
                 # Handle three-entry case that corresponds to an object load
-                if n_entries == 3:
+                if '[' in row[4]:
                     # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>
+                    #   <time_step/phase>, <object-id>, <time>, <#-subphases> '[' 
+                    #   [<subphase-time-1>] ... [<subphase-time-N>] ']'
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
+                        Nsubphases = int(row[3])
+                        # Trim first and last brackets
+                        row[4] = float(row[4][1:])
+                        row[Nsubphases + 3] = float(row[Nsubphases + 4][:-1])
                     except:
                         print(bcolors.ERR
                             + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
@@ -169,10 +174,19 @@ class LoadReader:
                             print(bcolors.HEADER
                                 + "[LoadReaderVT] "
                                 + bcolors.END
-                                + "iteration = {}, object id = {}, time = {}".format(
+                                + "iteration = {}, object id = {}, time = {}, subphases = {}".format(
                                 phase,
                                 o_id,
-                                time))
+                                time,
+                                Nsubphases,
+                                end=''))
+                                
+                            for i in range(0,Nsubphases):
+                                print("subphase-time-" + str(i) + "= {}".format(
+                                    row[4 + i]
+                                end='')
+                                
+                            print()
 
                 # Handle four-entry case that corresponds to a communication weight
                 elif n_entries == 5:
