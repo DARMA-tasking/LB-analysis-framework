@@ -189,7 +189,7 @@ class LoadReader:
                             print()
 
                 # Handle four-entry case that corresponds to a communication weight
-                elif n_entries == 5:
+                else:
                     continue
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
