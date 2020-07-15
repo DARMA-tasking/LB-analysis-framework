@@ -150,9 +150,11 @@ class LoadReader:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
                         Nsubphases = int(row[3])
-                        # Trim first and last brackets
-                        row[4] = float(row[4][1:])
-                        row[Nsubphases + 3] = float(row[Nsubphases + 4][:-1])
+                        subphase_times = row[4:]
+                        assert len(subphase_times) == Nsubphases
+                        subphase_times[0] = subphase_times[0][1:]
+                        subphase_times[1] = subphase_times[-1][:-1]
+                        subphase_times = map(float, subphase_times)
                     except:
                         print(bcolors.ERR
                             + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
