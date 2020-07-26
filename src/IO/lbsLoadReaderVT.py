@@ -138,8 +138,10 @@ class LoadReader:
             # Iterate over rows of input file
             for row in log:
                 n_entries = len(row)
-
+                print(row)
+                print(n_entries)
                 # Handle three-entry case that corresponds to an object load
+                print(row)
                 if '[' in row[4]:
                     # Parsing the three-entry case, thus this format:
                     #   <time_step/phase>, <object-id>, <time>, <#-subphases> '[' 
@@ -185,13 +187,13 @@ class LoadReader:
                                 
                             for i in range(0,Nsubphases):
                                 print("subphase-time-" + str(i) + "= {}".format(
-                                    row[4 + i]
-                                end='')
+                                    row[4 + i],
+                                end=''))
                                 
                             print()
 
                 # Handle four-entry case that corresponds to a communication weight
-                else:
+                elif '[' not in row[4]:
                     continue
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
