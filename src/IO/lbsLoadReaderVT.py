@@ -136,8 +136,10 @@ class LoadReader:
         with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
             # Iterate over rows of input file
+            print(log)
             for row in log:
                 n_entries = len(row)
+                print(row)
                 # Handle three-entry case that corresponds to an object load
                 if '[' in row[4]:
                     # Parsing the three-entry case, thus this format:
