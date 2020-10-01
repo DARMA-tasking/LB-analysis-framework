@@ -192,7 +192,6 @@ class LoadReader:
 
                 # Handle four-entry case that corresponds to a communication weight
                 elif n_entries == 4:
-                    continue
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
