@@ -153,7 +153,6 @@ class LoadReader:
                         Nsubphases = int(row[3])
                         subphase_times = row[4]
                         subphase_times = subphase_times[1:-1].split(',')
-                        print(subphase_times)
                         subphase_times = [float(x) for x in subphase_times]
                         assert len(subphase_times) == Nsubphases
                     except:
@@ -192,7 +191,7 @@ class LoadReader:
                             print()
 
                 # Handle four-entry case that corresponds to a communication weight
-                elif '[' not in row[4]:
+                elif n_entries == 4:
                     continue
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
