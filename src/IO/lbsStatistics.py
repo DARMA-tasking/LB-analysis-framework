@@ -42,36 +42,20 @@
 #@HEADER
 #
 ########################################################################
-lbsStatistics_module_aliases = {
-    "numpy" : "np",
-    "random": "rnd",
-    }
-for m in [
-    "bcolors",
-    "math",
-    "numpy",
-    "random",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsStatistics_module_aliases:
-            globals()[lbsStatistics_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import math
+import random as rnd
 
-########################################################################
+import bcolors
+import numpy as np
+
+
 def initialize():
 
     # Seed pseudo-random number generators
     rnd.seed(820)
     np.random.seed(820)
 
-########################################################################
+
 def error_out(distribution_name, parameters):
 
     print(bcolors.ERR
@@ -81,7 +65,7 @@ def error_out(distribution_name, parameters):
         + bcolors.END)
     return None
 
-########################################################################
+
 def sampler(distribution_name, parameters):
     """Return a pseudo-random number generator based of requested type
     """
@@ -140,7 +124,7 @@ def sampler(distribution_name, parameters):
             + bcolors.END)
         return None, None
 
-########################################################################
+
 def inverse_transform_sample(values, cmf):
     """Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform
@@ -157,7 +141,7 @@ def inverse_transform_sample(values, cmf):
             # Return sample point
             return values[i]
 
-########################################################################
+
 def compute_function_statistics(population, fct):
     """Compute descriptive statistics of a function over a population
     """
@@ -221,7 +205,7 @@ def compute_function_statistics(population, fct):
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_max / f_ave - 1.
 
-########################################################################
+
 def print_function_statistics(values, function, var_name, verb=False):
     """Compute and report descriptive statistics of function values
     """
@@ -261,7 +245,7 @@ def print_function_statistics(values, function, var_name, verb=False):
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
-########################################################################
+
 def print_subset_statistics(var_name, set_name, set_size, subset_name, subset_size):
     """Compute and report descriptive statistics of subset vs. full set
     """
@@ -277,5 +261,3 @@ def print_subset_statistics(var_name, set_name, set_size, subset_name, subset_si
         subset_name,
         subset_size,
         "({:.4g}%)".format(100. * subset_size / set_size) if set_size else ''))
-
-########################################################################

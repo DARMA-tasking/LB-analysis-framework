@@ -1,42 +1,60 @@
-#!/usr/bin/env python2.7
+#
 #@HEADER
 ###############################################################################
-ParaviewViewerBase_module_aliases = {}
-for m in [
-    "abc",
-    "bcolors",
-    "getopt",
-    "importlib",
-    "os",
-    "sys"
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in ParaviewViewerBase_module_aliases:
-            globals()[ParaviewViewerBase_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
-
-try:
-    import paraview.simple as pv
-    globals()["has_paraview"] = True
-except:
-    globals()["has_paraview"] = False
-    if not __name__ == '__main':
-        print("*  WARNING: Failed to import paraview. Cannot save visual artifacts.")
-        sys.exit(0)
-
+#
+#                              ParaviewViewerBase.py
+#                           DARMA Toolkit v. 1.0.0
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
 ###############################################################################
+#@HEADER
+#
+########################################################################
+import abc
+import getopt
+import importlib
+import sys
+
+import bcolors
+import paraview.simple as pv
+
+
 class ViewerParameters:
     """A class to describe ParaviewViewerBase parameters
     """
 
-    ###########################################################################
     def usage(self):
         """Provide online help
         """
@@ -47,17 +65,9 @@ class ViewerParameters:
         print("\t [-h]        help: print this message and exit")
         print('')
 
-    ###########################################################################
     def parse_command_line(self):
         """Parse command line
         """
-
-        # Check if visualization library imported
-        if not has_paraview:
-            print(bcolors.ERR
-                + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
-                + bcolors.END)
-            sys.exit(1)
 
         # Try to hash command line with respect to allowable flags
         try:
@@ -100,20 +110,12 @@ class ViewerParameters:
         # No line parsing error occurred
         return False
 
-###############################################################################
+
 class ParaviewViewerBase(object):
     __metaclass__ = abc.ABCMeta
 
-    ###########################################################################
     @abc.abstractmethod
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
-
-        # Check if visualization library imported
-        if not has_paraview:
-            print(bcolors.ERR
-                + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
-                + bcolors.END)
-            sys.exit(1)
 
         # ExodusII file to be displayed
         self.exodus = "{}.e".format(exodus)
@@ -127,7 +129,6 @@ class ParaviewViewerBase(object):
         # Material library
         self.material_library = pv.GetMaterialLibrary()
 
-    ###########################################################################
     @staticmethod
     def factory(exodus, file_name, viewer_type):
         """Produce the necessary concrete backend instance
@@ -207,7 +208,6 @@ class ParaviewViewerBase(object):
             + "Instantiated {} viewer.".format(viewer_type))
         return ret_object
 
-    ###########################################################################
     def get_exodus(self):
         """Convenience method to get ExodusII file name
         """
@@ -215,7 +215,6 @@ class ParaviewViewerBase(object):
         # Return value of ExodusII file name
         return self.exodus
 
-    ###########################################################################
     def get_file_name(self):
         """Convenience method to get visualization file name
         """
@@ -223,7 +222,6 @@ class ParaviewViewerBase(object):
         # Return value of visualization file name
         return self.file_name
 
-    ###########################################################################
     def get_viewer_type(self):
         """Convenience method to get viewer type
         """
@@ -231,7 +229,6 @@ class ParaviewViewerBase(object):
         # Return value of viewer type
         return self.viewer_type
 
-    ###########################################################################
     def createRenderView(self,
                          view_size=[1024, 1024]):
         """Create a new 'Render View'
@@ -262,7 +259,6 @@ class ParaviewViewerBase(object):
 
         return renderView
 
-    ###########################################################################
     def createExodusIIReader(self, elt_var, pt_var):
         """Create a new 'ExodusIIReader'
         """
@@ -278,7 +274,6 @@ class ParaviewViewerBase(object):
 
         return reader
 
-    ###########################################################################
     def createCalculator(self, reader, fct, var):
         """Create a new 'Calculator'
         """
@@ -289,7 +284,6 @@ class ParaviewViewerBase(object):
 
         return calculator
 
-    ###########################################################################
     def createGlyph(self, input, type='Box', factor=0.1, mode="All Points"):
         """Create a new 'Glyph'
         """
@@ -303,7 +297,6 @@ class ParaviewViewerBase(object):
 
         return glyph
 
-    ###########################################################################
     def createColorTransferFunction(self,
                                     var,
                                     colors=None,
@@ -327,7 +320,6 @@ class ParaviewViewerBase(object):
 
         return fct
 
-    ###########################################################################
     def createOpacityTransferFunction(self, var, points=None):
         """Create an opacity transfer function/color map
         """
@@ -340,7 +332,6 @@ class ParaviewViewerBase(object):
 
         return fct
 
-    ###########################################################################
     def createDisplay(self,
                       reader,
                       renderView,
@@ -399,7 +390,6 @@ class ParaviewViewerBase(object):
 
         return display
 
-    ###########################################################################
     @abc.abstractmethod
     def saveView(self, reader):
         """Save view
@@ -407,7 +397,6 @@ class ParaviewViewerBase(object):
 
         pass
 
-    ###########################################################################
     def createViews(self):
         """Create views
         """
@@ -427,8 +416,7 @@ class ParaviewViewerBase(object):
         sqrt_load = self.createCalculator(reader, "sqrt", "Load")
 
         # Create sqrt(load) glyph
-        glyph = self.createGlyph(sqrt_load,
-                                      factor=0.05)
+        glyph = self.createGlyph(sqrt_load, factor=0.05)
 
         # Instantiate weight colors and points
         weight_colors = [223.48540319420192,
@@ -517,5 +505,3 @@ class ParaviewViewerBase(object):
         pv.SetActiveSource(glyph)
 
         return reader
-
-###############################################################################

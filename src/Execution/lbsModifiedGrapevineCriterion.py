@@ -42,30 +42,15 @@
 #@HEADER
 #
 ########################################################################
-lbsModifiedGrapevineCriterion_module_aliases = {}
-for m in [
-    "bcolors",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsModifiedGrapevineCriterion_module_aliases:
-            globals()[lbsModifiedGrapevineCriterion_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import bcolors
 
 from Execution.lbsCriterionBase   import CriterionBase
 
-########################################################################
+
 class ModifiedGrapevineCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    ####################################################################
     def __init__(self, processors, edges, parameters):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
@@ -83,7 +68,6 @@ class ModifiedGrapevineCriterion(CriterionBase):
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
-    ####################################################################
     def compute(self, object, p_src, p_dst):
         """Modified Grapevine criterion based on L1 norm of loads
         """
@@ -94,5 +78,3 @@ class ModifiedGrapevineCriterion(CriterionBase):
              if self.actual_dst_load
              else p_src.get_known_underload(p_dst))
             + object.get_time())
-
-########################################################################

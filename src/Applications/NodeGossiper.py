@@ -41,26 +41,13 @@
 #@HEADER
 #
 ###############################################################################
-NodeGossiper_module_aliases = {}
-for m in [
-    "bcolors",
-    "getopt",
-    "math",
-    "os",
-    "subprocess",
-    "sys",
-   ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in NodeGossiper_module_aliases:
-            globals()[NodeGossiper_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import getopt
+import math
+import os
+import subprocess
+import sys
+
+import bcolors
 
 if __name__ == '__main__':
     if __package__ is None:
@@ -86,12 +73,11 @@ if __name__ == '__main__':
         except:
             globals()["has_paraview"] = False
 
-###############################################################################
+
 class ggParameters:
     """A class to describe NodeGossiper parameters
     """
 
-    ###########################################################################
     def __init__(self):
         # By default use modified Grapevine criterion
         self.criterion = 1
@@ -149,7 +135,6 @@ class ggParameters:
         # Do not be verbose by default
         self.verbose = False
 
-    ###########################################################################
     def usage(self):
         """Provide online help
         """
@@ -184,7 +169,6 @@ class ggParameters:
         print("\t [-h]        help: print this message and exit")
         print('')
 
-    ###########################################################################
     def parse_command_line(self):
         """Parse command line and fill grid gossiper parameters
         """
@@ -265,7 +249,7 @@ class ggParameters:
             elif o == '-v':
                 self.verbose = True
 
-	# Ensure that exactly one population strategy was chosen
+    # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
@@ -277,10 +261,10 @@ class ggParameters:
             self.usage()
             return True
 
-	# No line parsing error occurred
+    # No line parsing error occurred
         return False
 
-###############################################################################
+
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
        Example: lognormal,1.0,10.0
@@ -325,7 +309,7 @@ def parse_sampler(cmd_str):
     # Return the sampler parsed from the input argument
     return sampler_type, sampler_args
 
-###############################################################################
+
 def global_id_to_cartesian(id, grid_sizes):
     """Map global index to its Cartesian coordinates in a grid
     """
@@ -342,7 +326,7 @@ def global_id_to_cartesian(id, grid_sizes):
     # Return Cartesian coordinates
     return i, j, k
 
-###############################################################################
+
 def get_output_file_stem(params):
     """Build the file name for a given rank/node
     """
@@ -369,7 +353,7 @@ def get_output_file_stem(params):
         output_stem,
         "{}".format(params.threshold).replace('.', '_'))
 
-###############################################################################
+
 if __name__ == '__main__':
 
     # Print startup information
@@ -521,5 +505,3 @@ if __name__ == '__main__':
         + "[NodeGossiper] "
         + bcolors.END
         + " Process complete ###")
-
-###############################################################################

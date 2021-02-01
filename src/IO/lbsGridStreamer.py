@@ -42,29 +42,14 @@
 #@HEADER
 #
 ########################################################################
-lbsGridStreamer_module_aliases = {}
-for m in [
-    "bcolors",
-    "vtk",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsGridStreamer_module_aliases:
-            globals()[lbsGridStreamer_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import bcolors
+import vtk
 
-########################################################################
+
 class GridStreamer:
     """A class containing to stream a grid with time-varying attributes
     """
 
-  ####################################################################
     def __init__(self, points, lines, field_arrays, point_arrays, cell_arrays):
         """Class constructor
         """
@@ -172,5 +157,3 @@ class GridStreamer:
 
         # Set VTK RequestData() to programmable source
         self.Algorithm.SetExecuteMethod(request_data_method)
-
-########################################################################

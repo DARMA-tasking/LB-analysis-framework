@@ -42,37 +42,21 @@
 #@HEADER
 #
 ########################################################################
-lbsPhase_module_aliases = {
-    "random": "rnd",
-    }
-for m in [
-    "sys",
-    "random",
-    "time",
-    "bcolors",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsPhase_module_aliases:
-            globals()[lbsPhase_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import random as rnd
+import sys
+import time
+
+import bcolors
 
 from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
 from IO    import lbsStatistics, lbsLoadReaderVT
 
-########################################################################
+
 class Phase:
     """A class representing the state of collection of processors with
     objects at a given round
     """
 
-    ####################################################################
     def __init__(self, t=0, verbose=False):
         # Initialize empty list of processors
         self.processors = []
@@ -90,28 +74,24 @@ class Phase:
         self.edges = {}
         self.cached_edges = False
 
-    ####################################################################
     def get_processors(self):
         """Retrieve processors belonging to phase
         """
 
         return self.processors
 
-    ####################################################################
     def get_processors_ids(self):
         """Retrieve IDs of processors belonging to phase
         """
 
         return [p.get_id() for p in self.processors]
 
-    ####################################################################
     def get_time_step(self):
         """Retrieve the time-step/phase for this phase
         """
 
         return self.time_step
 
-    ####################################################################
     def compute_edges(self):
         """Compute and return map of communication link IDs to weights
         """
@@ -199,7 +179,6 @@ class Phase:
             "processor-local",
             w_local)
 
-    ####################################################################
     def get_edges(self):
         """Retrieve edges belonging to phase
         """
@@ -211,14 +190,12 @@ class Phase:
         # Return cached edges
         return self.edges
 
-    ####################################################################
     def invalidate_edge_cache(self):
         """Mark cached edges as no longer current
         """
 
         self.cached_edges = False
 
-    ####################################################################
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an phase
         """
@@ -308,8 +285,8 @@ class Phase:
         if len(w_recv) != len(w_sent):
             print(bcolors.ERR
                 + "*  ERROR: number of sent and received communications differ: {} <> {}".format(
-                len(n_sent),
-                len(n_recv))
+                len(w_sent),
+                len(w_recv))
                 + bcolors.END)
             sys.exit(1)
 
@@ -364,7 +341,6 @@ class Phase:
                     p.get_id(),
                     p.get_object_ids()))
 
-    ####################################################################
     def populate_from_log(self, n_p, t_s, basename):
         """Populate this phase by reading in a load profile from log files
         """
@@ -392,5 +368,3 @@ class Phase:
 
         # Return number of found objects
         return len(objects)
-
-########################################################################

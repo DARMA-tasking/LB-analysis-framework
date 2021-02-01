@@ -1,31 +1,54 @@
-#!/usr/bin/env python2.7
+#
 #@HEADER
 ###############################################################################
-PNGViewer_module_aliases = {}
-for m in [
-    "bcolors",
-    "os",
-    "sys",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in PNGViewer_module_aliases:
-            globals()[PNGViewer_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
-try:
-    import paraview.simple as pv
-    globals()["has_paraview"] = True
-except:
-    globals()["has_paraview"] = False
-    if not __name__ == '__main':
-        print("[PNGViewer] Failed to import paraview. Cannot save visual artifacts.")
-        sys.exit(0)
+#
+#                              PNGViewer.py
+#                           DARMA Toolkit v. 1.0.0
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
+########################################################################
+import os
+import sys
+
+import bcolors
+
+import paraview.simple as pv
+
 from ParaviewViewer    import ParaviewViewer
 
 if __name__ == '__main__':
@@ -37,18 +60,16 @@ if __name__ == '__main__':
         from ..ParaviewViewerBase   import ViewerParameters
         from ..ParaviewViewerBase   import ParaviewViewerBase
 
-###############################################################################
+
 class PNGViewer(ParaviewViewer):
     """A concrete class providing a PNG Viewer
     """
 
-    ###########################################################################
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # Call superclass init
         super(PNGViewer, self).__init__(exodus, file_name, viewer_type)
 
-    ###########################################################################
     def saveView(self, reader):
         """Save figure
         """
@@ -70,15 +91,8 @@ class PNGViewer(ParaviewViewer):
             + bcolors.END
             + "### All PNG images generated.")
 
-###############################################################################
-if __name__ == '__main__':
 
-    # Check if visualization library imported
-    if not has_paraview:
-        print(bcolors.ERR
-            + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
-            + bcolors.END)
-        sys.exit(1)
+if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
@@ -111,5 +125,3 @@ if __name__ == '__main__':
         + "[PNGViewer] "
         + bcolors.END
         + "{} file views generated ###".format(pngViewer.file_name))
-
-###############################################################################

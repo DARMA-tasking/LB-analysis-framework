@@ -42,33 +42,19 @@
 #@HEADER
 #
 ########################################################################
-lbsCriterionBase_module_aliases = {}
-for m in [
-    "abc",
-    "bcolors",
-    "importlib",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsCriterionBase_module_aliases:
-            globals()[lbsCriterionBase_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import abc
+import importlib
+
+import bcolors
 
 from Model      import lbsProcessor, lbsObject
 
-########################################################################
+
 class CriterionBase:
     __metaclass__ = abc.ABCMeta
     """An abstract base class of optimization criteria for LBS execution
     """
 
-    ####################################################################
     def __init__(self, processors, edges, parameters=None):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
@@ -118,7 +104,6 @@ class CriterionBase:
             n_p,
             n_e))
 
-    ####################################################################
     @staticmethod
     def factory(criterion_idx, processors, edges, parameters=None):
         """Produce the necessary concrete criterion
@@ -169,7 +154,6 @@ class CriterionBase:
             c_name))
         return ret_object
 
-    ####################################################################
     @abc.abstractmethod
     def compute(self, object, proc_src, proc_dst):
         """Return value of criterion for candidate object transfer
@@ -177,5 +161,3 @@ class CriterionBase:
 
         # Must be implemented by concrete subclass
         pass
-    
-########################################################################

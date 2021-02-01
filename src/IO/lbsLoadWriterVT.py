@@ -42,26 +42,13 @@
 #@HEADER
 #
 ########################################################################
-lbsLoadWriterVT_module_aliases = {}
-for m in [
-    "bcolors",
-    "csv",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsLoadWriterVT_module_aliases:
-            globals()[lbsLoadWriterVT_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import csv
+
+import bcolors
 
 from Model  import lbsPhase
 
-########################################################################
+
 class LoadWriterVT:
     """A class to write load directives for VT as CSV files with
     the following format:
@@ -75,7 +62,6 @@ class LoadWriterVT:
     be mapped to that VT node for a given iteration/phase.
     """
 
-  ####################################################################
     def __init__(self, e, f="lbs_out", s="vom"):
         """Class constructor:
         e: Phase instance
@@ -95,7 +81,6 @@ class LoadWriterVT:
         self.file_stem = "{}".format(f)
         self.suffix = s
 
-    ####################################################################
     def write(self, time_step):
         """Write one CSV file per rank/procesor containing with one object
         per line, with the following format:
@@ -144,5 +129,3 @@ class LoadWriterVT:
                     + "Wrote {} objects to CSV file {}".format(
                     len(p.objects),
                     file_name))
-
-########################################################################

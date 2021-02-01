@@ -42,34 +42,20 @@
 #@HEADER
 #
 ########################################################################
-lbsRuntime_module_aliases = {}
-for m in [
-    "bcolors",
-    "math",
-    "sys",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsRuntime_module_aliases:
-            globals()[lbsRuntime_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import math
+import sys
+
+import bcolors
 
 from Model      import lbsProcessor, lbsPhase
 from IO         import lbsStatistics
 from Execution  import lbsCriterionBase
 
-########################################################################
+
 class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    ####################################################################
     def __init__(self, p, c, a=False, v=False):
         """Class constructor:
         p: Phase instance
@@ -132,7 +118,6 @@ class Runtime:
             "communication weight variance" : [w_var],
             "communication weight imbalance": [w_imb]}
 
-    ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
@@ -426,5 +411,3 @@ class Runtime:
                 w_max,
                 w_ave,
                 math.sqrt(w_var)))
-
-########################################################################

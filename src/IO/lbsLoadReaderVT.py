@@ -42,28 +42,15 @@
 #@HEADER
 #
 ########################################################################
-lbsLoadReaderVT_module_aliases = {}
-for m in [
-    "bcolors",
-    "csv",
-    "os",
-    "sys",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsLoadReaderVT_module_aliases:
-            globals()[lbsLoadReaderVT_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import csv
+import os
+import sys
+
+import bcolors
 
 from Model  import lbsObject, lbsProcessor
 
-########################################################################
+
 class LoadReader:
     """A class to read VT Object Map files. These CSV files conform
     to the following format:
@@ -95,7 +82,6 @@ class LoadReader:
         "NodeToCollectionBcast": 6,
         }
 
-  ####################################################################
     def __init__(self, file_prefix, verbose=False):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
@@ -103,7 +89,6 @@ class LoadReader:
         # Enable or disable verbose mode
         self.verbose = verbose
 
-    ####################################################################
     def get_node_trace_file_name(self, node_id):
         """Build the file name for a given rank/node ID
         """
@@ -111,7 +96,6 @@ class LoadReader:
         return "{}.{}.vom".format(
             self.file_prefix, node_id)
 
-    ####################################################################
     def read(self, node_id, time_step=-1, comm=False):
         """Read the file for a given node/rank. If time_step==-1 then all
         steps are read from the file; otherwise, only `time_step` is.
@@ -136,18 +120,25 @@ class LoadReader:
         with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
             # Iterate over rows of input file
+            print(log)
             for row in log:
                 n_entries = len(row)
-
+                print(row)
                 # Handle three-entry case that corresponds to an object load
-                if n_entries == 3:
+                if '[' in row[4]:
                     # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>
+                    #   <time_step/phase>, <object-id>, <time>, <#-subphases> '[' 
+                    #   [<subphase-time-1>] ... [<subphase-time-N>] ']'
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
+                        Nsubphases = int(row[3])
+                        subphase_times = row[4]
+                        subphase_times = subphase_times[1:-1].split(',')
+                        subphase_times = [float(x) for x in subphase_times]
+                        assert len(subphase_times) == Nsubphases
                     except:
                         print(bcolors.ERR
                             + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
@@ -169,14 +160,22 @@ class LoadReader:
                             print(bcolors.HEADER
                                 + "[LoadReaderVT] "
                                 + bcolors.END
-                                + "iteration = {}, object id = {}, time = {}".format(
+                                + "iteration = {}, object id = {}, time = {}, subphases = {}".format(
                                 phase,
                                 o_id,
-                                time))
+                                time,
+                                Nsubphases,
+                                end=''))
+                                
+                            for i in range(0,Nsubphases):
+                                print("subphase-time-" + str(i) + "= {}".format(
+                                    row[4 + i],
+                                end=''))
+                                
+                            print()
 
                 # Handle four-entry case that corresponds to a communication weight
-                elif n_entries == 5:
-                    continue
+                elif n_entries == 4:
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
@@ -203,7 +202,6 @@ class LoadReader:
         # Return map of populated processors per iteration
         return iter_map
 
-    ####################################################################
     def read_iteration(self, n_p, time_step):
         """Read all the data in the range of procs [0..n_p) for a given
         iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
@@ -231,5 +229,3 @@ class LoadReader:
             
         # Return populated list of processors
         return procs
-
-########################################################################

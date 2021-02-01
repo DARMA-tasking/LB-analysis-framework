@@ -42,32 +42,17 @@
 #@HEADER
 #
 ########################################################################
-lbsWriterExodusII_module_aliases = {}
-for m in [
-    "bcolors",
-    "vtk",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsWriterExodusII_module_aliases:
-            globals()[lbsWriterExodusII_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import bcolors
+import vtk
 
 from Model  import lbsPhase
 from IO     import lbsGridStreamer
 
-########################################################################
+
 class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
-  ####################################################################
     def __init__(self, e, m, f="lbs_out", s='e', r=1.):
         """Class constructor:
         e: Phase instance
@@ -76,13 +61,6 @@ class WriterExodusII:
         s: suffix
         r: grid_resolution value
         """
-
-        # If VTK is not available, do not do anything
-        if not has_vtk:
-            print(bcolors.ERR
-                + "*  ERROR: Could not write to ExodusII file by lack of VTK"
-                + bcolors.END)
-            return
 
         # Ensure that provided phase has correct type
         if not isinstance(e, lbsPhase.Phase):
@@ -109,7 +87,6 @@ class WriterExodusII:
         except:
             self.grid_resolution = 1.
 
-    ####################################################################
     def write(self, load_statistics, load_distributions, weight_distributions, verbose=False):
         """Map processors to grid and write ExodusII file
         """
@@ -223,5 +200,3 @@ class WriterExodusII:
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
             writer.WriteAllTimeStepsOn()
             writer.Update()
-
-########################################################################
