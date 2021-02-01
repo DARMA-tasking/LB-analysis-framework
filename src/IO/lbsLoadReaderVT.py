@@ -136,18 +136,25 @@ class LoadReader:
         with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
             # Iterate over rows of input file
+            print(log)
             for row in log:
                 n_entries = len(row)
-
+                print(row)
                 # Handle three-entry case that corresponds to an object load
-                if n_entries == 3:
+                if '[' in row[4]:
                     # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>
+                    #   <time_step/phase>, <object-id>, <time>, <#-subphases> '[' 
+                    #   [<subphase-time-1>] ... [<subphase-time-N>] ']'
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
+                        Nsubphases = int(row[3])
+                        subphase_times = row[4]
+                        subphase_times = subphase_times[1:-1].split(',')
+                        subphase_times = [float(x) for x in subphase_times]
+                        assert len(subphase_times) == Nsubphases
                     except:
                         print(bcolors.ERR
                             + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
@@ -169,14 +176,22 @@ class LoadReader:
                             print(bcolors.HEADER
                                 + "[LoadReaderVT] "
                                 + bcolors.END
-                                + "iteration = {}, object id = {}, time = {}".format(
+                                + "iteration = {}, object id = {}, time = {}, subphases = {}".format(
                                 phase,
                                 o_id,
-                                time))
+                                time,
+                                Nsubphases,
+                                end=''))
+                                
+                            for i in range(0,Nsubphases):
+                                print("subphase-time-" + str(i) + "= {}".format(
+                                    row[4 + i],
+                                end=''))
+                                
+                            print()
 
                 # Handle four-entry case that corresponds to a communication weight
-                elif n_entries == 5:
-                    continue
+                elif n_entries == 4:
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
