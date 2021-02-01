@@ -47,7 +47,7 @@ import importlib
 
 import bcolors
 
-from Model      import lbsProcessor, lbsObject
+from ..Model import lbsProcessor
 
 
 class CriterionBase:

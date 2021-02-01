@@ -46,7 +46,7 @@ import csv
 
 import bcolors
 
-from Model  import lbsPhase
+from ..Model import Phase
 
 
 class LoadWriterVT:
@@ -70,7 +70,7 @@ class LoadWriterVT:
         """
 
         # Ensure that provided phase has correct type
-        if not isinstance(e, lbsPhase.Phase):
+        if not isinstance(e, Phase):
             print(bcolors.ERR
                 + "*  ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase"
                 + bcolors.END)

@@ -42,24 +42,13 @@
 #@HEADER
 #
 ########################################################################
-import os
-import pickle
-import os
 import sys
 
 import bcolors
 
-from ParaviewViewerBase import ViewerParameters
-from ParaviewViewerBase import ParaviewViewerBase
-
-if __name__ == '__main__':
-    if __package__ is None:
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from PNGViewer              import PNGViewer
-        from AnimationViewer        import AnimationViewer
-    else:
-        from ..PNGViewer            import PNGViewer
-        from ..AnimationViewer      import AnimationViewer
+from .AnimationViewer import AnimationViewer
+from .ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from .PNGViewer import PNGViewer
 
 
 class ParaviewViewer(ParaviewViewerBase):
@@ -75,9 +64,6 @@ class ParaviewViewer(ParaviewViewerBase):
         """Save figure
         """
 
-        # Save images
-        from PNGViewer              import PNGViewer
-        from AnimationViewer        import AnimationViewer
         self.__class__ = PNGViewer
         self.saveView(reader)
         self.__class__ = AnimationViewer

@@ -48,8 +48,10 @@ import time
 
 import bcolors
 
-from Model import lbsObject, lbsProcessor, lbsObjectCommunicator
-from IO    import lbsStatistics, lbsLoadReaderVT
+from .lbsObject import Object
+from .lbsProcessor import Processor
+from .lbsObjectCommunicator import ObjectCommunicator
+from ..IO import print_subset_statistics, print_function_statistics, sampler, LoadReader
 
 
 class Phase:
@@ -160,19 +162,19 @@ class Phase:
         # Report on computed edges
         n_procs = len(self.processors)
         n_edges = len(self.edges)
-        lbsStatistics.print_subset_statistics(
+        print_subset_statistics(
             "Non-null communication edges between {} available processors".format(n_procs),
             "number of possible ones",
             n_procs * (n_procs - 1) / 2,
             "number of computed ones",
             n_edges)
-        lbsStatistics.print_subset_statistics(
+        print_subset_statistics(
             "Non-null communication edges between the {} loaded processors".format(n_loaded),
             "number of possible ones",
             n_loaded * (n_loaded - 1) / 2,
             "number of computed ones",
             n_edges)
-        lbsStatistics.print_subset_statistics(
+        print_subset_statistics(
             "Inter-object communication weights",
             "total",
             w_total,
@@ -201,7 +203,7 @@ class Phase:
         """
 
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = lbsStatistics.sampler(
+        time_sampler, sampler_name = sampler(
             ts,
             ts_params)
 
@@ -212,27 +214,24 @@ class Phase:
             + "Creating {} objects with times sampled from {}".format(
             n_o,
             sampler_name))
-        objects = set([lbsObject.Object(
+        objects = set([Object(
             i,
             time_sampler()
             ) for i in range(n_o)])
 
         # Compute and report object time statistics
-        lbsStatistics.print_function_statistics(objects,
-                                                lambda x: x.get_time(),
-                                                "object times",
-                                                self.verbose)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
 
         # Decide whether communications must be created
         if c_degree > 0:
             # Instantiante communication samplers with requested properties
-            weight_sampler, weight_sampler_name = lbsStatistics.sampler(
+            weight_sampler, weight_sampler_name = sampler(
                 cs,
                 cs_params)
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
-            degree_sampler, degree_sampler_name = lbsStatistics.sampler(
+            degree_sampler, degree_sampler_name = sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
             print(bcolors.HEADER
@@ -246,7 +245,7 @@ class Phase:
             start = time.time()
             for obj in objects:
                 # Create object communicator witj outgoing messages
-                obj.set_communicator(lbsObjectCommunicator.ObjectCommunicator(
+                obj.set_communicator(ObjectCommunicator(
                     {},
                     {o: weight_sampler()
                      for o in rnd.sample(
@@ -291,13 +290,13 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication weight statistics
-        lbsStatistics.print_function_statistics(w_sent,
+        print_function_statistics(w_sent,
                                                 lambda x: x,
                                                 "communication weights",
                                                 self.verbose)
 
         # Create n_p processors
-        self.processors = [lbsProcessor.Processor(i) for i in range(n_p)]
+        self.processors = [Processor(i) for i in range(n_p)]
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
@@ -346,7 +345,7 @@ class Phase:
         """
 
         # Instantiate VT load reader
-        reader = lbsLoadReaderVT.LoadReader(basename)
+        reader = LoadReader(basename)
 
         # Populate phase with reader output
         print(bcolors.HEADER
@@ -361,10 +360,7 @@ class Phase:
         objects = set()
         for p in self.processors:
             objects = objects.union(p.objects)
-        lbsStatistics.print_function_statistics(objects,
-                                                lambda x: x.get_time(),
-                                                "object times",
-                                                self.verbose)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
 
         # Return number of found objects
         return len(objects)

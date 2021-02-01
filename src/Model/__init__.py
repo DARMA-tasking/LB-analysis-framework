@@ -41,3 +41,8 @@
 ###############################################################################
 #@HEADER
 #
+from .lbsMessage import Message
+from .lbsObject import Object
+from .lbsObjectCommunicator import ObjectCommunicator
+from .lbsPhase import Phase
+from .lbsProcessor import Processor

@@ -45,8 +45,8 @@
 import bcolors
 import vtk
 
-from Model  import lbsPhase
-from IO     import lbsGridStreamer
+from .lbsGridStreamer import GridStreamer
+from ..Model import Phase
 
 
 class WriterExodusII:
@@ -63,7 +63,7 @@ class WriterExodusII:
         """
 
         # Ensure that provided phase has correct type
-        if not isinstance(e, lbsPhase.Phase):
+        if not isinstance(e, Phase):
             print(bcolors.ERR
                 + "*  ERROR: Could not write to ExodusII file by lack of a LBS phase"
                 + bcolors.END)
@@ -176,7 +176,7 @@ class WriterExodusII:
                         w_arr.GetTuple1(e)))
 
         # Create grid streamer
-        streamer = lbsGridStreamer.GridStreamer(
+        streamer = GridStreamer(
             points,
             lines,
             stat_arrays,

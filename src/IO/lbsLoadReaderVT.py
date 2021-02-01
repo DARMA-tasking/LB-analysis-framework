@@ -48,7 +48,7 @@ import sys
 
 import bcolors
 
-from Model  import lbsObject, lbsProcessor
+from ..Model import Object, Processor
 
 
 class LoadReader:
@@ -147,10 +147,10 @@ class LoadReader:
                     # Update processor if iteration was requested
                     if time_step in (phase, -1):
                         # Instantiate object with retrieved parameters
-                        obj = lbsObject.Object(o_id, time, node_id)
+                        obj = Object(o_id, time, node_id)
 
                         # If this iteration was never encoutered initialize proc object
-                        iter_map.setdefault(phase, lbsProcessor.Processor(node_id))
+                        iter_map.setdefault(phase, Processor(node_id))
 
                         # Add object to processor
                         iter_map[phase].add_object(obj)

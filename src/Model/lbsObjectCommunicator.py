@@ -45,6 +45,7 @@
 import bcolors
 import sys
 
+
 class ObjectCommunicator:
     """A class holding received and sent messages for an object
     """

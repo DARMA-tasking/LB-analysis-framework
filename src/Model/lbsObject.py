@@ -43,7 +43,7 @@
 #
 ########################################################################
 
-from Model import lbsObjectCommunicator
+from .lbsObjectCommunicator import ObjectCommunicator
 
 class Object:
     """A class representing an object with time and communicator
@@ -61,7 +61,7 @@ class Object:
 
         # Communication graph of this object if defined
         self.communicator = c if isinstance(
-            c, lbsObjectCommunicator.ObjectCommunicator) else None
+            c, ObjectCommunicator) else None
 
     def get_id(self):
         """Return object ID
@@ -110,5 +110,5 @@ class Object:
         """
 
         # Perform sanity check prior to assignment
-        if isinstance(c, lbsObjectCommunicator.ObjectCommunicator):
+        if isinstance(c, ObjectCommunicator):
             self.communicator = c

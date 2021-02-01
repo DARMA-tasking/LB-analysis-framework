@@ -48,7 +48,7 @@ import sys
 
 import bcolors
 
-from Model import lbsObject, lbsMessage
+from .lbsMessage import Message
 
 
 class Processor:
@@ -189,7 +189,7 @@ class Processor:
         self.known_underloads[self] = l
 
         # Create underload message tagged at first round
-        msg = lbsMessage.Message(1, (self.known_underloaded, self.known_underloads))
+        msg = Message(1, (self.known_underloaded, self.known_underloads))
 
         # Broadcast underloads to pseudo-random sample of procs excluding self
         return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
@@ -202,7 +202,7 @@ class Processor:
         c_procs = procs.difference(self.known_underloaded).difference([self])
 
         # Create underload message tagged at current round
-        msg = lbsMessage.Message(r, (self.known_underloaded, self.known_underloads))
+        msg = Message(r, (self.known_underloaded, self.known_underloads))
 
         # Forward underloads to pseudo-random sample of procs
         return rnd.sample(c_procs, min(f, len(c_procs))), msg
@@ -212,7 +212,7 @@ class Processor:
         """
 
         # Assert that message has the expected type
-        if not isinstance(msg, lbsMessage.Message):
+        if not isinstance(msg, Message):
             print(bcolors.WARN
                 + "*  WARNING: attempted to pass message of incorrect type {}. Ignoring it.".format(
                 type(msg))
