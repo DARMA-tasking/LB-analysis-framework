@@ -45,8 +45,8 @@
 import bcolors
 import vtk
 
-from .lbsGridStreamer import GridStreamer
-from ..Model import Phase
+from src.IO import GridStreamer
+from src.Model import Phase
 
 
 class WriterExodusII:

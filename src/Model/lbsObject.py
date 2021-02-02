@@ -43,7 +43,7 @@
 #
 ########################################################################
 
-from .lbsObjectCommunicator import ObjectCommunicator
+from src.Model import ObjectCommunicator
 
 class Object:
     """A class representing an object with time and communicator

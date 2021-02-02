@@ -52,7 +52,7 @@ import sys
 import bcolors
 import vtk
 
-from .MoveCountsViewerParameters import MoveCountsViewerParameters
+from src.Applications import MoveCountsViewerParameters
 
 
 class MoveCountsViewer:

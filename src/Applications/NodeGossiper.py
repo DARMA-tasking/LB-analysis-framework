@@ -48,10 +48,10 @@ import sys
 
 import bcolors
 
-from .ParaviewViewerBase import ParaviewViewerBase
-from ..Model import lbsPhase
-from ..Execution import lbsRuntime
-from ..IO import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+from src.Applications import ParaviewViewerBase
+from src.Model import lbsPhase
+from src.Execution import lbsRuntime
+from src.IO import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
 
 
 class ggParameters:

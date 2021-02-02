@@ -48,8 +48,7 @@ import bcolors
 
 import paraview.simple as pv
 
-from .ParaviewViewer import ParaviewViewer
-from .ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from src.Applications import ParaviewViewer, ViewerParameters, ParaviewViewerBase
 
 
 class PNGViewer(ParaviewViewer):

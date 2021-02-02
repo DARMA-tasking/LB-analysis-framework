@@ -50,9 +50,7 @@ import sys
 import bcolors
 import paraview.simple as pv
 
-from .ParaviewViewer import ParaviewViewer
-from .ParaviewViewerBase import ViewerParameters
-from .ParaviewViewerBase import ParaviewViewerBase
+from src.Applications import ParaviewViewer, ViewerParameters, ParaviewViewerBase
 
 
 class AnimationViewer(ParaviewViewer):

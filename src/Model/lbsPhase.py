@@ -48,10 +48,8 @@ import time
 
 import bcolors
 
-from .lbsObject import Object
-from .lbsProcessor import Processor
-from .lbsObjectCommunicator import ObjectCommunicator
-from ..IO import print_subset_statistics, print_function_statistics, sampler, LoadReader
+from src.Model import Object, Processor, ObjectCommunicator
+from src.IO import print_subset_statistics, print_function_statistics, sampler, LoadReader
 
 
 class Phase:

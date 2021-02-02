@@ -48,7 +48,7 @@ import sys
 
 import bcolors
 
-from ..Model import Object, Processor
+from src.Model import Object, Processor
 
 
 class LoadReader:
