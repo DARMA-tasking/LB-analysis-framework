@@ -46,9 +46,17 @@ import sys
 
 import bcolors
 
-import paraview.simple as pv
+try:
+    import paraview.simple as pv
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+    if __name__ != '__main':
+        print("[PNGViewer] Failed to import paraview. Cannot save visual artifacts.")
+        sys.exit(0)
 
-from src.Applications import ParaviewViewer, ViewerParameters, ParaviewViewerBase
+from src.Applications.ParaviewViewer import ParaviewViewer
+from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
 
 
 class PNGViewer(ParaviewViewer):
@@ -83,6 +91,13 @@ class PNGViewer(ParaviewViewer):
 
 
 if __name__ == '__main__':
+
+    # Check if visualization library imported
+    if not has_paraview:
+        print(bcolors.ERR
+              + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
+              + bcolors.END)
+        sys.exit(1)
 
     # Print startup information
     sv = sys.version_info

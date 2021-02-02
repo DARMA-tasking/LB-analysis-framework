@@ -46,8 +46,9 @@ import sys
 
 import bcolors
 
-from src.Applications import AnimationViewer, ViewerParameters, ParaviewViewerBase, PNGViewer
-
+from src.Applications.AnimationViewer import AnimationViewer
+from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from src.Applications.PNGViewer import PNGViewer
 
 class ParaviewViewer(ParaviewViewerBase):
     """A concrete class providing a Paraview Viewer

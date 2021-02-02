@@ -41,7 +41,7 @@ import functools
 
 import bcolors
 
-from src.Execution import CriterionBase
+from src.Execution.lbsCriterionBase import CriterionBase
 
 
 class RelaxedLocalizingCriterion(CriterionBase):

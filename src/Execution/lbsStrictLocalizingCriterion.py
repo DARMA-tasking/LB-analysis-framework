@@ -39,7 +39,7 @@
 ###############################################################################
 import bcolors
 
-from src.Execution import CriterionBase
+from src.Execution.lbsCriterionBase import CriterionBase
 
 
 class StrictLocalizingCriterion(CriterionBase):

@@ -48,7 +48,15 @@ import importlib
 import sys
 
 import bcolors
-import paraview.simple as pv
+
+try:
+    import paraview.simple as pv
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+    if not __name__ == '__main':
+        print("*  WARNING: Failed to import paraview. Cannot save visual artifacts.")
+        sys.exit(0)
 
 
 class ViewerParameters:
@@ -68,6 +76,12 @@ class ViewerParameters:
     def parse_command_line(self):
         """Parse command line
         """
+        # Check if visualization library imported
+        if not has_paraview:
+            print(bcolors.ERR
+                  + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
+                  + bcolors.END)
+            sys.exit(1)
 
         # Try to hash command line with respect to allowable flags
         try:
@@ -116,6 +130,13 @@ class ParaviewViewerBase(object):
 
     @abc.abstractmethod
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
+
+        # Check if visualization library imported
+        if not has_paraview:
+            print(bcolors.ERR
+                  + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
+                  + bcolors.END)
+            sys.exit(1)
 
         # ExodusII file to be displayed
         self.exodus = "{}.e".format(exodus)

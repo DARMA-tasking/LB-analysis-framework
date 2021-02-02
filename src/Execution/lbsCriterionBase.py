@@ -47,7 +47,7 @@ import importlib
 
 import bcolors
 
-from src.Model import lbsProcessor
+from src.Model.lbsProcessor import Processor
 
 
 class CriterionBase:
@@ -72,7 +72,7 @@ class CriterionBase:
         # Assert that all members of said list are indeed processor instances
         n_p = len(processors)
         if n_p != len(list(
-            filter(lambda x: isinstance(x, lbsProcessor.Processor), processors))):
+            filter(lambda x: isinstance(x, Processor), processors))):
             print(bcolors.ERR
                 + "*  ERROR: Could not create a LBS criterion without a set of Processor instances"
                 + bcolors.END)
@@ -108,45 +108,21 @@ class CriterionBase:
     def factory(criterion_idx, processors, edges, parameters=None):
         """Produce the necessary concrete criterion
         """
+        from src.Execution.lbsGrapevineCriterion import GrapevineCriterion
+        from src.Execution.lbsModifiedGrapevineCriterion import ModifiedGrapevineCriterion
+        from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
+        from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
         # Ensure that criterion index is valid
         c_name = {
-            0: "GrapevineCriterion",
-            1: "ModifiedGrapevineCriterion",
-            2: "StrictLocalizingCriterion",
-            3: "RelaxedLocalizingCriterion",
+            0: GrapevineCriterion,
+            1: ModifiedGrapevineCriterion,
+            2: StrictLocalizingCriterion,
+            3: RelaxedLocalizingCriterion,
             }.get(criterion_idx)
-        if not c_name:
-            print(bcolors.ERR
-                + "*  ERROR: unsupported criterion index: {}".format(
-                criterion_idx)
-                + bcolors.END)
-            return None
-
-        #Try to load corresponding module
-        m_name = "Execution.lbs{}".format(c_name)
-        try:
-            module = importlib.import_module(m_name)
-        except:
-            print(bcolors.ERR
-                + "*  ERROR: could not load module `{}`".format(
-                m_name)
-                + bcolors.END)
-            return None
-
-        # Try to get concrete criterion class from module
-        try:
-            c_class = getattr(module, c_name)
-        except:
-            print(bcolors.ERR
-                + "*  ERROR: could not get class `{}` from module `{}`".format(
-                c_name,
-                m_name)
-                + bcolors.END)
-            return None
 
         # Instantiate and return object
-        ret_object = c_class(processors, edges, parameters)
+        ret_object = c_name(processors, edges, parameters)
         print(bcolors.HEADER
             + "[Criterion] "
             + bcolors.END

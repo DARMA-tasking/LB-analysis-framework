@@ -46,7 +46,7 @@ import csv
 
 import bcolors
 
-from src.Model import Phase
+from src.Model.lbsPhase import Phase
 
 
 class LoadWriterVT:

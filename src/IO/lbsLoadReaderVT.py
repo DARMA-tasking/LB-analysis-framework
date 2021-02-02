@@ -48,7 +48,8 @@ import sys
 
 import bcolors
 
-from src.Model import Object, Processor
+from src.Model.lbsObject import Object
+from src.Model.lbsProcessor import Processor
 
 
 class LoadReader:
@@ -80,7 +81,7 @@ class LoadReader:
         "Broadcast": 4,
         "CollectionToNodeBcast": 5,
         "NodeToCollectionBcast": 6,
-        }
+    }
 
     def __init__(self, file_prefix, verbose=False):
         # The base directory and file name for the log files
@@ -104,13 +105,13 @@ class LoadReader:
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
         print(bcolors.HEADER
-            + "[LoadReaderVT] "
-            + bcolors.END
-            + "Reading {} VT object map".format(file_name))
+              + "[LoadReaderVT] "
+              + bcolors.END
+              + "Reading {} VT object map".format(file_name))
         if not os.path.isfile(file_name):
             print(bcolors.ERR
-                + "*  ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
-                + bcolors.END)
+                  + "*  ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
+                  + bcolors.END)
             sys.exit(1)
 
         # Initialize storage
@@ -120,29 +121,22 @@ class LoadReader:
         with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
             # Iterate over rows of input file
-            print(log)
             for row in log:
                 n_entries = len(row)
-                print(row)
+
                 # Handle three-entry case that corresponds to an object load
-                if '[' in row[4]:
+                if n_entries == 3:
                     # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>, <#-subphases> '[' 
-                    #   [<subphase-time-1>] ... [<subphase-time-N>] ']'
+                    #   <time_step/phase>, <object-id>, <time>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
-                        Nsubphases = int(row[3])
-                        subphase_times = row[4]
-                        subphase_times = subphase_times[1:-1].split(',')
-                        subphase_times = [float(x) for x in subphase_times]
-                        assert len(subphase_times) == Nsubphases
                     except:
                         print(bcolors.ERR
-                            + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
-                            + bcolors.END)
+                              + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
+                              + bcolors.END)
 
                     # Update processor if iteration was requested
                     if time_step in (phase, -1):
@@ -158,46 +152,38 @@ class LoadReader:
                         # Print debug information when requested
                         if self.verbose:
                             print(bcolors.HEADER
-                                + "[LoadReaderVT] "
-                                + bcolors.END
-                                + "iteration = {}, object id = {}, time = {}, subphases = {}".format(
+                                  + "[LoadReaderVT] "
+                                  + bcolors.END
+                                  + "iteration = {}, object id = {}, time = {}".format(
                                 phase,
                                 o_id,
-                                time,
-                                Nsubphases,
-                                end=''))
-                                
-                            for i in range(0,Nsubphases):
-                                print("subphase-time-" + str(i) + "= {}".format(
-                                    row[4 + i],
-                                end=''))
-                                
-                            print()
+                                time))
 
                 # Handle four-entry case that corresponds to a communication weight
-                elif n_entries == 4:
+                elif n_entries == 5:
+                    continue
                     # Parsing the five-entry case, thus this format:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     print(bcolors.ERR
-                        + "*  ERROR: [LoadReaderVT] Communication graph unimplemented"
-                        + bcolors.END)
+                          + "*  ERROR: [LoadReaderVT] Communication graph unimplemented"
+                          + bcolors.END)
                     sys.exit(1)
-                    
+
                 # Unrecognized line format
                 else:
                     print(bcolors.ERR
-                        + "** ERROR: [LoadReaderVT] Wrong line length: {}".format(row)
-                        + bcolors.END)
+                          + "** ERROR: [LoadReaderVT] Wrong line length: {}".format(row)
+                          + bcolors.END)
                     sys.exit(1)
 
         # Print more information when requested
         if self.verbose:
             print(bcolors.HEADER
-                + "[LoadReaderVT] "
-                + bcolors.END
-                + "Finished reading file: {}".format(file_name))
+                  + "[LoadReaderVT] "
+                  + bcolors.END
+                  + "Finished reading file: {}".format(file_name))
 
         # Return map of populated processors per iteration
         return iter_map
@@ -207,7 +193,7 @@ class LoadReader:
         iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
         into a list of processors to be returned for the given iteration.
         """
-        
+
         # Create storage for processors
         procs = [None] * n_p
 
@@ -221,11 +207,11 @@ class LoadReader:
                 procs[p] = proc_iter_map[time_step]
             except KeyError:
                 print(bcolors.ERR
-                    + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
                     p,
                     time_step)
-                    + bcolors.END)
+                      + bcolors.END)
                 sys.exit(1)
-            
+
         # Return populated list of processors
         return procs

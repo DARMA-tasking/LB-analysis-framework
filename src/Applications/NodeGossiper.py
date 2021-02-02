@@ -48,10 +48,17 @@ import sys
 
 import bcolors
 
-from src.Applications import ParaviewViewerBase
-from src.Model import lbsPhase
-from src.Execution import lbsRuntime
-from src.IO import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
+try:
+    from .ParaviewViewerBase import ParaviewViewerBase
+    globals()["has_paraview"] = True
+except:
+    globals()["has_paraview"] = False
+
+from src.Model.lbsPhase import Phase
+from src.Execution.lbsRuntime import Runtime
+from src.IO.lbsLoadWriterVT import LoadWriterVT
+from src.IO.lbsWriterExodusII import WriterExodusII
+from src.IO.lbsStatistics import initialize, print_function_statistics
 
 
 class ggParameters:
@@ -364,10 +371,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Initialize random number generator
-    lbsStatistics.initialize()
+    initialize()
 
     # Create a phase and populate it
-    phase = lbsPhase.Phase(0, params.verbose)
+    phase = Phase(0, params.verbose)
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
@@ -390,19 +397,19 @@ if __name__ == '__main__':
         n_o = params.n_objects
 
     # Compute and print initial processor load and link weight statistics
-    lbsStatistics.print_function_statistics(
+    print_function_statistics(
         phase.get_processors(),
         lambda x: x.get_load(),
         "initial processor loads",
         params.verbose)
-    lbsStatistics.print_function_statistics(
+    print_function_statistics(
         phase.get_edges().values(),
         lambda x: x,
         "initial link weights",
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(phase,
+    rt = Runtime(phase,
                             params.criterion,
                             params.actual_dst_load,
                             params.verbose)
@@ -425,7 +432,7 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = lbsLoadWriterVT.LoadWriterVT(
+        vt_writer = LoadWriterVT(
             phase,
             "{}".format(output_stem))
         vt_writer.write(params.time_step)
@@ -433,7 +440,7 @@ if __name__ == '__main__':
     # If prefix parsed from command line
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
-        ex_writer = lbsWriterExodusII.WriterExodusII(
+        ex_writer = WriterExodusII(
             phase,
             grid_map,
             "{}".format(output_stem))
@@ -452,12 +459,12 @@ if __name__ == '__main__':
         viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
-    _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
+    _, _, l_ave, _, _, _, _, _ = print_function_statistics(
         phase.get_processors(),
         lambda x: x.get_load(),
         "final processor loads",
         params.verbose)
-    lbsStatistics.print_function_statistics(
+    print_function_statistics(
         phase.get_edges().values(),
         lambda x: x,
         "final link weights",

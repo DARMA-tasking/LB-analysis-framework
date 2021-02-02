@@ -48,7 +48,7 @@ import sys
 
 import bcolors
 
-from src.Model import Message
+from src.Model.lbsMessage import Message
 
 
 class Processor:

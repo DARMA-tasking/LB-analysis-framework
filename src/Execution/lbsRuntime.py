@@ -47,9 +47,9 @@ import sys
 
 import bcolors
 
-from src.Execution import CriterionBase
-from src.Model import Phase
-from src.IO import compute_function_statistics, inverse_transform_sample
+from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsPhase import Phase
+from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample
 
 
 class Runtime:

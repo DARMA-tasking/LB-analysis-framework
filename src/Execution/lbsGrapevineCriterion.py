@@ -44,7 +44,7 @@
 ########################################################################
 import bcolors
 
-from src.Execution import CriterionBase
+from src.Execution.lbsCriterionBase import CriterionBase
 
 
 class GrapevineCriterion(CriterionBase):
