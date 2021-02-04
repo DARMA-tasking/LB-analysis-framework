@@ -47,12 +47,7 @@ import os
 import sys
 
 import bcolors
-
-try:
-    from .ParaviewViewerBase import ParaviewViewerBase
-    globals()["has_paraview"] = True
-except:
-    globals()["has_paraview"] = False
+from ParaviewViewerBase import ParaviewViewerBase
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
@@ -450,13 +445,13 @@ if __name__ == '__main__':
                         params.verbose)
 
     # Create a viewer if paraview is available
-    if globals().get("has_paraview"):
-        viewer = ParaviewViewerBase.factory(
-            output_stem,
-            params.exodus,
-            "")
-        reader = viewer.createViews()
-        viewer.saveView(reader)
+    # if globals().get("has_paraview"):
+    viewer = ParaviewViewerBase.factory(
+        output_stem,
+        params.exodus,
+        "")
+    reader = viewer.createViews()
+    viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(

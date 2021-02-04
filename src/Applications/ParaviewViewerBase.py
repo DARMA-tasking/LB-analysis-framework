@@ -44,19 +44,11 @@
 ########################################################################
 import abc
 import getopt
-import importlib
 import sys
 
 import bcolors
 
-try:
-    import paraview.simple as pv
-    globals()["has_paraview"] = True
-except:
-    globals()["has_paraview"] = False
-    if not __name__ == '__main':
-        print("*  WARNING: Failed to import paraview. Cannot save visual artifacts.")
-        sys.exit(0)
+import paraview.simple as pv
 
 
 class ViewerParameters:
@@ -76,13 +68,6 @@ class ViewerParameters:
     def parse_command_line(self):
         """Parse command line
         """
-        # Check if visualization library imported
-        if not has_paraview:
-            print(bcolors.ERR
-                  + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
-                  + bcolors.END)
-            sys.exit(1)
-
         # Try to hash command line with respect to allowable flags
         try:
             opts, args = getopt.getopt(sys.argv[1:], "he:f:")
@@ -131,13 +116,6 @@ class ParaviewViewerBase(object):
     @abc.abstractmethod
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
-        # Check if visualization library imported
-        if not has_paraview:
-            print(bcolors.ERR
-                  + "** ERROR: failed to import paraview. Cannot save visual artifacts.Exiting."
-                  + bcolors.END)
-            sys.exit(1)
-
         # ExodusII file to be displayed
         self.exodus = "{}.e".format(exodus)
 
@@ -154,6 +132,9 @@ class ParaviewViewerBase(object):
     def factory(exodus, file_name, viewer_type):
         """Produce the necessary concrete backend instance
         """
+        from AnimationViewer import AnimationViewer
+        from PNGViewer import PNGViewer
+        from ParaviewViewer import ParaviewViewer
 
         # Unspecified ExodusII file name
         if not exodus:
@@ -172,30 +153,15 @@ class ParaviewViewerBase(object):
 
         # PNG viewer
         if viewer_type == "PNG":
-            try:
-                PNGViewer = getattr(importlib.import_module("PNGViewer"),
-                    "PNGViewer")
-                ret_object = PNGViewer(exodus, file_name, viewer_type)
-            except:
-                ret_object = None
+            ret_object = PNGViewer(exodus, file_name, viewer_type)
 
         # Animation viewer
         elif viewer_type == "Animation":
-            try:
-                AnimationViewer = getattr(importlib.import_module("AnimationViewer"),
-                    "AnimationViewer")
-                ret_object = AnimationViewer(exodus, file_name, viewer_type)
-            except:
-                ret_object = None
+            ret_object = AnimationViewer(exodus, file_name, viewer_type)
 
         # Paraview viewer
         elif viewer_type == "":
-            try:
-                ParaviewViewer = getattr(importlib.import_module("ParaviewViewer"),
-                    "ParaviewViewer")
-                ret_object = ParaviewViewer(exodus, file_name)
-            except:
-                ret_object = None
+            ret_object = ParaviewViewer(exodus, file_name)
 
         # Unspecified viewer type
         elif viewer_type == None:

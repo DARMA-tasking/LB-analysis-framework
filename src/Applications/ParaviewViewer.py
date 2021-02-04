@@ -46,9 +46,8 @@ import sys
 
 import bcolors
 
-from src.Applications.AnimationViewer import AnimationViewer
 from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
-from src.Applications.PNGViewer import PNGViewer
+
 
 class ParaviewViewer(ParaviewViewerBase):
     """A concrete class providing a Paraview Viewer
@@ -62,7 +61,8 @@ class ParaviewViewer(ParaviewViewerBase):
     def saveView(self, reader):
         """Save figure
         """
-
+        from src.Applications.AnimationViewer import AnimationViewer
+        from src.Applications.PNGViewer import PNGViewer
         self.__class__ = PNGViewer
         self.saveView(reader)
         self.__class__ = AnimationViewer
@@ -94,6 +94,8 @@ if __name__ == '__main__':
     # Create view from PNGViewer instance
     reader = viewer.createViews()
 
+    from src.Applications.AnimationViewer import AnimationViewer
+    from src.Applications.PNGViewer import PNGViewer
     # Save generated view
     viewer.__class__ = PNGViewer
     viewer.saveView(reader)
