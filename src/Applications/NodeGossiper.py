@@ -485,6 +485,9 @@ if __name__ == '__main__':
         q * ell,
         (q + (1 if r else 0)) * ell))
     imbalance = (n_p - r) / float(n_o) if r else 0.
+    imb_file = 'imbalance.txt' if params.output_dir is None else os.path.join(params.output_dir, 'imbalance.txt')
+    with open(imb_file, 'w') as file:
+        file.write(f"{imbalance}")
     print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
         ell * math.sqrt(r * (n_p - r)) / n_p, imbalance))
 
