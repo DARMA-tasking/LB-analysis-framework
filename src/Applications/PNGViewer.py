@@ -76,7 +76,7 @@ class PNGViewer(ParaviewViewer):
             + "###  Generating PNG images...")
         for t in reader.TimestepValues.GetData()[:]:
             animationScene.AnimationTime = t
-            pv.WriteImage(self.file_name + ".%f.png" % t);
+            pv.WriteImage(self.file_name + ".%f.png" % t)
         print(bcolors.HEADER
             + "[PNGViewer] "
             + bcolors.END

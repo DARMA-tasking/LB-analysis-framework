@@ -62,7 +62,7 @@ class AnimationViewer(ParaviewViewer):
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # Call superclass init
-        super(AnimationViewer, self).__init__(exodus, file_name, viewer_type)
+        super().__init__(exodus, file_name, viewer_type)
 
     def saveView(self, reader):
         """Save animation
@@ -81,11 +81,8 @@ class AnimationViewer(ParaviewViewer):
             + "[AnimationViewer] "
             + bcolors.END
             + "###  Generating AVI animation...")
-        pv.WriteAnimation(self.file_name+".avi",
-                       Magnification=1,
-                       Quality = 2,
-                       FrameRate=1.0,
-                       Compression=True)
+        pv.AssignViewToLayout()
+        pv.WriteAnimation(f"{self.file_name}.avi", Magnification=1, Quality=2, FrameRate=1.0, Compression=True)
         print(bcolors.HEADER
             + "[AnimationViewer] "
             + bcolors.END

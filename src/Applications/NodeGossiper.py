@@ -445,11 +445,7 @@ if __name__ == '__main__':
                         params.verbose)
 
     # Create a viewer if paraview is available
-    # if globals().get("has_paraview"):
-    viewer = ParaviewViewerBase.factory(
-        output_stem,
-        params.exodus,
-        "")
+    viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=output_stem, viewer_type='')
     reader = viewer.createViews()
     viewer.saveView(reader)
 
