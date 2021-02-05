@@ -43,6 +43,7 @@
 #
 ########################################################################
 import csv
+import os
 
 import bcolors
 
@@ -62,7 +63,7 @@ class LoadWriterVT:
     be mapped to that VT node for a given iteration/phase.
     """
 
-    def __init__(self, e, f="lbs_out", s="vom"):
+    def __init__(self, e, f="lbs_out", s="vom", output_dir=None):
         """Class constructor:
         e: Phase instance
         f: file name stem
@@ -80,6 +81,7 @@ class LoadWriterVT:
         self.phase = e
         self.file_stem = "{}".format(f)
         self.suffix = s
+        self.output_dir = output_dir
 
     def write(self, time_step):
         """Write one CSV file per rank/procesor containing with one object
@@ -96,7 +98,10 @@ class LoadWriterVT:
                 time_step,
                 p.get_id(),
                 self.suffix)
-            
+
+            if self.output_dir is not None:
+                file_name = os.path.join(self.output_dir, file_name)
+
             # Count number of unsaved objects for sanity
             n_u = 0
 

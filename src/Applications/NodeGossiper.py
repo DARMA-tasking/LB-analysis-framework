@@ -117,6 +117,9 @@ class ggParameters:
         # Do not be verbose by default
         self.verbose = False
 
+        # Output directory
+        self.output_dir = None
+
     def usage(self):
         """Provide online help
         """
@@ -148,6 +151,7 @@ class ggParameters:
         print("\t [-v]        make standard output more verbose")
         print("\t [-a]        use actual destination loads")
         print("\t [-e]        generate Exodus type visualization output")
+        print("\t [-b]        output directory")
         print("\t [-h]        help: print this message and exit")
         print('')
 
@@ -159,7 +163,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:veh")
+                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:veh")
         except getopt.GetoptError:
             print(bcolors.ERR
                 + "** ERROR: incorrect command line arguments."
@@ -230,8 +234,10 @@ class ggParameters:
                 self.exodus = True
             elif o == '-v':
                 self.verbose = True
+            elif o == '-b':
+                self.output_dir = a
 
-    # Ensure that exactly one population strategy was chosen
+        # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
@@ -243,7 +249,12 @@ class ggParameters:
             self.usage()
             return True
 
-    # No line parsing error occurred
+        # Checking if output dir exists, if not, creating one
+        if self.output_dir is not None:
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
+
+        # No line parsing error occurred
         return False
 
 
@@ -427,25 +438,24 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(
-            phase,
-            "{}".format(output_stem))
+        vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
         vt_writer.write(params.time_step)
 
     # If prefix parsed from command line
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
-        ex_writer = WriterExodusII(
-            phase,
-            grid_map,
-            "{}".format(output_stem))
+        ex_writer = WriterExodusII(phase, grid_map, f"{output_stem}", output_dir=params.output_dir)
         ex_writer.write(rt.statistics,
                         rt.load_distributions,
                         rt.sent_distributions,
                         params.verbose)
 
     # Create a viewer if paraview is available
-    viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=output_stem, viewer_type='')
+    file_name = output_stem
+    if params.output_dir is not None:
+        file_name = os.path.join(params.output_dir, file_name)
+        output_stem = file_name
+    viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=file_name, viewer_type='')
     reader = viewer.createViews()
     viewer.saveView(reader)
 
@@ -474,9 +484,9 @@ if __name__ == '__main__':
     print("\tminimum: {:.6g}  maximum: {:.6g}".format(
         q * ell,
         (q + (1 if r else 0)) * ell))
+    imbalance = (n_p - r) / float(n_o) if r else 0.
     print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
-        ell * math.sqrt(r * (n_p - r)) / n_p,
-        (n_p - r) / float(n_o) if r else 0.))
+        ell * math.sqrt(r * (n_p - r)) / n_p, imbalance))
 
     # If this point is reached everything went fine
     print(bcolors.HEADER

@@ -42,6 +42,7 @@
 #@HEADER
 #
 ########################################################################
+import os
 import bcolors
 import vtk
 
@@ -53,13 +54,14 @@ class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
-    def __init__(self, e, m, f="lbs_out", s='e', r=1.):
+    def __init__(self, e, m, f="lbs_out", s='e', r=1., output_dir=None):
         """Class constructor:
         e: Phase instance
         m: Processor dictionnary
         f: file name stem
         s: suffix
         r: grid_resolution value
+        output_dir: output directory
         """
 
         # Ensure that provided phase has correct type
@@ -80,6 +82,9 @@ class WriterExodusII:
 
         # Assemble file name from constructor paramters
         self.file_name = "{}.{}".format(f, s)
+        self.output_dir = output_dir
+        if self.output_dir is not None:
+            self.file_name = os.path.join(self.output_dir, self.file_name)
 
         # Grid_resolution between points
         try:
