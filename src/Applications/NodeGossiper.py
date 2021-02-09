@@ -120,6 +120,9 @@ class ggParameters:
         # Output directory
         self.output_dir = None
 
+        # Generate multimedia
+        self.generate_multimedia = False
+
     def usage(self):
         """Provide online help
         """
@@ -152,6 +155,7 @@ class ggParameters:
         print("\t [-a]        use actual destination loads")
         print("\t [-e]        generate Exodus type visualization output")
         print("\t [-b]        output directory")
+        print("\t [-g]        generate multimedia")
         print("\t [-h]        help: print this message and exit")
         print('')
 
@@ -163,7 +167,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:veh")
+                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:vehg")
         except getopt.GetoptError:
             print(bcolors.ERR
                 + "** ERROR: incorrect command line arguments."
@@ -234,6 +238,8 @@ class ggParameters:
                 self.exodus = True
             elif o == '-v':
                 self.verbose = True
+            elif o == '-g':
+                self.generate_multimedia = True
             elif o == '-b':
                 self.output_dir = a
 
@@ -452,12 +458,14 @@ if __name__ == '__main__':
 
     # Create a viewer if paraview is available
     file_name = output_stem
-    if params.output_dir is not None:
-        file_name = os.path.join(params.output_dir, file_name)
-        output_stem = file_name
-    viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=file_name, viewer_type='')
-    reader = viewer.createViews()
-    viewer.saveView(reader)
+
+    if params.generate_multimedia:
+        if params.output_dir is not None:
+            file_name = os.path.join(params.output_dir, file_name)
+            output_stem = file_name
+        viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=file_name, viewer_type='')
+        reader = viewer.createViews()
+        viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(
