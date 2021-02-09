@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Tests with Docker Imaga Build
 
 on: push
 
