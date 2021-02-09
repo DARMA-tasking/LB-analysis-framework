@@ -37,31 +37,17 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-lbsRelaxedLocalizingCriterion_module_aliases = {}
-for m in [
-    "bcolors",
-    "functools",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsRelaxedLocalizingCriterion_module_aliases:
-            globals()[lbsRelaxedLocalizingCriterion_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import functools
 
-from Execution.lbsCriterionBase   import CriterionBase
+import bcolors
 
-###############################################################################
+from src.Execution.lbsCriterionBase import CriterionBase
+
+
 class RelaxedLocalizingCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    ###########################################################################
     def __init__(self, processors, edges, _):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
@@ -76,7 +62,6 @@ class RelaxedLocalizingCriterion(CriterionBase):
             + bcolors.END
             + "Instantiated concrete criterion")
 
-    ###########################################################################
     def compute(self, object, p_src, p_dst):
         """A criterion allowing for local disruptions for more locality
         """
@@ -112,5 +97,3 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Criterion assesses difference in local communications
         return w_dst - w_src
-
-###############################################################################

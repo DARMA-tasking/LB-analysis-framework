@@ -42,28 +42,16 @@
 #@HEADER
 #
 ########################################################################
-lbsLoadReaderVT_module_aliases = {}
-for m in [
-    "bcolors",
-    "csv",
-    "os",
-    "sys",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsLoadReaderVT_module_aliases:
-            globals()[lbsLoadReaderVT_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import csv
+import os
+import sys
 
-from Model import lbsObject, lbsProcessor
+import bcolors
 
-########################################################################
+from src.Model.lbsObject import Object
+from src.Model.lbsProcessor import Processor
+
+
 class LoadReader:
     """A class to read VT Object Map files. These CSV files conform
     to the following format:
@@ -95,7 +83,6 @@ class LoadReader:
         "NodeToCollectionBcast": 6,
     }
 
-    ####################################################################
     def __init__(self, file_prefix, verbose=False):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
@@ -103,7 +90,6 @@ class LoadReader:
         # Enable or disable verbose mode
         self.verbose = verbose
 
-    ####################################################################
     def get_node_trace_file_name(self, node_id):
         """Build the file name for a given rank/node ID
         """
@@ -111,7 +97,6 @@ class LoadReader:
         return "{}.{}.vom".format(
             self.file_prefix, node_id)
 
-    ####################################################################
     def read(self, node_id, time_step=-1, comm=False):
         """Read the file for a given node/rank. If time_step==-1 then all
         steps are read from the file; otherwise, only `time_step` is.
@@ -156,10 +141,10 @@ class LoadReader:
                     # Update processor if iteration was requested
                     if time_step in (phase, -1):
                         # Instantiate object with retrieved parameters
-                        obj = lbsObject.Object(o_id, time, node_id)
+                        obj = Object(o_id, time, node_id)
 
                         # If this iteration was never encoutered initialize proc object
-                        iter_map.setdefault(phase, lbsProcessor.Processor(node_id))
+                        iter_map.setdefault(phase, Processor(node_id))
 
                         # Add object to processor
                         iter_map[phase].add_object(obj)
@@ -203,7 +188,6 @@ class LoadReader:
         # Return map of populated processors per iteration
         return iter_map
 
-    ####################################################################
     def read_iteration(self, n_p, time_step):
         """Read all the data in the range of procs [0..n_p) for a given
         iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
@@ -231,5 +215,3 @@ class LoadReader:
 
         # Return populated list of processors
         return procs
-
-########################################################################

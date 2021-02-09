@@ -42,35 +42,19 @@
 #@HEADER
 #
 ########################################################################
-lbsProcessor_module_aliases = {
-    "random": "rnd",
-    }
-for m in [
-    "bcolors",
-    "random",
-    "math",
-    "sys",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsProcessor_module_aliases:
-            globals()[lbsProcessor_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import math
+import random as rnd
+import sys
 
-from Model import lbsObject, lbsMessage
+import bcolors
 
-########################################################################
+from src.Model.lbsMessage import Message
+
+
 class Processor:
     """A class representing a processor to which objects are assigned
     """
 
-    ####################################################################
     def __init__(self, i, o=set()):
         # Member variables passed by constructor
         self.index = i
@@ -88,49 +72,42 @@ class Processor:
         # No message was received initially
         self.round_last_received = 0
 
-    ####################################################################
     def get_id(self):
         """Return processor ID
         """
 
         return self.index
 
-    ####################################################################
     def get_objects(self):
         """Return objects assigned to processor
         """
 
         return self.objects
 
-    ####################################################################
     def get_object_ids(self):
         """Return IDs of objects assigned to processor
         """
 
         return [o.get_id() for o in self.objects]
 
-    ####################################################################
     def get_known_underloaded(self):
         """Return underloaded peers know to self
         """
 
         return self.known_underloaded
 
-    ####################################################################
     def get_known_underloads(self):
         """Return underloads peers know to self
         """
 
         return self.known_underloads
 
-    ####################################################################
     def get_overloaded_viewers(self):
         """Return overloaded peers knowing about self
         """
 
         return self.overloaded_viewers
 
-    ####################################################################
     def add_object(self, o, l_ave=None):
         """Assign object to self
         """
@@ -144,7 +121,6 @@ class Processor:
             self.known_underloaded.discard(self)
             self.known_underloads.pop(self, None)
 
-    ####################################################################
     def remove_object(self, o, p_dst):
         """Remove from self object sent to peer
         """
@@ -166,7 +142,6 @@ class Processor:
         # Return removed object time
         return l_o
         
-    ####################################################################
     def add_as_overloaded_viewer(self, underloaded_processors):
         """Add self as viewer to underloaded peers
         """
@@ -175,21 +150,18 @@ class Processor:
         for p in underloaded_processors:
             p.overloaded_viewers.add(self)
 
-    ####################################################################
     def get_known_underload(self, p):
         """Return known peer underload when available or infinity
         """
 
         return self.known_underloads.get(p, math.inf)
 
-    ####################################################################
     def get_load(self):
         """Return computed total load on processor
         """
 
         return sum([o.get_time() for o in self.objects])
 
-    ####################################################################
     def reset_all_load_information(self):
         """Reset all underload information known to self
         """
@@ -201,7 +173,6 @@ class Processor:
         # Reset information about overloaded viwewer peers
         self.overloaded_viewers = set()
 
-    ####################################################################
     def initialize_underloads(self, procs, l_ave, f):
         """Initialize underloads when needed to sample of selected peers
         """
@@ -218,12 +189,11 @@ class Processor:
         self.known_underloads[self] = l
 
         # Create underload message tagged at first round
-        msg = lbsMessage.Message(1, (self.known_underloaded, self.known_underloads))
+        msg = Message(1, (self.known_underloaded, self.known_underloads))
 
         # Broadcast underloads to pseudo-random sample of procs excluding self
         return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
 
-    ####################################################################
     def forward_underloads(self, r, procs, f):
         """Formard underloads to sample of selected peers
         """
@@ -232,18 +202,17 @@ class Processor:
         c_procs = procs.difference(self.known_underloaded).difference([self])
 
         # Create underload message tagged at current round
-        msg = lbsMessage.Message(r, (self.known_underloaded, self.known_underloads))
+        msg = Message(r, (self.known_underloaded, self.known_underloads))
 
         # Forward underloads to pseudo-random sample of procs
         return rnd.sample(c_procs, min(f, len(c_procs))), msg
 
-    ####################################################################
     def process_underload_message(self, msg):
         """Update internals when underload message is received
         """
 
         # Assert that message has the expected type
-        if not isinstance(msg, lbsMessage.Message):
+        if not isinstance(msg, Message):
             print(bcolors.WARN
                 + "*  WARNING: attempted to pass message of incorrect type {}. Ignoring it.".format(
                 type(msg))
@@ -279,7 +248,6 @@ class Processor:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    ####################################################################
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
         """
@@ -303,5 +271,3 @@ class Processor:
 
             # Normalize and return CMF
             return [x / sum_p for x in cmf]
-
-########################################################################

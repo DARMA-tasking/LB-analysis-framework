@@ -42,50 +42,30 @@
 #@HEADER
 #
 ########################################################################
-lbsWriterExodusII_module_aliases = {}
-for m in [
-    "bcolors",
-    "vtk",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsWriterExodusII_module_aliases:
-            globals()[lbsWriterExodusII_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import os
+import bcolors
+import vtk
 
-from Model  import lbsPhase
-from IO     import lbsGridStreamer
+from src.IO.lbsGridStreamer import GridStreamer
+from src.Model.lbsPhase import Phase
 
-########################################################################
+
 class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
-  ####################################################################
-    def __init__(self, e, m, f="lbs_out", s='e', r=1.):
+    def __init__(self, e, m, f="lbs_out", s='e', r=1., output_dir=None):
         """Class constructor:
         e: Phase instance
         m: Processor dictionnary
         f: file name stem
         s: suffix
         r: grid_resolution value
+        output_dir: output directory
         """
 
-        # If VTK is not available, do not do anything
-        if not has_vtk:
-            print(bcolors.ERR
-                + "*  ERROR: Could not write to ExodusII file by lack of VTK"
-                + bcolors.END)
-            return
-
         # Ensure that provided phase has correct type
-        if not isinstance(e, lbsPhase.Phase):
+        if not isinstance(e, Phase):
             print(bcolors.ERR
                 + "*  ERROR: Could not write to ExodusII file by lack of a LBS phase"
                 + bcolors.END)
@@ -102,6 +82,9 @@ class WriterExodusII:
 
         # Assemble file name from constructor paramters
         self.file_name = "{}.{}".format(f, s)
+        self.output_dir = output_dir
+        if self.output_dir is not None:
+            self.file_name = os.path.join(self.output_dir, self.file_name)
 
         # Grid_resolution between points
         try:
@@ -109,7 +92,6 @@ class WriterExodusII:
         except:
             self.grid_resolution = 1.
 
-    ####################################################################
     def write(self, load_statistics, load_distributions, weight_distributions, verbose=False):
         """Map processors to grid and write ExodusII file
         """
@@ -199,7 +181,7 @@ class WriterExodusII:
                         w_arr.GetTuple1(e)))
 
         # Create grid streamer
-        streamer = lbsGridStreamer.GridStreamer(
+        streamer = GridStreamer(
             points,
             lines,
             stat_arrays,
@@ -223,5 +205,3 @@ class WriterExodusII:
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
             writer.WriteAllTimeStepsOn()
             writer.Update()
-
-########################################################################

@@ -1,62 +1,74 @@
-#!/usr/bin/env python2.7
-#@HEADER#
+#
+#@HEADER
 ###############################################################################
-ParaviewViewer_module_aliases = {}
-for m in [
-    "bcolors",
-    "os",
-    "pickle",
-    "sys",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in ParaviewViewer_module_aliases:
-            globals()[ParaviewViewer_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("*  WARNING: Failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
-
-from ParaviewViewerBase import ViewerParameters
-from ParaviewViewerBase import ParaviewViewerBase
-
-if __name__ == '__main__':
-    if __package__ is None:
-        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from PNGViewer              import PNGViewer
-        from AnimationViewer        import AnimationViewer
-    else:
-        from ..PNGViewer            import PNGViewer
-        from ..AnimationViewer      import AnimationViewer
-
+#
+#                              ParaviewViewer.py
+#                           DARMA Toolkit v. 1.0.0
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
 ###############################################################################
+#@HEADER
+#
+########################################################################
+import sys
+
+import bcolors
+
+from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+
+
 class ParaviewViewer(ParaviewViewerBase):
     """A concrete class providing a Paraview Viewer
     """
 
-    ###########################################################################
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # Call superclass init
         super(ParaviewViewer, self).__init__(exodus, file_name, viewer_type)
 
-    ###########################################################################
     def saveView(self, reader):
         """Save figure
         """
-
-        # Save images
-        from PNGViewer              import PNGViewer
-        from AnimationViewer        import AnimationViewer
+        from src.Applications.AnimationViewer import AnimationViewer
+        from src.Applications.PNGViewer import PNGViewer
         self.__class__ = PNGViewer
         self.saveView(reader)
         self.__class__ = AnimationViewer
         self.saveView(reader)
 
-###############################################################################
+
 if __name__ == '__main__':
 
     # Print startup information
@@ -82,6 +94,8 @@ if __name__ == '__main__':
     # Create view from PNGViewer instance
     reader = viewer.createViews()
 
+    from src.Applications.AnimationViewer import AnimationViewer
+    from src.Applications.PNGViewer import PNGViewer
     # Save generated view
     viewer.__class__ = PNGViewer
     viewer.saveView(reader)
@@ -93,5 +107,3 @@ if __name__ == '__main__':
         + "[ParaviewViewer] "
         + bcolors.END
         + "{} file views generated ###".format(viewer.file_name))
-
-###############################################################################

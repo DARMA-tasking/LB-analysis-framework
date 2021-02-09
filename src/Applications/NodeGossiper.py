@@ -41,57 +41,28 @@
 #@HEADER
 #
 ###############################################################################
-NodeGossiper_module_aliases = {}
-for m in [
-    "bcolors",
-    "getopt",
-    "math",
-    "os",
-    "subprocess",
-    "sys",
-   ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in NodeGossiper_module_aliases:
-            globals()[NodeGossiper_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import getopt
+import math
+import os
+import sys
 
-if __name__ == '__main__':
-    if __package__ is None:
-        sys.path.append(
-            os.path.dirname(
-            os.path.dirname(
-            os.path.abspath(__file__))))
-        from Model                  import lbsPhase
-        from Execution              import lbsRuntime
-        from IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
-        try:
-            from ParaviewViewerBase import ParaviewViewerBase
-            globals()["has_paraview"] = True
-        except:
-            globals()["has_paraview"] = False
-    else:
-        from ..Model                  import lbsPhase
-        from ..Execution              import lbsRuntime
-        from ..IO                     import lbsLoadWriterVT, lbsWriterExodusII, lbsStatistics
-        try:
-            from ..ParaviewViewerBase import ParaviewViewerBase
-            globals()["has_paraview"] = True
-        except:
-            globals()["has_paraview"] = False
+import bcolors
+try:
+    import paraview.simple
+except:
+    pass
 
-###############################################################################
+from src.Model.lbsPhase import Phase
+from src.Execution.lbsRuntime import Runtime
+from src.IO.lbsLoadWriterVT import LoadWriterVT
+from src.IO.lbsWriterExodusII import WriterExodusII
+from src.IO.lbsStatistics import initialize, print_function_statistics
+
+
 class ggParameters:
     """A class to describe NodeGossiper parameters
     """
 
-    ###########################################################################
     def __init__(self):
         # By default use modified Grapevine criterion
         self.criterion = 1
@@ -149,7 +120,12 @@ class ggParameters:
         # Do not be verbose by default
         self.verbose = False
 
-    ###########################################################################
+        # Output directory
+        self.output_dir = None
+
+        # Generate multimedia
+        self.generate_multimedia = False
+
     def usage(self):
         """Provide online help
         """
@@ -181,10 +157,11 @@ class ggParameters:
         print("\t [-v]        make standard output more verbose")
         print("\t [-a]        use actual destination loads")
         print("\t [-e]        generate Exodus type visualization output")
+        print("\t [-b]        output directory")
+        print("\t [-g]        generate multimedia")
         print("\t [-h]        help: print this message and exit")
         print('')
 
-    ###########################################################################
     def parse_command_line(self):
         """Parse command line and fill grid gossiper parameters
         """
@@ -193,7 +170,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:veh")
+                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:vehg")
         except getopt.GetoptError:
             print(bcolors.ERR
                 + "** ERROR: incorrect command line arguments."
@@ -264,8 +241,12 @@ class ggParameters:
                 self.exodus = True
             elif o == '-v':
                 self.verbose = True
+            elif o == '-g':
+                self.generate_multimedia = True
+            elif o == '-b':
+                self.output_dir = a
 
-	# Ensure that exactly one population strategy was chosen
+        # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
                  (self.time_sampler_type and self.weight_sampler_type))
             or (self.log_file and
@@ -277,10 +258,15 @@ class ggParameters:
             self.usage()
             return True
 
-	# No line parsing error occurred
+        # Checking if output dir exists, if not, creating one
+        if self.output_dir is not None:
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
+
+        # No line parsing error occurred
         return False
 
-###############################################################################
+
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
        Example: lognormal,1.0,10.0
@@ -325,7 +311,7 @@ def parse_sampler(cmd_str):
     # Return the sampler parsed from the input argument
     return sampler_type, sampler_args
 
-###############################################################################
+
 def global_id_to_cartesian(id, grid_sizes):
     """Map global index to its Cartesian coordinates in a grid
     """
@@ -342,7 +328,7 @@ def global_id_to_cartesian(id, grid_sizes):
     # Return Cartesian coordinates
     return i, j, k
 
-###############################################################################
+
 def get_output_file_stem(params):
     """Build the file name for a given rank/node
     """
@@ -369,7 +355,7 @@ def get_output_file_stem(params):
         output_stem,
         "{}".format(params.threshold).replace('.', '_'))
 
-###############################################################################
+
 if __name__ == '__main__':
 
     # Print startup information
@@ -400,10 +386,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Initialize random number generator
-    lbsStatistics.initialize()
+    initialize()
 
     # Create a phase and populate it
-    phase = lbsPhase.Phase(0, params.verbose)
+    phase = Phase(0, params.verbose)
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
@@ -426,19 +412,19 @@ if __name__ == '__main__':
         n_o = params.n_objects
 
     # Compute and print initial processor load and link weight statistics
-    lbsStatistics.print_function_statistics(
+    print_function_statistics(
         phase.get_processors(),
         lambda x: x.get_load(),
         "initial processor loads",
         params.verbose)
-    lbsStatistics.print_function_statistics(
+    print_function_statistics(
         phase.get_edges().values(),
         lambda x: x,
         "initial link weights",
         params.verbose)
 
     # Instantiate runtime
-    rt = lbsRuntime.Runtime(phase,
+    rt = Runtime(phase,
                             params.criterion,
                             params.actual_dst_load,
                             params.verbose)
@@ -461,39 +447,37 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = lbsLoadWriterVT.LoadWriterVT(
-            phase,
-            "{}".format(output_stem))
+        vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
         vt_writer.write(params.time_step)
 
     # If prefix parsed from command line
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
-        ex_writer = lbsWriterExodusII.WriterExodusII(
-            phase,
-            grid_map,
-            "{}".format(output_stem))
+        ex_writer = WriterExodusII(phase, grid_map, f"{output_stem}", output_dir=params.output_dir)
         ex_writer.write(rt.statistics,
                         rt.load_distributions,
                         rt.sent_distributions,
                         params.verbose)
 
     # Create a viewer if paraview is available
-    if globals().get("has_paraview"):
-        viewer = ParaviewViewerBase.factory(
-            output_stem,
-            params.exodus,
-            "")
+    file_name = output_stem
+
+    if params.generate_multimedia:
+        from ParaviewViewerBase import ParaviewViewerBase
+        if params.output_dir is not None:
+            file_name = os.path.join(params.output_dir, file_name)
+            output_stem = file_name
+        viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=file_name, viewer_type='')
         reader = viewer.createViews()
         viewer.saveView(reader)
 
     # Compute and print final processor load and link weight statistics
-    _, _, l_ave, _, _, _, _, _ = lbsStatistics.print_function_statistics(
+    _, _, l_ave, _, _, _, _, _ = print_function_statistics(
         phase.get_processors(),
         lambda x: x.get_load(),
         "final processor loads",
         params.verbose)
-    lbsStatistics.print_function_statistics(
+    print_function_statistics(
         phase.get_edges().values(),
         lambda x: x,
         "final link weights",
@@ -512,14 +496,15 @@ if __name__ == '__main__':
     print("\tminimum: {:.6g}  maximum: {:.6g}".format(
         q * ell,
         (q + (1 if r else 0)) * ell))
+    imbalance = (n_p - r) / float(n_o) if r else 0.
+    imb_file = 'imbalance.txt' if params.output_dir is None else os.path.join(params.output_dir, 'imbalance.txt')
+    with open(imb_file, 'w') as file:
+        file.write(f"{imbalance}")
     print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
-        ell * math.sqrt(r * (n_p - r)) / n_p,
-        (n_p - r) / float(n_o) if r else 0.))
+        ell * math.sqrt(r * (n_p - r)) / n_p, imbalance))
 
     # If this point is reached everything went fine
     print(bcolors.HEADER
         + "[NodeGossiper] "
         + bcolors.END
         + " Process complete ###")
-
-###############################################################################

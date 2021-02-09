@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#
 #@HEADER
 ###############################################################################
 #
@@ -45,35 +45,20 @@
 # Please do not redistribute without permission
 #
 ###############################################################################
-MoveCountsViewer_module_aliases = {}
-for m in [
-    "bcolors",
-    "csv",
-    "getopt",
-    "os",
-    "sys",
-    "vtk"
-   ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in MoveCountsViewer_module_aliases:
-            globals()[MoveCountsViewer_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import csv
+import getopt
+import sys
 
-from MoveCountsViewerParameters         import MoveCountsViewerParameters
+import bcolors
+import vtk
 
-###############################################################################
+from src.Applications.MoveCountsViewerParameters import MoveCountsViewerParameters
+
+
 class MoveCountsViewer:
     """A class to describe MoveCountsViewer attributes
     """
 
-    ###########################################################################
     def __init__(self):
 
         # Size of subset to which objects are initially mapped (0 = all)
@@ -94,7 +79,6 @@ class MoveCountsViewer:
         # Interactive call -- False by default
         self.interactive = False
 
-    ###########################################################################
     def usage(self):
         """Provide online help
         """
@@ -110,7 +94,6 @@ class MoveCountsViewer:
         print("\t [-h]        help: print this message and exit")
         print('')
 
-    ###########################################################################
     def parse_command_line(self):
         """Parse command line
         """
@@ -165,10 +148,9 @@ class MoveCountsViewer:
             self.usage()
             return True
 
-	    # No line parsing error occurred
+        # No line parsing error occurred
         return False
 
-    ###########################################################################
     def computeMoveCountsViewer(self):
         """Compute MoveCountsViewer
         """
@@ -420,7 +402,6 @@ class MoveCountsViewer:
             writer.Write()
 
 
-###############################################################################
 if __name__ == '__main__':
 
     # Print startup information
@@ -443,5 +424,3 @@ if __name__ == '__main__':
        sys.exit(1)
 
     params.computeMoveCountsViewer()
-
-###############################################################################

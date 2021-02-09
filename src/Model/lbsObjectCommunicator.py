@@ -42,27 +42,14 @@
 #@HEADER
 #
 ########################################################################
-lbsObjectCommunicator_module_alisases = {}
-for m in [
-    "bcolors",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsObjectCommunicator_module_alisases:
-            globals()[lbsObjectCommunicator_module_alisases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
-########################################################################
+import bcolors
+import sys
+
+
 class ObjectCommunicator:
     """A class holding received and sent messages for an object
     """
 
-    ####################################################################
     def __init__(self, r={}, s={}, i=None):
         
         # Index of object having this communicator if defined
@@ -74,35 +61,30 @@ class ObjectCommunicator:
         # Dictionary of communications sent by object
         self.sent = s if isinstance(s, dict) else {}
 
-    ####################################################################
     def get_received(self):
         """Return all from_object=weight pairs received by object
         """
 
         return self.received
 
-    ####################################################################
     def get_received_from_object(self, o):
         """Return the weight of a message received from an object if any
         """
 
         return self.received.get(o)
 
-    ####################################################################
     def get_sent(self):
         """Return all to_object=weight pairs sent from object
         """
 
         return self.sent
 
-    ####################################################################
     def get_sent_to_object(self, o):
         """Return the weight of a message received from an object if any
         """
 
         return self.sent.get(o)
 
-    ####################################################################
     def summarize_unidirectional(self, direction, print_indent=None):
         """Summarize one-way communicator properties and check for errors
         """
@@ -142,7 +124,6 @@ class ObjectCommunicator:
         # Return list of weights
         return weights
 
-    ####################################################################
     def summarize(self, print_indent=None):
         """Summarize communicator properties and check for errors
         """
@@ -155,5 +136,3 @@ class ObjectCommunicator:
 
         # Return counters
         return w_sent, w_recv
-
-########################################################################

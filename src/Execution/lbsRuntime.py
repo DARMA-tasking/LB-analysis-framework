@@ -42,34 +42,20 @@
 #@HEADER
 #
 ########################################################################
-lbsRuntime_module_aliases = {}
-for m in [
-    "bcolors",
-    "math",
-    "sys",
-    ]:
-    has_flag = "has_" + m
-    try:
-        module_object = __import__(m)
-        if m in lbsRuntime_module_aliases:
-            globals()[lbsRuntime_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import math
+import sys
 
-from Model      import lbsProcessor, lbsPhase
-from IO         import lbsStatistics
-from Execution  import lbsCriterionBase
+import bcolors
 
-########################################################################
+from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsPhase import Phase
+from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample
+
+
 class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    ####################################################################
     def __init__(self, p, c, a=False, v=False):
         """Class constructor:
         p: Phase instance
@@ -79,7 +65,7 @@ class Runtime:
         """
 
         # If no LBS phase was provided, do not do anything
-        if not isinstance(p, lbsPhase.Phase):
+        if not isinstance(p, Phase):
             print(bcolors.WARN
                 + "*  WARNING: Could not create a LBS runtime without a phase"
                 + bcolors.END)
@@ -103,10 +89,10 @@ class Runtime:
             k:v for k,v in self.phase.get_edges().items()}]
 
         # Compute global load and weight statistics and initialize average load
-        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
+        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.processors,
             lambda x: x.get_load())
-        n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
+        n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
 
@@ -132,7 +118,6 @@ class Runtime:
             "communication weight variance" : [w_var],
             "communication weight imbalance": [w_imb]}
 
-    ####################################################################
     def execute(self, n_iterations, n_rounds, f, r_threshold):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
@@ -246,7 +231,7 @@ class Runtime:
                         [p_o.get_id() for p_o in viewers]))
 
             # Report viewers counts to underloaded processors
-            n_u, v_min, v_ave, v_max, _, _, _, _ = lbsStatistics.compute_function_statistics(
+            n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 viewers_counts.values(),
                 lambda x: x)
             print(bcolors.HEADER
@@ -267,7 +252,7 @@ class Runtime:
             n_ignored, n_transfers, n_rejects = 0, 0, 0
 
             # Instantiate object transfer criterion
-            transfer_criterion = lbsCriterionBase.CriterionBase.factory(
+            transfer_criterion = CriterionBase.factory(
                 self.Criterion,
                 procs,
                 self.phase.get_edges(),
@@ -311,7 +296,7 @@ class Runtime:
                     p_cmf = p_src.compute_cmf_underloads(self.average_load)
 
                     # Pseudo-randomly select destination proc
-                    p_dst = lbsStatistics.inverse_transform_sample(
+                    p_dst = inverse_transform_sample(
                         p_keys,
                         p_cmf)
 
@@ -387,10 +372,10 @@ class Runtime:
                 k:v for k,v in self.phase.get_edges().items()})
 
             # Compute and store global processor load and link weight statistics
-            _, l_min, _, l_max, l_var, _, _, l_imb = lbsStatistics.compute_function_statistics(
+            _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.processors,
                 lambda x: x.get_load())
-            n_w, _, w_ave, w_max, w_var, _, _, w_imb = lbsStatistics.compute_function_statistics(
+            n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
@@ -426,5 +411,3 @@ class Runtime:
                 w_max,
                 w_ave,
                 math.sqrt(w_var)))
-
-########################################################################

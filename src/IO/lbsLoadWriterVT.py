@@ -42,26 +42,14 @@
 #@HEADER
 #
 ########################################################################
-lbsLoadWriterVT_module_aliases = {}
-for m in [
-    "bcolors",
-    "csv",
-    ]:
-    has_flag = "has_" + m.replace('.', '_')
-    try:
-        module_object = __import__(m)
-        if m in lbsLoadWriterVT_module_aliases:
-            globals()[lbsLoadWriterVT_module_aliases[m]] = module_object
-        else:
-            globals()[m] = module_object
-        globals()[has_flag] = True
-    except ImportError as e:
-        print("** ERROR: failed to import {}. {}.".format(m, e))
-        globals()[has_flag] = False
+import csv
+import os
 
-from Model  import lbsPhase
+import bcolors
 
-########################################################################
+from src.Model.lbsPhase import Phase
+
+
 class LoadWriterVT:
     """A class to write load directives for VT as CSV files with
     the following format:
@@ -75,8 +63,7 @@ class LoadWriterVT:
     be mapped to that VT node for a given iteration/phase.
     """
 
-  ####################################################################
-    def __init__(self, e, f="lbs_out", s="vom"):
+    def __init__(self, e, f="lbs_out", s="vom", output_dir=None):
         """Class constructor:
         e: Phase instance
         f: file name stem
@@ -84,7 +71,7 @@ class LoadWriterVT:
         """
 
         # Ensure that provided phase has correct type
-        if not isinstance(e, lbsPhase.Phase):
+        if not isinstance(e, Phase):
             print(bcolors.ERR
                 + "*  ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase"
                 + bcolors.END)
@@ -94,8 +81,8 @@ class LoadWriterVT:
         self.phase = e
         self.file_stem = "{}".format(f)
         self.suffix = s
+        self.output_dir = output_dir
 
-    ####################################################################
     def write(self, time_step):
         """Write one CSV file per rank/procesor containing with one object
         per line, with the following format:
@@ -111,7 +98,10 @@ class LoadWriterVT:
                 time_step,
                 p.get_id(),
                 self.suffix)
-            
+
+            if self.output_dir is not None:
+                file_name = os.path.join(self.output_dir, file_name)
+
             # Count number of unsaved objects for sanity
             n_u = 0
 
@@ -144,5 +134,3 @@ class LoadWriterVT:
                     + "Wrote {} objects to CSV file {}".format(
                     len(p.objects),
                     file_name))
-
-########################################################################
