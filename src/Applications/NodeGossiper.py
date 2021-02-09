@@ -47,7 +47,10 @@ import os
 import sys
 
 import bcolors
-from ParaviewViewerBase import ParaviewViewerBase
+try:
+    import paraview.simple
+except:
+    pass
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
@@ -460,6 +463,7 @@ if __name__ == '__main__':
     file_name = output_stem
 
     if params.generate_multimedia:
+        from ParaviewViewerBase import ParaviewViewerBase
         if params.output_dir is not None:
             file_name = os.path.join(params.output_dir, file_name)
             output_stem = file_name
