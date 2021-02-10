@@ -41,10 +41,17 @@
 #@HEADER
 #
 ###############################################################################
-import getopt
-import math
 import os
 import sys
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    exit(1)
+
+import getopt
+import math
 
 import bcolors
 try:
