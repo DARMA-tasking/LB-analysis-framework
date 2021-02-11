@@ -59,7 +59,7 @@ class MoveCountsViewer:
     """A class to describe MoveCountsViewer attributes
     """
 
-    def __init__(self):
+    def __init__(self, input_file_suffix="vom"):
 
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_processors = 0
@@ -68,7 +68,7 @@ class MoveCountsViewer:
         self.input_file_name = None
 
         # Input file suffix -- .vom by default
-        self.input_file_suffix = "vom"
+        self.input_file_suffix = input_file_suffix
 
         # Output file name
         self.output_file_name = None

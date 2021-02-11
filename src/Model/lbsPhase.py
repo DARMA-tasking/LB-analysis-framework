@@ -61,7 +61,7 @@ class Phase:
     objects at a given round
     """
 
-    def __init__(self, t=0, verbose=False):
+    def __init__(self, t=0, verbose=False, file_suffix="vom"):
         # Initialize empty list of processors
         self.processors = []
 
@@ -77,6 +77,9 @@ class Phase:
         # Start with empty edges cache
         self.edges = {}
         self.cached_edges = False
+
+        # Data files suffix(reading from data)
+        self.file_suffix = file_suffix
 
     def get_processors(self):
         """Retrieve processors belonging to phase
@@ -347,7 +350,7 @@ class Phase:
         """
 
         # Instantiate VT load reader
-        reader = LoadReader(basename)
+        reader = LoadReader(basename, file_suffix=self.file_suffix)
 
         # Populate phase with reader output
         print(bcolors.HEADER
