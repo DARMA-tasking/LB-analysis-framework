@@ -83,9 +83,12 @@ class LoadReader:
         "NodeToCollectionBcast": 6,
     }
 
-    def __init__(self, file_prefix, verbose=False):
+    def __init__(self, file_prefix, verbose=False, file_suffix="vom"):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
+
+        # Data files(data loading) suffix
+        self.file_suffix = file_suffix
 
         # Enable or disable verbose mode
         self.verbose = verbose
@@ -94,8 +97,7 @@ class LoadReader:
         """Build the file name for a given rank/node ID
         """
 
-        return "{}.{}.vom".format(
-            self.file_prefix, node_id)
+        return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
 
     def read(self, node_id, time_step=-1, comm=False):
         """Read the file for a given node/rank. If time_step==-1 then all

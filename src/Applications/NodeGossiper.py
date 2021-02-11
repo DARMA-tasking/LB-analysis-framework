@@ -133,6 +133,9 @@ class ggParameters:
         # Generate multimedia
         self.generate_multimedia = False
 
+        # Data files suffix (data loading)
+        self.file_suffix = "vom"
+
     def usage(self):
         """Provide online help
         """
@@ -161,10 +164,11 @@ class ggParameters:
         print("\t [-m <bmap>] base file name for VT object/proc mapping")
         print("\t [-d <d>]    object communication degree "
               "(no communication if 0) ")
+        print("\t [-b <odir>] output directory")
+        print("\t [-j <fsuf>] file suffix for data files(reading data)")
         print("\t [-v]        make standard output more verbose")
         print("\t [-a]        use actual destination loads")
         print("\t [-e]        generate Exodus type visualization output")
-        print("\t [-b]        output directory")
         print("\t [-g]        generate multimedia")
         print("\t [-h]        help: print this message and exit")
         print('')
@@ -177,7 +181,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:vehg")
+                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:j:vehg")
         except getopt.GetoptError:
             print(bcolors.ERR
                 + "** ERROR: incorrect command line arguments."
@@ -252,6 +256,8 @@ class ggParameters:
                 self.generate_multimedia = True
             elif o == '-b':
                 self.output_dir = a
+            elif o == '-j':
+                self.file_suffix = a
 
         # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
@@ -396,7 +402,7 @@ if __name__ == '__main__':
     initialize()
 
     # Create a phase and populate it
-    phase = Phase(0, params.verbose)
+    phase = Phase(0, params.verbose, file_suffix=params.file_suffix)
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
