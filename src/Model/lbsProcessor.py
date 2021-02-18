@@ -41,7 +41,7 @@
 ###############################################################################
 #@HEADER
 #
-########################################################################
+
 import math
 import random as rnd
 import sys
@@ -248,6 +248,7 @@ class Processor:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
+
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
         """
@@ -257,14 +258,18 @@ class Processor:
 
         # Distinguish between different PMF types
         if not pmf_type:
-            # Initialize ancillary values
+            # Determine whether one underloaded is actually overloaded
+            loads = self.known_underloads.values()
+            l_max = max(loads)
+            factor = l_max if l_max > l_ave else l_ave
+                
+            # Initialize CMF value
             sum_p = 0.
-            inv_l_ave = 1. / l_ave
-
-            # Iterate over all underloads
-            for l in self.known_underloads.values():
+            
+            # Iterate over all loads known to be underloaded
+            for l in loads:
                 # Update CMF
-                sum_p += 1. - inv_l_ave * l
+                sum_p += 1. - factor * l
 
                 # Assign CMF for current underloaded processor
                 cmf.append(sum_p)
