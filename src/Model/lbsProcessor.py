@@ -261,13 +261,14 @@ class Processor:
             # Determine whether one underloaded is actually overloaded
             loads = self.known_underloads.values()
             l_max = max(loads)
-            factor = l_max if l_max > l_ave else l_ave
-                
+            factor = 1 / l_max if l_max > l_ave else 1 / l_ave
+
             # Initialize CMF value
             sum_p = 0.
             
             # Iterate over all loads known to be underloaded
             for l in loads:
+
                 # Update CMF
                 sum_p += 1. - factor * l
 
