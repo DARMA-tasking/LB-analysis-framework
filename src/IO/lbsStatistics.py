@@ -41,7 +41,7 @@
 ###############################################################################
 #@HEADER
 #
-########################################################################
+
 import math
 import random as rnd
 
@@ -136,10 +136,10 @@ def inverse_transform_sample(values, cmf):
     u = rnd.random()
 
     # Look for when u is first encountered in CMF
-    for i, x in enumerate(cmf):
+    for v, x in zip(values, cmf):
         if not x < u:
             # Return sample point
-            return values[i]
+            return v
 
 
 def compute_function_statistics(population, fct):
