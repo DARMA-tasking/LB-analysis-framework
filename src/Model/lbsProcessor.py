@@ -251,29 +251,32 @@ class Processor:
 
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
+           tyoe 0: improved Gossip approac=h
+           type 1: NS variant based on sender load
         """
 
         # Initialize CMF
+        sum_p = 0
         cmf = []
+        p_fac = 1
 
+        # Retrieve known underloads
+        loads = self.known_underloads.values()
+        
         # Distinguish between different PMF types
         if not pmf_type:
             # Determine whether one underloaded is actually overloaded
-            loads = self.known_underloads.values()
             l_max = max(loads)
-            factor = 1 / l_max if l_max > l_ave else 1 / l_ave
+            p_fac /= (l_max if l_max > l_ave else 1 / l_ave)
 
-            # Initialize CMF value
-            sum_p = 0.
+        elif pmf_type == 1:
+            # User sender load
+            p_fac /= self.get_load()
             
-            # Iterate over all loads known to be underloaded
-            for l in loads:
+        # Compute CMF over all loads
+        for l in loads:
+            sum_p += 1 - p_fac * l
+            cmf.append(sum_p)
 
-                # Update CMF
-                sum_p += 1. - factor * l
-
-                # Assign CMF for current underloaded processor
-                cmf.append(sum_p)
-
-            # Normalize and return CMF
-            return [x / sum_p for x in cmf]
+        # Normalize and return CMF
+        return [x / sum_p for x in cmf]

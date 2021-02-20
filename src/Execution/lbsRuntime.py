@@ -41,7 +41,7 @@
 ###############################################################################
 #@HEADER
 #
-########################################################################
+
 import math
 import sys
 
@@ -117,6 +117,7 @@ class Runtime:
             "maximum communication weight"  : [w_max],
             "communication weight variance" : [w_var],
             "communication weight imbalance": [w_imb]}
+
 
     def execute(self, n_iterations, n_rounds, f, r_threshold):
         """Launch runtime execution
@@ -293,7 +294,10 @@ class Runtime:
                         break
 
                     # Compute empirical CMF given known underloads
-                    p_cmf = p_src.compute_cmf_underloads(self.average_load)
+                    pmf_type = 0
+                    p_cmf = p_src.compute_cmf_underloads(
+                        self.average_load,
+                        pmf_type)
 
                     # Pseudo-randomly select destination proc
                     p_dst = inverse_transform_sample(
