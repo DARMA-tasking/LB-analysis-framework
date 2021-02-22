@@ -1,0 +1,21 @@
+
+# Need verision >= 3.5 for the features in use
+version: '3.5'
+
+services:
+  lbaf-interactive:
+    image: ${REPO}:lbaf
+    build:
+      context: .
+      target: base
+      dockerfile: lbaf.deps.Dockerfile
+      cache_from:
+        - ${REPO}:lbaf
+      args:
+        BASE: ${BASE}
+    volumes:
+      - .:/lbaf:delegated
+      - ${IN}:/lbaf/in:delegated
+      - ${OUT}:/lbaf/out:delegated
+    command:
+      /bin/bash
