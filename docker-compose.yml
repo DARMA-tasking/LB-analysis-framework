@@ -15,7 +15,7 @@ services:
         BASE: ${BASE}
     volumes:
       - .:/lbaf:delegated
-      - ${IN}:/lbaf/in:delegated
-      - ${OUT}:/lbaf/out:delegated
+      - ${LBAF_IN}:/lbaf/in:delegated
+      - ${LBAF_OUT}:/lbaf/out:delegated
     command:
       /bin/bash
