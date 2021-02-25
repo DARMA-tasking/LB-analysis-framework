@@ -267,7 +267,7 @@ class Processor:
         if not pmf_type:
             # Determine whether one underloaded is actually overloaded
             l_max = max(loads)
-            p_fac /= (l_max if l_max > l_ave else 1 / l_ave)
+            p_fac /= (l_max if l_max > l_ave else l_ave)
 
         elif pmf_type == 1:
             # User sender load
