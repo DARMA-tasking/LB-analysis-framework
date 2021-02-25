@@ -41,7 +41,7 @@
 ###############################################################################
 #@HEADER
 #
-########################################################################
+
 import math
 import random as rnd
 import sys
@@ -248,26 +248,35 @@ class Processor:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
+
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
+           tyoe 0: improved Gossip approach
+           type 1: NS variant based on sender load
         """
 
         # Initialize CMF
+        sum_p = 0
         cmf = []
+        p_fac = 1
 
+        # Retrieve known underloads
+        loads = self.known_underloads.values()
+        
         # Distinguish between different PMF types
         if not pmf_type:
-            # Initialize ancillary values
-            sum_p = 0.
-            inv_l_ave = 1. / l_ave
+            # Determine whether one underloaded is actually overloaded
+            l_max = max(loads)
+            p_fac /= (l_max if l_max > l_ave else l_ave)
 
-            # Iterate over all underloads
-            for l in self.known_underloads.values():
-                # Update CMF
-                sum_p += 1. - inv_l_ave * l
+        elif pmf_type == 1:
+            # User sender load
+            p_fac /= self.get_load()
+            
+        # Compute CMF over all loads
+        for l in loads:
+            sum_p += 1 - p_fac * l
+            cmf.append(sum_p)
 
-                # Assign CMF for current underloaded processor
-                cmf.append(sum_p)
-
-            # Normalize and return CMF
-            return [x / sum_p for x in cmf]
+        # Normalize and return CMF
+        return [x / sum_p for x in cmf]
