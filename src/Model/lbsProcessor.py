@@ -251,7 +251,7 @@ class Processor:
 
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
-           tyoe 0: improved Gossip approac=h
+           tyoe 0: improved Gossip approach
            type 1: NS variant based on sender load
         """
 
