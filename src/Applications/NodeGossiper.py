@@ -149,7 +149,7 @@ class ngParameters:
         print("\t\t\t 1: Grapevine modified (default)")
         print("\t\t\t 2: strict localizer")
         print("\t\t\t 3: relaxed localizer")
-        print("\t [-n <nf>]   normamlization factor for transfer PMF:")
+        print("\t [-n <nf>]   normalization factor for transfer PMF:")
         print("\t\t\t 0: load average or maximum sender load (default)")
         print("\t\t\t 1: recipient load (NS variant)")
         print("\t [-i <ni>]   number of load-balancing iterations")
