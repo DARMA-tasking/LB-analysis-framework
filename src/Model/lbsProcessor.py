@@ -273,6 +273,13 @@ class Processor:
             # User sender load
             p_fac /= self.get_load()
             
+        else:
+            print(bcolors.ERR
+                  + "** ERROR: unsupported PMF type: {}. Exiting.".format(
+                      pmf_type)
+                  + bcolors.END)
+            sys.exit(1)
+
         # Compute CMF over all loads
         for l in loads:
             sum_p += 1 - p_fac * l
