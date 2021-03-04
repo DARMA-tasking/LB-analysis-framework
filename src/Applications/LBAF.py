@@ -310,7 +310,6 @@ class ggParameters:
             sys.exit(1)
 
         # Checking if output dir exists, if not, creating one
-        self.output_dir = os.path.join(project_path, self.output_dir)
         if self.output_dir is not None:
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
