@@ -35,4 +35,4 @@ fanout: 4
 time_step: 0
 log_file: "data/vt_example_lb_stats/stats"
 exodus: True
-output_dir: "lbaf/output"
+output_dir: "output"
