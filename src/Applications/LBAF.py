@@ -1,7 +1,7 @@
 #@HEADER
 ###############################################################################
 #
-#                                NodeGossiper.py
+#                                LBAF.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -54,6 +54,7 @@ import getopt
 import math
 
 import bcolors
+import yaml
 try:
     import paraview.simple
 except:
@@ -67,7 +68,7 @@ from src.IO.lbsStatistics import initialize, print_function_statistics
 
 
 class ggParameters:
-    """A class to describe NodeGossiper parameters
+    """A class to describe LBAF parameters
     """
 
     def __init__(self):
@@ -136,6 +137,15 @@ class ggParameters:
         # Data files suffix (data loading)
         self.file_suffix = "vom"
 
+        # Configuration file
+        self.conf_file_found = False
+        self.conf = self.get_conf_file()
+        if self.conf_file_found:
+            self.parse_conf_file()
+        else:
+            self.parse_command_line()
+        self.checks_after_init()
+
     def usage(self):
         """Provide online help
         """
@@ -187,7 +197,7 @@ class ggParameters:
                 + "** ERROR: incorrect command line arguments."
                 + bcolors.END)
             self.usage()
-            return True
+            sys.exit(1)
 
         # Parse arguments and assign corresponding member variable values
         for o, a in opts:
@@ -259,25 +269,70 @@ class ggParameters:
             elif o == '-j':
                 self.file_suffix = a
 
+    def get_conf_file(self, conf_file=os.path.join(project_path, 'src', 'Applications', 'conf.yaml')):
+        """ Checks extension, reads YML file and returns parsed YAML file
+        """
+        if os.path.splitext(conf_file)[-1] in ['.yml', '.yaml'] and os.path.isfile(conf_file):
+            print(f"{bcolors.OKMSG}Config file {conf_file} FOUND!{bcolors.END}")
+            try:
+                with open(conf_file, 'rt') as config:
+                    self.conf_file_found = True
+                    return yaml.safe_load(config)
+            except yaml.MarkedYAMLError as err:
+                print(f"{bcolors.ERR}ERROR: Invalid YAML file {conf_file} in line {err.problem_mark.line} "
+                      f"({err.problem,} {err.context}){bcolors.END}")
+                sys.exit(1)
+        else:
+            print(f"{bcolors.ERR}Config file NOT FOUND!{bcolors.END}")
+
+    def checks_after_init(self):
+        """ Checks after initialization.
+        """
         # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
                  (self.time_sampler_type and self.weight_sampler_type))
-            or (self.log_file and
-                (self.time_sampler_type or self.weight_sampler_type))):
+                or (self.log_file and
+                    (self.time_sampler_type or self.weight_sampler_type))):
             print(bcolors.ERR
-                + "** ERROR: exactly one strategy to populate initial phase "
-                "must be chosen."
-                + bcolors.END)
+                  + "** ERROR: exactly one strategy to populate initial phase "
+                    "must be chosen."
+                  + bcolors.END)
             self.usage()
-            return True
+            sys.exit(1)
+
+        # Checking if log dir exists, if not, checking if dir exists in project path
+        if os.path.isdir(os.path.abspath(os.path.split(self.log_file)[0])):
+            self.log_file = os.path.abspath(self.log_file)
+        elif os.path.isdir(os.path.join(project_path, os.path.split(self.log_file)[0])):
+            self.log_file = os.path.join(project_path, self.log_file)
+        else:
+            print(f"{bcolors.ERR}LOG directory NOT FOUND!{bcolors.END}")
+            sys.exit(1)
 
         # Checking if output dir exists, if not, creating one
+        self.output_dir = os.path.join(project_path, self.output_dir)
         if self.output_dir is not None:
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
-        # No line parsing error occurred
-        return False
+    def parse_conf_file(self):
+        """ Executed when config YAML file was found and checked
+        """
+        for param_key, param_val in self.conf.items():
+            if self.__dict__.get(param_key, 'SomeRidiculousValue') != 'SomeRidiculousValue':
+                self.__dict__[param_key] = param_val
+        if isinstance(self.conf.get('x_procs', None), int) and self.conf.get('x_procs', 0) > 0:
+            self.grid_size[0] = self.conf.get('x_procs', 0)
+        if isinstance(self.conf.get('y_procs', None), int) and self.conf.get('y_procs', 0) > 0:
+            self.grid_size[1] = self.conf.get('y_procs', 0)
+        if isinstance(self.conf.get('z_procs', None), int) and self.conf.get('z_procs', 0) > 0:
+            self.grid_size[2] = self.conf.get('z_procs', 0)
+        if isinstance(self.conf.get('time_sampler_type', None), str):
+            self.time_sampler_type, self.time_sampler_parameters = parse_sampler(self.conf['time_sampler_type'])
+        if isinstance(self.conf.get('weight_sampler_type', None), str):
+            self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(self.conf['weight_sampler_type'])
+        if self.communication_degree > 0:
+            self.communication_enabled = True
 
 
 def parse_sampler(cmd_str):
@@ -363,7 +418,7 @@ def get_output_file_stem(params):
             params.fanout)
 
     # Return assembled stem
-    return "NodeGossiper-n{}-{}-t{}".format(
+    return "LBAF-n{}-{}-t{}".format(
         n_p,
         output_stem,
         "{}".format(params.threshold).replace('.', '_'))
@@ -374,7 +429,7 @@ if __name__ == '__main__':
     # Print startup information
     sv = sys.version_info
     print(bcolors.HEADER
-        + "[NodeGossiper] "
+        + "[LBAF] "
         + bcolors.END
         + "### Started with Python {}.{}.{}".format(
         sv.major,
@@ -383,12 +438,10 @@ if __name__ == '__main__':
 
     # Instantiate parameters and set values from command line arguments
     print(bcolors.HEADER
-        + "[NodeGossiper] "
+        + "[LBAF] "
         + bcolors.END
         + "Parsing command line arguments")
     params = ggParameters()
-    if params.parse_command_line():
-       sys.exit(1)
 
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
@@ -448,7 +501,7 @@ if __name__ == '__main__':
 
     # Create mapping from processor to Cartesian grid
     print(bcolors.HEADER
-        + "[NodeGossiper] "
+        + "[LBAF] "
         + bcolors.END
         + "Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
         n_p,
@@ -500,7 +553,7 @@ if __name__ == '__main__':
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
     print(bcolors.HEADER
-        + "[NodeGossiper] "
+        + "[LBAF] "
         + bcolors.END
         + "Optimal load statistics for {} objects "
           "with iso-time: {:.6g}".format(
@@ -518,6 +571,6 @@ if __name__ == '__main__':
 
     # If this point is reached everything went fine
     print(bcolors.HEADER
-        + "[NodeGossiper] "
+        + "[LBAF] "
         + bcolors.END
         + " Process complete ###")
