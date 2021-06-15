@@ -45,6 +45,7 @@
 
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
+
 class Object:
     """A class representing an object with time and communicator
     """

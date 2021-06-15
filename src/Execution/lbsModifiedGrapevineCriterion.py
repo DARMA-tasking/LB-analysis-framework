@@ -45,6 +45,8 @@
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsObject import Object
+from src.Model.lbsProcessor import Processor
 
 
 class ModifiedGrapevineCriterion(CriterionBase):
@@ -68,7 +70,7 @@ class ModifiedGrapevineCriterion(CriterionBase):
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
-    def compute(self, object, p_src, p_dst):
+    def compute(self, obj: Object, p_src: Processor, p_dst: Processor) -> float:
         """Modified Grapevine criterion based on L1 norm of loads
         """
 
@@ -77,4 +79,4 @@ class ModifiedGrapevineCriterion(CriterionBase):
             (p_dst.get_load()
              if self.actual_dst_load
              else p_src.get_known_underload(p_dst))
-            + object.get_time())
+            + obj.get_time())
