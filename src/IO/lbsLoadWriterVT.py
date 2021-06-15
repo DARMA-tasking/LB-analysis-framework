@@ -43,11 +43,14 @@
 #
 ########################################################################
 import csv
+import json
 import os
 
+import brotli
 import bcolors
 
 from src.Model.lbsPhase import Phase
+from src.Model.lbsProcessor import Processor
 
 
 class LoadWriterVT:
@@ -93,11 +96,7 @@ class LoadWriterVT:
         # Iterate over processors
         for p in self.phase.processors:
             # Create file name for current processor
-            file_name = "{}.{}.{}.{}".format(
-                self.file_stem,
-                time_step,
-                p.get_id(),
-                self.suffix)
+            file_name = f"{self.file_stem}.{time_step}.{p.get_id()}.{self.suffix}"
 
             if self.output_dir is not None:
                 file_name = os.path.join(self.output_dir, file_name)
@@ -105,32 +104,69 @@ class LoadWriterVT:
             # Count number of unsaved objects for sanity
             n_u = 0
 
-            # Open output file
-            with open(file_name, 'w') as f:
-                # Create CSV writer
-                writer = csv.writer(f, delimiter=',')
+            self.csv_writer(file_name=file_name, n_u=n_u, processor=p)
+            # self.json_writer(file_name=file_name, n_u=n_u, processor=p)
 
-                # Iterate over objects
-                for o in p.objects:
-                    # Write object to file and increment count
-                    try:
-                        writer.writerow([o.get_processor_id(),
-                                         o.get_id(),
-                                         o.get_time()])
-                    except:
-                        n_u += 1
+    @staticmethod
+    def json_writer(file_name: str, n_u: int, processor: Processor):
+        temp_dict = dict()
+        # Iterate over objects
+        for o in processor.objects:
+            # Write object to file and increment count
+            try:
+                # writer.writerow([o.get_processor_id(), o.get_id(), o.get_time()])
+                proc_id = o.get_processor_id()
+                obj_id = o.get_id()
+                obj_time = o.get_time()
+                if isinstance(temp_dict.get(proc_id, None), list):
+                    temp_dict[proc_id].append({'proc_id': proc_id, 'obj_id': obj_id, 'obj_time': obj_time})
+                else:
+                    temp_dict[proc_id] = list()
+                    temp_dict[proc_id].append({'proc_id': proc_id, 'obj_id': obj_id, 'obj_time': obj_time})
+            except:
+                n_u += 1
 
-            # Sanity check
-            if n_u:
-                print(bcolors.ERR
-                    + "*  ERROR: {} objects could not be written to CSV file {}".format(
-                    n_u,
-                    file_name)
-                    + bcolors.END)
-            else:
-                print(bcolors.HEADER
-                    + "[LoadWriterVT] "
-                    + bcolors.END
-                    + "Wrote {} objects to CSV file {}".format(
-                    len(p.objects),
-                    file_name))
+        dict_to_dump = dict()
+        dict_to_dump['phases'] = list()
+        for proc_id, others_list in temp_dict.items():
+            phase_dict = {'tasks': list(), 'id': proc_id}
+            for task in others_list:
+                task_dict = {'time': task['obj_time'], 'resource': 'cpu', 'object': task['obj_id']}
+                phase_dict['tasks'].append(task_dict)
+            dict_to_dump['phases'].append(phase_dict)
+
+        json_str = json.dumps(dict_to_dump, separators=(',', ':'))
+        compressed_str = brotli.compress(string=json_str.encode('utf-8'), mode=brotli.MODE_TEXT)
+
+        with open(file_name, 'wb') as compr_json_file:
+            compr_json_file.write(compressed_str)
+
+        # Sanity check
+        if n_u:
+            print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
+        else:
+            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.objects)} objects to JSON file "
+                  f"{file_name}")
+
+    @staticmethod
+    def csv_writer(file_name: str, n_u: int, processor: Processor):
+
+        # Open output file
+        with open(file_name, 'w') as f:
+            # Create CSV writer
+            writer = csv.writer(f, delimiter=',')
+
+            # Iterate over objects
+            for o in processor.objects:
+                # Write object to file and increment count
+                try:
+                    writer.writerow([o.get_processor_id(), o.get_id(), o.get_time()])
+                except:
+                    n_u += 1
+
+        # Sanity check
+        if n_u:
+            print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to CSV file {file_name}{bcolors.END}")
+        else:
+            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.objects)} objects to CSV file "
+                  f"{file_name}")

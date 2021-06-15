@@ -43,10 +43,12 @@
 #
 ########################################################################
 import csv
+import json
 import os
 import sys
 
 import bcolors
+import brotli
 
 from src.Model.lbsObject import Object
 from src.Model.lbsProcessor import Processor
@@ -99,26 +101,103 @@ class LoadReader:
 
         return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
 
-    def read(self, node_id, time_step=-1, comm=False):
+    def read(self, node_id: int, time_step: int = -1, comm: bool = False) -> dict:
         """Read the file for a given node/rank. If time_step==-1 then all
         steps are read from the file; otherwise, only `time_step` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
-        print(bcolors.HEADER
-              + "[LoadReaderVT] "
-              + bcolors.END
-              + "Reading {} VT object map".format(file_name))
+        print(f"{bcolors.HEADER}[LoadReaderVT] {bcolors.END}Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
-            print(bcolors.ERR
-                  + "*  ERROR: [LoadReaderVT] File {} does not exist.".format(file_name)
-                  + bcolors.END)
+            print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] File {file_name} does not exist.{bcolors.END}")
             sys.exit(1)
 
         # Initialize storage
         iter_map = dict()
 
+        iter_map = self.csv_reader(returned_dict=iter_map, file_name=file_name, time_step=time_step, node_id=node_id)
+        # iter_map = self.json_reader(returned_dict=iter_map, file_name=file_name, time_step=time_step, node_id=node_id)
+
+        # Print more information when requested
+        if self.verbose:
+            print(bcolors.HEADER
+                  + "[LoadReaderVT] "
+                  + bcolors.END
+                  + "Finished reading file: {}".format(file_name))
+
+        # Return map of populated processors per iteration
+        return iter_map
+
+    def read_iteration(self, n_p: int, time_step: int) -> list:
+        """Read all the data in the range of procs [0..n_p) for a given
+        iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
+        into a list of processors to be returned for the given iteration.
+        """
+
+        # Create storage for processors
+        procs = [None] * n_p
+
+        # Iterate over all processors
+        for p in range(n_p):
+            # Read data for given iteration and assign it to processor
+            proc_iter_map = self.read(p, time_step)
+
+            # Try to retrieve processor information at given time-step
+            try:
+                procs[p] = proc_iter_map[time_step]
+            except KeyError:
+                print(bcolors.ERR
+                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                    p,
+                    time_step)
+                      + bcolors.END)
+                sys.exit(1)
+
+        # Return populated list of processors
+        return procs
+
+    def json_reader(self, returned_dict: dict, file_name: str, time_step, node_id: int) -> dict:
+        """ Reader compatible with current VT Object Map files (json)
+        """
+        with open(file_name, 'rb') as compr_json_file:
+            compr_bytes = compr_json_file.read()
+            try:
+                decompr_bytes = brotli.decompress(compr_bytes)
+                decompressed_dict = json.loads(decompr_bytes.decode('utf-8'))
+            except brotli.error:
+                decompressed_dict = json.loads(compr_bytes.decode('utf-8'))
+
+        # defining phases from file
+        phases = decompressed_dict['phases']
+        # iterating over phases
+        for phase in phases:
+            phase_id = phase['id']
+            for task in phase['tasks']:
+                task_time = task.get('time')
+                task_object_id = task.get('object')
+
+                # Update processor if iteration was requested
+                if time_step in (phase_id, -1):
+                    # Instantiate object with retrieved parameters
+                    obj = Object(task_object_id, task_time, node_id)
+
+                    # If this iteration was never encoutered initialize proc object
+                    returned_dict.setdefault(phase, Processor(node_id))
+
+                    # Add object to processor
+                    returned_dict[phase].add_object(obj)
+
+                    # Print debug information when requested
+                    if self.verbose:
+                        print(f"{bcolors.HEADER}[LoadReaderVT] {bcolors.END}iteration = {phase_id}, "
+                              f"object id = {task_object_id}, time = {task_time}")
+
+        return returned_dict
+
+    def csv_reader(self, returned_dict: dict, file_name: str, time_step, node_id: int) -> dict:
+        """ Reader compatible with previous VT Object Map files (csv)
+        """
         # Open specified input file
         with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
@@ -146,10 +225,10 @@ class LoadReader:
                         obj = Object(o_id, time, node_id)
 
                         # If this iteration was never encoutered initialize proc object
-                        iter_map.setdefault(phase, Processor(node_id))
+                        returned_dict.setdefault(phase, Processor(node_id))
 
                         # Add object to processor
-                        iter_map[phase].add_object(obj)
+                        returned_dict[phase].add_object(obj)
 
                         # Print debug information when requested
                         if self.verbose:
@@ -180,40 +259,4 @@ class LoadReader:
                           + bcolors.END)
                     sys.exit(1)
 
-        # Print more information when requested
-        if self.verbose:
-            print(bcolors.HEADER
-                  + "[LoadReaderVT] "
-                  + bcolors.END
-                  + "Finished reading file: {}".format(file_name))
-
-        # Return map of populated processors per iteration
-        return iter_map
-
-    def read_iteration(self, n_p, time_step):
-        """Read all the data in the range of procs [0..n_p) for a given
-        iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
-        into a list of processors to be returned for the given iteration.
-        """
-
-        # Create storage for processors
-        procs = [None] * n_p
-
-        # Iterate over all processors
-        for p in range(n_p):
-            # Read data for given iteration and assign it to processor
-            proc_iter_map = self.read(p, time_step)
-
-            # Try to retrieve processor information at given time-step
-            try:
-                procs[p] = proc_iter_map[time_step]
-            except KeyError:
-                print(bcolors.ERR
-                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
-                    p,
-                    time_step)
-                      + bcolors.END)
-                sys.exit(1)
-
-        # Return populated list of processors
-        return procs
+        return returned_dict
