@@ -2,3 +2,4 @@ bcolors==1.0.2
 vtk==9.0.1
 numpy==1.19.5
 PyYAML==5.4.1
+Brotli==1.0.9
