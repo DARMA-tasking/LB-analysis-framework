@@ -111,7 +111,7 @@ class ggParameters:
         self.threshold = 1.
 
         # Time-step to obtain load distribution by reading VT log files
-        self.time_step = 0
+        self.phase_id = 0
 
         # File name stem to obtain load distribution by reading VT log files
         self.log_file = None
@@ -247,7 +247,7 @@ class ggParameters:
                 self.weight_sampler_parameters) = parse_sampler(a)
             elif o == '-s':
                  if i > -1:
-                     self.time_step = i
+                     self.phase_id = i
             elif o == '-l':
                 self.log_file = a
             elif o == '-m':
@@ -417,10 +417,7 @@ def get_output_file_stem(params):
             params.fanout)
 
     # Return assembled stem
-    return "LBAF-n{}-{}-t{}".format(
-        n_p,
-        output_stem,
-        "{}".format(params.threshold).replace('.', '_'))
+    return f"LBAF-n{n_p}-{output_stem}-t{str(params.threshold).replace('.', '_')}"
 
 
 if __name__ == '__main__':
@@ -458,7 +455,7 @@ if __name__ == '__main__':
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
-                                      params.time_step,
+                                      params.phase_id,
                                       params.log_file)
 
 
@@ -513,7 +510,7 @@ if __name__ == '__main__':
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
         vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
-        vt_writer.write(params.time_step)
+        vt_writer.write()
 
     # If prefix parsed from command line
     if params.exodus:

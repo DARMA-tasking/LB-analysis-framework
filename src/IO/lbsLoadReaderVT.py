@@ -58,14 +58,14 @@ class LoadReader:
     """A class to read VT Object Map files. These CSV files conform
     to the following format:
 
-      <time_step/phase>, <object-id>, <time>
-      <time_step/phase>, <object-id1>, <object-id2>, <num-bytes>
+      <phase_id>, <object-id>, <time>
+      <phase_id>, <object-id1>, <object-id2>, <num-bytes>
 
     Each file is named as <base-name>.<node>.vom, where <node> spans the number
     of MPI ranks that VT is utilizing.
 
     Each line in a given file specifies the load of each object that is
-    currently mapped to that VT node for a given time_step/phase. Lines with 3
+    currently mapped to that VT node for a given phase_id. Lines with 3
     entries specify load for an object in term of wall time. Lines with 4
     entries specify the communication volume between objects in bytes.
 
@@ -101,9 +101,9 @@ class LoadReader:
 
         return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
 
-    def read(self, node_id: int, time_step: int = -1, comm: bool = False) -> dict:
-        """Read the file for a given node/rank. If time_step==-1 then all
-        steps are read from the file; otherwise, only `time_step` is.
+    def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> dict:
+        """Read the file for a given node/rank. If phase_id==-1 then all
+        steps are read from the file; otherwise, only `phase_id` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
@@ -116,8 +116,8 @@ class LoadReader:
         # Initialize storage
         iter_map = dict()
 
-        iter_map = self.csv_reader(returned_dict=iter_map, file_name=file_name, time_step=time_step, node_id=node_id)
-        # iter_map = self.json_reader(returned_dict=iter_map, file_name=file_name, time_step=time_step, node_id=node_id)
+        # iter_map = self.csv_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id, node_id=node_id)
+        iter_map = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id, node_id=node_id)
 
         # Print more information when requested
         if self.verbose:
@@ -129,9 +129,9 @@ class LoadReader:
         # Return map of populated processors per iteration
         return iter_map
 
-    def read_iteration(self, n_p: int, time_step: int) -> list:
+    def read_iteration(self, n_p: int, phase_id: int) -> list:
         """Read all the data in the range of procs [0..n_p) for a given
-        iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
+        iteration `phase_id`. Collapse the iter_map dictionary from `read(..)`
         into a list of processors to be returned for the given iteration.
         """
 
@@ -141,23 +141,23 @@ class LoadReader:
         # Iterate over all processors
         for p in range(n_p):
             # Read data for given iteration and assign it to processor
-            proc_iter_map = self.read(p, time_step)
+            proc_iter_map = self.read(p, phase_id)
 
             # Try to retrieve processor information at given time-step
             try:
-                procs[p] = proc_iter_map[time_step]
+                procs[p] = proc_iter_map[phase_id]
             except KeyError:
                 print(bcolors.ERR
-                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at phase_id {}".format(
                     p,
-                    time_step)
+                    phase_id)
                       + bcolors.END)
                 sys.exit(1)
 
         # Return populated list of processors
         return procs
 
-    def json_reader(self, returned_dict: dict, file_name: str, time_step, node_id: int) -> dict:
+    def json_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> dict:
         """ Reader compatible with current VT Object Map files (json)
         """
         with open(file_name, 'rb') as compr_json_file:
@@ -175,18 +175,18 @@ class LoadReader:
             phase_id = phase['id']
             for task in phase['tasks']:
                 task_time = task.get('time')
-                task_object_id = task.get('object')
+                task_object_id = task.get('entity').get('id')
 
                 # Update processor if iteration was requested
-                if time_step in (phase_id, -1):
+                if phase_id in (phase_id, -1):
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
 
                     # If this iteration was never encoutered initialize proc object
-                    returned_dict.setdefault(phase, Processor(node_id))
+                    returned_dict.setdefault(phase_id, Processor(node_id))
 
                     # Add object to processor
-                    returned_dict[phase].add_object(obj)
+                    returned_dict[phase_id].add_object(obj)
 
                     # Print debug information when requested
                     if self.verbose:
@@ -195,7 +195,7 @@ class LoadReader:
 
         return returned_dict
 
-    def csv_reader(self, returned_dict: dict, file_name: str, time_step, node_id: int) -> dict:
+    def csv_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> dict:
         """ Reader compatible with previous VT Object Map files (csv)
         """
         # Open specified input file
@@ -208,7 +208,7 @@ class LoadReader:
                 # Handle three-entry case that corresponds to an object load
                 if n_entries == 3:
                     # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>
+                    #   <phase_id>, <object-id>, <time>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
@@ -220,7 +220,7 @@ class LoadReader:
                               + bcolors.END)
 
                     # Update processor if iteration was requested
-                    if time_step in (phase, -1):
+                    if phase_id in (phase, -1):
                         # Instantiate object with retrieved parameters
                         obj = Object(o_id, time, node_id)
 
@@ -244,7 +244,7 @@ class LoadReader:
                 elif n_entries == 5:
                     continue
                     # Parsing the five-entry case, thus this format:
-                    #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
+                    #   <phase_id>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     print(bcolors.ERR

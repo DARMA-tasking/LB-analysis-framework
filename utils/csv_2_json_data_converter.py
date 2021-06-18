@@ -1,8 +1,6 @@
 import os
 import sys
 
-import brotli
-
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
     sys.path.append(project_path)
@@ -13,6 +11,9 @@ except Exception as e:
 from collections import Counter
 import csv
 import json
+
+import bcolors
+import brotli
 
 
 class Csv2JsonConverter:
@@ -90,6 +91,10 @@ class Csv2JsonConverter:
                         os.path.splitext(file)[-1] == most_common_extension and
                         file.split('.')[0] == most_common_prefix]
 
+        print(f"{bcolors.OKMSG}Files for conversion :{bcolors.END}")
+        for file in dir_list:
+            print(f"{bcolors.OKMSG}=>{bcolors.END} {file[0]}")
+
         return dir_list
 
     def _convert_file(self, file_path: tuple) -> None:
@@ -140,7 +145,8 @@ class Csv2JsonConverter:
         for proc_id, others_list in data_to_convert.items():
             phase_dict = {'tasks': list(), 'id': proc_id}
             for task in others_list:
-                task_dict = {'time': task['obj_time'], 'resource': 'cpu', 'object': task['obj_id'], 'node': node}
+                task_dict = {'time': task['obj_time'], 'resource': 'cpu',
+                             'entity': {'id': task['obj_id'], 'type': 'object'}, 'node': node}
                 phase_dict['tasks'].append(task_dict)
             dict_to_dump['phases'].append(phase_dict)
 

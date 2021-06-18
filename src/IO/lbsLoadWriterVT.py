@@ -66,7 +66,7 @@ class LoadWriterVT:
     be mapped to that VT node for a given iteration/phase.
     """
 
-    def __init__(self, e, f="lbs_out", s="vom", output_dir=None):
+    def __init__(self, phase: Phase, f="lbs_out", s="vom", output_dir=None):
         """Class constructor:
         e: Phase instance
         f: file name stem
@@ -74,29 +74,30 @@ class LoadWriterVT:
         """
 
         # Ensure that provided phase has correct type
-        if not isinstance(e, Phase):
+        if not isinstance(phase, Phase):
             print(bcolors.ERR
                 + "*  ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase"
                 + bcolors.END)
             return
 
         # Assign internals
-        self.phase = e
+        self.phase = phase
         self.file_stem = "{}".format(f)
         self.suffix = s
         self.output_dir = output_dir
 
-    def write(self, time_step):
+    def write(self):
         """Write one CSV file per rank/procesor containing with one object
         per line, with the following format:
 
-            <source processor>, <object-id>, <time>
+            <phase-id>, <object-id>, <time>
         """
+        # to get phase id => self.phase.get_id() method needs to be changed from get_phase_id()
 
         # Iterate over processors
         for p in self.phase.processors:
             # Create file name for current processor
-            file_name = f"{self.file_stem}.{time_step}.{p.get_id()}.{self.suffix}"
+            file_name = f"{self.file_stem}.{p.get_id()}.{self.suffix}"
 
             if self.output_dir is not None:
                 file_name = os.path.join(self.output_dir, file_name)
