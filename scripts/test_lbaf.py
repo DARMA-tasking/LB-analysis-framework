@@ -59,7 +59,7 @@ def run_tests():
         print(script.stdout)
         if script.stderr:
             raise RuntimeError(f"Commands: {test_cmd}\nSTDERR: {script.stderr}")
-        imbalance_file = f"{test_cmd[-1]}/imbalance.txt"
+        imbalance_file = "/lbaf/out/imbalance.txt"
         with open(imbalance_file, 'r') as imb_file:
             imb_level = float(imb_file.read())
             if imb_level < 0.05:
