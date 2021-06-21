@@ -5,12 +5,14 @@ import numpy as np
 from sklearn import linear_model
 
 # Initialize variables
-first_record = True
-n_obs = 0
-X = []
-Y = []
-y_column = 1
-n_reg = 0
+n_obs = {}
+X = {}
+x_excluded = [6, 7, 9, 10]
+Y = {}
+y_col = 1
+Booleans = []
+bool_cols = slice(-3, None)
+n_regressors = 0
 
 # Iterate over input files with names matching in.*.dat
 for file_name in glob.glob("./in.*.dat"):
@@ -23,43 +25,57 @@ for file_name in glob.glob("./in.*.dat"):
 
         # Iterate over file rows
         for row in csv_reader:
-            # Increment cardinality
-            n_obs += 1
-            
-            # Distinguish between first and subsequent records
-            if first_record:
-                # Initialize regressors with first record
-                n_reg = len(row) - 1
-                X = [[x] for x in row[:y_column] + row[y_column + 1:]]
-                first_record = False
-            else:
-                # Ensure consistency in number of regressors
-                if n_reg != len(row) - 1:
-                    print("** ERROR: Incorrect number of regressors:",
-                      len(row) - 1)
-                    sys.exit(1)
-                # Update regressors with current record
-                for i, x in enumerate(row[:y_column] + row[y_column + 1:]):
-                    X[i].append(x)
+            # Compute record type from Boolean field and update as needed
+            r_type = sum([int(b) << i for i, b in enumerate(row[bool_cols])])
+            if r_type not in X:
+                # Initialize type cardinality
+                n_obs[r_type] = 1
 
+                # Initialize regressors with record
+                print("# New record Boolen type found:",
+                      ' '.join([str(int(b)) for b in row[bool_cols]]),
+                      "=>",
+                      r_type)
+                n_regressors = len(row) - (len(x_excluded) + 1)
+                X[r_type] = [[x] for i, x in enumerate(row) if i != y_col and i not in x_excluded]
+            else:
+                # Increement tupe cardinality
+                n_obs[r_type] += 1
+
+                # Ensure consistency in number of regressors
+                if n_regressors != len(row) - (len(x_excluded) + 1):
+                    print("** ERROR: Incorrect number of regressors read:",
+                      len(row) - 1,
+                          "!=",
+                          n_regressors)
+                    sys.exit(1)
+
+                # Update regressors with current record
+                j = 0
+                for i, x in enumerate(row):
+                    if i == y_col or i in x_excluded:
+                        continue
+                    X[r_type][j].append(x)
+                    j += 1
+            
             # Update regressand with current record
-            Y.append(row[y_column])
+            Y.setdefault(r_type, []).append(row[y_col])
 
 # Compute multilinear regression
-print("# Multilinear regression against",
-      n_reg,
-      "regressors for",
-      n_obs,
-      "observations:")
-lr = linear_model.LinearRegression()
-lr.fit(np.array(X).transpose(), Y)
-print("  Intercept:", lr.intercept_)
-print("  Regressor coefficients:")
-for i, c in enumerate(lr.coef_):
-    reg_col = i if i < y_column else i + 1
-    print("    column",
-          reg_col,
-          ":",
-          c)
-    
-print("  Coefficient of determination (R2):", lr.score(np.array(X).transpose(), Y))
+for k, v in X.items():
+    print("# Multilinear regression against",
+          n_regressors,
+          "regressors for type",
+          k,
+          "with",
+          n_obs[k],
+          "observations:")
+
+    lr = linear_model.LinearRegression()
+    lr.fit(np.array(v).transpose(), Y[k])
+    print("  Intercept:", lr.intercept_)
+    print("  Regressor coefficients:")
+    for c in lr.coef_:
+        print("    ", c)
+
+    print("  Coefficient of determination (R2):", lr.score(np.array(v).transpose(), Y[k]))
