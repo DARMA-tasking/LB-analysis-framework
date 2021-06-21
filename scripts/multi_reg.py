@@ -92,3 +92,6 @@ for k, v in X.items():
     for c in lr.coef_:
         print("    ", c)
     print("  Coefficient of determination (R2):", lr.score(np.array(v).transpose(), Y[k]))
+
+# Now try with some different data...
+# TBD
