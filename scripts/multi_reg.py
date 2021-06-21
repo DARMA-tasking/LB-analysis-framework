@@ -4,16 +4,21 @@ import sys
 import numpy as np
 from sklearn import linear_model
 
-# Initialize variables
+# Initialize global variables
 first_row = True
+n_regressors = 0
 n_obs = {}
 X = {}
-excluded = set([0])#, 6, 7, 9, 10]
 Y = {}
+
+# Define regressand column
 y_col = 1
-Booleans = []
-bool_cols = set([11, 12, 13])
-n_regressors = 0
+
+# Possibly exclude columns from regressors
+excluded = set([0, 3, 4, 5, 6, 7, 8, 9, 10])
+
+# Compute up to 2**3 = 8 different models
+bool_cols = set([11, 12, 13]) 
 
 # Prepare set of columns to be disregarded as regressors
 excluded.update(set([y_col]))
@@ -86,5 +91,4 @@ for k, v in X.items():
     print("  Regressor coefficients:")
     for c in lr.coef_:
         print("    ", c)
-
     print("  Coefficient of determination (R2):", lr.score(np.array(v).transpose(), Y[k]))
