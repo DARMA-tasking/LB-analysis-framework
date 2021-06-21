@@ -35,5 +35,5 @@ fanout: 4
 phase_id: 0
 log_file: "/lbaf/data/vt_lb_stats_compressed_17_JUN_2021/stats"
 exodus: True
-output_dir: "/lbaf/output"
+output_dir: "/lbaf/out"
 file_suffix: "json"
