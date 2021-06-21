@@ -33,7 +33,7 @@ z_procs: 1
 n_rounds: 4
 fanout: 4
 phase_id: 0
-log_file: "data/vt_lb_stats_compressed_17_JUN_2021/stats"
+log_file: "/lbaf/data/vt_lb_stats_compressed_17_JUN_2021/stats"
 exodus: True
-output_dir: "output"
+output_dir: "/lbaf/output"
 file_suffix: "json"

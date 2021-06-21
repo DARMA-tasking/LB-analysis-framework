@@ -42,7 +42,6 @@
 #@HEADER
 #
 ########################################################################
-import csv
 import json
 import os
 
@@ -68,7 +67,7 @@ class LoadWriterVT:
 
     def __init__(self, phase: Phase, f="lbs_out", s="vom", output_dir=None):
         """Class constructor:
-        e: Phase instance
+        phase: Phase instance
         f: file name stem
         s: suffix
         """
@@ -105,8 +104,7 @@ class LoadWriterVT:
             # Count number of unsaved objects for sanity
             n_u = 0
 
-            self.csv_writer(file_name=file_name, n_u=n_u, processor=p)
-            # self.json_writer(file_name=file_name, n_u=n_u, processor=p)
+            self.json_writer(file_name=file_name, n_u=n_u, processor=p)
 
     @staticmethod
     def json_writer(file_name: str, n_u: int, processor: Processor):
@@ -147,27 +145,4 @@ class LoadWriterVT:
             print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
         else:
             print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.objects)} objects to JSON file "
-                  f"{file_name}")
-
-    @staticmethod
-    def csv_writer(file_name: str, n_u: int, processor: Processor):
-
-        # Open output file
-        with open(file_name, 'w') as f:
-            # Create CSV writer
-            writer = csv.writer(f, delimiter=',')
-
-            # Iterate over objects
-            for o in processor.objects:
-                # Write object to file and increment count
-                try:
-                    writer.writerow([o.get_processor_id(), o.get_id(), o.get_time()])
-                except:
-                    n_u += 1
-
-        # Sanity check
-        if n_u:
-            print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to CSV file {file_name}{bcolors.END}")
-        else:
-            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.objects)} objects to CSV file "
                   f"{file_name}")

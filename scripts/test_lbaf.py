@@ -49,8 +49,7 @@ import bcolors
 # Provide tests commands to TEST_COMMANDS.
 # Last word in the command should be the output directory. Then inbalance is checked.
 TESTS_COMMANDS = [
-    ["python", "/lbaf/src/Applications/LBAF.py", "-l", "/lbaf/data/vt_example_lb_stats/stats", "-x", "4",
-     "-y", "2", "-z", "1", "-s", "0", "-f", "4", "-k", "4", "-i", "4", "-c", "1", "-e", "-b", "/lbaf/output"],
+    ["python", "/lbaf/src/Applications/LBAF.py"],
 ]
 
 

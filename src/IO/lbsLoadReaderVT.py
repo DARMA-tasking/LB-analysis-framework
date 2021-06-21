@@ -42,7 +42,6 @@
 #@HEADER
 #
 ########################################################################
-import csv
 import json
 import os
 import sys
@@ -116,8 +115,7 @@ class LoadReader:
         # Initialize storage
         iter_map = dict()
 
-        # iter_map = self.csv_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id, node_id=node_id)
-        iter_map = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id, node_id=node_id)
+        iter_map = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_ids=phase_id, node_id=node_id)
 
         # Print more information when requested
         if self.verbose:
@@ -157,7 +155,7 @@ class LoadReader:
         # Return populated list of processors
         return procs
 
-    def json_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> dict:
+    def json_reader(self, returned_dict: dict, file_name: str, phase_ids, node_id: int) -> dict:
         """ Reader compatible with current VT Object Map files (json)
         """
         with open(file_name, 'rb') as compr_json_file:
@@ -178,7 +176,7 @@ class LoadReader:
                 task_object_id = task.get('entity').get('id')
 
                 # Update processor if iteration was requested
-                if phase_id in (phase_id, -1):
+                if phase_ids in (phase_id, -1):
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
 
@@ -192,71 +190,5 @@ class LoadReader:
                     if self.verbose:
                         print(f"{bcolors.HEADER}[LoadReaderVT] {bcolors.END}iteration = {phase_id}, "
                               f"object id = {task_object_id}, time = {task_time}")
-
-        return returned_dict
-
-    def csv_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> dict:
-        """ Reader compatible with previous VT Object Map files (csv)
-        """
-        # Open specified input file
-        with open(file_name, 'r') as f:
-            log = csv.reader(f, delimiter=',')
-            # Iterate over rows of input file
-            for row in log:
-                n_entries = len(row)
-
-                # Handle three-entry case that corresponds to an object load
-                if n_entries == 3:
-                    # Parsing the three-entry case, thus this format:
-                    #   <phase_id>, <object-id>, <time>
-                    # Converting these into integers and floats before using them or
-                    # inserting the values in the dictionary
-                    try:
-                        phase, o_id = map(int, row[:2])
-                        time = float(row[2])
-                    except:
-                        print(bcolors.ERR
-                              + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
-                              + bcolors.END)
-
-                    # Update processor if iteration was requested
-                    if phase_id in (phase, -1):
-                        # Instantiate object with retrieved parameters
-                        obj = Object(o_id, time, node_id)
-
-                        # If this iteration was never encoutered initialize proc object
-                        returned_dict.setdefault(phase, Processor(node_id))
-
-                        # Add object to processor
-                        returned_dict[phase].add_object(obj)
-
-                        # Print debug information when requested
-                        if self.verbose:
-                            print(bcolors.HEADER
-                                  + "[LoadReaderVT] "
-                                  + bcolors.END
-                                  + "iteration = {}, object id = {}, time = {}".format(
-                                phase,
-                                o_id,
-                                time))
-
-                # Handle four-entry case that corresponds to a communication weight
-                elif n_entries == 5:
-                    continue
-                    # Parsing the five-entry case, thus this format:
-                    #   <phase_id>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
-                    # Converting these into integers and floats before using them or
-                    # inserting the values in the dictionary
-                    print(bcolors.ERR
-                          + "*  ERROR: [LoadReaderVT] Communication graph unimplemented"
-                          + bcolors.END)
-                    sys.exit(1)
-
-                # Unrecognized line format
-                else:
-                    print(bcolors.ERR
-                          + "** ERROR: [LoadReaderVT] Wrong line length: {}".format(row)
-                          + bcolors.END)
-                    sys.exit(1)
 
         return returned_dict
