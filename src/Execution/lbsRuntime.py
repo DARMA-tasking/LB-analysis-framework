@@ -119,12 +119,13 @@ class Runtime:
             "communication weight imbalance": [w_imb]}
 
 
-    def execute(self, n_iterations, n_rounds, f, r_threshold):
+    def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
         r_threshold: float relative overhead threshold
+        pmf_type: 0: modified original approach; 1: NS variant 
         """
 
         # Build set of processors in the phase
@@ -294,7 +295,6 @@ class Runtime:
                         break
 
                     # Compute empirical CMF given known underloads
-                    pmf_type = 0
                     p_cmf = p_src.compute_cmf_underloads(
                         self.average_load,
                         pmf_type)
