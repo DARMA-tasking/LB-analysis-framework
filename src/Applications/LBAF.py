@@ -77,6 +77,9 @@ class ggParameters:
         # By default use modified Grapevine criterion
         self.criterion = 1
 
+        # By default use modified Grapevine PMF
+        self.pmf_type = 0
+
         # Number of load-balancing iterations
         self.n_iterations = 1
 
@@ -158,6 +161,9 @@ class ggParameters:
         print("\t\t\t 1: Grapevine modified (default)")
         print("\t\t\t 2: strict localizer")
         print("\t\t\t 3: relaxed localizer")
+        print("\t [-n <nf>]   normalization factor for transfer PMF:")
+        print("\t\t\t 0: load average or maximum sender load (default)")
+        print("\t\t\t 1: recipient load (NS variant)")
         print("\t [-i <ni>]   number of load-balancing iterations")
         print("\t [-x <npx>]  number of procs in x direction")
         print("\t [-y <npy>]  number of procs in y direction")
@@ -193,7 +199,7 @@ class ggParameters:
         try:
             opts, args = getopt.getopt(
                 sys.argv[1:],
-                "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:j:vehg")
+                "ab:c:d:ef:ghi:j:k:l:m:n:o:p:r:s:t:vw:x:y:z:")
         except getopt.GetoptError:
             print(bcolors.ERR
                   + "** ERROR: incorrect command line arguments."
@@ -213,6 +219,8 @@ class ggParameters:
                 sys.exit(0)
             elif o == '-c':
                 self.criterion = i
+            elif o == '-n':
+                self.pmf_type = i
             elif o == '-i':
                 if i > -1:
                     self.n_iterations = i
@@ -495,7 +503,8 @@ if __name__ == '__main__':
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
-               params.threshold)
+               params.threshold,
+               params.pmf_type)
 
     # Create mapping from processor to Cartesian grid
     print(bcolors.HEADER
