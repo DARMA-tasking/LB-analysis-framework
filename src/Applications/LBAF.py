@@ -43,6 +43,7 @@
 ###############################################################################
 import os
 import sys
+
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     sys.path.append(project_path)
@@ -55,6 +56,7 @@ import math
 
 import bcolors
 import yaml
+
 try:
     import paraview.simple
 except:
@@ -194,8 +196,8 @@ class ggParameters:
                 "ac:i:x:y:z:o:p:k:f:r:t:w:s:l:m:d:b:j:vehg")
         except getopt.GetoptError:
             print(bcolors.ERR
-                + "** ERROR: incorrect command line arguments."
-                + bcolors.END)
+                  + "** ERROR: incorrect command line arguments."
+                  + bcolors.END)
             self.usage()
             sys.exit(1)
 
@@ -241,13 +243,13 @@ class ggParameters:
                     self.threshold = x
             elif o == '-t':
                 (self.time_sampler_type,
-                self.time_sampler_parameters) = parse_sampler(a)
+                 self.time_sampler_parameters) = parse_sampler(a)
             elif o == '-w':
                 (self.weight_sampler_type,
-                self.weight_sampler_parameters) = parse_sampler(a)
+                 self.weight_sampler_parameters) = parse_sampler(a)
             elif o == '-s':
-                 if i > -1:
-                     self.phase_id = i
+                if i > -1:
+                    self.phase_id = i
             elif o == '-l':
                 self.log_file = a
             elif o == '-m':
@@ -352,8 +354,8 @@ def parse_sampler(cmd_str):
                 x = float(p)
             except:
                 print(bcolors.ERR
-                    + "** ERROR: `{}` cannot be converted to a float".format(p)
-                    + bcolors.END)
+                      + "** ERROR: `{}` cannot be converted to a float".format(p)
+                      + bcolors.END)
                 sys.exit(1)
             sampler_args.append(x)
 
@@ -362,17 +364,17 @@ def parse_sampler(cmd_str):
             "uniform",
             "lognormal"):
         print(bcolors.ERR
-            + "** ERROR: unsupported sampler type: {}".format(
+              + "** ERROR: unsupported sampler type: {}".format(
             sampler_type)
-            + bcolors.END)
+              + bcolors.END)
         sys.exit(1)
     if len(sampler_args) != 2:
         print(bcolors.ERR
-            + ("** ERROR: expected two parameters for sampler type: {},"
-               " got {}").format(
+              + ("** ERROR: expected two parameters for sampler type: {},"
+                 " got {}").format(
             sampler_type,
             len(sampler_args))
-            + bcolors.END)
+              + bcolors.END)
         sys.exit(1)
 
     # Return the sampler parsed from the input argument
@@ -385,7 +387,7 @@ def global_id_to_cartesian(id, grid_sizes):
 
     # Sanity check
     n01 = grid_sizes[0] * grid_sizes[1]
-    if id < 0  or id >= n01 * grid_sizes[2]:
+    if id < 0 or id >= n01 * grid_sizes[2]:
         return None
 
     # Compute successive euclidean divisions
@@ -425,26 +427,26 @@ if __name__ == '__main__':
     # Print startup information
     sv = sys.version_info
     print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "### Started with Python {}.{}.{}".format(
+          + "[LBAF] "
+          + bcolors.END
+          + "### Started with Python {}.{}.{}".format(
         sv.major,
         sv.minor,
         sv.micro))
 
     # Instantiate parameters and set values from command line arguments
     print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "Parsing command line arguments")
+          + "[LBAF] "
+          + bcolors.END
+          + "Parsing command line arguments")
     params = ggParameters()
 
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
         print(bcolors.ERR
-            + "** ERROR: Total number of processors ({}) must be > 1".format(n_p)
-            + bcolors.END)
+              + "** ERROR: Total number of processors ({}) must be > 1".format(n_p)
+              + bcolors.END)
         sys.exit(1)
 
     # Initialize random number generator
@@ -487,9 +489,9 @@ if __name__ == '__main__':
 
     # Instantiate runtime
     rt = Runtime(phase,
-                            params.criterion,
-                            params.actual_dst_load,
-                            params.verbose)
+                 params.criterion,
+                 params.actual_dst_load,
+                 params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
@@ -497,9 +499,9 @@ if __name__ == '__main__':
 
     # Create mapping from processor to Cartesian grid
     print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
+          + "[LBAF] "
+          + bcolors.END
+          + "Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
         n_p,
         *params.grid_size))
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
@@ -526,6 +528,7 @@ if __name__ == '__main__':
 
     if params.generate_multimedia:
         from ParaviewViewerBase import ParaviewViewerBase
+
         if params.output_dir is not None:
             file_name = os.path.join(params.output_dir, file_name)
             output_stem = file_name
@@ -549,10 +552,10 @@ if __name__ == '__main__':
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
     print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "Optimal load statistics for {} objects "
-          "with iso-time: {:.6g}".format(
+          + "[LBAF] "
+          + bcolors.END
+          + "Optimal load statistics for {} objects "
+            "with iso-time: {:.6g}".format(
         n_o,
         ell))
     print("\tminimum: {:.6g}  maximum: {:.6g}".format(
@@ -567,6 +570,6 @@ if __name__ == '__main__':
 
     # If this point is reached everything went fine
     print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + " Process complete ###")
+          + "[LBAF] "
+          + bcolors.END
+          + " Process complete ###")
