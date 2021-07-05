@@ -49,6 +49,7 @@ import sys
 import bcolors
 import brotli
 
+from src.IO.schemaValidator import SchemaValidator
 from src.Model.lbsObject import Object
 from src.Model.lbsProcessor import Processor
 
@@ -165,6 +166,12 @@ class LoadReader:
                 decompressed_dict = json.loads(decompr_bytes.decode('utf-8'))
             except brotli.error:
                 decompressed_dict = json.loads(compr_bytes.decode('utf-8'))
+
+        # validate schema
+        if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
+            print(f'{bcolors.OK}[LoadReaderVT] Valid JSON schema in {file_name}{bcolors.END}')
+        else:
+            raise SyntaxError(f'{bcolors.ERR}[LoadReaderVT] Invalid JSON schema in {file_name}{bcolors.END}')
 
         # defining phases from file
         phases = decompressed_dict['phases']
