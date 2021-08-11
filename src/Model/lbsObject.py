@@ -64,6 +64,9 @@ class Object:
         self.communicator = c if isinstance(
             c, ObjectCommunicator) else None
 
+    def __repr__(self):
+        return f"Object id: {self.index}, time: {self.time}"
+
     def get_id(self):
         """Return object ID
         """

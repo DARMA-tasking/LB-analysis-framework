@@ -19,15 +19,15 @@ class SchemaValidator:
                         'tasks': [
                             {
                                 'entity': {
-                                    'collection_id': int,
-                                    'home': int,
+                                    Optional('collection_id'): int,
+                                    Optional('home'): int,
                                     'id': int,
-                                    'index': [int],
+                                    Optional('index'): [int],
                                     'type': str
                                 },
                                 'node': int,
                                 'resource': str,
-                                'subphases': [
+                                Optional('subphases'): [
                                     {
                                         'id': int,
                                         'time': float,

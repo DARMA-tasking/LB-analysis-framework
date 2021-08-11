@@ -12,8 +12,8 @@
 # n_rounds            [-k <nr>]   int       number of gossiping rounds
 # fanout              [-f <fo>]   int       gossiping fan-out value
 # threshold           [-r <rt>]   float     overload relative threshold
-# time_sampler_type   [-t <ts>]   str       object times sampler: <ts> in {uniform,lognormal}
-# weight_sampler_type [-w <ws>]   str       communications weights sampler: <cs> in {uniform,lognormal}
+# time_sampler_type   [-t <ts>]   str       object times sampler: <ts> in {uniform,lognormal} E.g. lognormal,1.0,10.0
+# weight_sampler_type [-w <ws>]   str       communications weights sampler: <cs> in {uniform,lognormal} E.g. lognormal,1.0,10.0
 # phase_id            [-s <ts>]   int       phase id for reading VT load logs
 # log_file            [-l <blog>] str       base file name for reading VT load logs
 # map_file            [-m <bmap>] str       base file name for VT object/proc mapping
@@ -24,6 +24,7 @@
 # actual_dst_load     [-a]        bool      use actual destination loads
 # exodus              [-e]        bool      generate Exodus type visualization output
 # generate_multimedia [-g]        bool      generate multimedia
+# communication_mirror            bool      if True => mirror communications, if False => keeps VT traces behaviour
 
 criterion: 1
 n_iterations: 4
@@ -33,7 +34,18 @@ z_procs: 1
 n_rounds: 4
 fanout: 4
 phase_id: 0
-log_file: "/lbaf/data/vt_lb_stats_compressed_30_JUN_2021/stats"
 exodus: True
 output_dir: "/lbaf/out"
 file_suffix: "json"
+generate_multimedia: False
+verbose: True
+communication_mirror: True
+
+# Reading from logs (comment out if sampling)
+log_file: "/lbaf/data/vt_lb_stats_compressed_30_JUN_2021/stats"
+
+# Simulating from samplers (comment out if reading from log)
+#n_objects: 200
+#time_sampler_type: lognormal,1.0,10.0
+#weight_sampler_type: lognormal,1.0,10.0
+#communication_degree: 20

@@ -90,7 +90,7 @@ class ObjectCommunicator:
         """
 
         # Assert that direction is of known type
-        if not direction in ("to", "from"):
+        if direction not in ("to", "from"):
             print(bcolors.ERR
                 + "*  ERROR: unknown direction string: {}".format(direction)
                 + bcolors.END)

@@ -77,18 +77,16 @@ def sampler(distribution_name, parameters):
             return error_out(distribution_name, parameters)
 
         # Return uniform distribution over given interval
-        return lambda : rnd.uniform(*parameters), "U[{};{}]".format(
-            *parameters)
+        return lambda: rnd.uniform(*parameters), "U[{};{}]".format(*parameters)
 
     # Binomial B(n,p) distribution
-    if distribution_name.lower() == "binomial":
+    elif distribution_name.lower() == "binomial":
         # 2 parameters are needed
         if len(parameters) < 2:
             return error_out(distribution_name, parameters)
 
         # Return binomial distribution with given number of Bernoulli trials
-        return lambda : np.random.binomial(*parameters), "B[{};{}]".format(
-            *parameters)
+        return lambda: np.random.binomial(*parameters), "B[{};{}]".format(*parameters)
 
     # Log-normal distribution with given mean and variance
     elif distribution_name.lower() == "lognormal":
