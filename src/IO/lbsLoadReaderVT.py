@@ -167,7 +167,6 @@ class LoadReader:
         # iterating over processors
         for proc_num, proc in enumerate(procs):
             # iteration over objects in processor
-            # obj_dict = {obj.get_id(): obj for obj in proc.get_objects()}
             for proc_obj in proc.get_objects():
                 obj_id = proc_obj.get_id()
                 # checking if there is any communication for the object
