@@ -12,12 +12,12 @@ import glob
 import csv
 import numpy as np
 from sklearn import linear_model
+from sklearn.metrics import mean_squared_error
 
 
 class MultiLinearRegression:
     def __init__(self, n_obs: dict = None, X: dict = None, Y: dict = None, y_col: int = 1, excluded: set = None,
-                 bool_cols: set = None, data_dir: str = None, regressor_list: list = None, ranks: dict = None,
-                 rank_col: int = None):
+                 bool_cols: set = None, data_dir: str = None):
         self.first_row = True
         self.n_regressors = 0
         self.y_col = y_col
@@ -42,14 +42,10 @@ class MultiLinearRegression:
         # Prepare set of columns to be disregarded as regressors
         self.excluded.update({self.y_col})
         self.excluded.update(self.bool_cols)
-        # Regressor list (new data prediction)
-        self.regressor_list = regressor_list
-        self.ranks = ranks
-        # MPI rank column
-        self.rank_col = rank_col
         # Data directory
         self.data_dir = data_dir
         self.data_dir = self._get_data_dir()
+        self._read_input_data()
 
     def _get_data_dir(self):
         """ Returns absolute path to the data dir (takes relative or absolute path)"""
@@ -79,12 +75,6 @@ class MultiLinearRegression:
                             n_regressors = len(row) - len(self.excluded)
                             print(f"# Found {n_regressors} regressors in first row")
                             self.first_row = False
-                            if self.regressor_list is not None:
-                                for num, x in enumerate(row):
-                                    if num not in self.excluded:
-                                        self.regressor_list.append(num)
-                                if n_regressors != len(self.regressor_list):
-                                    raise ValueError('Unexpected regressor list length')
 
                         # Initialize type cardinality
                         self.n_obs[r_type] = 1
@@ -110,49 +100,52 @@ class MultiLinearRegression:
 
                     # Update regressand with current record
                     self.Y.setdefault(r_type, []).append(row[self.y_col])
-                    if self.ranks is not None and self.rank_col is not None:
-                        self.ranks.setdefault(r_type, []).append(int(row[self.rank_col]))
 
-    def compute_multilinear_regression(self) -> None:
-        """ Compute multilinear regression """
-        self._read_input_data()
-        for k, v in self.X.items():
+    def learn(self, x_data: dict, y_data: dict) -> dict:
+        """ Takes X, Y as input params. Returns dict of Linear Models """
+        linear_model_dict = dict()
+        for k, v in x_data.items():
             print(f"# Multilinear regression to {self.n_regressors} regressors for type {k} with {self.n_obs[k]} "
                   f"observations:")
             lr = linear_model.LinearRegression()
-            lr.fit(np.array(v).transpose(), self.Y[k])
+            lr.fit(np.array(v).transpose(), y_data[k])
             print(f"  Intercept: {lr.intercept_}")
             print("  Regressor coefficients:")
             for c in lr.coef_:
                 print(f"    {c}")
-            print(f"  Coefficient of determination (R2): {lr.score(np.array(v).transpose(), self.Y[k])}")
+            print(f"  Coefficient of determination (R2): {lr.score(np.array(v).transpose(), y_data[k])}")
+            linear_model_dict[k] = lr
 
-    def compute_multilinear_regression_and_predict_new_data(self) -> None:
-        """ Compute multilinear regression and predicts new data """
-        self._read_input_data()
-        Z = dict()
-        for k, v in self.X.items():
-            print(f"# Multilinear regression to {len(self.regressor_list)} regressors for type {k} with {self.n_obs[k]}"
-                  f" observations:")
-            lr = dict()
-            lr[k] = linear_model.LinearRegression()
-            lr[k].fit(np.array(v).transpose(), self.Y[k])
-            print(f"  Intercept: {lr.intercept_}")
-            print("  Regressor coefficients:")
-            for num, column in enumerate(lr[k].coef_):
-                print(f"    {column} for column {self.regressor_list[num]}")
-            print(f"  Coefficient of determination (R2): {lr[k].score(np.array(v).transpose(), self.Y[k])}")
-            Z[k] = lr[k].predict(np.array(v).transpose())
-            sum_val = 0.0
-            sum_sqr_val = 0.0
-            sum_sqr_res = 0.0
-            for i in range(len(self.Y[k])):
-                sum_val += self.Y[k][i]
-                sum_sqr_val += (self.Y[k][i]) ** 2
-                sum_sqr_res += (Z[k][i] - self.Y[k][i]) ** 2
-            manual_score = 1.0 - sum_sqr_res / (sum_sqr_val - sum_val ** 2 / len(self.Y[k]))
-            print(f"  Manually calculated R2 (sanity check): {manual_score}")
+        return linear_model_dict
+
+    def assess(self, x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
+        """ Takes X, Y and dict of linear models as input params. Returns dict of RMSE """
+        rmse_dict = dict()
+        y_predict = self.predict(x_data=x_data, linear_model_dict=linear_model_dict)
+        for k, v in x_data.items():
+            y_pred = y_predict[k]
+            y_true = np.array(y_data[k])
+            rmse = mean_squared_error(y_true=y_true, y_pred=y_pred)
+            print(f"  Root-mean-square error (RMSE) for {k}: {rmse}")
+            rmse_dict[k] = rmse
+
+        return rmse_dict
+
+    @staticmethod
+    def predict(x_data: dict, linear_model_dict: dict) -> dict:
+        """ Takes X and dict of linear models as input params. Returns dict of predicted Y """
+        y_pred_dict = dict()
+        for k, v in x_data.items():
+            lr = linear_model_dict[k]
+            y_pred = lr.predict(np.array(v).transpose())
+            print(f"  Predicted Y values for {k}: {y_pred}")
+            y_pred_dict[k] = y_pred
+
+        return y_pred_dict
 
 
 if __name__ == "__main__":
-    MultiLinearRegression(data_dir='linear_data/positive_correlation').compute_multilinear_regression()
+    mlr = MultiLinearRegression(data_dir='linear_data/positive_correlation')
+    mlr_model = mlr.learn(x_data=mlr.X, y_data=mlr.Y)
+    y_pred = mlr.predict(x_data=mlr.X, linear_model_dict=mlr_model)
+    rmse = mlr.assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
