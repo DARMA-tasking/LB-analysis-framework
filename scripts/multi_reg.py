@@ -16,11 +16,13 @@ from sklearn.metrics import mean_squared_error
 
 
 class MultiLinearRegression:
-    def __init__(self, n_obs: dict = None, X: dict = None, Y: dict = None, y_col: int = 1, excluded: set = None,
-                 bool_cols: set = None, data_dir: str = None, rank_col: int = 0):
+    def __init__(self, n_obs: dict = None, X: dict = None, Y: dict = None, y_col: int = None, excluded: set = None,
+                 bool_cols: set = None, data_dir: str = None, rank_col: int = None):
         self.first_row = True
         self.n_regressors = 0
         self.y_col = y_col
+        if self.y_col is None:
+            raise Exception('Y column must be given!')
 
         self.n_obs = n_obs
         if self.n_obs is None:
@@ -34,14 +36,16 @@ class MultiLinearRegression:
         # Compute up to 2**3 = 8 different models
         self.bool_cols = bool_cols
         if self.bool_cols is None:
-            self.bool_cols = {11, 12, 13}
+            raise Exception('Boolean columns must be given!')
         # Possibly exclude columns from regressors
         self.excluded = excluded
         if self.excluded is None:
-            self.excluded = {0, 3, 4, 5, 6, 7, 8, 9, 10}
+            raise Exception('Excluded must be given!')
         # Column indexes
         self.ranks = dict()
         self.rank_col = rank_col
+        if self.rank_col is None:
+            raise Exception('Rank column must be given!')
         # Prepare set of columns to be disregarded as regressors
         self.excluded.update({self.y_col})
         self.excluded.update(self.bool_cols)
@@ -166,7 +170,13 @@ class MultiLinearRegression:
 
 
 if __name__ == "__main__":
-    mlr = MultiLinearRegression(data_dir='linear_data/exact_correlation')
+    RANK_COLUMN = 0
+    Y_COLUMN = 1
+    BOOL_COLS = {11, 12, 13}
+    EXCLUDED = {0, 3, 4, 5, 6, 7, 8, 9, 10}
+
+    mlr = MultiLinearRegression(bool_cols=BOOL_COLS, data_dir='linear_data/exact_correlation', excluded=EXCLUDED,
+                                rank_col=RANK_COLUMN, y_col=Y_COLUMN)
     mlr_model = mlr.learn(x_data=mlr.X, y_data=mlr.Y)
     y_pred = mlr.predict(x_data=mlr.X, linear_model_dict=mlr_model)
     rmse = mlr.assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
