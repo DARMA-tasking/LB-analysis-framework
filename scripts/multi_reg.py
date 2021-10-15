@@ -19,11 +19,9 @@ class MultiLinearRegression:
     def __init__(self, n_obs: dict = None, X: dict = None, Y: dict = None, y_col: int = None, excluded: set = None,
                  bool_cols: set = None, data_dir: str = None, rank_col: int = None):
         self.first_row = True
-        self.n_regressors = 0
         self.y_col = y_col
         if self.y_col is None:
             raise Exception('Y column must be given!')
-
         self.n_obs = n_obs
         if self.n_obs is None:
             self.n_obs = dict()
@@ -49,6 +47,8 @@ class MultiLinearRegression:
         # Prepare set of columns to be disregarded as regressors
         self.excluded.update({self.y_col})
         self.excluded.update(self.bool_cols)
+        # Initiate regressor list
+        self.regressor_list = list()
         # Input files
         self.in_files = list()
         # Data directory
@@ -85,6 +85,11 @@ class MultiLinearRegression:
                             n_regressors = len(row) - len(self.excluded)
                             print(f"# Found {n_regressors} regressors in first row")
                             self.first_row = False
+                            for i, x in enumerate(row):
+                                if i not in self.excluded:
+                                    self.regressor_list.append(i)
+                            if n_regressors != len(self.regressor_list):
+                                raise ValueError('Unexpected regressor list length')
 
                         # Initialize type cardinality
                         self.n_obs[r_type] = 1
@@ -112,61 +117,63 @@ class MultiLinearRegression:
                     self.Y.setdefault(r_type, []).append(row[self.y_col])
                     self.ranks.setdefault(r_type, []).append(int(row[self.rank_col]))
 
-    def learn(self, x_data: dict, y_data: dict) -> dict:
-        """ Takes X, Y as input params. Returns dict of Linear Models """
-        linear_model_dict = dict()
-        for k, v in x_data.items():
-            print(f"# Multilinear regression to {self.n_regressors} regressors for type {k} with {self.n_obs[k]} "
-                  f"observations:")
-            lr = linear_model.LinearRegression()
-            lr.fit(np.array(v).transpose(), y_data[k])
-            print(f"  Intercept for {k}: {lr.intercept_}")
-            print(f"  Regressor coefficients for {k}:")
-            for c in lr.coef_:
-                print(f"    {c}")
-            print(f"  Coefficient of determination (R2): {lr.score(np.array(v).transpose(), y_data[k])}")
-            linear_model_dict[k] = lr
 
-        return linear_model_dict
+def learn(x_data: dict, y_data: dict, regressor_list: list, num_observaiton: dict) -> dict:
+    """ Takes X, Y as input params. Returns dict of Linear Models """
+    linear_model_dict = dict()
+    for k, v in x_data.items():
+        print(f"# Multilinear regression to {len(regressor_list)} regressors for type {k} with {num_observaiton[k]}"
+              f" observations:")
+        lr = linear_model.LinearRegression()
+        lr.fit(np.array(v).transpose(), y_data[k])
+        print(f"  Intercept for {k}: {lr.intercept_}")
+        print(f"  Regressor coefficients for {k}:")
+        for c in lr.coef_:
+            print(f"    {c}")
+        print(f"  Coefficient of determination (R2): {lr.score(np.array(v).transpose(), y_data[k])}")
+        linear_model_dict[k] = lr
 
-    def assess(self, x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
-        """ Takes X, Y and dict of linear models as input params. Returns dict of RMSE """
-        rmse_dict = dict()
-        y_predict = self.predict(x_data=x_data, linear_model_dict=linear_model_dict)
-        for k, v in x_data.items():
-            y_pred = y_predict[k]
-            y_true = np.array(y_data[k])
-            rmse = mean_squared_error(y_true=y_true, y_pred=y_pred)
-            print(f"  Root-mean-square error (RMSE) for {k}: {rmse}")
-            rmse_dict[k] = rmse
+    return linear_model_dict
 
-        return rmse_dict
 
-    @staticmethod
-    def predict(x_data: dict, linear_model_dict: dict) -> dict:
-        """ Takes X and dict of linear models as input params. Returns dict of predicted Y """
-        y_pred_dict = dict()
-        for k, v in x_data.items():
-            lr = linear_model_dict[k]
-            y_pred = lr.predict(np.array(v).transpose())
-            print(f"  Predicted Y values for {k}: {y_pred}")
-            y_pred_dict[k] = y_pred
+def assess(x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
+    """ Takes X, Y and dict of linear models as input params. Returns dict of RMSE """
+    rmse_dict = dict()
+    y_predict = predict(x_data=x_data, linear_model_dict=linear_model_dict)
+    for k, v in x_data.items():
+        y_pred = y_predict[k]
+        y_true = np.array(y_data[k])
+        rmse = mean_squared_error(y_true=y_true, y_pred=y_pred)
+        print(f"  Root-mean-square error (RMSE) for {k}: {rmse}")
+        rmse_dict[k] = rmse
 
-        return y_pred_dict
+    return rmse_dict
 
-    @staticmethod
-    def save_data(in_files: list, y_read: dict, y_predict: dict, ranks: dict):
-        """ Takes list of input files, Y values, Y predicted values and index column numbers.
-            Saves to a file index column numbers, Y values, Y predicted values. """
-        for file in in_files:
-            dir_path = os.path.split(file)[0]
-            file_name = os.path.split(file)[-1].replace('in', 'model')
-            out_file = os.path.join(dir_path, file_name)
-            with open(out_file, 'wt') as o_file:
-                for bool_type, values in y_read.items():
-                    for num, val in enumerate(values):
-                        o_file.write(
-                            f"{ranks[bool_type][num]} {y_read[bool_type][num]} {y_predict[bool_type][num]}\n")
+
+def predict(x_data: dict, linear_model_dict: dict) -> dict:
+    """ Takes X and dict of linear models as input params. Returns dict of predicted Y """
+    y_pred_dict = dict()
+    for k, v in x_data.items():
+        lr = linear_model_dict[k]
+        y_pred = lr.predict(np.array(v).transpose())
+        print(f"  Predicted Y values for {k}: {y_pred}")
+        y_pred_dict[k] = y_pred
+
+    return y_pred_dict
+
+
+def save_data(in_files: list, y_read: dict, y_predict: dict, ranks: dict):
+    """ Takes list of input files, Y values, Y predicted values and index column numbers.
+        Saves to a file index column numbers, Y values, Y predicted values. """
+    for file in in_files:
+        dir_path = os.path.split(file)[0]
+        file_name = os.path.split(file)[-1].replace('in', 'model')
+        out_file = os.path.join(dir_path, file_name)
+        with open(out_file, 'wt') as o_file:
+            for bool_type, values in y_read.items():
+                for num, val in enumerate(values):
+                    o_file.write(
+                        f"{ranks[bool_type][num]} {y_read[bool_type][num]} {y_predict[bool_type][num]}\n")
 
 
 if __name__ == "__main__":
@@ -177,7 +184,7 @@ if __name__ == "__main__":
 
     mlr = MultiLinearRegression(bool_cols=BOOL_COLS, data_dir='linear_data/exact_correlation', excluded=EXCLUDED,
                                 rank_col=RANK_COLUMN, y_col=Y_COLUMN)
-    mlr_model = mlr.learn(x_data=mlr.X, y_data=mlr.Y)
-    y_pred = mlr.predict(x_data=mlr.X, linear_model_dict=mlr_model)
-    rmse = mlr.assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
-    mlr.save_data(in_files=mlr.in_files, y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
+    mlr_model = learn(x_data=mlr.X, y_data=mlr.Y, regressor_list=mlr.regressor_list, num_observaiton=mlr.n_obs)
+    y_pred = predict(x_data=mlr.X, linear_model_dict=mlr_model)
+    rmse = assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
+    save_data(in_files=mlr.in_files, y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
