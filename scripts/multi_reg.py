@@ -120,8 +120,8 @@ class MultiLinearRegression:
                   f"observations:")
             lr = linear_model.LinearRegression()
             lr.fit(np.array(v).transpose(), y_data[k])
-            print(f"  Intercept: {lr.intercept_}")
-            print("  Regressor coefficients:")
+            print(f"  Intercept for {k}: {lr.intercept_}")
+            print(f"  Regressor coefficients for {k}:")
             for c in lr.coef_:
                 print(f"    {c}")
             print(f"  Coefficient of determination (R2): {lr.score(np.array(v).transpose(), y_data[k])}")
