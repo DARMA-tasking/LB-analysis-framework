@@ -17,7 +17,7 @@ from sklearn.metrics import mean_squared_error
 
 class MultiLinearRegression:
     def __init__(self, n_obs: dict = None, X: dict = None, Y: dict = None, y_col: int = 1, excluded: set = None,
-                 bool_cols: set = None, data_dir: str = None):
+                 bool_cols: set = None, data_dir: str = None, rank_col: int = 0):
         self.first_row = True
         self.n_regressors = 0
         self.y_col = y_col
@@ -39,9 +39,14 @@ class MultiLinearRegression:
         self.excluded = excluded
         if self.excluded is None:
             self.excluded = {0, 3, 4, 5, 6, 7, 8, 9, 10}
+        # Column indexes
+        self.ranks = dict()
+        self.rank_col = rank_col
         # Prepare set of columns to be disregarded as regressors
         self.excluded.update({self.y_col})
         self.excluded.update(self.bool_cols)
+        # Input files
+        self.in_files = list()
         # Data directory
         self.data_dir = data_dir
         self.data_dir = self._get_data_dir()
@@ -59,6 +64,7 @@ class MultiLinearRegression:
     def _read_input_data(self):
         """ Iterate over input files with names matching in.*.dat """
         for file_name in glob.glob(os.path.join(self.data_dir, 'in.*.dat')):
+            self.in_files.append(file_name)
             with open(file_name, newline='') as csv_file:
                 # Open CSV reader with blank separators and numeric conversion
                 print(f"# Reading CSV file: {file_name}")
@@ -100,6 +106,7 @@ class MultiLinearRegression:
 
                     # Update regressand with current record
                     self.Y.setdefault(r_type, []).append(row[self.y_col])
+                    self.ranks.setdefault(r_type, []).append(int(row[self.rank_col]))
 
     def learn(self, x_data: dict, y_data: dict) -> dict:
         """ Takes X, Y as input params. Returns dict of Linear Models """
@@ -143,9 +150,24 @@ class MultiLinearRegression:
 
         return y_pred_dict
 
+    @staticmethod
+    def save_data(in_files: list, y_read: dict, y_predict: dict, ranks: dict):
+        """ Takes list of input files, Y values, Y predicted values and index column numbers.
+            Saves to a file index column numbers, Y values, Y predicted values. """
+        for file in in_files:
+            dir_path = os.path.split(file)[0]
+            file_name = os.path.split(file)[-1].replace('in', 'model')
+            out_file = os.path.join(dir_path, file_name)
+            with open(out_file, 'wt') as o_file:
+                for bool_type, values in y_read.items():
+                    for num, val in enumerate(values):
+                        o_file.write(
+                            f"{ranks[bool_type][num]} {y_read[bool_type][num]} {y_predict[bool_type][num]}\n")
+
 
 if __name__ == "__main__":
-    mlr = MultiLinearRegression(data_dir='linear_data/positive_correlation')
+    mlr = MultiLinearRegression(data_dir='linear_data/exact_correlation')
     mlr_model = mlr.learn(x_data=mlr.X, y_data=mlr.Y)
     y_pred = mlr.predict(x_data=mlr.X, linear_model_dict=mlr_model)
     rmse = mlr.assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
+    mlr.save_data(in_files=mlr.in_files, y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
