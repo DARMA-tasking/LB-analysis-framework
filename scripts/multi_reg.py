@@ -215,4 +215,4 @@ if __name__ == "__main__":
                                     y_col=Y_COLUMN)
         y_pred = predict(x_data=mlr.X, linear_model_dict=mlr_model)
         rmse = assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
-        save_data(in_files=[file], y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
+        save_data(in_files=mlr.input_files, y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
