@@ -10,14 +10,39 @@ except Exception as e:
 
 import glob
 import csv
+from typing import Union
+
 import numpy as np
 from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 
 
+class DataReader:
+    def __init__(self, data_dir: str = None):
+        # Data directory
+        self.data_dir = data_dir
+        self.data_dir = self._get_data_dir()
+        # Input files
+        self.in_files = self._get_files_list()
+
+    def _get_data_dir(self):
+        """ Returns absolute path to the data dir (takes relative or absolute path)"""
+        if os.path.isdir(self.data_dir) and glob.glob(os.path.join(self.data_dir, 'in.*.dat')):
+            return self.data_dir
+        elif os.path.isdir(os.path.abspath(os.path.join(project_path, self.data_dir))) and \
+                glob.glob(os.path.join(os.path.abspath(os.path.join(project_path, self.data_dir)), 'in.*.dat')):
+            return os.path.abspath(os.path.join(project_path, self.data_dir))
+        raise FileNotFoundError(f'No data found in given path {self.data_dir}')
+
+    def _get_files_list(self):
+        """ Returns list of found datafiles"""
+        in_files = [file_name for file_name in glob.glob(os.path.join(self.data_dir, 'in.*.dat'))]
+        return in_files
+
+
 class MultiLinearRegression:
-    def __init__(self, n_obs: dict = None, X: dict = None, Y: dict = None, y_col: int = None, excluded: set = None,
-                 bool_cols: set = None, data_dir: str = None, rank_col: int = None):
+    def __init__(self, input_files: Union[str, list], n_obs: dict = None, X: dict = None, Y: dict = None,
+                 y_col: int = None, excluded: set = None, bool_cols: set = None, rank_col: int = None):
         self.first_row = True
         self.y_col = y_col
         if self.y_col is None:
@@ -49,26 +74,14 @@ class MultiLinearRegression:
         self.excluded.update(self.bool_cols)
         # Initiate regressor list
         self.regressor_list = list()
-        # Input files
-        self.in_files = list()
-        # Data directory
-        self.data_dir = data_dir
-        self.data_dir = self._get_data_dir()
+        self.input_files = input_files
+        if isinstance(self.input_files, str):
+            self.input_files = [input_files]
         self._read_input_data()
 
-    def _get_data_dir(self):
-        """ Returns absolute path to the data dir (takes relative or absolute path)"""
-        if os.path.isdir(self.data_dir) and glob.glob(os.path.join(self.data_dir, 'in.*.dat')):
-            return self.data_dir
-        elif os.path.isdir(os.path.abspath(os.path.join(project_path, self.data_dir))) and \
-                glob.glob(os.path.join(os.path.abspath(os.path.join(project_path, self.data_dir)), 'in.*.dat')):
-            return os.path.abspath(os.path.join(project_path, self.data_dir))
-        raise FileNotFoundError(f'No data found in given path {self.data_dir}')
-
     def _read_input_data(self):
-        """ Iterate over input files with names matching in.*.dat """
-        for file_name in glob.glob(os.path.join(self.data_dir, 'in.*.dat')):
-            self.in_files.append(file_name)
+        """ Iterate over input files """
+        for file_name in self.input_files:
             with open(file_name, newline='') as csv_file:
                 # Open CSV reader with blank separators and numeric conversion
                 print(f"# Reading CSV file: {file_name}")
@@ -181,10 +194,25 @@ if __name__ == "__main__":
     Y_COLUMN = 1
     BOOL_COLS = {11, 12, 13}
     EXCLUDED = {0, 3, 4, 5, 6, 7, 8, 9, 10}
+    # Learning directory
+    DATA_DIR = 'linear_data/exact_correlation'
+    # Predict / asses / save directory
+    PREDICT_DIR = 'linear_data/exact_correlation'
 
-    mlr = MultiLinearRegression(bool_cols=BOOL_COLS, data_dir='linear_data/exact_correlation', excluded=EXCLUDED,
-                                rank_col=RANK_COLUMN, y_col=Y_COLUMN)
+    # Getting list of files for learning
+    dr_files = DataReader(data_dir=DATA_DIR).in_files
+    # Getting list of files for predicting / assessing
+    dr_files_pred = DataReader(data_dir=PREDICT_DIR).in_files
+
+    # Learning
+    mlr = MultiLinearRegression(input_files=dr_files, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
+                                y_col=Y_COLUMN)
     mlr_model = learn(x_data=mlr.X, y_data=mlr.Y, regressor_list=mlr.regressor_list, num_observaiton=mlr.n_obs)
-    y_pred = predict(x_data=mlr.X, linear_model_dict=mlr_model)
-    rmse = assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
-    save_data(in_files=mlr.in_files, y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
+
+    # Predict, asses and save
+    for file in dr_files_pred:
+        mlr = MultiLinearRegression(input_files=file, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
+                                    y_col=Y_COLUMN)
+        y_pred = predict(x_data=mlr.X, linear_model_dict=mlr_model)
+        rmse = assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
+        save_data(in_files=[file], y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
