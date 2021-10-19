@@ -17,7 +17,7 @@ from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 
 
-class DataReader:
+class FileFinder:
     def __init__(self, data_dir: str = None):
         # Data directory
         self.data_dir = data_dir
@@ -131,22 +131,22 @@ class MultiLinearRegression:
                     self.ranks.setdefault(r_type, []).append(int(row[self.rank_col]))
 
 
-def learn(x_data: dict, y_data: dict, regressor_list: list, num_observaiton: dict) -> dict:
+def learn(x_data: dict, y_data: dict, regressor_list: list, num_observation: dict) -> dict:
     """ Takes X, Y as input params. Returns dict of Linear Models """
-    linear_model_dict = dict()
+    lr = dict()
     for k, v in x_data.items():
-        print(f"# Multilinear regression to {len(regressor_list)} regressors for type {k} with {num_observaiton[k]}"
+        print(f"# Multilinear regression to {len(regressor_list)} regressors for type {k} with {num_observation[k]}"
               f" observations:")
-        lr = linear_model.LinearRegression()
-        lr.fit(np.array(v).transpose(), y_data[k])
-        print(f"  Intercept for {k}: {lr.intercept_}")
-        print(f"  Regressor coefficients for {k}:")
-        for c in lr.coef_:
-            print(f"    {c}")
-        print(f"  Coefficient of determination (R2): {lr.score(np.array(v).transpose(), y_data[k])}")
-        linear_model_dict[k] = lr
+        lr[k] = linear_model.LinearRegression()
+        lr[k].fit(np.array(v).transpose(), y_data[k])
+        print(f"  Intercept: {lr[k].intercept_}")
+        print(f"  Regressor coefficients:")
+        for num, c in enumerate(lr[k].coef_):
+            print(f"    {c} for column {regressor_list[num]}")
+        print(f"  Coefficient of determination (R2): {lr[k].score(np.array(v).transpose(), y_data[k])}")
+        # linear_model_dict[k] = lr
 
-    return linear_model_dict
+    return lr
 
 
 def assess(x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
@@ -163,13 +163,14 @@ def assess(x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
     return rmse_dict
 
 
-def predict(x_data: dict, linear_model_dict: dict) -> dict:
+def predict(x_data: dict, linear_model_dict: dict, verbose: bool = False) -> dict:
     """ Takes X and dict of linear models as input params. Returns dict of predicted Y """
     y_pred_dict = dict()
     for k, v in x_data.items():
         lr = linear_model_dict[k]
         y_pred = lr.predict(np.array(v).transpose())
-        print(f"  Predicted Y values for {k}: {y_pred}")
+        if verbose:
+            print(f"  Predicted Y values for {k}: {y_pred}")
         y_pred_dict[k] = y_pred
 
     return y_pred_dict
@@ -193,24 +194,24 @@ if __name__ == "__main__":
     RANK_COLUMN = 0
     Y_COLUMN = 1
     BOOL_COLS = {11, 12, 13}
-    EXCLUDED = {0, 3, 4, 5, 6, 7, 8, 9, 10}
+    EXCLUDED = {0, 6, 7, 9, 10}
     # Learning directory
     DATA_DIR = 'linear_data/exact_correlation'
     # Predict / asses / save directory
     PREDICT_DIR = 'linear_data/exact_correlation'
 
     # Getting list of files for learning
-    dr_files = DataReader(data_dir=DATA_DIR).in_files
+    ff_files = FileFinder(data_dir=DATA_DIR).in_files
     # Getting list of files for predicting / assessing
-    dr_files_pred = DataReader(data_dir=PREDICT_DIR).in_files
+    ff_files_pred = FileFinder(data_dir=PREDICT_DIR).in_files
 
     # Learning
-    mlr = MultiLinearRegression(input_files=dr_files, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
+    mlr = MultiLinearRegression(input_files=ff_files, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
                                 y_col=Y_COLUMN)
-    mlr_model = learn(x_data=mlr.X, y_data=mlr.Y, regressor_list=mlr.regressor_list, num_observaiton=mlr.n_obs)
+    mlr_model = learn(x_data=mlr.X, y_data=mlr.Y, regressor_list=mlr.regressor_list, num_observation=mlr.n_obs)
 
     # Predict, asses and save
-    for file in dr_files_pred:
+    for file in ff_files_pred:
         mlr = MultiLinearRegression(input_files=file, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
                                     y_col=Y_COLUMN)
         y_pred = predict(x_data=mlr.X, linear_model_dict=mlr_model)
