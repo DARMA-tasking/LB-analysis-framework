@@ -280,7 +280,8 @@ class Runtime:
                     continue
 
                 # Offload objects for as long as necessary and possible
-                obj_it = iter(p_src.objects)
+                srt_proc_obj = self.order_objects(objects=p_src.objects)
+                obj_it = iter(srt_proc_obj)
                 while l_exc > 0.:
                     # Leave this processor if it ran out of known underloaded
                     p_keys = list(p_src.get_known_underloads().keys())
@@ -415,3 +416,11 @@ class Runtime:
                 w_max,
                 w_ave,
                 math.sqrt(w_var)))
+
+    def order_objects(self, objects: set):
+        object_list = list(objects)
+        sorted_objects = sorted(object_list, key=lambda x: x.get_time())
+        if self.average_load > sorted_objects[-1].get_time():
+            sorted_objects = sorted(sorted_objects, key=lambda x: x.get_time(), reverse=True)
+
+        return sorted_objects
