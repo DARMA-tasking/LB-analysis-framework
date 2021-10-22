@@ -56,10 +56,11 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c, a=False, v=False):
+    def __init__(self, p, c, order_strategy, a=False, v=False):
         """Class constructor:
         p: Phase instance
         c: criterion index
+        order_strategy: Objects order strategy
         a: use actual destination load [FALSE/True]
         v: verbose mode [FALSE/True]
         """
@@ -118,6 +119,10 @@ class Runtime:
             "communication weight variance" : [w_var],
             "communication weight imbalance": [w_imb]}
 
+        self.strategy_mapped = {'arbitrary': self.arbitrary, 'element_id': self.element_id,
+                                'fewest_migrations': self.fewest_migrations, 'small_objects': self.small_objects,
+                                'largest_objects': self.largest_objects}
+        self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
         """Launch runtime execution
@@ -280,7 +285,7 @@ class Runtime:
                     continue
 
                 # Offload objects for as long as necessary and possible
-                srt_proc_obj = self.order_objects(objects=p_src.objects)
+                srt_proc_obj = self.order_strategy(objects=p_src.objects)
                 obj_it = iter(srt_proc_obj)
                 while l_exc > 0.:
                     # Leave this processor if it ran out of known underloaded
@@ -417,10 +422,55 @@ class Runtime:
                 w_ave,
                 math.sqrt(w_var)))
 
-    def order_objects(self, objects: set):
+    @staticmethod
+    def arbitrary(objects: set):
+        return objects
+
+    @staticmethod
+    def element_id(objects: set):
+        object_list = list(objects)
+        sorted_objects = sorted(object_list, key=lambda x: x.get_id())
+        return sorted_objects
+
+    def fewest_migrations(self, objects: set):
+        proc_load = sum([obj.get_time() for obj in objects])
+        load_ex = proc_load - self.average_load
+        if max([obj.get_time() for obj in objects]) < load_ex:
+            object_list = list(objects)
+            sorted_objects = sorted(object_list, key=lambda x: x.get_time(), reverse=True)
+            return sorted_objects
+        else:
+            lt_load_ex = list()
+            get_load_ex = list()
+            for obj in objects:
+                if obj.get_time() <= load_ex:
+                    lt_load_ex.append(obj)
+                else:
+                    get_load_ex.append(obj)
+            sorted_let_load_ex = sorted(lt_load_ex, key=lambda x: x.get_time(), reverse=True)
+            sorted_gt_load_ex = sorted(get_load_ex, key=lambda x: x.get_time())
+            return sorted_let_load_ex.extend(sorted_gt_load_ex)
+
+    def small_objects(self, objects: set):
+        proc_load = sum([obj.get_time() for obj in objects])
+        load_ex = proc_load - self.average_load
         object_list = list(objects)
         sorted_objects = sorted(object_list, key=lambda x: x.get_time())
-        if self.average_load > sorted_objects[-1].get_time():
-            sorted_objects = sorted(sorted_objects, key=lambda x: x.get_time(), reverse=True)
+        sorted_objects_time = [obj.get_time() for obj in sorted_objects]
+        sml_obj_list = list()
+        sorted_objects_idx = 0
+        for idx, obj in enumerate(sorted_objects_time):
+            if sum(sml_obj_list) <= load_ex:
+                sorted_objects_idx = idx
+                sml_obj_list.append(obj)
+            else:
+                sorted_objects_idx = idx
+        sorted_let_load_ex = sorted(sorted_objects[:sorted_objects_idx], key=lambda x: x.get_time(), reverse=True)
+        sorted_gt_load_ex = sorted(sorted_objects[sorted_objects_idx:], key=lambda x: x.get_time())
+        return sorted_let_load_ex.extend(sorted_gt_load_ex)
 
+    @staticmethod
+    def largest_objects(objects: set):
+        object_list = list(objects)
+        sorted_objects = sorted(object_list, key=lambda x: x.get_time(), reverse=True)
         return sorted_objects

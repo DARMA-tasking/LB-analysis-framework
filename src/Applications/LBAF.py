@@ -349,7 +349,8 @@ class ggParameters:
             self.communication_enabled = True
         if isinstance(self.conf.get('communication_mirror', None), bool):
             self.communication_mirror = self.conf.get('communication_mirror', None)
-
+        if isinstance(self.conf.get('order_strategy', None), str):
+            self.order_strategy = self.conf.get('order_strategy', None)
 
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
@@ -505,6 +506,7 @@ if __name__ == '__main__':
     # Instantiate runtime
     rt = Runtime(phase,
                  params.criterion,
+                 params.order_strategy,
                  params.actual_dst_load,
                  params.verbose)
     rt.execute(params.n_iterations,
