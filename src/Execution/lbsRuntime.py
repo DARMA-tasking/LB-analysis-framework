@@ -424,15 +424,22 @@ class Runtime:
 
     @staticmethod
     def arbitrary(objects: set):
+        """ Random strategy. Objects are passed without any order. """
         return objects
 
     @staticmethod
     def element_id(objects: set):
+        """ Objects ordered by ID. """
         object_list = list(objects)
         sorted_objects = sorted(object_list, key=lambda x: x.get_id())
         return sorted_objects
 
     def fewest_migrations(self, objects: set):
+        """ First find the load of the smallest single object that, if migrated
+            away, could bring this processor's load below the target load.
+            Sort largest to smallest if <= load_ex
+            Sort smallest to largest if > load_ex
+        """
         proc_load = sum([obj.get_time() for obj in objects])
         load_ex = proc_load - self.average_load
         if max([obj.get_time() for obj in objects]) < load_ex:
@@ -452,6 +459,11 @@ class Runtime:
             return sorted_let_load_ex.extend(sorted_gt_load_ex)
 
     def small_objects(self, objects: set):
+        """ First find the smallest object that, if migrated away along with all
+            smaller objects, could bring this processor's load below the target load.
+            Sort largest to smallest if <= load_ex
+            Sort smallest to largest if > load_ex
+        """
         proc_load = sum([obj.get_time() for obj in objects])
         load_ex = proc_load - self.average_load
         object_list = list(objects)
@@ -471,6 +483,7 @@ class Runtime:
 
     @staticmethod
     def largest_objects(objects: set):
+        """ Objects ordered by object load/time. From bigger to smaller. """
         object_list = list(objects)
         sorted_objects = sorted(object_list, key=lambda x: x.get_time(), reverse=True)
         return sorted_objects
