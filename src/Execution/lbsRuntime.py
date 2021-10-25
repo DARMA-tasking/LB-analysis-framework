@@ -456,7 +456,8 @@ class Runtime:
                     get_load_ex.append(obj)
             sorted_let_load_ex = sorted(lt_load_ex, key=lambda x: x.get_time(), reverse=True)
             sorted_gt_load_ex = sorted(get_load_ex, key=lambda x: x.get_time())
-            return sorted_let_load_ex.extend(sorted_gt_load_ex)
+            sorted_let_load_ex.extend(sorted_gt_load_ex)
+            return sorted_let_load_ex
 
     def small_objects(self, objects: set):
         """ First find the smallest object that, if migrated away along with all
@@ -479,7 +480,8 @@ class Runtime:
                 sorted_objects_idx = idx
         sorted_let_load_ex = sorted(sorted_objects[:sorted_objects_idx], key=lambda x: x.get_time(), reverse=True)
         sorted_gt_load_ex = sorted(sorted_objects[sorted_objects_idx:], key=lambda x: x.get_time())
-        return sorted_let_load_ex.extend(sorted_gt_load_ex)
+        sorted_let_load_ex.extend(sorted_gt_load_ex)
+        return sorted_let_load_ex
 
     @staticmethod
     def largest_objects(objects: set):
