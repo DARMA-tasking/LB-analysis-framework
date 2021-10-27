@@ -238,11 +238,13 @@ class LoadReader:
 
                             comm_dict[receiver_obj_id]['received'].append(
                                 {'from': from_.get('id', None), 'bytes': bytes_})
-                            print(f'{bcolors.BLUE}[LoadReaderVT] Added received Phase:{phase_id}, Comm num: {num}\n'
-                                  f'\t\t\tCommunication entry: {comm}{bcolors.END}')
+                            if self.verbose:
+                                print(f'{bcolors.BLUE}[LoadReaderVT] Added received Phase:{phase_id}, Comm num: {num}\n'
+                                      f'\t\t\tCommunication entry: {comm}{bcolors.END}')
                             comm_dict[sender_obj_id]['send'].append({'to': to_.get('id', None), 'bytes': bytes_})
-                            print(f'{bcolors.BLUE}[LoadReaderVT] Added sent Phase:{phase_id}, Comm num: {num}\n'
-                                  f'\t\t\tCommunication entry: {comm}{bcolors.END}')
+                            if self.verbose:
+                                print(f'{bcolors.BLUE}[LoadReaderVT] Added sent Phase:{phase_id}, Comm num: {num}\n'
+                                      f'\t\t\tCommunication entry: {comm}{bcolors.END}')
 
             for task in phase['tasks']:
                 task_time = task.get('time')
