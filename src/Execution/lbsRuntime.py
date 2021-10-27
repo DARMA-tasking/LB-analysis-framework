@@ -41,9 +41,11 @@
 ###############################################################################
 #@HEADER
 #
-
+from bisect import bisect
+from itertools import accumulate
 import math
 import sys
+from typing import Union
 
 import bcolors
 
@@ -423,16 +425,27 @@ class Runtime:
                 math.sqrt(w_var)))
 
     @staticmethod
+    def sort(objects: set, key):
+        return sorted(list(objects), key=key)
+
+    def sorted_ascending(self, objects: Union[set, list]):
+        return self.sort(objects, key=lambda x: x.get_time())
+
+    def sorted_descending(self, objects: Union[set, list]):
+        return self.sort(objects, key=lambda x: -x.get_time())
+
+    @staticmethod
     def arbitrary(objects: set):
         """ Random strategy. Objects are passed without any order. """
         return objects
 
-    @staticmethod
-    def element_id(objects: set):
+    def element_id(self, objects: set):
         """ Objects ordered by ID. """
-        object_list = list(objects)
-        sorted_objects = sorted(object_list, key=lambda x: x.get_id())
-        return sorted_objects
+        return self.sort(objects, key=lambda x: x.get_id())
+
+    def load_ex(self, objects: set):
+        proc_load = sum([obj.get_time() for obj in objects])
+        return proc_load - self.average_load
 
     def fewest_migrations(self, objects: set):
         """ First find the load of the smallest single object that, if migrated
@@ -440,24 +453,10 @@ class Runtime:
             Sort largest to smallest if <= load_ex
             Sort smallest to largest if > load_ex
         """
-        proc_load = sum([obj.get_time() for obj in objects])
-        load_ex = proc_load - self.average_load
-        if max([obj.get_time() for obj in objects]) < load_ex:
-            object_list = list(objects)
-            sorted_objects = sorted(object_list, key=lambda x: x.get_time(), reverse=True)
-            return sorted_objects
-        else:
-            lt_load_ex = list()
-            get_load_ex = list()
-            for obj in objects:
-                if obj.get_time() <= load_ex:
-                    lt_load_ex.append(obj)
-                else:
-                    get_load_ex.append(obj)
-            sorted_let_load_ex = sorted(lt_load_ex, key=lambda x: x.get_time(), reverse=True)
-            sorted_gt_load_ex = sorted(get_load_ex, key=lambda x: x.get_time())
-            sorted_let_load_ex.extend(sorted_gt_load_ex)
-            return sorted_let_load_ex
+        load_ex = self.load_ex(objects)
+        lt_load_ex = [obj for obj in objects if obj.get_time() <= load_ex]
+        get_load_ex = [obj for obj in objects if obj.get_time() > load_ex]
+        return self.sorted_descending(lt_load_ex) + self.sorted_ascending(get_load_ex)
 
     def small_objects(self, objects: set):
         """ First find the smallest object that, if migrated away along with all
@@ -465,27 +464,12 @@ class Runtime:
             Sort largest to smallest if <= load_ex
             Sort smallest to largest if > load_ex
         """
-        proc_load = sum([obj.get_time() for obj in objects])
-        load_ex = proc_load - self.average_load
-        object_list = list(objects)
-        sorted_objects = sorted(object_list, key=lambda x: x.get_time())
-        sorted_objects_time = [obj.get_time() for obj in sorted_objects]
-        sml_obj_list = list()
-        sorted_objects_idx = 0
-        for idx, obj in enumerate(sorted_objects_time):
-            if sum(sml_obj_list) <= load_ex:
-                sorted_objects_idx = idx
-                sml_obj_list.append(obj)
-            else:
-                sorted_objects_idx = idx
-        sorted_let_load_ex = sorted(sorted_objects[:sorted_objects_idx], key=lambda x: x.get_time(), reverse=True)
-        sorted_gt_load_ex = sorted(sorted_objects[sorted_objects_idx:], key=lambda x: x.get_time())
-        sorted_let_load_ex.extend(sorted_gt_load_ex)
-        return sorted_let_load_ex
+        load_ex = self.load_ex(objects)
+        sorted_objects = self.sorted_ascending(objects)
+        accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
+        idx = bisect(accumulated_times, load_ex) + 1
+        return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
 
-    @staticmethod
-    def largest_objects(objects: set):
+    def largest_objects(self, objects: set):
         """ Objects ordered by object load/time. From bigger to smaller. """
-        object_list = list(objects)
-        sorted_objects = sorted(object_list, key=lambda x: x.get_time(), reverse=True)
-        return sorted_objects
+        return self.sorted_descending(objects)
