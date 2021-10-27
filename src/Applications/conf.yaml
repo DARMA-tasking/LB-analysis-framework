@@ -28,7 +28,7 @@
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 
 criterion: 1
-n_iterations: 4
+n_iterations: 8
 x_procs: 4
 y_procs: 2
 z_procs: 1
@@ -36,15 +36,15 @@ n_rounds: 4
 fanout: 4
 phase_id: 0
 exodus: True
-output_dir: "/lbaf/out"
+output_dir: "out"
 file_suffix: "json"
 generate_multimedia: False
-verbose: True
+verbose: False 
 communication_mirror: True
 order_strategy: arbitrary
 
 # Reading from logs (comment out if sampling)
-log_file: "/lbaf/data/vt_lb_stats_compressed_30_JUN_2021/stats"
+log_file: "data/vt_lb_stats_compressed_30_JUN_2021/stats"
 
 # Simulating from samplers (comment out if reading from log)
 #n_objects: 200
