@@ -248,10 +248,9 @@ class Processor:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-
     def compute_cmf_underloads(self, l_ave, pmf_type=0):
         """Compute CMF of underloads given an average load
-           tyoe 0: improved Gossip approach
+           type 0: improved Gossip approach
            type 1: NS variant based on sender load
         """
 

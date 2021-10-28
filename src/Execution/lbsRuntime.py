@@ -42,8 +42,11 @@
 #@HEADER
 #
 
+from bisect import bisect
+from itertools import accumulate
 import math
 import sys
+from typing import Union
 
 import bcolors
 
@@ -56,10 +59,11 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c, a=False, v=False):
+    def __init__(self, p, c, order_strategy: str, a=False, v=False):
         """Class constructor:
         p: Phase instance
         c: criterion index
+        order_strategy: Objects order strategy
         a: use actual destination load [FALSE/True]
         v: verbose mode [FALSE/True]
         """
@@ -118,6 +122,10 @@ class Runtime:
             "communication weight variance" : [w_var],
             "communication weight imbalance": [w_imb]}
 
+        self.strategy_mapped = {'arbitrary': self.arbitrary, 'element_id': self.element_id,
+                                'fewest_migrations': self.fewest_migrations, 'small_objects': self.small_objects,
+                                'largest_objects': self.largest_objects}
+        self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
         """Launch runtime execution
@@ -280,7 +288,8 @@ class Runtime:
                     continue
 
                 # Offload objects for as long as necessary and possible
-                obj_it = iter(p_src.objects)
+                srt_proc_obj = self.order_strategy(objects=p_src.objects)
+                obj_it = iter(srt_proc_obj)
                 while l_exc > 0.:
                     # Leave this processor if it ran out of known underloaded
                     p_keys = list(p_src.get_known_underloads().keys())
@@ -415,3 +424,53 @@ class Runtime:
                 w_max,
                 w_ave,
                 math.sqrt(w_var)))
+
+    @staticmethod
+    def sort(objects: set, key):
+        return sorted(list(objects), key=key)
+
+    def sorted_ascending(self, objects: Union[set, list]):
+        return self.sort(objects, key=lambda x: x.get_time())
+
+    def sorted_descending(self, objects: Union[set, list]):
+        return self.sort(objects, key=lambda x: -x.get_time())
+
+    @staticmethod
+    def arbitrary(objects: set):
+        """ Random strategy. Objects are passed without any order. """
+        return objects
+
+    def element_id(self, objects: set):
+        """ Objects ordered by ID. """
+        return self.sort(objects, key=lambda x: x.get_id())
+
+    def load_ex(self, objects: set):
+        proc_load = sum([obj.get_time() for obj in objects])
+        return proc_load - self.average_load
+
+    def fewest_migrations(self, objects: set):
+        """ First find the load of the smallest single object that, if migrated
+            away, could bring this processor's load below the target load.
+            Sort largest to smallest if <= load_ex
+            Sort smallest to largest if > load_ex
+        """
+        load_ex = self.load_ex(objects)
+        lt_load_ex = [obj for obj in objects if obj.get_time() <= load_ex]
+        get_load_ex = [obj for obj in objects if obj.get_time() > load_ex]
+        return self.sorted_descending(lt_load_ex) + self.sorted_ascending(get_load_ex)
+
+    def small_objects(self, objects: set):
+        """ First find the smallest object that, if migrated away along with all
+            smaller objects, could bring this processor's load below the target load.
+            Sort largest to smallest if <= load_ex
+            Sort smallest to largest if > load_ex
+        """
+        load_ex = self.load_ex(objects)
+        sorted_objects = self.sorted_ascending(objects)
+        accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
+        idx = bisect(accumulated_times, load_ex) + 1
+        return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
+
+    def largest_objects(self, objects: set):
+        """ Objects ordered by object load/time. From bigger to smaller. """
+        return self.sorted_descending(objects)
