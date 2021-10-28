@@ -42,6 +42,7 @@ import functools
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class RelaxedLocalizingCriterion(CriterionBase):
@@ -68,6 +69,8 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Retrieve object communications
         comm = object.get_communicator()
+        if not isinstance(comm, ObjectCommunicator):
+            raise Exception(f"Communicator: {comm} is NOT ObjectCommunicator, but {type(comm)}")
         sent = comm.get_sent().items()
         recv = comm.get_received().items()
 
