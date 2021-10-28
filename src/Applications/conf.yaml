@@ -24,6 +24,7 @@
 # actual_dst_load     [-a]        bool      use actual destination loads
 # exodus              [-e]        bool      generate Exodus type visualization output
 # generate_multimedia [-g]        bool      generate multimedia
+# order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 
 criterion: 1
 n_iterations: 4
@@ -36,3 +37,4 @@ phase_id: 0
 log_file: "data/vt_example_lb_stats/stats"
 exodus: True
 output_dir: "output"
+order_strategy: arbitrary

@@ -340,6 +340,8 @@ class ggParameters:
             self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(self.conf['weight_sampler_type'])
         if self.communication_degree > 0:
             self.communication_enabled = True
+        if isinstance(self.conf.get('order_strategy', None), str):
+            self.order_strategy = self.conf.get('order_strategy', None)
 
 
 def parse_sampler(cmd_str):
@@ -498,9 +500,10 @@ if __name__ == '__main__':
 
     # Instantiate runtime
     rt = Runtime(phase,
-                            params.criterion,
-                            params.actual_dst_load,
-                            params.verbose)
+                 params.criterion,
+                 params.order_strategy,
+                 params.actual_dst_load,
+                 params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
