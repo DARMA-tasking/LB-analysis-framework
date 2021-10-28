@@ -83,7 +83,7 @@ class LoadWriterVT:
         self.suffix = s
         self.output_dir = output_dir
 
-    def write(self, time_step):
+    def write(self, phase_id):
         """Write one CSV file per rank/procesor containing with one object
         per line, with the following format:
 
@@ -95,7 +95,7 @@ class LoadWriterVT:
             # Create file name for current processor
             file_name = "{}.{}.{}.{}".format(
                 self.file_stem,
-                time_step,
+                phase_id,
                 p.get_id(),
                 self.suffix)
 

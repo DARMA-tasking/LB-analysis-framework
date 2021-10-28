@@ -113,8 +113,8 @@ class ggParameters:
         # Relative overload threshold for load transfer
         self.threshold = 1.
 
-        # Time-step to obtain load distribution by reading VT log files
-        self.time_step = 0
+        # Phase-id to obtain load distribution by reading VT log files
+        self.phase_id = 0
 
         # File name stem to obtain load distribution by reading VT log files
         self.log_file = None
@@ -255,7 +255,7 @@ class ggParameters:
                 self.weight_sampler_parameters) = parse_sampler(a)
             elif o == '-s':
                  if i > -1:
-                     self.time_step = i
+                     self.phase_id = i
             elif o == '-l':
                 self.log_file = a
             elif o == '-m':
@@ -466,7 +466,7 @@ if __name__ == '__main__':
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p,
-                                      params.time_step,
+                                      params.phase_id,
                                       params.log_file)
 
 
@@ -522,7 +522,7 @@ if __name__ == '__main__':
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
         vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
-        vt_writer.write(params.time_step)
+        vt_writer.write(params.phase_id)
 
     # If prefix parsed from command line
     if params.exodus:
