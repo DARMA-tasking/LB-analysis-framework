@@ -525,7 +525,7 @@ if __name__ == '__main__':
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
         vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
-        vt_writer.write(params.phase_id)
+        vt_writer.write()
 
     # If prefix parsed from command line
     if params.exodus:
