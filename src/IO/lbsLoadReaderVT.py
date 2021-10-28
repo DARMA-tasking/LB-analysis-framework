@@ -56,14 +56,14 @@ class LoadReader:
     """A class to read VT Object Map files. These CSV files conform
     to the following format:
 
-      <time_step/phase>, <object-id>, <time>
-      <time_step/phase>, <object-id1>, <object-id2>, <num-bytes>
+      <phase_id/phase>, <object-id>, <time>
+      <phase_id/phase>, <object-id1>, <object-id2>, <num-bytes>
 
     Each file is named as <base-name>.<node>.vom, where <node> spans the number
     of MPI ranks that VT is utilizing.
 
     Each line in a given file specifies the load of each object that is
-    currently mapped to that VT node for a given time_step/phase. Lines with 3
+    currently mapped to that VT node for a given phase_id/phase. Lines with 3
     entries specify load for an object in term of wall time. Lines with 4
     entries specify the communication volume between objects in bytes.
 
@@ -99,9 +99,9 @@ class LoadReader:
 
         return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
 
-    def read(self, node_id, time_step=-1, comm=False):
-        """Read the file for a given node/rank. If time_step==-1 then all
-        steps are read from the file; otherwise, only `time_step` is.
+    def read(self, node_id, phase_id=-1, comm=False):
+        """Read the file for a given node/rank. If phase_id==-1 then all
+        steps are read from the file; otherwise, only `phase_id` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
@@ -129,7 +129,7 @@ class LoadReader:
                 # Handle three-entry case that corresponds to an object load
                 if n_entries == 3:
                     # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>
+                    #   <phase_id/phase>, <object-id>, <time>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     try:
@@ -141,7 +141,7 @@ class LoadReader:
                               + bcolors.END)
 
                     # Update processor if iteration was requested
-                    if time_step in (phase, -1):
+                    if phase_id in (phase, -1):
                         # Instantiate object with retrieved parameters
                         obj = Object(o_id, time, node_id)
 
@@ -165,7 +165,7 @@ class LoadReader:
                 elif n_entries == 5:
                     continue
                     # Parsing the five-entry case, thus this format:
-                    #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
+                    #   <phase_id/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     print(bcolors.ERR
@@ -190,9 +190,9 @@ class LoadReader:
         # Return map of populated processors per iteration
         return iter_map
 
-    def read_iteration(self, n_p, time_step):
+    def read_iteration(self, n_p, phase_id):
         """Read all the data in the range of procs [0..n_p) for a given
-        iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
+        iteration `phase_id`. Collapse the iter_map dictionary from `read(..)`
         into a list of processors to be returned for the given iteration.
         """
 
@@ -202,16 +202,16 @@ class LoadReader:
         # Iterate over all processors
         for p in range(n_p):
             # Read data for given iteration and assign it to processor
-            proc_iter_map = self.read(p, time_step)
+            proc_iter_map = self.read(p, phase_id)
 
             # Try to retrieve processor information at given time-step
             try:
-                procs[p] = proc_iter_map[time_step]
+                procs[p] = proc_iter_map[phase_id]
             except KeyError:
                 print(bcolors.ERR
-                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
+                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at phase_id {}".format(
                     p,
-                    time_step)
+                    phase_id)
                       + bcolors.END)
                 sys.exit(1)
 

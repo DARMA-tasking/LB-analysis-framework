@@ -66,7 +66,7 @@ class Phase:
         self.processors = []
 
         # Default time-step/phase of this phase
-        self.time_step = t
+        self.phase_id = t
 
         # Initialize gossiping round
         self.round_index = 0
@@ -93,11 +93,11 @@ class Phase:
 
         return [p.get_id() for p in self.processors]
 
-    def get_time_step(self):
+    def get_phase_id(self):
         """Retrieve the time-step/phase for this phase
         """
 
-        return self.time_step
+        return self.phase_id
 
     def compute_edges(self):
         """Compute and return map of communication link IDs to weights
