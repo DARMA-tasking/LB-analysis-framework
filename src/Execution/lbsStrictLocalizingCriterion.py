@@ -40,6 +40,7 @@
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class StrictLocalizingCriterion(CriterionBase):
@@ -71,6 +72,8 @@ class StrictLocalizingCriterion(CriterionBase):
         comm = object.get_communicator()
 
         # Iterate over sent messages
+        if not isinstance(comm, ObjectCommunicator):
+            raise Exception(f"Communicator: {comm} is NOT ObjectCommunicator, but {type(comm)}")
         for i in comm.get_sent().items():
             if p_src_id == i[0].get_processor_id():
                 # Bail out as soon as locality is broken by transfer
