@@ -35,6 +35,7 @@ n_rounds: 4
 fanout: 4
 phase_id: 0
 log_file: "data/vt_example_lb_stats/stats"
+file_suffix: vom
 exodus: True
 output_dir: "output"
 order_strategy: arbitrary
