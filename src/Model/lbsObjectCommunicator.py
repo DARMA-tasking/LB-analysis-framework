@@ -51,7 +51,7 @@ class ObjectCommunicator:
     """
 
     def __init__(self, r={}, s={}, i=None):
-        
+
         # Index of object having this communicator if defined
         self.object_index = i
 
@@ -90,10 +90,8 @@ class ObjectCommunicator:
         """
 
         # Assert that direction is of known type
-        if not direction in ("to", "from"):
-            print(bcolors.ERR
-                + "*  ERROR: unknown direction string: {}".format(direction)
-                + bcolors.END)
+        if direction not in ("to", "from"):
+            print(f"{bcolors.ERR}*  ERROR: unknown direction string: {direction}{bcolors.END}")
             sys.exit(1)
 
         # Initialize list of weights
@@ -103,11 +101,9 @@ class ObjectCommunicator:
         communications = self.sent if direction == "to" else self.received
         for k, v in communications.items():
             # Sanity check
-            if  k.get_id() == self.object_index:
-                print(bcolors.ERR
-                    + "*  ERROR: object {} cannot send communication to itself.".format(
-                    self.object_index)
-                    + bcolors.END)
+            if k.get_id() == self.object_index:
+                print(f"{bcolors.ERR}*  ERROR: object {self.object_index} cannot send communication to itself."
+                      f"{bcolors.END}")
                 sys.exit(1)
 
             # Update list of weights
@@ -115,11 +111,7 @@ class ObjectCommunicator:
 
             # Report current communicaton item if requested
             if print_indent:
-                print("{}{} object {}: {}".format(
-                    print_indent,
-                    "->" if direction == "to" else "<-",
-                    k.get_id(),
-                    v))
+                print(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of weights
         return weights

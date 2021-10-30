@@ -104,10 +104,7 @@ class Phase:
         """
 
         # Compute or re-compute edges from scratch
-        print(bcolors.HEADER
-            + "[Phase] "
-            + bcolors.END
-            + "Computing inter-process communication edges")
+        print(f"{bcolors.HEADER}[Phase]{bcolors.END} Computing inter-process communication edges")
 
         # Initialize count of loaded processors
         n_loaded = 0
@@ -213,16 +210,8 @@ class Phase:
             ts_params)
 
         # Create n_o objects with uniformly distributed times in given range
-        print(bcolors.HEADER
-            + "[Phase] "
-            + bcolors.END
-            + "Creating {} objects with times sampled from {}".format(
-            n_o,
-            sampler_name))
-        objects = set([Object(
-            i,
-            time_sampler()
-            ) for i in range(n_o)])
+        print(f"{bcolors.HEADER}[Phase]{bcolors.END} Creating {n_o} objects with times sampled from {sampler_name}")
+        objects = set([Object(i, time_sampler()) for i in range(n_o)])
 
         # Compute and report object time statistics
         print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
@@ -239,10 +228,7 @@ class Phase:
             degree_sampler, degree_sampler_name = sampler(
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print(bcolors.HEADER
-                + "[Phase] "
-                + bcolors.END
-                + "Creating communications with:")
+            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Creating communications with:")
             print("\tweights sampled from {}".format(weight_sampler_name))
             print("\tout-degrees sampled from {}".format(degree_sampler_name))
 
@@ -254,12 +240,12 @@ class Phase:
                     {},
                     {o: weight_sampler()
                      for o in rnd.sample(
-                         objects.difference([obj]),
-                         degree_sampler())
+                        objects.difference([obj]),
+                        degree_sampler())
                      },
                     obj.get_id()))
             print("\tgenerated in {:.6g} seconds".format(
-                time.time()-start))
+                time.time() - start))
 
             # Create symmetric received communications
             for obj in objects:
@@ -287,43 +273,26 @@ class Phase:
 
         # Perform sanity checks
         if len(w_recv) != len(w_sent):
-            print(bcolors.ERR
-                + "*  ERROR: number of sent and received communications differ: {} <> {}".format(
-                len(w_sent),
-                len(w_recv))
-                + bcolors.END)
+            print(f"{bcolors.ERR}*  ERROR: number of sent and received communications differ: "
+                  f"{len(w_sent)} <> {len(w_recv)}{bcolors.END}")
             sys.exit(1)
 
         # Compute and report communication weight statistics
-        print_function_statistics(w_sent,
-                                                lambda x: x,
-                                                "communication weights",
-                                                self.verbose)
+        print_function_statistics(w_sent, lambda x: x, "communication weights", self.verbose)
 
         # Create n_p processors
         self.processors = [Processor(i) for i in range(n_p)]
 
         # Randomly assign objects to processors
         if s_s and s_s <= n_p:
-            print(bcolors.HEADER
-                + "[Phase] "
-                + bcolors.END
-                + "Randomly assigning objects to {} processors amongst {}".format(
-                s_s,
-                n_p))
+            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {s_s} processors amongst {n_p}")
         else:
             # Sanity check
             if s_s > n_p:
-                print(bcolors.WARN
-                    + "*  WARNING: too many processors ({}) requested: only {} available.".format(
-                    s_s,
-                    n_p)
-                    + bcolors.END)
+                print(f"{bcolors.WARN}*  WARNING: too many processors ({s_s}) requested: only {n_p} available."
+                      f"{bcolors.END}")
                 s_s = n_p
-            print(bcolors.HEADER
-                + "[Phase] "
-                + bcolors.END
-                + "Randomly assigning objects to {} processors".format(n_p))
+            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {n_p} processors")
         if s_s > 0:
             # Randomly assign objects to a subset o processors of size s_s
             proc_list = rnd.sample(self.processors, s_s)
@@ -353,14 +322,10 @@ class Phase:
         reader = LoadReader(basename, file_suffix=self.file_suffix)
 
         # Populate phase with reader output
-        print(bcolors.HEADER
-            + "[Phase] "
-            + bcolors.END
-            + "Reading objects from time-step {} of VOM files with prefix {}".format(
-            t_s,
-            basename))
+        print(f"{bcolors.HEADER}[Phase]{bcolors.END} Reading objects from time-step {t_s} of VOM files with prefix "
+              f"{basename}")
         self.processors = reader.read_iteration(n_p, t_s)
-        
+
         # Compute and report object statistics
         objects = set()
         for p in self.processors:

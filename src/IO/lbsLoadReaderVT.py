@@ -124,17 +124,14 @@ class LoadReader:
 
         # Print more information when requested
         if self.verbose:
-            print(bcolors.HEADER
-                  + "[LoadReaderVT] "
-                  + bcolors.END
-                  + "Finished reading file: {}".format(file_name))
+            print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} Finished reading file: {file_name}")
 
         # Return map of populated processors per iteration
         return iter_map
 
-    def read_iteration(self, n_p: int, time_step: int) -> list:
+    def read_iteration(self, n_p: int, phase_id: int) -> list:
         """Read all the data in the range of procs [0..n_p) for a given
-        iteration `time_step`. Collapse the iter_map dictionary from `read(..)`
+        iteration `phase_id`. Collapse the iter_map dictionary from `read(..)`
         into a list of processors to be returned for the given iteration.
         """
 
@@ -144,17 +141,14 @@ class LoadReader:
         # Iterate over all processors
         for p in range(n_p):
             # Read data for given iteration and assign it to processor
-            proc_iter_map = self.read(p, time_step)
+            proc_iter_map = self.read(p, phase_id)
 
             # Try to retrieve processor information at given time-step
             try:
-                procs[p] = proc_iter_map[time_step]
+                procs[p] = proc_iter_map[phase_id]
             except KeyError:
-                print(bcolors.ERR
-                      + "*  ERROR: [LoadReaderVT] Could not retrieve information for processor {} at time_step {}".format(
-                    p,
-                    time_step)
-                      + bcolors.END)
+                print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Could not retrieve information for processor {p} "
+                      f"at time_step {phase_id}{bcolors.END}")
                 sys.exit(1)
 
         # Return populated list of processors
@@ -171,6 +165,12 @@ class LoadReader:
             except brotli.error:
                 decompressed_dict = json.loads(compr_bytes.decode('utf-8'))
 
+        # validate schema
+        if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
+            print(f'{bcolors.OK}[LoadReaderVT] Valid JSON schema in {file_name}{bcolors.END}')
+        else:
+            raise SyntaxError(f'{bcolors.ERR}[LoadReaderVT] Invalid JSON schema in {file_name}{bcolors.END}')
+
         # defining phases from file
         phases = decompressed_dict['phases']
         # iterating over phases
@@ -186,10 +186,10 @@ class LoadReader:
                     obj = Object(task_object_id, task_time, node_id)
 
                     # If this iteration was never encoutered initialize proc object
-                    returned_dict.setdefault(phase, Processor(node_id))
+                    returned_dict.setdefault(phase_id, Processor(node_id))
 
                     # Add object to processor
-                    returned_dict[phase].add_object(obj)
+                    returned_dict[phase_id].add_object(obj)
 
                     # Print debug information when requested
                     if self.verbose:
@@ -250,9 +250,7 @@ class LoadReader:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
-                    print(bcolors.ERR
-                          + "*  ERROR: [LoadReaderVT] Communication graph unimplemented"
-                          + bcolors.END)
+                    print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Communication graph unimplemented{bcolors.END}")
                     sys.exit(1)
 
                 # Unrecognized line format
