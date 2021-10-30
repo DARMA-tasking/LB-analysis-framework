@@ -34,7 +34,8 @@ z_procs: 1
 n_rounds: 4
 fanout: 4
 phase_id: 0
-log_file: "data/vt_example_lb_stats/stats"
+log_file: "data/vt_lb_stats_compressed_30_JUN_2021/stats"
+file_suffix: json
 exodus: True
 output_dir: "output"
 order_strategy: arbitrary

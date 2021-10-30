@@ -45,6 +45,8 @@
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsObject import Object
+from src.Model.lbsProcessor import Processor
 
 
 class GrapevineCriterion(CriterionBase):
@@ -64,30 +66,21 @@ class GrapevineCriterion(CriterionBase):
 
         # Keep track of average load across all processors
         key = "average_load"
-        ave_load =  parameters.get(key)
+        ave_load = parameters.get(key)
         if ave_load:
             self.average_load = ave_load
-            print(bcolors.HEADER
-                + "[GrapevineCriterion] "
-                + bcolors.END
-                + "Instantiated concrete criterion with average load: {}".format(
-            ave_load))
+            print(f"{bcolors.HEADER} [GrapevineCriterion] {bcolors.END} Instantiated concrete criterion with average "
+                  f"load: {ave_load}")
         else:
-            print(bcolors.ERR
-                + "*  ERROR: cannot instantiate criterion without {} parameter".format(
-                key)
-                + bcolors.END)
+            print(f"{bcolors.ERR} *  ERROR: cannot instantiate criterion without {key} parameter {bcolors.END}")
 
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
-    def compute(self, object, p_src, p_dst):
+    def compute(self, obj: Object, p_src: Processor, p_dst: Processor) -> float:
         """Original Grapevine criterion based on Linfinity norm of loads
         """
 
         # Criterion only uses object and processor loads
         return self.average_load - (
-            (p_dst.get_load()
-             if self.actual_dst_load
-             else p_src.get_known_underload(p_dst))
-            + object.get_time())
+                (p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)) + obj.get_time())
