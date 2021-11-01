@@ -200,6 +200,7 @@ class LoadReader:
 
         # defining phases from file
         phases = decompressed_dict['phases']
+        comm_dict = dict()
         # iterating over phases
         for phase in phases:
             # creating communicator dictionary
@@ -304,13 +305,8 @@ class LoadReader:
 
                         # Print debug information when requested
                         if self.verbose:
-                            print(bcolors.HEADER
-                                  + "[LoadReaderVT] "
-                                  + bcolors.END
-                                  + "iteration = {}, object id = {}, time = {}".format(
-                                phase,
-                                o_id,
-                                time))
+                            print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} iteration = {phase}, object id = {o_id}"
+                                  f", time = {time}")
 
                 # Handle four-entry case that corresponds to a communication weight
                 elif n_entries == 5:
@@ -324,9 +320,7 @@ class LoadReader:
 
                 # Unrecognized line format
                 else:
-                    print(bcolors.ERR
-                          + "** ERROR: [LoadReaderVT] Wrong line length: {}".format(row)
-                          + bcolors.END)
+                    print(f"{bcolors.ERR}** ERROR: [LoadReaderVT] Wrong line length: {row}{bcolors.END}")
                     sys.exit(1)
 
         return returned_dict
