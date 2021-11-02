@@ -119,11 +119,10 @@ class LoadReader:
         # Initialize storage
         iter_map = dict()
 
-        # iter_map = self.csv_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id, node_id=node_id)
-        # iter_map = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_ids=phase_id, node_id=node_id)
-
-        iter_map, comm = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_ids=phase_id,
-                                          node_id=node_id)
+        iter_map, comm = self.csv_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id,
+                                         node_id=node_id)
+        # iter_map, comm = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_ids=phase_id,
+        #                                   node_id=node_id)
 
         # Print more information when requested
         if self.verbose:
@@ -268,13 +267,14 @@ class LoadReader:
 
         return returned_dict, comm_dict
 
-    def csv_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> dict:
+    def csv_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> tuple:
         """ Reader compatible with previous VT Object Map files (csv)
         """
         # Open specified input file
         with open(file_name, 'r') as f:
             log = csv.reader(f, delimiter=',')
             # Iterate over rows of input file
+            comm_dict = dict()
             for row in log:
                 n_entries = len(row)
 
@@ -323,4 +323,4 @@ class LoadReader:
                     print(f"{bcolors.ERR}** ERROR: [LoadReaderVT] Wrong line length: {row}{bcolors.END}")
                     sys.exit(1)
 
-        return returned_dict
+        return returned_dict, comm_dict
