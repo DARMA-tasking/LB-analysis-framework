@@ -308,15 +308,6 @@ class ggParameters:
             self.usage()
             sys.exit(1)
 
-        # # Checking if log dir exists, if not, checking if dir exists in project path
-        # if os.path.isdir(os.path.abspath(os.path.split(self.log_file)[0])):
-        #     self.log_file = os.path.abspath(self.log_file)
-        # elif os.path.isdir(os.path.join(project_path, os.path.split(self.log_file)[0])):
-        #     self.log_file = os.path.join(project_path, self.log_file)
-        # else:
-        #     print(f"{bcolors.ERR}LOG directory NOT FOUND!{bcolors.END}")
-        #     sys.exit(1)
-
         # Case when phases are populate from samplers not from log file
         if self.log_file is not None:
             # Checking if log dir exists, if not, checking if dir exists in project path
