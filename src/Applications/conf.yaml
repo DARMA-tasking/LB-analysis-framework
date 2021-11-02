@@ -12,9 +12,9 @@
 # n_rounds            [-k <nr>]   int       number of gossiping rounds
 # fanout              [-f <fo>]   int       gossiping fan-out value
 # threshold           [-r <rt>]   float     overload relative threshold
-# time_sampler_type   [-t <ts>]   str       object times sampler: <ts> in {uniform,lognormal}
-# weight_sampler_type [-w <ws>]   str       communications weights sampler: <cs> in {uniform,lognormal}
-# phase_id            [-s <ts>]   int       phase_id for reading VT load logs
+# time_sampler_type   [-t <ts>]   str       object times sampler: <ts> in {uniform,lognormal} e.g. lognormal,1.0,10.0
+# weight_sampler_type [-w <ws>]   str       communications weights sampler: <cs> in {uniform,lognormal} e.g. lognormal,1.0,10.0
+# phase_id            [-s <ts>]   int       phase id for reading VT load logs
 # log_file            [-l <blog>] str       base file name for reading VT load logs
 # map_file            [-m <bmap>] str       base file name for VT object/proc mapping
 # communication_degree[-d <d>]    int       object communication degree (no communication if 0)
@@ -39,3 +39,11 @@ file_suffix: vom
 exodus: True
 output_dir: "output"
 order_strategy: arbitrary
+verbose: False
+actual_dst_load: False
+
+# Simulating from samplers (comment out if reading from log)
+#n_objects: 200
+#time_sampler_type: lognormal,1.0,10.0
+#weight_sampler_type: lognormal,1.0,10.0
+#communication_degree: 20

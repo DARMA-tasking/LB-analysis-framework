@@ -319,7 +319,7 @@ class Phase:
         """
 
         # Instantiate VT load reader
-        reader = LoadReader(basename, file_suffix=self.file_suffix)
+        reader = LoadReader(basename, verbose=self.verbose, file_suffix=self.file_suffix)
 
         # Populate phase with reader output
         print(f"{bcolors.HEADER}[Phase]{bcolors.END} Reading objects from time-step {t_s} of VOM files with prefix "
