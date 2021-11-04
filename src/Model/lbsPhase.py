@@ -45,7 +45,6 @@
 import random as rnd
 import sys
 import time
-
 import bcolors
 
 from src.Model.lbsObject import Object
@@ -329,7 +328,7 @@ class Phase:
         # Compute and report object statistics
         objects = set()
         for p in self.processors:
-            objects = objects.union(p.objects)
+            objects = objects.union(p.get_objects())
         print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
 
         # Return number of found objects

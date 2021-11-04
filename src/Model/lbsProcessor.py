@@ -41,13 +41,12 @@
 ###############################################################################
 #@HEADER
 #
-
 import math
 import random as rnd
 import sys
-
 import bcolors
 
+from src.Model.lbsObject import Object
 from src.Model.lbsMessage import Message
 
 
@@ -61,6 +60,9 @@ class Processor:
         self.objects = set()
         for obj in o:
             self.add_object(obj)
+
+        # Create sentinel object attached to this processor
+        self.sentinel = Object(-i, 0., i)
 
         # No information about underloads is known initially
         self.known_underloaded = set()
@@ -82,13 +84,37 @@ class Processor:
         """Return objects assigned to processor
         """
 
+        return self.objects.union([self.sentinel])
+
+    def get_migratable_objects(self):
+        """Return migratable objects assigned to processor
+        """
+
         return self.objects
+
+    def get_sentinel_object(self):
+        """Return sentinel object assigned to processor
+        """
+
+        return self.sentinel
 
     def get_object_ids(self):
         """Return IDs of objects assigned to processor
         """
 
+        return [o.get_id() for o in self.objects + [self.sentinel]]
+
+    def get_migratable_object_ids(self):
+        """Return IDs of migratable objects assigned to processor
+        """
+
         return [o.get_id() for o in self.objects]
+
+    def get_sentinel_object_id(self):
+        """Return ID of sentinel object assigned to processor
+        """
+
+        return self.sentinel.get_id()
 
     def get_known_underloaded(self):
         """Return underloaded peers know to self
@@ -160,7 +186,19 @@ class Processor:
         """Return computed total load on processor
         """
 
+        return sum([o.get_time() for o in self.objects.union([self.sentinel])])
+
+    def get_migratable_load(self):
+        """Return computed migratable load on processor
+        """
+
         return sum([o.get_time() for o in self.objects])
+
+    def get_sentinel_load(self):
+        """Return load of sentinel on processor
+        """
+
+        return self.sentinel.get_time()
 
     def reset_all_load_information(self):
         """Reset all underload information known to self
