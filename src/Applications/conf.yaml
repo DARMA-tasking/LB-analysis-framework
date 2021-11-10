@@ -39,7 +39,7 @@ file_suffix: vom
 exodus: True
 output_dir: "output"
 order_strategy: arbitrary
-verbose: True
+verbose: False
 actual_dst_load: False
 
 # Simulating from samplers (comment out if reading from log)

@@ -54,15 +54,15 @@ class Processor:
     """A class representing a processor to which objects are assigned
     """
 
-    def __init__(self, i, o=set()):
+    def __init__(self, i, mo=set(), so=set()):
         # Member variables passed by constructor
         self.index = i
-        self.objects = set()
-        for obj in o:
-            self.add_object(obj)
-
-        # Create sentinel object attached to this processor
-        self.sentinel = Object(-i, 0., i)
+        self.migratable_objects = set()
+        for o in mo:
+            self.add_migratable_object(o)
+        self.sentinel_objects = set()
+        for o in so:
+            self.add_sentinelt(o)
 
         # No information about underloads is known initially
         self.known_underloaded = set()
@@ -81,40 +81,40 @@ class Processor:
         return self.index
 
     def get_objects(self):
-        """Return objects assigned to processor
+        """Return all objects assigned to processor
         """
 
-        return self.objects.union([self.sentinel])
+        return self.migratable_objects.union(self.sentinel_objects)
 
     def get_migratable_objects(self):
         """Return migratable objects assigned to processor
         """
 
-        return self.objects
+        return self.migratable_objects
 
-    def get_sentinel_object(self):
-        """Return sentinel object assigned to processor
+    def get_sentinel_objects(self):
+        """Return sentinel objects assigned to processor
         """
 
-        return self.sentinel
+        return self.sentinel_objects
 
     def get_object_ids(self):
-        """Return IDs of objects assigned to processor
+        """Return IDs of all objects assigned to processor
         """
 
-        return [o.get_id() for o in self.objects + [self.sentinel]]
+        return [o.get_id() for o in self.migratable_objects.union(self.sentinel_objects)]
 
     def get_migratable_object_ids(self):
         """Return IDs of migratable objects assigned to processor
         """
 
-        return [o.get_id() for o in self.objects]
+        return [o.get_id() for o in self.migratable_objects]
 
-    def get_sentinel_object_id(self):
-        """Return ID of sentinel object assigned to processor
+    def get_sentinel_object_ids(self):
+        """Return IDs of sentinel objects assigned to processor
         """
 
-        return self.sentinel.get_id()
+        return [o.get_id() for o in self.sentinel_objects]
 
     def get_known_underloaded(self):
         """Return underloaded peers know to self
@@ -134,30 +134,48 @@ class Processor:
 
         return self.overloaded_viewers
 
-    def add_object(self, o, l_ave=None):
-        """Assign object to self
+    def set_underloaded_status(self, l_ave):
+        """Check whether addition makes load above underload threshold
         """
 
-        # Add object from those assigned to self
-        self.objects.add(o)
-
-        # Check whether addition makes load above underload threshold
-        if l_ave and not sum([o.get_time() for o in self.objects]) < l_ave:
+        if not self.get_load() < l_ave:
             # Remove self from underloaded when present
             self.known_underloaded.discard(self)
             self.known_underloads.pop(self, None)
 
-    def remove_object(self, o, p_dst):
-        """Remove from self object sent to peer
+    def add_migratable_object(self, o, l_ave=None):
+        """Assign migratable object to self
+        """
+
+        # Add migratable object from those assigned to self
+        self.migratable_objects.add(o)
+
+        # Set underloaded status with when load average is provided
+        if l_ave:
+            self.set_underloaded_status(l_ave)
+            
+    def add_sentinel_object(self, o, l_ave=None):
+        """Assign sentinel object to self
+        """
+
+        # Add sentinel object from those assigned to self
+        self.sentinel_objects.add(o)
+
+        # Set underloaded status with when load average is provided
+        if l_ave:
+            self.set_underloaded_status(l_ave)
+            
+    def remove_migratable_object(self, o, p_dst):
+        """Remove migratable able object from self object sent to peer
         """
 
         # Remove object from those assigned to self
-        self.objects.remove(o)
+        self.migratable_objects.remove(o)
 
         # Update known underloads
         l_o = o.get_time()
         l_dst = self.known_underloads[p_dst]
-        if l_dst + l_o > sum([o.get_time() for o in self.objects]):
+        if l_dst + l_o > self.get_load():
             # Remove destination from underloaded if more loaded than self
             self.known_underloaded.remove(p_dst)
             del self.known_underloads[p_dst]
@@ -183,22 +201,22 @@ class Processor:
         return self.known_underloads.get(p, math.inf)
 
     def get_load(self):
-        """Return computed total load on processor
+        """Return total load on processor
         """
 
-        return sum([o.get_time() for o in self.objects.union([self.sentinel])])
+        return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
-        """Return computed migratable load on processor
+        """Return migratable load on processor
         """
 
-        return sum([o.get_time() for o in self.objects])
+        return sum([o.get_time() for o in self.migratable_objects])
 
     def get_sentinel_load(self):
-        """Return load of sentinel on processor
+        """Return sentinel load oon processor
         """
 
-        return self.sentinel.get_time()
+        return sum([o.get_time() for o in self.sentinel_objects])
 
     def reset_all_load_information(self):
         """Reset all underload information known to self

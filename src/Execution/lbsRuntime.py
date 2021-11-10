@@ -122,9 +122,13 @@ class Runtime:
             "communication weight variance" : [w_var],
             "communication weight imbalance": [w_imb]}
 
-        self.strategy_mapped = {'arbitrary': self.arbitrary, 'element_id': self.element_id,
-                                'fewest_migrations': self.fewest_migrations, 'small_objects': self.small_objects,
-                                'largest_objects': self.largest_objects}
+        # Initialize strategy
+        self.strategy_mapped = {
+            "arbitrary": self.arbitrary,
+            "element_id": self.element_id,
+            "fewest_migrations": self.fewest_migrations,
+            "small_objects": self.small_objects,
+            "largest_objects": self.largest_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
@@ -288,7 +292,7 @@ class Runtime:
                     continue
 
                 # Offload objects for as long as necessary and possible
-                srt_proc_obj = self.order_strategy(objects=p_src.objects)
+                srt_proc_obj = self.order_strategy(objects=p_src.migratable_objects)
                 obj_it = iter(srt_proc_obj)
                 while l_exc > 0.:
                     # Leave this processor if it ran out of known underloaded
@@ -350,9 +354,9 @@ class Runtime:
                             print(sorted([p.get_id() for p in p_src.known_underloads]))
                             print(sorted([p.get_id() for p in p_keys]))
                             sys.exit(1)
-                        l_exc -= p_src.remove_object(o, p_dst)
-                        obj_it = iter(p_src.objects)
-                        p_dst.add_object(o, self.average_load)
+                        l_exc -= p_src.remove_migratable_object(o, p_dst)
+                        obj_it = iter(p_src.get_migratable_objects())
+                        p_dst.add_migratable_object(o, self.average_load)
                         n_transfers += 1
  
             # Invalidate cache of edges
