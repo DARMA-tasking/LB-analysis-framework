@@ -258,7 +258,7 @@ class LoadReader:
                     returned_dict.setdefault(phase_id, Processor(node_id))
 
                     # Add object to processor
-                    returned_dict[phase_id].add_object(obj)
+                    returned_dict[phase_id].add_migratable_object(obj)
 
                     # Print debug information when requested
                     if self.verbose:
@@ -301,7 +301,7 @@ class LoadReader:
                         returned_dict.setdefault(phase, Processor(node_id))
 
                         # Add object to processor
-                        returned_dict[phase].add_object(obj)
+                        returned_dict[phase].add_migratable_object(obj)
 
                         # Print debug information when requested
                         if self.verbose:

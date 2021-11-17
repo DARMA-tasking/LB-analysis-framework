@@ -42,7 +42,6 @@
 #@HEADER
 #
 ########################################################################
-import csv
 import json
 import os
 
@@ -54,7 +53,7 @@ from src.Model.lbsProcessor import Processor
 
 
 class LoadWriterVT:
-    """A class to write load directives for VT as CSV files with
+    """A class to write load directives for VT as JSON files with
     the following format:
 
       <iter/phase>, <object-id>, <time>
@@ -87,8 +86,7 @@ class LoadWriterVT:
         self.output_dir = output_dir
 
     def write(self):
-        """Write one CSV file per rank/procesor containing with one object
-        per line, with the following format:
+        """Write one JSON file per rank with the following format:
             <phase-id>, <object-id>, <time>
         """
         # to get phase id => self.phase.get_id() method needs to be changed from get_phase_id()
@@ -110,7 +108,7 @@ class LoadWriterVT:
     def json_writer(file_name: str, n_u: int, processor: Processor):
         temp_dict = dict()
         # Iterate over objects
-        for o in processor.objects:
+        for o in processor.get_objects():
             # Write object to file and increment count
             try:
                 # writer.writerow([o.get_processor_id(), o.get_id(), o.get_time()])
@@ -144,5 +142,5 @@ class LoadWriterVT:
         if n_u:
             print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
         else:
-            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.objects)} objects to JSON file "
+            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.get_objects())} objects to JSON file "
                   f"{file_name}")

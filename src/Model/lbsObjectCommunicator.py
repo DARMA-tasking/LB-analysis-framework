@@ -42,8 +42,8 @@
 #@HEADER
 #
 ########################################################################
-import bcolors
 import sys
+import bcolors
 
 
 class ObjectCommunicator:
