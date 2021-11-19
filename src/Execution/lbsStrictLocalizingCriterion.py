@@ -37,6 +37,8 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
+import sys
+
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
@@ -73,7 +75,9 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            raise Exception(f"Communicator: {comm} is NOT ObjectCommunicator, but {type(comm)}")
+            print(f"{bcolors.ERR}[StrictLocalizingCriterion] No ObjectCommunicator provided!. {comm} object of type "
+                  f"{type(comm)} was provided. Quitting ...{bcolors.END}")
+            sys.exit(1)
         for i in comm.get_sent().items():
             if p_src_id == i[0].get_processor_id():
                 # Bail out as soon as locality is broken by transfer
