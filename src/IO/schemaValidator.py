@@ -23,7 +23,9 @@ class SchemaValidator:
                                     Optional('home'): int,
                                     'id': int,
                                     Optional('index'): [int],
-                                    'type': str
+                                    'type': str,
+                                    'migratable': bool,
+                                    Optional('objgroup_id'): int
                                 },
                                 'node': int,
                                 'resource': str,
@@ -42,16 +44,22 @@ class SchemaValidator:
                                 'to': {
                                     'type': str,
                                     'id': int,
-                                    Optional('home'): int
+                                    Optional('home'): int,
+                                    Optional('collection_id'): int,
+                                    Optional('migratable'): bool,
+                                    Optional('index'): [int]
                                 },
                                 'messages': int,
                                 'from': {
                                     'type': str,
                                     'id': int,
-                                    Optional('home'): int
+                                    Optional('home'): int,
+                                    Optional('collection_id'): int,
+                                    Optional('migratable'): bool,
+                                    Optional('index'): [int]
                                 },
                                 'bytes': float
-                             }
+                            }
                         ]
                     },
                 ]
