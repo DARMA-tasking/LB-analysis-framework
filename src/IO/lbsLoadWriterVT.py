@@ -89,8 +89,6 @@ class LoadWriterVT:
         """Write one JSON file per rank with the following format:
             <phase-id>, <object-id>, <time>
         """
-        # to get phase id => self.phase.get_id() method needs to be changed from get_phase_id()
-
         # Iterate over processors
         for p in self.phase.processors:
             # Create file name for current processor
@@ -142,5 +140,5 @@ class LoadWriterVT:
         if n_u:
             print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
         else:
-            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.get_objects())} objects to JSON file "
-                  f"{file_name}")
+            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.get_objects())} objects to JSON"
+                  f" file {file_name}")
