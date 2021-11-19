@@ -54,15 +54,17 @@ class Processor:
     """A class representing a processor to which objects are assigned
     """
 
-    def __init__(self, i, mo=set(), so=set()):
+    def __init__(self, i, mo: set = None, so: set = None):
         # Member variables passed by constructor
         self.index = i
         self.migratable_objects = set()
-        for o in mo:
-            self.add_migratable_object(o)
         self.sentinel_objects = set()
-        for o in so:
-            self.add_sentinel_object(o)
+        if mo is not None:
+            for o in mo:
+                self.add_migratable_object(o)
+        if so is not None:
+            for o in so:
+                self.add_sentinel_object(o)
 
         # No information about underloads is known initially
         self.known_underloaded = set()
