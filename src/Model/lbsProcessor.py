@@ -62,7 +62,7 @@ class Processor:
             self.add_migratable_object(o)
         self.sentinel_objects = set()
         for o in so:
-            self.add_sentinel(o)
+            self.add_sentinel_object(o)
 
         # No information about underloads is known initially
         self.known_underloaded = set()

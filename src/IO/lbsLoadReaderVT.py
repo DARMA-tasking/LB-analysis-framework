@@ -119,10 +119,10 @@ class LoadReader:
         # Initialize storage
         iter_map = dict()
 
-        iter_map, comm = self.csv_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id,
-                                         node_id=node_id)
-        # iter_map, comm = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_ids=phase_id,
-        #                                   node_id=node_id)
+        # iter_map, comm = self.csv_reader(returned_dict=iter_map, file_name=file_name, phase_id=phase_id,
+        #                                  node_id=node_id)
+        iter_map, comm = self.json_reader(returned_dict=iter_map, file_name=file_name, phase_ids=phase_id,
+                                          node_id=node_id)
 
         # Print more information when requested
         if self.verbose:
