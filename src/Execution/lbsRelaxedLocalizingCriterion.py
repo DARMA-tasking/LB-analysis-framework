@@ -38,6 +38,7 @@
 #
 ###############################################################################
 import functools
+import sys
 
 import bcolors
 
@@ -70,7 +71,9 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            raise Exception(f"Communicator: {comm} is NOT ObjectCommunicator, but {type(comm)}")
+            print(f"{bcolors.ERR}[RelaxedLocalizingCriterion] No ObjectCommunicator provided!. {comm} object of type "
+                  f"{type(comm)} was provided. Quitting ...{bcolors.END}")
+            sys.exit(1)
         sent = comm.get_sent().items()
         recv = comm.get_received().items()
 
