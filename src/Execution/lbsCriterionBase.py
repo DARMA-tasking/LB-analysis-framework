@@ -107,14 +107,14 @@ class CriterionBase:
     def factory(criterion_idx, processors, edges, parameters=None):
         """Produce the necessary concrete criterion
         """
-        from src.Execution.lbsGrapevineCriterion import GrapevineCriterion
+        from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
         from src.Execution.lbsModifiedGrapevineCriterion import ModifiedGrapevineCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
         # Ensure that criterion index is valid
         c_name = {
-            0: GrapevineCriterion,
+            0: LowerTotalWorkCriterion,
             1: ModifiedGrapevineCriterion,
             2: StrictLocalizingCriterion,
             3: RelaxedLocalizingCriterion,

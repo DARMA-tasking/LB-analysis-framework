@@ -1,8 +1,6 @@
-#
-#@HEADER
 ###############################################################################
 #
-#                           lbsGrapevineCriterion.py
+#                       lbsLowerTotalWorkCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -39,48 +37,72 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
-#
-########################################################################
+import functools
+
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
+from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
-class GrapevineCriterion(CriterionBase):
-    """A concrete class for the original Grapevine criterion
+class LowerTotalWorkCriterion(CriterionBase):
+    """A concrete class for a relaxedly localizing criterion
     """
 
-    def __init__(self, processors, edges, parameters):
+    def __init__(self, processors, edges, _):
         """Class constructor:
         processors: set of processors (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
-        parameters: parameters dictionary
-            average_load: average load across all processors
+        _: no parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(GrapevineCriterion, self).__init__(processors, edges, parameters)
+        super(LowerTotalWorkCriterion, self).__init__(processors, edges)
+        print(bcolors.HEADER
+            + "[LowerTotalWorkCriterion] "
+            + bcolors.END
+            + "Instantiated concrete criterion")
 
-        # Keep track of average load across all processors
-        key = "average_load"
-        ave_load = parameters.get(key)
-        if ave_load:
-            self.average_load = ave_load
-            print(f"{bcolors.HEADER} [GrapevineCriterion] {bcolors.END} Instantiated concrete criterion with average "
-                  f"load: {ave_load}")
-        else:
-            print(f"{bcolors.ERR} *  ERROR: cannot instantiate criterion without {key} parameter {bcolors.END}")
+    def compute(self, object, p_src, p_dst):
+        """A criterion allowing for local disruptions for more locality
+        """
 
-        # Use either actual or locally known destination loads
-        self.actual_dst_load = parameters.get("actual_destination_load", False)
+        # Retrieve object communications
+        comm = object.get_communicator()
+        if not isinstance(comm, ObjectCommunicator):
+            raise Exception(f"Communicator: {comm} is NOT ObjectCommunicator, but {type(comm)}")
+        sent = comm.get_sent().items()
+        recv = comm.get_received().items()
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Original Grapevine criterion based on Linfinity norm of loads
         """
 
-        # Criterion only uses object and processor loads
-        return self.average_load - (
-                (p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)) + obj.get_time())
+        # Retrieve ID of processor to which an object is assigned
+        p_id = (lambda x: x.get_processor_id())
+
+        # Test whether first component is source processor
+        is_s = (lambda x: p_id(x[0]) == p_src.get_id())
+
+        # Test whether first component is destination processor
+        is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
+
+        # Add value with second components of a collection
+        xPy1 = (lambda x, y: x + y[1])
+
+        # Aggregate communication weights with source
+        w_src = functools.reduce(xPy1,
+                                 list(filter(is_s, recv))
+                                 + list(filter(is_s, sent)),
+                                 0.)
+
+        # Aggregate communication weights with destination
+        w_dst = functools.reduce(xPy1,
+                                 list(filter(is_d, recv))
+                                 + list(filter(is_d, sent)),
+                                 0.)
+
+        # Criterion assesses difference in local communications
+        return w_dst - w_src
