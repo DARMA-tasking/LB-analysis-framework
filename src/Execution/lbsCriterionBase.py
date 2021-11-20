@@ -121,14 +121,7 @@ class CriterionBase:
             }.get(criterion_idx)
 
         # Instantiate and return object
-        ret_object = c_name(processors, edges, parameters)
-        c_name_str = str(c_name).split('.')[-1][:-2]
-        print(bcolors.HEADER
-            + "[Criterion] "
-            + bcolors.END
-            + "Instantiated {} load transfer criterion".format(
-            c_name_str))
-        return ret_object
+        return c_name(processors, edges, parameters)
 
     @abc.abstractmethod
     def compute(self, object, proc_src, proc_dst):
