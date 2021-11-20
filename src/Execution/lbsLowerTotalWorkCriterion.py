@@ -72,7 +72,12 @@ class LowerTotalWorkCriterion(CriterionBase):
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            raise Exception(f"Communicator: {comm} is NOT ObjectCommunicator, but {type(comm)}")
+            print(bcolors.ERR
+                + "*  ERROR: no communicator of type ObjectCommunicator was provided"
+                + bcolors.END)
+            sys.exit(1)
+
+        # Retrieve sent and received items from communicator
         sent = comm.get_sent().items()
         recv = comm.get_received().items()
 

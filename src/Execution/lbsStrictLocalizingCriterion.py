@@ -75,8 +75,9 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            print(f"{bcolors.ERR}[StrictLocalizingCriterion] No ObjectCommunicator provided!. {comm} object of type "
-                  f"{type(comm)} was provided. Quitting ...{bcolors.END}")
+            print(bcolors.ERR
+                + "*  ERROR: no communicator of type ObjectCommunicator was provided"
+                + bcolors.END)
             sys.exit(1)
         for i in comm.get_sent().items():
             if p_src_id == i[0].get_processor_id():

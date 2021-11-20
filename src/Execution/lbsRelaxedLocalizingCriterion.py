@@ -71,9 +71,12 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            print(f"{bcolors.ERR}[RelaxedLocalizingCriterion] No ObjectCommunicator provided!. {comm} object of type "
-                  f"{type(comm)} was provided. Quitting ...{bcolors.END}")
+            print(bcolors.ERR
+                + "*  ERROR: no communicator of type ObjectCommunicator was provided"
+                + bcolors.END)
             sys.exit(1)
+
+        # Retrieve sent and received items from communicator
         sent = comm.get_sent().items()
         recv = comm.get_received().items()
 
