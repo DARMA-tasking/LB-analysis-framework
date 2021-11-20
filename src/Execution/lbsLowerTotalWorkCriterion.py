@@ -74,13 +74,13 @@ class LowerTotalWorkCriterion(CriterionBase):
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
             print(bcolors.ERR
-                + "*  ERROR: no communicator of type ObjectCommunicator was provided"
+                + f"** WARNING: object {object.get_id()} has no communicator"
                 + bcolors.END)
-            sys.exit(1)
-
-        # Retrieve sent and received items from communicator
-        sent = comm.get_sent().items()
-        recv = comm.get_received().items()
+            sent, recv = {}.items(), {}.items()
+        else:
+            # Retrieve sent and received items from communicator
+            sent = comm.get_sent().items()
+            recv = comm.get_received().items()
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Original Grapevine criterion based on Linfinity norm of loads
