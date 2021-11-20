@@ -72,10 +72,10 @@ class ggParameters:
     """
 
     def __init__(self):
-        # By default use modified Grapevine criterion
+        # By default use tempered load criterion
         self.criterion = 1
 
-        # By default use modified Grapevine PMF
+        # By default use tempereted load PMF
         self.pmf_type = 0
 
         # Number of load-balancing iterations
@@ -155,8 +155,8 @@ class ggParameters:
 
         print("Usage:")
         print("\t [-c <tc>]   transfer criterion:")
-        print("\t\t\t 0: Grapevine original")
-        print("\t\t\t 1: Grapevine modified (default)")
+        print("\t\t\t 0: total work")
+        print("\t\t\t 1: tempered load (default)")
         print("\t\t\t 2: strict localizer")
         print("\t\t\t 3: relaxed localizer")
         print("\t [-n <nf>]   normalization factor for transfer PMF:")

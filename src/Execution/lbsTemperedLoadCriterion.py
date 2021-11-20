@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                       lbsModifiedGrapevineCriterion.py
+#                       lbsTemperedLoadCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -49,7 +49,7 @@ from src.Model.lbsObject import Object
 from src.Model.lbsProcessor import Processor
 
 
-class ModifiedGrapevineCriterion(CriterionBase):
+class TemperedLoadCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
@@ -61,8 +61,8 @@ class ModifiedGrapevineCriterion(CriterionBase):
         """
 
         # Call superclass init
-        super(ModifiedGrapevineCriterion, self).__init__(processors, edges)
-        print(f"{bcolors.HEADER}[ModifiedGrapevineCriterion]{bcolors.END} Instantiated concrete criterion")
+        super(TemperedLoadCriterion, self).__init__(processors, edges)
+        print(f"{bcolors.HEADER}[TemperedLoadCriterion]{bcolors.END} Instantiated concrete criterion")
 
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)

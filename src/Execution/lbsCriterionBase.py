@@ -108,14 +108,14 @@ class CriterionBase:
         """Produce the necessary concrete criterion
         """
         from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
-        from src.Execution.lbsModifiedGrapevineCriterion import ModifiedGrapevineCriterion
+        from src.Execution.lbsTemperedLoadCriterion import TemperedLoadCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
         # Ensure that criterion index is valid
         c_name = {
             0: LowerTotalWorkCriterion,
-            1: ModifiedGrapevineCriterion,
+            1: TemperedLoadCriterion,
             2: StrictLocalizingCriterion,
             3: RelaxedLocalizingCriterion,
             }.get(criterion_idx)

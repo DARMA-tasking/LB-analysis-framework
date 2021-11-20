@@ -76,9 +76,10 @@ class StrictLocalizingCriterion(CriterionBase):
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
             print(bcolors.ERR
-                + "*  ERROR: no communicator of type ObjectCommunicator was provided"
+                + f"** WARNING: object {object.get_id()} has no communicator"
                 + bcolors.END)
-            sys.exit(1)
+            return 0.
+
         for i in comm.get_sent().items():
             if p_src_id == i[0].get_processor_id():
                 # Bail out as soon as locality is broken by transfer

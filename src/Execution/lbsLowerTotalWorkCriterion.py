@@ -72,13 +72,13 @@ class LowerTotalWorkCriterion(CriterionBase):
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
             print(bcolors.ERR
-                + "*  ERROR: no communicator of type ObjectCommunicator was provided"
+                + f"** WARNING: object {object.get_id()} has no communicator"
                 + bcolors.END)
-            sys.exit(1)
-
-        # Retrieve sent and received items from communicator
-        sent = comm.get_sent().items()
-        recv = comm.get_received().items()
+            sent, recv = {}.items(), {}.items()
+        else:
+            # Retrieve sent and received items from communicator
+            sent = comm.get_sent().items()
+            recv = comm.get_received().items()
 
         # Retrieve ID of processor to which an object is assigned
         p_id = (lambda x: x.get_processor_id())
