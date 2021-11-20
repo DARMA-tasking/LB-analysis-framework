@@ -68,9 +68,10 @@ class TemperedLoadCriterion(CriterionBase):
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
     def compute(self, obj: Object, p_src: Processor, p_dst: Processor) -> float:
-        """Modified Grapevine criterion based on L1 norm of loads
+        """Tempered load criterion based on L1 norm of loads
         """
 
         # Criterion only uses object and processor loads
         return p_src.get_load() - (
-                    (p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)) + obj.get_time())
+                    (p_dst.get_load() if self.actual_dst_load
+                     else p_src.get_known_underload(p_dst)) + obj.get_time())
