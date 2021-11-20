@@ -68,41 +68,45 @@ class LowerTotalWorkCriterion(CriterionBase):
         """A criterion allowing for local disruptions for more locality
         """
 
+        # Criterion only uses object and processor loads
+        criterion = p_src.get_load() - (
+            (p_dst.get_load() if self.actual_dst_load
+             else p_src.get_known_underload(p_dst)) + obj.get_time())
+
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
             print(bcolors.ERR
                 + f"** WARNING: object {object.get_id()} has no communicator"
                 + bcolors.END)
-            sent, recv = {}.items(), {}.items()
         else:
             # Retrieve sent and received items from communicator
             sent = comm.get_sent().items()
             recv = comm.get_received().items()
 
-        # Retrieve ID of processor to which an object is assigned
-        p_id = (lambda x: x.get_processor_id())
+            # Retrieve ID of processor to which an object is assigned
+            p_id = (lambda x: x.get_processor_id())
 
-        # Test whether first component is source processor
-        is_s = (lambda x: p_id(x[0]) == p_src.get_id())
+            # Test whether first component is source processor
+            is_s = (lambda x: p_id(x[0]) == p_src.get_id())
 
-        # Test whether first component is destination processor
-        is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
+            # Test whether first component is destination processor
+            is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
 
-        # Add value with second components of a collection
-        xPy1 = (lambda x, y: x + y[1])
+            # Add value with second components of a collection
+            xPy1 = (lambda x, y: x + y[1])
 
-        # Aggregate communication weights with source
-        w_src = functools.reduce(xPy1,
-                                 list(filter(is_s, recv))
-                                 + list(filter(is_s, sent)),
-                                 0.)
+            # Aggregate communication weights with source
+            w_src = functools.reduce(xPy1,
+                                     list(filter(is_s, recv))
+                                     + list(filter(is_s, sent)),
+                                     0.)
 
-        # Aggregate communication weights with destination
-        w_dst = functools.reduce(xPy1,
-                                 list(filter(is_d, recv))
-                                 + list(filter(is_d, sent)),
-                                 0.)
+            # Aggregate communication weights with destination
+            w_dst = functools.reduce(xPy1,
+                                     list(filter(is_d, recv))
+                                     + list(filter(is_d, sent)),
+                                     0.)
 
-        # Criterion assesses difference in local communications
-        return w_dst - w_src
+        # Criterion assesses difference in total work
+        return criterion
