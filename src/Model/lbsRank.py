@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                                lbsProcessor.py
+#                                lbsRank.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -50,7 +50,7 @@ from src.Model.lbsObject import Object
 from src.Model.lbsMessage import Message
 
 
-class Processor:
+class Rank:
     """A class representing a processor to which objects are assigned
     """
 

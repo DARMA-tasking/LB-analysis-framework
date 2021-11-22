@@ -51,7 +51,7 @@ class StrictLocalizingCriterion(CriterionBase):
     
     def __init__(self, processors, edges, _):
         """Class constructor:
-        processors: set of processors (lbsProcessor.Processor instances)
+        processors: set of processors (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
         _: no parameters dictionary needed for this criterion
         """

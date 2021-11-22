@@ -46,7 +46,7 @@ import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
-from src.Model.lbsProcessor import Processor
+from src.Model.lbsRank import Rank
 
 
 class GrapevineCriterion(CriterionBase):
@@ -55,7 +55,7 @@ class GrapevineCriterion(CriterionBase):
 
     def __init__(self, processors, edges, parameters):
         """Class constructor:
-        processors: set of processors (lbsProcessor.Processor instances)
+        processors: set of processors (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
         parameters: parameters dictionary
             average_load: average load across all processors
@@ -77,7 +77,7 @@ class GrapevineCriterion(CriterionBase):
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
-    def compute(self, obj: Object, p_src: Processor, p_dst: Processor) -> float:
+    def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Original Grapevine criterion based on Linfinity norm of loads
         """
 

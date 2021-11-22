@@ -46,7 +46,7 @@ import abc
 
 import bcolors
 
-from src.Model.lbsProcessor import Processor
+from src.Model.lbsRank import Rank
 
 
 class CriterionBase:
@@ -56,7 +56,7 @@ class CriterionBase:
 
     def __init__(self, processors, edges, parameters=None):
         """Class constructor:
-        processors: set of processors (lbsProcessor.Processor instances)
+        processors: set of processors (lbsRank.Processor instances)
         edges: dictionary of edges (frozensets)
         parameters: optional parameters dictionary
         """
@@ -71,7 +71,7 @@ class CriterionBase:
         # Assert that all members of said list are indeed processor instances
         n_p = len(processors)
         if n_p != len(list(
-            filter(lambda x: isinstance(x, Processor), processors))):
+            filter(lambda x: isinstance(x, Rank), processors))):
             print(bcolors.ERR
                 + "*  ERROR: Could not create a LBS criterion without a set of Processor instances"
                 + bcolors.END)

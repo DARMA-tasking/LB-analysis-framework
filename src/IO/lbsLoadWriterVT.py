@@ -49,7 +49,7 @@ import brotli
 import bcolors
 
 from src.Model.lbsPhase import Phase
-from src.Model.lbsProcessor import Processor
+from src.Model.lbsRank import Rank
 
 
 class LoadWriterVT:
@@ -100,13 +100,13 @@ class LoadWriterVT:
             # Count number of unsaved objects for sanity
             n_u = 0
 
-            self.json_writer(file_name=file_name, n_u=n_u, processor=p)
+            self.json_writer(file_name=file_name, n_u=n_u, rank=p)
 
     @staticmethod
-    def json_writer(file_name: str, n_u: int, processor: Processor):
+    def json_writer(file_name: str, n_u: int, rank: Rank):
         temp_dict = dict()
         # Iterate over objects
-        for o in processor.get_objects():
+        for o in rank.get_objects():
             # Write object to file and increment count
             try:
                 # writer.writerow([o.get_processor_id(), o.get_id(), o.get_time()])
@@ -140,5 +140,5 @@ class LoadWriterVT:
         if n_u:
             print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
         else:
-            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(processor.get_objects())} objects to JSON"
+            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(rank.get_objects())} objects to JSON"
                   f" file {file_name}")
