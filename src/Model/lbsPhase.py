@@ -48,7 +48,7 @@ import time
 import bcolors
 
 from src.Model.lbsObject import Object
-from src.Model.lbsProcessor import Processor
+from src.Model.lbsRank import Rank
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 from src.IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler

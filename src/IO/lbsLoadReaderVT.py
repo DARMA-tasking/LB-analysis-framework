@@ -53,7 +53,7 @@ import brotli
 from src.IO.schemaValidator import SchemaValidator
 from src.Model.lbsObject import Object
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
-from src.Model.lbsProcessor import Processor
+from src.Model.lbsRank import Rank
 
 
 class LoadReader:
@@ -255,7 +255,7 @@ class LoadReader:
                     obj = Object(task_object_id, task_time, node_id)
 
                     # If this iteration was never encoutered initialize proc object
-                    returned_dict.setdefault(phase_id, Processor(node_id))
+                    returned_dict.setdefault(phase_id, Rank(node_id))
 
                     # Add object to processor
                     returned_dict[phase_id].add_migratable_object(obj)
@@ -298,7 +298,7 @@ class LoadReader:
                         obj = Object(o_id, time, node_id)
 
                         # If this iteration was never encoutered initialize proc object
-                        returned_dict.setdefault(phase, Processor(node_id))
+                        returned_dict.setdefault(phase, Rank(node_id))
 
                         # Add object to processor
                         returned_dict[phase].add_migratable_object(obj)

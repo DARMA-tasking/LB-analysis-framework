@@ -57,7 +57,7 @@ class WriterExodusII:
     def __init__(self, e, m, f="lbs_out", s='e', r=1., output_dir=None):
         """Class constructor:
         e: Phase instance
-        m: Processor dictionnary
+        m: Rank dictionnary
         f: file name stem
         s: suffix
         r: grid_resolution value
