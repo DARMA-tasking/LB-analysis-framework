@@ -57,7 +57,7 @@ class TemperedLoadCriterion(CriterionBase):
         """Class constructor:
         processors: set of processors (lbsProcessor.Processor instances)
         edges: dictionary of edges (frozensets)
-        _: no parameters dictionary needed for this criterion
+        parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init
@@ -67,7 +67,7 @@ class TemperedLoadCriterion(CriterionBase):
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
-    def compute(self, obj: Object, p_src: Processor, p_dst: Processor) -> float:
+    def compute(self, object: Object, p_src: Processor, p_dst: Processor) -> float:
         """Tempered load criterion based on L1 norm of loads
         """
 
