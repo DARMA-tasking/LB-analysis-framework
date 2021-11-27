@@ -50,15 +50,15 @@ class RelaxedLocalizingCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    def __init__(self, processors, edges, _):
+    def __init__(self, ranks, edges, _):
         """Class constructor:
-        processors: set of processors (lbsRank.Rank instances)
+        ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
         _: no parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(RelaxedLocalizingCriterion, self).__init__(processors, edges)
+        super(RelaxedLocalizingCriterion, self).__init__(ranks, edges)
         print(bcolors.HEADER
             + "[RelaxedLocalizingCriterion] "
             + bcolors.END
@@ -80,13 +80,13 @@ class RelaxedLocalizingCriterion(CriterionBase):
         sent = comm.get_sent().items()
         recv = comm.get_received().items()
 
-        # Retrieve ID of processor to which an object is assigned
-        p_id = (lambda x: x.get_processor_id())
+        # Retrieve ID of rank to which an object is assigned
+        p_id = (lambda x: x.get_rank_id())
 
-        # Test whether first component is source processor
+        # Test whether first component is source rank
         is_s = (lambda x: p_id(x[0]) == p_src.get_id())
 
-        # Test whether first component is destination processor
+        # Test whether first component is destination rank
         is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
 
         # Add value with second components of a collection

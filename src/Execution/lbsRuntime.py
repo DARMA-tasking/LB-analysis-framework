@@ -88,13 +88,13 @@ class Runtime:
 
         # Initialize load and sent distributions
         self.load_distributions = [[
-            p.get_load() for p in self.phase.processors]]
+            p.get_load() for p in self.phase.ranks]]
         self.sent_distributions = [{
             k:v for k,v in self.phase.get_edges().items()}]
 
         # Compute global load and weight statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
-            self.phase.processors,
+            self.phase.ranks,
             lambda x: x.get_load())
         n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
             self.phase.get_edges().values(),
@@ -140,8 +140,8 @@ class Runtime:
         pmf_type: 0: modified original approach; 1: NS variant 
         """
 
-        # Build set of processors in the phase
-        procs = set(self.phase.processors)
+        # Build set of ranks in the phase
+        procs = set(self.phase.ranks)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
@@ -161,7 +161,7 @@ class Runtime:
             gossips = {}
             l_max = 0.
 
-            # Iterate over all processors
+            # Iterate over all ranks
             for p_snd in procs:
                 # Reset underload information known by sender
                 p_snd.reset_all_load_information()
@@ -179,7 +179,7 @@ class Runtime:
             # Report on gossiping status when requested
             if self.verbose:
                 for p in procs:
-                    print("\tunderloaded known to processor {}: {}".format(
+                    print("\tunderloaded known to rank {}: {}".format(
                         p.get_id(),
                         [p_u.get_id() for p_u in p.get_known_underloaded()]))
 
@@ -194,9 +194,9 @@ class Runtime:
                 gossip_round += 1
                 gossips.clear()
 
-                # Iterate over all processors
+                # Iterate over all ranks
                 for p_snd in procs:
-                    # Check whether processor must relay previously received message
+                    # Check whether rank must relay previously received message
                     if p_snd.round_last_received + 1 == gossip_round:
                         # Collect message when destination list is not empty
                         dst, msg = p_snd.forward_underloads(gossip_round, procs, f)
@@ -211,7 +211,7 @@ class Runtime:
                 # Report on gossiping status when requested
                 if self.verbose:
                     for p in procs:
-                        print("\tunderloaded known to processor {}: {}".format(
+                        print("\tunderloaded known to rank {}: {}".format(
                             p.get_id(),
                             [p_u.get_id() for p_u in p.get_known_underloaded()]))
 
@@ -220,17 +220,17 @@ class Runtime:
 
             # Build reverse lookup of underloaded to overloaded viewers
             for p in procs:
-                # Skip non-overloaded processors
+                # Skip non-overloaded ranks
                 if not p.get_load() - l_thr > 0.:
                     continue
 
-                # Update viewers on underloaded processors known to this one
+                # Update viewers on underloaded ranks known to this one
                 p.add_as_overloaded_viewer(p.get_known_underloaded())
                 
-            # Report on viewers of underloaded processors
+            # Report on viewers of underloaded ranks
             viewers_counts = {}
             for p in procs:
-                # Skip non underloaded processors
+                # Skip non underloaded ranks
                 if not p.get_load() < self.average_load:
                     continue
 
@@ -238,20 +238,20 @@ class Runtime:
                 viewers = p.get_overloaded_viewers()
                 viewers_counts[p] = len(viewers)
 
-                # Report on viewers of underloaded processor when requested
+                # Report on viewers of underloaded rank when requested
                 if self.verbose:
-                    print("\toverloaded viewers of processor {}: {}".format(
+                    print("\toverloaded viewers of rank {}: {}".format(
                         p.get_id(),
                         [p_o.get_id() for p_o in viewers]))
 
-            # Report viewers counts to underloaded processors
+            # Report viewers counts to underloaded ranks
             n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 viewers_counts.values(),
                 lambda x: x)
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} underloaded processors".format(
+                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} underloaded ranks".format(
                       v_min,
                       v_ave,
                       v_max,
@@ -278,14 +278,14 @@ class Runtime:
                     + bcolors.END)
                 sys.exit(1)
 
-            # Iterate over processors and pick those with above threshold load
+            # Iterate over ranks and pick those with above threshold load
             for p_src in procs:
-                # Skip non-overloaded processors
+                # Skip non-overloaded ranks
                 l_exc = p_src.get_load() - l_thr
                 if not l_exc > 0.:
                     continue
 
-                # Skip overloaded processors unaware of underloaded ones
+                # Skip overloaded ranks unaware of underloaded ones
                 underloads = p_src.get_known_underloads()
                 if not underloads:
                     n_ignored += 1
@@ -295,7 +295,7 @@ class Runtime:
                 srt_proc_obj = self.order_strategy(objects=p_src.migratable_objects)
                 obj_it = iter(srt_proc_obj)
                 while l_exc > 0.:
-                    # Leave this processor if it ran out of known underloaded
+                    # Leave this rank if it ran out of known underloaded
                     p_keys = list(p_src.get_known_underloads().keys())
                     if not p_keys:
                         break
@@ -317,12 +317,12 @@ class Runtime:
                         p_keys,
                         p_cmf)
 
-                    # Report on overloaded processor when requested
+                    # Report on overloaded rank when requested
                     if self.verbose:
-                        print("\texcess load of processor {}: {}".format(
+                        print("\texcess load of rank {}: {}".format(
                             p_src.get_id(),
                             l_exc))
-                        print("\tknown underloaded processors: {}".format(
+                        print("\tknown underloaded ranks: {}".format(
                             [u.get_id() for u in underloads]))
                         print("\tCMF_{} = {}".format(
                             p_src.get_id(),
@@ -335,14 +335,14 @@ class Runtime:
 
                         # Report on rejected object transfer when requested
                         if self.verbose:
-                            print("\t\tprocessor {} declined transfer of object {} ({})".format(
+                            print("\t\trank {} declined transfer of object {} ({})".format(
                                 p_dst.get_id(),
                                 o.get_id(),
                                 o.get_time()))
                     else:
                         # Accept proposed transfer
                         if self.verbose:
-                            print("\t\tmigrating object {} ({}) to processor {}".format(
+                            print("\t\tmigrating object {} ({}) to rank {}".format(
                                 o.get_id(),
                                 o.get_time(),
                                 p_dst.get_id()))
@@ -364,7 +364,7 @@ class Runtime:
             print(bcolors.HEADER
                   + "[RunTime] "
                   + bcolors.END
-                  + "Iteration complete ({} skipped processors)".format(
+                  + "Iteration complete ({} skipped ranks)".format(
                       n_ignored))
             n_proposed = n_transfers + n_rejects
             if n_proposed:
@@ -384,13 +384,13 @@ class Runtime:
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append([
-                p.get_load() for p in self.phase.get_processors()])
+                p.get_load() for p in self.phase.get_ranks()])
             self.sent_distributions.append({
                 k:v for k,v in self.phase.get_edges().items()})
 
-            # Compute and store global processor load and link weight statistics
+            # Compute and store global rank load and link weight statistics
             _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
-                self.phase.processors,
+                self.phase.ranks,
                 lambda x: x.get_load())
             n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
                 self.phase.get_edges().values(),
@@ -454,7 +454,7 @@ class Runtime:
 
     def fewest_migrations(self, objects: set):
         """ First find the load of the smallest single object that, if migrated
-            away, could bring this processor's load below the target load.
+            away, could bring this rank's load below the target load.
             Sort largest to smallest if <= load_ex
             Sort smallest to largest if > load_ex
         """
@@ -465,7 +465,7 @@ class Runtime:
 
     def small_objects(self, objects: set):
         """ First find the smallest object that, if migrated away along with all
-            smaller objects, could bring this processor's load below the target load.
+            smaller objects, could bring this rank's load below the target load.
             Sort largest to smallest if <= load_ex
             Sort smallest to largest if > load_ex
         """
