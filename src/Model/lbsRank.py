@@ -51,7 +51,7 @@ from src.Model.lbsMessage import Message
 
 
 class Rank:
-    """A class representing a processor to which objects are assigned
+    """A class representing a rank to which objects are assigned
     """
 
     def __init__(self, i, mo: set = None, so: set = None):
@@ -77,43 +77,43 @@ class Rank:
         self.round_last_received = 0
 
     def get_id(self):
-        """Return processor ID
+        """Return rank ID
         """
 
         return self.index
 
     def get_objects(self):
-        """Return all objects assigned to processor
+        """Return all objects assigned to rank
         """
 
         return self.migratable_objects.union(self.sentinel_objects)
 
     def get_migratable_objects(self):
-        """Return migratable objects assigned to processor
+        """Return migratable objects assigned to rank
         """
 
         return self.migratable_objects
 
     def get_sentinel_objects(self):
-        """Return sentinel objects assigned to processor
+        """Return sentinel objects assigned to rank
         """
 
         return self.sentinel_objects
 
     def get_object_ids(self):
-        """Return IDs of all objects assigned to processor
+        """Return IDs of all objects assigned to rank
         """
 
         return [o.get_id() for o in self.migratable_objects.union(self.sentinel_objects)]
 
     def get_migratable_object_ids(self):
-        """Return IDs of migratable objects assigned to processor
+        """Return IDs of migratable objects assigned to rank
         """
 
         return [o.get_id() for o in self.migratable_objects]
 
     def get_sentinel_object_ids(self):
-        """Return IDs of sentinel objects assigned to processor
+        """Return IDs of sentinel objects assigned to rank
         """
 
         return [o.get_id() for o in self.sentinel_objects]
@@ -188,12 +188,12 @@ class Rank:
         # Return removed object time
         return l_o
         
-    def add_as_overloaded_viewer(self, underloaded_processors):
+    def add_as_overloaded_viewer(self, underloaded_ranks):
         """Add self as viewer to underloaded peers
         """
 
-        # Add self as viewer of each of provided underloaded processors
-        for p in underloaded_processors:
+        # Add self as viewer of each of provided underloaded ranks
+        for p in underloaded_ranks:
             p.overloaded_viewers.add(self)
 
     def get_known_underload(self, p):
@@ -203,19 +203,19 @@ class Rank:
         return self.known_underloads.get(p, math.inf)
 
     def get_load(self):
-        """Return total load on processor
+        """Return total load on rank
         """
 
         return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
-        """Return migratable load on processor
+        """Return migratable load on rank
         """
 
         return sum([o.get_time() for o in self.migratable_objects])
 
     def get_sentinel_load(self):
-        """Return sentinel load oon processor
+        """Return sentinel load oon rank
         """
 
         return sum([o.get_time() for o in self.sentinel_objects])
@@ -235,14 +235,14 @@ class Rank:
         """Initialize underloads when needed to sample of selected peers
         """
 
-        # Retrieve current load on this processor
+        # Retrieve current load on this rank
         l = self.get_load()
 
-        # Return empty underload information if processor not underloaded
+        # Return empty underload information if rank not underloaded
         if not l < l_ave:
             return [], None
             
-        # Make underloaded processor aware of being underloaded
+        # Make underloaded rank aware of being underloaded
         self.known_underloaded = set([self])
         self.known_underloads[self] = l
 
@@ -256,7 +256,7 @@ class Rank:
         """Formard underloads to sample of selected peers
         """
 
-        # Compute complement of set of underloaded processors
+        # Compute complement of set of underloaded ranks
         c_procs = procs.difference(self.known_underloaded).difference([self])
 
         # Create underload message tagged at current round
@@ -296,7 +296,7 @@ class Rank:
         l2 = len(self.known_underloads)
         if l1 != l2:
             print(bcolors.ERR
-                  + "** ERROR: cannot process message at processor {}: {}<>{}. Exiting.".format(
+                  + "** ERROR: cannot process message at rank {}: {}<>{}. Exiting.".format(
                       self.get_id(),
                       l1,
                       l2)

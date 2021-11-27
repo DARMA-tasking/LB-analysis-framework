@@ -54,26 +54,26 @@ class CriterionBase:
     """An abstract base class of optimization criteria for LBS execution
     """
 
-    def __init__(self, processors, edges, parameters=None):
+    def __init__(self, ranks, edges, parameters=None):
         """Class constructor:
-        processors: set of processors (lbsRank.Processor instances)
+        ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
         parameters: optional parameters dictionary
         """
 
-        # If no list of processors was was provided, do not do anything
-        if not isinstance(processors, set):
+        # If no list of ranks was was provided, do not do anything
+        if not isinstance(ranks, set):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a LBS criterion without a set of processors"
+                + "*  ERROR: Could not create a LBS criterion without a set of ranks"
                 + bcolors.END)
             return
 
-        # Assert that all members of said list are indeed processor instances
-        n_p = len(processors)
+        # Assert that all members of said list are indeed rank instances
+        n_p = len(ranks)
         if n_p != len(list(
-            filter(lambda x: isinstance(x, Rank), processors))):
+            filter(lambda x: isinstance(x, Rank), ranks))):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a LBS criterion without a set of Processor instances"
+                + "*  ERROR: Could not create a LBS criterion without a set of Rank instances"
                 + bcolors.END)
             return
             
@@ -93,18 +93,18 @@ class CriterionBase:
                 + bcolors.END)
             return
 
-        # Criterion keeps internal references to processors and edges
-        self.processors = processors
+        # Criterion keeps internal references to ranks and edges
+        self.ranks = ranks
         self.edges = edges
         print(bcolors.HEADER
             + "[CriterionBase] "
             + bcolors.END
-            + "Assigned {} processors and {} edges to base criterion".format(
+            + "Assigned {} ranks and {} edges to base criterion".format(
             n_p,
             n_e))
 
     @staticmethod
-    def factory(criterion_idx, processors, edges, parameters=None):
+    def factory(criterion_idx, ranks, edges, parameters=None):
         """Produce the necessary concrete criterion
         """
         from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
@@ -121,7 +121,7 @@ class CriterionBase:
             }.get(criterion_idx)
 
         # Instantiate and return object
-        return c_name(processors, edges, parameters)
+        return c_name(ranks, edges, parameters)
 
     @abc.abstractmethod
     def compute(self, object, proc_src, proc_dst):

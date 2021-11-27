@@ -128,31 +128,31 @@ class LoadReader:
         if self.verbose:
             print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} Finished reading file: {file_name}")
 
-        # Return map of populated processors per iteration
+        # Return map of populated ranks per iteration
         return iter_map, comm
 
     def read_iteration(self, n_p: int, phase_id: int) -> list:
         """Read all the data in the range of procs [0..n_p) for a given
         iteration `phase_id`. Collapse the iter_map dictionary from `read(..)`
-        into a list of processors to be returned for the given iteration.
+        into a list of ranks to be returned for the given iteration.
         """
 
-        # Create storage for processors
+        # Create storage for ranks
         procs = [None] * n_p
         communication = dict()
 
-        # Iterate over all processors
+        # Iterate over all ranks
         for p in range(n_p):
-            # Read data for given iteration and assign it to processor
+            # Read data for given iteration and assign it to rank
             # proc_iter_map = self.read(p, phase_id)
             proc_iter_map, proc_comm = self.read(p, phase_id)
 
-            # Try to retrieve processor information at given time-step
+            # Try to retrieve rank information at given time-step
             try:
                 procs[p] = proc_iter_map[phase_id]
                 communication[p] = proc_comm
             except KeyError:
-                print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Could not retrieve information for processor {p} "
+                print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Could not retrieve information for rank {p} "
                       f"at time_step {phase_id}{bcolors.END}")
                 sys.exit(1)
 
@@ -162,9 +162,9 @@ class LoadReader:
             proc_objects_set.update(proc.get_objects())
         proc_objects_dict = {obj.get_id(): obj for obj in proc_objects_set}
 
-        # iterating over processors
+        # iterating over ranks
         for proc_num, proc in enumerate(procs):
-            # iteration over objects in processor
+            # iteration over objects in rank
             for proc_obj in proc.get_objects():
                 obj_id = proc_obj.get_id()
                 # checking if there is any communication for the object
@@ -177,7 +177,7 @@ class LoadReader:
                                 proc_objects_dict.get(snd.get("from"), None) is not None}
                     proc_obj.set_communicator(ObjectCommunicator(r=received, s=send))
 
-        # Return populated list of processors
+        # Return populated list of ranks
         return procs
 
     def json_reader(self, returned_dict: dict, file_name: str, phase_ids, node_id: int) -> tuple:
@@ -249,7 +249,7 @@ class LoadReader:
                 task_time = task.get("time")
                 task_object_id = task.get("entity").get("id")
 
-                # Update processor if iteration was requested
+                # Update rank if iteration was requested
                 if phase_ids in (phase_id, -1):
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
@@ -257,7 +257,7 @@ class LoadReader:
                     # If this iteration was never encoutered initialize proc object
                     returned_dict.setdefault(phase_id, Rank(node_id))
 
-                    # Add object to processor
+                    # Add object to rank
                     returned_dict[phase_id].add_migratable_object(obj)
 
                     # Print debug information when requested
@@ -292,7 +292,7 @@ class LoadReader:
                               + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
                               + bcolors.END)
 
-                    # Update processor if iteration was requested
+                    # Update rank if iteration was requested
                     if phase_id in (phase, -1):
                         # Instantiate object with retrieved parameters
                         obj = Object(o_id, time, node_id)
@@ -300,7 +300,7 @@ class LoadReader:
                         # If this iteration was never encoutered initialize proc object
                         returned_dict.setdefault(phase, Rank(node_id))
 
-                        # Add object to processor
+                        # Add object to rank
                         returned_dict[phase].add_migratable_object(obj)
 
                         # Print debug information when requested

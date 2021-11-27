@@ -53,15 +53,15 @@ class TemperedLoadCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, processors, edges, parameters):
+    def __init__(self, ranks, edges, parameters):
         """Class constructor:
-        processors: set of processors (lbsRank.Rank instances)
+        ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
         parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(TemperedLoadCriterion, self).__init__(processors, edges)
+        super(TemperedLoadCriterion, self).__init__(ranks, edges)
         print(f"{bcolors.HEADER}[TemperedLoadCriterion]{bcolors.END} Instantiated concrete criterion")
 
         # Use either actual or locally known destination loads
@@ -71,7 +71,7 @@ class TemperedLoadCriterion(CriterionBase):
         """Tempered load criterion based on L1 norm of loads
         """
 
-        # Criterion only uses object and processor loads
+        # Criterion only uses object and rank loads
         return p_src.get_load() - (
                     (p_dst.get_load() if self.actual_dst_load
                      else p_src.get_known_underload(p_dst)) + obj.get_time())
