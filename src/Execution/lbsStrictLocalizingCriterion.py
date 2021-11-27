@@ -80,6 +80,7 @@ class StrictLocalizingCriterion(CriterionBase):
                 + bcolors.END)
             return 0.
 
+        # Iterate over sent messages
         for i in comm.get_sent().items():
             if p_src_id == i[0].get_processor_id():
                 # Bail out as soon as locality is broken by transfer

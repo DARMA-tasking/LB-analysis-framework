@@ -57,7 +57,7 @@ class TemperedLoadCriterion(CriterionBase):
         """Class constructor:
         processors: set of processors (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
-        _: no parameters dictionary needed for this criterion
+        parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init

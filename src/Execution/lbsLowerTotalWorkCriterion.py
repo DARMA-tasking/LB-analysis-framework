@@ -52,11 +52,11 @@ class LowerTotalWorkCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    def __init__(self, processors, edges, _):
+    def __init__(self, processors, edges, parameters):
         """Class constructor:
         processors: set of processors (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
-        _: no parameters dictionary needed for this criterion
+        parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init
@@ -66,14 +66,21 @@ class LowerTotalWorkCriterion(CriterionBase):
             + bcolors.END
             + "Instantiated concrete criterion")
 
-    def compute(self, object, p_src, p_dst):
-        """A criterion allowing for local disruptions for more locality
+        # Use either actual or locally known destination loads
+        self.actual_dst_load = parameters.get("actual_destination_load", False)
+
+        # For now use hard-coded parameters
+        self.alpha = 0.001
+        self.beta = 0.
+
+    def compute(self, object: Object, p_src: Processor, p_dst: Processor) -> float:
+        """A criterion comparing total work on source and destination processors
         """
 
-        # Criterion only uses object and processor loads
+        # Initialize criterion with comparison between object loads
         criterion = p_src.get_load() - (
             (p_dst.get_load() if self.actual_dst_load
-             else p_src.get_known_underload(p_dst)) + obj.get_time())
+             else p_src.get_known_underload(p_dst)) + object.get_time())
 
         # Retrieve object communications
         comm = object.get_communicator()
@@ -98,17 +105,20 @@ class LowerTotalWorkCriterion(CriterionBase):
             # Add value with second components of a collection
             xPy1 = (lambda x, y: x + y[1])
 
-            # Aggregate communication weights with source
+            # Aggregate communication weights local to source
             w_src = functools.reduce(xPy1,
                                      list(filter(is_s, recv))
                                      + list(filter(is_s, sent)),
                                      0.)
 
-            # Aggregate communication weights with destination
+            # Aggregate communication weights between source and destination
             w_dst = functools.reduce(xPy1,
                                      list(filter(is_d, recv))
                                      + list(filter(is_d, sent)),
                                      0.)
+
+            # Update criterion with affine transform of communication differences
+            criterion += self.alpha * (w_dst - w_src) + self.beta
 
         # Criterion assesses difference in total work
         return criterion
