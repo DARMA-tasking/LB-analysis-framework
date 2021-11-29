@@ -128,31 +128,31 @@ class LoadReader:
         if self.verbose:
             print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} Finished reading file: {file_name}")
 
-        # Return map of populated processors per iteration
+        # Return map of populated ranks per iteration
         return iter_map, comm
 
     def read_iteration(self, n_p: int, phase_id: int) -> list:
         """Read all the data in the range of procs [0..n_p) for a given
         iteration `phase_id`. Collapse the iter_map dictionary from `read(..)`
-        into a list of processors to be returned for the given iteration.
+        into a list of ranks to be returned for the given iteration.
         """
 
-        # Create storage for processors
+        # Create storage for ranks
         procs = [None] * n_p
         communication = dict()
 
-        # Iterate over all processors
+        # Iterate over all ranks
         for p in range(n_p):
-            # Read data for given iteration and assign it to processor
+            # Read data for given iteration and assign it to rank
             # proc_iter_map = self.read(p, phase_id)
             proc_iter_map, proc_comm = self.read(p, phase_id)
 
-            # Try to retrieve processor information at given time-step
+            # Try to retrieve rank information at given time-step
             try:
                 procs[p] = proc_iter_map[phase_id]
                 communication[p] = proc_comm
             except KeyError:
-                print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Could not retrieve information for processor {p} "
+                print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Could not retrieve information for rank {p} "
                       f"at time_step {phase_id}{bcolors.END}")
                 sys.exit(1)
 
@@ -162,43 +162,43 @@ class LoadReader:
             proc_objects_set.update(proc.get_objects())
         proc_objects_dict = {obj.get_id(): obj for obj in proc_objects_set}
 
-        # iterating over processors
+        # iterating over ranks
         for proc_num, proc in enumerate(procs):
-            # iteration over objects in processor
+            # iteration over objects in rank
             for proc_obj in proc.get_objects():
                 obj_id = proc_obj.get_id()
                 # checking if there is any communication for the object
                 obj_communication = communication.get(proc_num, None).get(obj_id, None)
                 if obj_communication is not None:
-                    send = {proc_objects_dict.get(snd.get('to'), None): snd.get('bytes') for snd in
-                            obj_communication.get('send') if proc_objects_dict.get(snd.get('to'), None) is not None}
-                    received = {proc_objects_dict.get(snd.get('from'), None): snd.get('bytes') for snd in
-                                obj_communication.get('received') if
-                                proc_objects_dict.get(snd.get('from'), None) is not None}
+                    send = {proc_objects_dict.get(snd.get("to"), None): snd.get("bytes") for snd in
+                            obj_communication.get("send") if proc_objects_dict.get(snd.get("to"), None) is not None}
+                    received = {proc_objects_dict.get(snd.get("from"), None): snd.get("bytes") for snd in
+                                obj_communication.get("received") if
+                                proc_objects_dict.get(snd.get("from"), None) is not None}
                     proc_obj.set_communicator(ObjectCommunicator(r=received, s=send))
 
-        # Return populated list of processors
+        # Return populated list of ranks
         return procs
 
     def json_reader(self, returned_dict: dict, file_name: str, phase_ids, node_id: int) -> tuple:
         """ Reader compatible with current VT Object Map files (json)
         """
-        with open(file_name, 'rb') as compr_json_file:
+        with open(file_name, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
             try:
                 decompr_bytes = brotli.decompress(compr_bytes)
-                decompressed_dict = json.loads(decompr_bytes.decode('utf-8'))
+                decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
             except brotli.error:
-                decompressed_dict = json.loads(compr_bytes.decode('utf-8'))
+                decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
         # validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            print(f'{bcolors.OK}[LoadReaderVT] Valid JSON schema in {file_name}{bcolors.END}')
+            print(f"{bcolors.OK}[LoadReaderVT] Valid JSON schema in {file_name}{bcolors.END}")
         else:
-            raise SyntaxError(f'{bcolors.ERR}[LoadReaderVT] Invalid JSON schema in {file_name}{bcolors.END}')
+            raise SyntaxError(f"{bcolors.ERR}[LoadReaderVT] Invalid JSON schema in {file_name}{bcolors.END}")
 
         # defining phases from file
-        phases = decompressed_dict['phases']
+        phases = decompressed_dict["phases"]
         comm_dict = dict()
         # iterating over phases
         for phase in phases:
@@ -206,50 +206,50 @@ class LoadReader:
             comm_dict = dict()
             # temporary communication list, to avoid duplicates in communication
             temp_comm = list()
-            phase_id = phase['id']
+            phase_id = phase["id"]
             # adding communications to the object
-            communications = phase.get('communications', None)
+            communications = phase.get("communications", None)
             # as communications is optional, there is a need to check if exists
             if communications is not None and communications not in temp_comm:
                 temp_comm.append(communications)
                 for num, comm in enumerate(communications):
-                    type_ = comm.get('type', None)
-                    to_ = comm.get('to', None)
-                    from_ = comm.get('from', None)
-                    bytes_ = comm.get('bytes', None)
+                    type_ = comm.get("type", None)
+                    to_ = comm.get("to", None)
+                    from_ = comm.get("from", None)
+                    bytes_ = comm.get("bytes", None)
                     # supports only SendRecv communication type
-                    if type_ == 'SendRecv':
+                    if type_ == "SendRecv":
                         # checking if both are objects
-                        if to_.get('type', None) == 'object' and from_.get('type', None) == 'object':
+                        if to_.get("type", None) == "object" and from_.get("type", None) == "object":
                             # if no sender or receiver exists, then creating one
-                            receiver_obj_id = to_.get('id', None)
-                            sender_obj_id = from_.get('id', None)
+                            receiver_obj_id = to_.get("id", None)
+                            sender_obj_id = from_.get("id", None)
 
                             if comm_dict.get(receiver_obj_id, None) is None:
                                 comm_dict[receiver_obj_id] = dict()
-                                comm_dict[receiver_obj_id]['send'] = list()
-                                comm_dict[receiver_obj_id]['received'] = list()
+                                comm_dict[receiver_obj_id]["send"] = list()
+                                comm_dict[receiver_obj_id]["received"] = list()
 
                             if comm_dict.get(sender_obj_id, None) is None:
                                 comm_dict[sender_obj_id] = dict()
-                                comm_dict[sender_obj_id]['send'] = list()
-                                comm_dict[sender_obj_id]['received'] = list()
+                                comm_dict[sender_obj_id]["send"] = list()
+                                comm_dict[sender_obj_id]["received"] = list()
 
-                            comm_dict[receiver_obj_id]['received'].append(
-                                {'from': from_.get('id', None), 'bytes': bytes_})
+                            comm_dict[receiver_obj_id]["received"].append(
+                                {"from": from_.get("id", None), "bytes": bytes_})
                             if self.verbose:
-                                print(f'{bcolors.BLUE}[LoadReaderVT] Added received Phase:{phase_id}, Comm num: {num}\n'
-                                      f'\t\t\tCommunication entry: {comm}{bcolors.END}')
-                            comm_dict[sender_obj_id]['send'].append({'to': to_.get('id', None), 'bytes': bytes_})
+                                print(f"{bcolors.BLUE}[LoadReaderVT] Added received Phase:{phase_id}, Comm num: {num}\n"
+                                      f"\t\t\tCommunication entry: {comm}{bcolors.END}")
+                            comm_dict[sender_obj_id]["send"].append({"to": to_.get("id", None), "bytes": bytes_})
                             if self.verbose:
-                                print(f'{bcolors.BLUE}[LoadReaderVT] Added sent Phase:{phase_id}, Comm num: {num}\n'
-                                      f'\t\t\tCommunication entry: {comm}{bcolors.END}')
+                                print(f"{bcolors.BLUE}[LoadReaderVT] Added sent Phase:{phase_id}, Comm num: {num}\n"
+                                      f"\t\t\tCommunication entry: {comm}{bcolors.END}")
 
-            for task in phase['tasks']:
-                task_time = task.get('time')
-                task_object_id = task.get('entity').get('id')
+            for task in phase["tasks"]:
+                task_time = task.get("time")
+                task_object_id = task.get("entity").get("id")
 
-                # Update processor if iteration was requested
+                # Update rank if iteration was requested
                 if phase_ids in (phase_id, -1):
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
@@ -257,7 +257,7 @@ class LoadReader:
                     # If this iteration was never encoutered initialize proc object
                     returned_dict.setdefault(phase_id, Rank(node_id))
 
-                    # Add object to processor
+                    # Add object to rank
                     returned_dict[phase_id].add_migratable_object(obj)
 
                     # Print debug information when requested
@@ -292,7 +292,7 @@ class LoadReader:
                               + "*  ERROR: [LoadReaderVT] Incorrect row format:".format(row)
                               + bcolors.END)
 
-                    # Update processor if iteration was requested
+                    # Update rank if iteration was requested
                     if phase_id in (phase, -1):
                         # Instantiate object with retrieved parameters
                         obj = Object(o_id, time, node_id)
@@ -300,7 +300,7 @@ class LoadReader:
                         # If this iteration was never encoutered initialize proc object
                         returned_dict.setdefault(phase, Rank(node_id))
 
-                        # Add object to processor
+                        # Add object to rank
                         returned_dict[phase].add_migratable_object(obj)
 
                         # Print debug information when requested

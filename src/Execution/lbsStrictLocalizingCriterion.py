@@ -49,15 +49,15 @@ class StrictLocalizingCriterion(CriterionBase):
     """A concrete class for a strictly localizing criterion
     """
     
-    def __init__(self, processors, edges, _):
+    def __init__(self, ranks, edges, _):
         """Class constructor:
-        processors: set of processors (lbsRank.Rank instances)
+        ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
         _: no parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(StrictLocalizingCriterion, self).__init__(processors, edges)
+        super(StrictLocalizingCriterion, self).__init__(ranks, edges)
         print(bcolors.HEADER
             + "[StrictLocalizingCriterion] "
             + bcolors.END
@@ -75,17 +75,20 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            print(f"{bcolors.ERR}[StrictLocalizingCriterion] No ObjectCommunicator provided!. {comm} object of type "
-                  f"{type(comm)} was provided. Quitting ...{bcolors.END}")
-            sys.exit(1)
+            print(bcolors.ERR
+                + f"** WARNING: object {object.get_id()} has no communicator"
+                + bcolors.END)
+            return 0.
+
+        # Iterate over sent messages
         for i in comm.get_sent().items():
-            if p_src_id == i[0].get_processor_id():
+            if p_src_id == i[0].get_rank_id():
                 # Bail out as soon as locality is broken by transfer
                 return -1.
 
         # Iterate over received messages
         for i in comm.get_received().items():
-            if p_src_id == i[0].get_processor_id():
+            if p_src_id == i[0].get_rank_id():
                 # Bail out as soon as locality is broken by transfer
                 return -1.
 

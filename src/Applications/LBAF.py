@@ -72,16 +72,16 @@ class ggParameters:
     """
 
     def __init__(self):
-        # By default use modified Grapevine criterion
+        # By default use tempered load criterion
         self.criterion = 1
 
-        # By default use modified Grapevine PMF
+        # By default use tempereted load PMF
         self.pmf_type = 0
 
         # Number of load-balancing iterations
         self.n_iterations = 1
 
-        # Processors are implicitly mapped to a regular grid
+        # Ranks are implicitly mapped to a regular grid
         self.grid_size = [1, 1, 1]
 
         # Number of task objects
@@ -102,7 +102,7 @@ class ggParameters:
         self.communication_enabled = False
 
         # Size of subset to which objects are initially mapped (0 = all)
-        self.n_processors = 0
+        self.n_ranks = 0
 
         # Number of gossiping rounds
         self.n_rounds = 1
@@ -119,7 +119,7 @@ class ggParameters:
         # File name stem to obtain load distribution by reading VT log files
         self.log_file = None
 
-        # Base name to save computed object/processor mapping for VT
+        # Base name to save computed object/rank mapping for VT
         self.map_file = None
 
         # Decide whether actual destination loads should be computed
@@ -155,8 +155,8 @@ class ggParameters:
 
         print("Usage:")
         print("\t [-c <tc>]   transfer criterion:")
-        print("\t\t\t 0: Grapevine original")
-        print("\t\t\t 1: Grapevine modified (default)")
+        print("\t\t\t 0: total work")
+        print("\t\t\t 1: tempered load (default)")
         print("\t\t\t 2: strict localizer")
         print("\t\t\t 3: relaxed localizer")
         print("\t [-n <nf>]   normalization factor for transfer PMF:")
@@ -167,7 +167,7 @@ class ggParameters:
         print("\t [-y <npy>]  number of procs in y direction")
         print("\t [-z <npz>]  number of procs in z direction")
         print("\t [-o <no>]   number of objects")
-        print("\t [-p <np>]   number of initially used processors")
+        print("\t [-p <np>]   number of initially used ranks")
         print("\t [-k <nr>]   number of gossiping rounds")
         print("\t [-f <fo>]   gossiping fan-out value")
         print("\t [-r <rt>]   overload relative threshold")
@@ -236,7 +236,7 @@ class ggParameters:
                     self.n_objects = i
             elif o == '-p':
                 if i > 0:
-                    self.n_processors = i
+                    self.n_ranks = i
             elif o == "-k":
                 if i > 0:
                     self.n_rounds = i
@@ -421,7 +421,7 @@ def get_output_file_stem(params):
             params.fanout)
     else:
         output_stem = "p{}-o{}-s{}-i{}-k{}-f{}".format(
-            params.n_processors,
+            params.n_ranks,
             params.n_objects,
             params.time_sampler_type,
             params.n_iterations,
@@ -458,7 +458,7 @@ if __name__ == '__main__':
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
         print(bcolors.ERR
-            + "** ERROR: Total number of processors ({}) must be > 1".format(n_p)
+            + "** ERROR: Total number of ranks ({}) must be > 1".format(n_p)
             + bcolors.END)
         sys.exit(1)
 
@@ -483,16 +483,16 @@ if __name__ == '__main__':
                                      params.weight_sampler_type,
                                      params.weight_sampler_parameters,
                                      n_p,
-                                     params.n_processors)
+                                     params.n_ranks)
 
         # Keep track of number of objects
         n_o = params.n_objects
 
-    # Compute and print initial processor load and link weight statistics
+    # Compute and print initial rank load and link weight statistics
     print_function_statistics(
-        phase.get_processors(),
+        phase.get_ranks(),
         lambda x: x.get_load(),
-        "initial processor loads",
+        "initial rank loads",
         params.verbose)
     print_function_statistics(
         phase.get_edges().values(),
@@ -512,11 +512,11 @@ if __name__ == '__main__':
                params.threshold,
                params.pmf_type)
 
-    # Create mapping from processor to Cartesian grid
+    # Create mapping from rank to Cartesian grid
     print(bcolors.HEADER
         + "[LBAF] "
         + bcolors.END
-        + "Mapping {} processors onto a {}x{}x{} rectilinear grid".format(
+        + "Mapping {} ranks onto a {}x{}x{} rectilinear grid".format(
         n_p,
         *params.grid_size))
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
@@ -550,11 +550,11 @@ if __name__ == '__main__':
         reader = viewer.createViews()
         viewer.saveView(reader)
 
-    # Compute and print final processor load and link weight statistics
+    # Compute and print final rank load and link weight statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(
-        phase.get_processors(),
+        phase.get_ranks(),
         lambda x: x.get_load(),
-        "final processor loads",
+        "final rank loads",
         params.verbose)
     print_function_statistics(
         phase.get_edges().values(),

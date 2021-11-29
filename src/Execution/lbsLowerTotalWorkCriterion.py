@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#                       lbsRelaxedLocalizingCriterion.py
+#                       lbsLowerTotalWorkCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -37,72 +37,88 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-import functools
 import sys
+import functools
 
 import bcolors
 
 from src.Execution.lbsCriterionBase import CriterionBase
+from src.Model.lbsObject import Object
+from src.Model.lbsRank import Rank
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
-class RelaxedLocalizingCriterion(CriterionBase):
+class LowerTotalWorkCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    def __init__(self, ranks, edges, _):
+    def __init__(self, ranks, edges, parameters):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
-        _: no parameters dictionary needed for this criterion
+        parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(RelaxedLocalizingCriterion, self).__init__(ranks, edges)
+        super(LowerTotalWorkCriterion, self).__init__(ranks, edges)
         print(bcolors.HEADER
-            + "[RelaxedLocalizingCriterion] "
+            + "[LowerTotalWorkCriterion] "
             + bcolors.END
             + "Instantiated concrete criterion")
 
-    def compute(self, object, p_src, p_dst):
-        """A criterion allowing for local disruptions for more locality
+        # Use either actual or locally known destination loads
+        self.actual_dst_load = parameters.get("actual_destination_load", False)
+
+        # For now use hard-coded parameters
+        self.alpha = 1.
+        self.beta = 0.
+
+    def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
+        """A criterion comparing total work on source and destination ranks
         """
 
+        # Initialize criterion with comparison between object loads
+        criterion = p_src.get_load() - (
+            (p_dst.get_load() if self.actual_dst_load
+             else p_src.get_known_underload(p_dst)) + obj.get_time())
+
         # Retrieve object communications
-        comm = object.get_communicator()
+        comm = obj.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
             print(bcolors.ERR
-                + f"** WARNING: object {object.get_id()} has no communicator"
+                + f"** WARNING: object {obj.get_id()} has no communicator"
                 + bcolors.END)
-            return 0.
+        else:
+            # Retrieve sent and received items from communicator
+            sent = comm.get_sent().items()
+            recv = comm.get_received().items()
 
-        # Retrieve sent and received items from communicator
-        sent = comm.get_sent().items()
-        recv = comm.get_received().items()
+            # Retrieve ID of rank to which an object is assigned
+            p_id = (lambda x: x.get_rank_id())
 
-        # Retrieve ID of rank to which an object is assigned
-        p_id = (lambda x: x.get_rank_id())
+            # Test whether first component is source rank
+            is_s = (lambda x: p_id(x[0]) == p_src.get_id())
 
-        # Test whether first component is source rank
-        is_s = (lambda x: p_id(x[0]) == p_src.get_id())
+            # Test whether first component is destination rank
+            is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
 
-        # Test whether first component is destination rank
-        is_d = (lambda x: p_id(x[0]) == p_dst.get_id())
+            # Add value with second components of a collection
+            xPy1 = (lambda x, y: x + y[1])
 
-        # Add value with second components of a collection
-        xPy1 = (lambda x, y: x + y[1])
+            # Aggregate communication weights local to source
+            w_src = functools.reduce(xPy1,
+                                     list(filter(is_s, recv))
+                                     + list(filter(is_s, sent)),
+                                     0.)
 
-        # Aggregate communication weights with source
-        w_src = functools.reduce(xPy1,
-                                 list(filter(is_s, recv))
-                                 + list(filter(is_s, sent)),
-                                 0.)
+            # Aggregate communication weights between source and destination
+            w_dst = functools.reduce(xPy1,
+                                     list(filter(is_d, recv))
+                                     + list(filter(is_d, sent)),
+                                     0.)
 
-        # Aggregate communication weights with destination
-        w_dst = functools.reduce(xPy1,
-                                 list(filter(is_d, recv))
-                                 + list(filter(is_d, sent)),
-                                 0.)
+            # Update criterion with affine transform of communication differences
+            criterion += self.alpha * (w_dst - w_src) + self.beta
 
-        # Criterion assesses difference in local communications
-        return w_dst - w_src
+        # Criterion assesses difference in total work
+        return criterion

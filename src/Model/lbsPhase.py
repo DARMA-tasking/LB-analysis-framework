@@ -56,13 +56,13 @@ from src.IO.lbsLoadReaderVT import LoadReader
 
 
 class Phase:
-    """A class representing the state of collection of processors with
+    """A class representing the state of collection of ranks with
     objects at a given round
     """
 
     def __init__(self, t=0, verbose=False, file_suffix="vom"):
-        # Initialize empty list of processors
-        self.processors = []
+        # Initialize empty list of ranks
+        self.ranks = []
 
         # Default time-step/phase of this phase
         self.phase_id = t
@@ -80,17 +80,17 @@ class Phase:
         # Data files suffix(reading from data)
         self.file_suffix = file_suffix
 
-    def get_processors(self):
-        """Retrieve processors belonging to phase
+    def get_ranks(self):
+        """Retrieve ranks belonging to phase
         """
 
-        return self.processors
+        return self.ranks
 
-    def get_processors_ids(self):
-        """Retrieve IDs of processors belonging to phase
+    def get_ranks_ids(self):
+        """Retrieve IDs of ranks belonging to phase
         """
 
-        return [p.get_id() for p in self.processors]
+        return [p.get_id() for p in self.ranks]
 
     def get_phase_id(self):
         """Retrieve the time-step/phase for this phase
@@ -105,25 +105,25 @@ class Phase:
         # Compute or re-compute edges from scratch
         print(f"{bcolors.HEADER}[Phase]{bcolors.END} Computing inter-process communication edges")
 
-        # Initialize count of loaded processors
+        # Initialize count of loaded ranks
         n_loaded = 0
 
-        # Initialize sum of total and processor-local weights
+        # Initialize sum of total and rank-local weights
         w_total = 0.
         w_local = 0.
 
-        # Iterate over processors
-        for p in self.processors:
-            # Update count if processor is loaded
+        # Iterate over ranks
+        for p in self.ranks:
+            # Update count if rank is loaded
             if p.get_load() > 0.:
                 n_loaded += 1
 
-            # Retrieve sender processor ID
+            # Retrieve sender rank ID
             i = p.get_id()
             if self.verbose:
-                print("\tprocessor {}:".format(i))
+                print("\trank {}:".format(i))
 
-            # Iterate over objects of current processor
+            # Iterate over objects of current rank
             for o in p.get_objects():
                 if self.verbose:
                     print("\t* object {}:".format(o.get_id()))
@@ -133,26 +133,26 @@ class Phase:
                     # Update total weight
                     w_total += weight
 
-                    # Retrieve recipient processor ID
-                    j = q.get_processor_id()
+                    # Retrieve recipient rank ID
+                    j = q.get_rank_id()
                     if self.verbose:
                         print("\t  -> object {} assigned to {}: {}".format(
                             q.get_id(), j, weight))
 
-                    # Skip processor-local communications
+                    # Skip rank-local communications
                     if i == j:
                         # Update sum of local weights and continue
                         w_local += weight
                         continue
 
-                    # Create or update an inter-processor edge
+                    # Create or update an inter-rank edge
                     index = frozenset([i, j])
                     if index in self.edges:
                         self.edges[index] += weight
                     else:
                         self.edges[index] = weight
                     if self.verbose:
-                        print("\t Edge processor {} -- processor {}: {}".format(
+                        print("\t Edge rank {} -- rank {}: {}".format(
                             min(i, j),
                             max(i, j),
                             self.edges[index]))
@@ -161,16 +161,16 @@ class Phase:
         self.cached_edges = True
 
         # Report on computed edges
-        n_procs = len(self.processors)
+        n_procs = len(self.ranks)
         n_edges = len(self.edges)
         print_subset_statistics(
-            "Non-null communication edges between {} available processors".format(n_procs),
+            "Non-null communication edges between {} available ranks".format(n_procs),
             "number of possible ones",
             n_procs * (n_procs - 1) / 2,
             "number of computed ones",
             n_edges)
         print_subset_statistics(
-            "Non-null communication edges between the {} loaded processors".format(n_loaded),
+            "Non-null communication edges between the {} loaded ranks".format(n_loaded),
             "number of possible ones",
             n_loaded * (n_loaded - 1) / 2,
             "number of computed ones",
@@ -179,7 +179,7 @@ class Phase:
             "Inter-object communication weights",
             "total",
             w_total,
-            "processor-local",
+            "rank-local",
             w_local)
 
     def get_edges(self):
@@ -279,36 +279,36 @@ class Phase:
         # Compute and report communication weight statistics
         print_function_statistics(w_sent, lambda x: x, "communication weights", self.verbose)
 
-        # Create n_p processors
-        self.processors = [Processor(i) for i in range(n_p)]
+        # Create n_p ranks
+        self.ranks = [Rank(i) for i in range(n_p)]
 
-        # Randomly assign objects to processors
+        # Randomly assign objects to ranks
         if s_s and s_s <= n_p:
-            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {s_s} processors amongst {n_p}")
+            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {s_s} ranks amongst {n_p}")
         else:
             # Sanity check
             if s_s > n_p:
-                print(f"{bcolors.WARN}*  WARNING: too many processors ({s_s}) requested: only {n_p} available."
+                print(f"{bcolors.WARN}*  WARNING: too many ranks ({s_s}) requested: only {n_p} available."
                       f"{bcolors.END}")
                 s_s = n_p
-            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {n_p} processors")
+            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {n_p} ranks")
         if s_s > 0:
-            # Randomly assign objects to a subset o processors of size s_s
-            proc_list = rnd.sample(self.processors, s_s)
+            # Randomly assign objects to a subset o ranks of size s_s
+            proc_list = rnd.sample(self.ranks, s_s)
             for o in objects:
                 p = rnd.choice(proc_list)
                 p.add_object(o)
-                o.set_processor_id(p.get_id())
+                o.set_rank_id(p.get_id())
         else:
-            # Randomly assign objects to all processors
+            # Randomly assign objects to all ranks
             for o in objects:
-                p = rnd.choice(self.processors)
+                p = rnd.choice(self.ranks)
                 p.add_object(o)
-                o.set_processor_id(p.get_id())
+                o.set_rank_id(p.get_id())
 
         # Print debug information when requested
         if self.verbose:
-            for p in self.processors:
+            for p in self.ranks:
                 print("\t{} <- {}".format(
                     p.get_id(),
                     p.get_object_ids()))
@@ -323,11 +323,11 @@ class Phase:
         # Populate phase with reader output
         print(f"{bcolors.HEADER}[Phase]{bcolors.END} Reading objects from time-step {t_s} of VOM files with prefix "
               f"{basename}")
-        self.processors = reader.read_iteration(n_p, t_s)
+        self.ranks = reader.read_iteration(n_p, t_s)
 
         # Compute and report object statistics
         objects = set()
-        for p in self.processors:
+        for p in self.ranks:
             objects = objects.union(p.get_objects())
         print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
 

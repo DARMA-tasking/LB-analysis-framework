@@ -72,10 +72,10 @@ class WriterExodusII:
             return
         self.phase = e
 
-        # If no processor mapping was provided, do not do anything
+        # If no rank mapping was provided, do not do anything
         if not callable(m):
             print(bcolors.ERR
-                + "*  ERROR: Could not write to ExodusII file by lack of a processor mapping"
+                + "*  ERROR: Could not write to ExodusII file by lack of a rank mapping"
                 + bcolors.END)
             return
         self.mapping = m
@@ -93,14 +93,14 @@ class WriterExodusII:
             self.grid_resolution = 1.
 
     def write(self, load_statistics, load_distributions, weight_distributions, verbose=False):
-        """Map processors to grid and write ExodusII file
+        """Map ranks to grid and write ExodusII file
         """
 
         # Retrieve number of mesh points and bail out early if empty set
-        n_p = len(self.phase.processors)
+        n_p = len(self.phase.ranks)
         if not n_p:
             print(bcolors.ERR
-                + "*  ERROR: Empty list of processors, cannot write a mesh file"
+                + "*  ERROR: Empty list of ranks, cannot write a mesh file"
                 + bcolors.END)
             return
 
@@ -124,7 +124,7 @@ class WriterExodusII:
                 s_arr.SetName(stat_name)
                 stat_arrays.setdefault(stat_name, []).append(s_arr)
 
-        # Create attribute data arrays for processors loads
+        # Create attribute data arrays for ranks loads
         load_arrays = []
         for _ in load_distributions:
             # Create and append new load array for points
@@ -133,10 +133,10 @@ class WriterExodusII:
             l_arr.SetNumberOfTuples(n_p)
             load_arrays.append(l_arr)
 
-        # Iterate over processors and create mesh points
+        # Iterate over ranks and create mesh points
         points = vtk.vtkPoints()
         points.SetNumberOfPoints(n_p)
-        for i, p in enumerate(self.phase.processors):
+        for i, p in enumerate(self.phase.ranks):
             # Insert point based on Cartesian coordinates
             points.SetPoint(
                 i,

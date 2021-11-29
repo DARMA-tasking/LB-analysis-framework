@@ -57,8 +57,8 @@ class Object:
         # Time required to perform the work of this object
         self.time = t
 
-        # Processor to which object is currently assigned if defined
-        self.processor_id = p
+        # Rank to which object is currently assigned if defined
+        self.rank_id = p
 
         # Communication graph of this object if defined
         self.communicator = c if isinstance(
@@ -85,17 +85,17 @@ class Object:
 
         return self.communicator.get_sent() if self.communicator else {}
 
-    def set_processor_id(self, p_id):
-        """Assign object to processor ID
+    def set_rank_id(self, p_id):
+        """Assign object to rank ID
         """
 
-        self.processor_id = p_id
+        self.rank_id = p_id
 
-    def get_processor_id(self):
-        """Return ID of processor to which object is currently assigned
+    def get_rank_id(self):
+        """Return ID of rank to which object is currently assigned
         """
 
-        return self.processor_id
+        return self.rank_id
 
     def has_communicator(self):
         """Return whether the object has communication graph data

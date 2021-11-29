@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                       lbsModifiedGrapevineCriterion.py
+#                       lbsTemperedLoadCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -49,28 +49,29 @@ from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
 
 
-class ModifiedGrapevineCriterion(CriterionBase):
+class TemperedLoadCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, processors, edges, parameters):
+    def __init__(self, ranks, edges, parameters):
         """Class constructor:
-        processors: set of processors (lbsRank.Rank instances)
+        ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (frozensets)
-        _: no parameters dictionary needed for this criterion
+        parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(ModifiedGrapevineCriterion, self).__init__(processors, edges)
-        print(f"{bcolors.HEADER}[ModifiedGrapevineCriterion]{bcolors.END} Instantiated concrete criterion")
+        super(TemperedLoadCriterion, self).__init__(ranks, edges)
+        print(f"{bcolors.HEADER}[TemperedLoadCriterion]{bcolors.END} Instantiated concrete criterion")
 
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
-        """Modified Grapevine criterion based on L1 norm of loads
+        """Tempered load criterion based on L1 norm of loads
         """
 
-        # Criterion only uses object and processor loads
+        # Criterion only uses object and rank loads
         return p_src.get_load() - (
-                    (p_dst.get_load() if self.actual_dst_load else p_src.get_known_underload(p_dst)) + obj.get_time())
+                    (p_dst.get_load() if self.actual_dst_load
+                     else p_src.get_known_underload(p_dst)) + obj.get_time())

@@ -89,9 +89,9 @@ class LoadWriterVT:
         """Write one JSON file per rank with the following format:
             <phase-id>, <object-id>, <time>
         """
-        # Iterate over processors
-        for p in self.phase.processors:
-            # Create file name for current processor
+        # Iterate over ranks
+        for p in self.phase.ranks:
+            # Create file name for current rank
             file_name = f"{self.file_stem}.{p.get_id()}.{self.suffix}"
 
             if self.output_dir is not None:
@@ -109,8 +109,8 @@ class LoadWriterVT:
         for o in rank.get_objects():
             # Write object to file and increment count
             try:
-                # writer.writerow([o.get_processor_id(), o.get_id(), o.get_time()])
-                proc_id = o.get_processor_id()
+                # writer.writerow([o.get_rank_id(), o.get_id(), o.get_time()])
+                proc_id = o.get_rank_id()
                 obj_id = o.get_id()
                 obj_time = o.get_time()
                 if isinstance(temp_dict.get(proc_id, None), list):
