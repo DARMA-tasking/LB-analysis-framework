@@ -200,6 +200,10 @@ class LoadReader:
         # defining phases from file
         phases = decompressed_dict["phases"]
         comm_dict = dict()
+        # case for empty Rank
+        if not phases:
+            returned_dict.setdefault(0, Rank(node_id))
+
         # iterating over phases
         for phase in phases:
             # creating communicator dictionary
