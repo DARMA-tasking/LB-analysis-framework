@@ -28,13 +28,13 @@
 
 criterion: 0
 n_iterations: 4
-x_procs: 4
+x_procs: 2
 y_procs: 2
 z_procs: 1
 n_rounds: 4
 fanout: 4
 phase_id: 0
-log_file: "data/vt_new_stat_format/stats"
+log_file: "data/synthetic_lb_stats/stats"
 file_suffix: json
 exodus: True
 output_dir: "output"
