@@ -71,7 +71,7 @@ class LowerTotalWorkCriterion(CriterionBase):
 
         # For now use hard-coded parameters
         self.alpha = 0.
-        self.beta = 0.
+        self.beta = 1000.
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """A criterion comparing total work on source and destination ranks
