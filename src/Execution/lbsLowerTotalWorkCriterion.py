@@ -70,7 +70,7 @@ class LowerTotalWorkCriterion(CriterionBase):
         self.actual_dst_load = parameters.get("actual_destination_load", False)
 
         # For now use hard-coded parameters
-        self.alpha = 1.
+        self.alpha = 0.
         self.beta = 0.
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
@@ -118,7 +118,7 @@ class LowerTotalWorkCriterion(CriterionBase):
                                      0.)
 
             # Update criterion with affine transform of communication differences
-            criterion += self.alpha * (w_dst - w_src) + self.beta
+            criterion += self.alpha + (w_dst - w_src) * self.beta
 
         # Criterion assesses difference in total work
         return criterion
