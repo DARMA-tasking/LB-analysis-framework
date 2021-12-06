@@ -26,7 +26,11 @@
 # generate_multimedia [-g]        bool      generate multimedia
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 
-criterion: 0
+criterion:
+  name: "LowerTotalWork"
+  parameters:
+    alpha: 0.
+    beta: 0.001
 n_iterations: 4
 x_procs: 4
 y_procs: 2

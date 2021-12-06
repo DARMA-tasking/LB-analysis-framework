@@ -43,7 +43,7 @@
 #
 ########################################################################
 import abc
-
+import sys
 import bcolors
 
 from src.Model.lbsRank import Rank
@@ -51,7 +51,7 @@ from src.Model.lbsRank import Rank
 
 class CriterionBase:
     __metaclass__ = abc.ABCMeta
-    """An abstract base class of optimization criteria for LBS execution
+    """An abstract base class of optimization criteria for LBAF execution
     """
 
     def __init__(self, ranks, edges, parameters=None):
@@ -64,64 +64,67 @@ class CriterionBase:
         # If no list of ranks was was provided, do not do anything
         if not isinstance(ranks, set):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a LBS criterion without a set of ranks"
+                + "*  ERROR: Could not create a criterion without a set of ranks"
                 + bcolors.END)
-            return
+            sys.exit(1)
 
         # Assert that all members of said list are indeed rank instances
         n_p = len(ranks)
         if n_p != len(list(
             filter(lambda x: isinstance(x, Rank), ranks))):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a LBS criterion without a set of Rank instances"
+                + "*  ERROR: Could not create a criterion without a set of Rank instances"
                 + bcolors.END)
-            return
+            sys.exit(1)
             
         # If no dictionary of edges was was provided, do not do anything
         if not isinstance(edges, dict):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a LBS criterion without a dictionary of edges"
+                + "*  ERROR: Could not create a criterion without a dictionary of edges"
                 + bcolors.END)
-            return
+            sys.exit(1)
 
         # Assert that all members of said dictionary are indeed frozen sets
         n_e = len(edges)
         if n_e != len(list(
             filter(lambda x: isinstance(x, frozenset), edges))):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a LBS criterion without a dictionary of frozen sets"
+                + "*  ERROR: Could not create a criterion without a dictionary of frozen sets"
                 + bcolors.END)
-            return
+            sys.exit(1)
 
         # Criterion keeps internal references to ranks and edges
         self.ranks = ranks
         self.edges = edges
         print(bcolors.HEADER
-            + "[CriterionBase] "
-            + bcolors.END
-            + "Assigned {} ranks and {} edges to base criterion".format(
-            n_p,
-            n_e))
+              + "[CriterionBase] "
+              + bcolors.END
+              + "Assigned {} ranks and {} edges to base criterion".format(
+                  n_p,
+                  n_e))
 
     @staticmethod
-    def factory(criterion_idx, ranks, edges, parameters=None):
+    def factory(criterion_name, ranks, edges, parameters=None):
         """Produce the necessary concrete criterion
         """
+
         from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
         from src.Execution.lbsTemperedLoadCriterion import TemperedLoadCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
-        # Ensure that criterion index is valid
-        c_name = {
-            0: LowerTotalWorkCriterion,
-            1: TemperedLoadCriterion,
-            2: StrictLocalizingCriterion,
-            3: RelaxedLocalizingCriterion,
-            }.get(criterion_idx)
-
-        # Instantiate and return object
-        return c_name(ranks, edges, parameters)
+        # Ensure that criterion name is valid
+        try:
+            # Instantiate and return object
+            criterion = locals()[criterion_name + "Criterion"]
+            return criterion(ranks, edges, parameters)
+        except:
+            # Otherwise error out
+            print(bcolors.ERR
+                  + "*  ERROR: Could not create a criterion with name "
+                  + criterion_name
+                  + bcolors.END)
+            sys.exit(1)
 
     @abc.abstractmethod
     def compute(self, object, proc_src, proc_dst):

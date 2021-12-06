@@ -59,10 +59,10 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c, order_strategy: str, a=False, v=False):
+    def __init__(self, p, c: dict, order_strategy: str, a=False, v=False):
         """Class constructor:
-        p: Phase instance
-        c: criterion index
+        p: phase instance
+        c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
         a: use actual destination load [FALSE/True]
         v: verbose mode [FALSE/True]
@@ -83,8 +83,9 @@ class Runtime:
         # Verbosity of runtime
         self.verbose = v
 
-        # Transfer critertion index
-        self.Criterion = c
+        # Transfer critertion type and parameters
+        self.criterion_name = c.get("name")
+        self.criterion_params = c.get("parameters", {})
 
         # Initialize load and sent distributions
         self.load_distributions = [[
@@ -266,12 +267,14 @@ class Runtime:
             n_ignored, n_transfers, n_rejects = 0, 0, 0
 
             # Instantiate object transfer criterion
-            transfer_criterion = CriterionBase.factory(
-                self.Criterion,
-                procs,
-                self.phase.get_edges(),
+            self.criterion_params.update(
                 {"average_load": self.average_load,
                  "actual_destination_load": self.actual_dst_load})
+            transfer_criterion = CriterionBase.factory(
+                self.criterion_name,
+                procs,
+                self.phase.get_edges(),
+                self.criterion_params)
             if not transfer_criterion:
                 print(bcolors.ERR
                     + "*  ERROR: cannot load-balance without a load transfer criterion"
