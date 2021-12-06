@@ -104,6 +104,7 @@ class Phase:
 
         # Compute or re-compute edges from scratch
         print(f"{bcolors.HEADER}[Phase]{bcolors.END} Computing inter-process communication edges")
+        self.edges.clear()
 
         # Initialize count of loaded ranks
         n_loaded = 0
@@ -146,16 +147,13 @@ class Phase:
                         continue
 
                     # Create or update an inter-rank edge
-                    index = frozenset([i, j])
-                    if index in self.edges:
-                        self.edges[index] += weight
-                    else:
-                        self.edges[index] = weight
+                    ij = frozenset([i, j])
+                    self.edges[ij] = self.edges.setdefault(ij, 0.) + weight
                     if self.verbose:
                         print("\t Edge rank {} -- rank {}: {}".format(
                             min(i, j),
                             max(i, j),
-                            self.edges[index]))
+                            self.edges[ij]))
 
         # Edges cache was fully updated
         self.cached_edges = True
