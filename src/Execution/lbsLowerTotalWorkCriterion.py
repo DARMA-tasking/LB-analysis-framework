@@ -59,19 +59,23 @@ class LowerTotalWorkCriterion(CriterionBase):
         parameters: parameters dictionary needed for this criterion
         """
 
+        # Use default values if parameters not provided
+        self.alpha = parameters.get("alpha", 0.)
+        self.beta = parameters.get("beta", 1.)
+
         # Call superclass init
         super(LowerTotalWorkCriterion, self).__init__(ranks, edges)
         print(bcolors.HEADER
-            + "[LowerTotalWorkCriterion] "
-            + bcolors.END
-            + "Instantiated concrete criterion")
+              + "[LowerTotalWorkCriterion] "
+              + bcolors.END
+              + "Instantiated concrete criterion with alpha="
+              + str(self.alpha)
+              + " and beta="
+              + str(self.beta))
 
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
-
-        # For now use hard-coded parameters
-        self.alpha = 0.
-        self.beta = 0.001
+        
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """A criterion comparing total work on source and destination ranks

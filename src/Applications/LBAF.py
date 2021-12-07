@@ -73,7 +73,7 @@ class ggParameters:
 
     def __init__(self):
         # By default use tempered load criterion
-        self.criterion = 1
+        self.criterion = {"name": "TemperedLoad", "parameters": {}}
 
         # By default use tempereted load PMF
         self.pmf_type = 0
@@ -154,11 +154,6 @@ class ggParameters:
         """
 
         print("Usage:")
-        print("\t [-c <tc>]   transfer criterion:")
-        print("\t\t\t 0: total work")
-        print("\t\t\t 1: tempered load (default)")
-        print("\t\t\t 2: strict localizer")
-        print("\t\t\t 3: relaxed localizer")
         print("\t [-n <nf>]   normalization factor for transfer PMF:")
         print("\t\t\t 0: load average or maximum sender load (default)")
         print("\t\t\t 1: recipient load (NS variant)")
