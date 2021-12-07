@@ -1,8 +1,9 @@
 # Docs
 # param_name_in_conf  [CL arg]    [type]    Description
 
-# criterion           [-c <tc>]   int(0-3)  transfer criterion: 0: lower total work, 1: tempered load only (default),
-                                                              # 2: strict localizer, 3: relaxed localizer
+# criterion           description of the object transfer criterion
+#    type : str in LowerTotalWork (default), TemperedLoad, StrictLocalizer, RelaxedLocalizer
+#    parameters: optional parameters that are specitic to each criterion
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
 # x_procs             [-x <npx>]  int       number of procs in x direction
 # y_procs             [-y <npy>]  int       number of procs in y direction
