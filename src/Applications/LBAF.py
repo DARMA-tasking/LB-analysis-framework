@@ -140,137 +140,15 @@ class ggParameters:
         # Data files suffix (data loading)
         self.file_suffix = "vom"
 
+        # Set default ordeer strategy
+        self.order_strategy = 'arbitrary'
+
         # Configuration file
         self.conf_file_found = False
         self.conf = self.get_conf_file()
         if self.conf_file_found:
             self.parse_conf_file()
-        else:
-            self.parse_command_line()
         self.checks_after_init()
-
-    def usage(self):
-        """Provide online help
-        """
-
-        print("Usage:")
-        print("\t [-n <nf>]   normalization factor for transfer PMF:")
-        print("\t\t\t 0: load average or maximum sender load (default)")
-        print("\t\t\t 1: recipient load (NS variant)")
-        print("\t [-i <ni>]   number of load-balancing iterations")
-        print("\t [-x <npx>]  number of procs in x direction")
-        print("\t [-y <npy>]  number of procs in y direction")
-        print("\t [-z <npz>]  number of procs in z direction")
-        print("\t [-o <no>]   number of objects")
-        print("\t [-p <np>]   number of initially used ranks")
-        print("\t [-k <nr>]   number of gossiping rounds")
-        print("\t [-f <fo>]   gossiping fan-out value")
-        print("\t [-r <rt>]   overload relative threshold")
-        print("\t [-t <ts>]   object times sampler: "
-              "<ts> in {uniform,lognormal}")
-        print("\t [-w <ws>]   communications weights sampler: "
-              "<cs> in {uniform,lognormal}")
-        print("\t [-s <ts>]   time stepping for reading VT load logs")
-        print("\t [-l <blog>] base file name for reading VT load logs")
-        print("\t [-m <bmap>] base file name for VT object/proc mapping")
-        print("\t [-d <d>]    object communication degree "
-              "(no communication if 0) ")
-        print("\t [-b <odir>] output directory")
-        print("\t [-j <fsuf>] file suffix for data files(reading data)")
-        print("\t [-v]        make standard output more verbose")
-        print("\t [-a]        use actual destination loads")
-        print("\t [-e]        generate Exodus type visualization output")
-        print("\t [-g]        generate multimedia")
-        print("\t [-h]        help: print this message and exit")
-        print('')
-
-    def parse_command_line(self):
-        """Parse command line and fill grid gossiper parameters
-        """
-
-        # Try to hash command line with respect to allowable flags
-        try:
-            opts, args = getopt.getopt(
-                sys.argv[1:],
-                "ab:c:d:ef:ghi:j:k:l:m:n:o:p:r:s:t:vw:x:y:z:")
-        except getopt.GetoptError:
-            print(bcolors.ERR
-                + "** ERROR: incorrect command line arguments."
-                + bcolors.END)
-            self.usage()
-            sys.exit(1)
-
-        # Parse arguments and assign corresponding member variable values
-        for o, a in opts:
-            try:
-                i = int(a)
-            except:
-                i = None
-
-            if o == '-h':
-                self.usage()
-                sys.exit(0)
-            elif o == '-c':
-                self.criterion = i
-            elif o == '-n':
-                self.pmf_type = i
-            elif o == '-i':
-                if i > -1:
-                    self.n_iterations = i
-            elif o == '-x':
-                if i > 0:
-                    self.grid_size[0] = i
-            elif o == '-y':
-                if i > 0:
-                    self.grid_size[1] = i
-            elif o == '-z':
-                if i > 0:
-                    self.grid_size[2] = i
-            elif o == '-o':
-                if i > 0:
-                    self.n_objects = i
-            elif o == '-p':
-                if i > 0:
-                    self.n_ranks = i
-            elif o == "-k":
-                if i > 0:
-                    self.n_rounds = i
-            elif o == '-f':
-                if i > 0:
-                    self.fanout = i
-            elif o == '-r':
-                x = float(a)
-                if x > 1.:
-                    self.threshold = x
-            elif o == '-t':
-                (self.time_sampler_type,
-                self.time_sampler_parameters) = parse_sampler(a)
-            elif o == '-w':
-                (self.weight_sampler_type,
-                self.weight_sampler_parameters) = parse_sampler(a)
-            elif o == '-s':
-                 if i > -1:
-                     self.phase_id = i
-            elif o == '-l':
-                self.log_file = a
-            elif o == '-m':
-                self.map_file = a
-            elif o == '-d':
-                if i > 0:
-                    self.communication_degree = i
-                    self.communication_enabled = True
-            elif o == '-a':
-                self.actual_dst_load = True
-            elif o == '-e':
-                self.exodus = True
-            elif o == '-v':
-                self.verbose = True
-            elif o == '-g':
-                self.generate_multimedia = True
-            elif o == '-b':
-                self.output_dir = a
-            elif o == '-j':
-                self.file_suffix = a
 
     def get_conf_file(self, conf_file=os.path.join(project_path, 'src', 'Applications', 'conf.yaml')):
         """ Checks extension, reads YML file and returns parsed YAML file
@@ -300,7 +178,6 @@ class ggParameters:
                   + "** ERROR: exactly one strategy to populate initial phase "
                     "must be chosen."
                   + bcolors.END)
-            self.usage()
             sys.exit(1)
 
         # Case when phases are populate from samplers not from log file
@@ -365,21 +242,12 @@ def parse_sampler(cmd_str):
             sampler_args.append(x)
 
     # Error check the sampler parsed from input string
-    if sampler_type not in (
-            "uniform",
-            "lognormal"):
-        print(bcolors.ERR
-            + "** ERROR: unsupported sampler type: {}".format(
-            sampler_type)
-            + bcolors.END)
+    if sampler_type not in ("uniform", "lognormal"):
+        print(f'{bcolors.ERR}** ERROR: unsupported sampler type: {sampler_type}{bcolors.END}')
         sys.exit(1)
     if len(sampler_args) != 2:
-        print(bcolors.ERR
-            + ("** ERROR: expected two parameters for sampler type: {},"
-               " got {}").format(
-            sampler_type,
-            len(sampler_args))
-            + bcolors.END)
+        print(f'{bcolors.ERR}** ERROR: expected two parameters for sampler type: {sampler_type}, '
+              f'got {len(sampler_args)}{bcolors.END}')
         sys.exit(1)
 
     # Return the sampler parsed from the input argument
@@ -434,27 +302,15 @@ if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "### Started with Python {}.{}.{}".format(
-        sv.major,
-        sv.minor,
-        sv.micro))
+    print(f'{bcolors.HEADER}[LBAF]{bcolors.END} ### Started with Python {sv.major}.{sv.minor}.{sv.micro}')
 
-    # Instantiate parameters and set values from command line arguments
-    print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "Parsing command line arguments")
+    # Instantiate parameters
     params = ggParameters()
 
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
-        print(bcolors.ERR
-            + "** ERROR: Total number of ranks ({}) must be > 1".format(n_p)
-            + bcolors.END)
+        print(f'{bcolors.ERR}*** ERROR: Total number of ranks ({n_p}) must be > 1{bcolors.END}')
         sys.exit(1)
 
     # Initialize random number generator
@@ -464,11 +320,7 @@ if __name__ == '__main__':
     phase = Phase(0, params.verbose, file_suffix=params.file_suffix)
     if params.log_file:
         # Populate phase from log files and store number of objects
-        n_o = phase.populate_from_log(n_p,
-                                      params.phase_id,
-                                      params.log_file)
-
-
+        n_o = phase.populate_from_log(n_p, params.phase_id, params.log_file)
     else:
         # Populate phase pseudo-randomly
         phase.populate_from_samplers(params.n_objects,
@@ -484,28 +336,12 @@ if __name__ == '__main__':
         n_o = params.n_objects
 
     # Compute and print initial rank load and link weight statistics
-    print_function_statistics(
-        phase.get_ranks(),
-        lambda x: x.get_load(),
-        "initial rank loads",
-        params.verbose)
-    print_function_statistics(
-        phase.get_edges().values(),
-        lambda x: x,
-        "initial link weights",
-        params.verbose)
+    print_function_statistics(phase.get_ranks(), lambda x: x.get_load(), "initial rank loads", params.verbose)
+    print_function_statistics(phase.get_edges().values(), lambda x: x, "initial link weights", params.verbose)
 
     # Instantiate runtime
-    rt = Runtime(phase,
-                 params.criterion,
-                 params.order_strategy,
-                 params.actual_dst_load,
-                 params.verbose)
-    rt.execute(params.n_iterations,
-               params.n_rounds,
-               params.fanout,
-               params.threshold,
-               params.pmf_type)
+    rt = Runtime(phase, params.criterion, params.order_strategy, params.actual_dst_load, params.verbose)
+    rt.execute(params.n_iterations, params.n_rounds, params.fanout, params.threshold, params.pmf_type)
 
     # Create mapping from rank to Cartesian grid
     print(bcolors.HEADER
@@ -528,10 +364,7 @@ if __name__ == '__main__':
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
         ex_writer = WriterExodusII(phase, grid_map, f"{output_stem}", output_dir=params.output_dir)
-        ex_writer.write(rt.statistics,
-                        rt.load_distributions,
-                        rt.sent_distributions,
-                        params.verbose)
+        ex_writer.write(rt.statistics, rt.load_distributions, rt.sent_distributions, params.verbose)
 
     # Create a viewer if paraview is available
     file_name = output_stem
@@ -551,11 +384,7 @@ if __name__ == '__main__':
         lambda x: x.get_load(),
         "final rank loads",
         params.verbose)
-    print_function_statistics(
-        phase.get_edges().values(),
-        lambda x: x,
-        "final link weights",
-        params.verbose)
+    print_function_statistics(phase.get_edges().values(), lambda x: x, "final link weights", params.verbose)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
@@ -578,7 +407,4 @@ if __name__ == '__main__':
         ell * math.sqrt(r * (n_p - r)) / n_p, imbalance))
 
     # If this point is reached everything went fine
-    print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + " Process complete ###")
+    print(f'{bcolors.HEADER}[LBAF]{bcolors.END} Process complete ###')
