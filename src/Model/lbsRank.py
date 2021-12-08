@@ -153,7 +153,7 @@ class Rank:
         l_o = o.get_time()
         l_dst = self.known_loads[p_dst]
         if l_dst + l_o > self.get_load():
-            # Remove destination from underloaded if more loaded than self
+            # Remove destination from known loads if more loaded than self
             self.known_loaded.remove(p_dst)
             del self.known_loads[p_dst]
         else:
