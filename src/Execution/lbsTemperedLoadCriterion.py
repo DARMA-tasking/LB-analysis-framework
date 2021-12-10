@@ -74,4 +74,4 @@ class TemperedLoadCriterion(CriterionBase):
         # Criterion only uses object and rank loads
         return p_src.get_load() - (
                     (p_dst.get_load() if self.actual_dst_load
-                     else p_src.get_known_underload(p_dst)) + obj.get_time())
+                     else p_src.get_known_load(p_dst)) + obj.get_time())

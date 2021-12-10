@@ -84,7 +84,7 @@ class LowerTotalWorkCriterion(CriterionBase):
         # Initialize criterion with comparison between object loads
         criterion = p_src.get_load() - (
             (p_dst.get_load() if self.actual_dst_load
-             else p_src.get_known_underload(p_dst)) + obj.get_time())
+             else p_src.get_known_load(p_dst)) + obj.get_time())
 
         # Retrieve object communications
         comm = obj.get_communicator()

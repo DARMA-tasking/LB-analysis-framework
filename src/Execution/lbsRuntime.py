@@ -156,7 +156,7 @@ class Runtime:
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Spreading underload information with fanout = {}".format(
+                + "Spreading load information with fanout = {}".format(
                 f))
             gossip_round = 1
             gossips = {}
@@ -164,25 +164,25 @@ class Runtime:
 
             # Iterate over all ranks
             for p_snd in procs:
-                # Reset underload information known by sender
+                # Reset load information known by sender
                 p_snd.reset_all_load_information()
 
                 # Collect message when destination list is not empty
-                dst, msg = p_snd.initialize_underloads(procs, self.average_load, f)
+                dst, msg = p_snd.initialize_loads(procs, f)
                 for p_rcv in dst:
                     gossips.setdefault(p_rcv, []).append(msg)
 
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
                 for m in msg_lst:
-                    p_rcv.process_underload_message(m)
+                    p_rcv.process_load_message(m)
 
             # Report on gossiping status when requested
             if self.verbose:
                 for p in procs:
-                    print("\tunderloaded known to rank {}: {}".format(
+                    print("\tloaded known to rank {}: {}".format(
                         p.get_id(),
-                        [p_u.get_id() for p_u in p.get_known_underloaded()]))
+                        [p_u.get_id() for p_u in p.get_known_loaded()]))
 
             # Forward messages for as long as necessary and requested
             while gossip_round < n_rounds:
@@ -190,7 +190,7 @@ class Runtime:
                 print(bcolors.HEADER
                     + "[RunTime] "
                     + bcolors.END
-                    + "Performing underload forwarding round {}".format(
+                    + "Performing load forwarding round {}".format(
                     gossip_round))
                 gossip_round += 1
                 gossips.clear()
@@ -200,59 +200,56 @@ class Runtime:
                     # Check whether rank must relay previously received message
                     if p_snd.round_last_received + 1 == gossip_round:
                         # Collect message when destination list is not empty
-                        dst, msg = p_snd.forward_underloads(gossip_round, procs, f)
+                        dst, msg = p_snd.forward_loads(gossip_round, procs, f)
                         for p_rcv in dst:
                             gossips.setdefault(p_rcv, []).append(msg)
 
                 # Process all messages of first round
                 for p_rcv, msg_lst in gossips.items():
                     for m in msg_lst:
-                        p_rcv.process_underload_message(m)
+                        p_rcv.process_load_message(m)
 
                 # Report on gossiping status when requested
                 if self.verbose:
                     for p in procs:
-                        print("\tunderloaded known to rank {}: {}".format(
+                        print("\tloaded known to rank {}: {}".format(
                             p.get_id(),
-                            [p_u.get_id() for p_u in p.get_known_underloaded()]))
+                            [p_u.get_id() for p_u in p.get_known_loaded()]))
 
-            # Determine overload threshold
-            l_thr = r_threshold * self.average_load
-
-            # Build reverse lookup of underloaded to overloaded viewers
+            # Build reverse lookup of loaded to overloaded viewers
             for p in procs:
-                # Skip non-overloaded ranks
-                if not p.get_load() - l_thr > 0.:
+                # Skip non-loaded ranks
+                if not p.get_load():
                     continue
 
-                # Update viewers on underloaded ranks known to this one
-                p.add_as_overloaded_viewer(p.get_known_underloaded())
+                # Update viewers on loaded ranks known to this one
+                p.add_as_viewer(p.get_known_loaded())
                 
-            # Report on viewers of underloaded ranks
+            # Report on viewers of loaded ranks
             viewers_counts = {}
             for p in procs:
-                # Skip non underloaded ranks
-                if not p.get_load() < self.average_load:
+                # Skip non loaded ranks
+                if not p.get_load():
                     continue
 
                 # Retrieve cardinality of viewers
-                viewers = p.get_overloaded_viewers()
+                viewers = p.get_viewers()
                 viewers_counts[p] = len(viewers)
 
-                # Report on viewers of underloaded rank when requested
+                # Report on viewers of loaded rank when requested
                 if self.verbose:
-                    print("\toverloaded viewers of rank {}: {}".format(
+                    print("\tviewers of rank {}: {}".format(
                         p.get_id(),
                         [p_o.get_id() for p_o in viewers]))
 
-            # Report viewers counts to underloaded ranks
+            # Report viewers counts to loaded ranks
             n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 viewers_counts.values(),
                 lambda x: x)
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} underloaded ranks".format(
+                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} loaded ranks".format(
                       v_min,
                       v_ave,
                       v_max,
@@ -281,25 +278,25 @@ class Runtime:
                     + bcolors.END)
                 sys.exit(1)
 
-            # Iterate over ranks and pick those with above threshold load
+            # Iterate over rank
             for p_src in procs:
-                # Skip non-overloaded ranks
-                l_exc = p_src.get_load() - l_thr
-                if not l_exc > 0.:
+                # Skip non-loaded ranks
+                if not p_src.get_load() > 0.:
                     continue
 
-                # Skip overloaded ranks unaware of underloaded ones
-                underloads = p_src.get_known_underloads()
-                if not underloads:
+                # Skip ranks unaware of loaded peers
+                loads = p_src.get_known_loads()
+                if not loads:
                     n_ignored += 1
                     continue
 
                 # Offload objects for as long as necessary and possible
-                srt_proc_obj = self.order_strategy(objects=p_src.migratable_objects)
+                srt_proc_obj = self.order_strategy(
+                    objects=p_src. migratable_objects)
                 obj_it = iter(srt_proc_obj)
-                while l_exc > 0.:
-                    # Leave this rank if it ran out of known underloaded
-                    p_keys = list(p_src.get_known_underloads().keys())
+                while p_src.get_load() > self.average_load:
+                    # Leave this rank if it ran out of known loaded
+                    p_keys = list(p_src.get_known_loads().keys())
                     if not p_keys:
                         break
 
@@ -310,10 +307,8 @@ class Runtime:
                         # List of objects is exhausted, break out
                         break
 
-                    # Compute empirical CMF given known underloads
-                    p_cmf = p_src.compute_cmf_underloads(
-                        self.average_load,
-                        pmf_type)
+                    # Compute empirical CMF given known loads
+                    p_cmf = p_src.compute_cmf_loads()
 
                     # Pseudo-randomly select destination proc
                     p_dst = inverse_transform_sample(
@@ -325,8 +320,8 @@ class Runtime:
                         print("\texcess load of rank {}: {}".format(
                             p_src.get_id(),
                             l_exc))
-                        print("\tknown underloaded ranks: {}".format(
-                            [u.get_id() for u in underloads]))
+                        print("\tknown loaded ranks: {}".format(
+                            [u.get_id() for u in loads]))
                         print("\tCMF_{} = {}".format(
                             p_src.get_id(),
                             p_cmf))
@@ -351,15 +346,15 @@ class Runtime:
                                 p_dst.get_id()))
 
                         # Transfer object
-                        if p_dst not in p_src.known_underloads:
+                        if p_dst not in p_src.known_loads:
                             print(p_src, p_dst)
                             print(p_src.get_id(), p_dst.get_id())
-                            print(sorted([p.get_id() for p in p_src.known_underloads]))
+                            print(sorted([p.get_id() for p in p_src.known_loads]))
                             print(sorted([p.get_id() for p in p_keys]))
                             sys.exit(1)
-                        l_exc -= p_src.remove_migratable_object(o, p_dst)
+                        p_src.remove_migratable_object(o, p_dst)
                         obj_it = iter(p_src.get_migratable_objects())
-                        p_dst.add_migratable_object(o, self.average_load)
+                        p_dst.add_migratable_object(o)
                         n_transfers += 1
  
             # Invalidate cache of edges
@@ -392,7 +387,7 @@ class Runtime:
                 k:v for k,v in self.phase.get_edges().items()})
 
             # Compute and store global rank load and link weight statistics
-            _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
+            _, l_min, self.load_average, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: x.get_load())
             n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
@@ -418,7 +413,7 @@ class Runtime:
                 l_imb,
                 l_min,
                 l_max,
-                self.average_load,
+                self.load_average,
                 math.sqrt(l_var)))
             print(bcolors.HEADER
                 + "[RunTime] "

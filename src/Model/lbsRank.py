@@ -61,17 +61,17 @@ class Rank:
         self.sentinel_objects = set()
         if mo is not None:
             for o in mo:
-                self.add_migratable_object(o)
+                self.migratable_objects.add(o)
         if so is not None:
             for o in so:
-                self.add_sentinel_object(o)
+                self.sentinel_objects.add(o)
 
-        # No information about underloads is known initially
-        self.known_underloaded = set()
-        self.known_underloads = {}
+        # No information about loads is known initially
+        self.known_loaded = set()
+        self.known_loads = {}
 
-        # No overloaded viewers exist initially
-        self.overloaded_viewers = set()
+        # No viewers exist initially
+        self.viewers = set()
 
         # No message was received initially
         self.round_last_received = 0
@@ -87,6 +87,12 @@ class Rank:
         """
 
         return self.migratable_objects.union(self.sentinel_objects)
+
+    def add_migratable_object(self, o):
+        """Add object to migratable objects
+        """
+
+        return self.migratable_objects.add(o)
 
     def get_migratable_objects(self):
         """Return migratable objects assigned to rank
@@ -118,55 +124,24 @@ class Rank:
 
         return [o.get_id() for o in self.sentinel_objects]
 
-    def get_known_underloaded(self):
-        """Return underloaded peers know to self
+    def get_known_loaded(self):
+        """Return peers whose load is know to self
         """
 
-        return self.known_underloaded
+        return self.known_loaded
 
-    def get_known_underloads(self):
-        """Return underloads peers know to self
+    def get_known_loads(self):
+        """Return loads of peers know to self
         """
 
-        return self.known_underloads
+        return self.known_loads
 
-    def get_overloaded_viewers(self):
-        """Return overloaded peers knowing about self
+    def get_viewers(self):
+        """Return peers knowing about self
         """
 
-        return self.overloaded_viewers
+        return self.viewers
 
-    def set_underloaded_status(self, l_ave):
-        """Check whether addition makes load above underload threshold
-        """
-
-        if not self.get_load() < l_ave:
-            # Remove self from underloaded when present
-            self.known_underloaded.discard(self)
-            self.known_underloads.pop(self, None)
-
-    def add_migratable_object(self, o, l_ave=None):
-        """Assign migratable object to self
-        """
-
-        # Add migratable object from those assigned to self
-        self.migratable_objects.add(o)
-
-        # Set underloaded status with when load average is provided
-        if l_ave:
-            self.set_underloaded_status(l_ave)
-            
-    def add_sentinel_object(self, o, l_ave=None):
-        """Assign sentinel object to self
-        """
-
-        # Add sentinel object from those assigned to self
-        self.sentinel_objects.add(o)
-
-        # Set underloaded status with when load average is provided
-        if l_ave:
-            self.set_underloaded_status(l_ave)
-            
     def remove_migratable_object(self, o, p_dst):
         """Remove migratable able object from self object sent to peer
         """
@@ -174,33 +149,33 @@ class Rank:
         # Remove object from those assigned to self
         self.migratable_objects.remove(o)
 
-        # Update known underloads
+        # Update known loads
         l_o = o.get_time()
-        l_dst = self.known_underloads[p_dst]
+        l_dst = self.known_loads[p_dst]
         if l_dst + l_o > self.get_load():
-            # Remove destination from underloaded if more loaded than self
-            self.known_underloaded.remove(p_dst)
-            del self.known_underloads[p_dst]
+            # Remove destination from known loads if more loaded than self
+            self.known_loaded.remove(p_dst)
+            del self.known_loads[p_dst]
         else:
             # Update load
-            self.known_underloads[p_dst] += l_o
+            self.known_loads[p_dst] += l_o
 
         # Return removed object time
         return l_o
         
-    def add_as_overloaded_viewer(self, underloaded_ranks):
-        """Add self as viewer to underloaded peers
+    def add_as_viewer(self, ranks):
+        """Add self as viewer to known peers
         """
 
-        # Add self as viewer of each of provided underloaded ranks
-        for p in underloaded_ranks:
-            p.overloaded_viewers.add(self)
+        # Add self as viewer of each of provided ranks
+        for p in ranks:
+            p.viewers.add(self)
 
-    def get_known_underload(self, p):
-        """Return known peer underload when available or infinity
+    def get_known_load(self, p):
+        """Return known peer load when available or infinity
         """
 
-        return self.known_underloads.get(p, math.inf)
+        return self.known_loads.get(p, math.inf)
 
     def get_load(self):
         """Return total load on rank
@@ -221,52 +196,48 @@ class Rank:
         return sum([o.get_time() for o in self.sentinel_objects])
 
     def reset_all_load_information(self):
-        """Reset all underload information known to self
+        """Reset all load information known to self
         """
 
-        # Reset information about known underloaded peers
-        self.known_underloaded = set()
-        self.known_underloads = {}
+        # Reset information about known loaded peers
+        self.known_loaded = set()
+        self.known_loads = {}
 
         # Reset information about overloaded viwewer peers
-        self.overloaded_viewers = set()
+        self.viewers = set()
 
-    def initialize_underloads(self, procs, l_ave, f):
-        """Initialize underloads when needed to sample of selected peers
+    def initialize_loads(self, procs, f):
+        """Initialize loads when needed to sample of selected peers
         """
 
         # Retrieve current load on this rank
         l = self.get_load()
 
-        # Return empty underload information if rank not underloaded
-        if not l < l_ave:
-            return [], None
-            
-        # Make underloaded rank aware of being underloaded
-        self.known_underloaded = set([self])
-        self.known_underloads[self] = l
+        # Make rank aware of own load
+        self.known_loaded = set([self])
+        self.known_loads[self] = l
 
-        # Create underload message tagged at first round
-        msg = Message(1, (self.known_underloaded, self.known_underloads))
+        # Create load message tagged at first round
+        msg = Message(1, (self.known_loaded, self.known_loads))
 
-        # Broadcast underloads to pseudo-random sample of procs excluding self
+        # Broadcast loads to pseudo-random sample of procs excluding self
         return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
 
-    def forward_underloads(self, r, procs, f):
-        """Formard underloads to sample of selected peers
+    def forward_loads(self, r, procs, f):
+        """Formard loads to sample of selected peers
         """
 
-        # Compute complement of set of underloaded ranks
-        c_procs = procs.difference(self.known_underloaded).difference([self])
+        # Compute complement of set of known rank loads
+        c_procs = procs.difference(self.known_loaded).difference([self])
 
-        # Create underload message tagged at current round
-        msg = Message(r, (self.known_underloaded, self.known_underloads))
+        # Create load message tagged at current round
+        msg = Message(r, (self.known_loaded, self.known_loads))
 
-        # Forward underloads to pseudo-random sample of procs
+        # Forward loads to pseudo-random sample of procs
         return rnd.sample(c_procs, min(f, len(c_procs))), msg
 
-    def process_underload_message(self, msg):
-        """Update internals when underload message is received
+    def process_load_message(self, msg):
+        """Update internals when load message is received
         """
 
         # Assert that message has the expected type
@@ -285,15 +256,15 @@ class Rank:
                 + bcolors.END)
             return
 
-        # Union received set of underloaded procs with current one
-        self.known_underloaded.update(info[0])
+        # Union received set of loaded procs with current one
+        self.known_loaded.update(info[0])
 
-        # Update underload information
-        self.known_underloads.update(info[1])
+        # Update load information
+        self.known_loads.update(info[1])
 
         # Sanity check
-        l1 = len(self.known_underloaded)
-        l2 = len(self.known_underloads)
+        l1 = len(self.known_loaded)
+        l2 = len(self.known_loads)
         if l1 != l2:
             print(bcolors.ERR
                   + "** ERROR: cannot process message at rank {}: {}<>{}. Exiting.".format(
@@ -306,10 +277,8 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_cmf_underloads(self, l_ave, pmf_type=0):
-        """Compute CMF of underloads given an average load
-           type 0: improved Gossip approach
-           type 1: NS variant based on sender load
+    def compute_cmf_loads(self, pmf_type=0):
+        """Compute CMF of loads
         """
 
         # Initialize CMF
@@ -317,23 +286,12 @@ class Rank:
         cmf = []
         p_fac = 1
 
-        # Retrieve known underloads
-        loads = self.known_underloads.values()
+        # Retrieve known loads
+        loads = self.known_loads.values()
         
-        # Distinguish between different PMF types
-        if not pmf_type:
-            # Determine whether one underloaded is actually overloaded
-            l_max = max(loads)
-            p_fac /= (l_max if l_max > l_ave else l_ave)
-
-        elif pmf_type == 1:
-            # User sender load
-            p_fac /= self.get_load()
+        # Use sender load
+        p_fac /= self.get_load()
             
-        else:
-            print(f"{bcolors.ERR}** ERROR: unsupported PMF type: {pmf_type}. Exiting.{bcolors.END}")
-            sys.exit(1)
-
         # Compute CMF over all loads
         for l in loads:
             sum_p += 1 - p_fac * l
