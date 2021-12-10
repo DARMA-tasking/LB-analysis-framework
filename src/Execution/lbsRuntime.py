@@ -132,6 +132,118 @@ class Runtime:
             "largest_objects": self.largest_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
+    def propagate_information(self, n_rounds, f):
+        """Execute information phase
+        n_rounds: integer number of gossiping rounds
+        f: integer fanout
+        """
+
+        # Build set of all ranks in the phase
+        rank_set = set(self.phase.get_ranks())
+
+        # Initialize gossip process
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Spreading load information with fanout = {}".format(
+            f))
+        gossip_round = 1
+        gossips = {}
+        l_max = 0.
+
+        # Iterate over all ranks
+        for p_snd in rank_set:
+            # Reset load information known by sender
+            p_snd.reset_all_load_information()
+
+            # Collect message when destination list is not empty
+            dst, msg = p_snd.initialize_loads(rank_set, f)
+            for p_rcv in dst:
+                gossips.setdefault(p_rcv, []).append(msg)
+
+        # Process all messages of first round
+        for p_rcv, msg_lst in gossips.items():
+            for m in msg_lst:
+                p_rcv.process_load_message(m)
+
+        # Report on gossiping status when requested
+        if self.verbose:
+            for p in rank_set:
+                print("\tloaded known to rank {}: {}".format(
+                    p.get_id(),
+                    [p_u.get_id() for p_u in p.get_known_loaded()]))
+
+        # Forward messages for as long as necessary and requested
+        while gossip_round < n_rounds:
+            # Initiate next gossiping roung
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Performing load forwarding round {}".format(
+                gossip_round))
+            gossip_round += 1
+            gossips.clear()
+
+            # Iterate over all ranks
+            for p_snd in rank_set:
+                # Check whether rank must relay previously received message
+                if p_snd.round_last_received + 1 == gossip_round:
+                    # Collect message when destination list is not empty
+                    dst, msg = p_snd.forward_loads(gossip_round, rank_set, f)
+                    for p_rcv in dst:
+                        gossips.setdefault(p_rcv, []).append(msg)
+
+            # Process all messages of first round
+            for p_rcv, msg_lst in gossips.items():
+                for m in msg_lst:
+                    p_rcv.process_load_message(m)
+
+            # Report on gossiping status when requested
+            if self.verbose:
+                for p in rank_set:
+                    print("\tloaded known to rank {}: {}".format(
+                        p.get_id(),
+                        [p_u.get_id() for p_u in p.get_known_loaded()]))
+
+        # Build reverse lookup of loaded to overloaded viewers
+        for p in rank_set:
+            # Skip non-loaded ranks
+            if not p.get_load():
+                continue
+
+            # Update viewers on loaded ranks known to this one
+            p.add_as_viewer(p.get_known_loaded())
+
+        # Report on viewers of loaded ranks
+        viewers_counts = {}
+        for p in rank_set:
+            # Skip non loaded ranks
+            if not p.get_load():
+                continue
+
+            # Retrieve cardinality of viewers
+            viewers = p.get_viewers()
+            viewers_counts[p] = len(viewers)
+
+            # Report on viewers of loaded rank when requested
+            if self.verbose:
+                print("\tviewers of rank {}: {}".format(
+                    p.get_id(),
+                    [p_o.get_id() for p_o in viewers]))
+
+        # Report viewers counts to loaded ranks
+        n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
+            viewers_counts.values(),
+            lambda x: x)
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} loaded ranks".format(
+                  v_min,
+                  v_ave,
+                  v_max,
+                  n_u))
+
     def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
@@ -141,9 +253,6 @@ class Runtime:
         pmf_type: 0: modified original approach; 1: NS variant 
         """
 
-        # Build set of ranks in the phase
-        procs = set(self.phase.ranks)
-
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
             print(bcolors.HEADER
@@ -152,108 +261,8 @@ class Runtime:
                 + "Starting iteration {}".format(
                 i + 1))
 
-            # Initialize gossip process
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Spreading load information with fanout = {}".format(
-                f))
-            gossip_round = 1
-            gossips = {}
-            l_max = 0.
-
-            # Iterate over all ranks
-            for p_snd in procs:
-                # Reset load information known by sender
-                p_snd.reset_all_load_information()
-
-                # Collect message when destination list is not empty
-                dst, msg = p_snd.initialize_loads(procs, f)
-                for p_rcv in dst:
-                    gossips.setdefault(p_rcv, []).append(msg)
-
-            # Process all messages of first round
-            for p_rcv, msg_lst in gossips.items():
-                for m in msg_lst:
-                    p_rcv.process_load_message(m)
-
-            # Report on gossiping status when requested
-            if self.verbose:
-                for p in procs:
-                    print("\tloaded known to rank {}: {}".format(
-                        p.get_id(),
-                        [p_u.get_id() for p_u in p.get_known_loaded()]))
-
-            # Forward messages for as long as necessary and requested
-            while gossip_round < n_rounds:
-                # Initiate next gossiping roung
-                print(bcolors.HEADER
-                    + "[RunTime] "
-                    + bcolors.END
-                    + "Performing load forwarding round {}".format(
-                    gossip_round))
-                gossip_round += 1
-                gossips.clear()
-
-                # Iterate over all ranks
-                for p_snd in procs:
-                    # Check whether rank must relay previously received message
-                    if p_snd.round_last_received + 1 == gossip_round:
-                        # Collect message when destination list is not empty
-                        dst, msg = p_snd.forward_loads(gossip_round, procs, f)
-                        for p_rcv in dst:
-                            gossips.setdefault(p_rcv, []).append(msg)
-
-                # Process all messages of first round
-                for p_rcv, msg_lst in gossips.items():
-                    for m in msg_lst:
-                        p_rcv.process_load_message(m)
-
-                # Report on gossiping status when requested
-                if self.verbose:
-                    for p in procs:
-                        print("\tloaded known to rank {}: {}".format(
-                            p.get_id(),
-                            [p_u.get_id() for p_u in p.get_known_loaded()]))
-
-            # Build reverse lookup of loaded to overloaded viewers
-            for p in procs:
-                # Skip non-loaded ranks
-                if not p.get_load():
-                    continue
-
-                # Update viewers on loaded ranks known to this one
-                p.add_as_viewer(p.get_known_loaded())
-                
-            # Report on viewers of loaded ranks
-            viewers_counts = {}
-            for p in procs:
-                # Skip non loaded ranks
-                if not p.get_load():
-                    continue
-
-                # Retrieve cardinality of viewers
-                viewers = p.get_viewers()
-                viewers_counts[p] = len(viewers)
-
-                # Report on viewers of loaded rank when requested
-                if self.verbose:
-                    print("\tviewers of rank {}: {}".format(
-                        p.get_id(),
-                        [p_o.get_id() for p_o in viewers]))
-
-            # Report viewers counts to loaded ranks
-            n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-                viewers_counts.values(),
-                lambda x: x)
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} loaded ranks".format(
-                      v_min,
-                      v_ave,
-                      v_max,
-                      n_u))
+            # Start with information phase
+            self.propagate_information(n_rounds, f)
 
             # Initialize transfer step
             print(bcolors.HEADER
@@ -269,7 +278,7 @@ class Runtime:
                  "actual_destination_load": self.actual_dst_load})
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
-                procs,
+                set(self.phase.get_ranks()),
                 self.phase.get_edges(),
                 self.criterion_params)
             if not transfer_criterion:
@@ -279,7 +288,7 @@ class Runtime:
                 sys.exit(1)
 
             # Iterate over rank
-            for p_src in procs:
+            for p_src in self.phase.get_ranks():
                 # Skip non-loaded ranks
                 if not p_src.get_load() > 0.:
                     continue
