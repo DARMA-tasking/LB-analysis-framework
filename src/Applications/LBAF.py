@@ -75,9 +75,6 @@ class internalParameters:
         # By default use tempered load criterion
         self.criterion = {"name": "TemperedLoad", "parameters": {}}
 
-        # By default use tempereted load PMF
-        self.pmf_type = 0
-
         # Number of load-balancing iterations
         self.n_iterations = 1
 
@@ -350,8 +347,7 @@ if __name__ == '__main__':
                  params.verbose)
     rt.execute(params.n_iterations,
                params.n_rounds,
-               params.fanout,
-               params.pmf_type)
+               params.fanout)
 
     # Create mapping from rank to Cartesian grid
     print(bcolors.HEADER

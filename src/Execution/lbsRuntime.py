@@ -240,12 +240,11 @@ class Runtime:
                   v_max,
                   n_u))
 
-    def execute(self, n_iterations, n_rounds, f, pmf_type):
+    def execute(self, n_iterations, n_rounds, f):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
-        pmf_type: 0: modified original approach; 1: NS variant 
         """
 
         # Perform requested number of load-balancing iterations
