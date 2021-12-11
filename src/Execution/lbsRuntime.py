@@ -59,12 +59,11 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c: dict, order_strategy: str, a=False, v=False):
+    def __init__(self, p, c: dict, order_strategy: str, v=False):
         """Class constructor:
         p: phase instance
         c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
-        a: use actual destination load [FALSE/True]
         v: verbose mode [FALSE/True]
         """
 
@@ -76,9 +75,6 @@ class Runtime:
             return
         else:
             self.phase = p
-
-        # Use of actual destination load when relevant for criterion
-        self.actual_dst_load = a
 
         # Verbosity of runtime
         self.verbose = v
@@ -132,7 +128,7 @@ class Runtime:
             "largest_objects": self.largest_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
-    def propagate_information(self, n_rounds, f):
+    def information_phase(self, n_rounds, f):
         """Execute information phase
         n_rounds: integer number of gossiping rounds
         f: integer fanout
@@ -244,12 +240,11 @@ class Runtime:
                   v_max,
                   n_u))
 
-    def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
+    def execute(self, n_iterations, n_rounds, f, pmf_type):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
-        r_threshold: float relative overhead threshold
         pmf_type: 0: modified original approach; 1: NS variant 
         """
 
@@ -262,20 +257,16 @@ class Runtime:
                 i + 1))
 
             # Start with information phase
-            self.propagate_information(n_rounds, f)
+            self.information_phase(n_rounds, f)
 
             # Initialize transfer step
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Migrating overloads above relative threshold of {}".format(
-                r_threshold))
+                + "Excuting transfer phase")
             n_ignored, n_transfers, n_rejects = 0, 0, 0
 
             # Instantiate object transfer criterion
-            self.criterion_params.update(
-                {"average_load": self.average_load,
-                 "actual_destination_load": self.actual_dst_load})
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
                 set(self.phase.get_ranks()),
@@ -455,33 +446,37 @@ class Runtime:
         """ Objects ordered by ID. """
         return self.sort(objects, key=lambda x: x.get_id())
 
-    def load_ex(self, objects: set):
+    def load_excess(self, objects: set):
         proc_load = sum([obj.get_time() for obj in objects])
         return proc_load - self.average_load
 
     def fewest_migrations(self, objects: set):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_ex
-            Sort smallest to largest if > load_ex
+            Sort largest to smallest if <= load_excess
+            Sort smallest to largest if > load_excess
         """
-        load_ex = self.load_ex(objects)
-        lt_load_ex = [obj for obj in objects if obj.get_time() <= load_ex]
-        get_load_ex = [obj for obj in objects if obj.get_time() > load_ex]
-        return self.sorted_descending(lt_load_ex) + self.sorted_ascending(get_load_ex)
+
+        load_excess = self.load_excess(objects)
+        lt_load_excess = [obj for obj in objects if obj.get_time() <= load_excess]
+        get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
+        return self.sorted_descending(lt_load_excess) + self.sorted_ascending(get_load_excess)
 
     def small_objects(self, objects: set):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_ex
-            Sort smallest to largest if > load_ex
+            Sort largest to smallest if <= load_excess
+            Sort smallest to largest if > load_excess
         """
-        load_ex = self.load_ex(objects)
+
+        load_excess = self.load_excess(objects)
         sorted_objects = self.sorted_ascending(objects)
         accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
-        idx = bisect(accumulated_times, load_ex) + 1
+        idx = bisect(accumulated_times, load_excess) + 1
         return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
 
     def largest_objects(self, objects: set):
-        """ Objects ordered by object load/time. From bigger to smaller. """
+        """ Objects ordered by object load/time. From bigger to smaller.
+        """
+
         return self.sorted_descending(objects)
