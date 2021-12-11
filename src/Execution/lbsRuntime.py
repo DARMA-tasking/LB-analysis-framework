@@ -128,7 +128,7 @@ class Runtime:
             "largest_objects": self.largest_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
-    def information_phase(self, n_rounds, f):
+    def information_stage(self, n_rounds, f):
         """Execute information phase
         n_rounds: integer number of gossiping rounds
         f: integer fanout
@@ -240,6 +240,99 @@ class Runtime:
                   v_max,
                   n_u))
 
+    def transfer_stage(self, transfer_criterion):
+        """Perform object transfer phase
+        """
+
+        # Initialize transfer stage
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Excuting transfer phase")
+        n_ignored, n_transfers, n_rejects = 0, 0, 0
+
+        # Iterate over ranks
+        for p_src in self.phase.get_ranks():
+            # Skip non-loaded ranks
+            if not p_src.get_load() > 0.:
+                continue
+
+            # Skip ranks unaware of loaded peers
+            loads = p_src.get_known_loads()
+            if not loads:
+                n_ignored += 1
+                continue
+
+            # Offload objects for as long as necessary and possible
+            srt_proc_obj = self.order_strategy(
+                objects=p_src. migratable_objects)
+            obj_it = iter(srt_proc_obj)
+            while p_src.get_load() > self.average_load:
+                # Leave this rank if it ran out of known loaded
+                p_keys = list(p_src.get_known_loads().keys())
+                if not p_keys:
+                    break
+
+                # Pick next object
+                try:
+                    o = next(obj_it)
+                except:
+                    # List of objects is exhausted, break out
+                    break
+
+                # Compute empirical CMF given known loads
+                p_cmf = p_src.compute_cmf_loads()
+
+                # Pseudo-randomly select destination proc
+                p_dst = inverse_transform_sample(
+                    p_keys,
+                    p_cmf)
+
+                # Report on overloaded rank when requested
+                if self.verbose:
+                    print("\texcess load of rank {}: {}".format(
+                        p_src.get_id(),
+                        l_exc))
+                    print("\tknown loaded ranks: {}".format(
+                        [u.get_id() for u in loads]))
+                    print("\tCMF_{} = {}".format(
+                        p_src.get_id(),
+                        p_cmf))
+
+                # Decide about proposed transfer
+                if transfer_criterion.compute(o, p_src, p_dst) < 0.:
+                    # Reject proposed transfer
+                    n_rejects += 1
+
+                    # Report on rejected object transfer when requested
+                    if self.verbose:
+                        print("\t\trank {} declined transfer of object {} ({})".format(
+                            p_dst.get_id(),
+                            o.get_id(),
+                            o.get_time()))
+                else:
+                    # Accept proposed transfer
+                    if self.verbose:
+                        print("\t\tmigrating object {} ({}) to rank {}".format(
+                            o.get_id(),
+                            o.get_time(),
+                            p_dst.get_id()))
+
+                    # Transfer object
+                    if p_dst not in p_src.known_loads:
+                        print(p_src, p_dst)
+                        print(p_src.get_id(), p_dst.get_id())
+                        print(sorted([p.get_id() for p in p_src.known_loads]))
+                        print(sorted([p.get_id() for p in p_keys]))
+                        sys.exit(1)
+                    p_src.remove_migratable_object(o, p_dst)
+                    obj_it = iter(p_src.get_migratable_objects())
+                    p_dst.add_migratable_object(o)
+                    n_transfers += 1
+
+        # Return object transfer counts
+        return n_ignored, n_transfers, n_rejects
+
     def execute(self, n_iterations, n_rounds, f):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
@@ -255,15 +348,8 @@ class Runtime:
                 + "Starting iteration {}".format(
                 i + 1))
 
-            # Start with information phase
-            self.information_phase(n_rounds, f)
-
-            # Initialize transfer step
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Excuting transfer phase")
-            n_ignored, n_transfers, n_rejects = 0, 0, 0
+            # Start with information stage
+            self.information_stage(n_rounds, f)
 
             # Instantiate object transfer criterion
             transfer_criterion = CriterionBase.factory(
@@ -277,87 +363,14 @@ class Runtime:
                     + bcolors.END)
                 sys.exit(1)
 
-            # Iterate over rank
-            for p_src in self.phase.get_ranks():
-                # Skip non-loaded ranks
-                if not p_src.get_load() > 0.:
-                    continue
+            # Use criterion to perform transfer stage
+            n_ignored, n_transfers, n_rejects = self.transfer_stage(
+                transfer_criterion)
 
-                # Skip ranks unaware of loaded peers
-                loads = p_src.get_known_loads()
-                if not loads:
-                    n_ignored += 1
-                    continue
-
-                # Offload objects for as long as necessary and possible
-                srt_proc_obj = self.order_strategy(
-                    objects=p_src. migratable_objects)
-                obj_it = iter(srt_proc_obj)
-                while p_src.get_load() > self.average_load:
-                    # Leave this rank if it ran out of known loaded
-                    p_keys = list(p_src.get_known_loads().keys())
-                    if not p_keys:
-                        break
-
-                    # Pick next object
-                    try:
-                        o = next(obj_it)
-                    except:
-                        # List of objects is exhausted, break out
-                        break
-
-                    # Compute empirical CMF given known loads
-                    p_cmf = p_src.compute_cmf_loads()
-
-                    # Pseudo-randomly select destination proc
-                    p_dst = inverse_transform_sample(
-                        p_keys,
-                        p_cmf)
-
-                    # Report on overloaded rank when requested
-                    if self.verbose:
-                        print("\texcess load of rank {}: {}".format(
-                            p_src.get_id(),
-                            l_exc))
-                        print("\tknown loaded ranks: {}".format(
-                            [u.get_id() for u in loads]))
-                        print("\tCMF_{} = {}".format(
-                            p_src.get_id(),
-                            p_cmf))
-
-                    # Decide about proposed transfer
-                    if transfer_criterion.compute(o, p_src, p_dst) < 0.:
-                        # Reject proposed transfer
-                        n_rejects += 1
-
-                        # Report on rejected object transfer when requested
-                        if self.verbose:
-                            print("\t\trank {} declined transfer of object {} ({})".format(
-                                p_dst.get_id(),
-                                o.get_id(),
-                                o.get_time()))
-                    else:
-                        # Accept proposed transfer
-                        if self.verbose:
-                            print("\t\tmigrating object {} ({}) to rank {}".format(
-                                o.get_id(),
-                                o.get_time(),
-                                p_dst.get_id()))
-
-                        # Transfer object
-                        if p_dst not in p_src.known_loads:
-                            print(p_src, p_dst)
-                            print(p_src.get_id(), p_dst.get_id())
-                            print(sorted([p.get_id() for p in p_src.known_loads]))
-                            print(sorted([p.get_id() for p in p_keys]))
-                            sys.exit(1)
-                        p_src.remove_migratable_object(o, p_dst)
-                        obj_it = iter(p_src.get_migratable_objects())
-                        p_dst.add_migratable_object(o)
-                        n_transfers += 1
- 
-            # Invalidate cache of edges
+             # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
+
+            # Report iteration statistics
             print(bcolors.HEADER
                   + "[RunTime] "
                   + bcolors.END
