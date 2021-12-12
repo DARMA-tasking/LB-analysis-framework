@@ -253,7 +253,7 @@ class Runtime:
 
         # Iterate over ranks
         for p_src in self.phase.get_ranks():
-            # Skip non-loaded ranks
+            # Skip unloaded ranks
             if not p_src.get_load() > 0.:
                 continue
 
@@ -264,10 +264,9 @@ class Runtime:
                 continue
 
             # Offload objects for as long as necessary and possible
-            srt_proc_obj = self.order_strategy(
-                objects=p_src. migratable_objects)
+            srt_proc_obj = self.order_strategy(p_src.migratable_objects)
             obj_it = iter(srt_proc_obj)
-            while p_src.get_load() > self.average_load:
+            while True:
                 # Leave this rank if it ran out of known loaded
                 p_keys = list(p_src.get_known_loads().keys())
                 if not p_keys:
