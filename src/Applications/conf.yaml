@@ -31,12 +31,9 @@ criterion:
   name: "LowerTotalWork"
   parameters:
     alpha: 0.
-    beta: 1000000.
+    beta: 0.00000000001
     actual_dst_load: False
 n_iterations: 8
-x_procs: 2
-y_procs: 2
-z_procs: 1
 n_rounds: 4
 fanout: 4
 phase_id: 0
@@ -44,6 +41,9 @@ phase_id: 0
 log_file: "data/synthetic_lb_stats/stats"
 file_suffix: json
 exodus: True
+x_procs: 2
+y_procs: 2
+z_procs: 1
 output_dir: "output"
 order_strategy: arbitrary
 #verbose: True
