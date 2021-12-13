@@ -117,7 +117,7 @@ class Runtime:
             "average communication weight"  : [w_ave],
             "maximum communication weight"  : [w_max],
             "communication weight variance" : [w_var],
-            "communication weight imbalance": [w_imb]}
+            "total communication weight": [n_w * w_ave]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -281,7 +281,8 @@ class Runtime:
 
                 # Compute empirical CMF given known loads
                 p_cmf = p_src.compute_cmf_loads()
-
+                if not p_cmf:
+                    continue
                 # Pseudo-randomly select destination proc
                 p_dst = inverse_transform_sample(
                     p_keys,
@@ -412,7 +413,7 @@ class Runtime:
             self.statistics["average communication weight"].append(w_ave)
             self.statistics["maximum communication weight"].append(w_max)
             self.statistics["communication weight variance"].append(w_var)
-            self.statistics["communication weight imbalance"].append(w_imb)
+            self.statistics["total communication weight"].append(n_w * w_ave)
 
             # Report partial statistics
             iteration = i + 1
