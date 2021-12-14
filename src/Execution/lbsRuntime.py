@@ -283,6 +283,7 @@ class Runtime:
                 p_cmf = p_src.compute_cmf_loads()
                 if not p_cmf:
                     continue
+
                 # Pseudo-randomly select destination proc
                 p_dst = inverse_transform_sample(
                     p_keys,
@@ -318,13 +319,15 @@ class Runtime:
                             o.get_time(),
                             p_dst.get_id()))
 
-                    # Transfer object
+                    # Sanity check before transfer
                     if p_dst not in p_src.known_loads:
-                        print(p_src, p_dst)
-                        print(p_src.get_id(), p_dst.get_id())
-                        print(sorted([p.get_id() for p in p_src.known_loads]))
-                        print(sorted([p.get_id() for p in p_keys]))
+                        print(bcolors.ERR
+                              + "*  ERROR: destination rank {} not in known ranks".format(
+                                  p_dst.get_id())
+                              + bcolors.END)
                         sys.exit(1)
+
+                    # Transfer object
                     p_src.remove_migratable_object(o, p_dst)
                     obj_it = iter(p_src.get_migratable_objects())
                     p_dst.add_migratable_object(o)
