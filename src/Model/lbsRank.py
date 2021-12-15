@@ -277,25 +277,26 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_cmf_loads(self, pmf_type=0):
+    def compute_cmf_loads(self):
         """Compute CMF of loads
         """
 
         # Initialize CMF
         sum_p = 0
         cmf = []
-        p_fac = 1
 
         # Retrieve known loads
         loads = self.known_loads.values()
         
-        # Use sender load
-        p_fac /= self.get_load()
-            
-        # Compute CMF over all loads
-        for l in loads:
-            sum_p += 1 - p_fac * l
+        # Normalize with respect to maximum load
+        p_fac = 1. / max(loads)
+
+        # Compute CMF over all known ranks
+        for l, p in zip(loads, self.known_loaded):
+            # Self does not contribute to CMF
+            if p.get_id() != self.index:
+                sum_p += 1 - p_fac * l
             cmf.append(sum_p)
 
         # Normalize and return CMF
-        return [x / sum_p for x in cmf]
+        return [x / sum_p for x in cmf] if sum_p else None

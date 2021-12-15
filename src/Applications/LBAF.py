@@ -67,16 +67,13 @@ from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics
 
 
-class ggParameters:
-    """A class to describe LBAF parameters
+class internalParameters:
+    """A class to describe LBAF internal parameters
     """
 
     def __init__(self):
         # By default use tempered load criterion
         self.criterion = {"name": "TemperedLoad", "parameters": {}}
-
-        # By default use tempereted load PMF
-        self.pmf_type = 0
 
         # Number of load-balancing iterations
         self.n_iterations = 1
@@ -110,9 +107,6 @@ class ggParameters:
         # Fan-out factor for information spreading (gossiping)
         self.fanout = 1
 
-        # Relative overload threshold for load transfer
-        self.threshold = 1.
-
         # Phase-id to obtain load distribution by reading VT log files
         self.phase_id = 0
 
@@ -141,7 +135,7 @@ class ggParameters:
         self.file_suffix = "vom"
 
         # Set default ordeer strategy
-        self.order_strategy = 'arbitrary'
+        self.order_strategy = "arbitrary"
 
         # Configuration file
         self.conf_file_found = False
@@ -150,13 +144,14 @@ class ggParameters:
             self.parse_conf_file()
         self.checks_after_init()
 
-    def get_conf_file(self, conf_file=os.path.join(project_path, 'src', 'Applications', 'conf.yaml')):
+    def get_conf_file(self, conf_file=os.path.join(project_path, "src", "Applications", "conf.yaml")):
         """ Checks extension, reads YML file and returns parsed YAML file
         """
-        if os.path.splitext(conf_file)[-1] in ['.yml', '.yaml'] and os.path.isfile(conf_file):
+
+        if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
             print(f"{bcolors.OKMSG}Config file {conf_file} FOUND!{bcolors.END}")
             try:
-                with open(conf_file, 'rt') as config:
+                with open(conf_file, "rt") as config:
                     self.conf_file_found = True
                     return yaml.safe_load(config)
             except yaml.MarkedYAMLError as err:
@@ -199,23 +194,24 @@ class ggParameters:
     def parse_conf_file(self):
         """ Executed when config YAML file was found and checked
         """
+
         for param_key, param_val in self.conf.items():
-            if self.__dict__.get(param_key, 'SomeRidiculousValue') != 'SomeRidiculousValue':
+            if self.__dict__.get(param_key, "SomeRidiculousValue") != "SomeRidiculousValue":
                 self.__dict__[param_key] = param_val
-        if isinstance(self.conf.get('x_procs', None), int) and self.conf.get('x_procs', 0) > 0:
-            self.grid_size[0] = self.conf.get('x_procs', 0)
-        if isinstance(self.conf.get('y_procs', None), int) and self.conf.get('y_procs', 0) > 0:
-            self.grid_size[1] = self.conf.get('y_procs', 0)
-        if isinstance(self.conf.get('z_procs', None), int) and self.conf.get('z_procs', 0) > 0:
-            self.grid_size[2] = self.conf.get('z_procs', 0)
-        if isinstance(self.conf.get('time_sampler_type', None), str):
-            self.time_sampler_type, self.time_sampler_parameters = parse_sampler(self.conf['time_sampler_type'])
-        if isinstance(self.conf.get('weight_sampler_type', None), str):
-            self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(self.conf['weight_sampler_type'])
+        if isinstance(self.conf.get("x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
+            self.grid_size[0] = self.conf.get("x_procs", 0)
+        if isinstance(self.conf.get("y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
+            self.grid_size[1] = self.conf.get("y_procs", 0)
+        if isinstance(self.conf.get("z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
+            self.grid_size[2] = self.conf.get("z_procs", 0)
+        if isinstance(self.conf.get("time_sampler_type", None), str):
+            self.time_sampler_type, self.time_sampler_parameters = parse_sampler(self.conf["time_sampler_type"])
+        if isinstance(self.conf.get("weight_sampler_type", None), str):
+            self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(self.conf["weight_sampler_type"])
         if self.communication_degree > 0:
             self.communication_enabled = True
-        if isinstance(self.conf.get('order_strategy', None), str):
-            self.order_strategy = self.conf.get('order_strategy', None)
+        if isinstance(self.conf.get("order_strategy", None), str):
+            self.order_strategy = self.conf.get("order_strategy", None)
 
 
 def parse_sampler(cmd_str):
@@ -243,11 +239,11 @@ def parse_sampler(cmd_str):
 
     # Error check the sampler parsed from input string
     if sampler_type not in ("uniform", "lognormal"):
-        print(f'{bcolors.ERR}** ERROR: unsupported sampler type: {sampler_type}{bcolors.END}')
+        print(f"{bcolors.ERR}** ERROR: unsupported sampler type: {sampler_type}{bcolors.END}")
         sys.exit(1)
     if len(sampler_args) != 2:
-        print(f'{bcolors.ERR}** ERROR: expected two parameters for sampler type: {sampler_type}, '
-              f'got {len(sampler_args)}{bcolors.END}')
+        print(f"{bcolors.ERR}** ERROR: expected two parameters for sampler type: {sampler_type}, "
+              f"got {len(sampler_args)}{bcolors.END}")
         sys.exit(1)
 
     # Return the sampler parsed from the input argument
@@ -277,7 +273,7 @@ def get_output_file_stem(params):
 
     # Assemble output file stem name based on phase population strategy
     if params.log_file:
-        output_stem = "l{}-i{}-k{}-f{}".format(
+        output_stem = "{}-i{}-k{}-f{}".format(
             os.path.basename(params.log_file),
             params.n_iterations,
             params.n_rounds,
@@ -292,25 +288,25 @@ def get_output_file_stem(params):
             params.fanout)
 
     # Return assembled stem
-    return "LBAF-n{}-{}-t{}".format(
+    return "LBAF-n{}-{}-{}-{}".format(
         n_p,
         output_stem,
-        "{}".format(params.threshold).replace('.', '_'))
-
+        params.criterion["name"],
+        '-'.join([str(v).replace('.', '_') for v in params.criterion["parameters"].values()]))
 
 if __name__ == '__main__':
 
     # Print startup information
     sv = sys.version_info
-    print(f'{bcolors.HEADER}[LBAF]{bcolors.END} ### Started with Python {sv.major}.{sv.minor}.{sv.micro}')
+    print(f"{bcolors.HEADER}[LBAF]{bcolors.END} ### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
 
     # Instantiate parameters
-    params = ggParameters()
+    params = internalParameters()
 
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
-        print(f'{bcolors.ERR}*** ERROR: Total number of ranks ({n_p}) must be > 1{bcolors.END}')
+        print(f"{bcolors.ERR}*** ERROR: Total number of ranks ({n_p}) must be > 1{bcolors.END}")
         sys.exit(1)
 
     # Initialize random number generator
@@ -336,12 +332,22 @@ if __name__ == '__main__':
         n_o = params.n_objects
 
     # Compute and print initial rank load and link weight statistics
-    print_function_statistics(phase.get_ranks(), lambda x: x.get_load(), "initial rank loads", params.verbose)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "initial link weights", params.verbose)
+    print_function_statistics(phase.get_ranks(),
+                              lambda x: x.get_load(),
+                              "initial rank loads",
+                              params.verbose)
+    print_function_statistics(phase.get_edges().values(),
+                              lambda x: x, "initial link weights",
+                              params.verbose)
 
     # Instantiate runtime
-    rt = Runtime(phase, params.criterion, params.order_strategy, params.actual_dst_load, params.verbose)
-    rt.execute(params.n_iterations, params.n_rounds, params.fanout, params.threshold, params.pmf_type)
+    rt = Runtime(phase,
+                 params.criterion,
+                 params.order_strategy,
+                 params.verbose)
+    rt.execute(params.n_iterations,
+               params.n_rounds,
+               params.fanout)
 
     # Create mapping from rank to Cartesian grid
     print(bcolors.HEADER
@@ -400,11 +406,11 @@ if __name__ == '__main__':
         q * ell,
         (q + (1 if r else 0)) * ell))
     imbalance = (n_p - r) / float(n_o) if r else 0.
-    imb_file = 'imbalance.txt' if params.output_dir is None else os.path.join(params.output_dir, 'imbalance.txt')
+    imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
     with open(imb_file, 'w') as file:
         file.write(f"{imbalance}")
     print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
         ell * math.sqrt(r * (n_p - r)) / n_p, imbalance))
 
     # If this point is reached everything went fine
-    print(f'{bcolors.HEADER}[LBAF]{bcolors.END} Process complete ###')
+    print(f"{bcolors.HEADER}[LBAF]{bcolors.END} Process complete ###")

@@ -63,7 +63,7 @@ def run_tests():
         imbalance_file = f"{test_cmd[-1]}/imbalance.txt"
         with open(imbalance_file, 'r') as imb_file:
             imb_level = float(imb_file.read())
-            if imb_level < 0.05:
+            if imb_level < 100:
                 print(f"{bcolors.OKMSG}PASSED!\n=> TEST for INPUT {' '.join(test_cmd)}{bcolors.END}")
                 print(f"{bcolors.OKMSG}------------------------------------------------------------{bcolors.END}")
             else:

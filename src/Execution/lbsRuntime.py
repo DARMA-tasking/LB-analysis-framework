@@ -59,12 +59,11 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c: dict, order_strategy: str, a=False, v=False):
+    def __init__(self, p, c: dict, order_strategy: str, v=False):
         """Class constructor:
         p: phase instance
         c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
-        a: use actual destination load [FALSE/True]
         v: verbose mode [FALSE/True]
         """
 
@@ -76,9 +75,6 @@ class Runtime:
             return
         else:
             self.phase = p
-
-        # Use of actual destination load when relevant for criterion
-        self.actual_dst_load = a
 
         # Verbosity of runtime
         self.verbose = v
@@ -121,7 +117,7 @@ class Runtime:
             "average communication weight"  : [w_ave],
             "maximum communication weight"  : [w_max],
             "communication weight variance" : [w_var],
-            "communication weight imbalance": [w_imb]}
+            "total communication weight": [n_w * w_ave]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -132,17 +128,220 @@ class Runtime:
             "largest_objects": self.largest_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
-    def execute(self, n_iterations, n_rounds, f, r_threshold, pmf_type):
+    def information_stage(self, n_rounds, f):
+        """Execute information phase
+        n_rounds: integer number of gossiping rounds
+        f: integer fanout
+        """
+
+        # Build set of all ranks in the phase
+        rank_set = set(self.phase.get_ranks())
+
+        # Initialize gossip process
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Spreading load information with fanout = {}".format(
+            f))
+        gossip_round = 1
+        gossips = {}
+        l_max = 0.
+
+        # Iterate over all ranks
+        for p_snd in rank_set:
+            # Reset load information known by sender
+            p_snd.reset_all_load_information()
+
+            # Collect message when destination list is not empty
+            dst, msg = p_snd.initialize_loads(rank_set, f)
+            for p_rcv in dst:
+                gossips.setdefault(p_rcv, []).append(msg)
+
+        # Process all messages of first round
+        for p_rcv, msg_lst in gossips.items():
+            for m in msg_lst:
+                p_rcv.process_load_message(m)
+
+        # Report on gossiping status when requested
+        if self.verbose:
+            for p in rank_set:
+                print("\tloaded known to rank {}: {}".format(
+                    p.get_id(),
+                    [p_u.get_id() for p_u in p.get_known_loaded()]))
+
+        # Forward messages for as long as necessary and requested
+        while gossip_round < n_rounds:
+            # Initiate next gossiping roung
+            print(bcolors.HEADER
+                + "[RunTime] "
+                + bcolors.END
+                + "Performing load forwarding round {}".format(
+                gossip_round))
+            gossip_round += 1
+            gossips.clear()
+
+            # Iterate over all ranks
+            for p_snd in rank_set:
+                # Check whether rank must relay previously received message
+                if p_snd.round_last_received + 1 == gossip_round:
+                    # Collect message when destination list is not empty
+                    dst, msg = p_snd.forward_loads(gossip_round, rank_set, f)
+                    for p_rcv in dst:
+                        gossips.setdefault(p_rcv, []).append(msg)
+
+            # Process all messages of first round
+            for p_rcv, msg_lst in gossips.items():
+                for m in msg_lst:
+                    p_rcv.process_load_message(m)
+
+            # Report on gossiping status when requested
+            if self.verbose:
+                for p in rank_set:
+                    print("\tloaded known to rank {}: {}".format(
+                        p.get_id(),
+                        [p_u.get_id() for p_u in p.get_known_loaded()]))
+
+        # Build reverse lookup of loaded to overloaded viewers
+        for p in rank_set:
+            # Skip non-loaded ranks
+            if not p.get_load():
+                continue
+
+            # Update viewers on loaded ranks known to this one
+            p.add_as_viewer(p.get_known_loaded())
+
+        # Report on viewers of loaded ranks
+        viewers_counts = {}
+        for p in rank_set:
+            # Skip non loaded ranks
+            if not p.get_load():
+                continue
+
+            # Retrieve cardinality of viewers
+            viewers = p.get_viewers()
+            viewers_counts[p] = len(viewers)
+
+            # Report on viewers of loaded rank when requested
+            if self.verbose:
+                print("\tviewers of rank {}: {}".format(
+                    p.get_id(),
+                    [p_o.get_id() for p_o in viewers]))
+
+        # Report viewers counts to loaded ranks
+        n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
+            viewers_counts.values(),
+            lambda x: x)
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} loaded ranks".format(
+                  v_min,
+                  v_ave,
+                  v_max,
+                  n_u))
+
+    def transfer_stage(self, transfer_criterion):
+        """Perform object transfer phase
+        """
+
+        # Initialize transfer stage
+        print(bcolors.HEADER
+            + "[RunTime] "
+            + bcolors.END
+            + "Excuting transfer phase")
+        n_ignored, n_transfers, n_rejects = 0, 0, 0
+
+        # Iterate over ranks
+        for p_src in self.phase.get_ranks():
+            # Skip unloaded ranks
+            if not p_src.get_load() > 0.:
+                continue
+
+            # Skip ranks unaware of loaded peers
+            loads = p_src.get_known_loads()
+            if not loads:
+                n_ignored += 1
+                continue
+
+            # Offload objects for as long as necessary and possible
+            srt_proc_obj = self.order_strategy(p_src.migratable_objects)
+            obj_it = iter(srt_proc_obj)
+            while True:
+                # Leave this rank if it ran out of known loaded
+                p_keys = list(p_src.get_known_loads().keys())
+                if not p_keys:
+                    break
+
+                # Pick next object
+                try:
+                    o = next(obj_it)
+                except:
+                    # List of objects is exhausted, break out
+                    break
+
+                # Compute empirical CMF given known loads
+                p_cmf = p_src.compute_cmf_loads()
+                if not p_cmf:
+                    continue
+
+                # Pseudo-randomly select destination proc
+                p_dst = inverse_transform_sample(
+                    p_keys,
+                    p_cmf)
+
+                # Report on overloaded rank when requested
+                if self.verbose:
+                    print("\texcess load of rank {}: {}".format(
+                        p_src.get_id(),
+                        l_exc))
+                    print("\tknown loaded ranks: {}".format(
+                        [u.get_id() for u in loads]))
+                    print("\tCMF_{} = {}".format(
+                        p_src.get_id(),
+                        p_cmf))
+
+                # Decide about proposed transfer
+                if transfer_criterion.compute(o, p_src, p_dst) < 0.:
+                    # Reject proposed transfer
+                    n_rejects += 1
+
+                    # Report on rejected object transfer when requested
+                    if self.verbose:
+                        print("\t\trank {} declined transfer of object {} ({})".format(
+                            p_dst.get_id(),
+                            o.get_id(),
+                            o.get_time()))
+                else:
+                    # Accept proposed transfer
+                    if self.verbose:
+                        print("\t\tmigrating object {} ({}) to rank {}".format(
+                            o.get_id(),
+                            o.get_time(),
+                            p_dst.get_id()))
+
+                    # Sanity check before transfer
+                    if p_dst not in p_src.known_loads:
+                        print(bcolors.ERR
+                              + "*  ERROR: destination rank {} not in known ranks".format(
+                                  p_dst.get_id())
+                              + bcolors.END)
+                        sys.exit(1)
+
+                    # Transfer object
+                    p_src.remove_migratable_object(o, p_dst)
+                    obj_it = iter(p_src.get_migratable_objects())
+                    p_dst.add_migratable_object(o)
+                    n_transfers += 1
+
+        # Return object transfer counts
+        return n_ignored, n_transfers, n_rejects
+
+    def execute(self, n_iterations, n_rounds, f):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
-        r_threshold: float relative overhead threshold
-        pmf_type: 0: modified original approach; 1: NS variant 
         """
-
-        # Build set of ranks in the phase
-        procs = set(self.phase.ranks)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
@@ -152,124 +351,13 @@ class Runtime:
                 + "Starting iteration {}".format(
                 i + 1))
 
-            # Initialize gossip process
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Spreading load information with fanout = {}".format(
-                f))
-            gossip_round = 1
-            gossips = {}
-            l_max = 0.
-
-            # Iterate over all ranks
-            for p_snd in procs:
-                # Reset load information known by sender
-                p_snd.reset_all_load_information()
-
-                # Collect message when destination list is not empty
-                dst, msg = p_snd.initialize_loads(procs, f)
-                for p_rcv in dst:
-                    gossips.setdefault(p_rcv, []).append(msg)
-
-            # Process all messages of first round
-            for p_rcv, msg_lst in gossips.items():
-                for m in msg_lst:
-                    p_rcv.process_load_message(m)
-
-            # Report on gossiping status when requested
-            if self.verbose:
-                for p in procs:
-                    print("\tloaded known to rank {}: {}".format(
-                        p.get_id(),
-                        [p_u.get_id() for p_u in p.get_known_loaded()]))
-
-            # Forward messages for as long as necessary and requested
-            while gossip_round < n_rounds:
-                # Initiate next gossiping roung
-                print(bcolors.HEADER
-                    + "[RunTime] "
-                    + bcolors.END
-                    + "Performing load forwarding round {}".format(
-                    gossip_round))
-                gossip_round += 1
-                gossips.clear()
-
-                # Iterate over all ranks
-                for p_snd in procs:
-                    # Check whether rank must relay previously received message
-                    if p_snd.round_last_received + 1 == gossip_round:
-                        # Collect message when destination list is not empty
-                        dst, msg = p_snd.forward_loads(gossip_round, procs, f)
-                        for p_rcv in dst:
-                            gossips.setdefault(p_rcv, []).append(msg)
-
-                # Process all messages of first round
-                for p_rcv, msg_lst in gossips.items():
-                    for m in msg_lst:
-                        p_rcv.process_load_message(m)
-
-                # Report on gossiping status when requested
-                if self.verbose:
-                    for p in procs:
-                        print("\tloaded known to rank {}: {}".format(
-                            p.get_id(),
-                            [p_u.get_id() for p_u in p.get_known_loaded()]))
-
-            # Build reverse lookup of loaded to overloaded viewers
-            for p in procs:
-                # Skip non-loaded ranks
-                if not p.get_load():
-                    continue
-
-                # Update viewers on loaded ranks known to this one
-                p.add_as_viewer(p.get_known_loaded())
-                
-            # Report on viewers of loaded ranks
-            viewers_counts = {}
-            for p in procs:
-                # Skip non loaded ranks
-                if not p.get_load():
-                    continue
-
-                # Retrieve cardinality of viewers
-                viewers = p.get_viewers()
-                viewers_counts[p] = len(viewers)
-
-                # Report on viewers of loaded rank when requested
-                if self.verbose:
-                    print("\tviewers of rank {}: {}".format(
-                        p.get_id(),
-                        [p_o.get_id() for p_o in viewers]))
-
-            # Report viewers counts to loaded ranks
-            n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-                viewers_counts.values(),
-                lambda x: x)
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} loaded ranks".format(
-                      v_min,
-                      v_ave,
-                      v_max,
-                      n_u))
-
-            # Initialize transfer step
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Migrating overloads above relative threshold of {}".format(
-                r_threshold))
-            n_ignored, n_transfers, n_rejects = 0, 0, 0
+            # Start with information stage
+            self.information_stage(n_rounds, f)
 
             # Instantiate object transfer criterion
-            self.criterion_params.update(
-                {"average_load": self.average_load,
-                 "actual_destination_load": self.actual_dst_load})
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
-                procs,
+                set(self.phase.get_ranks()),
                 self.phase.get_edges(),
                 self.criterion_params)
             if not transfer_criterion:
@@ -278,87 +366,14 @@ class Runtime:
                     + bcolors.END)
                 sys.exit(1)
 
-            # Iterate over rank
-            for p_src in procs:
-                # Skip non-loaded ranks
-                if not p_src.get_load() > 0.:
-                    continue
+            # Use criterion to perform transfer stage
+            n_ignored, n_transfers, n_rejects = self.transfer_stage(
+                transfer_criterion)
 
-                # Skip ranks unaware of loaded peers
-                loads = p_src.get_known_loads()
-                if not loads:
-                    n_ignored += 1
-                    continue
-
-                # Offload objects for as long as necessary and possible
-                srt_proc_obj = self.order_strategy(
-                    objects=p_src. migratable_objects)
-                obj_it = iter(srt_proc_obj)
-                while p_src.get_load() > self.average_load:
-                    # Leave this rank if it ran out of known loaded
-                    p_keys = list(p_src.get_known_loads().keys())
-                    if not p_keys:
-                        break
-
-                    # Pick next object
-                    try:
-                        o = next(obj_it)
-                    except:
-                        # List of objects is exhausted, break out
-                        break
-
-                    # Compute empirical CMF given known loads
-                    p_cmf = p_src.compute_cmf_loads()
-
-                    # Pseudo-randomly select destination proc
-                    p_dst = inverse_transform_sample(
-                        p_keys,
-                        p_cmf)
-
-                    # Report on overloaded rank when requested
-                    if self.verbose:
-                        print("\texcess load of rank {}: {}".format(
-                            p_src.get_id(),
-                            l_exc))
-                        print("\tknown loaded ranks: {}".format(
-                            [u.get_id() for u in loads]))
-                        print("\tCMF_{} = {}".format(
-                            p_src.get_id(),
-                            p_cmf))
-
-                    # Decide about proposed transfer
-                    if transfer_criterion.compute(o, p_src, p_dst) < 0.:
-                        # Reject proposed transfer
-                        n_rejects += 1
-
-                        # Report on rejected object transfer when requested
-                        if self.verbose:
-                            print("\t\trank {} declined transfer of object {} ({})".format(
-                                p_dst.get_id(),
-                                o.get_id(),
-                                o.get_time()))
-                    else:
-                        # Accept proposed transfer
-                        if self.verbose:
-                            print("\t\tmigrating object {} ({}) to rank {}".format(
-                                o.get_id(),
-                                o.get_time(),
-                                p_dst.get_id()))
-
-                        # Transfer object
-                        if p_dst not in p_src.known_loads:
-                            print(p_src, p_dst)
-                            print(p_src.get_id(), p_dst.get_id())
-                            print(sorted([p.get_id() for p in p_src.known_loads]))
-                            print(sorted([p.get_id() for p in p_keys]))
-                            sys.exit(1)
-                        p_src.remove_migratable_object(o, p_dst)
-                        obj_it = iter(p_src.get_migratable_objects())
-                        p_dst.add_migratable_object(o)
-                        n_transfers += 1
- 
-            # Invalidate cache of edges
+             # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
+
+            # Report iteration statistics
             print(bcolors.HEADER
                   + "[RunTime] "
                   + bcolors.END
@@ -401,7 +416,7 @@ class Runtime:
             self.statistics["average communication weight"].append(w_ave)
             self.statistics["maximum communication weight"].append(w_max)
             self.statistics["communication weight variance"].append(w_var)
-            self.statistics["communication weight imbalance"].append(w_imb)
+            self.statistics["total communication weight"].append(n_w * w_ave)
 
             # Report partial statistics
             iteration = i + 1
@@ -446,33 +461,37 @@ class Runtime:
         """ Objects ordered by ID. """
         return self.sort(objects, key=lambda x: x.get_id())
 
-    def load_ex(self, objects: set):
+    def load_excess(self, objects: set):
         proc_load = sum([obj.get_time() for obj in objects])
         return proc_load - self.average_load
 
     def fewest_migrations(self, objects: set):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_ex
-            Sort smallest to largest if > load_ex
+            Sort largest to smallest if <= load_excess
+            Sort smallest to largest if > load_excess
         """
-        load_ex = self.load_ex(objects)
-        lt_load_ex = [obj for obj in objects if obj.get_time() <= load_ex]
-        get_load_ex = [obj for obj in objects if obj.get_time() > load_ex]
-        return self.sorted_descending(lt_load_ex) + self.sorted_ascending(get_load_ex)
+
+        load_excess = self.load_excess(objects)
+        lt_load_excess = [obj for obj in objects if obj.get_time() <= load_excess]
+        get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
+        return self.sorted_descending(lt_load_excess) + self.sorted_ascending(get_load_excess)
 
     def small_objects(self, objects: set):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_ex
-            Sort smallest to largest if > load_ex
+            Sort largest to smallest if <= load_excess
+            Sort smallest to largest if > load_excess
         """
-        load_ex = self.load_ex(objects)
+
+        load_excess = self.load_excess(objects)
         sorted_objects = self.sorted_ascending(objects)
         accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
-        idx = bisect(accumulated_times, load_ex) + 1
+        idx = bisect(accumulated_times, load_excess) + 1
         return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
 
     def largest_objects(self, objects: set):
-        """ Objects ordered by object load/time. From bigger to smaller. """
+        """ Objects ordered by object load/time. From bigger to smaller.
+        """
+
         return self.sorted_descending(objects)
