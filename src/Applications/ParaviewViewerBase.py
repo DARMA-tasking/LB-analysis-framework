@@ -397,7 +397,7 @@ class ParaviewViewerBase(object):
         pv.SetActiveView(renderView)
 
         # Create ExodusII reader
-        reader = self.createExodusIIReader("Weight", "Load")
+        reader = self.createExodusIIReader("Volume", "Load")
 
         # Create sqrt(load) calculator to optimize visuals
         sqrt_load = self.createCalculator(reader, "sqrt", "Load")
@@ -405,8 +405,8 @@ class ParaviewViewerBase(object):
         # Create sqrt(load) glyph
         glyph = self.createGlyph(sqrt_load, factor=0.05)
 
-        # Instantiate weight colors and points
-        weight_colors = [223.48540319420192,
+        # Instantiate volume colors and points
+        volume_colors = [223.48540319420192,
                          0.231373,
                          0.298039,
                          0.752941,
@@ -418,7 +418,7 @@ class ParaviewViewerBase(object):
                          0.705882,
                          0.0156863,
                          0.14902]
-        weight_points = [223.48540319420192,
+        volume_points = [223.48540319420192,
                          0.0,
                          0.5,
                          0.0,
@@ -427,24 +427,24 @@ class ParaviewViewerBase(object):
                          0.5,
                          0.0]
         # Create color transfert functions
-        weightLUT = self.createColorTransferFunction(
-            "Weight",
-            weight_colors,
+        volumeLUT = self.createColorTransferFunction(
+            "Volume",
+            volume_colors,
             [1., 1., 1.],
             0.0)
-        weightPWF = self.createOpacityTransferFunction(
-            "Weight",
-            weight_points)
+        volumePWF = self.createOpacityTransferFunction(
+            "Volume",
+            volume_points)
 
         readerDisplay = self.createDisplay(
             reader,
             renderView,
-            ['CELLS', 'Weight'],
-            weightLUT,
+            ['CELLS', 'Volume'],
+            volumeLUT,
             4.0,
             None,
             None,
-            weightPWF)
+            volumePWF)
 
         # Instantiate load colors and points
         load_colors = [0.0,

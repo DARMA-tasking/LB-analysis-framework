@@ -89,7 +89,7 @@ class Runtime:
         self.sent_distributions = [{
             k:v for k,v in self.phase.get_edges().items()}]
 
-        # Compute global load and weight statistics and initialize average load
+        # Compute global load and volume statistics and initialize average load
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
@@ -106,7 +106,7 @@ class Runtime:
         print(bcolors.HEADER
             + "[RunTime] "
             + bcolors.END
-            + "Weight imbalance(0) = {:.6g}".format(
+            + "Volume imbalance(0) = {:.6g}".format(
             w_imb))
         self.statistics = {
             "minimum load"                  : [l_min],
@@ -114,10 +114,10 @@ class Runtime:
             "load variance"                 : [l_var],
             "load imbalance"                : [l_imb],
             "number of communication edges" : [n_w],
-            "average communication weight"  : [w_ave],
-            "maximum communication weight"  : [w_max],
-            "communication weight variance" : [w_var],
-            "total communication weight": [n_w * w_ave]}
+            "average communication volume"  : [w_ave],
+            "maximum communication volume"  : [w_max],
+            "communication volume variance" : [w_var],
+            "total communication volume": [n_w * w_ave]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -401,7 +401,7 @@ class Runtime:
             self.sent_distributions.append({
                 k:v for k,v in self.phase.get_edges().items()})
 
-            # Compute and store global rank load and link weight statistics
+            # Compute and store global rank load and link volume statistics
             _, l_min, self.load_average, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: x.get_load())
@@ -413,10 +413,10 @@ class Runtime:
             self.statistics["load variance"].append(l_var)
             self.statistics["load imbalance"].append(l_imb)
             self.statistics["number of communication edges"].append(n_w)
-            self.statistics["average communication weight"].append(w_ave)
-            self.statistics["maximum communication weight"].append(w_max)
-            self.statistics["communication weight variance"].append(w_var)
-            self.statistics["total communication weight"].append(n_w * w_ave)
+            self.statistics["average communication volume"].append(w_ave)
+            self.statistics["maximum communication volume"].append(w_max)
+            self.statistics["communication volume variance"].append(w_var)
+            self.statistics["total communication volume"].append(n_w * w_ave)
 
             # Report partial statistics
             iteration = i + 1
@@ -433,7 +433,7 @@ class Runtime:
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Weight imbalance({}) = {:.6g}; "
+                + "Volume imbalance({}) = {:.6g}; "
                    "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}".format(
                 iteration,
                 w_imb,

@@ -312,11 +312,11 @@ class LoadReader:
                             print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} iteration = {phase}, object id = {o_id}"
                                   f", time = {time}")
 
-                # Handle four-entry case that corresponds to a communication weight
+                # Handle four-entry case that corresponds to a communication volume
                 elif n_entries == 5:
                     continue
                     # Parsing the five-entry case, thus this format:
-                    #   <time_step/phase>, <to-object-id>, <from-object-id>, <weight>, <comm-type>
+                    #   <time_step/phase>, <to-object-id>, <from-object-id>, <volume>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
                     print(f"{bcolors.ERR}*  ERROR: [LoadReaderVT] Communication graph unimplemented{bcolors.END}")

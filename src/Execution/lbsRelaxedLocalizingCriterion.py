@@ -92,13 +92,13 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Add value with second components of a collection
         xPy1 = (lambda x, y: x + y[1])
 
-        # Aggregate communication weights with source
+        # Aggregate communication volumes with source
         w_src = functools.reduce(xPy1,
                                  list(filter(is_s, recv))
                                  + list(filter(is_s, sent)),
                                  0.)
 
-        # Aggregate communication weights with destination
+        # Aggregate communication volumes with destination
         w_dst = functools.reduce(xPy1,
                                  list(filter(is_d, recv))
                                  + list(filter(is_d, sent)),
