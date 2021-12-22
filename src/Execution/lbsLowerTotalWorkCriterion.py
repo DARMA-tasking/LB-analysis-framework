@@ -109,13 +109,13 @@ class LowerTotalWorkCriterion(CriterionBase):
             # Add value with second components of a collection
             xPy1 = (lambda x, y: x + y[1])
 
-            # Aggregate communication weights local to source
+            # Aggregate communication volumes local to source
             w_src = functools.reduce(xPy1,
                                      list(filter(is_s, recv))
                                      + list(filter(is_s, sent)),
                                      0.)
 
-            # Aggregate communication weights between source and destination
+            # Aggregate communication volumes between source and destination
             w_dst = functools.reduce(xPy1,
                                      list(filter(is_d, recv))
                                      + list(filter(is_d, sent)),

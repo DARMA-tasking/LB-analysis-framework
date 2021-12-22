@@ -99,7 +99,7 @@ class Phase:
         return self.phase_id
 
     def compute_edges(self):
-        """Compute and return map of communication link IDs to weights
+        """Compute and return map of communication link IDs to volumes
         """
 
         # Compute or re-compute edges from scratch
@@ -109,7 +109,7 @@ class Phase:
         # Initialize count of loaded ranks
         n_loaded = 0
 
-        # Initialize sum of total and rank-local weights
+        # Initialize sum of total and rank-local volumes
         w_total = 0.
         w_local = 0.
 
@@ -130,25 +130,25 @@ class Phase:
                     print("\t* object {}:".format(o.get_id()))
 
                 # Iterate over recipient objects
-                for q, weight in o.get_sent().items():
-                    # Update total weight
-                    w_total += weight
+                for q, volume in o.get_sent().items():
+                    # Update total volume
+                    w_total += volume
 
                     # Retrieve recipient rank ID
                     j = q.get_rank_id()
                     if self.verbose:
                         print("\t  -> object {} assigned to {}: {}".format(
-                            q.get_id(), j, weight))
+                            q.get_id(), j, volume))
 
                     # Skip rank-local communications
                     if i == j:
-                        # Update sum of local weights and continue
-                        w_local += weight
+                        # Update sum of local volumes and continue
+                        w_local += volume
                         continue
 
                     # Create or update an inter-rank edge
                     ij = frozenset([i, j])
-                    self.edges[ij] = self.edges.setdefault(ij, 0.) + weight
+                    self.edges[ij] = self.edges.setdefault(ij, 0.) + volume
                     if self.verbose:
                         print("\t Edge rank {} -- rank {}: {}".format(
                             min(i, j),
@@ -174,7 +174,7 @@ class Phase:
             "number of computed ones",
             n_edges)
         print_subset_statistics(
-            "Inter-object communication weights",
+            "Inter-object communication volumes",
             "total",
             w_total,
             "rank-local",
@@ -216,7 +216,7 @@ class Phase:
         # Decide whether communications must be created
         if c_degree > 0:
             # Instantiante communication samplers with requested properties
-            weight_sampler, weight_sampler_name = sampler(
+            volume_sampler, volume_sampler_name = sampler(
                 cs,
                 cs_params)
 
@@ -226,7 +226,7 @@ class Phase:
                 "binomial",
                 [min(n_o - 1, int(c_degree / p_b)), p_b])
             print(f"{bcolors.HEADER}[Phase]{bcolors.END} Creating communications with:")
-            print("\tweights sampled from {}".format(weight_sampler_name))
+            print("\tvolumes sampled from {}".format(volume_sampler_name))
             print("\tout-degrees sampled from {}".format(degree_sampler_name))
 
             # Create communicator for each object with only sent communications
@@ -235,7 +235,7 @@ class Phase:
                 # Create object communicator witj outgoing messages
                 obj.set_communicator(ObjectCommunicator(
                     {},
-                    {o: weight_sampler()
+                    {o: volume_sampler()
                      for o in rnd.sample(
                         objects.difference([obj]),
                         degree_sampler())
@@ -274,8 +274,8 @@ class Phase:
                   f"{len(w_sent)} <> {len(w_recv)}{bcolors.END}")
             sys.exit(1)
 
-        # Compute and report communication weight statistics
-        print_function_statistics(w_sent, lambda x: x, "communication weights", self.verbose)
+        # Compute and report communication volume statistics
+        print_function_statistics(w_sent, lambda x: x, "communication volumes", self.verbose)
 
         # Create n_p ranks
         self.ranks = [Rank(i) for i in range(n_p)]

@@ -92,7 +92,7 @@ class WriterExodusII:
         except:
             self.grid_resolution = 1.
 
-    def write(self, load_statistics, load_distributions, weight_distributions, verbose=False):
+    def write(self, load_statistics, load_distributions, volume_distributions, verbose=False):
         """Map ranks to grid and write ExodusII file
         """
 
@@ -160,16 +160,16 @@ class WriterExodusII:
                 edge_indices[flat_index] = frozenset([i, j])
                 flat_index += 1
 
-        # Create attribute data arrays for edge weights
-        weight_arrays = []
-        for i, w in enumerate(weight_distributions):
-            # Create and append new weight array for edges
+        # Create attribute data arrays for edge volumes
+        volume_arrays = []
+        for i, w in enumerate(volume_distributions):
+            # Create and append new volume array for edges
             w_arr = vtk.vtkDoubleArray()
-            w_arr.SetName("Weight")
+            w_arr.SetName("Volume")
             w_arr.SetNumberOfTuples(n_e)
-            weight_arrays.append(w_arr)
+            volume_arrays.append(w_arr)
             
-            # Assign edge weight values
+            # Assign edge volume values
             if verbose:
                 print("\titeration {} edges:".format(i))
             for e in range(n_e):
@@ -186,7 +186,7 @@ class WriterExodusII:
             lines,
             stat_arrays,
             load_arrays,
-            weight_arrays)
+            volume_arrays)
 
         # Write to ExodusII file when possible
         if streamer.Error:

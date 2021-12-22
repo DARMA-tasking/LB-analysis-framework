@@ -62,25 +62,25 @@ class ObjectCommunicator:
         self.sent = s if isinstance(s, dict) else {}
 
     def get_received(self):
-        """Return all from_object=weight pairs received by object
+        """Return all from_object=volume pairs received by object
         """
 
         return self.received
 
     def get_received_from_object(self, o):
-        """Return the weight of a message received from an object if any
+        """Return the volume of a message received from an object if any
         """
 
         return self.received.get(o)
 
     def get_sent(self):
-        """Return all to_object=weight pairs sent from object
+        """Return all to_object=volume pairs sent from object
         """
 
         return self.sent
 
     def get_sent_to_object(self, o):
-        """Return the weight of a message received from an object if any
+        """Return the volume of a message received from an object if any
         """
 
         return self.sent.get(o)
@@ -94,8 +94,8 @@ class ObjectCommunicator:
             print(f"{bcolors.ERR}*  ERROR: unknown direction string: {direction}{bcolors.END}")
             sys.exit(1)
 
-        # Initialize list of weights
-        weights = []
+        # Initialize list of volumes
+        volumes = []
 
         # Iterate over one-way communications
         communications = self.sent if direction == "to" else self.received
@@ -106,15 +106,15 @@ class ObjectCommunicator:
                       f"{bcolors.END}")
                 sys.exit(1)
 
-            # Update list of weights
-            weights.append(v)
+            # Update list of volumes
+            volumes.append(v)
 
             # Report current communicaton item if requested
             if print_indent:
                 print(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
-        # Return list of weights
-        return weights
+        # Return list of volumes
+        return volumes
 
     def summarize(self, print_indent=None):
         """Summarize communicator properties and check for errors

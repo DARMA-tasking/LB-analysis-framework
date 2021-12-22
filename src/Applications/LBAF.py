@@ -89,8 +89,8 @@ class internalParameters:
         self.time_sampler_parameters = []
 
         # Object communication graph time sampler type and parameters
-        self.weight_sampler_type = None
-        self.weight_sampler_parameters = []
+        self.volume_sampler_type = None
+        self.volume_sampler_parameters = []
 
         # Object communication graph degree (constant for now)
         self.communication_degree = 0
@@ -166,9 +166,9 @@ class internalParameters:
         """
         # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
-                 (self.time_sampler_type and self.weight_sampler_type))
+                 (self.time_sampler_type and self.volume_sampler_type))
                 or (self.log_file and
-                    (self.time_sampler_type or self.weight_sampler_type))):
+                    (self.time_sampler_type or self.volume_sampler_type))):
             print(bcolors.ERR
                   + "** ERROR: exactly one strategy to populate initial phase "
                     "must be chosen."
@@ -206,8 +206,8 @@ class internalParameters:
             self.grid_size[2] = self.conf.get("z_procs", 0)
         if isinstance(self.conf.get("time_sampler_type", None), str):
             self.time_sampler_type, self.time_sampler_parameters = parse_sampler(self.conf["time_sampler_type"])
-        if isinstance(self.conf.get("weight_sampler_type", None), str):
-            self.weight_sampler_type, self.weight_sampler_parameters = parse_sampler(self.conf["weight_sampler_type"])
+        if isinstance(self.conf.get("volume_sampler_type", None), str):
+            self.volume_sampler_type, self.volume_sampler_parameters = parse_sampler(self.conf["volume_sampler_type"])
         if self.communication_degree > 0:
             self.communication_enabled = True
         if isinstance(self.conf.get("order_strategy", None), str):
@@ -323,21 +323,21 @@ if __name__ == '__main__':
                                      params.time_sampler_type,
                                      params.time_sampler_parameters,
                                      params.communication_degree,
-                                     params.weight_sampler_type,
-                                     params.weight_sampler_parameters,
+                                     params.volume_sampler_type,
+                                     params.volume_sampler_parameters,
                                      n_p,
                                      params.n_ranks)
 
         # Keep track of number of objects
         n_o = params.n_objects
 
-    # Compute and print initial rank load and link weight statistics
+    # Compute and print initial rank load and link volume statistics
     print_function_statistics(phase.get_ranks(),
                               lambda x: x.get_load(),
                               "initial rank loads",
                               params.verbose)
     print_function_statistics(phase.get_edges().values(),
-                              lambda x: x, "initial link weights",
+                              lambda x: x, "initial link volumes",
                               params.verbose)
 
     # Instantiate runtime
@@ -384,13 +384,13 @@ if __name__ == '__main__':
         reader = viewer.createViews()
         viewer.saveView(reader)
 
-    # Compute and print final rank load and link weight statistics
+    # Compute and print final rank load and link volume statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(
         phase.get_ranks(),
         lambda x: x.get_load(),
         "final rank loads",
         params.verbose)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "final link weights", params.verbose)
+    print_function_statistics(phase.get_edges().values(), lambda x: x, "final link volumes", params.verbose)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
