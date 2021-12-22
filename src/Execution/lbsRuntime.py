@@ -291,11 +291,10 @@ class Runtime:
 
                 # Report on overloaded rank when requested
                 if self.verbose:
-                    print("\texcess load of rank {}: {}".format(
-                        p_src.get_id(),
-                        l_exc))
                     print("\tknown loaded ranks: {}".format(
                         [u.get_id() for u in loads]))
+                    print("\tknown loads: {}".format(
+                        [u.get_load() for u in loads]))
                     print("\tCMF_{} = {}".format(
                         p_src.get_id(),
                         p_cmf))

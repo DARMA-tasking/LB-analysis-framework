@@ -162,23 +162,29 @@ class WriterExodusII:
 
         # Create attribute data arrays for edge volumes
         volume_arrays = []
-        for i, w in enumerate(volume_distributions):
+        for i, volumes in enumerate(volume_distributions):
+            # Reduce directed edges into undirected ones
+            u_edges = {}
+            for k, v in volumes.items():
+                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
+
             # Create and append new volume array for edges
-            w_arr = vtk.vtkDoubleArray()
-            w_arr.SetName("Volume")
-            w_arr.SetNumberOfTuples(n_e)
-            volume_arrays.append(w_arr)
+            v_arr = vtk.vtkDoubleArray()
+            v_arr.SetName("Volume")
+            v_arr.SetNumberOfTuples(n_e)
+            volume_arrays.append(v_arr)
             
             # Assign edge volume values
             if verbose:
                 print("\titeration {} edges:".format(i))
             for e in range(n_e):
-                w_arr.SetTuple1(e, w.get(edge_indices[e], float("nan")))
+                v_arr.SetTuple1(
+                    e, u_edges.get(edge_indices[e], float("nan")))
                 if verbose:
-                    print("\t {} ({}): {}".format(
+                    print("\t {} {}): {}".format(
                         e,
-                        list(edge_indices[e]),
-                        w_arr.GetTuple1(e)))
+                        edge_indices[e],
+                        v_arr.GetTuple1(e)))
 
         # Create grid streamer
         streamer = GridStreamer(

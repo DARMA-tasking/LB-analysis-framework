@@ -53,7 +53,7 @@ class RelaxedLocalizingCriterion(CriterionBase):
     def __init__(self, ranks, edges, _):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (frozensets)
+        edges: dictionary of edges (pairs)
         _: no parameters dictionary needed for this criterion
         """
 

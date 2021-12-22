@@ -53,15 +53,14 @@ class TemperedLoadCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, ranks, edges, parameters):
+    def __init__(self, ranks, _, parameters):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (frozensets)
         parameters: parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(TemperedLoadCriterion, self).__init__(ranks, edges)
+        super(TemperedLoadCriterion, self).__init__(ranks, _)
         print(f"{bcolors.HEADER}[TemperedLoadCriterion]{bcolors.END} Instantiated concrete criterion")
 
         # Use either actual or locally known destination loads

@@ -55,7 +55,7 @@ class LowerTotalWorkCriterion(CriterionBase):
     def __init__(self, ranks, edges, parameters):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (frozensets)
+        edges: dictionary of edges (pairs)
         parameters: parameters dictionary needed for this criterion
         """
 

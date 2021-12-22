@@ -58,10 +58,10 @@ class Rank:
         # Member variables passed by constructor
         self.index = i
         self.migratable_objects = set()
-        self.sentinel_objects = set()
         if mo is not None:
             for o in mo:
                 self.migratable_objects.add(o)
+        self.sentinel_objects = set()
         if so is not None:
             for o in so:
                 self.sentinel_objects.add(o)
