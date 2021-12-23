@@ -369,12 +369,19 @@ if __name__ == '__main__':
     # If prefix parsed from command line
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
-        ex_writer = WriterExodusII(phase, grid_map, f"{output_stem}", output_dir=params.output_dir)
-        ex_writer.write(rt.statistics, rt.load_distributions, rt.sent_distributions, params.verbose)
+        ex_writer = WriterExodusII(
+            phase,
+            grid_map,
+            f"{output_stem}",
+            output_dir=params.output_dir)
+        ex_writer.write(
+            rt.statistics,
+            rt.load_distributions,
+            rt.sent_distributions,
+            params.verbose)
 
     # Create a viewer if paraview is available
     file_name = output_stem
-
     if params.generate_multimedia:
         from ParaviewViewerBase import ParaviewViewerBase
         if params.output_dir is not None:

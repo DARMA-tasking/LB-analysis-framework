@@ -57,7 +57,7 @@ class CriterionBase:
     def __init__(self, ranks, edges, parameters=None):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (frozensets)
+        edges: dictionary of directed edges (pairs)
         parameters: optional parameters dictionary
         """
 
@@ -84,12 +84,12 @@ class CriterionBase:
                 + bcolors.END)
             sys.exit(1)
 
-        # Assert that all members of said dictionary are indeed frozen sets
+        # Assert that all members of said dictionary are indeed tuples
         n_e = len(edges)
         if n_e != len(list(
-            filter(lambda x: isinstance(x, frozenset), edges))):
+            filter(lambda x: isinstance(x, tuple), edges))):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a criterion without a dictionary of frozen sets"
+                + "*  ERROR: Could not create a criterion without a dictionary of tuples"
                 + bcolors.END)
             sys.exit(1)
 

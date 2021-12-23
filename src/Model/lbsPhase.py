@@ -137,8 +137,8 @@ class Phase:
                     # Retrieve recipient rank ID
                     j = q.get_rank_id()
                     if self.verbose:
-                        print("\t  -> object {} assigned to {}: {}".format(
-                            q.get_id(), j, volume))
+                        print("\t  sending volume {} to object {} assigned to rank {}".format(
+                            volume, q.get_id(), j))
 
                     # Skip rank-local communications
                     if i == j:
@@ -147,13 +147,12 @@ class Phase:
                         continue
 
                     # Create or update an inter-rank edge
-                    ij = frozenset([i, j])
-                    self.edges[ij] = self.edges.setdefault(ij, 0.) + volume
+                    self.edges[(i, j)] = self.edges.setdefault((i, j), 0.) + volume
                     if self.verbose:
-                        print("\t Edge rank {} -- rank {}: {}".format(
-                            min(i, j),
-                            max(i, j),
-                            self.edges[ij]))
+                        print("\t Edge rank {} --> rank {}, volume: {}".format(
+                            i,
+                            j,
+                            self.edges[(i, j)]))
 
         # Edges cache was fully updated
         self.cached_edges = True
