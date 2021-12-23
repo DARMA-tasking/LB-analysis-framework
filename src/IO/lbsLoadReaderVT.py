@@ -193,7 +193,10 @@ class LoadReader:
 
         # validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            print(f"{bcolors.OK}[LoadReaderVT] Valid JSON schema in {file_name}{bcolors.END}")
+            print(bcolors.HEADER
+                  + "[LoadReaderVT]"
+                  + bcolors.END
+                  + "Valid JSON schema in  {}".format(file_name))
         else:
             raise SyntaxError(f"{bcolors.ERR}[LoadReaderVT] Invalid JSON schema in {file_name}{bcolors.END}")
 
