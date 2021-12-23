@@ -170,7 +170,7 @@ class WriterExodusII:
 
             # Create and append new volume array for edges
             v_arr = vtk.vtkDoubleArray()
-            v_arr.SetName("Volume")
+            v_arr.SetName("Bidirectional Volume")
             v_arr.SetNumberOfTuples(n_e)
             volume_arrays.append(v_arr)
             
