@@ -50,6 +50,7 @@ from typing import Union
 
 import bcolors
 
+from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsPhase import Phase
 from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample
@@ -59,9 +60,10 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c: dict, order_strategy: str, v=False):
+    def __init__(self, p, w: dict, c: dict, order_strategy: str, v=False):
         """Class constructor:
         p: phase instance
+        w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
         v: verbose mode [FALSE/True]
@@ -76,12 +78,16 @@ class Runtime:
         else:
             self.phase = p
 
-        # Verbosity of runtime
-        self.verbose = v
+        # Work model type and parameters
+        self.work_model_name = w.get("name")
+        self.work_model_params = w.get("parameters", {})
 
         # Transfer critertion type and parameters
         self.criterion_name = c.get("name")
         self.criterion_params = c.get("parameters", {})
+
+        # Verbosity of runtime
+        self.verbose = v
 
         # Initialize load and sent distributions
         self.load_distributions = [[
@@ -353,6 +359,16 @@ class Runtime:
             # Start with information stage
             self.information_stage(n_rounds, f)
 
+            # Instantiate work model
+            work_model = WorkModelBase.factory(
+                self.work_model_name,
+                self.work_model_params)
+            if not work_model:
+                print(bcolors.ERR
+                    + "*  ERROR: could not instantiate a work model of tyoe {}".format(self.work_model_name)
+                    + bcolors.END)
+                sys.exit(1)
+
             # Instantiate object transfer criterion
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
@@ -361,7 +377,7 @@ class Runtime:
                 self.criterion_params)
             if not transfer_criterion:
                 print(bcolors.ERR
-                    + "*  ERROR: cannot load-balance without a load transfer criterion"
+                    + "*  ERROR: could not instantiate a transfer criterion of type {}".format(self.criterion_name)
                     + bcolors.END)
                 sys.exit(1)
 

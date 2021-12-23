@@ -72,6 +72,9 @@ class internalParameters:
     """
 
     def __init__(self):
+        # By default use load-only work model
+        self.work_model = {"name": "LoadOnly", "parameters": {}}
+
         # By default use tempered load criterion
         self.criterion = {"name": "TemperedLoad", "parameters": {}}
 
@@ -342,6 +345,7 @@ if __name__ == '__main__':
 
     # Instantiate runtime
     rt = Runtime(phase,
+                 params.work_model,
                  params.criterion,
                  params.order_strategy,
                  params.verbose)
