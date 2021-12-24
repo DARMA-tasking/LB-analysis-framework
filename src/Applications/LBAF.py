@@ -383,6 +383,7 @@ if __name__ == '__main__':
             rt.statistics,
             rt.load_distributions,
             rt.sent_distributions,
+            rt.work_distributions,
             params.verbose)
 
     # Create a viewer if paraview is available

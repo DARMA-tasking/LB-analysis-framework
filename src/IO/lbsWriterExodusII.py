@@ -92,7 +92,7 @@ class WriterExodusII:
         except:
             self.grid_resolution = 1.
 
-    def write(self, load_statistics, load_distributions, volume_distributions, verbose=False):
+    def write(self, load_statistics, load_distributions, volume_distributions, work_distributions, verbose=False):
         """Map ranks to grid and write ExodusII file
         """
 
@@ -114,7 +114,7 @@ class WriterExodusII:
             n_e))
 
         # Create and populate field data arrays for load statistics
-        stat_arrays = {}
+        time_stats = {}
         for stat_name, stat_values in load_statistics.items():
             # Create one singleton for each value of each statistic
             for v in stat_values:
@@ -122,16 +122,19 @@ class WriterExodusII:
                 s_arr.SetNumberOfTuples(1)
                 s_arr.SetTuple1(0, v)
                 s_arr.SetName(stat_name)
-                stat_arrays.setdefault(stat_name, []).append(s_arr)
+                time_stats.setdefault(stat_name, []).append(s_arr)
 
-        # Create attribute data arrays for ranks loads
-        load_arrays = []
-        for _ in load_distributions:
-            # Create and append new load array for points
-            l_arr = vtk.vtkDoubleArray()
+        # Create attribute data arrays for rank loads and works
+        time_loads, time_works = [], []
+        for _, _ in zip(load_distributions, work_distributions):
+            # Create and append new load and work point arrays
+            l_arr, w_arr = vtk.vtkDoubleArray(), vtk.vtkDoubleArray()
             l_arr.SetName("Load")
+            w_arr.SetName("Work")
             l_arr.SetNumberOfTuples(n_p)
-            load_arrays.append(l_arr)
+            w_arr.SetNumberOfTuples(n_p)
+            time_loads.append(l_arr)
+            time_works.append(w_arr)
 
         # Iterate over ranks and create mesh points
         points = vtk.vtkPoints()
@@ -141,8 +144,10 @@ class WriterExodusII:
             points.SetPoint(
                 i,
                 [self.grid_resolution * c for c in self.mapping(p)])
-            for l, l_arr in enumerate(load_arrays):
+            for l, (l_arr, w_arr) in enumerate(zip(
+                time_loads, time_works)):
                 l_arr.SetTuple1(i, load_distributions[l][i])
+                w_arr.SetTuple1(i, work_distributions[l][i])
 
         # Iterate over all possible links and create edges
         lines = vtk.vtkCellArray()
@@ -161,7 +166,7 @@ class WriterExodusII:
                 flat_index += 1
 
         # Create attribute data arrays for edge volumes
-        volume_arrays = []
+        time_volumes = []
         for i, volumes in enumerate(volume_distributions):
             # Reduce directed edges into undirected ones
             u_edges = {}
@@ -172,7 +177,7 @@ class WriterExodusII:
             v_arr = vtk.vtkDoubleArray()
             v_arr.SetName("Bidirectional Volume")
             v_arr.SetNumberOfTuples(n_e)
-            volume_arrays.append(v_arr)
+            time_volumes.append(v_arr)
             
             # Assign edge volume values
             if verbose:
@@ -190,9 +195,9 @@ class WriterExodusII:
         streamer = GridStreamer(
             points,
             lines,
-            stat_arrays,
-            load_arrays,
-            volume_arrays)
+            time_stats,
+            [time_loads, time_works],
+            time_volumes)
 
         # Write to ExodusII file when possible
         if streamer.Error:

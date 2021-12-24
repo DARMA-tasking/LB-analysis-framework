@@ -140,5 +140,4 @@ class LoadWriterVT:
         if n_u:
             print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
         else:
-            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(rank.get_objects())} objects to JSON"
-                  f" file {file_name}")
+            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(rank.get_objects())} objects to {file_name}")
