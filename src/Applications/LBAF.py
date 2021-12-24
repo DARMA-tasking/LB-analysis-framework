@@ -153,10 +153,7 @@ class internalParameters:
 
         if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
             # Try to open configuration file
-            print(bcolors.HEADER
-                  + "[LBAF] "
-                  + bcolors.END
-                  + "Found configuration file {}".format(conf_file))
+            print(f"{bcolors.HEADER}[LBAF]{bcolors.END} Found configuration file {conf_file}")
             try:
                 with open(conf_file, "rt") as config:
                     self.conf_file_found = True
