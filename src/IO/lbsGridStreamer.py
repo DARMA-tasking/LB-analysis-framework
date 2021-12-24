@@ -87,12 +87,11 @@ class GridStreamer:
             return
 
         # Keep track of requested number of steps and check consistency
-        n_steps = len(point_arrays)
-        if n_steps != len(cell_arrays):
+        n_steps = len(cell_arrays)
+        if any([n_steps != len(p) for p in point_arrays]):
             print(bcolors.ERR
-                + "*  ERROR: Number of point and cell arrays do not match: {} <> {}".format(
-                n_steps,
-                len(cell_arrays))
+                + "*  ERROR: Number of time steps not all equal to "
+                + str(n_steps)
                 + bcolors.END)
             self.Error = True
             return
@@ -152,7 +151,8 @@ class GridStreamer:
                 output.GetFieldData().AddArray(f_list[i])
 
             # Assign data attributes to output for timestep index
-            output.GetPointData().AddArray(point_arrays[i])
+            for p in point_arrays:
+                output.GetPointData().AddArray(p[i])
             output.GetCellData().AddArray(cell_arrays[i])
 
         # Set VTK RequestData() to programmable source

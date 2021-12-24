@@ -95,19 +95,24 @@ class Runtime:
         # Verbosity of runtime
         self.verbose = v
 
-        # Initialize load and sent distributions
+        # Initialize load, sent, and work distributions
         self.load_distributions = [[
             p.get_load() for p in self.phase.ranks]]
         self.sent_distributions = [{
             k:v for k,v in self.phase.get_edges().items()}]
+        self.work_distributions = [[
+            self.work_model.compute(p) for p in self.phase.ranks]]
 
-        # Compute global load and volume statistics and initialize average load
+        # Compute global load, volume and work statistics
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
-        n_w, _, w_ave, w_max, _, _, _, _ = compute_function_statistics(
+        n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
+        _, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
+            self.phase.ranks,
+            lambda x: self.work_model.compute(x))
 
         # Initialize run statistics
         self.statistics = {
@@ -115,10 +120,13 @@ class Runtime:
             "maximum load"                  : [l_max],
             "load variance"                 : [l_var],
             "load imbalance"                : [l_imb],
-            "number of communication edges" : [n_w],
-            "average communication volume"  : [w_ave],
-            "maximum communication volume"  : [w_max],
-            "total communication volume": [n_w * w_ave]}
+            "number of communication edges" : [n_v],
+            "maximum communication volume"  : [v_max],
+            "total communication volume": [n_v * v_ave],
+            "minimum work"                  : [w_min],
+            "maximum work"                  : [w_max],
+            "work variance"                 : [w_var],
+            "work imbalance"                : [w_imb]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -403,22 +411,32 @@ class Runtime:
                 p.get_load() for p in self.phase.get_ranks()])
             self.sent_distributions.append({
                 k:v for k,v in self.phase.get_edges().items()})
+            self.work_distributions.append([
+                self.work_model.compute(p) for p in self.phase.ranks])
 
             # Compute and store global rank load and link volume statistics
             _, l_min, self.load_average, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: x.get_load())
-            n_w, _, w_ave, w_max, _, _, _, _ = compute_function_statistics(
+            n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
+            _, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
+                self.phase.ranks,
+                lambda x: self.work_model.compute(x))
+
+            # Update run statistics
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
             self.statistics["load variance"].append(l_var)
             self.statistics["load imbalance"].append(l_imb)
-            self.statistics["number of communication edges"].append(n_w)
-            self.statistics["average communication volume"].append(w_ave)
-            self.statistics["maximum communication volume"].append(w_max)
-            self.statistics["total communication volume"].append(n_w * w_ave)
+            self.statistics["number of communication edges"].append(n_v)
+            self.statistics["maximum communication volume"].append(v_max)
+            self.statistics["total communication volume"].append(n_v * v_ave)
+            self.statistics["minimum work"].append(w_min)
+            self.statistics["maximum work"].append(w_max)
+            self.statistics["work variance"].append(w_var)
+            self.statistics["work imbalance"].append(w_imb)
 
             # Report partial statistics
             iteration = i + 1
