@@ -72,6 +72,9 @@ class internalParameters:
     """
 
     def __init__(self):
+        # By default use load-only work model
+        self.work_model = {"name": "LoadOnly", "parameters": {}}
+
         # By default use tempered load criterion
         self.criterion = {"name": "TemperedLoad", "parameters": {}}
 
@@ -149,7 +152,8 @@ class internalParameters:
         """
 
         if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
-            print(f"{bcolors.OKMSG}Config file {conf_file} FOUND!{bcolors.END}")
+            # Try to open configuration file
+            print(f"{bcolors.HEADER}[LBAF]{bcolors.END} Found configuration file {conf_file}")
             try:
                 with open(conf_file, "rt") as config:
                     self.conf_file_found = True
@@ -342,6 +346,7 @@ if __name__ == '__main__':
 
     # Instantiate runtime
     rt = Runtime(phase,
+                 params.work_model,
                  params.criterion,
                  params.order_strategy,
                  params.verbose)

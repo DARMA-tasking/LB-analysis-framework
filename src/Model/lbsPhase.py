@@ -110,15 +110,10 @@ class Phase:
         n_loaded = 0
 
         # Initialize sum of total and rank-local volumes
-        w_total = 0.
-        w_local = 0.
+        w_total, w_local = 0., 0.
 
         # Iterate over ranks
         for p in self.ranks:
-            # Update count if rank is loaded
-            if p.get_load() > 0.:
-                n_loaded += 1
-
             # Retrieve sender rank ID
             i = p.get_id()
             if self.verbose:
@@ -158,26 +153,18 @@ class Phase:
         self.cached_edges = True
 
         # Report on computed edges
-        n_procs = len(self.ranks)
+        n_ranks = len(self.ranks)
         n_edges = len(self.edges)
         print_subset_statistics(
-            "Non-null communication edges between {} available ranks".format(n_procs),
-            "number of possible ones",
-            n_procs * (n_procs - 1) / 2,
-            "number of computed ones",
-            n_edges)
+            "Inter-rank communication edges",
+            n_edges,
+            "possible ones",
+            n_ranks * (n_ranks - 1) / 2)
         print_subset_statistics(
-            "Non-null communication edges between the {} loaded ranks".format(n_loaded),
-            "number of possible ones",
-            n_loaded * (n_loaded - 1) / 2,
-            "number of computed ones",
-            n_edges)
-        print_subset_statistics(
-            "Inter-object communication volumes",
-            "total",
-            w_total,
-            "rank-local",
-            w_local)
+            "Rank-local communication volume",
+            w_local,
+            "total volume",
+            w_total)
 
     def get_edges(self):
         """Retrieve edges belonging to phase

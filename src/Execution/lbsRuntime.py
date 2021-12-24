@@ -50,18 +50,20 @@ from typing import Union
 
 import bcolors
 
+from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsPhase import Phase
-from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample
+from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics
 
 
 class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, c: dict, order_strategy: str, v=False):
+    def __init__(self, p, w: dict, c: dict, order_strategy: str, v=False):
         """Class constructor:
         p: phase instance
+        w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
         v: verbose mode [FALSE/True]
@@ -76,12 +78,22 @@ class Runtime:
         else:
             self.phase = p
 
-        # Verbosity of runtime
-        self.verbose = v
+        # Instantiate work model
+        self.work_model = WorkModelBase.factory(
+            w.get("name"),
+            w.get("parameters", {}))
+        if not self.work_model:
+            print(bcolors.ERR
+                + "*  ERROR: could not instantiate a work model of tyoe {}".format(self.work_model_name)
+                + bcolors.END)
+            sys.exit(1)
 
         # Transfer critertion type and parameters
         self.criterion_name = c.get("name")
         self.criterion_params = c.get("parameters", {})
+
+        # Verbosity of runtime
+        self.verbose = v
 
         # Initialize load and sent distributions
         self.load_distributions = [[
@@ -93,21 +105,11 @@ class Runtime:
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
-        n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, _, w_ave, w_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
 
         # Initialize run statistics
-        print(bcolors.HEADER
-            + "[RunTime] "
-            + bcolors.END
-            + "Load imbalance(0) = {:.6g}".format(
-            l_imb))
-        print(bcolors.HEADER
-            + "[RunTime] "
-            + bcolors.END
-            + "Volume imbalance(0) = {:.6g}".format(
-            w_imb))
         self.statistics = {
             "minimum load"                  : [l_min],
             "maximum load"                  : [l_max],
@@ -116,7 +118,6 @@ class Runtime:
             "number of communication edges" : [n_w],
             "average communication volume"  : [w_ave],
             "maximum communication volume"  : [w_max],
-            "communication volume variance" : [w_var],
             "total communication volume": [n_w * w_ave]}
 
         # Initialize strategy
@@ -141,11 +142,10 @@ class Runtime:
         print(bcolors.HEADER
             + "[RunTime] "
             + bcolors.END
-            + "Spreading load information with fanout = {}".format(
+            + "Initializing information messages with fanout = {}".format(
             f))
         gossip_round = 1
         gossips = {}
-        l_max = 0.
 
         # Iterate over all ranks
         for p_snd in rank_set:
@@ -153,21 +153,21 @@ class Runtime:
             p_snd.reset_all_load_information()
 
             # Collect message when destination list is not empty
-            dst, msg = p_snd.initialize_loads(rank_set, f)
+            dst, msg = p_snd.initialize_works(rank_set, f)
             for p_rcv in dst:
                 gossips.setdefault(p_rcv, []).append(msg)
 
         # Process all messages of first round
         for p_rcv, msg_lst in gossips.items():
             for m in msg_lst:
-                p_rcv.process_load_message(m)
+                p_rcv.process_message(m)
 
         # Report on gossiping status when requested
         if self.verbose:
             for p in rank_set:
                 print("\tloaded known to rank {}: {}".format(
                     p.get_id(),
-                    [p_u.get_id() for p_u in p.get_known_loaded()]))
+                    [p_u.get_id() for p_u in p.get_known_ranks()]))
 
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
@@ -175,7 +175,7 @@ class Runtime:
             print(bcolors.HEADER
                 + "[RunTime] "
                 + bcolors.END
-                + "Performing load forwarding round {}".format(
+                + "Performing message forwarding round {}".format(
                 gossip_round))
             gossip_round += 1
             gossips.clear()
@@ -185,7 +185,7 @@ class Runtime:
                 # Check whether rank must relay previously received message
                 if p_snd.round_last_received + 1 == gossip_round:
                     # Collect message when destination list is not empty
-                    dst, msg = p_snd.forward_loads(gossip_round, rank_set, f)
+                    dst, msg = p_snd.forward_message(gossip_round, rank_set, f)
                     for p_rcv in dst:
                         gossips.setdefault(p_rcv, []).append(msg)
 
@@ -199,7 +199,7 @@ class Runtime:
                 for p in rank_set:
                     print("\tloaded known to rank {}: {}".format(
                         p.get_id(),
-                        [p_u.get_id() for p_u in p.get_known_loaded()]))
+                        [p_u.get_id() for p_u in p.get_known_ranks()]))
 
         # Build reverse lookup of loaded to overloaded viewers
         for p in rank_set:
@@ -208,7 +208,7 @@ class Runtime:
                 continue
 
             # Update viewers on loaded ranks known to this one
-            p.add_as_viewer(p.get_known_loaded())
+            p.add_as_viewer(p.get_known_ranks())
 
         # Report on viewers of loaded ranks
         viewers_counts = {}
@@ -253,25 +253,20 @@ class Runtime:
 
         # Iterate over ranks
         for p_src in self.phase.get_ranks():
-            # Skip unloaded ranks
-            if not p_src.get_load() > 0.:
+            # Skip workless ranks
+            if not self.work_model.compute(p_src) > 0.:
                 continue
 
-            # Skip ranks unaware of loaded peers
-            loads = p_src.get_known_loads()
-            if not loads:
+            # Skip ranks unaware of peers
+            works = p_src.get_known_works()
+            if not works:
                 n_ignored += 1
                 continue
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
             obj_it = iter(srt_proc_obj)
-            while True:
-                # Leave this rank if it ran out of known loaded
-                p_keys = list(p_src.get_known_loads().keys())
-                if not p_keys:
-                    break
-
+            while works:
                 # Pick next object
                 try:
                     o = next(obj_it)
@@ -279,22 +274,22 @@ class Runtime:
                     # List of objects is exhausted, break out
                     break
 
-                # Compute empirical CMF given known loads
-                p_cmf = p_src.compute_cmf_loads()
+                # Compute transfer CMF given known works
+                p_cmf = p_src.compute_transfer_cmf()
                 if not p_cmf:
                     continue
 
                 # Pseudo-randomly select destination proc
                 p_dst = inverse_transform_sample(
-                    p_keys,
+                    works.keys(),
                     p_cmf)
 
                 # Report on overloaded rank when requested
                 if self.verbose:
-                    print("\tknown loaded ranks: {}".format(
-                        [u.get_id() for u in loads]))
-                    print("\tknown loads: {}".format(
-                        [u.get_load() for u in loads]))
+                    print("\tknown ranks: {}".format(
+                        [u.get_id() for u in works]))
+                    print("\tknown works: {}".format(
+                        [self.work_model.compute(u) for u in works]))
                     print("\tCMF_{} = {}".format(
                         p_src.get_id(),
                         p_cmf))
@@ -319,7 +314,7 @@ class Runtime:
                             p_dst.get_id()))
 
                     # Sanity check before transfer
-                    if p_dst not in p_src.known_loads:
+                    if p_dst not in p_src.known_works:
                         print(bcolors.ERR
                               + "*  ERROR: destination rank {} not in known ranks".format(
                                   p_dst.get_id())
@@ -327,10 +322,13 @@ class Runtime:
                         sys.exit(1)
 
                     # Transfer object
-                    p_src.remove_migratable_object(o, p_dst)
+                    p_src.remove_migratable_object(o, p_dst, self.work_model)
                     obj_it = iter(p_src.get_migratable_objects())
                     p_dst.add_migratable_object(o)
                     n_transfers += 1
+
+                # Update peers known to rank
+                works = p_src.get_known_works()
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
@@ -341,6 +339,12 @@ class Runtime:
         n_rounds: integer number of gossiping rounds
         f: integer fanout
         """
+
+        # Compute and report rank work statistics
+        print_function_statistics(self.phase.get_ranks(),
+                                  lambda x: self.work_model.compute(x),
+                                  "initial rank works",
+                                  self.verbose)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
@@ -361,7 +365,7 @@ class Runtime:
                 self.criterion_params)
             if not transfer_criterion:
                 print(bcolors.ERR
-                    + "*  ERROR: cannot load-balance without a load transfer criterion"
+                    + "*  ERROR: could not instantiate a transfer criterion of type {}".format(self.criterion_name)
                     + bcolors.END)
                 sys.exit(1)
 
@@ -404,7 +408,7 @@ class Runtime:
             _, l_min, self.load_average, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: x.get_load())
-            n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+            n_w, _, w_ave, w_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
@@ -414,7 +418,6 @@ class Runtime:
             self.statistics["number of communication edges"].append(n_w)
             self.statistics["average communication volume"].append(w_ave)
             self.statistics["maximum communication volume"].append(w_max)
-            self.statistics["communication volume variance"].append(w_var)
             self.statistics["total communication volume"].append(n_w * w_ave)
 
             # Report partial statistics
@@ -429,17 +432,6 @@ class Runtime:
                 l_max,
                 self.load_average,
                 math.sqrt(l_var)))
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Volume imbalance({}) = {:.6g}; "
-                   "number={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}".format(
-                iteration,
-                w_imb,
-                n_w,
-                w_max,
-                w_ave,
-                math.sqrt(w_var)))
 
     @staticmethod
     def sort(objects: set, key):

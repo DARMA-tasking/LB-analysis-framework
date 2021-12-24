@@ -244,7 +244,7 @@ def print_function_statistics(values, function, var_name, verb=False):
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 
-def print_subset_statistics(var_name, set_name, set_size, subset_name, subset_size):
+def print_subset_statistics(subset_name, subset_size, set_name, set_size):
     """Compute and report descriptive statistics of subset vs. full set
     """
 
@@ -252,10 +252,12 @@ def print_subset_statistics(var_name, set_name, set_size, subset_name, subset_si
     print(bcolors.HEADER
         + "[Statistics] "
         + bcolors.END
-        + "{}:".format(var_name))
-    print("\t{}: {:.6g}  {}: {:.6g} {}".format(
-        set_name,
-        set_size,
-        subset_name,
-        subset_size,
-        "({:.4g}%)".format(100. * subset_size / set_size) if set_size else ''))
+        + "{}: {:.6g} amongst {}: {:.6g} ({}%)".format(
+              subset_name,
+              subset_size,
+              set_name,
+              set_size,
+              "{:.3g}".format(100. * subset_size / set_size) if set_size else ''))
+
+        
+        
