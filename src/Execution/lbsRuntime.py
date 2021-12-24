@@ -105,7 +105,7 @@ class Runtime:
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
-        n_w, _, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, _, w_ave, w_max, _, _, _, w_imb = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
 
@@ -118,7 +118,6 @@ class Runtime:
             "number of communication edges" : [n_w],
             "average communication volume"  : [w_ave],
             "maximum communication volume"  : [w_max],
-            "communication volume variance" : [w_var],
             "total communication volume": [n_w * w_ave]}
 
         # Initialize strategy
@@ -411,7 +410,7 @@ class Runtime:
             _, l_min, self.load_average, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: x.get_load())
-            n_w, _, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
+            n_w, _, w_ave, w_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
             self.statistics["minimum load"].append(l_min)
@@ -421,7 +420,6 @@ class Runtime:
             self.statistics["number of communication edges"].append(n_w)
             self.statistics["average communication volume"].append(w_ave)
             self.statistics["maximum communication volume"].append(w_max)
-            self.statistics["communication volume variance"].append(w_var)
             self.statistics["total communication volume"].append(n_w * w_ave)
 
             # Report partial statistics
