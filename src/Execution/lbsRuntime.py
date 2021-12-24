@@ -161,7 +161,7 @@ class Runtime:
             p_snd.reset_all_load_information()
 
             # Collect message when destination list is not empty
-            dst, msg = p_snd.initialize_works(rank_set, f)
+            dst, msg = p_snd.initialize_message(rank_set, f)
             for p_rcv in dst:
                 gossips.setdefault(p_rcv, []).append(msg)
 

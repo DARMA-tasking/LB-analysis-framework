@@ -162,7 +162,7 @@ class LoadReader:
             proc_objects_set.update(proc.get_objects())
         proc_objects_dict = {obj.get_id(): obj for obj in proc_objects_set}
 
-        # iterating over ranks
+        # Iterate over ranks
         for proc_num, proc in enumerate(procs):
             # iteration over objects in rank
             for proc_obj in proc.get_objects():
@@ -191,32 +191,35 @@ class LoadReader:
             except brotli.error:
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
-        # validate schema
+        # Validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
             print(bcolors.HEADER
                   + "[LoadReaderVT]"
                   + bcolors.END
-                  + "Valid JSON schema in  {}".format(file_name))
+                  + " Valid JSON schema in  {}".format(file_name))
         else:
             raise SyntaxError(f"{bcolors.ERR}[LoadReaderVT] Invalid JSON schema in {file_name}{bcolors.END}")
 
-        # defining phases from file
+        # Define phases from file
         phases = decompressed_dict["phases"]
         comm_dict = dict()
-        # case for empty Rank
+
+        # Handle empty Rank case
         if not phases:
             returned_dict.setdefault(0, Rank(node_id))
 
-        # iterating over phases
+        # Iterate over phases
         for phase in phases:
             # creating communicator dictionary
             comm_dict = dict()
             # temporary communication list, to avoid duplicates in communication
             temp_comm = list()
             phase_id = phase["id"]
-            # adding communications to the object
+
+            # Add communications to the object
             communications = phase.get("communications", None)
-            # as communications is optional, there is a need to check if exists
+
+            # No need to check existence of optional communications
             if communications is not None and communications not in temp_comm:
                 temp_comm.append(communications)
                 for num, comm in enumerate(communications):
@@ -224,11 +227,12 @@ class LoadReader:
                     to_ = comm.get("to", None)
                     from_ = comm.get("from", None)
                     bytes_ = comm.get("bytes", None)
-                    # supports only SendRecv communication type
+
+                    # Supports only SendRecv communication type
                     if type_ == "SendRecv":
-                        # checking if both are objects
+                        # Check whether both are objects
                         if to_.get("type", None) == "object" and from_.get("type", None) == "object":
-                            # if no sender or receiver exists, then creating one
+                            # Create one if no sender nor receiver exists
                             receiver_obj_id = to_.get("id", None)
                             sender_obj_id = from_.get("id", None)
 
@@ -245,12 +249,12 @@ class LoadReader:
                             comm_dict[receiver_obj_id]["received"].append(
                                 {"from": from_.get("id", None), "bytes": bytes_})
                             if self.verbose:
-                                print(f"{bcolors.BLUE}[LoadReaderVT] Added received Phase:{phase_id}, Comm num: {num}\n"
-                                      f"\t\t\tCommunication entry: {comm}{bcolors.END}")
+                                print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} Added received Phase:{phase_id}, Comm num: {num}\n"
+                                      f"\t\t\tCommunication entry: {comm}")
                             comm_dict[sender_obj_id]["send"].append({"to": to_.get("id", None), "bytes": bytes_})
                             if self.verbose:
-                                print(f"{bcolors.BLUE}[LoadReaderVT] Added sent Phase:{phase_id}, Comm num: {num}\n"
-                                      f"\t\t\tCommunication entry: {comm}{bcolors.END}")
+                                print(f"{bcolors.HEADER}[LoadReaderVT]{bcolors.END} Added sent Phase:{phase_id}, Comm num: {num}\n"
+                                      f"\t\t\tCommunication entry: {comm}")
 
             for task in phase["tasks"]:
                 task_time = task.get("time")

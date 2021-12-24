@@ -168,6 +168,7 @@ class internalParameters:
     def checks_after_init(self):
         """ Checks after initialization.
         """
+
         # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
                  (self.time_sampler_type and self.volume_sampler_type))
@@ -179,7 +180,7 @@ class internalParameters:
                   + bcolors.END)
             sys.exit(1)
 
-        # Case when phases are populate from samplers not from log file
+        # Case when phases are populated from samplers not from log file
         if self.log_file is not None:
             # Checking if log dir exists, if not, checking if dir exists in project path
             if os.path.isdir(os.path.abspath(os.path.split(self.log_file)[0])):
@@ -199,9 +200,12 @@ class internalParameters:
         """ Executed when config YAML file was found and checked
         """
 
+        # Assign parameters found in configuration file
         for param_key, param_val in self.conf.items():
-            if self.__dict__.get(param_key, "SomeRidiculousValue") != "SomeRidiculousValue":
+            if param_key in self.__dict__:
                 self.__dict__[param_key] = param_val
+
+        # Handle special values
         if isinstance(self.conf.get("x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
             self.grid_size[0] = self.conf.get("x_procs", 0)
         if isinstance(self.conf.get("y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
@@ -216,7 +220,6 @@ class internalParameters:
             self.communication_enabled = True
         if isinstance(self.conf.get("order_strategy", None), str):
             self.order_strategy = self.conf.get("order_strategy", None)
-
 
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters

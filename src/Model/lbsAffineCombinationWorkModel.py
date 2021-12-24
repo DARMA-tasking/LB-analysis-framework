@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#                       lbsLoadOnlyWorkModel.py
+#                       lbsAffineCombinationWorkModel.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -45,25 +45,47 @@ from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
 
 
-class LoadOnlyWorkModel(WorkModelBase):
+class AffineCombinationWorkModel(WorkModelBase):
     """A concrete class for a load-only work model
     """
     
-    def __init__(self, _):
+    def __init__(self, parameters):
         """Class constructor:
-        _: no parameters dictionary needed for this work model
+        parameters: dictionary with alpha and beta parameters
         """
+
+        # Use default values if parameters not provided
+        self.alpha = parameters.get("alpha", 0.)
+        self.beta = parameters.get("beta", 1.)
 
         # Call superclass init
-        super(LoadOnlyWorkModel, self).__init__()
+        super(AffineCombinationWorkModel, self).__init__(parameters)
         print(bcolors.HEADER
-            + "[LoadOnlyWorkModel] "
+            + "[AffineCombinationWorkModel] "
             + bcolors.END
-            + "Instantiated concrete work model")
+            + "Instantiated concrete work model with alpha="
+            + str(self.alpha)
+            + " and beta="
+            + str(self.beta))
 
     def compute(self, rank: Rank):
-        """A work model summing all object times on given rank
+        """A work model with affine combination of load and communication
         """
 
-        # Return total load on this rank
-        return rank.get_load()
+        # Return sum of all object loads on this rank
+        print("rank:", rank.get_id())
+        for o in rank.get_objects():
+            print("   object {}: {} {} {}".format(
+                o.get_id(),
+                o.get_time(),
+                o.get_received_volume(),
+                o.get_sent_volume()))
+            print("   received:", o.get_communicator().get_received())
+            print("   sent:", o.get_communicator().get_sent())
+        print("  totals:",
+              rank.get_load(),
+              rank.get_received_volume(),
+              rank.get_sent_volume())
+        sys.exit(1)
+
+        return sum([o.get_time() for o in rank.get_objects()])

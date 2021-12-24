@@ -181,7 +181,7 @@ class Rank:
         """Return total load on rank
         """
 
-        return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
+        return sum([o.get_time()for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
         """Return migratable load on rank
@@ -195,6 +195,32 @@ class Rank:
 
         return sum([o.get_time() for o in self.sentinel_objects])
 
+    def get_received_volume(self):
+        """Return volume received by objects assigned to rank from other ranks
+        """
+        
+        # Initialize values
+
+        # Iterate over all objects assigned to rank
+        v = 0
+        obj_set = self.migratable_objects.union(self.sentinel_objects)
+        for o in obj_set:
+            # Skip objects without communication
+            if not o.has_communicator():
+                continue
+
+            # Iterate over all from_object=volume pairs received by object
+            print("  in object", o.get_id(), o.get_communicator().get_received())
+            for k, v in o.get_communicator().get_received().items():
+                print(k in obj_set,v)
+                
+
+    def get_sent_volume(self):
+        """Return volume sent by objects assigned to rank to other ranks
+        """
+
+        return sum([o.get_sent_volume() for o in self.migratable_objects.union(self.sentinel_objects)])
+
     def reset_all_load_information(self):
         """Reset all load information known to self
         """
@@ -206,8 +232,8 @@ class Rank:
         # Reset information about overloaded viwewer peers
         self.viewers = set()
 
-    def initialize_works(self, procs, f):
-        """Initialize works when needed to sample of selected peers
+    def initialize_message(self, ranks, f):
+        """Initialize maessage to be sent to selected peers
         """
 
         # Retrieve current load on this rank
@@ -220,21 +246,21 @@ class Rank:
         # Create load message tagged at first round
         msg = Message(1, (self.known_ranks, self.known_works))
 
-        # Broadcast works to pseudo-random sample of procs excluding self
-        return rnd.sample(procs.difference([self]), min(f, len(procs) - 1)), msg
+        # Broadcast works to pseudo-random sample of ranks excluding self
+        return rnd.sample(ranks.difference([self]), min(f, len(ranks) - 1)), msg
 
-    def forward_message(self, r, procs, f):
+    def forward_message(self, r, ranks, f):
         """Formard information message to sample of selected peers
         """
 
         # Compute complement of set of known rank works
-        c_procs = procs.difference(self.known_ranks).difference([self])
+        c_ranks = ranks.difference(self.known_ranks).difference([self])
 
         # Create load message tagged at current round
         msg = Message(r, (self.known_ranks, self.known_works))
 
-        # Forward works to pseudo-random sample of procs
-        return rnd.sample(c_procs, min(f, len(c_procs))), msg
+        # Forward works to pseudo-random sample of ranks
+        return rnd.sample(c_ranks, min(f, len(c_ranks))), msg
 
     def process_message(self, msg):
         """Update internals when message is received
@@ -256,7 +282,7 @@ class Rank:
                 + bcolors.END)
             return
 
-        # Union received set of loaded procs with current one
+        # Union received set of loaded ranks with current one
         self.known_ranks.update(info[0])
 
         # Update load information

@@ -85,6 +85,22 @@ class Object:
 
         return self.communicator.get_sent() if self.communicator else {}
 
+    def get_received_volume(self):
+        """Return volume of communications received by object
+        """
+        
+        return sum(
+            [v for v in self.communicator.get_received().values()]
+            ) if self.communicator else 0
+
+    def get_sent_volume(self):
+        """Return volume of communications sent by object
+        """
+        
+        return sum(
+            [v for v in self.communicator.get_sent().values()]
+            ) if self.communicator else 0
+
     def set_rank_id(self, p_id):
         """Assign object to rank ID
         """
