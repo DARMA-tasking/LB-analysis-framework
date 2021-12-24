@@ -105,7 +105,7 @@ class Runtime:
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
-        n_w, _, w_ave, w_max, _, _, _, w_imb = compute_function_statistics(
+        n_w, _, w_ave, w_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
 
