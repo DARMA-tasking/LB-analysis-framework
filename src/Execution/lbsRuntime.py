@@ -253,25 +253,20 @@ class Runtime:
 
         # Iterate over ranks
         for p_src in self.phase.get_ranks():
-            # Skip unloaded ranks
-            if not p_src.get_load() > 0.:
+            # Skip workless ranks
+            if not self.work_model.compute(p_src) > 0.:
                 continue
 
-            # Skip ranks unaware of loaded peers
-            loads = p_src.get_known_works()
-            if not loads:
+            # Skip ranks unaware of peers
+            works = p_src.get_known_works()
+            if not works:
                 n_ignored += 1
                 continue
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
             obj_it = iter(srt_proc_obj)
-            while True:
-                # Leave this rank if it ran out of known loaded
-                p_keys = list(p_src.get_known_works().keys())
-                if not p_keys:
-                    break
-
+            while works:
                 # Pick next object
                 try:
                     o = next(obj_it)
@@ -286,15 +281,15 @@ class Runtime:
 
                 # Pseudo-randomly select destination proc
                 p_dst = inverse_transform_sample(
-                    p_keys,
+                    works.keys(),
                     p_cmf)
 
                 # Report on overloaded rank when requested
                 if self.verbose:
-                    print("\tknown loaded ranks: {}".format(
-                        [u.get_id() for u in loads]))
-                    print("\tknown loads: {}".format(
-                        [u.get_load() for u in loads]))
+                    print("\tknown ranks: {}".format(
+                        [u.get_id() for u in works]))
+                    print("\tknown works: {}".format(
+                        [self.work_model.compute(u) for u in works]))
                     print("\tCMF_{} = {}".format(
                         p_src.get_id(),
                         p_cmf))
@@ -331,6 +326,9 @@ class Runtime:
                     obj_it = iter(p_src.get_migratable_objects())
                     p_dst.add_migratable_object(o)
                     n_transfers += 1
+
+                # Update peers known to rank
+                works = p_src.get_known_works()
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
