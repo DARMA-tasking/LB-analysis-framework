@@ -58,7 +58,7 @@ y_procs: 2
 z_procs: 1
 output_dir: "output"
 order_strategy: arbitrary
-verbose: True
+#verbose: True
 
 # Simulating from samplers (comment out if reading from log)
 #n_objects: 200

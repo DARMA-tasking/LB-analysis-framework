@@ -72,20 +72,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         """A work model with affine combination of load and communication
         """
 
-        # Return sum of all object loads on this rank
-        print("rank:", rank.get_id())
-        for o in rank.get_objects():
-            print("   object {}: {} {} {}".format(
-                o.get_id(),
-                o.get_time(),
-                o.get_received_volume(),
-                o.get_sent_volume()))
-            print("   received:", o.get_communicator().get_received())
-            print("   sent:", o.get_communicator().get_sent())
-        print("  totals:",
-              rank.get_load(),
-              rank.get_received_volume(),
-              rank.get_sent_volume())
-        sys.exit(1)
-
-        return sum([o.get_time() for o in rank.get_objects()])
+        # Compute affine combination of load and volumes
+        return rank.get_load() + self.alpha + self.beta * max(
+            rank.get_received_volume(),
+            rank.get_sent_volume())

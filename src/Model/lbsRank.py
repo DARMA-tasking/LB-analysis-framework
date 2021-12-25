@@ -199,27 +199,39 @@ class Rank:
         """Return volume received by objects assigned to rank from other ranks
         """
         
-        # Initialize values
-
         # Iterate over all objects assigned to rank
-        v = 0
+        volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
         for o in obj_set:
             # Skip objects without communication
             if not o.has_communicator():
                 continue
 
-            # Iterate over all from_object=volume pairs received by object
-            print("  in object", o.get_id(), o.get_communicator().get_received())
-            for k, v in o.get_communicator().get_received().items():
-                print(k in obj_set,v)
-                
+            # Add total volume received from non-local objects
+            volume += sum([v for k, v in o.get_communicator().get_received().items()
+                            if k not in obj_set])
+
+        # Return computed volume
+        return volume    
 
     def get_sent_volume(self):
         """Return volume sent by objects assigned to rank to other ranks
         """
 
-        return sum([o.get_sent_volume() for o in self.migratable_objects.union(self.sentinel_objects)])
+        # Iterate over all objects assigned to rank
+        volume = 0
+        obj_set = self.migratable_objects.union(self.sentinel_objects)
+        for o in obj_set:
+            # Skip objects without communication
+            if not o.has_communicator():
+                continue
+
+            # Add total volume sent to non-local objects
+            volume += sum([v for k, v in o.get_communicator().get_sent().items()
+                            if k not in obj_set])
+
+        # Return computed volume
+        return volume    
 
     def reset_all_load_information(self):
         """Reset all load information known to self
