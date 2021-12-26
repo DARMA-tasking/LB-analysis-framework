@@ -218,6 +218,7 @@ class internalParameters:
         if isinstance(self.conf.get("order_strategy", None), str):
             self.order_strategy = self.conf.get("order_strategy", None)
 
+
 def parse_sampler(cmd_str):
     """Parse command line arguments specifying sampler type and input parameters
        Example: lognormal,1.0,10.0
