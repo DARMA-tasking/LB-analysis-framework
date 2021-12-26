@@ -171,12 +171,6 @@ class Rank:
         for p in ranks:
             p.viewers.add(self)
 
-    def get_known_load(self, p):
-        """Return known peer load when available or infinity
-        """
-
-        return self.known_works.get(p, math.inf)
-
     def get_load(self):
         """Return total load on rank
         """

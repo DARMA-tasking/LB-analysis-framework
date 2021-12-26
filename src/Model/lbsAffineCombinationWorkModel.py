@@ -73,6 +73,6 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
 
         # Compute affine combination of load and volumes
-        return rank.get_load() + self.alpha + self.beta * max(
+        return 0 * rank.get_load() + self.alpha + self.beta * max(
             rank.get_received_volume(),
             rank.get_sent_volume())

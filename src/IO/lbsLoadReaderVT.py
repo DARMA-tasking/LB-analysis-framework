@@ -225,7 +225,7 @@ class LoadReader:
             # Retrieve phase ID
             phase_id = phase["id"]
 
-            # Ccreate communicator dictionary
+            # Create communicator dictionary
             comm_dict = {}
 
             # Temporary communication list to avoid duplicates

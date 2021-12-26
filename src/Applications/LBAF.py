@@ -119,9 +119,6 @@ class internalParameters:
         # Base name to save computed object/rank mapping for VT
         self.map_file = None
 
-        # Decide whether actual destination loads should be computed
-        self.actual_dst_load = False
-
         # Decide whether Exodus output should be written
         self.exodus = False
 
@@ -371,7 +368,10 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
+        vt_writer = LoadWriterVT(
+            phase,
+            output_stem,
+            output_dir=params.output_dir)
         vt_writer.write()
 
     # If prefix parsed from command line
@@ -380,7 +380,7 @@ if __name__ == '__main__':
         ex_writer = WriterExodusII(
             phase,
             grid_map,
-            f"{output_stem}",
+            output_stem,
             output_dir=params.output_dir)
         ex_writer.write(
             rt.statistics,

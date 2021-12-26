@@ -368,8 +368,6 @@ class Runtime:
             # Instantiate object transfer criterion
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
-                set(self.phase.get_ranks()),
-                self.phase.get_edges(),
                 self.criterion_params)
             if not transfer_criterion:
                 print(bcolors.ERR

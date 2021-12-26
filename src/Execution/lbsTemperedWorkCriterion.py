@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                       lbsTemperedLoadCriterion.py
+#                       lbsTemperedWorkCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -49,28 +49,27 @@ from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
 
 
-class TemperedLoadCriterion(CriterionBase):
+class TemperedWorkCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, ranks, _, parameters):
-        """Class constructor:
-        ranks: set of ranks (lbsRank.Rank instances)
-        parameters: parameters dictionary needed for this criterion
+    def __init__(self, _, parameters):
+        """Class constructor
         """
 
         # Call superclass init
-        super(TemperedLoadCriterion, self).__init__(ranks, _)
-        print(f"{bcolors.HEADER}[TemperedLoadCriterion]{bcolors.END} Instantiated concrete criterion")
+        super(TemperedWorkCriterion, self).__init__(parameters)
+        print(f"{bcolors.HEADER}[TemperedWorkCriterion]{bcolors.END} Instantiated concrete criterion")
 
-        # Use either actual or locally known destination loads
-        self.actual_dst_load = parameters.get("actual_destination_load", False)
+        # Determine how destination work is to be computed
+        self.dst_work = (
+            lambda x: self.get_work(x) if parameters.get("actual_destination_work")) else (
+            lambda x: p_src.get_known_work(x))
+            
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
-        """Tempered load criterion based on L1 norm of loads
+        """Tempered work criterion based on L1 norm of works
         """
 
-        # Criterion only uses object and rank loads
-        return p_src.get_load() - (
-                    (p_dst.get_load() if self.actual_dst_load
-                     else p_src.get_known_load(p_dst)) + obj.get_time())
+        # Criterion only uses object and rank works
+        return self.get_work(p_src) - (self.dst_work(p_dst) + obj.get_time())
