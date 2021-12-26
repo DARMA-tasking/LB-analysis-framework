@@ -53,18 +53,23 @@ class TemperedWorkCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, _, parameters):
+    def __init__(self, work_model, parameters):
         """Class constructor
         """
 
         # Call superclass init
-        super(TemperedWorkCriterion, self).__init__(parameters)
+        super(TemperedWorkCriterion, self).__init__(work_model, parameters)
         print(f"{bcolors.HEADER}[TemperedWorkCriterion]{bcolors.END} Instantiated concrete criterion")
 
+        
         # Determine how destination work is to be computed
-        self.dst_work = (
-            lambda x: self.get_work(x) if parameters.get("actual_destination_work")) else (
-            lambda x: p_src.get_known_work(x))
+        def get_dst_work_know_by_src(p_src, p_dst):
+            return p_src.get_known_work(p_dst)
+        def get_actual_dst_work(_, p_dst):
+            return self.get_work(p_dst)
+        
+        self.dst_work = get_actual_dst_work if parameters.get(
+            "actual_destination_work") else get_dst_work_know_by_src
             
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
@@ -72,4 +77,5 @@ class TemperedWorkCriterion(CriterionBase):
         """
 
         # Criterion only uses object and rank works
-        return self.get_work(p_src) - (self.dst_work(p_dst) + obj.get_time())
+        return self.get_work(p_src) - (
+            self.dst_work(p_src, p_dst) + obj.get_time())

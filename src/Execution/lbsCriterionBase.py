@@ -65,12 +65,15 @@ class CriterionBase:
                   + "*  ERROR: Could not create a criterion without a work model"
                   + bcolors.END)
             sys.exit(1)
+        self.get_work = lambda x: work_model.compute(x)
 
         # Criterion keeps internal references to ranks and edges
         print(bcolors.HEADER
               + "[CriterionBase] "
               + bcolors.END
-              + f"Created base criterion with work model: {work_model}")
+              + "Created base criterion with {} work model".format(
+                  str(type(work_model)).split('.')[-1][:-2]
+                  ))
 
     @staticmethod
     def factory(criterion_name, work_model, parameters={}):
@@ -82,6 +85,8 @@ class CriterionBase:
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
+        criterion = locals()[criterion_name + "Criterion"]
+        return criterion(work_model, parameters)
         # Ensure that criterion name is valid
         try:
             # Instantiate and return object

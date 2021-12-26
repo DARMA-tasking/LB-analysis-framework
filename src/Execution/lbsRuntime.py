@@ -368,6 +368,7 @@ class Runtime:
             # Instantiate object transfer criterion
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
+                self.work_model,
                 self.criterion_params)
             if not transfer_criterion:
                 print(bcolors.ERR
