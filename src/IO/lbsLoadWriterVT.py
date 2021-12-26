@@ -104,7 +104,7 @@ class LoadWriterVT:
 
     @staticmethod
     def json_writer(file_name: str, n_u: int, rank: Rank):
-        temp_dict = dict()
+        temp_dict = {}
         # Iterate over objects
         for o in rank.get_objects():
             # Write object to file and increment count
@@ -121,7 +121,7 @@ class LoadWriterVT:
             except:
                 n_u += 1
 
-        dict_to_dump = dict()
+        dict_to_dump = {}
         dict_to_dump['phases'] = list()
         for proc_id, others_list in temp_dict.items():
             phase_dict = {'tasks': list(), 'id': proc_id}
