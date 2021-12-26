@@ -105,6 +105,7 @@ class Phase:
         # Compute or re-compute edges from scratch
         print(f"{bcolors.HEADER}[Phase]{bcolors.END} Computing inter-process communication edges")
         self.edges.clear()
+        directed_edges = {}
 
         # Initialize count of loaded ranks
         n_loaded = 0
@@ -132,7 +133,7 @@ class Phase:
                     # Retrieve recipient rank ID
                     j = q.get_rank_id()
                     if self.verbose:
-                        print("\t  sending volume {} to object {} assigned to rank {}".format(
+                        print("\tsent volume {} to object {} assigned to rank {}".format(
                             volume, q.get_id(), j))
 
                     # Skip rank-local communications
@@ -141,13 +142,23 @@ class Phase:
                         w_local += volume
                         continue
 
-                    # Create or update an inter-rank edge
-                    self.edges[(i, j)] = self.edges.setdefault((i, j), 0.) + volume
+                    # Create or update an inter-rank directed edge
+                    ij = frozenset([i, j])
+                    directed_edges.setdefault(ij, [0., 0.])
+                    if i < j :
+                        directed_edges[ij][0] += volume
+                    else:
+                        directed_edges[ij][1] += volume
                     if self.verbose:
-                        print("\t Edge rank {} --> rank {}, volume: {}".format(
+                        print("\tedge rank {} --> rank {}, volume: {}".format(
                             i,
                             j,
-                            self.edges[(i, j)]))
+                            directed_edges[ij]))
+
+
+        # Reduce directed edges into undirected ones with maximum
+        for k, v in directed_edges.items():
+            self.edges[k] = max(v)
 
         # Edges cache was fully updated
         self.cached_edges = True

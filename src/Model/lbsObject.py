@@ -85,6 +85,12 @@ class Object:
 
         return self.communicator.get_sent() if self.communicator else {}
 
+    def get_received(self):
+        """Return communications received by object from other objects
+        """
+
+        return self.communicator.get_received() if self.communicator else {}
+
     def get_received_volume(self):
         """Return volume of communications received by object
         """

@@ -85,8 +85,6 @@ class CriterionBase:
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
-        criterion = locals()[criterion_name + "Criterion"]
-        return criterion(work_model, parameters)
         # Ensure that criterion name is valid
         try:
             # Instantiate and return object

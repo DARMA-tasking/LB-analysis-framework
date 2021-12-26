@@ -342,7 +342,7 @@ if __name__ == '__main__':
                               "initial rank loads",
                               params.verbose)
     print_function_statistics(phase.get_edges().values(),
-                              lambda x: x, "initial link volumes",
+                              lambda x: x, "initial sent volumes",
                               params.verbose)
 
     # Instantiate runtime
@@ -407,7 +407,10 @@ if __name__ == '__main__':
         lambda x: x.get_load(),
         "final rank loads",
         params.verbose)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "final link volumes", params.verbose)
+    print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x, "final sent volumes",
+        params.verbose)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
