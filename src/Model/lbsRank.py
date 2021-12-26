@@ -175,7 +175,7 @@ class Rank:
         """Return total load on rank
         """
 
-        return sum([o.get_time()for o in self.migratable_objects.union(self.sentinel_objects)])
+        return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
         """Return migratable load on rank
