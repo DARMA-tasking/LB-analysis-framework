@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                       lbsTemperedWorkCriterion.py
+#                       lbsTemperedCriterion.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -49,7 +49,7 @@ from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
 
 
-class TemperedWorkCriterion(CriterionBase):
+class TemperedCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
@@ -59,8 +59,8 @@ class TemperedWorkCriterion(CriterionBase):
         """
 
         # Call superclass init
-        super(TemperedWorkCriterion, self).__init__(work_model, parameters)
-        print(f"{bcolors.HEADER}[TemperedWorkCriterion]{bcolors.END} Instantiated concrete criterion")
+        super(TemperedCriterion, self).__init__(work_model, parameters)
+        print(f"{bcolors.HEADER}[TemperedCriterion]{bcolors.END} Instantiated concrete criterion")
 
         
         # Determine how destination work is to be computed
@@ -73,7 +73,6 @@ class TemperedWorkCriterion(CriterionBase):
         self.dst_work = get_dst_work_know_by_src if not (
             parameters and parameters.get(
                 "actual_destination_work")) else get_actual_dst_work
-            
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works

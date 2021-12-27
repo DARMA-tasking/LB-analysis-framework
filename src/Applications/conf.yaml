@@ -31,13 +31,13 @@
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 
 work_model:
-  #name: "AffineCombination"
-  name: "LoadOnly"
+  name: "AffineCombination"
   parameters:
     alpha: 0.
     beta: 0.
+    gamma: 1.
 criterion:
-  name: "TemperedWork"
+  name: "Tempered"
   parameters:
     actual_destination_work: True
 n_iterations: 8

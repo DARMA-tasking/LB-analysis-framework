@@ -51,28 +51,31 @@ class AffineCombinationWorkModel(WorkModelBase):
     
     def __init__(self, parameters):
         """Class constructor:
-        parameters: dictionary with alpha and beta parameters
+        parameters: dictionary with alpha, beta, and gamma values
         """
 
         # Use default values if parameters not provided
         self.alpha = parameters.get("alpha", 0.)
-        self.beta = parameters.get("beta", 1.)
+        self.beta = parameters.get("beta", 0.)
+        self.gamma = parameters.get("gamma", 1.)
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
         print(bcolors.HEADER
             + "[AffineCombinationWorkModel] "
             + bcolors.END
-            + "Instantiated concrete work model with alpha="
+            + "Instantiated work model with alpha="
             + str(self.alpha)
-            + " and beta="
-            + str(self.beta))
+            + ", beta="
+            + str(self.beta)
+            + ", gamma="
+            + str(self.gamma))
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
         """
 
         # Compute affine combination of load and volumes
-        return rank.get_load() + self.alpha + self.beta * max(
+        return self.alpha + self.beta * max(
             rank.get_received_volume(),
-            rank.get_sent_volume())
+            rank.get_sent_volume()) + self.gamma * rank.get_load()
