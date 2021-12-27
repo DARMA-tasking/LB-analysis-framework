@@ -453,22 +453,22 @@ class Runtime:
 
         # Report final mapping when requested
         if self.verbose:
-        for p in self.phase.get_ranks():
-            print(f"Rank {p.get_id()}:")
-            for o in p.get_objects():
-                comm = o.get_communicator()
-                if comm:
-                    print(f"  Object {o.get_id()}:")
-                    recv = comm.get_received().items()
-                    if recv: 
-                        print("    received from:")
-                        for k, v in recv:
-                            print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
-                    sent = comm.get_sent().items()
-                    if sent: 
-                        print("    sent to:")
-                        for k, v in sent:
-                            print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
+            for p in self.phase.get_ranks():
+                print(f"Rank {p.get_id()}:")
+                for o in p.get_objects():
+                    comm = o.get_communicator()
+                    if comm:
+                        print(f"  Object {o.get_id()}:")
+                        recv = comm.get_received().items()
+                        if recv: 
+                            print("    received from:")
+                            for k, v in recv:
+                                print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
+                        sent = comm.get_sent().items()
+                        if sent: 
+                            print("    sent to:")
+                            for k, v in sent:
+                                print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
 
     @staticmethod
     def sort(objects: set, key):

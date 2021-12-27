@@ -99,17 +99,17 @@ class TemperedCriterion(CriterionBase):
             dst_id = p_dst.get_id()
 
             # Aggregate communication volumes local to source
-            w_src = max(
+            v_src = max(
                 sum([v for k, v in recv if k.get_rank_id() == src_id]),
                 sum([v for k, v in sent if k.get_rank_id() == src_id]))
 
             # Aggregate communication volumes between source and destination
-            w_dst = max(
+            v_dst = max(
                 sum([v for k, v in recv if k.get_rank_id() == dst_id]),
                 sum([v for k, v in sent if k.get_rank_id() == dst_id]))
 
             # Update criterion with affine transform of communication differences
-            criterion += self.beta * (w_dst - w_src)
+            criterion += self.beta * (v_dst - v_src)
 
         # Criterion assesses difference in total work
         return criterion
