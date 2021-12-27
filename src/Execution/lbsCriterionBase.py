@@ -46,70 +46,42 @@ import abc
 import sys
 import bcolors
 
-from src.Model.lbsRank import Rank
-
+from src.Model.lbsWorkModelBase import WorkModelBase
 
 class CriterionBase:
     __metaclass__ = abc.ABCMeta
     """An abstract base class of optimization criteria for LBAF execution
     """
 
-    def __init__(self, ranks, edges, parameters=None):
+    def __init__(self, work_model, parameters: dict=None):
         """Class constructor:
-        ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of directed edges (pairs)
+        work_model: a WorkModelBase instance
         parameters: optional parameters dictionary
         """
 
-        # If no list of ranks was was provided, do not do anything
-        if not isinstance(ranks, set):
+        # Assert that a work model base instance was passed
+        if not isinstance(work_model, WorkModelBase):
             print(bcolors.ERR
-                + "*  ERROR: Could not create a criterion without a set of ranks"
-                + bcolors.END)
+                  + "*  ERROR: Could not create a criterion without a work model"
+                  + bcolors.END)
             sys.exit(1)
-
-        # Assert that all members of said list are indeed rank instances
-        n_p = len(ranks)
-        if n_p != len(list(
-            filter(lambda x: isinstance(x, Rank), ranks))):
-            print(bcolors.ERR
-                + "*  ERROR: Could not create a criterion without a set of Rank instances"
-                + bcolors.END)
-            sys.exit(1)
-            
-        # If no dictionary of edges was was provided, do not do anything
-        if not isinstance(edges, dict):
-            print(bcolors.ERR
-                + "*  ERROR: Could not create a criterion without a dictionary of edges"
-                + bcolors.END)
-            sys.exit(1)
-
-        # Assert that all members of said dictionary are indeed tuples
-        n_e = len(edges)
-        if n_e != len(list(
-            filter(lambda x: isinstance(x, tuple), edges))):
-            print(bcolors.ERR
-                + "*  ERROR: Could not create a criterion without a dictionary of tuples"
-                + bcolors.END)
-            sys.exit(1)
+        self.get_work = lambda x: work_model.compute(x)
 
         # Criterion keeps internal references to ranks and edges
-        self.ranks = ranks
-        self.edges = edges
         print(bcolors.HEADER
               + "[CriterionBase] "
               + bcolors.END
-              + "Assigned {} ranks and {} edges to base criterion".format(
-                  n_p,
-                  n_e))
+              + "Created base criterion with {} work model".format(
+                  str(type(work_model)).split('.')[-1][:-2]
+                  ))
 
     @staticmethod
-    def factory(criterion_name, ranks, edges, parameters=None):
+    def factory(criterion_name, work_model, parameters={}):
         """Produce the necessary concrete criterion
         """
 
         from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
-        from src.Execution.lbsTemperedLoadCriterion import TemperedLoadCriterion
+        from src.Execution.lbsTemperedWorkCriterion import TemperedWorkCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
@@ -117,7 +89,7 @@ class CriterionBase:
         try:
             # Instantiate and return object
             criterion = locals()[criterion_name + "Criterion"]
-            return criterion(ranks, edges, parameters)
+            return criterion(work_model, parameters)
         except:
             # Otherwise error out
             print(bcolors.ERR
@@ -127,8 +99,10 @@ class CriterionBase:
             sys.exit(1)
 
     @abc.abstractmethod
-    def compute(self, object, proc_src, proc_dst):
+    def compute(self, object, rank_src, rank_dst):
         """Return value of criterion for candidate object transfer
+        object: Object instance
+        rank_src, rank_dst: Rank instances
         """
 
         # Must be implemented by concrete subclass

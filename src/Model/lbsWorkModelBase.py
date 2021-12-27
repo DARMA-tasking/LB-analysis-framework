@@ -69,6 +69,7 @@ class WorkModelBase:
         """
 
         from src.Model.lbsLoadOnlyWorkModel import LoadOnlyWorkModel
+        from src.Model.lbsAffineCombinationWorkModel import AffineCombinationWorkModel
 
         # Ensure that work name is valid
         try:

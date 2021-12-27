@@ -116,17 +116,17 @@ class Runtime:
 
         # Initialize run statistics
         self.statistics = {
-            "minimum load"                  : [l_min],
-            "maximum load"                  : [l_max],
-            "load variance"                 : [l_var],
-            "load imbalance"                : [l_imb],
-            "number of communication edges" : [n_v],
-            "maximum communication volume"  : [v_max],
-            "total communication volume": [n_v * v_ave],
-            "minimum work"                  : [w_min],
-            "maximum work"                  : [w_max],
-            "work variance"                 : [w_var],
-            "work imbalance"                : [w_imb]}
+            "minimum load"                   : [l_min],
+            "maximum load"                   : [l_max],
+            "load variance"                  : [l_var],
+            "load imbalance"                 : [l_imb],
+            "number of communication edges"  : [n_v],
+            "maximum largest directed volume": [v_max],
+            "total largest directed volume"  : [n_v * v_ave],
+            "minimum work"                   : [w_min],
+            "maximum work"                   : [w_max],
+            "work variance"                  : [w_var],
+            "work imbalance"                 : [w_imb]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -161,7 +161,7 @@ class Runtime:
             p_snd.reset_all_load_information()
 
             # Collect message when destination list is not empty
-            dst, msg = p_snd.initialize_works(rank_set, f)
+            dst, msg = p_snd.initialize_message(rank_set, f)
             for p_rcv in dst:
                 gossips.setdefault(p_rcv, []).append(msg)
 
@@ -368,8 +368,7 @@ class Runtime:
             # Instantiate object transfer criterion
             transfer_criterion = CriterionBase.factory(
                 self.criterion_name,
-                set(self.phase.get_ranks()),
-                self.phase.get_edges(),
+                self.work_model,
                 self.criterion_params)
             if not transfer_criterion:
                 print(bcolors.ERR
@@ -431,8 +430,8 @@ class Runtime:
             self.statistics["load variance"].append(l_var)
             self.statistics["load imbalance"].append(l_imb)
             self.statistics["number of communication edges"].append(n_v)
-            self.statistics["maximum communication volume"].append(v_max)
-            self.statistics["total communication volume"].append(n_v * v_ave)
+            self.statistics["maximum largest directed volume"].append(v_max)
+            self.statistics["total largest directed volume"].append(n_v * v_ave)
             self.statistics["minimum work"].append(w_min)
             self.statistics["maximum work"].append(w_max)
             self.statistics["work variance"].append(w_var)

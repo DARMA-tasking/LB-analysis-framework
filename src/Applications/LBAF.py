@@ -119,9 +119,6 @@ class internalParameters:
         # Base name to save computed object/rank mapping for VT
         self.map_file = None
 
-        # Decide whether actual destination loads should be computed
-        self.actual_dst_load = False
-
         # Decide whether Exodus output should be written
         self.exodus = False
 
@@ -168,6 +165,7 @@ class internalParameters:
     def checks_after_init(self):
         """ Checks after initialization.
         """
+
         # Ensure that exactly one population strategy was chosen
         if (not (self.log_file or
                  (self.time_sampler_type and self.volume_sampler_type))
@@ -179,7 +177,7 @@ class internalParameters:
                   + bcolors.END)
             sys.exit(1)
 
-        # Case when phases are populate from samplers not from log file
+        # Case when phases are populated from samplers not from log file
         if self.log_file is not None:
             # Checking if log dir exists, if not, checking if dir exists in project path
             if os.path.isdir(os.path.abspath(os.path.split(self.log_file)[0])):
@@ -199,9 +197,12 @@ class internalParameters:
         """ Executed when config YAML file was found and checked
         """
 
+        # Assign parameters found in configuration file
         for param_key, param_val in self.conf.items():
-            if self.__dict__.get(param_key, "SomeRidiculousValue") != "SomeRidiculousValue":
+            if param_key in self.__dict__:
                 self.__dict__[param_key] = param_val
+
+        # Handle special values
         if isinstance(self.conf.get("x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
             self.grid_size[0] = self.conf.get("x_procs", 0)
         if isinstance(self.conf.get("y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
@@ -341,7 +342,7 @@ if __name__ == '__main__':
                               "initial rank loads",
                               params.verbose)
     print_function_statistics(phase.get_edges().values(),
-                              lambda x: x, "initial link volumes",
+                              lambda x: x, "initial sent volumes",
                               params.verbose)
 
     # Instantiate runtime
@@ -368,7 +369,10 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(phase, f"{output_stem}", output_dir=params.output_dir)
+        vt_writer = LoadWriterVT(
+            phase,
+            output_stem,
+            output_dir=params.output_dir)
         vt_writer.write()
 
     # If prefix parsed from command line
@@ -377,7 +381,7 @@ if __name__ == '__main__':
         ex_writer = WriterExodusII(
             phase,
             grid_map,
-            f"{output_stem}",
+            output_stem,
             output_dir=params.output_dir)
         ex_writer.write(
             rt.statistics,
@@ -403,7 +407,10 @@ if __name__ == '__main__':
         lambda x: x.get_load(),
         "final rank loads",
         params.verbose)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "final link volumes", params.verbose)
+    print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x, "final sent volumes",
+        params.verbose)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
