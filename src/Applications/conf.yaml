@@ -40,7 +40,7 @@ criterion:
   name: "TemperedWork"
   parameters:
     actual_destination_work: True
-n_iterations: 4
+n_iterations: 8
 n_rounds: 4
 fanout: 4
 phase_id: 0
