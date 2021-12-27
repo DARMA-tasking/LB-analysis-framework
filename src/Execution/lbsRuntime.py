@@ -110,7 +110,7 @@ class Runtime:
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
-        _, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: self.work_model.compute(x))
 
@@ -125,6 +125,7 @@ class Runtime:
             "total largest directed volume"  : [n_v * v_ave],
             "minimum work"                   : [w_min],
             "maximum work"                   : [w_max],
+            "total work"                     : [n_w * w_ave],
             "work variance"                  : [w_var],
             "work imbalance"                 : [w_imb]}
 
@@ -421,7 +422,7 @@ class Runtime:
             n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
-            _, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
+            n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: self.work_model.compute(x))
 
@@ -435,6 +436,7 @@ class Runtime:
             self.statistics["total largest directed volume"].append(n_v * v_ave)
             self.statistics["minimum work"].append(w_min)
             self.statistics["maximum work"].append(w_max)
+            self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
             self.statistics["work imbalance"].append(w_imb)
 
