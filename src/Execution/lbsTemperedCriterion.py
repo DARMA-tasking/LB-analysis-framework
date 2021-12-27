@@ -86,7 +86,7 @@ class TemperedCriterion(CriterionBase):
         # Initialize criterion with comparison between object loads
         criterion = self.get_work(p_src) - (
             self.dst_work(p_src, p_dst) + self.alpha * obj.get_time())
-
+        criterion = 0.
         # Retrieve object communications
         comm = obj.get_communicator()
         if isinstance(comm, ObjectCommunicator):
@@ -99,17 +99,23 @@ class TemperedCriterion(CriterionBase):
             dst_id = p_dst.get_id()
 
             # Aggregate communication volumes local to source
-            v_src = max(
-                sum([v for k, v in recv if k.get_rank_id() == src_id]),
-                sum([v for k, v in sent if k.get_rank_id() == src_id]))
+            v_recv_src = sum([v for k, v in recv if k.get_rank_id() == src_id])
+            v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
 
             # Aggregate communication volumes between source and destination
-            v_dst = max(
-                sum([v for k, v in recv if k.get_rank_id() == dst_id]),
-                sum([v for k, v in sent if k.get_rank_id() == dst_id]))
+            v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])
+            v_sent_dst = sum([v for k, v in sent if k.get_rank_id() == dst_id])
 
-            # Update criterion with affine transform of communication differences
-            criterion += self.beta * (v_dst - v_src)
+            v_recv = v_recv_dst - v_recv_src
+            if v_recv < 0.:
+                criterion += v_recv
+            v_sent = v_sent_dst - v_sent_src
+            if v_sent < 0.:
+                criterion += v_sent
+            return -1.
+
+            # Update criterion with volume differences
+            #criterion += self.beta * min(v_recv, v_sent)
 
         # Criterion assesses difference in total work
         return criterion
