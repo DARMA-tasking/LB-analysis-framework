@@ -451,6 +451,8 @@ class Runtime:
                 self.load_average,
                 math.sqrt(l_var)))
 
+        # Report final mapping when requested
+        if self.verbose:
         for p in self.phase.get_ranks():
             print(f"Rank {p.get_id()}:")
             for o in p.get_objects():
