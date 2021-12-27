@@ -53,8 +53,9 @@ class TemperedWorkCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, work_model, parameters):
+    def __init__(self, work_model, parameters: dict):
         """Class constructor
+        parameters: optional parameters dictionary
         """
 
         # Call superclass init
@@ -67,9 +68,11 @@ class TemperedWorkCriterion(CriterionBase):
             return p_src.get_known_work(p_dst)
         def get_actual_dst_work(_, p_dst):
             return self.get_work(p_dst)
-        
-        self.dst_work = get_actual_dst_work if parameters.get(
-            "actual_destination_work") else get_dst_work_know_by_src
+
+        # Retrieve releavant parameter when available
+        self.dst_work = get_dst_work_know_by_src if not (
+            parameters and parameters.get(
+                "actual_destination_work")) else get_actual_dst_work
             
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:

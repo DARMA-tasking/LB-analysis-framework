@@ -53,7 +53,7 @@ class CriterionBase:
     """An abstract base class of optimization criteria for LBAF execution
     """
 
-    def __init__(self, work_model, parameters={}):
+    def __init__(self, work_model, parameters: dict=None):
         """Class constructor:
         work_model: a WorkModelBase instance
         parameters: optional parameters dictionary
