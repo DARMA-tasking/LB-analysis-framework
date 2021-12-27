@@ -55,9 +55,9 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
 
         # Use default values if parameters not provided
-        self.alpha = parameters.get("alpha", 0.)
+        self.alpha = parameters.get("alpha", 1.)
         self.beta = parameters.get("beta", 0.)
-        self.gamma = parameters.get("gamma", 1.)
+        self.gamma = parameters.get("gamma", 0.)
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
@@ -73,9 +73,10 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
+        alpha * load + beta * max(sent, received) + gamma
         """
 
         # Compute affine combination of load and volumes
-        return self.alpha + self.beta * max(
+        return self.alpha * rank.get_load() + self.beta * max(
             rank.get_received_volume(),
-            rank.get_sent_volume()) + self.gamma * rank.get_load()
+            rank.get_sent_volume()) + self.gamma

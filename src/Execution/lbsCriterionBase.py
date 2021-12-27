@@ -80,7 +80,6 @@ class CriterionBase:
         """Produce the necessary concrete criterion
         """
 
-        from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
         from src.Execution.lbsTemperedCriterion import TemperedCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion

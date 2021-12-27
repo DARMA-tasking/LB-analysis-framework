@@ -333,6 +333,7 @@ class Runtime:
                     p_src.remove_migratable_object(o, p_dst, self.work_model)
                     obj_it = iter(p_src.get_migratable_objects())
                     p_dst.add_migratable_object(o)
+                    o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
 
                 # Update peers known to rank
@@ -449,6 +450,23 @@ class Runtime:
                 l_max,
                 self.load_average,
                 math.sqrt(l_var)))
+
+        for p in self.phase.get_ranks():
+            print(f"Rank {p.get_id()}:")
+            for o in p.get_objects():
+                comm = o.get_communicator()
+                if comm:
+                    print(f"  Object {o.get_id()}:")
+                    recv = comm.get_received().items()
+                    if recv: 
+                        print("    received from:")
+                        for k, v in recv:
+                            print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
+                    sent = comm.get_sent().items()
+                    if sent: 
+                        print("    sent to:")
+                        for k, v in sent:
+                            print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
 
     @staticmethod
     def sort(objects: set, key):

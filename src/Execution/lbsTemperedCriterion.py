@@ -43,10 +43,12 @@
 #
 ########################################################################
 import bcolors
+import functools
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
+from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class TemperedCriterion(CriterionBase):
@@ -74,10 +76,40 @@ class TemperedCriterion(CriterionBase):
             parameters and parameters.get(
                 "actual_destination_work")) else get_actual_dst_work
 
+        self.alpha = 0.
+        self.beta = 1.
+
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
 
-        # Criterion only uses object and rank works
-        return self.get_work(p_src) - (
-            self.dst_work(p_src, p_dst) + obj.get_time())
+        # Initialize criterion with comparison between object loads
+        criterion = self.get_work(p_src) - (
+            self.dst_work(p_src, p_dst) + self.alpha * obj.get_time())
+
+        # Retrieve object communications
+        comm = obj.get_communicator()
+        if isinstance(comm, ObjectCommunicator):
+            # Retrieve sent and received items from communicator
+            recv = comm.get_received().items()
+            sent = comm.get_sent().items()
+
+            # Retrieve IDs of source and destination ranks
+            src_id = p_src.get_id()
+            dst_id = p_dst.get_id()
+
+            # Aggregate communication volumes local to source
+            w_src = max(
+                sum([v for k, v in recv if k.get_rank_id() == src_id]),
+                sum([v for k, v in sent if k.get_rank_id() == src_id]))
+
+            # Aggregate communication volumes between source and destination
+            w_dst = max(
+                sum([v for k, v in recv if k.get_rank_id() == dst_id]),
+                sum([v for k, v in sent if k.get_rank_id() == dst_id]))
+
+            # Update criterion with affine transform of communication differences
+            criterion += self.beta * (w_dst - w_src)
+
+        # Criterion assesses difference in total work
+        return criterion
