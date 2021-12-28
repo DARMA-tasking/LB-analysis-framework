@@ -267,15 +267,15 @@ class Runtime:
                 continue
 
             # Skip ranks unaware of peers
-            works = p_src.get_known_works()
-            if not works:
+            loads = p_src.get_known_loads()
+            if not loads:
                 n_ignored += 1
                 continue
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
             obj_it = iter(srt_proc_obj)
-            while works:
+            while loads:
                 # Pick next object
                 try:
                     o = next(obj_it)
@@ -283,22 +283,19 @@ class Runtime:
                     # List of objects is exhausted, break out
                     break
 
-                # Compute transfer CMF given known works
+                # Compute transfer CMF given information known to source
                 p_cmf = p_src.compute_transfer_cmf()
                 if not p_cmf:
                     continue
 
                 # Pseudo-randomly select destination proc
                 p_dst = inverse_transform_sample(
-                    works.keys(),
+                    loads.keys(),
                     p_cmf)
 
-                # Report on overloaded rank when requested
+                # Report on know ranks when requested
                 if self.verbose:
-                    print("\tknown ranks: {}".format(
-                        [u.get_id() for u in works]))
-                    print("\tknown works: {}".format(
-                        [self.work_model.compute(u) for u in works]))
+                    print(f"\tknown ranks: {loads}")
                     print("\tCMF_{} = {}".format(
                         p_src.get_id(),
                         p_cmf))
@@ -323,7 +320,7 @@ class Runtime:
                             p_dst.get_id()))
 
                     # Sanity check before transfer
-                    if p_dst not in p_src.known_works:
+                    if p_dst not in p_src.known_loads:
                         print(bcolors.ERR
                               + "*  ERROR: destination rank {} not in known ranks".format(
                                   p_dst.get_id())
@@ -338,7 +335,7 @@ class Runtime:
                     n_transfers += 1
 
                 # Update peers known to rank
-                works = p_src.get_known_works()
+                loads = p_src.get_known_loads()
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects

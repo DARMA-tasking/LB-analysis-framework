@@ -66,9 +66,9 @@ class Rank:
             for o in so:
                 self.sentinel_objects.add(o)
 
-        # No information about works is known initially
+        # No information about peers is known initially
         self.known_ranks = set()
-        self.known_works = {}
+        self.known_loads = {}
 
         # No viewers exist initially
         self.viewers = set()
@@ -125,16 +125,16 @@ class Rank:
         return [o.get_id() for o in self.sentinel_objects]
 
     def get_known_ranks(self):
-        """Return peers whose work is know to self
+        """Return peers know to self
         """
 
         return self.known_ranks
 
-    def get_known_works(self):
-        """Return works of peers know to self
+    def get_known_loads(self):
+        """Return loads of peers know to self
         """
 
-        return self.known_works
+        return self.known_loads
 
     def get_viewers(self):
         """Return peers knowing about self
@@ -149,19 +149,19 @@ class Rank:
         # Remove object from those assigned to self
         self.migratable_objects.remove(o)
 
-        # Update known works
-        w_o = o.get_time()
-        w_dst = self.known_works[p_dst]
-        if w_dst + w_o > work_model.compute(self):
-            # Remove destination from known works if more worked than self
+        # Update known loads
+        l_o = o.get_time()
+        l_dst = self.known_loads[p_dst]
+        if l_dst + l_o > self.get_load():
+            # Remove destination from known loads if more loaded than self
             self.known_ranks.remove(p_dst)
-            del self.known_works[p_dst]
+            del self.known_loads[p_dst]
         else:
-            # Update work
-            self.known_works[p_dst] += w_o
+            # Update loads
+            self.known_loads[p_dst] += l_o
 
-        # Return removed object work
-        return w_o
+        # Return removed object load
+        return l_o
         
     def add_as_viewer(self, ranks):
         """Add self as viewer to known peers
@@ -233,7 +233,7 @@ class Rank:
 
         # Reset information about known loaded peers
         self.known_ranks = set()
-        self.known_works = {}
+        self.known_loads = {}
 
         # Reset information about overloaded viwewer peers
         self.viewers = set()
@@ -247,25 +247,26 @@ class Rank:
 
         # Make rank aware of own load
         self.known_ranks = set([self])
-        self.known_works[self] = l
+        self.known_loads[self] = l
 
         # Create load message tagged at first round
-        msg = Message(1, (self.known_ranks, self.known_works))
+        msg = Message(1, (self.known_ranks, self.known_loads))
 
-        # Broadcast works to pseudo-random sample of ranks excluding self
-        return rnd.sample(ranks.difference([self]), min(f, len(ranks) - 1)), msg
+        # Broadcast message to pseudo-random sample of ranks excluding self
+        return rnd.sample(ranks.difference(
+            [self]), min(f, len(ranks) - 1)), msg
 
     def forward_message(self, r, ranks, f):
         """Formard information message to sample of selected peers
         """
 
-        # Compute complement of set of known rank works
+        # Compute complement of set of known peers
         c_ranks = ranks.difference(self.known_ranks).difference([self])
 
         # Create load message tagged at current round
-        msg = Message(r, (self.known_ranks, self.known_works))
+        msg = Message(r, (self.known_ranks, self.known_loads))
 
-        # Forward works to pseudo-random sample of ranks
+        # Forward message to pseudo-random sample of ranks
         return rnd.sample(c_ranks, min(f, len(c_ranks))), msg
 
     def process_message(self, msg):
@@ -292,11 +293,11 @@ class Rank:
         self.known_ranks.update(info[0])
 
         # Update load information
-        self.known_works.update(info[1])
+        self.known_loads.update(info[1])
 
         # Sanity check
         l1 = len(self.known_ranks)
-        l2 = len(self.known_works)
+        l2 = len(self.known_loads)
         if l1 != l2:
             print(bcolors.ERR
                   + "** ERROR: cannot process message at rank {}: {}<>{}. Exiting.".format(
@@ -317,14 +318,14 @@ class Rank:
         sum_p = 0
         cmf = []
 
-        # Retrieve known works
-        works = self.known_works.values()
+        # Retrieve known loads
+        loads = self.known_loads.values()
         
         # Normalize with respect to maximum load
-        p_fac = 1. / max(works)
+        p_fac = 1. / max(loads)
 
         # Compute CMF over all known ranks
-        for l, p in zip(works, self.known_ranks):
+        for l, p in zip(loads, self.known_ranks):
             # Self does not contribute to CMF
             if p.get_id() != self.index:
                 sum_p += 1 - p_fac * l

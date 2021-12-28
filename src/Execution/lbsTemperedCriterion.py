@@ -55,8 +55,9 @@ class TemperedCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, work_model, parameters: dict):
+    def __init__(self, work_model, parameters: dict=None):
         """Class constructor
+        work_model: WorkModel instante
         parameters: optional parameters dictionary
         """
 
@@ -64,29 +65,28 @@ class TemperedCriterion(CriterionBase):
         super(TemperedCriterion, self).__init__(work_model, parameters)
         print(f"{bcolors.HEADER}[TemperedCriterion]{bcolors.END} Instantiated concrete criterion")
 
-        
-        # Determine how destination work is to be computed
-        def get_dst_work_know_by_src(p_src, p_dst):
-            return p_src.get_known_work(p_dst)
-        def get_actual_dst_work(_, p_dst):
-            return self.get_work(p_dst)
+        # Determine how destination load is to be computed
+        def get_dst_load_know_by_src(p_src, p_dst):
+            return p_src.get_known_loads()[p_dst]
+        def get_actual_dst_load(_, p_dst):
+            return p_dst.get_load()
 
-        # Retrieve releavant parameter when available
-        self.dst_work = get_dst_work_know_by_src if not (
+        # Retrieve relevant parameter when available
+        self.dst_load = get_dst_load_know_by_src if not (
             parameters and parameters.get(
-                "actual_destination_work")) else get_actual_dst_work
-
-        self.alpha = 0.
-        self.beta = 1.
+                "actual_destination_load")) else get_actual_dst_load
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
 
-        # Initialize criterion with comparison between object loads
-        criterion = self.get_work(p_src) - (
-            self.dst_work(p_src, p_dst) + self.alpha * obj.get_time())
-        criterion = 0.
+        # Initialize storage for work aggregation
+        values = {}
+
+        # Compute load-based criterion
+        values["load"] = self.dst_load(
+            p_src, p_dst) + obj.get_time() - p_src.get_load()
+
         # Retrieve object communications
         comm = obj.get_communicator()
         if isinstance(comm, ObjectCommunicator):
@@ -98,24 +98,17 @@ class TemperedCriterion(CriterionBase):
             src_id = p_src.get_id()
             dst_id = p_dst.get_id()
 
-            # Aggregate communication volumes local to source
-            v_recv_src = sum([v for k, v in recv if k.get_rank_id() == src_id])
-            v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
-
             # Aggregate communication volumes between source and destination
             v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])
             v_sent_dst = sum([v for k, v in sent if k.get_rank_id() == dst_id])
 
-            v_recv = v_recv_dst - v_recv_src
-            if v_recv < 0.:
-                criterion += v_recv
-            v_sent = v_sent_dst - v_sent_src
-            if v_sent < 0.:
-                criterion += v_sent
-            return -1.
+            # Aggregate communication volumes local to source
+            v_recv_src = sum([v for k, v in recv if k.get_rank_id() == src_id])
+            v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
 
-            # Update criterion with volume differences
-            #criterion += self.beta * min(v_recv, v_sent)
+            # Compute differences between sent and received volumes
+            values["received volume"] = v_recv_src - v_recv_dst
+            values["sent volume"] = v_sent_src - v_sent_dst
 
-        # Criterion assesses difference in total work
-        return criterion
+        # Return aggregated criterion
+        return - self.work_model.aggregate(values)

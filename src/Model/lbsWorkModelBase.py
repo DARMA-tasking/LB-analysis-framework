@@ -91,3 +91,11 @@ class WorkModelBase:
 
         # Must be implemented by concrete subclass
         pass
+
+    @abc.abstractmethod
+    def aggregate(self, values: dict):
+        """Return value of work given relevant dictionary of values
+        """
+
+        # Must be implemented by concrete subclass
+        pass
