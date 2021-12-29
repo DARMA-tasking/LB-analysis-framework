@@ -47,10 +47,10 @@ from utils.logger import CLRS
 class AffineCombinationWorkModel(WorkModelBase):
     """A concrete class for a load-only work model
     """
-    
+
     def __init__(self, parameters, lgr: Logger = None):
         """Class constructor:
-        parameters: dictionary with alpha and beta parameters
+        parameters: dictionary with alpha, beta, and gamma values
         """
         # Assign logger to instance variable
         self.lgr = lgr
@@ -61,15 +61,28 @@ class AffineCombinationWorkModel(WorkModelBase):
         self.cyan = CLRS.get('cyan')
 
         # Use default values if parameters not provided
-        self.alpha = parameters.get("alpha", 0.)
-        self.beta = parameters.get("beta", 1.)
+        self.alpha = parameters.get("alpha", 1.)
+        self.beta = parameters.get("beta", 0.)
+        self.gamma = parameters.get("gamma", 0.)
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        self.lgr.info(self.grn(f"Instantiated concrete work model with alpha={self.alpha} and beta={self.beta}"))
+        self.lgr.info(
+            self.grn(f"Instantiated work model with alpha={self.alpha}, beta={self.beta}, gamma={self.gamma}"))
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
+        alpha * load + beta * max(sent, received) + gamma
         """
         # Compute affine combination of load and volumes
-        return rank.get_load() + self.alpha + self.beta * max(rank.get_received_volume(), rank.get_sent_volume())
+        return self.alpha * rank.get_load() + self.beta * max(rank.get_received_volume(),
+                                                              rank.get_sent_volume()) + self.gamma
+
+    def aggregate(self, values: dict):
+        """A work model with affine combination of load and communication
+        alpha * load + beta * max(sent, received) + gamma
+        """
+
+        # Return work using provided values
+        return self.alpha * values.get("load", 0.) + self.beta * max(values.get("received volume", 0.),
+                                                                     values.get("sent volume", 0.)) + self.gamma

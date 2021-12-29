@@ -70,7 +70,7 @@ class CriterionBase:
         if not isinstance(work_model, WorkModelBase):
             LGR.error(red("Could not create a criterion without a work model"))
             sys.exit(1)
-        self.get_work = lambda x: work_model.compute(x)
+        self.work_model = work_model
 
         # Criterion keeps internal references to ranks and edges
         LGR.info(grn(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model"))
@@ -79,8 +79,7 @@ class CriterionBase:
     def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):
         """Produce the necessary concrete criterion
         """
-        from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
-        from src.Execution.lbsTemperedWorkCriterion import TemperedWorkCriterion
+        from src.Execution.lbsTemperedCriterion import TemperedCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 

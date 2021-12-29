@@ -55,9 +55,9 @@ class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
-    def __init__(self, e, m, f="lbs_out", s='e', r=1., output_dir=None, logger: Logger = None):
+    def __init__(self, p, m, f="lbs_out", s='e', r=1., output_dir=None, logger: Logger = None):
         """Class constructor:
-        e: Phase instance
+        p: Phase instance
         m: Rank dictionnary
         f: file name stem
         s: suffix
@@ -72,10 +72,10 @@ class WriterExodusII:
         self.ylw = CLRS.get('yellow')
 
         # Ensure that provided phase has correct type
-        if not isinstance(e, Phase):
+        if not isinstance(p, Phase):
             self.lgr.error(self.red("Could not write to ExodusII file by lack of a LBS phase"))
             return
-        self.phase = e
+        self.phase = p
 
         # If no rank mapping was provided, do not do anything
         if not callable(m):
