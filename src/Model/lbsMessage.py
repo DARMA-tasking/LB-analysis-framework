@@ -43,7 +43,7 @@
 #
 
 class Message:
-    """A class representing load information sent by nodes
+    """A class representing information sent between ranks
     """
 
     def __init__(self, r, c):
