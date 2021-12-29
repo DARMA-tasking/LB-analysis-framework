@@ -110,7 +110,7 @@ class Runtime:
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
-        _, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: self.work_model.compute(x))
 
@@ -125,6 +125,7 @@ class Runtime:
             "total largest directed volume"  : [n_v * v_ave],
             "minimum work"                   : [w_min],
             "maximum work"                   : [w_max],
+            "total work"                     : [n_w * w_ave],
             "work variance"                  : [w_var],
             "work imbalance"                 : [w_imb]}
 
@@ -266,15 +267,15 @@ class Runtime:
                 continue
 
             # Skip ranks unaware of peers
-            works = p_src.get_known_works()
-            if not works:
+            loads = p_src.get_known_loads()
+            if not loads:
                 n_ignored += 1
                 continue
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
             obj_it = iter(srt_proc_obj)
-            while works:
+            while loads:
                 # Pick next object
                 try:
                     o = next(obj_it)
@@ -282,22 +283,19 @@ class Runtime:
                     # List of objects is exhausted, break out
                     break
 
-                # Compute transfer CMF given known works
+                # Compute transfer CMF given information known to source
                 p_cmf = p_src.compute_transfer_cmf()
                 if not p_cmf:
                     continue
 
                 # Pseudo-randomly select destination proc
                 p_dst = inverse_transform_sample(
-                    works.keys(),
+                    loads.keys(),
                     p_cmf)
 
-                # Report on overloaded rank when requested
+                # Report on know ranks when requested
                 if self.verbose:
-                    print("\tknown ranks: {}".format(
-                        [u.get_id() for u in works]))
-                    print("\tknown works: {}".format(
-                        [self.work_model.compute(u) for u in works]))
+                    print(f"\tknown ranks: {loads}")
                     print("\tCMF_{} = {}".format(
                         p_src.get_id(),
                         p_cmf))
@@ -322,7 +320,7 @@ class Runtime:
                             p_dst.get_id()))
 
                     # Sanity check before transfer
-                    if p_dst not in p_src.known_works:
+                    if p_dst not in p_src.known_loads:
                         print(bcolors.ERR
                               + "*  ERROR: destination rank {} not in known ranks".format(
                                   p_dst.get_id())
@@ -333,10 +331,11 @@ class Runtime:
                     p_src.remove_migratable_object(o, p_dst, self.work_model)
                     obj_it = iter(p_src.get_migratable_objects())
                     p_dst.add_migratable_object(o)
+                    o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
 
                 # Update peers known to rank
-                works = p_src.get_known_works()
+                loads = p_src.get_known_loads()
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
@@ -420,7 +419,7 @@ class Runtime:
             n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
-            _, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
+            n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: self.work_model.compute(x))
 
@@ -434,6 +433,7 @@ class Runtime:
             self.statistics["total largest directed volume"].append(n_v * v_ave)
             self.statistics["minimum work"].append(w_min)
             self.statistics["maximum work"].append(w_max)
+            self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
             self.statistics["work imbalance"].append(w_imb)
 
@@ -449,6 +449,25 @@ class Runtime:
                 l_max,
                 self.load_average,
                 math.sqrt(l_var)))
+
+        # Report final mapping when requested
+        if self.verbose:
+            for p in self.phase.get_ranks():
+                print(f"Rank {p.get_id()}:")
+                for o in p.get_objects():
+                    comm = o.get_communicator()
+                    if comm:
+                        print(f"  Object {o.get_id()}:")
+                        recv = comm.get_received().items()
+                        if recv: 
+                            print("    received from:")
+                            for k, v in recv:
+                                print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
+                        sent = comm.get_sent().items()
+                        if sent: 
+                            print("    sent to:")
+                            for k, v in sent:
+                                print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
 
     @staticmethod
     def sort(objects: set, key):

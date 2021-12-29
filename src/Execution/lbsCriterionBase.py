@@ -65,7 +65,7 @@ class CriterionBase:
                   + "*  ERROR: Could not create a criterion without a work model"
                   + bcolors.END)
             sys.exit(1)
-        self.get_work = lambda x: work_model.compute(x)
+        self.work_model = work_model
 
         # Criterion keeps internal references to ranks and edges
         print(bcolors.HEADER
@@ -80,8 +80,7 @@ class CriterionBase:
         """Produce the necessary concrete criterion
         """
 
-        from src.Execution.lbsLowerTotalWorkCriterion import LowerTotalWorkCriterion
-        from src.Execution.lbsTemperedWorkCriterion import TemperedWorkCriterion
+        from src.Execution.lbsTemperedCriterion import TemperedCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 

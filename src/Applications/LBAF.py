@@ -75,8 +75,8 @@ class internalParameters:
         # By default use load-only work model
         self.work_model = {"name": "LoadOnly", "parameters": {}}
 
-        # By default use tempered load criterion
-        self.criterion = {"name": "TemperedLoad", "parameters": {}}
+        # By default use tempered criterion
+        self.criterion = {"name": "Tempered", "parameters": {}}
 
         # Number of load-balancing iterations
         self.n_iterations = 1

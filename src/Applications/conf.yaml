@@ -5,7 +5,7 @@
 #    type: str in LoadOnly (default), AffineCombination
 #    parameters: optional parameters that are specitic to each work model
 # criterion           description of the object transfer criterion
-#    type: str in LowerTotalWork, TemperedLoad (default), StrictLocalizer, RelaxedLocalizer
+#    type: str in Tempered (default), StrictLocalizer, RelaxedLocalizer
 #    parameters: optional parameters that are specitic to each criterion
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
 # x_procs             [-x <npx>]  int       number of procs in x direction
@@ -31,15 +31,15 @@
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 
 work_model:
-  #name: "AffineCombination"
-  name: "LoadOnly"
+  name: "AffineCombination"
   parameters:
-    alpha: 0.
+    alpha: 1.
     beta: 0.
+    gamma: 0.
 criterion:
-  name: "TemperedWork"
+  name: "Tempered"
   parameters:
-    actual_destination_work: True
+    actual_destination_load: True
 n_iterations: 8
 n_rounds: 4
 fanout: 4
