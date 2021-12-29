@@ -1,4 +1,4 @@
-#
+
 #@HEADER
 ###############################################################################
 #
@@ -74,7 +74,6 @@ class Rank:
                 self.sentinel_objects.add(o)
 
         # No information about peers is known initially
-        self.known_ranks = set()
         self.known_loads = {}
 
         # No viewers exist initially
@@ -126,11 +125,6 @@ class Rank:
         """
         return [o.get_id() for o in self.sentinel_objects]
 
-    def get_known_ranks(self):
-        """Return peers know to self
-        """
-        return self.known_ranks
-
     def get_known_loads(self):
         """Return loads of peers know to self
         """
@@ -152,7 +146,6 @@ class Rank:
         l_dst = self.known_loads[p_dst]
         if l_dst + l_o > self.get_load():
             # Remove destination from known loads if more loaded than self
-            self.known_ranks.remove(p_dst)
             del self.known_loads[p_dst]
         else:
             # Update loads
@@ -220,42 +213,43 @@ class Rank:
     def reset_all_load_information(self):
         """Reset all load information known to self
         """
-        # Reset information about known loaded peers
-        self.known_ranks = set()
+
+        # Reset information about known peers
         self.known_loads = {}
 
         # Reset information about overloaded viwewer peers
         self.viewers = set()
 
-    def initialize_message(self, ranks, f):
+    def initialize_message(self, loads, f):
         """Initialize maessage to be sent to selected peers
         """
         # Retrieve current load on this rank
         l = self.get_load()
 
         # Make rank aware of own load
-        self.known_ranks = set([self])
         self.known_loads[self] = l
 
         # Create load message tagged at first round
-        msg = Message(1, (self.known_ranks, self.known_loads))
+        msg = Message(1, self.known_loads)
 
         # Broadcast message to pseudo-random sample of ranks excluding self
-        return rnd.sample(ranks.difference(
-            [self]), min(f, len(ranks) - 1)), msg
+        return rnd.sample(
+            set(loads).difference([self]), min(f, len(loads) - 1)), msg
 
-    def forward_message(self, r, ranks, f):
+    def forward_message(self, r, s, f):
         """Formard information message to sample of selected peers
         """
-        # Compute complement of set of known peers
-
-        c_ranks = ranks.difference(self.known_ranks).difference([self])
 
         # Create load message tagged at current round
-        msg = Message(r, (self.known_ranks, self.known_loads))
+        msg = Message(r, self.known_loads)
+
+        # Compute complement of set of known peers
+        complement = set(
+            self.known_loads).difference([self])
 
         # Forward message to pseudo-random sample of ranks
-        return rnd.sample(c_ranks, min(f, len(c_ranks))), msg
+        return rnd.sample(
+            complement, min(f, len(complement))), msg
 
     def process_message(self, msg):
         """Update internals when message is received
@@ -264,24 +258,8 @@ class Rank:
         if not isinstance(msg, Message):
             self.lgr.warning(self.cyan(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it."))
 
-        # Retrieve information from message
-        info = msg.get_content()
-        if len(info) < 2:
-            self.lgr.warning(self.cyan(f"Incomplete message content: {info}. Ignoring it."))
-            return
-
-        # Union received set of loaded ranks with current one
-        self.known_ranks.update(info[0])
-
         # Update load information
-        self.known_loads.update(info[1])
-
-        # Sanity check
-        l1 = len(self.known_ranks)
-        l2 = len(self.known_loads)
-        if l1 != l2:
-            self.lgr.error(self.red(f"Cannot process message at rank {self.get_id()}: {l1}<>{l2}. Exiting."))
-            sys.exit(1)
+        self.known_loads.update(msg.get_content())
 
         # Update last received message index
         self.round_last_received = msg.get_round()
@@ -293,17 +271,14 @@ class Rank:
         sum_p = 0
         cmf = []
 
-        # Retrieve known loads
-        loads = self.known_loads.values()
-        
         # Normalize with respect to maximum load
-        p_fac = 1. / max(loads)
+        p_fac = 1. / max(self.known_loads.values())
 
         # Compute CMF over all known ranks
-        for l, p in zip(loads, self.known_ranks):
+        for k, v in self.known_loads.items():
             # Self does not contribute to CMF
-            if p.get_id() != self.index:
-                sum_p += 1 - p_fac * l
+            if k != self:
+                sum_p += 1 - p_fac * v
             cmf.append(sum_p)
 
         # Normalize and return CMF

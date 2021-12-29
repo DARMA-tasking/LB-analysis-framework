@@ -165,8 +165,8 @@ class Runtime:
 
         # Report on gossiping status when requested
         for p in rank_set:
-            self.lgr.debug(self.ylw(f"\tloaded known to rank {p.get_id()}: "
-                                    f"{[p_u.get_id() for p_u in p.get_known_ranks()]}"))
+            self.lgr.debug(self.ylw(f"\tinformation known to rank {p.get_id()}: "
+                                    f"{[p_u.get_id() for p_u in p.get_known_loads()]}"))
 
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
@@ -187,21 +187,21 @@ class Runtime:
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
                 for m in msg_lst:
-                    p_rcv.process_load_message(m)
+                    p_rcv.process_message(m)
 
             # Report on gossiping status when requested
             for p in rank_set:
-                self.lgr.debug(self.ylw(f"\tloaded known to rank {p.get_id()}: "
-                                        f"{[p_u.get_id() for p_u in p.get_known_ranks()]}"))
+                self.lgr.debug(self.ylw(f"\tinformation known to rank {p.get_id()}: "
+                                        f"{[p_u.get_id() for p_u in p.get_known_loads()]}"))
 
-        # Build reverse lookup of loaded to overloaded viewers
+        # Build reverse lookup of ranks to those aware of them
         for p in rank_set:
             # Skip non-loaded ranks
             if not p.get_load():
                 continue
 
             # Update viewers on loaded ranks known to this one
-            p.add_as_viewer(p.get_known_ranks())
+            p.add_as_viewer(p.get_known_loads().keys())
 
         # Report on viewers of loaded ranks
         viewers_counts = {}
@@ -236,6 +236,9 @@ class Runtime:
             if not self.work_model.compute(p_src) > 0.:
                 continue
 
+            # Report on offloading rank when requesting
+            self.lgr.debug(self.ylw(f"\ttrying to offload from rank {p_src.get_id()} to {[p_u.get_id() for p_u in p_src.get_known_loads()]}:"))
+
             # Skip ranks unaware of peers
             loads = p_src.get_known_loads()
             if not loads:
@@ -252,9 +255,11 @@ class Runtime:
                 except:
                     # List of objects is exhausted, break out
                     break
+                self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
 
                 # Compute transfer CMF given information known to source
                 p_cmf = p_src.compute_transfer_cmf()
+                self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
                 if not p_cmf:
                     continue
 
@@ -262,10 +267,6 @@ class Runtime:
                 p_dst = inverse_transform_sample(
                     loads.keys(),
                     p_cmf)
-
-                # Report on know ranks when requested
-                self.lgr.debug(self.ylw(f"\tknown ranks: {loads}"))
-                self.lgr.debug(self.ylw(f"\tCMF_{p_src.get_id()} = {p_cmf}"))
 
                 # Decide about proposed transfer
                 if transfer_criterion.compute(o, p_src, p_dst) < 0.:
