@@ -42,77 +42,66 @@
 #@HEADER
 #
 ########################################################################
-import bcolors
+from logging import Logger
+
 import vtk
+
+from utils.logger import CLRS, logger
 
 
 class GridStreamer:
     """A class containing to stream a grid with time-varying attributes
     """
 
-    def __init__(self, points, lines, field_arrays, point_arrays, cell_arrays):
+    def __init__(self, points, lines, field_arrays, point_arrays, cell_arrays, lgr: Logger = None):
         """Class constructor
         """
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
 
         # Sanity checks
         self.Error = False
         if not isinstance(points, vtk.vtkPoints):
-            print(bcolors.ERR
-                + "*  ERROR: A vtkPoints instance is required as points input"
-                + bcolors.END)
+            self.lgr.error(self.red("A vtkPoints instance is required as points input"))
             self.Error = True
             return
         if not isinstance(lines, vtk.vtkCellArray):
-            print(bcolors.ERR
-                + "*  ERROR: A vtkCellArray instance is required as lines input"
-                + bcolors.END)
+            self.lgr.error(self.red("A vtkCellArray instance is required as lines input"))
             self.Error = True
             return
         if not isinstance(field_arrays, dict):
-            print(bcolors.ERR
-                + "*  ERROR: A dict of vtkDataArray instances is required as field data input"
-                + bcolors.END)
+            self.lgr.error(self.red("A dict of vtkDataArray instances is required as field data input"))
             self.Error = True
         if not isinstance(point_arrays, list):
-            print(bcolors.ERR
-                + "*  ERROR: A list of vtkDataArray instances is required as point data input"
-                + bcolors.END)
+            self.lgr.error(self.red("A list of vtkDataArray instances is required as point data input"))
             self.Error = True
             return
         if not isinstance(cell_arrays, list):
-            print(bcolors.ERR
-                + "*  ERROR: A list of vtkDataArray instances is required as cell data input"
-                + bcolors.END)
+            self.lgr.error(self.red("A list of vtkDataArray instances is required as cell data input"))
             self.Error = True
             return
 
         # Keep track of requested number of steps and check consistency
         n_steps = len(cell_arrays)
         if any([n_steps != len(p) for p in point_arrays]):
-            print(bcolors.ERR
-                + "*  ERROR: Number of time steps not all equal to "
-                + str(n_steps)
-                + bcolors.END)
+            self.lgr.error(self.red(f"Number of time steps not all equal to {n_steps}"))
             self.Error = True
             return
 
         # More sanity checks
         for f_name, f_list in field_arrays.items():
             if n_steps != len(f_list):
-                print(bcolors.ERR
-                    + "*  ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
-                    f_name,
-                    len(f_list),
-                    n_steps)
-                    + bcolors.END)
+                self.lgr.error(self.red(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> "
+                                        f"{n_steps}"))
                 self.Error = True
                 return
 
         # Instantiate the streaming source
-        print(bcolors.HEADER
-            + "[GridStreamer] "
-            + bcolors.END
-            + "Streaming {} load-balancing steps".format(n_steps))
+        self.lgr.info(self.grn(f"Streaming {n_steps} load-balancing steps"))
         self.Algorithm = vtk.vtkProgrammableSource()
 
         # Set source information
@@ -140,12 +129,8 @@ class GridStreamer:
             i = int(t_s)
             for f_name, f_list in field_arrays.items():
                 if n_steps != len(f_list):
-                    print(bcolors.ERR
-                        + "*  ERROR: Number of {} arrays and data arrays do not match: {} <> {}".format(
-                        f_name,
-                        len(f_list),
-                        n_steps)
-                        + bcolors.END)
+                    logger().error(CLRS.get('red')(f"Number of {f_name} arrays and data arrays do not match: "
+                                                   f"{len(f_list)} <> {n_steps}"))
                     self.Error = True
                     return
                 output.GetFieldData().AddArray(f_list[i])

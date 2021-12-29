@@ -50,10 +50,9 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
 
-import getopt
+import logging
 import math
 
-import bcolors
 import yaml
 try:
     import paraview.simple
@@ -65,6 +64,7 @@ from src.Execution.lbsRuntime import Runtime
 from src.IO.lbsLoadWriterVT import LoadWriterVT
 from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics
+from utils.logger import logger, CLRS
 
 
 class internalParameters:
@@ -122,8 +122,9 @@ class internalParameters:
         # Decide whether Exodus output should be written
         self.exodus = False
 
-        # Do not be verbose by default
-        self.verbose = False
+        # Starting logger
+        self.logger = logger()
+        self.logging_level = 'info'
 
         # Output directory
         self.output_dir = None
@@ -150,17 +151,19 @@ class internalParameters:
 
         if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
             # Try to open configuration file
-            print(f"{bcolors.HEADER}[LBAF]{bcolors.END} Found configuration file {conf_file}")
+            self.logger.info(CLRS.get('green')(f"Found configuration file {conf_file}"))
+
             try:
                 with open(conf_file, "rt") as config:
                     self.conf_file_found = True
                     return yaml.safe_load(config)
             except yaml.MarkedYAMLError as err:
-                print(f"{bcolors.ERR}ERROR: Invalid YAML file {conf_file} in line {err.problem_mark.line} "
-                      f"({err.problem,} {err.context}){bcolors.END}")
+                self.logger.error(CLRS.get('red')(f"Invalid YAML file {conf_file} in line {err.problem_mark.line} "
+                                                  f"({err.problem,} {err.context})"))
                 sys.exit(1)
         else:
-            print(f"{bcolors.ERR}Config file NOT FOUND!{bcolors.END}")
+            self.logger.error(CLRS.get('red')("Config file NOT FOUND!"))
+            sys.exit(1)
 
     def checks_after_init(self):
         """ Checks after initialization.
@@ -171,10 +174,7 @@ class internalParameters:
                  (self.time_sampler_type and self.volume_sampler_type))
                 or (self.log_file and
                     (self.time_sampler_type or self.volume_sampler_type))):
-            print(bcolors.ERR
-                  + "** ERROR: exactly one strategy to populate initial phase "
-                    "must be chosen."
-                  + bcolors.END)
+            self.logger.error(CLRS.get('red')('exactly one strategy to populate initial phase must be chosen.'))
             sys.exit(1)
 
         # Case when phases are populated from samplers not from log file
@@ -185,7 +185,7 @@ class internalParameters:
             elif os.path.isdir(os.path.join(project_path, os.path.split(self.log_file)[0])):
                 self.log_file = os.path.join(project_path, self.log_file)
             else:
-                print(f"{bcolors.ERR}LOG directory NOT FOUND!{bcolors.END}")
+                self.logger.error(CLRS.get('red')('LOG directory NOT FOUND!'))
                 sys.exit(1)
 
         # Checking if output dir exists, if not, creating one
@@ -210,49 +210,49 @@ class internalParameters:
         if isinstance(self.conf.get("z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
             self.grid_size[2] = self.conf.get("z_procs", 0)
         if isinstance(self.conf.get("time_sampler_type", None), str):
-            self.time_sampler_type, self.time_sampler_parameters = parse_sampler(self.conf["time_sampler_type"])
+            self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(self.conf["time_sampler_type"])
         if isinstance(self.conf.get("volume_sampler_type", None), str):
-            self.volume_sampler_type, self.volume_sampler_parameters = parse_sampler(self.conf["volume_sampler_type"])
+            self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
+                self.conf["volume_sampler_type"])
         if self.communication_degree > 0:
             self.communication_enabled = True
         if isinstance(self.conf.get("order_strategy", None), str):
             self.order_strategy = self.conf.get("order_strategy", None)
+        logging_level = {'info': logging.INFO, 'debug': logging.DEBUG, 'error': logging.ERROR}
+        self.logger.level = logging_level.get(self.logging_level.lower(), 'info')
 
+    def parse_sampler(self, cmd_str):
+        """Parse command line arguments specifying sampler type and input parameters
+           Example: lognormal,1.0,10.0
+        """
 
-def parse_sampler(cmd_str):
-    """Parse command line arguments specifying sampler type and input parameters
-       Example: lognormal,1.0,10.0
-    """
+        # Default return values
+        sampler_type = None
+        sampler_args = []
 
-    # Default return values
-    sampler_type = None
-    sampler_args = []
+        # Try to parse the sampler from `cmd_str`
+        a_s = cmd_str.split(',')
+        if len(a_s):
+            sampler_type = a_s[0].lower()
+            for p in a_s[1:]:
+                try:
+                    x = float(p)
+                except:
+                    self.logger.error(CLRS.get('red')(f"{p} cannot be converted to a float"))
+                    sys.exit(1)
+                sampler_args.append(x)
 
-    # Try to parse the sampler from `cmd_str`
-    a_s = cmd_str.split(',')
-    if len(a_s):
-        sampler_type = a_s[0].lower()
-        for p in a_s[1:]:
-            try:
-                x = float(p)
-            except:
-                print(bcolors.ERR
-                    + "** ERROR: `{}` cannot be converted to a float".format(p)
-                    + bcolors.END)
-                sys.exit(1)
-            sampler_args.append(x)
+        # Error check the sampler parsed from input string
+        if sampler_type not in ("uniform", "lognormal"):
+            self.logger.error(CLRS.get('red')(f"Unsupported sampler type: {sampler_type}"))
+            sys.exit(1)
+        if len(sampler_args) != 2:
+            self.logger.error(CLRS.get('red')(f"Expected two parameters for sampler type: {sampler_type}, got "
+                                              f"{len(sampler_args)}"))
+            sys.exit(1)
 
-    # Error check the sampler parsed from input string
-    if sampler_type not in ("uniform", "lognormal"):
-        print(f"{bcolors.ERR}** ERROR: unsupported sampler type: {sampler_type}{bcolors.END}")
-        sys.exit(1)
-    if len(sampler_args) != 2:
-        print(f"{bcolors.ERR}** ERROR: expected two parameters for sampler type: {sampler_type}, "
-              f"got {len(sampler_args)}{bcolors.END}")
-        sys.exit(1)
-
-    # Return the sampler parsed from the input argument
-    return sampler_type, sampler_args
+        # Return the sampler parsed from the input argument
+        return sampler_type, sampler_args
 
 
 def global_id_to_cartesian(id, grid_sizes):
@@ -261,7 +261,7 @@ def global_id_to_cartesian(id, grid_sizes):
 
     # Sanity check
     n01 = grid_sizes[0] * grid_sizes[1]
-    if id < 0  or id >= n01 * grid_sizes[2]:
+    if id < 0 or id >= n01 * grid_sizes[2]:
         return None
 
     # Compute successive euclidean divisions
@@ -299,26 +299,32 @@ def get_output_file_stem(params):
         params.criterion["name"],
         '-'.join([str(v).replace('.', '_') for v in params.criterion["parameters"].values()]))
 
+
 if __name__ == '__main__':
+    # Instantiate parameters
+    params = internalParameters()
+
+    # Assign logger to variable
+    lgr = params.logger
+    # Assign colors
+    grn = CLRS.get('green')
+    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    print(f"{bcolors.HEADER}[LBAF]{bcolors.END} ### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
-
-    # Instantiate parameters
-    params = internalParameters()
+    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
 
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
-        print(f"{bcolors.ERR}*** ERROR: Total number of ranks ({n_p}) must be > 1{bcolors.END}")
+        lgr.info(red(f"Total number of ranks ({n_p}) must be > 1"))
         sys.exit(1)
 
     # Initialize random number generator
     initialize()
 
     # Create a phase and populate it
-    phase = Phase(0, params.verbose, file_suffix=params.file_suffix)
+    phase = Phase(0, logger=lgr, logging_level=params.logging_level, file_suffix=params.file_suffix)
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_p, params.phase_id, params.log_file)
@@ -337,31 +343,16 @@ if __name__ == '__main__':
         n_o = params.n_objects
 
     # Compute and print initial rank load and link volume statistics
-    print_function_statistics(phase.get_ranks(),
-                              lambda x: x.get_load(),
-                              "initial rank loads",
-                              params.verbose)
-    print_function_statistics(phase.get_edges().values(),
-                              lambda x: x, "initial sent volumes",
-                              params.verbose)
+    print_function_statistics(phase.get_ranks(), lambda x: x.get_load(), "initial rank loads", logger=lgr)
+    print_function_statistics(phase.get_edges().values(), lambda x: x, "initial sent volumes", logger=lgr)
 
     # Instantiate runtime
-    rt = Runtime(phase,
-                 params.work_model,
-                 params.criterion,
-                 params.order_strategy,
-                 params.verbose)
-    rt.execute(params.n_iterations,
-               params.n_rounds,
-               params.fanout)
+    rt = Runtime(phase, params.work_model, params.criterion, params.order_strategy, logger=lgr)
+    rt.execute(params.n_iterations, params.n_rounds, params.fanout)
 
     # Create mapping from rank to Cartesian grid
-    print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "Mapping {} ranks onto a {}x{}x{} rectilinear grid".format(
-        n_p,
-        *params.grid_size))
+    pgs = params.grid_size
+    lgr.info(grn(f"Mapping {n_p} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid"))
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
     # Assemble output file name stem
@@ -369,26 +360,14 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(
-            phase,
-            output_stem,
-            output_dir=params.output_dir)
+        vt_writer = LoadWriterVT(phase, output_stem, output_dir=params.output_dir, logger=lgr)
         vt_writer.write()
 
     # If prefix parsed from command line
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
-        ex_writer = WriterExodusII(
-            phase,
-            grid_map,
-            output_stem,
-            output_dir=params.output_dir)
-        ex_writer.write(
-            rt.statistics,
-            rt.load_distributions,
-            rt.sent_distributions,
-            rt.work_distributions,
-            params.verbose)
+        ex_writer = WriterExodusII(phase, grid_map, output_stem, output_dir=params.output_dir, logger=lgr)
+        ex_writer.write(rt.statistics, rt.load_distributions, rt.sent_distributions, rt.work_distributions)
 
     # Create a viewer if paraview is available
     file_name = output_stem
@@ -406,31 +385,19 @@ if __name__ == '__main__':
         phase.get_ranks(),
         lambda x: x.get_load(),
         "final rank loads",
-        params.verbose)
-    print_function_statistics(
-        phase.get_edges().values(),
-        lambda x: x, "final sent volumes",
-        params.verbose)
+        logger=lgr)
+    print_function_statistics(phase.get_edges().values(), lambda x: x, "final sent volumes", logger=lgr)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    print(bcolors.HEADER
-        + "[LBAF] "
-        + bcolors.END
-        + "Optimal load statistics for {} objects "
-          "with iso-time: {:.6g}".format(
-        n_o,
-        ell))
-    print("\tminimum: {:.6g}  maximum: {:.6g}".format(
-        q * ell,
-        (q + (1 if r else 0)) * ell))
+    lgr.info(grn(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}"))
+    lgr.info(grn(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}"))
     imbalance = (n_p - r) / float(n_o) if r else 0.
     imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
     with open(imb_file, 'w') as file:
         file.write(f"{imbalance}")
-    print("\tstandard deviation: {:.6g}  imbalance: {:.6g}".format(
-        ell * math.sqrt(r * (n_p - r)) / n_p, imbalance))
+    lgr.info(grn(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}"))
 
     # If this point is reached everything went fine
-    print(f"{bcolors.HEADER}[LBAF]{bcolors.END} Process complete ###")
+    lgr.info(grn("Process complete ###"))

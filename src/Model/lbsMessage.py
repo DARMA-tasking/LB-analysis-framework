@@ -54,11 +54,9 @@ class Message:
     def get_round(self):
         """Return message round index
         """
-
         return self.round
 
     def get_content(self):
         """Return message content
         """
-
         return self.content

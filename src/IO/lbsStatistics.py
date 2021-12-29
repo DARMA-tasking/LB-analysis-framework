@@ -41,12 +41,19 @@
 ###############################################################################
 #@HEADER
 #
-
+from logging import Logger
 import math
 import random as rnd
 
 import bcolors
 import numpy as np
+
+from utils.logger import CLRS
+
+# Setup colors
+grn = CLRS.get('green')
+red = CLRS.get('red')
+ylw = CLRS.get('yellow')
 
 
 def initialize():
@@ -204,60 +211,37 @@ def compute_function_statistics(population, fct):
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_max / f_ave - 1.
 
 
-def print_function_statistics(values, function, var_name, verb=False):
+def print_function_statistics(values, function, var_name, logger: Logger = None):
     """Compute and report descriptive statistics of function values
     """
-
     # Compute statistics
-    print(bcolors.HEADER
-        + "[Statistics] "
-        + bcolors.END
-        + "Descriptive statistics of {}:".format(var_name))
+    logger.info(grn(f"Descriptive statistics of {var_name}:"))
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values,
         function)
 
     # Print detailed load information if requested
-    if verb:
-        for i, v in enumerate(values):
-            print("\t{}: {}".format(
-                i,
-                function(v)))
+    for i, v in enumerate(values):
+        logger.debug(ylw(f"\t{i}: {function(v)}"))
 
     # Print summary
-    print("\tcardinality: {:.6g}  sum: {:.6g}  imbalance: {:.6g}".format(
-        n,
-        n * f_ave,
-        f_imb))
-    print("\tminimum: {:.6g}  mean: {:.6g}  maximum: {:.6g}".format(
-        f_min,
-        f_ave,
-        f_max))
-    print("\tstandard deviation: {:.6g}  variance: {:.6g}".format(
-        math.sqrt(f_var),
-        f_var))
-    print("\tskewness: {:.6g}  kurtosis excess: {:.6g}".format(
-        f_g1,
-        f_g2 - 3.))
+    logger.info(grn(f"\tcardinality: {n:.6g}  sum: {n * f_ave:.6g}  imbalance: {f_imb:.6g}"))
+    logger.info(grn(f"\tminimum: {f_min:.6g}  mean: {f_ave:.6g}  maximum: {f_max:.6g}"))
+    logger.info(grn(f"\tstandard deviation: {math.sqrt(f_var):.6g}  variance: {f_var:.6g}"))
+    logger.info(grn(f"\tskewness: {f_g1:.6g}  kurtosis excess: {f_g2 - 3.:.6g}"))
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 
-def print_subset_statistics(subset_name, subset_size, set_name, set_size):
+def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger = None):
     """Compute and report descriptive statistics of subset vs. full set
     """
 
     # Print summary
-    print(bcolors.HEADER
-        + "[Statistics] "
-        + bcolors.END
-        + "{}: {:.6g} amongst {}: {:.6g} ({}%)".format(
-              subset_name,
-              subset_size,
-              set_name,
-              set_size,
-              "{:.3g}".format(100. * subset_size / set_size) if set_size else ''))
+    ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''
+    logger.info(grn(f"{subset_name}: {subset_size:.6g} amongst {set_name}: {set_size:.6g} ({ss}%)"))
+
 
         
         

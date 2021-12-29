@@ -37,27 +37,33 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-import sys
 import functools
-
-import bcolors
+from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
+from utils.logger import CLRS
 
 
 class LowerTotalWorkCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    def __init__(self, ranks, edges, parameters):
+    def __init__(self, ranks, edges, parameters, lgr: Logger = None):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (pairs)
         parameters: parameters dictionary needed for this criterion
         """
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
 
         # Use default values if parameters not provided
         self.alpha = parameters.get("alpha", 0.)
@@ -65,22 +71,14 @@ class LowerTotalWorkCriterion(CriterionBase):
 
         # Call superclass init
         super(LowerTotalWorkCriterion, self).__init__(ranks, edges)
-        print(bcolors.HEADER
-              + "[LowerTotalWorkCriterion] "
-              + bcolors.END
-              + "Instantiated concrete criterion with alpha="
-              + str(self.alpha)
-              + " and beta="
-              + str(self.beta))
+        self.lgr.info(self.grn(f"Instantiated concrete criterion with alpha={self.alpha} and beta={self.beta}"))
 
         # Use either actual or locally known destination loads
         self.actual_dst_load = parameters.get("actual_destination_load", False)
-        
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """A criterion comparing total work on source and destination ranks
         """
-
         # Initialize criterion with comparison between object loads
         criterion = p_src.get_load() - (
             (p_dst.get_load() if self.actual_dst_load
@@ -89,9 +87,7 @@ class LowerTotalWorkCriterion(CriterionBase):
         # Retrieve object communications
         comm = obj.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            print(bcolors.ERR
-                + f"** WARNING: object {obj.get_id()} has no communicator"
-                + bcolors.END)
+            self.lgr.debug(self.cyan(f"Object {obj.get_id()} has no communicator"))
         else:
             # Retrieve sent and received items from communicator
             sent = comm.get_sent().items()
@@ -110,16 +106,10 @@ class LowerTotalWorkCriterion(CriterionBase):
             xPy1 = (lambda x, y: x + y[1])
 
             # Aggregate communication volumes local to source
-            w_src = functools.reduce(xPy1,
-                                     list(filter(is_s, recv))
-                                     + list(filter(is_s, sent)),
-                                     0.)
+            w_src = functools.reduce(xPy1, list(filter(is_s, recv)) + list(filter(is_s, sent)), 0.)
 
             # Aggregate communication volumes between source and destination
-            w_dst = functools.reduce(xPy1,
-                                     list(filter(is_d, recv))
-                                     + list(filter(is_d, sent)),
-                                     0.)
+            w_dst = functools.reduce(xPy1, list(filter(is_d, recv)) + list(filter(is_d, sent)), 0.)
 
             # Update criterion with affine transform of communication differences
             criterion += self.alpha + (w_dst - w_src) * self.beta

@@ -42,16 +42,21 @@
 #@HEADER
 #
 ########################################################################
+from logging import Logger
 import sys
-import bcolors
+
+from utils.logger import CLRS
 
 
 class ObjectCommunicator:
     """A class holding received and sent messages for an object
     """
 
-    def __init__(self, r={}, s={}, i=None):
-
+    def __init__(self, r: dict = None, s: dict = None, i=None, logger: Logger = None):
+        if r is None:
+            r = {}
+        if s is None:
+            s = {}
         # Index of object having this communicator if defined
         self.object_index = i
 
@@ -60,6 +65,13 @@ class ObjectCommunicator:
 
         # Dictionary of communications sent by object
         self.sent = s if isinstance(s, dict) else {}
+
+        # Assign logger to instance variable
+        self.lgr = logger
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
 
     def get_received(self):
         """Return all from_object=volume pairs received by object
@@ -91,7 +103,7 @@ class ObjectCommunicator:
 
         # Assert that direction is of known type
         if direction not in ("to", "from"):
-            print(f"{bcolors.ERR}*  ERROR: unknown direction string: {direction}{bcolors.END}")
+            self.lgr.error(self.red(f"Unknown direction string: {direction}"))
             sys.exit(1)
 
         # Initialize list of volumes
@@ -102,16 +114,15 @@ class ObjectCommunicator:
         for k, v in communications.items():
             # Sanity check
             if k.get_id() == self.object_index:
-                print(f"{bcolors.ERR}*  ERROR: object {self.object_index} cannot send communication to itself."
-                      f"{bcolors.END}")
+                self.lgr.error(self.red(f"object {self.object_index} cannot send communication to itself."))
                 sys.exit(1)
 
             # Update list of volumes
             volumes.append(v)
 
-            # Report current communicaton item if requested
+            # Report current communication item if requested
             if print_indent:
-                print(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
+                self.lgr.info(self.grn(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}'))
 
         # Return list of volumes
         return volumes

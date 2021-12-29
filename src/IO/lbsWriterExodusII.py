@@ -42,19 +42,20 @@
 #@HEADER
 #
 ########################################################################
+from logging import Logger
 import os
-import bcolors
 import vtk
 
 from src.IO.lbsGridStreamer import GridStreamer
 from src.Model.lbsPhase import Phase
+from utils.logger import CLRS
 
 
 class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
-    def __init__(self, e, m, f="lbs_out", s='e', r=1., output_dir=None):
+    def __init__(self, e, m, f="lbs_out", s='e', r=1., output_dir=None, logger: Logger = None):
         """Class constructor:
         e: Phase instance
         m: Rank dictionnary
@@ -63,20 +64,22 @@ class WriterExodusII:
         r: grid_resolution value
         output_dir: output directory
         """
+        # Assign logger to instance variable
+        self.lgr = logger
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
 
         # Ensure that provided phase has correct type
         if not isinstance(e, Phase):
-            print(bcolors.ERR
-                + "*  ERROR: Could not write to ExodusII file by lack of a LBS phase"
-                + bcolors.END)
+            self.lgr.error(self.red("Could not write to ExodusII file by lack of a LBS phase"))
             return
         self.phase = e
 
         # If no rank mapping was provided, do not do anything
         if not callable(m):
-            print(bcolors.ERR
-                + "*  ERROR: Could not write to ExodusII file by lack of a rank mapping"
-                + bcolors.END)
+            self.lgr.error(self.red("Could not write to ExodusII file by lack of a rank mapping"))
             return
         self.mapping = m
 
@@ -92,26 +95,19 @@ class WriterExodusII:
         except:
             self.grid_resolution = 1.
 
-    def write(self, load_statistics, load_distributions, volume_distributions, work_distributions, verbose=False):
+    def write(self, load_statistics, load_distributions, volume_distributions, work_distributions):
         """Map ranks to grid and write ExodusII file
         """
 
         # Retrieve number of mesh points and bail out early if empty set
         n_p = len(self.phase.ranks)
         if not n_p:
-            print(bcolors.ERR
-                + "*  ERROR: Empty list of ranks, cannot write a mesh file"
-                + bcolors.END)
+            self.lgr.error(self.red("Empty list of ranks, cannot write a mesh file"))
             return
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(n_p * (n_p - 1) / 2)
-        print(bcolors.HEADER
-            + "[WriterExodusII] "
-            + bcolors.END
-            + "Creating mesh with {} points and {} edges".format(
-            n_p,
-            n_e))
+        self.lgr.info(self.grn(f"Creating mesh with {n_p} points and {n_e} edges"))
 
         # Create and populate field data arrays for load statistics
         time_stats = {}
@@ -180,37 +176,19 @@ class WriterExodusII:
             time_volumes.append(v_arr)
             
             # Assign edge volume values
-            if verbose:
-                print("\titeration {} edges:".format(i))
+            self.lgr.debug(self.ylw(f"\titeration {i} edges:"))
             for e in range(n_e):
-                v_arr.SetTuple1(
-                    e, u_edges.get(edge_indices[e], float("nan")))
-                if verbose:
-                    print("\t {} {}): {}".format(
-                        e,
-                        edge_indices[e],
-                        v_arr.GetTuple1(e)))
+                v_arr.SetTuple1(e, u_edges.get(edge_indices[e], float("nan")))
+                self.lgr.debug(self.ylw(f"\t {e} {edge_indices[e]}): {v_arr.GetTuple1(e)}"))
 
         # Create grid streamer
-        streamer = GridStreamer(
-            points,
-            lines,
-            time_stats,
-            [time_loads, time_works],
-            time_volumes)
+        streamer = GridStreamer(points, lines, time_stats, [time_loads, time_works], time_volumes, lgr=self.lgr)
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            print(bcolors.ERR
-                + "*  ERROR: Failed to instantiate a grid streamer for file {}".format(
-                self.file_name)
-                + bcolors.END)
+            self.lgr.error(self.red(f"Failed to instantiate a grid streamer for file {self.file_name}"))
         else:
-            print(bcolors.HEADER
-                + "[WriterExodusII] "
-                + bcolors.END
-                + "Writing ExodusII file: {}".format(
-                self.file_name))
+            self.lgr.info(self.grn(f"Writing ExodusII file: {self.file_name}"))
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())

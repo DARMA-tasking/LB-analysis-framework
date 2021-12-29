@@ -37,19 +37,18 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-import sys
-
-import bcolors
+from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
+from utils.logger import CLRS
 
 
 class StrictLocalizingCriterion(CriterionBase):
     """A concrete class for a strictly localizing criterion
     """
     
-    def __init__(self, ranks, edges, _):
+    def __init__(self, ranks, edges, _, lgr: Logger = None):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (pairs)
@@ -58,10 +57,16 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Call superclass init
         super(StrictLocalizingCriterion, self).__init__(ranks, edges)
-        print(bcolors.HEADER
-            + "[StrictLocalizingCriterion] "
-            + bcolors.END
-            + "Instantiated concrete criterion")
+
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
+
+        self.lgr.info(self.grn("Instantiated concrete criterion"))
 
     def compute(self, object, p_src, _):
         """A criterion enforcing strict conservation of local communications
@@ -75,9 +80,7 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            print(bcolors.ERR
-                + f"** WARNING: object {object.get_id()} has no communicator"
-                + bcolors.END)
+            self.lgr.debug(self.cyan(f"Object {object.get_id()} has no communicator"))
             return 0.
 
         # Iterate over sent messages

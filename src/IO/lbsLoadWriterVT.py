@@ -43,13 +43,14 @@
 #
 ########################################################################
 import json
+from logging import Logger
 import os
 
 import brotli
-import bcolors
 
 from src.Model.lbsPhase import Phase
 from src.Model.lbsRank import Rank
+from utils.logger import CLRS
 
 
 class LoadWriterVT:
@@ -65,18 +66,21 @@ class LoadWriterVT:
     be mapped to that VT node for a given iteration/phase.
     """
 
-    def __init__(self, phase: Phase, f="lbs_out", s="vom", output_dir=None):
+    def __init__(self, phase: Phase, f="lbs_out", s="vom", output_dir=None, logger: Logger = None):
         """Class constructor:
         phase: Phase instance
         f: file name stem
         s: suffix
         """
+        # Assign logger to instance variable
+        self.lgr = logger
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
 
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
-            print(bcolors.ERR
-                + "*  ERROR: [LoadWriterExodusII] Could not write to ExodusII file by lack of a LBS phase"
-                + bcolors.END)
+            self.lgr.error(self.red(f"Could not write to ExodusII file by lack of a LBS phase"))
             return
 
         # Assign internals
@@ -102,8 +106,7 @@ class LoadWriterVT:
 
             self.json_writer(file_name=file_name, n_u=n_u, rank=p)
 
-    @staticmethod
-    def json_writer(file_name: str, n_u: int, rank: Rank):
+    def json_writer(self, file_name: str, n_u: int, rank: Rank):
         temp_dict = {}
         # Iterate over objects
         for o in rank.get_objects():
@@ -138,6 +141,6 @@ class LoadWriterVT:
 
         # Sanity check
         if n_u:
-            print(f"{bcolors.ERR}*  ERROR: {n_u} objects could not be written to JSON file {file_name}{bcolors.END}")
+            self.lgr.error(self.red(f"{n_u} objects could not be written to JSON file {file_name}"))
         else:
-            print(f"{bcolors.HEADER}[LoadWriterVT] {bcolors.END}Wrote {len(rank.get_objects())} objects to {file_name}")
+            self.lgr.info(self.grn(f"Wrote {len(rank.get_objects())} objects to {file_name}"))

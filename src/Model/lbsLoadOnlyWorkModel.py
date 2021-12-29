@@ -37,33 +37,35 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-import sys
-
-import bcolors
+from logging import Logger
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
+from utils.logger import CLRS
 
 
 class LoadOnlyWorkModel(WorkModelBase):
     """A concrete class for a load-only work model
     """
     
-    def __init__(self, _):
+    def __init__(self, _, lgr: Logger = None):
         """Class constructor:
         _: no parameters dictionary needed for this work model
         """
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
 
         # Call superclass init
         super(LoadOnlyWorkModel, self).__init__()
-        print(bcolors.HEADER
-            + "[LoadOnlyWorkModel] "
-            + bcolors.END
-            + "Instantiated concrete work model")
+        self.lgr.info(self.grn("Instantiated concrete work model"))
 
     def compute(self, rank: Rank):
         """A work model summing all object times on given rank
         """
-
         # Return total load on this rank
         return rank.get_load()

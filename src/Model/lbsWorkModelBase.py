@@ -43,8 +43,16 @@
 #
 ########################################################################
 import abc
+from logging import Logger
 import sys
-import bcolors
+
+from utils.logger import CLRS, logger
+
+
+LGR = logger()
+grn = CLRS.get('green')
+red = CLRS.get('red')
+ylw = CLRS.get('yellow')
 
 
 class WorkModelBase:
@@ -56,18 +64,13 @@ class WorkModelBase:
         """Class constructor:
         parameters: optional parameters dictionary
         """
-
         # Work keeps internal references to ranks and edges
-        print(bcolors.HEADER
-              + "[WorkModelBase] "
-              + bcolors.END
-              + "Created base work model")
+        LGR.info(grn("Created base work model"))
 
     @staticmethod
-    def factory(work_name, parameters=None):
+    def factory(work_name, parameters=None, lgr: Logger = None):
         """Produce the necessary concrete work model
         """
-
         from src.Model.lbsLoadOnlyWorkModel import LoadOnlyWorkModel
         from src.Model.lbsAffineCombinationWorkModel import AffineCombinationWorkModel
 
@@ -75,19 +78,15 @@ class WorkModelBase:
         try:
             # Instantiate and return object
             work = locals()[work_name + "WorkModel"]
-            return work(parameters)
+            return work(parameters, lgr=lgr)
         except:
             # Otherwise error out
-            print(bcolors.ERR
-                  + "*  ERROR: Could not create a work with name "
-                  + work_name
-                  + bcolors.END)
+            LGR.error(red(f"Could not create a work with name {work_name}"))
             sys.exit(1)
 
     @abc.abstractmethod
     def compute(self, rank):
         """Return value of work for given rank
         """
-
         # Must be implemented by concrete subclass
         pass

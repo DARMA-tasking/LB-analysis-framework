@@ -37,22 +37,28 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-import sys
-
-import bcolors
+from logging import Logger
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
+from utils.logger import CLRS
 
 
 class AffineCombinationWorkModel(WorkModelBase):
     """A concrete class for a load-only work model
     """
     
-    def __init__(self, parameters):
+    def __init__(self, parameters, lgr: Logger = None):
         """Class constructor:
         parameters: dictionary with alpha and beta parameters
         """
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
 
         # Use default values if parameters not provided
         self.alpha = parameters.get("alpha", 0.)
@@ -60,19 +66,10 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        print(bcolors.HEADER
-            + "[AffineCombinationWorkModel] "
-            + bcolors.END
-            + "Instantiated concrete work model with alpha="
-            + str(self.alpha)
-            + " and beta="
-            + str(self.beta))
+        self.lgr.info(self.grn(f"Instantiated concrete work model with alpha={self.alpha} and beta={self.beta}"))
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
         """
-
         # Compute affine combination of load and volumes
-        return rank.get_load() + self.alpha + self.beta * max(
-            rank.get_received_volume(),
-            rank.get_sent_volume())
+        return rank.get_load() + self.alpha + self.beta * max(rank.get_received_volume(), rank.get_sent_volume())

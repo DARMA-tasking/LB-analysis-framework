@@ -42,30 +42,40 @@
 #@HEADER
 #
 ########################################################################
-import bcolors
+from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
+from utils.logger import CLRS
 
 
 class TemperedWorkCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, work_model, parameters: dict):
+    def __init__(self, work_model, parameters: dict, lgr: Logger = None):
         """Class constructor
         parameters: optional parameters dictionary
         """
 
         # Call superclass init
         super(TemperedWorkCriterion, self).__init__(work_model, parameters)
-        print(f"{bcolors.HEADER}[TemperedWorkCriterion]{bcolors.END} Instantiated concrete criterion")
 
-        
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
+
+        self.lgr.info(self.grn("Instantiated concrete criterion"))
+
         # Determine how destination work is to be computed
         def get_dst_work_know_by_src(p_src, p_dst):
             return p_src.get_known_work(p_dst)
+
         def get_actual_dst_work(_, p_dst):
             return self.get_work(p_dst)
 
@@ -73,12 +83,10 @@ class TemperedWorkCriterion(CriterionBase):
         self.dst_work = get_dst_work_know_by_src if not (
             parameters and parameters.get(
                 "actual_destination_work")) else get_actual_dst_work
-            
 
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
 
         # Criterion only uses object and rank works
-        return self.get_work(p_src) - (
-            self.dst_work(p_src, p_dst) + obj.get_time())
+        return self.get_work(p_src) - (self.dst_work(p_src, p_dst) + obj.get_time())
