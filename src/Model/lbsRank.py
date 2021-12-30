@@ -83,6 +83,9 @@ class Rank:
         # No message was received initially
         self.round_last_received = 0
 
+    def __repr__(self):
+        return f"<Rank index: {self.index}>"
+
     def get_id(self):
         """Return rank ID
         """

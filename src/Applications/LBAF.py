@@ -314,6 +314,8 @@ if __name__ == '__main__':
     sv = sys.version_info
     lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
 
+    print(os.environ['PYTHONPATH'])
+
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
