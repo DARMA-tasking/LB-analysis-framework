@@ -52,7 +52,7 @@ from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsPhase import Phase
 from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class Runtime:

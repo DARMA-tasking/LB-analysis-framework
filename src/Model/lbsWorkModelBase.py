@@ -46,7 +46,7 @@ import abc
 from logging import Logger
 import sys
 
-from utils.logger import CLRS, logger
+from src.Utils.logger import CLRS, logger
 
 
 LGR = logger()

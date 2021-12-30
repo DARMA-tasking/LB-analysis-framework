@@ -48,7 +48,7 @@ import random as rnd
 import bcolors
 import numpy as np
 
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 # Setup colors
 grn = CLRS.get('green')

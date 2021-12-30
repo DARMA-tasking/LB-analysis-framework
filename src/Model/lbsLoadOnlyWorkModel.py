@@ -41,7 +41,7 @@ from logging import Logger
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class LoadOnlyWorkModel(WorkModelBase):

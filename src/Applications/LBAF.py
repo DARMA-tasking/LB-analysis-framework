@@ -68,7 +68,7 @@ from src.Execution.lbsRuntime import Runtime
 from src.IO.lbsLoadWriterVT import LoadWriterVT
 from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics
-from utils.logger import logger, CLRS
+from src.Utils.logger import logger, CLRS
 
 
 class internalParameters:

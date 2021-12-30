@@ -47,7 +47,7 @@ from logging import Logger
 import sys
 
 from src.Model.lbsWorkModelBase import WorkModelBase
-from utils.logger import CLRS, logger
+from src.Utils.logger import CLRS, logger
 
 
 LGR = logger()

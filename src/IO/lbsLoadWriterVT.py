@@ -50,7 +50,7 @@ import brotli
 
 from src.Model.lbsPhase import Phase
 from src.Model.lbsRank import Rank
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class LoadWriterVT:

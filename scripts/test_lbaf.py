@@ -41,10 +41,7 @@
 #@HEADER
 #
 ###############################################################################
-import subprocess
 import sys
-
-import bcolors
 
 
 def run_tests():
@@ -52,11 +49,9 @@ def run_tests():
     with open(imbalance_file, 'r') as imb_file:
         imb_level = float(imb_file.read())
         if imb_level < 100:
-            print(f"{bcolors.OKMSG}PASSED!\n=> TEST {bcolors.END}")
-            print(f"{bcolors.OKMSG}------------------------------------------------------------{bcolors.END}")
+            print(f"===> TEST PASSED!")
         else:
-            print(f"{bcolors.ERR}FAILED!\n=> TEST{bcolors.END}")
-            print(f"{bcolors.ERR}------------------------------------------------------------{bcolors.END}")
+            print(f"===> TEST FAILED!")
             sys.exit(1)
 
 

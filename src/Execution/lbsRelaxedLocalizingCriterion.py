@@ -42,7 +42,7 @@ from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class RelaxedLocalizingCriterion(CriterionBase):

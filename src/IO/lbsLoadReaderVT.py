@@ -54,7 +54,7 @@ from src.IO.schemaValidator import SchemaValidator
 from src.Model.lbsObject import Object
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsRank import Rank
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class LoadReader:

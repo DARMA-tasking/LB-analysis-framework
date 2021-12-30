@@ -46,7 +46,7 @@ from logging import Logger
 
 import vtk
 
-from utils.logger import CLRS, logger
+from src.Utils.logger import CLRS, logger
 
 
 class GridStreamer:

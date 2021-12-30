@@ -45,7 +45,7 @@
 from logging import Logger
 import sys
 
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class ObjectCommunicator:

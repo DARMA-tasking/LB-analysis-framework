@@ -46,7 +46,7 @@ import random as rnd
 import sys
 
 from src.Model.lbsMessage import Message
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class Rank:

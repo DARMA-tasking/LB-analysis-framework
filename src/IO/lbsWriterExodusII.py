@@ -48,7 +48,7 @@ import vtk
 
 from src.IO.lbsGridStreamer import GridStreamer
 from src.Model.lbsPhase import Phase
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class WriterExodusII:

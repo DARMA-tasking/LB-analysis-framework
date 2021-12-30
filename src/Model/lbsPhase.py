@@ -53,7 +53,7 @@ from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 from src.IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from src.IO.lbsLoadReaderVT import LoadReader
-from utils.logger import CLRS
+from src.Utils.logger import CLRS
 
 
 class Phase:
