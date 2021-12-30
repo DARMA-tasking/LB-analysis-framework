@@ -45,7 +45,11 @@ import os
 import sys
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    src_path = os.path.join(project_path, 'src')
+    utils_path = os.path.join(project_path, 'utils')
     sys.path.append(project_path)
+    sys.path.append(src_path)
+    sys.path.append(utils_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
