@@ -16,7 +16,7 @@ RUN pip install virtualenv
 RUN virtualenv --python /usr/local/bin/python3.8 venv
 RUN /bin/sh venv/bin/activate && pip install -r requirements.txt
 
-ENV PYTHONPATH /lbaf/venv/lib/python3.8/site-packages:/lbaf:/lbaf/src:/lbaf/utils
+ENV PYTHONPATH /lbaf/venv/lib/python3.8/site-packages:/lbaf:/lbaf/src:
 ENV DISPLAY :99.0
 
 RUN ["chmod", "+x", "/lbaf/entrypoint.sh"]
