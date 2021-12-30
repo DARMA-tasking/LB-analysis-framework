@@ -44,12 +44,11 @@
 ########################################################################
 import sys
 
-import bcolors
-
 import paraview.simple as pv
 
 from src.Applications.ParaviewViewer import ParaviewViewer
 from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from src.Utils.logger import logger, CLRS
 
 
 class PNGViewer(ParaviewViewer):
@@ -61,6 +60,9 @@ class PNGViewer(ParaviewViewer):
         # Call superclass init
         super(PNGViewer, self).__init__(exodus, file_name, viewer_type)
 
+        # Starting logger
+        self.logger = logger()
+
     def saveView(self, reader):
         """Save figure
         """
@@ -70,37 +72,28 @@ class PNGViewer(ParaviewViewer):
         animationScene.PlayMode = "Snap To TimeSteps"
 
         # Save animation images
-        print(bcolors.HEADER
-            + "[PNGViewer] "
-            + bcolors.END
-            + "###  Generating PNG images...")
+        self.logger.info(CLRS.get('green')("###  Generating PNG images..."))
         for t in reader.TimestepValues.GetData()[:]:
             animationScene.AnimationTime = t
             pv.WriteImage(f"{self.file_name}.{t:.6f}.png")
 
-        print(bcolors.HEADER
-            + "[PNGViewer] "
-            + bcolors.END
-            + "### All PNG images generated.")
+        self.logger.info(CLRS.get('green')("### All PNG images generated."))
 
 
 if __name__ == '__main__':
+    # Assign logger to variable
+    lgr = logger()
+    # Assign colors
+    grn = CLRS.get('green')
+    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    print(bcolors.HEADER
-        + "[PNGViewer] "
-        + bcolors.END
-        + "### Started with Python {}.{}.{}".format(
-        sv.major,
-        sv.minor,
-        sv.micro))
+    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
 
     # Instantiate parameters and set values from command line arguments
-    print(bcolors.HEADER
-        + "[PNGViewer] "
-        + bcolors.END
-        + "Parsing command line arguments")
+    lgr.info(grn("Parsing command line arguments"))
+
     params = ViewerParameters()
     if params.parse_command_line():
         sys.exit(1)
@@ -113,7 +106,4 @@ if __name__ == '__main__':
     pngViewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print(bcolors.HEADER
-        + "[PNGViewer] "
-        + bcolors.END
-        + "{} file views generated ###".format(pngViewer.file_name))
+    lgr.info(grn(f"{pngViewer.file_name} file views generated ###"))

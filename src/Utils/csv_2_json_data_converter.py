@@ -12,7 +12,6 @@ from collections import Counter
 import csv
 import json
 
-import bcolors
 import brotli
 
 
@@ -90,9 +89,9 @@ class Csv2JsonConverter:
                         os.path.splitext(file)[-1] == most_common_extension and
                         file.split('.')[0] == most_common_prefix]
 
-        print(f"{bcolors.OKMSG}Files for conversion :{bcolors.END}")
+        print("Files for conversion :")
         for file in dir_list:
-            print(f"{bcolors.OKMSG}=>{bcolors.END} {file[0]}")
+            print(f"=> {file[0]}")
 
         return dir_list
 

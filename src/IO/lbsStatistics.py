@@ -45,7 +45,6 @@ from logging import Logger
 import math
 import random as rnd
 
-import bcolors
 import numpy as np
 
 from src.Utils.logger import CLRS
@@ -57,23 +56,17 @@ ylw = CLRS.get('yellow')
 
 
 def initialize():
-
     # Seed pseudo-random number generators
     rnd.seed(820)
     np.random.seed(820)
 
 
-def error_out(distribution_name, parameters):
-
-    print(bcolors.ERR
-        + "*  ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
-        parameters,
-        distribution_name)
-        + bcolors.END)
+def error_out(distribution_name, parameters, logger: Logger = None):
+    logger.error(red(f"not enough parameters in {parameters} for {distribution_name} distribution."))
     return None
 
 
-def sampler(distribution_name, parameters):
+def sampler(distribution_name, parameters, logger: Logger = None):
     """Return a pseudo-random number generator based of requested type
     """
 
@@ -81,7 +74,7 @@ def sampler(distribution_name, parameters):
     if distribution_name.lower() == "uniform":
         # 2 parameters are needed
         if len(parameters) < 2:
-            return error_out(distribution_name, parameters)
+            return error_out(distribution_name, parameters, logger=logger)
 
         # Return uniform distribution over given interval
         return lambda: rnd.uniform(*parameters), "U[{};{}]".format(*parameters)
@@ -90,7 +83,7 @@ def sampler(distribution_name, parameters):
     elif distribution_name.lower() == "binomial":
         # 2 parameters are needed
         if len(parameters) < 2:
-            return error_out(distribution_name, parameters)
+            return error_out(distribution_name, parameters, logger=logger)
 
         # Return binomial distribution with given number of Bernoulli trials
         return lambda: np.random.binomial(*parameters), "B[{};{}]".format(*parameters)
@@ -99,16 +92,14 @@ def sampler(distribution_name, parameters):
     elif distribution_name.lower() == "lognormal":
         # 2 parameters are needed
         if len(parameters) < 2:
-            return error_out(distribution_name, parameters)
+            return error_out(distribution_name, parameters, logger=logger)
 
         # Determine parameters of log-normal distribution
         m2 = parameters[0] * parameters[0]
         v = parameters[1]
         r = math.sqrt(m2 + v)
         if r == 0:
-            print(bcolors.ERR
-                + "*  ERROR: [Statistics] r={} should not be zero.".format(r)
-                + bcolors.END)
+            logger.error(red(f"r={r} should not be zero."))
             return None, None
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
@@ -120,13 +111,7 @@ def sampler(distribution_name, parameters):
 
     # Unsupported distribution type
     else:
-        print(bcolors.ERR
-            + "*  ERROR: "
-            + bcolors.HEADER
-            + "[Statistics] "
-            + bcolors.END
-            + "{} distribution is not supported."
-            + bcolors.END)
+        logger.error(red(f"{distribution_name} distribution is not supported."))
         return None, None
 
 
