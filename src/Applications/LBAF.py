@@ -58,7 +58,6 @@ try:
     import paraview.simple
 except:
     pass
-print(os.environ['PYTHONPATH'])
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
