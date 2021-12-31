@@ -76,7 +76,7 @@ class Runtime:
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, Phase):
-            self.lgr.info(self.cyan("Could not create a LBS runtime without a phase"))
+            self.lgr.warning(self.cyan("Could not create a LBS runtime without a phase"))
             return
         else:
             self.phase = p

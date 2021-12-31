@@ -24,7 +24,7 @@
 # communication_degree[-d <d>]    int       object communication degree (no communication if 0)
 # output_dir          [-b <odir>] str       output directory
 # file_suffix         [-j <fsuf>] str       file suffix for reading data files. E.g. 'vom', 'out'... DEFAULT = 'vom'
-# logging_level                   str       set to `info`, `debug` or `error`
+# logging_level                   str       set to `info`, `debug`, `warning` or `error`
 # actual_dst_load     [-a]        bool      use actual destination loads
 # exodus              [-e]        bool      generate Exodus type visualization output
 # generate_multimedia [-g]        bool      generate multimedia

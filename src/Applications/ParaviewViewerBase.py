@@ -146,7 +146,7 @@ class ParaviewViewerBase(object):
 
         # Unspecified visualization file name
         if (not file_name) or file_name == "''":
-            LGR.debug(cyan("Visualization file name has not been provided. Using ExodusII file name by default."))
+            LGR.warning(cyan("Visualization file name has not been provided. Using ExodusII file name by default."))
             file_name = exodus
 
         # PNG viewer

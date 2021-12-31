@@ -262,12 +262,12 @@ class Rank:
         """
         # Assert that message has the expected type
         if not isinstance(msg, Message):
-            self.lgr.debug(self.cyan(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it."))
+            self.lgr.warning(self.cyan(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it."))
 
         # Retrieve information from message
         info = msg.get_content()
         if len(info) < 2:
-            self.lgr.debug(self.cyan(f"Incomplete message content: {info}. Ignoring it."))
+            self.lgr.warning(self.cyan(f"Incomplete message content: {info}. Ignoring it."))
             return
 
         # Union received set of loaded ranks with current one

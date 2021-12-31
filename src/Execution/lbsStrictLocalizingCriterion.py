@@ -80,7 +80,7 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            self.lgr.debug(self.cyan(f"Object {object.get_id()} has no communicator"))
+            self.lgr.warning(self.cyan(f"Object {object.get_id()} has no communicator"))
             return 0.
 
         # Iterate over sent messages

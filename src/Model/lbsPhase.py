@@ -257,7 +257,7 @@ class Phase:
         else:
             # Sanity check
             if s_s > n_p:
-                self.lgr.info(self.cyan(f"WARNING: too many ranks ({s_s}) requested: only {n_p} available."))
+                self.lgr.warning(self.cyan(f"Too many ranks ({s_s}) requested: only {n_p} available."))
                 s_s = n_p
             self.lgr.info(self.grn(f"Randomly assigning objects to {n_p} ranks"))
         if s_s > 0:
