@@ -41,6 +41,7 @@
 #@HEADER
 #
 ###############################################################################
+import sys
 import math
 import itertools
 
@@ -83,10 +84,11 @@ def compute_arrangement_works(arrangement, alpha, beta, gamma):
     return works
 
 if __name__ == '__main__':
+    # Report on some initial configuration
     initial_works = compute_arrangement_works(
         (0, 0, 0, 0, 1, 1, 1, 1, 2), alpha, beta, gamma)
-    print("Initial work:", initial_works)
-    print("\tmaximum: {:.4g} average: {:.4g}".format(
+    print("Initial works:", initial_works)
+    print("\tmaximum work: {:.4g} average work: {:.4g}".format(
         max(initial_works.values()),
         sum(initial_works.values()) / len(initial_works)))
     
@@ -95,21 +97,33 @@ if __name__ == '__main__':
     works_min_max = math.inf
     arrangements_min_max = []
     for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
+        # Compute per-rank works for currrent arrangement
         works = compute_arrangement_works(arrangement, alpha, beta, gamma)
+
+        # Update minmax when relevant
         work_max = max(works.values())
         if work_max < works_min_max:
             works_min_max = work_max
             arrangements_min_max = [arrangement]
         elif work_max == works_min_max:
             arrangements_min_max.append(arrangement)
+
+        # Keep track of number of arrangements for sanity
         n_arrangements += 1
+
+    # Sanity check
     print("Number of generated arrangements:", n_arrangements)
+    if n_arrangements != n_ranks ** len(objects):
+        print("** ERROR: incorrect numnber of arrangements")
+        sys.exit(1)
+
+    # Report on optimal arrangements
     print("\tminimax work: {:.4g} for {} arrangements".format(
         works_min_max,
         len(arrangements_min_max)))
     print("Example optimal arrangement:", arrangements_min_max[0])
     optimal_works = compute_arrangement_works(
         arrangements_min_max[0], alpha, beta, gamma)
-    print("\tmaximum: {:.4g} average: {:.4g}".format(
+    print("\tmaximum work: {:.4g} average work: {:.4g}".format(
         max(optimal_works.values()),
         sum(optimal_works.values()) / len(optimal_works)))
