@@ -47,27 +47,40 @@ import itertools
 
 # Dictionary of objects
 objects = (
-    {"id": 0, "time": 1.0},
-    {"id": 1, "time": 0.5},
-    {"id": 2, "time": 0.5},
-    {"id": 3, "time": 0.5},
-    {"id": 4, "time": 0.5},
-    {"id": 5, "time": 2.0},
-    {"id": 6, "time": 1.0},
-    {"id": 7, "time": 0.5},
-    {"id": 8, "time": 1.5})
+    {"id": 0, "time": 1.0, "from": {}, "to": {5: 2.0}},
+    {"id": 1, "time": 0.5, "from": {4: 2.0}, "to": {4: 1.0}},
+    {"id": 2, "time": 0.5, "from": {3: 1.0}, "to": {}},
+    {"id": 3, "time": 0.5, "from": {}, "to": {2: 1.0, 8: 0.5}},
+    {"id": 4, "time": 0.5, "from": {1: 1.0}, "to": {1: 2.0}},
+    {"id": 5, "time": 2.0, "from": {0: 2.0}, "to": {8: 2.0}},
+    {"id": 6, "time": 1.0, "from": {7: 1.0, 8: 1.5}, "to": {}}, 
+    {"id": 7, "time": 0.5, "from": {}, "to": {6: 1.0}},
+    {"id": 8, "time": 1.5, "from": {3: 0.5, 5: 2.0}, "to": {6: 1.5}})
 
 # Define number of ranks
 n_ranks = 4
 
 # Define work constants
 alpha = 1.
-beta = 0.
+beta = 1.
 gamma = 0.
 
 def compute_load(object_list):
     # Load is sum of all object times
     return sum([objects[i]["time"] for i in object_list])
+
+def compute_volume(rank_objects, direction):
+    # Initialize volume
+    volume = 0.
+
+    # Iterate over all rank objects
+    for o in rank_objects:
+        volume += sum([
+            v for k, v in objects[o].get(direction, 0.).items()
+            if not k in rank_objects])
+
+    # Return computed volume
+    return volume
 
 def compute_arrangement_works(arrangement, alpha, beta, gamma):
     # Build object rank map from arrangement
@@ -75,12 +88,21 @@ def compute_arrangement_works(arrangement, alpha, beta, gamma):
     for i, j in enumerate(arrangement):
         ranks.setdefault(j, []).append(i)
 
-    # Compute per-object loads
+    # iterate over ranks
     works = {}
-    for k, v in ranks.items():
-        works[k] = alpha * compute_load(v)
+    for rank, rank_objects in ranks.items():
+        # Compute per-rank loads
+        works[rank] = alpha * compute_load(rank_objects)
 
-    # Return computed works
+        # Compute communication volumes
+        works[rank] += beta * max(
+            compute_volume(rank_objects, "from"),
+            compute_volume(rank_objects, "to"))
+
+        # Add constant
+        works[rank] + gamma
+
+    # Return arrangement works
     return works
 
 if __name__ == '__main__':
