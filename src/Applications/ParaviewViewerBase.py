@@ -46,9 +46,16 @@ import abc
 import getopt
 import sys
 
-import bcolors
-
 import paraview.simple as pv
+
+from src.Utils.logger import logger, CLRS
+
+# Assign logger to variable
+LGR = logger()
+# Assign colors
+grn = CLRS.get('green')
+red = CLRS.get('red')
+cyan = CLRS.get('cyan')
 
 
 class ViewerParameters:
@@ -73,9 +80,7 @@ class ViewerParameters:
             opts, args = getopt.getopt(sys.argv[1:], "he:f:")
 
         except getopt.GetoptError:
-            print(bcolors.ERR
-                + "** ERROR: incorrect command line arguments."
-                + bcolors.END)
+            LGR.error(red("Incorrect command line arguments."))
             self.usage()
             return True
 
@@ -91,9 +96,7 @@ class ViewerParameters:
 
         # Ensure that exactly one ExodusII file has been provided
         if not self.exodus:
-            print(bcolors.ERR
-                + "** ERROR: Provide an ExodusII file"
-                + bcolors.END)
+            LGR.error(red("Provide an ExodusII file"))
             return True
 
         # Set default visualization file name prefix
@@ -138,17 +141,12 @@ class ParaviewViewerBase(object):
 
         # Unspecified ExodusII file name
         if not exodus:
-            print(bcolors.ERR
-                + "** ERROR: an ExodusII file name needs to be provided. Exiting."
-                + bcolors.END)
+            LGR.error(red("An ExodusII file name needs to be provided. Exiting."))
             sys.exit(1)
 
         # Unspecified visualization file name
         if (not file_name) or file_name == "''":
-            print(bcolors.WARN
-                + "** WARNING: visualization file name has not been provided. "
-                  "Using ExodusII file name by default."
-                + bcolors.END)
+            LGR.warning(cyan("Visualization file name has not been provided. Using ExodusII file name by default."))
             file_name = exodus
 
         # PNG viewer
@@ -165,23 +163,17 @@ class ParaviewViewerBase(object):
 
         # Unspecified viewer type
         elif viewer_type == None:
-            print(bcolors.ERR
-                + "** ERROR: a viewer type needs to be provided. Exiting."
-                + bcolors.END)
+            LGR.error(red("A viewer type needs to be provided. Exiting."))
             sys.exit(1)
 
         # Unsupported viewer type
         else:
-            print(bcolors.ERR
-                + "** ERROR: {} type viewer unsupported. Exiting.".format(viewer_type)
-                + bcolors.END)
+            LGR.error(red(f"{viewer_type} type viewer unsupported. Exiting."))
             sys.exit(1)
 
         # Report not instantiated
         if not ret_object:
-            print(bcolors.ERR
-                + "** ERROR: {} viewer not instantiated. Exiting.".format(viewer_type)
-                + bcolors.END)
+            LGR.error(red(f"{viewer_type} viewer not instantiated. Exiting."))
             sys.exit(1)
 
         # Return instantiated object
@@ -189,35 +181,28 @@ class ParaviewViewerBase(object):
         ret_object.file_name = "{}.e".format(file_name)
         ret_object.viewer_type = viewer_type
         ret_object.material_library = pv.GetMaterialLibrary()
-        print(bcolors.HEADER
-            + "[ParaviewViewerBase] "
-            + bcolors.END
-            + "Instantiated {} viewer.".format(viewer_type))
+        LGR.info(grn(f"Instantiated {viewer_type} viewer."))
         return ret_object
 
     def get_exodus(self):
         """Convenience method to get ExodusII file name
         """
-
         # Return value of ExodusII file name
         return self.exodus
 
     def get_file_name(self):
         """Convenience method to get visualization file name
         """
-
         # Return value of visualization file name
         return self.file_name
 
     def get_viewer_type(self):
         """Convenience method to get viewer type
         """
-
         # Return value of viewer type
         return self.viewer_type
 
-    def createRenderView(self,
-                         view_size=[1024, 1024]):
+    def createRenderView(self, view_size=[1024, 1024]):
         """Create a new 'Render View'
         """
 
@@ -284,15 +269,10 @@ class ParaviewViewerBase(object):
 
         return glyph
 
-    def createColorTransferFunction(self,
-                                    var,
-                                    colors=None,
-                                    nan_color=[1.,1.,1.],
-                                    nan_opacity=None,
+    def createColorTransferFunction(self, var, colors=None, nan_color=[1., 1., 1.], nan_opacity=None,
                                     auto_rescale_range_mode="Never"):
         """Create a color transfer function/color map
         """
-
         # get color transfer function/color map
         fct = pv.GetColorTransferFunction(var)
         if auto_rescale_range_mode:
@@ -310,7 +290,6 @@ class ParaviewViewerBase(object):
     def createOpacityTransferFunction(self, var, points=None):
         """Create an opacity transfer function/color map
         """
-
         # get color transfer function/color map
         fct = pv.GetOpacityTransferFunction(var)
         if points:
@@ -319,18 +298,10 @@ class ParaviewViewerBase(object):
 
         return fct
 
-    def createDisplay(self,
-                      reader,
-                      renderView,
-                      array_name,
-                      color_transfert_fct,
-                      line_width=None,
-                      scale_factor=0.3,
-                      glyph_type="Box",
-                      opacity_fct=None):
+    def createDisplay(self, reader, renderView, array_name, color_transfert_fct, line_width=None, scale_factor=0.3,
+                      glyph_type="Box", opacity_fct=None):
         """Create a 'Display'
         """
-
         # Show data from reader
         display = pv.Show(reader, renderView)
 
@@ -381,7 +352,6 @@ class ParaviewViewerBase(object):
     def saveView(self, reader):
         """Save view
         """
-
         pass
 
     def createViews(self):

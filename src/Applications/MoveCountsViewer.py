@@ -49,10 +49,10 @@ import csv
 import getopt
 import sys
 
-import bcolors
 import vtk
 
 from src.Applications.MoveCountsViewerParameters import MoveCountsViewerParameters
+from src.Utils.logger import logger, CLRS
 
 
 class MoveCountsViewer:
@@ -79,6 +79,11 @@ class MoveCountsViewer:
         # Interactive call -- False by default
         self.interactive = False
 
+        # Starting logger
+        self.logger = logger()
+        self.logging_level = 'info'
+
+
     def usage(self):
         """Provide online help
         """
@@ -102,9 +107,7 @@ class MoveCountsViewer:
         try:
             opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
         except getopt.GetoptError:
-            print(bcolors.ERR
-                + "** ERROR: incorrect command line arguments."
-                + bcolors.END)
+            self.logger.error(CLRS.get('red')("Incorrect command line arguments."))
             self.usage()
             return True
 
@@ -134,17 +137,13 @@ class MoveCountsViewer:
 
         # If number of processors is not provided or set to 0
         if params.n_processors == 0:
-            print(bcolors.ERR
-                + "** ERROR: At least one processor needs to be defined. Exiting."
-                + bcolors.END)
+            self.logger.error(CLRS.get('red')("At least one processor needs to be defined. Exiting."))
             self.usage()
             return True
         # If  invalid file name is provided
         elif (not params.input_file_name.strip()
-            or params.input_file_name.strip() == "''"):
-            print(bcolors.ERR
-                + "** ERROR: A file name needs to be defined. Exiting."
-                + bcolors.END)
+              or params.input_file_name.strip() == "''"):
+            self.logger.error(CLRS.get('red')("A file name needs to be defined. Exiting."))
             self.usage()
             return True
 
@@ -180,9 +179,9 @@ class MoveCountsViewer:
         for i in range(self.n_processors):
             # Iterate over all files
             with open("{}.{}.{}".format(
-                self.input_file_name,
-                i,
-                self.input_file_suffix), 'r') as f:
+                    self.input_file_name,
+                    i,
+                    self.input_file_suffix), 'r') as f:
                 # Instantiate CSV reader
                 reader = csv.reader(f, delimiter=',')
 
@@ -336,7 +335,7 @@ class MoveCountsViewer:
         mapper_edges.SetColorModeToMapScalars()
         mapper_edges.SetScalarModeToUseCellData()
         # The line below should be used in the absence of the VTK7 bug
-        #mapper_edges.SetArrayName(undirected_moves_name)
+        # mapper_edges.SetArrayName(undirected_moves_name)
         mapper_edges.SelectColorArray(undirected_moves_name)
         actor_edges = vtk.vtkActor()
         actor_edges.SetMapper(mapper_edges)
@@ -403,24 +402,22 @@ class MoveCountsViewer:
 
 
 if __name__ == '__main__':
+    params = MoveCountsViewer()
+
+    # Assign logger to variable
+    lgr = params.logger
+    # Assign colors
+    grn = CLRS.get('green')
+    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    print(bcolors.HEADER
-        + "[MoveCountsViewer] "
-        + bcolors.END
-        + "### Started with Python {}.{}.{}".format(
-        sv.major,
-        sv.minor,
-        sv.micro))
+    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
 
     # Instantiate parameters and set values from command line arguments
-    print(bcolors.HEADER
-        + "[MoveCountsViewer] "
-        + bcolors.END
-        + "Parsing command line arguments")
-    params = MoveCountsViewer()
+    lgr.info(grn("Parsing command line arguments"))
+
     if params.parse_command_line():
-       sys.exit(1)
+        sys.exit(1)
 
     params.computeMoveCountsViewer()

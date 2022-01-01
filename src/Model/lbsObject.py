@@ -61,8 +61,7 @@ class Object:
         self.rank_id = p
 
         # Communication graph of this object if defined
-        self.communicator = c if isinstance(
-            c, ObjectCommunicator) else None
+        self.communicator = c if isinstance(c, ObjectCommunicator) else None
 
     def __repr__(self):
         return f"Object id: {self.index}, time: {self.time}"
@@ -70,71 +69,56 @@ class Object:
     def get_id(self):
         """Return object ID
         """
-
         return self.index
 
     def get_time(self):
         """Return object time
         """
-
         return self.time
 
     def get_sent(self):
         """Return communications sent by object to other objects
         """
-
         return self.communicator.get_sent() if self.communicator else {}
 
     def get_received(self):
         """Return communications received by object from other objects
         """
-
         return self.communicator.get_received() if self.communicator else {}
 
     def get_received_volume(self):
         """Return volume of communications received by object
         """
-        
-        return sum(
-            [v for v in self.communicator.get_received().values()]
-            ) if self.communicator else 0
+        return sum([v for v in self.communicator.get_received().values()]) if self.communicator else 0
 
     def get_sent_volume(self):
         """Return volume of communications sent by object
         """
-        
-        return sum(
-            [v for v in self.communicator.get_sent().values()]
-            ) if self.communicator else 0
+        return sum([v for v in self.communicator.get_sent().values()]) if self.communicator else 0
 
     def set_rank_id(self, p_id):
         """Assign object to rank ID
         """
-
         self.rank_id = p_id
 
     def get_rank_id(self):
         """Return ID of rank to which object is currently assigned
         """
-
         return self.rank_id
 
     def has_communicator(self):
         """Return whether the object has communication graph data
         """
-
-        return self.communicator != None
+        return self.communicator is not None
 
     def get_communicator(self):
         """Return the communication graph for this object
         """
-
         return self.communicator
 
     def set_communicator(self, c):
         """Assign the communication graph for this object
         """
-
         # Perform sanity check prior to assignment
         if isinstance(c, ObjectCommunicator):
             self.communicator = c

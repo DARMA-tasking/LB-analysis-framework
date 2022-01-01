@@ -42,10 +42,10 @@
 #@HEADER
 #
 ########################################################################
+from logging import Logger
 import random as rnd
 import sys
 import time
-import bcolors
 
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
@@ -53,6 +53,7 @@ from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 from src.IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from src.IO.lbsLoadReaderVT import LoadReader
+from src.Utils.logger import CLRS
 
 
 class Phase:
@@ -60,7 +61,7 @@ class Phase:
     objects at a given round
     """
 
-    def __init__(self, t=0, verbose=False, file_suffix="vom"):
+    def __init__(self, t=0, logger: Logger = None, logging_level: str = 'info', file_suffix="vom"):
         # Initialize empty list of ranks
         self.ranks = []
 
@@ -70,8 +71,15 @@ class Phase:
         # Initialize gossiping round
         self.round_index = 0
 
-        # Enable or disable verbose mode
-        self.verbose = verbose
+        # Assign logger to instance variable
+        self.lgr = logger
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
+        # Pass info when in debug mode
+        self.logging_level = logging_level
 
         # Start with empty edges cache
         self.edges = {}
@@ -83,27 +91,23 @@ class Phase:
     def get_ranks(self):
         """Retrieve ranks belonging to phase
         """
-
         return self.ranks
 
     def get_ranks_ids(self):
         """Retrieve IDs of ranks belonging to phase
         """
-
         return [p.get_id() for p in self.ranks]
 
     def get_phase_id(self):
         """Retrieve the time-step/phase for this phase
         """
-
         return self.phase_id
 
     def compute_edges(self):
         """Compute and return map of communication link IDs to volumes
         """
-
         # Compute or re-compute edges from scratch
-        print(f"{bcolors.HEADER}[Phase]{bcolors.END} Computing inter-process communication edges")
+        self.lgr.info(self.grn("Computing inter-process communication edges"))
         self.edges.clear()
         directed_edges = {}
 
@@ -117,13 +121,11 @@ class Phase:
         for p in self.ranks:
             # Retrieve sender rank ID
             i = p.get_id()
-            if self.verbose:
-                print("\trank {}:".format(i))
+            self.lgr.debug(self.ylw(f"\trank {i}:"))
 
             # Iterate over objects of current rank
             for o in p.get_objects():
-                if self.verbose:
-                    print("\t* object {}:".format(o.get_id()))
+                self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
 
                 # Iterate over recipient objects
                 for q, volume in o.get_sent().items():
@@ -132,9 +134,7 @@ class Phase:
 
                     # Retrieve recipient rank ID
                     j = q.get_rank_id()
-                    if self.verbose:
-                        print("\tsent volume {} to object {} assigned to rank {}".format(
-                            volume, q.get_id(), j))
+                    self.lgr.debug(self.ylw(f"\tsent volume {volume} to object {q.get_id()} assigned to rank {j}"))
 
                     # Skip rank-local communications
                     if i == j:
@@ -149,12 +149,7 @@ class Phase:
                         directed_edges[ij][0] += volume
                     else:
                         directed_edges[ij][1] += volume
-                    if self.verbose:
-                        print("\tedge rank {} --> rank {}, volume: {}".format(
-                            i,
-                            j,
-                            directed_edges[ij]))
-
+                    self.lgr.debug(self.ylw(f"\tedge rank {i} --> rank {j}, volume: {directed_edges[ij]}"))
 
         # Reduce directed edges into undirected ones with maximum
         for k, v in directed_edges.items():
@@ -166,21 +161,13 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.ranks)
         n_edges = len(self.edges)
-        print_subset_statistics(
-            "Inter-rank communication edges",
-            n_edges,
-            "possible ones",
-            n_ranks * (n_ranks - 1) / 2)
-        print_subset_statistics(
-            "Rank-local communication volume",
-            w_local,
-            "total volume",
-            w_total)
+        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
+                                logger=self.lgr)
+        print_subset_statistics("Rank-local communication volume", w_local, "total volume", w_total, logger=self.lgr)
 
     def get_edges(self):
         """Retrieve edges belonging to phase
         """
-
         # Force recompute if edges cache is not current
         if not self.cached_edges:
             self.compute_edges()
@@ -191,40 +178,32 @@ class Phase:
     def invalidate_edge_cache(self):
         """Mark cached edges as no longer current
         """
-
         self.cached_edges = False
 
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an phase
         """
-
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = sampler(
-            ts,
-            ts_params)
+        time_sampler, sampler_name = sampler(ts, ts_params, logger=self.lgr)
 
         # Create n_o objects with uniformly distributed times in given range
-        print(f"{bcolors.HEADER}[Phase]{bcolors.END} Creating {n_o} objects with times sampled from {sampler_name}")
+        self.lgr.info(self.grn(f"Creating {n_o} objects with times sampled from {sampler_name}"))
         objects = set([Object(i, time_sampler()) for i in range(n_o)])
 
         # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
 
         # Decide whether communications must be created
         if c_degree > 0:
             # Instantiante communication samplers with requested properties
-            volume_sampler, volume_sampler_name = sampler(
-                cs,
-                cs_params)
+            volume_sampler, volume_sampler_name = sampler(cs, cs_params, logger=self.lgr)
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
-            degree_sampler, degree_sampler_name = sampler(
-                "binomial",
-                [min(n_o - 1, int(c_degree / p_b)), p_b])
-            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Creating communications with:")
-            print("\tvolumes sampled from {}".format(volume_sampler_name))
-            print("\tout-degrees sampled from {}".format(degree_sampler_name))
+            degree_sampler, degree_sampler_name = sampler("binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
+                                                          logger=self.lgr)
+            self.lgr.info(self.grn(f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}"
+                                   f"\n\tout-degrees sampled from {degree_sampler_name}"))
 
             # Create communicator for each object with only sent communications
             start = time.time()
@@ -232,14 +211,11 @@ class Phase:
                 # Create object communicator witj outgoing messages
                 obj.set_communicator(ObjectCommunicator(
                     {},
-                    {o: volume_sampler()
-                     for o in rnd.sample(
-                        objects.difference([obj]),
-                        degree_sampler())
-                     },
-                    obj.get_id()))
-            print("\tgenerated in {:.6g} seconds".format(
-                time.time() - start))
+                    {o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
+                    obj.get_id(),
+                    logger=self.lgr
+                ))
+            self.lgr.info(self.grn(f"\tgenerated in {time.time() - start:.6g} seconds"))
 
             # Create symmetric received communications
             for obj in objects:
@@ -250,43 +226,40 @@ class Phase:
         w_sent, w_recv = [], []
         for obj in objects:
             i = obj.get_id()
-            if self.verbose:
-                print("\tobject {}:".format(i))
+            self.lgr.debug(self.ylw(f"\tobject {i}:"))
 
             # Retrieve communicator and proceed to next object if empty
             comm = obj.get_communicator()
             if not comm:
-                if self.verbose:
-                    print("\t  None")
+                self.lgr.debug(self.ylw("\t  None"))
                 continue
 
             # Check and summarize communications and update global counters
-            w_out, w_in = comm.summarize('\t' if self.verbose else None)
+            w_out, w_in = comm.summarize('\t' if self.logging_level == 'debug' else None)
             w_sent += w_out
             w_recv += w_in
 
         # Perform sanity checks
         if len(w_recv) != len(w_sent):
-            print(f"{bcolors.ERR}*  ERROR: number of sent and received communications differ: "
-                  f"{len(w_sent)} <> {len(w_recv)}{bcolors.END}")
+            self.lgr.error(self.red(f"Number of sent and received communications differ: {len(w_sent)} <> {len(w_recv)}"
+                                    ))
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(w_sent, lambda x: x, "communication volumes", self.verbose)
+        print_function_statistics(w_sent, lambda x: x, "communication volumes", logger=self.lgr)
 
         # Create n_p ranks
-        self.ranks = [Rank(i) for i in range(n_p)]
+        self.ranks = [Rank(i, logger=self.lgr) for i in range(n_p)]
 
         # Randomly assign objects to ranks
         if s_s and s_s <= n_p:
-            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {s_s} ranks amongst {n_p}")
+            self.lgr.info(self.grn(f"Randomly assigning objects to {s_s} ranks amongst {n_p}"))
         else:
             # Sanity check
             if s_s > n_p:
-                print(f"{bcolors.WARN}*  WARNING: too many ranks ({s_s}) requested: only {n_p} available."
-                      f"{bcolors.END}")
+                self.lgr.warning(self.cyan(f"Too many ranks ({s_s}) requested: only {n_p} available."))
                 s_s = n_p
-            print(f"{bcolors.HEADER}[Phase]{bcolors.END} Randomly assigning objects to {n_p} ranks")
+            self.lgr.info(self.grn(f"Randomly assigning objects to {n_p} ranks"))
         if s_s > 0:
             # Randomly assign objects to a subset o ranks of size s_s
             proc_list = rnd.sample(self.ranks, s_s)
@@ -302,29 +275,24 @@ class Phase:
                 o.set_rank_id(p.get_id())
 
         # Print debug information when requested
-        if self.verbose:
-            for p in self.ranks:
-                print("\t{} <- {}".format(
-                    p.get_id(),
-                    p.get_object_ids()))
+        for p in self.ranks:
+            self.lgr.debug(self.ylw(f"\t{p.get_id()} <- {p.get_object_ids()}"))
 
     def populate_from_log(self, n_p, t_s, basename):
         """Populate this phase by reading in a load profile from log files
         """
-
         # Instantiate VT load reader
-        reader = LoadReader(basename, verbose=self.verbose, file_suffix=self.file_suffix)
+        reader = LoadReader(basename, logger=self.lgr, file_suffix=self.file_suffix)
 
         # Populate phase with reader output
-        print(f"{bcolors.HEADER}[Phase]{bcolors.END} Reading objects from time-step {t_s} of VOM files with prefix "
-              f"{basename}")
+        self.lgr.info(self.grn(f"Reading objects from time-step {t_s} of VOM files with prefix {basename}"))
         self.ranks = reader.read_iteration(n_p, t_s)
 
         # Compute and report object statistics
         objects = set()
         for p in self.ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.verbose)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
 
         # Return number of found objects
         return len(objects)

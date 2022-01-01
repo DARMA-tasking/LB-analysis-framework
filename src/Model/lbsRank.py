@@ -41,20 +41,27 @@
 ###############################################################################
 #@HEADER
 #
-import math
+from logging import Logger
 import random as rnd
 import sys
-import bcolors
 
-from src.Model.lbsObject import Object
 from src.Model.lbsMessage import Message
+from src.Utils.logger import CLRS
 
 
 class Rank:
     """A class representing a rank to which objects are assigned
     """
 
-    def __init__(self, i, mo: set = None, so: set = None):
+    def __init__(self, i, mo: set = None, so: set = None, logger: Logger = None):
+        # Assign logger to instance variable
+        self.lgr = logger
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
+
         # Member variables passed by constructor
         self.index = i
         self.migratable_objects = set()
@@ -76,76 +83,67 @@ class Rank:
         # No message was received initially
         self.round_last_received = 0
 
+    def __repr__(self):
+        return f"<Rank index: {self.index}>"
+
     def get_id(self):
         """Return rank ID
         """
-
         return self.index
 
     def get_objects(self):
         """Return all objects assigned to rank
         """
-
         return self.migratable_objects.union(self.sentinel_objects)
 
     def add_migratable_object(self, o):
         """Add object to migratable objects
         """
-
         return self.migratable_objects.add(o)
 
     def get_migratable_objects(self):
         """Return migratable objects assigned to rank
         """
-
         return self.migratable_objects
 
     def get_sentinel_objects(self):
         """Return sentinel objects assigned to rank
         """
-
         return self.sentinel_objects
 
     def get_object_ids(self):
         """Return IDs of all objects assigned to rank
         """
-
         return [o.get_id() for o in self.migratable_objects.union(self.sentinel_objects)]
 
     def get_migratable_object_ids(self):
         """Return IDs of migratable objects assigned to rank
         """
-
         return [o.get_id() for o in self.migratable_objects]
 
     def get_sentinel_object_ids(self):
         """Return IDs of sentinel objects assigned to rank
         """
-
         return [o.get_id() for o in self.sentinel_objects]
 
     def get_known_ranks(self):
         """Return peers know to self
         """
-
         return self.known_ranks
 
     def get_known_loads(self):
         """Return loads of peers know to self
         """
-
         return self.known_loads
 
     def get_viewers(self):
         """Return peers knowing about self
         """
-
         return self.viewers
 
     def remove_migratable_object(self, o, p_dst, work_model):
         """Remove migratable able object from self object sent to peer
         """
-
         # Remove object from those assigned to self
         self.migratable_objects.remove(o)
 
@@ -166,7 +164,6 @@ class Rank:
     def add_as_viewer(self, ranks):
         """Add self as viewer to known peers
         """
-
         # Add self as viewer of each of provided ranks
         for p in ranks:
             p.viewers.add(self)
@@ -174,25 +171,21 @@ class Rank:
     def get_load(self):
         """Return total load on rank
         """
-
         return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
         """Return migratable load on rank
         """
-
         return sum([o.get_time() for o in self.migratable_objects])
 
     def get_sentinel_load(self):
         """Return sentinel load oon rank
         """
-
         return sum([o.get_time() for o in self.sentinel_objects])
 
     def get_received_volume(self):
         """Return volume received by objects assigned to rank from other ranks
         """
-        
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -202,8 +195,7 @@ class Rank:
                 continue
 
             # Add total volume received from non-local objects
-            volume += sum([v for k, v in o.get_communicator().get_received().items()
-                            if k not in obj_set])
+            volume += sum([v for k, v in o.get_communicator().get_received().items() if k not in obj_set])
 
         # Return computed volume
         return volume    
@@ -211,7 +203,6 @@ class Rank:
     def get_sent_volume(self):
         """Return volume sent by objects assigned to rank to other ranks
         """
-
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -221,8 +212,7 @@ class Rank:
                 continue
 
             # Add total volume sent to non-local objects
-            volume += sum([v for k, v in o.get_communicator().get_sent().items()
-                            if k not in obj_set])
+            volume += sum([v for k, v in o.get_communicator().get_sent().items() if k not in obj_set])
 
         # Return computed volume
         return volume    
@@ -230,7 +220,6 @@ class Rank:
     def reset_all_load_information(self):
         """Reset all load information known to self
         """
-
         # Reset information about known loaded peers
         self.known_ranks = set()
         self.known_loads = {}
@@ -241,7 +230,6 @@ class Rank:
     def initialize_message(self, ranks, f):
         """Initialize maessage to be sent to selected peers
         """
-
         # Retrieve current load on this rank
         l = self.get_load()
 
@@ -259,8 +247,8 @@ class Rank:
     def forward_message(self, r, ranks, f):
         """Formard information message to sample of selected peers
         """
-
         # Compute complement of set of known peers
+
         c_ranks = ranks.difference(self.known_ranks).difference([self])
 
         # Create load message tagged at current round
@@ -272,21 +260,14 @@ class Rank:
     def process_message(self, msg):
         """Update internals when message is received
         """
-
         # Assert that message has the expected type
         if not isinstance(msg, Message):
-            print(bcolors.WARN
-                + "*  WARNING: attempted to pass message of incorrect type {}. Ignoring it.".format(
-                type(msg))
-                + bcolors.END)
+            self.lgr.warning(self.cyan(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it."))
 
         # Retrieve information from message
         info = msg.get_content()
         if len(info) < 2:
-            print(bcolors.WARN
-                + "*  WARNING: incomplete message content: {}. Ignoring it.".format(
-                info)
-                + bcolors.END)
+            self.lgr.warning(self.cyan(f"Incomplete message content: {info}. Ignoring it."))
             return
 
         # Union received set of loaded ranks with current one
@@ -299,12 +280,7 @@ class Rank:
         l1 = len(self.known_ranks)
         l2 = len(self.known_loads)
         if l1 != l2:
-            print(bcolors.ERR
-                  + "** ERROR: cannot process message at rank {}: {}<>{}. Exiting.".format(
-                      self.get_id(),
-                      l1,
-                      l2)
-                  + bcolors.END)
+            self.lgr.error(self.red(f"Cannot process message at rank {self.get_id()}: {l1}<>{l2}. Exiting."))
             sys.exit(1)
 
         # Update last received message index
@@ -313,7 +289,6 @@ class Rank:
     def compute_transfer_cmf(self):
         """Compute CMF for the sampling of transfer targets
         """
-
         # Initialize CMF
         sum_p = 0
         cmf = []

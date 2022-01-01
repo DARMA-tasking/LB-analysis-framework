@@ -38,19 +38,18 @@
 #
 ###############################################################################
 import functools
-import sys
-
-import bcolors
+from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.Utils.logger import CLRS
 
 
 class RelaxedLocalizingCriterion(CriterionBase):
     """A concrete class for a relaxedly localizing criterion
     """
 
-    def __init__(self, ranks, edges, _):
+    def __init__(self, ranks, edges, _, lgr: Logger = None):
         """Class constructor:
         ranks: set of ranks (lbsRank.Rank instances)
         edges: dictionary of edges (pairs)
@@ -59,10 +58,16 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Call superclass init
         super(RelaxedLocalizingCriterion, self).__init__(ranks, edges)
-        print(bcolors.HEADER
-            + "[RelaxedLocalizingCriterion] "
-            + bcolors.END
-            + "Instantiated concrete criterion")
+
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
+
+        self.lgr.info(self.grn("Instantiated concrete criterion"))
 
     def compute(self, object, p_src, p_dst):
         """A criterion allowing for local disruptions for more locality
@@ -71,9 +76,7 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            print(bcolors.ERR
-                + f"** WARNING: object {object.get_id()} has no communicator"
-                + bcolors.END)
+            self.lgr.warning(self.cyan(f"Object {object.get_id()} has no communicator"))
             return 0.
 
         # Retrieve sent and received items from communicator
@@ -93,16 +96,10 @@ class RelaxedLocalizingCriterion(CriterionBase):
         xPy1 = (lambda x, y: x + y[1])
 
         # Aggregate communication volumes with source
-        w_src = functools.reduce(xPy1,
-                                 list(filter(is_s, recv))
-                                 + list(filter(is_s, sent)),
-                                 0.)
+        w_src = functools.reduce(xPy1, list(filter(is_s, recv)) + list(filter(is_s, sent)), 0.)
 
         # Aggregate communication volumes with destination
-        w_dst = functools.reduce(xPy1,
-                                 list(filter(is_d, recv))
-                                 + list(filter(is_d, sent)),
-                                 0.)
+        w_dst = functools.reduce(xPy1, list(filter(is_d, recv)) + list(filter(is_d, sent)), 0.)
 
         # Criterion assesses difference in local communications
         return w_dst - w_src

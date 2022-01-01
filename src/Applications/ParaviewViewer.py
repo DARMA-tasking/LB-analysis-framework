@@ -44,9 +44,8 @@
 ########################################################################
 import sys
 
-import bcolors
-
 from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from src.Utils.logger import logger, CLRS
 
 
 class ParaviewViewer(ParaviewViewerBase):
@@ -70,22 +69,18 @@ class ParaviewViewer(ParaviewViewerBase):
 
 
 if __name__ == '__main__':
+    # Assign logger to variable
+    lgr = logger()
+    # Assign colors
+    grn = CLRS.get('green')
+    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    print(bcolors.HEADER
-        + "[ParaviewViewer] "
-        + bcolors.END
-        + "### Started with Python {}.{}.{}".format(
-        sv.major,
-        sv.minor,
-        sv.micro))
+    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
 
     # Instantiate parameters and set values from command line arguments
-    print(bcolors.HEADER
-        + "[ParaviewViewer] "
-        + bcolors.END
-        + "Parsing command line arguments")
+    lgr.info(grn("Parsing command line arguments"))
     params = ViewerParameters()
     if params.parse_command_line():
         sys.exit(1)
@@ -103,7 +98,4 @@ if __name__ == '__main__':
     viewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print(bcolors.HEADER
-        + "[ParaviewViewer] "
-        + bcolors.END
-        + "{} file views generated ###".format(viewer.file_name))
+    lgr.info(grn(f"{viewer.file_name} file views generated ###"))

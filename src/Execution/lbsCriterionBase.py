@@ -43,43 +43,42 @@
 #
 ########################################################################
 import abc
+from logging import Logger
 import sys
-import bcolors
 
 from src.Model.lbsWorkModelBase import WorkModelBase
+from src.Utils.logger import CLRS, logger
+
+
+LGR = logger()
+grn = CLRS.get('green')
+red = CLRS.get('red')
+ylw = CLRS.get('yellow')
+
 
 class CriterionBase:
     __metaclass__ = abc.ABCMeta
     """An abstract base class of optimization criteria for LBAF execution
     """
 
-    def __init__(self, work_model, parameters: dict=None):
+    def __init__(self, work_model, parameters: dict = None):
         """Class constructor:
         work_model: a WorkModelBase instance
         parameters: optional parameters dictionary
         """
-
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            print(bcolors.ERR
-                  + "*  ERROR: Could not create a criterion without a work model"
-                  + bcolors.END)
+            LGR.error(red("Could not create a criterion without a work model"))
             sys.exit(1)
         self.work_model = work_model
 
         # Criterion keeps internal references to ranks and edges
-        print(bcolors.HEADER
-              + "[CriterionBase] "
-              + bcolors.END
-              + "Created base criterion with {} work model".format(
-                  str(type(work_model)).split('.')[-1][:-2]
-                  ))
+        LGR.info(grn(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model"))
 
     @staticmethod
-    def factory(criterion_name, work_model, parameters={}):
+    def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):
         """Produce the necessary concrete criterion
         """
-
         from src.Execution.lbsTemperedCriterion import TemperedCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
@@ -88,13 +87,10 @@ class CriterionBase:
         try:
             # Instantiate and return object
             criterion = locals()[criterion_name + "Criterion"]
-            return criterion(work_model, parameters)
+            return criterion(work_model, parameters, lgr=lgr)
         except:
             # Otherwise error out
-            print(bcolors.ERR
-                  + "*  ERROR: Could not create a criterion with name "
-                  + criterion_name
-                  + bcolors.END)
+            LGR.error(red(f"Could not create a criterion with name {criterion_name}"))
             sys.exit(1)
 
     @abc.abstractmethod
@@ -103,6 +99,5 @@ class CriterionBase:
         object: Object instance
         rank_src, rank_dst: Rank instances
         """
-
         # Must be implemented by concrete subclass
         pass

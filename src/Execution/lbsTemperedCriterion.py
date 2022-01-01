@@ -42,32 +42,43 @@
 #@HEADER
 #
 ########################################################################
-import bcolors
-import functools
+from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
-from src.Model.lbsRank import Rank
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.Model.lbsRank import Rank
+from src.Utils.logger import CLRS
 
 
 class TemperedCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, work_model, parameters: dict=None):
+    def __init__(self, work_model, parameters: dict = None, lgr: Logger = None):
         """Class constructor
         work_model: WorkModel instante
         parameters: optional parameters dictionary
         """
 
         # Call superclass init
+
         super(TemperedCriterion, self).__init__(work_model, parameters)
-        print(f"{bcolors.HEADER}[TemperedCriterion]{bcolors.END} Instantiated concrete criterion")
+
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
+
+        self.lgr.info(self.grn("Instantiated concrete criterion"))
 
         # Determine how destination load is to be computed
         def get_dst_load_know_by_src(p_src, p_dst):
             return p_src.get_known_loads()[p_dst]
+
         def get_actual_dst_load(_, p_dst):
             return p_dst.get_load()
 
@@ -79,7 +90,6 @@ class TemperedCriterion(CriterionBase):
     def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
-
         # Initialize storage for work aggregation
         values = {}
 

@@ -37,22 +37,28 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-import sys
-
-import bcolors
+from logging import Logger
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
+from src.Utils.logger import CLRS
 
 
 class AffineCombinationWorkModel(WorkModelBase):
     """A concrete class for a load-only work model
     """
-    
-    def __init__(self, parameters):
+
+    def __init__(self, parameters, lgr: Logger = None):
         """Class constructor:
         parameters: dictionary with alpha, beta, and gamma values
         """
+        # Assign logger to instance variable
+        self.lgr = lgr
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
 
         # Use default values if parameters not provided
         self.alpha = parameters.get("alpha", 1.)
@@ -61,25 +67,16 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        print(bcolors.HEADER
-            + "[AffineCombinationWorkModel] "
-            + bcolors.END
-            + "Instantiated work model with alpha="
-            + str(self.alpha)
-            + ", beta="
-            + str(self.beta)
-            + ", gamma="
-            + str(self.gamma))
+        self.lgr.info(
+            self.grn(f"Instantiated work model with alpha={self.alpha}, beta={self.beta}, gamma={self.gamma}"))
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
         alpha * load + beta * max(sent, received) + gamma
         """
-
         # Compute affine combination of load and volumes
-        return self.alpha * rank.get_load() + self.beta * max(
-            rank.get_received_volume(),
-            rank.get_sent_volume()) + self.gamma
+        return self.alpha * rank.get_load() + self.beta * max(rank.get_received_volume(),
+                                                              rank.get_sent_volume()) + self.gamma
 
     def aggregate(self, values: dict):
         """A work model with affine combination of load and communication
@@ -87,8 +84,5 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
 
         # Return work using provided values
-        return self.alpha * values.get("load", 0.) + self.beta * max(
-            values.get("received volume", 0.),
-            values.get("sent volume", 0.)) + self.gamma
-                
-                                              
+        return self.alpha * values.get("load", 0.) + self.beta * max(values.get("received volume", 0.),
+                                                                     values.get("sent volume", 0.)) + self.gamma

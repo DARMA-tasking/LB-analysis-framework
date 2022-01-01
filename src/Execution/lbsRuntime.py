@@ -41,65 +41,61 @@
 ###############################################################################
 #@HEADER
 #
-
+from logging import Logger
 from bisect import bisect
 from itertools import accumulate
 import math
 import sys
 from typing import Union
 
-import bcolors
-
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsPhase import Phase
 from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics
+from src.Utils.logger import CLRS
 
 
 class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, w: dict, c: dict, order_strategy: str, v=False):
+    def __init__(self, p, w: dict, c: dict, order_strategy: str, logger: Logger = None):
         """Class constructor:
         p: phase instance
         w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
-        v: verbose mode [FALSE/True]
         """
+        # Assign logger to instance variable
+        self.lgr = logger
+        # Assign colors for logger
+        self.grn = CLRS.get('green')
+        self.red = CLRS.get('red')
+        self.ylw = CLRS.get('yellow')
+        self.cyan = CLRS.get('cyan')
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, Phase):
-            print(bcolors.WARN
-                + "*  WARNING: Could not create a LBS runtime without a phase"
-                + bcolors.END)
+            self.lgr.warning(self.cyan("Could not create a LBS runtime without a phase"))
             return
         else:
             self.phase = p
 
         # Instantiate work model
-        self.work_model = WorkModelBase.factory(
-            w.get("name"),
-            w.get("parameters", {}))
+        self.work_model = WorkModelBase.factory(w.get("name"), w.get("parameters", {}), lgr=self.lgr)
         if not self.work_model:
-            print(bcolors.ERR
-                + "*  ERROR: could not instantiate a work model of tyoe {}".format(self.work_model_name)
-                + bcolors.END)
+            self.lgr.error(self.red(f"Could not instantiate a work model of type {self.work_model}"))
             sys.exit(1)
 
         # Transfer critertion type and parameters
         self.criterion_name = c.get("name")
         self.criterion_params = c.get("parameters", {})
 
-        # Verbosity of runtime
-        self.verbose = v
-
         # Initialize load, sent, and work distributions
         self.load_distributions = [[
             p.get_load() for p in self.phase.ranks]]
         self.sent_distributions = [{
-            k:v for k,v in self.phase.get_edges().items()}]
+            k: v for k, v in self.phase.get_edges().items()}]
         self.work_distributions = [[
             self.work_model.compute(p) for p in self.phase.ranks]]
 
@@ -116,18 +112,18 @@ class Runtime:
 
         # Initialize run statistics
         self.statistics = {
-            "minimum load"                   : [l_min],
-            "maximum load"                   : [l_max],
-            "load variance"                  : [l_var],
-            "load imbalance"                 : [l_imb],
-            "number of communication edges"  : [n_v],
+            "minimum load": [l_min],
+            "maximum load": [l_max],
+            "load variance": [l_var],
+            "load imbalance": [l_imb],
+            "number of communication edges": [n_v],
             "maximum largest directed volume": [v_max],
-            "total largest directed volume"  : [n_v * v_ave],
-            "minimum work"                   : [w_min],
-            "maximum work"                   : [w_max],
-            "total work"                     : [n_w * w_ave],
-            "work variance"                  : [w_var],
-            "work imbalance"                 : [w_imb]}
+            "total largest directed volume": [n_v * v_ave],
+            "minimum work": [w_min],
+            "maximum work": [w_max],
+            "total work": [n_w * w_ave],
+            "work variance": [w_var],
+            "work imbalance": [w_imb]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -148,11 +144,7 @@ class Runtime:
         rank_set = set(self.phase.get_ranks())
 
         # Initialize gossip process
-        print(bcolors.HEADER
-            + "[RunTime] "
-            + bcolors.END
-            + "Initializing information messages with fanout = {}".format(
-            f))
+        self.lgr.info(self.grn(f"Initializing information messages with fanout = {f}"))
         gossip_round = 1
         gossips = {}
 
@@ -172,20 +164,14 @@ class Runtime:
                 p_rcv.process_message(m)
 
         # Report on gossiping status when requested
-        if self.verbose:
-            for p in rank_set:
-                print("\tloaded known to rank {}: {}".format(
-                    p.get_id(),
-                    [p_u.get_id() for p_u in p.get_known_ranks()]))
+        for p in rank_set:
+            self.lgr.debug(self.ylw(f"\tloaded known to rank {p.get_id()}: "
+                                    f"{[p_u.get_id() for p_u in p.get_known_ranks()]}"))
 
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
-            # Initiate next gossiping roung
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Performing message forwarding round {}".format(
-                gossip_round))
+            # Initiate next gossiping round
+            self.lgr.info(self.grn(f"Performing message forwarding round {gossip_round}"))
             gossip_round += 1
             gossips.clear()
 
@@ -204,11 +190,9 @@ class Runtime:
                     p_rcv.process_load_message(m)
 
             # Report on gossiping status when requested
-            if self.verbose:
-                for p in rank_set:
-                    print("\tloaded known to rank {}: {}".format(
-                        p.get_id(),
-                        [p_u.get_id() for p_u in p.get_known_ranks()]))
+            for p in rank_set:
+                self.lgr.debug(self.ylw(f"\tloaded known to rank {p.get_id()}: "
+                                        f"{[p_u.get_id() for p_u in p.get_known_ranks()]}"))
 
         # Build reverse lookup of loaded to overloaded viewers
         for p in rank_set:
@@ -231,33 +215,19 @@ class Runtime:
             viewers_counts[p] = len(viewers)
 
             # Report on viewers of loaded rank when requested
-            if self.verbose:
-                print("\tviewers of rank {}: {}".format(
-                    p.get_id(),
-                    [p_o.get_id() for p_o in viewers]))
+            self.lgr.debug(self.ylw(f"\tviewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}"))
 
         # Report viewers counts to loaded ranks
-        n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-            viewers_counts.values(),
-            lambda x: x)
-        print(bcolors.HEADER
-            + "[RunTime] "
-            + bcolors.END
-            + "Reporting viewers counts (min:{}, mean: {:.3g} max: {}) to {} loaded ranks".format(
-                  v_min,
-                  v_ave,
-                  v_max,
-                  n_u))
+        n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
+        self.lgr.info(self.grn(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} "
+                               f"loaded ranks"))
 
     def transfer_stage(self, transfer_criterion):
         """Perform object transfer phase
         """
 
         # Initialize transfer stage
-        print(bcolors.HEADER
-            + "[RunTime] "
-            + bcolors.END
-            + "Excuting transfer phase")
+        self.lgr.info(self.grn("Executing transfer phase"))
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Iterate over ranks
@@ -294,11 +264,8 @@ class Runtime:
                     p_cmf)
 
                 # Report on know ranks when requested
-                if self.verbose:
-                    print(f"\tknown ranks: {loads}")
-                    print("\tCMF_{} = {}".format(
-                        p_src.get_id(),
-                        p_cmf))
+                self.lgr.debug(self.ylw(f"\tknown ranks: {loads}"))
+                self.lgr.debug(self.ylw(f"\tCMF_{p_src.get_id()} = {p_cmf}"))
 
                 # Decide about proposed transfer
                 if transfer_criterion.compute(o, p_src, p_dst) < 0.:
@@ -306,25 +273,18 @@ class Runtime:
                     n_rejects += 1
 
                     # Report on rejected object transfer when requested
-                    if self.verbose:
-                        print("\t\trank {} declined transfer of object {} ({})".format(
-                            p_dst.get_id(),
-                            o.get_id(),
-                            o.get_time()))
+                    self.lgr.debug(self.ylw(f"\t\trank {p_dst.get_id()} declined transfer of object {o.get_id()} "
+                                            f"({o.get_time()})"))
+
                 else:
                     # Accept proposed transfer
-                    if self.verbose:
-                        print("\t\tmigrating object {} ({}) to rank {}".format(
-                            o.get_id(),
-                            o.get_time(),
-                            p_dst.get_id()))
+                    self.lgr.debug(self.ylw(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank "
+                                            f"{p_dst.get_id()}"))
 
                     # Sanity check before transfer
                     if p_dst not in p_src.known_loads:
-                        print(bcolors.ERR
-                              + "*  ERROR: destination rank {} not in known ranks".format(
-                                  p_dst.get_id())
-                              + bcolors.END)
+                        self.lgr.error(self.red(f"Destination rank {p_dst.get_id()} not in known ranks"))
+
                         sys.exit(1)
 
                     # Transfer object
@@ -348,67 +308,43 @@ class Runtime:
         """
 
         # Compute and report rank work statistics
-        print_function_statistics(self.phase.get_ranks(),
-                                  lambda x: self.work_model.compute(x),
-                                  "initial rank works",
-                                  self.verbose)
+        print_function_statistics(self.phase.get_ranks(), lambda x: self.work_model.compute(x), "initial rank works",
+                                  logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Starting iteration {}".format(
-                i + 1))
+            self.lgr.info(self.grn(f"Starting iteration {i + 1}"))
 
             # Start with information stage
             self.information_stage(n_rounds, f)
 
             # Instantiate object transfer criterion
-            transfer_criterion = CriterionBase.factory(
-                self.criterion_name,
-                self.work_model,
-                self.criterion_params)
+            transfer_criterion = CriterionBase.factory(self.criterion_name, self.work_model, self.criterion_params,
+                                                       lgr=self.lgr)
             if not transfer_criterion:
-                print(bcolors.ERR
-                    + "*  ERROR: could not instantiate a transfer criterion of type {}".format(self.criterion_name)
-                    + bcolors.END)
+                self.lgr.error(self.red(f"Could not instantiate a transfer criterion of type {self.criterion_name}"))
                 sys.exit(1)
 
             # Use criterion to perform transfer stage
-            n_ignored, n_transfers, n_rejects = self.transfer_stage(
-                transfer_criterion)
+            n_ignored, n_transfers, n_rejects = self.transfer_stage(transfer_criterion)
 
              # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
 
             # Report iteration statistics
-            print(bcolors.HEADER
-                  + "[RunTime] "
-                  + bcolors.END
-                  + "Iteration complete ({} skipped ranks)".format(
-                      n_ignored))
+            self.lgr.info(self.grn(f"Iteration complete ({n_ignored} skipped ranks)"))
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                print(bcolors.HEADER
-                      + "[RunTime] "
-                      + bcolors.END
-                      + "{} proposed transfers, {} occurred, {} rejected ({:.4}%)".format(
-                          n_proposed,
-                          n_transfers,
-                          n_rejects,
-                          100. * n_rejects / n_proposed))
+                self.lgr.info(self.grn(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                                       f"({100. * n_rejects / n_proposed:.4}%)"))
             else:
-                print(bcolors.HEADER
-                      + "[RunTime] "
-                      + bcolors.END
-                      + "No transfers were proposed")
+                self.lgr.info(self.grn("No transfers were proposed"))
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append([
                 p.get_load() for p in self.phase.get_ranks()])
             self.sent_distributions.append({
-                k:v for k,v in self.phase.get_edges().items()})
+                k: v for k, v in self.phase.get_edges().items()})
             self.work_distributions.append([
                 self.work_model.compute(p) for p in self.phase.ranks])
 
@@ -439,35 +375,26 @@ class Runtime:
 
             # Report partial statistics
             iteration = i + 1
-            print(bcolors.HEADER
-                + "[RunTime] "
-                + bcolors.END
-                + "Load imbalance({}) = {:.6g}; min={:.6g}, max={:.6g}, ave={:.6g}, std={:.6g}".format(
-                iteration,
-                l_imb,
-                l_min,
-                l_max,
-                self.load_average,
-                math.sqrt(l_var)))
+            self.lgr.info(self.grn(f"Load imbalance({iteration}) = {l_imb:.6g}; min={l_min:.6g}, max={l_max:.6g}, "
+                                   f"ave={self.load_average:.6g}, std={math.sqrt(l_var):.6g}"))
 
         # Report final mapping when requested
-        if self.verbose:
-            for p in self.phase.get_ranks():
-                print(f"Rank {p.get_id()}:")
-                for o in p.get_objects():
-                    comm = o.get_communicator()
-                    if comm:
-                        print(f"  Object {o.get_id()}:")
-                        recv = comm.get_received().items()
-                        if recv: 
-                            print("    received from:")
-                            for k, v in recv:
-                                print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
-                        sent = comm.get_sent().items()
-                        if sent: 
-                            print("    sent to:")
-                            for k, v in sent:
-                                print("\tobject", k.get_id(), "on rank", k.get_rank_id(), ":", v)
+        for p in self.phase.get_ranks():
+            self.lgr.debug(self.ylw(f"Rank {p.get_id()}:"))
+            for o in p.get_objects():
+                comm = o.get_communicator()
+                if comm:
+                    self.lgr.debug(self.ylw(f"  Object {o.get_id()}:"))
+                    recv = comm.get_received().items()
+                    if recv:
+                        self.lgr.debug(self.ylw("    received from:"))
+                        for k, v in recv:
+                            self.lgr.debug(self.ylw(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}"))
+                    sent = comm.get_sent().items()
+                    if sent:
+                        self.lgr.debug(self.ylw("    sent to:"))
+                        for k, v in sent:
+                            self.lgr.debug(self.ylw(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}"))
 
     @staticmethod
     def sort(objects: set, key):

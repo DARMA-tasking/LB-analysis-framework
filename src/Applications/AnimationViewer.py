@@ -47,12 +47,11 @@
 ###############################################################################
 import sys
 
-import bcolors
-
 import paraview.simple as pv
 
 from src.Applications.ParaviewViewer import ParaviewViewer
 from src.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from src.Utils.logger import logger, CLRS
 
 
 class AnimationViewer(ParaviewViewer):
@@ -63,6 +62,9 @@ class AnimationViewer(ParaviewViewer):
 
         # Call superclass init
         super().__init__(exodus, file_name, viewer_type)
+
+        # Starting logger
+        self.logger = logger()
 
     def saveView(self, reader):
         """Save animation
@@ -77,35 +79,26 @@ class AnimationViewer(ParaviewViewer):
             animationScene.AnimationTime = t
 
         # Save animation movie
-        print(bcolors.HEADER
-            + "[AnimationViewer] "
-            + bcolors.END
-            + "###  Generating AVI animation...")
+        self.logger.info(CLRS.get('green')("###  Generating AVI animation..."))
         pv.AssignViewToLayout()
         pv.WriteAnimation(f"{self.file_name}.avi", Magnification=1, Quality=2, FrameRate=1.0, Compression=True)
-        print(bcolors.HEADER
-            + "[AnimationViewer] "
-            + bcolors.END
-            + "### AVI animation generated.")
+        self.logger.info(CLRS.get('green')(f"### AVI animation generated."))
 
 
 if __name__ == '__main__':
+    # Assign logger to variable
+    lgr = logger()
+    # Assign colors
+    grn = CLRS.get('green')
+    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    print(bcolors.HEADER
-        + "[AnimationViewer] "
-        + bcolors.END
-        + "### Started with Python {}.{}.{}".format(
-        sv.major,
-        sv.minor,
-        sv.micro))
+    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
 
     # Instantiate parameters and set values from command line arguments
-    print(bcolors.HEADER
-        + "[AnimationViewer] "
-        + bcolors.END
-        + "Parsing command line arguments")
+    lgr.info(grn("Parsing command line arguments"))
+
     params = ViewerParameters()
     if params.parse_command_line():
         sys.exit(1)
@@ -120,8 +113,4 @@ if __name__ == '__main__':
     animationViewer.saveView(reader)
 
     # If this point is reached everything went fine
-    print(bcolors.HEADER
-        + "[AnimationViewer] "
-        + bcolors.END
-        + "{} file views generated ###".format(
-        animationViewer.file_name))
+    lgr.info(grn(f"{animationViewer.file_name} file views generated ###"))

@@ -41,32 +41,32 @@
 ###############################################################################
 #@HEADER
 #
-
+from logging import Logger
 import math
 import random as rnd
 
-import bcolors
 import numpy as np
+
+from src.Utils.logger import CLRS
+
+# Setup colors
+grn = CLRS.get('green')
+red = CLRS.get('red')
+ylw = CLRS.get('yellow')
 
 
 def initialize():
-
     # Seed pseudo-random number generators
     rnd.seed(820)
     np.random.seed(820)
 
 
-def error_out(distribution_name, parameters):
-
-    print(bcolors.ERR
-        + "*  ERROR: [Statistics] not enough parameters in {} for {} distribution.".format(
-        parameters,
-        distribution_name)
-        + bcolors.END)
+def error_out(distribution_name, parameters, logger: Logger = None):
+    logger.error(red(f"not enough parameters in {parameters} for {distribution_name} distribution."))
     return None
 
 
-def sampler(distribution_name, parameters):
+def sampler(distribution_name, parameters, logger: Logger = None):
     """Return a pseudo-random number generator based of requested type
     """
 
@@ -74,7 +74,7 @@ def sampler(distribution_name, parameters):
     if distribution_name.lower() == "uniform":
         # 2 parameters are needed
         if len(parameters) < 2:
-            return error_out(distribution_name, parameters)
+            return error_out(distribution_name, parameters, logger=logger)
 
         # Return uniform distribution over given interval
         return lambda: rnd.uniform(*parameters), "U[{};{}]".format(*parameters)
@@ -83,7 +83,7 @@ def sampler(distribution_name, parameters):
     elif distribution_name.lower() == "binomial":
         # 2 parameters are needed
         if len(parameters) < 2:
-            return error_out(distribution_name, parameters)
+            return error_out(distribution_name, parameters, logger=logger)
 
         # Return binomial distribution with given number of Bernoulli trials
         return lambda: np.random.binomial(*parameters), "B[{};{}]".format(*parameters)
@@ -92,16 +92,14 @@ def sampler(distribution_name, parameters):
     elif distribution_name.lower() == "lognormal":
         # 2 parameters are needed
         if len(parameters) < 2:
-            return error_out(distribution_name, parameters)
+            return error_out(distribution_name, parameters, logger=logger)
 
         # Determine parameters of log-normal distribution
         m2 = parameters[0] * parameters[0]
         v = parameters[1]
         r = math.sqrt(m2 + v)
         if r == 0:
-            print(bcolors.ERR
-                + "*  ERROR: [Statistics] r={} should not be zero.".format(r)
-                + bcolors.END)
+            logger.error(red(f"r={r} should not be zero."))
             return None, None
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
@@ -113,13 +111,7 @@ def sampler(distribution_name, parameters):
 
     # Unsupported distribution type
     else:
-        print(bcolors.ERR
-            + "*  ERROR: "
-            + bcolors.HEADER
-            + "[Statistics] "
-            + bcolors.END
-            + "{} distribution is not supported."
-            + bcolors.END)
+        logger.error(red(f"{distribution_name} distribution is not supported."))
         return None, None
 
 
@@ -204,60 +196,37 @@ def compute_function_statistics(population, fct):
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_max / f_ave - 1.
 
 
-def print_function_statistics(values, function, var_name, verb=False):
+def print_function_statistics(values, function, var_name, logger: Logger = None):
     """Compute and report descriptive statistics of function values
     """
-
     # Compute statistics
-    print(bcolors.HEADER
-        + "[Statistics] "
-        + bcolors.END
-        + "Descriptive statistics of {}:".format(var_name))
+    logger.info(grn(f"Descriptive statistics of {var_name}:"))
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values,
         function)
 
     # Print detailed load information if requested
-    if verb:
-        for i, v in enumerate(values):
-            print("\t{}: {}".format(
-                i,
-                function(v)))
+    for i, v in enumerate(values):
+        logger.debug(ylw(f"\t{i}: {function(v)}"))
 
     # Print summary
-    print("\tcardinality: {:.6g}  sum: {:.6g}  imbalance: {:.6g}".format(
-        n,
-        n * f_ave,
-        f_imb))
-    print("\tminimum: {:.6g}  mean: {:.6g}  maximum: {:.6g}".format(
-        f_min,
-        f_ave,
-        f_max))
-    print("\tstandard deviation: {:.6g}  variance: {:.6g}".format(
-        math.sqrt(f_var),
-        f_var))
-    print("\tskewness: {:.6g}  kurtosis excess: {:.6g}".format(
-        f_g1,
-        f_g2 - 3.))
+    logger.info(grn(f"\tcardinality: {n:.6g}  sum: {n * f_ave:.6g}  imbalance: {f_imb:.6g}"))
+    logger.info(grn(f"\tminimum: {f_min:.6g}  mean: {f_ave:.6g}  maximum: {f_max:.6g}"))
+    logger.info(grn(f"\tstandard deviation: {math.sqrt(f_var):.6g}  variance: {f_var:.6g}"))
+    logger.info(grn(f"\tskewness: {f_g1:.6g}  kurtosis excess: {f_g2 - 3.:.6g}"))
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 
-def print_subset_statistics(subset_name, subset_size, set_name, set_size):
+def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger = None):
     """Compute and report descriptive statistics of subset vs. full set
     """
 
     # Print summary
-    print(bcolors.HEADER
-        + "[Statistics] "
-        + bcolors.END
-        + "{}: {:.6g} amongst {}: {:.6g} ({}%)".format(
-              subset_name,
-              subset_size,
-              set_name,
-              set_size,
-              "{:.3g}".format(100. * subset_size / set_size) if set_size else ''))
+    ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''
+    logger.info(grn(f"{subset_name}: {subset_size:.6g} amongst {set_name}: {set_size:.6g} ({ss}%)"))
+
 
         
         
