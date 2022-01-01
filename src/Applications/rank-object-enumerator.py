@@ -41,6 +41,7 @@
 #@HEADER
 #
 ###############################################################################
+import math
 import itertools
 
 # Dictionary of objects
@@ -57,6 +58,11 @@ objects = (
 
 # Define number of ranks
 n_ranks = 4
+
+# Define work constants
+alpha = 1.
+beta = 0.
+gamma = 0.
 
 def compute_load(object_list):
     # Load is sum of all object times
@@ -77,8 +83,8 @@ def compute_arrangement_works(arrangement, alpha, beta, gamma):
     return works
 
 if __name__ == '__main__':
-    initial_works = compute_arrangement_works((
-        0, 0, 0, 0, 1, 1, 1, 1, 2), 1., 0., 0.)
+    initial_works = compute_arrangement_works(
+        (0, 0, 0, 0, 1, 1, 1, 1, 2), alpha, beta, gamma)
     print("Initial work:", initial_works)
     print("\tmaximum: {:.4g} average: {:.4g}".format(
         max(initial_works.values()),
@@ -86,12 +92,24 @@ if __name__ == '__main__':
     
     # Generate all possible arrangements with repetition
     n_arrangements = 0
-    for v in itertools.product(range(n_ranks), repeat=len(objects)):
+    works_min_max = math.inf
+    arrangements_min_max = []
+    for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
+        works = compute_arrangement_works(arrangement, alpha, beta, gamma)
+        work_max = max(works.values())
+        if work_max < works_min_max:
+            works_min_max = work_max
+            arrangements_min_max = [arrangement]
+        elif work_max == works_min_max:
+            arrangements_min_max.append(arrangement)
         n_arrangements += 1
-        print(v)
-    rank_objects = {}
-    #for o in objects:
-        #for r in ranks:
-         #   rank_objects.setdefault(r, []).append(o)
-        #print(rank_arrangement, objects)
-    print(n_arrangements)
+    print("Number of generated arrangements:", n_arrangements)
+    print("\tminimax work: {:.4g} for {} arrangements".format(
+        works_min_max,
+        len(arrangements_min_max)))
+    print("Example optimal arrangement:", arrangements_min_max[0])
+    optimal_works = compute_arrangement_works(
+        arrangements_min_max[0], alpha, beta, gamma)
+    print("\tmaximum: {:.4g} average: {:.4g}".format(
+        max(optimal_works.values()),
+        sum(optimal_works.values()) / len(optimal_works)))
