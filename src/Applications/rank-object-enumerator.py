@@ -106,6 +106,11 @@ def compute_arrangement_works(arrangement, alpha, beta, gamma):
     return works
 
 if __name__ == '__main__':
+    # Print out input parameters
+    print("alpha:", alpha)
+    print("beta:", beta)
+    print("gamma:", gamma)
+
     # Report on some initial configuration
     initial_works = compute_arrangement_works(
         (0, 0, 0, 0, 1, 1, 1, 1, 2), alpha, beta, gamma)
