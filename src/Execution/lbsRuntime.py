@@ -236,67 +236,58 @@ class Runtime:
             if not self.work_model.compute(p_src) > 0.:
                 continue
 
-            # Report on offloading rank when requesting
-            self.lgr.debug(self.ylw(f"\ttrying to offload from rank {p_src.get_id()} to {[p_u.get_id() for p_u in p_src.get_known_loads()]}:"))
-
             # Skip ranks unaware of peers
-            loads = p_src.get_known_loads()
-            if not loads:
+            targets = p_src.get_known_loads()
+            del targets[p_src]
+            if not targets:
                 n_ignored += 1
                 continue
+            self.lgr.debug(self.ylw(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:"))
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
-            obj_it = iter(srt_proc_obj)
-            while loads:
-                # Pick next object
-                try:
-                    o = next(obj_it)
-                except:
-                    # List of objects is exhausted, break out
-                    break
+            obj_it = iter(frozenset(srt_proc_obj))
+            while (o := next(obj_it, None)) is not None:
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
 
-                # Compute transfer CMF given information known to source
-                p_cmf = p_src.compute_transfer_cmf()
-                self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
-                if not p_cmf:
+                # Select best destination with respect to criterion
+                c_max = 0.
+                p_dst = None
+                for p in targets.keys():
+                    c = transfer_criterion.compute(o, p_src, p)
+                    if c < 0.:
+                        n_rejects += 1
+                    if c >= c_max:
+                        c_max = c
+                        p_dst = p
+
+                # Move to next object if no transfer was possible
+                if not p_dst:
                     continue
 
+                # Compute transfer CMF given information known to source
+                #p_cmf = p_src.compute_transfer_cmf()
+                #self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
+                #if not p_cmf:
+                #    continue
+
                 # Pseudo-randomly select destination proc
-                p_dst = inverse_transform_sample(
-                    loads.keys(),
-                    p_cmf)
+                #p_dst = inverse_transform_sample(
+                #    targets.keys(),
+                #    p_cmf)
 
-                # Decide about proposed transfer
-                if transfer_criterion.compute(o, p_src, p_dst) < 0.:
-                    # Reject proposed transfer
-                    n_rejects += 1
+                # Sanity check before transfer
+                if p_dst not in p_src.known_loads:
+                    self.lgr.error(self.red(f"Destination rank {p_dst.get_id()} not in known ranks"))
 
-                    # Report on rejected object transfer when requested
-                    self.lgr.debug(self.ylw(f"\t\trank {p_dst.get_id()} declined transfer of object {o.get_id()} "
-                                            f"({o.get_time()})"))
+                    sys.exit(1)
 
-                else:
-                    # Accept proposed transfer
-                    self.lgr.debug(self.ylw(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank "
-                                            f"{p_dst.get_id()}"))
-
-                    # Sanity check before transfer
-                    if p_dst not in p_src.known_loads:
-                        self.lgr.error(self.red(f"Destination rank {p_dst.get_id()} not in known ranks"))
-
-                        sys.exit(1)
-
-                    # Transfer object
-                    p_src.remove_migratable_object(o, p_dst, self.work_model)
-                    obj_it = iter(p_src.get_migratable_objects())
-                    p_dst.add_migratable_object(o)
-                    o.set_rank_id(p_dst.get_id())
-                    n_transfers += 1
-
-                # Update peers known to rank
-                loads = p_src.get_known_loads()
+                # Transfer object
+                self.lgr.debug(self.ylw(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} (criterion: {c_max})"))
+                p_src.remove_migratable_object(o, p_dst, self.work_model)
+                p_dst.add_migratable_object(o)
+                o.set_rank_id(p_dst.get_id())
+                n_transfers += 1
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
