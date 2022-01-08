@@ -54,11 +54,12 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
         # Assign logger to instance variable
         self.lgr = lgr
+
         # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
+        self.grn = CLRS.get("green")
+        self.red = CLRS.get("red")
+        self.ylw = CLRS.get("yellow")
+        self.cyan = CLRS.get("cyan")
 
         # Use default values if parameters not provided
         self.alpha = parameters.get("alpha", 1.)
