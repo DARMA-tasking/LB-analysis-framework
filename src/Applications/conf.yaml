@@ -53,7 +53,7 @@ y_procs: 2
 z_procs: 1
 output_dir: "output"
 order_strategy: arbitrary
-logging_level: debug
+logging_level: info
 
 # Simulating from samplers (comment out if reading from log)
 #n_objects: 200
