@@ -192,9 +192,11 @@ def compute_function_statistics(population, fct):
     else:
         f_g1, f_g2 = nan, nan
 
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_max / f_ave - 1.
+    # Compute imbalance
+    f_imb = f_max / f_ave - 1. if f_ave > 0. else nan
 
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 def print_function_statistics(values, function, var_name, logger: Logger = None):
     """Compute and report descriptive statistics of function values
