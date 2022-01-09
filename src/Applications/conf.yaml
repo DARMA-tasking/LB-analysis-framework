@@ -1,13 +1,13 @@
 # Docs
 # param_name_in_conf  [CL arg]    [type]    Description
 
-# work_model              description of the work model to be used
+# work_model                description of the work model to be used
 #    type: str in LoadOnly (default), AffineCombination
 #    parameters: optional parameters that are specitic to each work model
-# criterion               description of the object transfer criterion
+# criterion                 description of the object transfer criterion
 #    type: str in Tempered (default), StrictLocalizer, RelaxedLocalizer
 #    parameters: optional parameters that are specitic to each criterion
-# deterministic_transfer decide whether transfer must be derministic
+# deterministic_transfer    decide whether transfer must be deterministic
 #    type: Boolean (default: False)
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
 # x_procs             [-x <npx>]  int       number of procs in x direction
