@@ -78,6 +78,9 @@ class internalParameters:
         # By default use tempered criterion
         self.criterion = {"name": "Tempered", "parameters": {}}
 
+        # Decide whether transfer must be deterministic
+        self.deterministic_transfer = False
+
         # Number of load-balancing iterations
         self.n_iterations = 1
 
@@ -347,8 +350,15 @@ if __name__ == '__main__':
     print_function_statistics(phase.get_edges().values(), lambda x: x, "initial sent volumes", logger=lgr)
 
     # Instantiate runtime
-    rt = Runtime(phase, params.work_model, params.criterion, params.order_strategy, logger=lgr)
-    rt.execute(params.n_iterations, params.n_rounds, params.fanout)
+    rt = Runtime(phase,
+                 params.work_model,
+                 params.criterion,
+                 params.order_strategy,
+                 logger=lgr)
+    rt.execute(params.n_iterations,
+               params.n_rounds,
+               params.fanout,
+               params.deterministic_transfer)
 
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
