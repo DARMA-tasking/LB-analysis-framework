@@ -226,7 +226,7 @@ class Runtime:
         self.lgr.info(self.grn(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} "
                                f"loaded ranks"))
 
-    def transfer_stage(self, transfer_criterion, deterministic):
+    def transfer_stage(self, transfer_criterion, deterministic_transfer):
         """Perform object transfer phase
         """
 
@@ -257,7 +257,7 @@ class Runtime:
                 c_value = 0.
                 
                 # Use deterministic or probabilistic transfer method
-                if deterministic:
+                if deterministic_transfer:
                     # Select best destination with respect to criterion
                     p_dst = None
                     for p in targets.keys():
@@ -306,12 +306,12 @@ class Runtime:
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
 
-    def execute(self, n_iterations, n_rounds, f, deterministic):
+    def execute(self, n_iterations, n_rounds, f, deterministic_transfer):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
-        deterministic: deterministic or probabilistic transfer
+        deterministic_transfer: deterministic or probabilistic transfer
         """
 
         # Compute and report rank work statistics
@@ -338,7 +338,7 @@ class Runtime:
             # Use criterion to perform transfer stage
             n_ignored, n_transfers, n_rejects = self.transfer_stage(
                 transfer_criterion,
-                deterministic)
+                deterministic_transfer)
 
              # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
