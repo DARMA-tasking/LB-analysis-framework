@@ -50,6 +50,10 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
 
+# Setting logging level to logger.ini
+from src.Utils import set_logging_level
+set_logging_level(project_path=project_path)
+
 import logging
 import math
 
