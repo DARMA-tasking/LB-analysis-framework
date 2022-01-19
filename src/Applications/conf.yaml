@@ -42,7 +42,7 @@ criterion:
   name: "Tempered"
   parameters:
     actual_destination_load: True
-deterministic_transfer: True
+#deterministic_transfer: True
 n_iterations: 8
 n_rounds: 4
 fanout: 4

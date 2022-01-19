@@ -274,15 +274,14 @@ class Runtime:
 
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf = p_src.compute_transfer_cmf()
+                    p_cmf = p_src.compute_transfer_cmf(
+                        transfer_criterion, o, targets, True)
                     self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
                     if not p_cmf:
                         continue
 
                     # Pseudo-randomly select destination proc
-                    p_dst = inverse_transform_sample(
-                        targets.keys(),
-                        p_cmf)
+                    p_dst = inverse_transform_sample(p_cmf)
 
                     # Decide whether proposed transfer passes criterion
                     c_value = transfer_criterion.compute(o, p_src, p_dst) 

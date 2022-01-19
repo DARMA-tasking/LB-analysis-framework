@@ -264,12 +264,26 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_transfer_cmf(self):
+    def compute_transfer_cmf(self, transfer_criterion, o, targets, strict=False):
         """Compute CMF for the sampling of transfer targets
         """
+
         # Initialize CMF
         sum_p = 0
-        cmf = []
+        cmf = {}
+
+        # Iterate over potential targets
+        #for p in targets.keys():
+        # Compute value of criterion for recent target
+        #    c = transfer_criterion.compute(o, p_src, p)
+
+        # Update 
+        #    if c < 0.:
+        #        n_rejects += 1
+        #    elif c > c_value:
+        #        c_value = c
+        #        p_dst = p
+
 
         # Normalize with respect to maximum load
         p_fac = 1. / max(self.known_loads.values())
@@ -279,7 +293,7 @@ class Rank:
             # Self does not contribute to CMF
             if k != self:
                 sum_p += 1 - p_fac * v
-            cmf.append(sum_p)
+            cmf[k] = sum_p
 
         # Normalize and return CMF
-        return [x / sum_p for x in cmf] if sum_p else None
+        return {k: v / sum_p for k, v in cmf.items()} if sum_p else None
