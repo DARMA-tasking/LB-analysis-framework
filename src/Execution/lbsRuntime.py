@@ -66,13 +66,15 @@ class Runtime:
         c: dictionary with riterion name and optional parameters
         order_strategy: Objects order strategy
         """
+
         # Assign logger to instance variable
         self.lgr = logger
+
         # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
+        self.grn = CLRS.get("green")
+        self.red = CLRS.get("red")
+        self.ylw = CLRS.get("yellow")
+        self.cyan = CLRS.get("cyan")
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, Phase):
@@ -82,9 +84,11 @@ class Runtime:
             self.phase = p
 
         # Instantiate work model
-        self.work_model = WorkModelBase.factory(w.get("name"), w.get("parameters", {}), lgr=self.lgr)
+        self.work_model = WorkModelBase.factory(
+            w.get("name"), w.get("parameters", {}), lgr=self.lgr)
         if not self.work_model:
-            self.lgr.error(self.red(f"Could not instantiate a work model of type {self.work_model}"))
+            self.lgr.error(self.red(
+                f"Could not instantiate a work model of type {self.work_model}"))
             sys.exit(1)
 
         # Transfer critertion type and parameters
@@ -165,8 +169,8 @@ class Runtime:
 
         # Report on gossiping status when requested
         for p in rank_set:
-            self.lgr.debug(self.ylw(f"\tloaded known to rank {p.get_id()}: "
-                                    f"{[p_u.get_id() for p_u in p.get_known_ranks()]}"))
+            self.lgr.debug(self.ylw(f"\tinformation known to rank {p.get_id()}: "
+                                    f"{[p_u.get_id() for p_u in p.get_known_loads()]}"))
 
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
@@ -187,21 +191,21 @@ class Runtime:
             # Process all messages of first round
             for p_rcv, msg_lst in gossips.items():
                 for m in msg_lst:
-                    p_rcv.process_load_message(m)
+                    p_rcv.process_message(m)
 
             # Report on gossiping status when requested
             for p in rank_set:
-                self.lgr.debug(self.ylw(f"\tloaded known to rank {p.get_id()}: "
-                                        f"{[p_u.get_id() for p_u in p.get_known_ranks()]}"))
+                self.lgr.debug(self.ylw(f"\tinformation known to rank {p.get_id()}: "
+                                        f"{[p_u.get_id() for p_u in p.get_known_loads()]}"))
 
-        # Build reverse lookup of loaded to overloaded viewers
+        # Build reverse lookup of ranks to those aware of them
         for p in rank_set:
             # Skip non-loaded ranks
             if not p.get_load():
                 continue
 
             # Update viewers on loaded ranks known to this one
-            p.add_as_viewer(p.get_known_ranks())
+            p.add_as_viewer(p.get_known_loads().keys())
 
         # Report on viewers of loaded ranks
         viewers_counts = {}
@@ -222,7 +226,7 @@ class Runtime:
         self.lgr.info(self.grn(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} "
                                f"loaded ranks"))
 
-    def transfer_stage(self, transfer_criterion):
+    def transfer_stage(self, transfer_criterion, deterministic_transfer):
         """Perform object transfer phase
         """
 
@@ -237,74 +241,77 @@ class Runtime:
                 continue
 
             # Skip ranks unaware of peers
-            loads = p_src.get_known_loads()
-            if not loads:
+            targets = p_src.get_known_loads()
+            del targets[p_src]
+            if not targets:
                 n_ignored += 1
                 continue
+            self.lgr.debug(self.ylw(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:"))
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
-            obj_it = iter(srt_proc_obj)
-            while loads:
-                # Pick next object
-                try:
-                    o = next(obj_it)
-                except:
-                    # List of objects is exhausted, break out
-                    break
+            obj_it = iter(frozenset(srt_proc_obj))
+            while (o := next(obj_it, None)) is not None:
+                self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
+                # Initialize criterion value
+                c_value = 0.
+                
+                # Use deterministic or probabilistic transfer method
+                if deterministic_transfer:
+                    # Select best destination with respect to criterion
+                    p_dst = None
+                    for p in targets.keys():
+                        c = transfer_criterion.compute(o, p_src, p)
+                        if c < 0.:
+                            n_rejects += 1
+                        if c >= c_value:
+                            c_value = c
+                            p_dst = p
 
-                # Compute transfer CMF given information known to source
-                p_cmf = p_src.compute_transfer_cmf()
-                if not p_cmf:
-                    continue
-
-                # Pseudo-randomly select destination proc
-                p_dst = inverse_transform_sample(
-                    loads.keys(),
-                    p_cmf)
-
-                # Report on know ranks when requested
-                self.lgr.debug(self.ylw(f"\tknown ranks: {loads}"))
-                self.lgr.debug(self.ylw(f"\tCMF_{p_src.get_id()} = {p_cmf}"))
-
-                # Decide about proposed transfer
-                if transfer_criterion.compute(o, p_src, p_dst) < 0.:
-                    # Reject proposed transfer
-                    n_rejects += 1
-
-                    # Report on rejected object transfer when requested
-                    self.lgr.debug(self.ylw(f"\t\trank {p_dst.get_id()} declined transfer of object {o.get_id()} "
-                                            f"({o.get_time()})"))
+                    # Move to next object if no transfer was possible
+                    if not p_dst:
+                        continue
 
                 else:
-                    # Accept proposed transfer
-                    self.lgr.debug(self.ylw(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank "
-                                            f"{p_dst.get_id()}"))
+                    # Compute transfer CMF given information known to source
+                    p_cmf = p_src.compute_transfer_cmf()
+                    self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
+                    if not p_cmf:
+                        continue
 
-                    # Sanity check before transfer
-                    if p_dst not in p_src.known_loads:
-                        self.lgr.error(self.red(f"Destination rank {p_dst.get_id()} not in known ranks"))
+                    # Pseudo-randomly select destination proc
+                    p_dst = inverse_transform_sample(
+                        targets.keys(),
+                        p_cmf)
 
-                        sys.exit(1)
+                    # Decide whether proposed transfer passes criterion
+                    c_value = transfer_criterion.compute(o, p_src, p_dst) 
+                    if c_value < 0.:
+                        n_rejects += 1
+                        continue
 
-                    # Transfer object
-                    p_src.remove_migratable_object(o, p_dst, self.work_model)
-                    obj_it = iter(p_src.get_migratable_objects())
-                    p_dst.add_migratable_object(o)
-                    o.set_rank_id(p_dst.get_id())
-                    n_transfers += 1
+                # Sanity check before transfer
+                if p_dst not in p_src.known_loads:
+                    self.lgr.error(self.red(f"Destination rank {p_dst.get_id()} not in known ranks"))
 
-                # Update peers known to rank
-                loads = p_src.get_known_loads()
+                    sys.exit(1)
+
+                # Transfer object
+                self.lgr.debug(self.ylw(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} (criterion: {c_value})"))
+                p_src.remove_migratable_object(o, p_dst, self.work_model)
+                p_dst.add_migratable_object(o)
+                o.set_rank_id(p_dst.get_id())
+                n_transfers += 1
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
 
-    def execute(self, n_iterations, n_rounds, f):
+    def execute(self, n_iterations, n_rounds, f, deterministic_transfer):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
+        deterministic_transfer: deterministic or probabilistic transfer
         """
 
         # Compute and report rank work statistics
@@ -319,14 +326,19 @@ class Runtime:
             self.information_stage(n_rounds, f)
 
             # Instantiate object transfer criterion
-            transfer_criterion = CriterionBase.factory(self.criterion_name, self.work_model, self.criterion_params,
-                                                       lgr=self.lgr)
+            transfer_criterion = CriterionBase.factory(
+                self.criterion_name, self.work_model,
+                self.criterion_params,
+                lgr=self.lgr)
             if not transfer_criterion:
-                self.lgr.error(self.red(f"Could not instantiate a transfer criterion of type {self.criterion_name}"))
+                self.lgr.error(self.red(
+                    f"Could not instantiate a transfer criterion of type {self.criterion_name}"))
                 sys.exit(1)
 
             # Use criterion to perform transfer stage
-            n_ignored, n_transfers, n_rejects = self.transfer_stage(transfer_criterion)
+            n_ignored, n_transfers, n_rejects = self.transfer_stage(
+                transfer_criterion,
+                deterministic_transfer)
 
              # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
