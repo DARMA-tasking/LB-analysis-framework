@@ -254,7 +254,7 @@ class Runtime:
             while (o := next(obj_it, None)) is not None:
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
                 # Initialize criterion value
-                c_value = 0.
+                c_value = -math.inf
                 
                 # Use deterministic or probabilistic transfer method
                 if deterministic_transfer:
@@ -264,10 +264,10 @@ class Runtime:
                         c = transfer_criterion.compute(o, p_src, p)
                         if c < 0.:
                             n_rejects += 1
-                        if c >= c_value:
+                        elif c > c_value:
                             c_value = c
                             p_dst = p
-
+                    
                     # Move to next object if no transfer was possible
                     if not p_dst:
                         continue
