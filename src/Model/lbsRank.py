@@ -269,8 +269,8 @@ class Rank:
         """Compute CMF for the sampling of transfer targets
         """
 
-        # Initialize CMF
-        cmf = {}
+        # Initialize criterion values
+        c_values = {}
         c_min, c_max = math.inf, -math.inf
 
         # Iterate over potential targets
@@ -283,29 +283,26 @@ class Rank:
                 continue
 
             # Update criterion values
-            cmf[p_dst] = c
+            c_values[p_dst] = c
             if c < c_min:
                 c_min = c
             if c > c_max:
                 c_max = c
 
-        if cmf:
-            if c_min == c_max:
-                # Sample uniformly if all criteria have same value
-                cmf = {k: 1. / len(cmf) for k in cmf.keys()}
-            else:
-                # Otherwise use relative weights
-                c_range = c_max - c_min
-                cmf = {k: (v + c_min) / c_range for k, v in cmf.items()}
-
-            # Compute CMF values and normalize
-            sum_p = 0.
-            for k, v in cmf.items():
-                sum_p += v
-                cmf[k] = sum_p
-            cmf = {k: v / sum_p for k, v in cmf.items()}
+        # Initialize CMF depending on singleton or non-singleton support
+        if c_min == c_max:
+            # Sample uniformly if all criteria have same value
+            cmf = {k: 1. / len(c_values) for k in c_values.keys()}
         else:
-            cmf = None
+            # Otherwise use relative weights
+            c_range = c_max - c_min
+            cmf = {k: (v + c_min) / c_range for k, v in c_values.items()}
 
-        # Return CMF
-        return cmf
+        # Compute CMF
+        sum_p = 0.
+        for k, v in cmf.items():
+            sum_p += v
+            cmf[k] = sum_p
+
+        # Return normalized CMF and criterion values
+        return {k: v / sum_p for k, v in cmf.items()}, c_values

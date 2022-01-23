@@ -274,8 +274,8 @@ class Runtime:
 
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf = p_src.compute_transfer_cmf(
-                        transfer_criterion, o, targets, True)
+                    p_cmf, c_values = p_src.compute_transfer_cmf(
+                        transfer_criterion, o, targets, False)
                     self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
                     if not p_cmf:
                         continue
@@ -284,8 +284,7 @@ class Runtime:
                     p_dst = inverse_transform_sample(p_cmf)
 
                     # Decide whether proposed transfer passes criterion
-                    c_value = transfer_criterion.compute(o, p_src, p_dst) 
-                    if c_value < 0.:
+                    if c_values[p_dst] < 0.:
                         n_rejects += 1
                         continue
 
