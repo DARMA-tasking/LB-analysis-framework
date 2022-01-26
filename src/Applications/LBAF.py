@@ -394,12 +394,15 @@ if __name__ == '__main__':
         reader = viewer.createViews()
         viewer.saveView(reader)
 
+    imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
+
     # Compute and print final rank load and link volume statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(
         phase.get_ranks(),
         lambda x: x.get_load(),
         "final rank loads",
-        logger=lgr)
+        logger=lgr,
+        file=imb_file)
     print_function_statistics(phase.get_edges().values(), lambda x: x, "final sent volumes", logger=lgr)
 
     # Report on theoretically optimal statistics
@@ -408,9 +411,6 @@ if __name__ == '__main__':
     lgr.info(grn(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}"))
     lgr.info(grn(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}"))
     imbalance = (n_p - r) / float(n_o) if r else 0.
-    imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
-    with open(imb_file, 'w') as file:
-        file.write(f"{imbalance}")
     lgr.info(grn(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}"))
 
     # If this point is reached everything went fine

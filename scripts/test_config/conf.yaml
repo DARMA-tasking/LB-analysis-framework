@@ -1,0 +1,24 @@
+work_model:
+  name: "AffineCombination"
+  parameters:
+    alpha: 1.
+    beta: 0.
+    gamma: 0.
+criterion:
+  name: "Tempered"
+  parameters:
+    actual_destination_load: True
+deterministic_transfer: True
+n_iterations: 8
+n_rounds: 4
+fanout: 4
+phase_id: 0
+log_file: "data/synthetic_lb_stats/stats"
+file_suffix: json
+exodus: True
+x_procs: 2
+y_procs: 2
+z_procs: 1
+output_dir: "output"
+order_strategy: arbitrary
+logging_level: debug
