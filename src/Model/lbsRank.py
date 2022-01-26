@@ -44,6 +44,7 @@
 from logging import Logger
 import random as rnd
 import sys
+import math
 
 from src.Model.lbsMessage import Message
 from src.Utils.logger import CLRS
@@ -264,22 +265,44 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_transfer_cmf(self):
+    def compute_transfer_cmf(self, transfer_criterion, o, targets, strict=False):
         """Compute CMF for the sampling of transfer targets
         """
-        # Initialize CMF
-        sum_p = 0
-        cmf = []
 
-        # Normalize with respect to maximum load
-        p_fac = 1. / max(self.known_loads.values())
+        # Initialize criterion values
+        c_values = {}
+        c_min, c_max = math.inf, -math.inf
 
-        # Compute CMF over all known ranks
-        for k, v in self.known_loads.items():
-            # Self does not contribute to CMF
-            if k != self:
-                sum_p += 1 - p_fac * v
-            cmf.append(sum_p)
+        # Iterate over potential targets
+        for p_dst in targets.keys():
+            # Compute value of criterion for current target
+            c = transfer_criterion.compute(o, self, p_dst)
 
-        # Normalize and return CMF
-        return [x / sum_p for x in cmf] if sum_p else None
+            # Do not include rejected targets for strict CMF
+            if strict and c < 0.:
+                continue
+
+            # Update criterion values
+            c_values[p_dst] = c
+            if c < c_min:
+                c_min = c
+            if c > c_max:
+                c_max = c
+
+        # Initialize CMF depending on singleton or non-singleton support
+        if c_min == c_max:
+            # Sample uniformly if all criteria have same value
+            cmf = {k: 1. / len(c_values) for k in c_values.keys()}
+        else:
+            # Otherwise use relative weights
+            c_range = c_max - c_min
+            cmf = {k: (v + c_min) / c_range for k, v in c_values.items()}
+
+        # Compute CMF
+        sum_p = 0.
+        for k, v in cmf.items():
+            sum_p += v
+            cmf[k] = sum_p
+
+        # Return normalized CMF and criterion values
+        return {k: v / sum_p for k, v in cmf.items()}, c_values

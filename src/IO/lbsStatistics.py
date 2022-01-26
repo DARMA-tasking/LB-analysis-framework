@@ -115,21 +115,19 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         return None, None
 
 
-def inverse_transform_sample(values, cmf):
+def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform
-    values: set of increasing values in R
-    cmf: corresponding CMF values (listst must have identical lengths)
     """
 
     # Generate number from pseudo-random dsitribution U([0;1])
     u = rnd.random()
 
     # Look for when u is first encountered in CMF
-    for v, x in zip(values, cmf):
-        if not x < u:
+    for k, v in cmf.items():
+        if not v < u:
             # Return sample point
-            return v
+            return k
 
 
 def compute_function_statistics(population, fct):
