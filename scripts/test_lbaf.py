@@ -48,7 +48,7 @@ def run_tests():
     imbalance_file = f"/lbaf/output/imbalance.txt"
     with open(imbalance_file, 'r') as imb_file:
         imb_level = float(imb_file.read())
-        if imb_level < 100:
+        if imb_level < 0.000001:
             print(f"===> TEST PASSED!")
         else:
             print(f"===> TEST FAILED!")

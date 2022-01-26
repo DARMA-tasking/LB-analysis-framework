@@ -198,7 +198,8 @@ def compute_function_statistics(population, fct):
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
-def print_function_statistics(values, function, var_name, logger: Logger = None):
+
+def print_function_statistics(values, function, var_name, logger: Logger = None, file: str = None):
     """Compute and report descriptive statistics of function values
     """
     # Compute statistics
@@ -206,6 +207,11 @@ def print_function_statistics(values, function, var_name, logger: Logger = None)
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values,
         function)
+
+    # Save imbalance for testing purposes
+    if var_name == 'final rank loads' and file is not None:
+        with open(file, 'w') as imbalance_file:
+            imbalance_file.write(f"{f_imb}")
 
     # Print detailed load information if requested
     for i, v in enumerate(values):
