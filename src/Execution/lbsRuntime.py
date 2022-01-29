@@ -253,19 +253,17 @@ class Runtime:
             obj_it = iter(frozenset(srt_proc_obj))
             while (o := next(obj_it, None)) is not None:
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
-                # Initialize criterion value
-                c_value = -math.inf
-                
                 # Use deterministic or probabilistic transfer method
                 if deterministic_transfer:
                     # Select best destination with respect to criterion
+                    c_max = -math.inf
                     p_dst = None
                     for p in targets.keys():
                         c = transfer_criterion.compute(o, p_src, p)
                         if c < 0.:
                             n_rejects += 1
-                        elif c > c_value:
-                            c_value = c
+                        elif c > c_max:
+                            c_max = c
                             p_dst = p
                     
                     # Move to next object if no transfer was possible
@@ -295,7 +293,7 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer object
-                self.lgr.debug(self.ylw(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} (criterion: {c_value})"))
+                self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()}"))
                 p_src.remove_migratable_object(o, p_dst, self.work_model)
                 p_dst.add_migratable_object(o)
                 o.set_rank_id(p_dst.get_id())
