@@ -260,14 +260,13 @@ class Runtime:
                     p_dst = None
                     for p in targets.keys():
                         c = transfer_criterion.compute(o, p_src, p)
-                        if c < 0.:
-                            n_rejects += 1
-                        elif c > c_max:
+                        if c > c_max:
                             c_max = c
                             p_dst = p
                     
                     # Move to next object if no transfer was possible
                     if c_max < 0.:
+                        n_rejects += 1
                         continue
 
                 else:
