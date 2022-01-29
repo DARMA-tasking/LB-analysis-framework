@@ -250,7 +250,7 @@ class Runtime:
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = self.order_strategy(p_src.migratable_objects)
-            obj_it = iter(frozenset(srt_proc_obj))
+            obj_it = iter(srt_proc_obj)
             while (o := next(obj_it, None)) is not None:
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
                 # Use deterministic or probabilistic transfer method
@@ -291,7 +291,7 @@ class Runtime:
 
                     sys.exit(1)
 
-                # Transfer object
+                # Transfer objects
                 self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()}"))
                 p_src.remove_migratable_object(o, p_dst, self.work_model)
                 p_dst.add_migratable_object(o)
