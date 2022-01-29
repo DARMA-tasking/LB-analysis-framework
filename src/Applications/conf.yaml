@@ -32,34 +32,45 @@
 # generate_multimedia [-g]        bool      generate multimedia
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 
+# Simulate from VT trace data
+log_file: "data/synthetic_lb_stats/stats"
+#log_file: "data/vt_new_stat_format/stats"
+phase_id: 0
+file_suffix: json
+
+# Simulate from samplers (comment out if reading from log)
+#n_objects: 200
+#time_sampler_type: lognormal,1.0,10.0
+#volume_sampler_type: lognormal,1.0,10.0
+#communication_degree: 20
+
+# Specify information stage parameters
+n_rounds: 4
+fanout: 4
+
+# Specify work model
 work_model:
   name: "AffineCombination"
   parameters:
     alpha: 0.
     beta: 1.
     gamma: 0.
+
+# Specify transfer strategy
+order_strategy: arbitrary
+#deterministic_transfer: True
 criterion:
   name: "Tempered"
   parameters:
     actual_destination_load: True
-#deterministic_transfer: True
+
+# Specify number of simulation passes
 n_iterations: 8
-n_rounds: 4
-fanout: 4
-phase_id: 0
-#log_file: "data/vt_new_stat_format/stats"
-log_file: "data/synthetic_lb_stats/stats"
-file_suffix: json
+
+# Specify output
 exodus: True
+output_dir: "output"
 x_procs: 2
 y_procs: 2
 z_procs: 1
-output_dir: "output"
-order_strategy: arbitrary
 logging_level: debug
-
-# Simulating from samplers (comment out if reading from log)
-#n_objects: 200
-#time_sampler_type: lognormal,1.0,10.0
-#volume_sampler_type: lognormal,1.0,10.0
-#communication_degree: 20

@@ -275,7 +275,7 @@ class Runtime:
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = p_src.compute_transfer_cmf(
-                        transfer_criterion, o, targets, False)
+                        transfer_criterion, o, targets, True)
                     self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
                     if not p_cmf:
                         continue
