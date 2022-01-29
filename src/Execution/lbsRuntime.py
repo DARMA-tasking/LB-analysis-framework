@@ -267,7 +267,7 @@ class Runtime:
                             p_dst = p
                     
                     # Move to next object if no transfer was possible
-                    if not p_dst:
+                    if c_max < 0.:
                         continue
 
                 else:
