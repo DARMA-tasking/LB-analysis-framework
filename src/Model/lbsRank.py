@@ -285,7 +285,7 @@ class Rank:
         # Iterate over potential targets
         for p_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute(o, self, p_dst)
+            c = transfer_criterion.compute([o], self, p_dst)
 
             # Do not include rejected targets for strict CMF
             if strict and c < 0.:

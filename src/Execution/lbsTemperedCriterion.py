@@ -87,38 +87,48 @@ class TemperedCriterion(CriterionBase):
             parameters and parameters.get(
                 "actual_destination_load")) else get_actual_dst_load
 
-    def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
+    def compute(self, object_list: list, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
+
         # Initialize storage for work aggregation
-        values = {}
+        values = {
+            "load": self.dst_load(p_src, p_dst) - p_src.get_load(),
+            "received volume": 0.,
+            "sent volume": 0.
+            }
 
-        # Compute load-based criterion
-        values["load"] = self.dst_load(
-            p_src, p_dst) + obj.get_time() - p_src.get_load()
+        # Iterate over all objects in list
+        for o in object_list:
+            # Update communication-based part of criterion    
+            values["load"] += o.get_time()
 
-        # Retrieve object communications
-        comm = obj.get_communicator()
-        if isinstance(comm, ObjectCommunicator):
-            # Retrieve sent and received items from communicator
-            recv = comm.get_received().items()
-            sent = comm.get_sent().items()
+            # Update communication-based part of criterion
+            comm = o.get_communicator()
+            if isinstance(comm, ObjectCommunicator):
+                # Retrieve sent and received items from communicator
+                recv = comm.get_received().items()
+                sent = comm.get_sent().items()
 
-            # Retrieve IDs of source and destination ranks
-            src_id = p_src.get_id()
-            dst_id = p_dst.get_id()
+                # Retrieve IDs of source and destination ranks
+                src_id = p_src.get_id()
+                dst_id = p_dst.get_id()
 
-            # Aggregate communication volumes between source and destination
-            v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])
-            v_sent_dst = sum([v for k, v in sent if k.get_rank_id() == dst_id])
+                # Aggregate communication volumes between source and destination
+                v_recv_dst = sum(
+                    [v for k, v in recv if k.get_rank_id() == dst_id])
+                v_sent_dst = sum(
+                    [v for k, v in sent if k.get_rank_id() == dst_id])
 
-            # Aggregate communication volumes local to source
-            v_recv_src = sum([v for k, v in recv if k.get_rank_id() == src_id])
-            v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
+                # Aggregate communication volumes local to source
+                v_recv_src = sum(
+                    [v for k, v in recv if k.get_rank_id() == src_id])
+                v_sent_src = sum(
+                    [v for k, v in sent if k.get_rank_id() == src_id])
 
-            # Compute differences between sent and received volumes
-            values["received volume"] = v_recv_src - v_recv_dst
-            values["sent volume"] = v_sent_src - v_sent_dst
+                # Compute differences between sent and received volumes
+                values["received volume"] += v_recv_src - v_recv_dst
+                values["sent volume"] += v_sent_src - v_sent_dst
 
         # Return aggregated criterion
         return - self.work_model.aggregate(values)

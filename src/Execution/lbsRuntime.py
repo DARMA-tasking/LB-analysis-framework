@@ -256,20 +256,15 @@ class Runtime:
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
 
                 # Use deterministic or probabilistic transfer method
+                c_dst = -math.inf
                 if deterministic_transfer:
                     # Select best destination with respect to criterion
-                    c_max = -math.inf
                     p_dst = None
                     for p in targets.keys():
-                        c = transfer_criterion.compute(o, p_src, p)
-                        if c > c_max:
-                            c_max = c
+                        c = transfer_criterion.compute([o], p_src, p)
+                        if c > c_dst:
+                            c_dst = c
                             p_dst = p
-                    
-                    # Move to next object if no transfer was possible
-                    if c_max < 0.:
-                        n_rejects += 1
-                        continue
 
                 else:
                     # Compute transfer CMF given information known to source
@@ -281,11 +276,12 @@ class Runtime:
 
                     # Pseudo-randomly select destination proc
                     p_dst = inverse_transform_sample(p_cmf)
+                    c_dst = c_values[p_dst]
 
-                    # Decide whether proposed transfer passes criterion
-                    if c_values[p_dst] < 0.:
-                        n_rejects += 1
-                        continue
+                # Decide whether proposed transfer passes criterion
+                if c_dst < 0.:
+                    n_rejects += 1
+                    continue
 
                 # Sanity check before transfer
                 if p_dst not in p_src.known_loads:
@@ -294,7 +290,7 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
-                self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()}"))
+                self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} (criterion: {c_dst})"))
                 p_src.remove_migratable_object(o, p_dst)
                 p_dst.add_migratable_object(o)
                 o.set_rank_id(p_dst.get_id())

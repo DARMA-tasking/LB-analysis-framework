@@ -68,9 +68,9 @@ criterion:
 n_iterations: 8
 
 # Specify output
+logging_level: info
 exodus: True
 output_dir: "output"
 x_procs: 2
 y_procs: 2
 z_procs: 1
-logging_level: info
