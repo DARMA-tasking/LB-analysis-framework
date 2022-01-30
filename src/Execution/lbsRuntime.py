@@ -64,7 +64,7 @@ class Runtime:
         p: phase instance
         w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
-        order_strategy: Objects order strategy
+        order_strategy: objects order strategy
         """
 
         # Assign logger to instance variable
@@ -249,10 +249,12 @@ class Runtime:
             self.lgr.debug(self.ylw(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:"))
 
             # Offload objects for as long as necessary and possible
-            srt_proc_obj = self.order_strategy(p_src.migratable_objects)
-            obj_it = iter(srt_proc_obj)
-            while (o := next(obj_it, None)) is not None:
+            srt_proc_obj = list(self.order_strategy(p_src.migratable_objects))
+            while srt_proc_obj:
+                # Pick next object in ordered list
+                o = srt_proc_obj.pop()
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
+
                 # Use deterministic or probabilistic transfer method
                 if deterministic_transfer:
                     # Select best destination with respect to criterion
@@ -293,7 +295,7 @@ class Runtime:
 
                 # Transfer objects
                 self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()}"))
-                p_src.remove_migratable_object(o, p_dst, self.work_model)
+                p_src.remove_migratable_object(o, p_dst)
                 p_dst.add_migratable_object(o)
                 o.set_rank_id(p_dst.get_id())
                 n_transfers += 1
@@ -415,11 +417,15 @@ class Runtime:
 
     @staticmethod
     def arbitrary(objects: set):
-        """ Random strategy. Objects are passed without any order. """
+        """ Random strategy: objects are passed without any order
+        """
+
         return objects
 
     def element_id(self, objects: set):
-        """ Objects ordered by ID. """
+        """ Order objects by ID
+        """
+
         return self.sort(objects, key=lambda x: x.get_id())
 
     def load_excess(self, objects: set):

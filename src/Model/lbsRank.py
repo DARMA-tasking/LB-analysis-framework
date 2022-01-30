@@ -136,9 +136,10 @@ class Rank:
         """
         return self.viewers
 
-    def remove_migratable_object(self, o, p_dst, work_model):
+    def remove_migratable_object(self, o, p_dst):
         """Remove migratable able object from self object sent to peer
         """
+
         # Remove object from those assigned to self
         self.migratable_objects.remove(o)
 
@@ -158,6 +159,7 @@ class Rank:
     def add_as_viewer(self, ranks):
         """Add self as viewer to known peers
         """
+
         # Add self as viewer of each of provided ranks
         for p in ranks:
             p.viewers.add(self)
@@ -165,21 +167,25 @@ class Rank:
     def get_load(self):
         """Return total load on rank
         """
+
         return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
         """Return migratable load on rank
         """
+
         return sum([o.get_time() for o in self.migratable_objects])
 
     def get_sentinel_load(self):
         """Return sentinel load oon rank
         """
+
         return sum([o.get_time() for o in self.sentinel_objects])
 
     def get_received_volume(self):
         """Return volume received by objects assigned to rank from other ranks
         """
+
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -197,6 +203,7 @@ class Rank:
     def get_sent_volume(self):
         """Return volume sent by objects assigned to rank to other ranks
         """
+
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -224,6 +231,7 @@ class Rank:
     def initialize_message(self, loads, f):
         """Initialize maessage to be sent to selected peers
         """
+
         # Retrieve current load on this rank
         l = self.get_load()
 
@@ -255,6 +263,7 @@ class Rank:
     def process_message(self, msg):
         """Update internals when message is received
         """
+
         # Assert that message has the expected type
         if not isinstance(msg, Message):
             self.lgr.warning(self.cyan(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it."))
