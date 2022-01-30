@@ -52,12 +52,12 @@ fanout: 4
 work_model:
   name: "AffineCombination"
   parameters:
-    alpha: 1.
-    beta: 0.
+    alpha: 0.
+    beta: 1.
     gamma: 0.
 
 # Specify transfer strategy
-order_strategy: arbitrary
+order_strategy: element_id
 #deterministic_transfer: True
 criterion:
   name: "Tempered"

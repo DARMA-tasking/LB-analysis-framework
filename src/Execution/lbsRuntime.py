@@ -47,6 +47,7 @@ from itertools import accumulate
 import math
 import sys
 from typing import Union
+import random
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
@@ -255,11 +256,13 @@ class Runtime:
                 o = srt_proc_obj.pop()
                 self.lgr.debug(self.ylw(f"\t* object {o.get_id()}:"))
 
-                # Use deterministic or probabilistic transfer method
+                # Initialize destination information
+                p_dst = None
                 c_dst = -math.inf
+
+                # Use deterministic or probabilistic transfer method
                 if deterministic_transfer:
                     # Select best destination with respect to criterion
-                    p_dst = None
                     for p in targets.keys():
                         c = transfer_criterion.compute([o], p_src, p)
                         if c > c_dst:
@@ -269,9 +272,10 @@ class Runtime:
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = p_src.compute_transfer_cmf(
-                        transfer_criterion, o, targets, True)
+                        transfer_criterion, o, targets, False)
                     self.lgr.debug(self.ylw(f"\t  CMF = {p_cmf}"))
                     if not p_cmf:
+                        n_rejects += 1
                         continue
 
                     # Pseudo-randomly select destination proc
@@ -281,6 +285,11 @@ class Runtime:
                 # Decide whether proposed transfer passes criterion
                 if c_dst < 0.:
                     n_rejects += 1
+                    print(o, "was rejected:", c_dst)
+                    if srt_proc_obj:
+                        o1 = random.choice(srt_proc_obj)
+                        c = transfer_criterion.compute([o, o1], p_src, p_dst)
+                        print("trying:", o, o1, c_dst, c)
                     continue
 
                 # Sanity check before transfer
