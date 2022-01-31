@@ -108,21 +108,19 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         return None, None
 
 
-def inverse_transform_sample(values, cmf):
+def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform
-    values: set of increasing values in R
-    cmf: corresponding CMF values (listst must have identical lengths)
     """
 
     # Generate number from pseudo-random distribution U([0;1])
     u = rnd.random()
 
     # Look for when u is first encountered in CMF
-    for v, x in zip(values, cmf):
-        if not x < u:
+    for k, v in cmf.items():
+        if not v < u:
             # Return sample point
-            return v
+            return k
 
 
 def compute_function_statistics(population, fct):
@@ -192,12 +190,17 @@ def compute_function_statistics(population, fct):
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 
-def print_function_statistics(values, function, var_name, logger: Logger = None):
+def print_function_statistics(values, function, var_name, logger: Logger = None, file: str = None):
     """Compute and report descriptive statistics of function values
     """
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(values, function)
+
+    # Save imbalance for testing purposes
+    if var_name == 'final rank loads' and file is not None:
+        with open(file, 'w') as imbalance_file:
+            imbalance_file.write(f"{f_imb}")
 
     # Print detailed load information if requested
     for i, v in enumerate(values):

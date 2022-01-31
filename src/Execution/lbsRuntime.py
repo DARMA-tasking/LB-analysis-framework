@@ -244,7 +244,7 @@ class Runtime:
             while (o := next(obj_it, None)) is not None:
                 self.lgr.debug(f"\t* object {o.get_id()}:")
                 # Initialize criterion value
-                c_value = 0.
+                c_value = -math.inf
                 
                 # Use deterministic or probabilistic transfer method
                 if deterministic_transfer:
@@ -254,29 +254,27 @@ class Runtime:
                         c = transfer_criterion.compute(o, p_src, p)
                         if c < 0.:
                             n_rejects += 1
-                        if c >= c_value:
+                        elif c > c_value:
                             c_value = c
                             p_dst = p
-
+                    
                     # Move to next object if no transfer was possible
                     if not p_dst:
                         continue
 
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf = p_src.compute_transfer_cmf()
+                    p_cmf, c_values = p_src.compute_transfer_cmf(
+                        transfer_criterion, o, targets, False)
                     self.lgr.debug(f"\t  CMF = {p_cmf}")
                     if not p_cmf:
                         continue
 
                     # Pseudo-randomly select destination proc
-                    p_dst = inverse_transform_sample(
-                        targets.keys(),
-                        p_cmf)
+                    p_dst = inverse_transform_sample(p_cmf)
 
                     # Decide whether proposed transfer passes criterion
-                    c_value = transfer_criterion.compute(o, p_src, p_dst) 
-                    if c_value < 0.:
+                    if c_values[p_dst] < 0.:
                         n_rejects += 1
                         continue
 
