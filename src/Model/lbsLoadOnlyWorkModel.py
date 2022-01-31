@@ -41,7 +41,6 @@ from logging import Logger
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
-from src.Utils.logger import CLRS
 
 
 class LoadOnlyWorkModel(WorkModelBase):
@@ -54,15 +53,10 @@ class LoadOnlyWorkModel(WorkModelBase):
         """
         # Assign logger to instance variable
         self.lgr = lgr
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
 
         # Call superclass init
         super(LoadOnlyWorkModel, self).__init__()
-        self.lgr.info(self.grn("Instantiated concrete work model"))
+        self.lgr.info("Instantiated concrete work model")
 
     def compute(self, rank: Rank):
         """A work model summing all object times on given rank

@@ -48,7 +48,6 @@ import vtk
 
 from src.IO.lbsGridStreamer import GridStreamer
 from src.Model.lbsPhase import Phase
-from src.Utils.logger import CLRS
 
 
 class WriterExodusII:
@@ -66,20 +65,16 @@ class WriterExodusII:
         """
         # Assign logger to instance variable
         self.lgr = logger
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
 
         # Ensure that provided phase has correct type
         if not isinstance(p, Phase):
-            self.lgr.error(self.red("Could not write to ExodusII file by lack of a LBS phase"))
+            self.lgr.error("Could not write to ExodusII file by lack of a LBS phase")
             return
         self.phase = p
 
         # If no rank mapping was provided, do not do anything
         if not callable(m):
-            self.lgr.error(self.red("Could not write to ExodusII file by lack of a rank mapping"))
+            self.lgr.error("Could not write to ExodusII file by lack of a rank mapping")
             return
         self.mapping = m
 
@@ -102,12 +97,12 @@ class WriterExodusII:
         # Retrieve number of mesh points and bail out early if empty set
         n_p = len(self.phase.ranks)
         if not n_p:
-            self.lgr.error(self.red("Empty list of ranks, cannot write a mesh file"))
+            self.lgr.error("Empty list of ranks, cannot write a mesh file")
             return
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(n_p * (n_p - 1) / 2)
-        self.lgr.info(self.grn(f"Creating mesh with {n_p} points and {n_e} edges"))
+        self.lgr.info(f"Creating mesh with {n_p} points and {n_e} edges")
 
         # Create and populate field data arrays for load statistics
         time_stats = {}
@@ -176,19 +171,19 @@ class WriterExodusII:
             time_volumes.append(v_arr)
             
             # Assign edge volume values
-            self.lgr.debug(self.ylw(f"\titeration {i} edges:"))
+            self.lgr.debug(f"\titeration {i} edges:")
             for e in range(n_e):
                 v_arr.SetTuple1(e, u_edges.get(edge_indices[e], float("nan")))
-                self.lgr.debug(self.ylw(f"\t {e} {edge_indices[e]}): {v_arr.GetTuple1(e)}"))
+                self.lgr.debug(f"\t {e} {edge_indices[e]}): {v_arr.GetTuple1(e)}")
 
         # Create grid streamer
         streamer = GridStreamer(points, lines, time_stats, [time_loads, time_works], time_volumes, lgr=self.lgr)
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            self.lgr.error(self.red(f"Failed to instantiate a grid streamer for file {self.file_name}"))
+            self.lgr.error(f"Failed to instantiate a grid streamer for file {self.file_name}")
         else:
-            self.lgr.info(self.grn(f"Writing ExodusII file: {self.file_name}"))
+            self.lgr.info(f"Writing ExodusII file: {self.file_name}")
             writer = vtk.vtkExodusIIWriter()
             writer.SetFileName(self.file_name)
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())

@@ -46,13 +46,10 @@ import abc
 from logging import Logger
 import sys
 
-from src.Utils.logger import CLRS, logger
+from src.Utils.logger import logger
 
 
 LGR = logger()
-grn = CLRS.get('green')
-red = CLRS.get('red')
-ylw = CLRS.get('yellow')
 
 
 class WorkModelBase:
@@ -65,7 +62,7 @@ class WorkModelBase:
         parameters: optional parameters dictionary
         """
         # Work keeps internal references to ranks and edges
-        LGR.info(grn("Created base work model"))
+        LGR.info("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters=None, lgr: Logger = None):
@@ -81,7 +78,7 @@ class WorkModelBase:
             return work(parameters, lgr=lgr)
         except:
             # Otherwise error out
-            LGR.error(red(f"Could not create a work with name {work_name}"))
+            LGR.error(f"Could not create a work with name {work_name}")
             sys.exit(1)
 
     @abc.abstractmethod

@@ -46,7 +46,7 @@ from logging import Logger
 
 import vtk
 
-from src.Utils.logger import CLRS, logger
+from src.Utils.logger import logger
 
 
 class GridStreamer:
@@ -58,50 +58,45 @@ class GridStreamer:
         """
         # Assign logger to instance variable
         self.lgr = lgr
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
 
         # Sanity checks
         self.Error = False
         if not isinstance(points, vtk.vtkPoints):
-            self.lgr.error(self.red("A vtkPoints instance is required as points input"))
+            self.lgr.error("A vtkPoints instance is required as points input")
             self.Error = True
             return
         if not isinstance(lines, vtk.vtkCellArray):
-            self.lgr.error(self.red("A vtkCellArray instance is required as lines input"))
+            self.lgr.error("A vtkCellArray instance is required as lines input")
             self.Error = True
             return
         if not isinstance(field_arrays, dict):
-            self.lgr.error(self.red("A dict of vtkDataArray instances is required as field data input"))
+            self.lgr.error("A dict of vtkDataArray instances is required as field data input")
             self.Error = True
         if not isinstance(point_arrays, list):
-            self.lgr.error(self.red("A list of vtkDataArray instances is required as point data input"))
+            self.lgr.error("A list of vtkDataArray instances is required as point data input")
             self.Error = True
             return
         if not isinstance(cell_arrays, list):
-            self.lgr.error(self.red("A list of vtkDataArray instances is required as cell data input"))
+            self.lgr.error("A list of vtkDataArray instances is required as cell data input")
             self.Error = True
             return
 
         # Keep track of requested number of steps and check consistency
         n_steps = len(cell_arrays)
         if any([n_steps != len(p) for p in point_arrays]):
-            self.lgr.error(self.red(f"Number of time steps not all equal to {n_steps}"))
+            self.lgr.error(f"Number of time steps not all equal to {n_steps}")
             self.Error = True
             return
 
         # More sanity checks
         for f_name, f_list in field_arrays.items():
             if n_steps != len(f_list):
-                self.lgr.error(self.red(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> "
-                                        f"{n_steps}"))
+                self.lgr.error(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> {n_steps}")
                 self.Error = True
                 return
 
         # Instantiate the streaming source
-        self.lgr.info(self.grn(f"Streaming {n_steps} load-balancing steps"))
+        self.lgr.info(f"Streaming {n_steps} load-balancing steps")
         self.Algorithm = vtk.vtkProgrammableSource()
 
         # Set source information
@@ -129,13 +124,13 @@ class GridStreamer:
             i = int(t_s)
             for f_name, f_list in field_arrays.items():
                 if n_steps != len(f_list):
-                    logger().error(CLRS.get('red')(f"Number of {f_name} arrays and data arrays do not match: "
-                                                   f"{len(f_list)} <> {n_steps}"))
+                    logger().error(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> "
+                                   f"{n_steps}")
                     self.Error = True
                     return
                 output.GetFieldData().AddArray(f_list[i])
 
-            # Assign data attributes to output for timestep index
+            # Assign data attributes to output for time step index
             for p in point_arrays:
                 output.GetPointData().AddArray(p[i])
             output.GetCellData().AddArray(cell_arrays[i])

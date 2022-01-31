@@ -42,7 +42,6 @@ from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
-from src.Utils.logger import CLRS
 
 
 class RelaxedLocalizingCriterion(CriterionBase):
@@ -61,13 +60,8 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Assign logger to instance variable
         self.lgr = lgr
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
 
-        self.lgr.info(self.grn("Instantiated concrete criterion"))
+        self.lgr.info("Instantiated concrete criterion")
 
     def compute(self, object, p_src, p_dst):
         """A criterion allowing for local disruptions for more locality
@@ -76,7 +70,7 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            self.lgr.warning(self.cyan(f"Object {object.get_id()} has no communicator"))
+            self.lgr.warning(f"Object {object.get_id()} has no communicator")
             return 0.
 
         # Retrieve sent and received items from communicator

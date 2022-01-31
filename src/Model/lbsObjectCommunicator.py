@@ -45,8 +45,6 @@
 from logging import Logger
 import sys
 
-from src.Utils.logger import CLRS
-
 
 class ObjectCommunicator:
     """A class holding received and sent messages for an object
@@ -68,10 +66,6 @@ class ObjectCommunicator:
 
         # Assign logger to instance variable
         self.lgr = logger
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
 
     def get_received(self):
         """Return all from_object=volume pairs received by object
@@ -103,7 +97,7 @@ class ObjectCommunicator:
 
         # Assert that direction is of known type
         if direction not in ("to", "from"):
-            self.lgr.error(self.red(f"Unknown direction string: {direction}"))
+            self.lgr.error(f"Unknown direction string: {direction}")
             sys.exit(1)
 
         # Initialize list of volumes
@@ -114,7 +108,7 @@ class ObjectCommunicator:
         for k, v in communications.items():
             # Sanity check
             if k.get_id() == self.object_index:
-                self.lgr.error(self.red(f"object {self.object_index} cannot send communication to itself."))
+                self.lgr.error(f"object {self.object_index} cannot send communication to itself.")
                 sys.exit(1)
 
             # Update list of volumes
@@ -122,7 +116,7 @@ class ObjectCommunicator:
 
             # Report current communication item if requested
             if print_indent:
-                self.lgr.info(self.grn(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}'))
+                self.lgr.info(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of volumes
         return volumes

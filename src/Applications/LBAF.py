@@ -50,10 +50,6 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
 
-# Setting logging level to logger.ini
-from src.Utils import set_logging_level
-set_logging_level(project_path=project_path)
-
 import logging
 import math
 
@@ -68,7 +64,7 @@ from src.Execution.lbsRuntime import Runtime
 from src.IO.lbsLoadWriterVT import LoadWriterVT
 from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics
-from src.Utils.logger import logger, CLRS
+from src.Utils.logger import logger
 
 
 class internalParameters:
@@ -158,18 +154,18 @@ class internalParameters:
 
         if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
             # Try to open configuration file
-            self.logger.info(CLRS.get('green')(f"Found configuration file {conf_file}"))
+            self.logger.info(f"Found configuration file {conf_file}")
 
             try:
                 with open(conf_file, "rt") as config:
                     self.conf_file_found = True
                     return yaml.safe_load(config)
             except yaml.MarkedYAMLError as err:
-                self.logger.error(CLRS.get('red')(f"Invalid YAML file {conf_file} in line {err.problem_mark.line} "
-                                                  f"({err.problem,} {err.context})"))
+                self.logger.error(f"Invalid YAML file {conf_file} in line {err.problem_mark.line} ({err.problem,} "
+                                  f"{err.context})")
                 sys.exit(1)
         else:
-            self.logger.error(CLRS.get('red')("Config file NOT FOUND!"))
+            self.logger.error("Config file NOT FOUND!")
             sys.exit(1)
 
     def checks_after_init(self):
@@ -181,7 +177,7 @@ class internalParameters:
                  (self.time_sampler_type and self.volume_sampler_type))
                 or (self.log_file and
                     (self.time_sampler_type or self.volume_sampler_type))):
-            self.logger.error(CLRS.get('red')('exactly one strategy to populate initial phase must be chosen.'))
+            self.logger.error('exactly one strategy to populate initial phase must be chosen.')
             sys.exit(1)
 
         # Case when phases are populated from samplers not from log file
@@ -192,7 +188,7 @@ class internalParameters:
             elif os.path.isdir(os.path.join(project_path, os.path.split(self.log_file)[0])):
                 self.log_file = os.path.join(project_path, self.log_file)
             else:
-                self.logger.error(CLRS.get('red')('LOG directory NOT FOUND!'))
+                self.logger.error('LOG directory NOT FOUND!')
                 sys.exit(1)
 
         # Checking if output dir exists, if not, creating one
@@ -225,7 +221,8 @@ class internalParameters:
             self.communication_enabled = True
         if isinstance(self.conf.get("order_strategy", None), str):
             self.order_strategy = self.conf.get("order_strategy", None)
-        logging_level = {'info': logging.INFO, 'debug': logging.DEBUG, 'error': logging.ERROR}
+        logging_level = {'info': logging.INFO, 'debug': logging.DEBUG, 'error': logging.ERROR,
+                         'warning': logging.WARNING}
         self.logger.level = logging_level.get(self.logging_level.lower(), 'info')
 
     def parse_sampler(self, cmd_str):
@@ -245,17 +242,16 @@ class internalParameters:
                 try:
                     x = float(p)
                 except:
-                    self.logger.error(CLRS.get('red')(f"{p} cannot be converted to a float"))
+                    self.logger.error(f"{p} cannot be converted to a float")
                     sys.exit(1)
                 sampler_args.append(x)
 
         # Error check the sampler parsed from input string
         if sampler_type not in ("uniform", "lognormal"):
-            self.logger.error(CLRS.get('red')(f"Unsupported sampler type: {sampler_type}"))
+            self.logger.error(f"Unsupported sampler type: {sampler_type}")
             sys.exit(1)
         if len(sampler_args) != 2:
-            self.logger.error(CLRS.get('red')(f"Expected two parameters for sampler type: {sampler_type}, got "
-                                              f"{len(sampler_args)}"))
+            self.logger.error(f"Expected two parameters for sampler type: {sampler_type}, got {len(sampler_args)}")
             sys.exit(1)
 
         # Return the sampler parsed from the input argument
@@ -313,18 +309,15 @@ if __name__ == '__main__':
 
     # Assign logger to variable
     lgr = params.logger
-    # Assign colors
-    grn = CLRS.get('green')
-    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
+    lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
 
     # Keep track of total number of procs
     n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
     if n_p < 2:
-        lgr.info(red(f"Total number of ranks ({n_p}) must be > 1"))
+        lgr.info(f"Total number of ranks ({n_p}) must be > 1")
         sys.exit(1)
 
     # Initialize random number generator
@@ -366,7 +359,7 @@ if __name__ == '__main__':
 
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
-    lgr.info(grn(f"Mapping {n_p} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid"))
+    lgr.info(f"Mapping {n_p} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
     # Assemble output file name stem
@@ -405,13 +398,13 @@ if __name__ == '__main__':
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)
     ell = n_p * l_ave / n_o
-    lgr.info(grn(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}"))
-    lgr.info(grn(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}"))
+    lgr.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
+    lgr.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
     imbalance = (n_p - r) / float(n_o) if r else 0.
     imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
     with open(imb_file, 'w') as file:
         file.write(f"{imbalance}")
-    lgr.info(grn(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}"))
+    lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}")
 
     # If this point is reached everything went fine
-    lgr.info(grn("Process complete ###"))
+    lgr.info("Process complete ###")
