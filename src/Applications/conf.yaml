@@ -47,7 +47,6 @@ n_iterations: 8
 n_rounds: 4
 fanout: 4
 phase_id: 0
-#log_file: "data/vt_new_stat_format/stats"
 log_file: "data/synthetic_lb_stats/stats"
 file_suffix: json
 exodus: True

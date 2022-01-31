@@ -48,14 +48,10 @@ import sys
 
 import paraview.simple as pv
 
-from src.Utils.logger import logger, CLRS
+from src.Utils.logger import logger
 
 # Assign logger to variable
 LGR = logger()
-# Assign colors
-grn = CLRS.get('green')
-red = CLRS.get('red')
-cyan = CLRS.get('cyan')
 
 
 class ViewerParameters:
@@ -80,7 +76,7 @@ class ViewerParameters:
             opts, args = getopt.getopt(sys.argv[1:], "he:f:")
 
         except getopt.GetoptError:
-            LGR.error(red("Incorrect command line arguments."))
+            LGR.error("Incorrect command line arguments.")
             self.usage()
             return True
 
@@ -96,7 +92,7 @@ class ViewerParameters:
 
         # Ensure that exactly one ExodusII file has been provided
         if not self.exodus:
-            LGR.error(red("Provide an ExodusII file"))
+            LGR.error("Provide an ExodusII file")
             return True
 
         # Set default visualization file name prefix
@@ -141,12 +137,12 @@ class ParaviewViewerBase(object):
 
         # Unspecified ExodusII file name
         if not exodus:
-            LGR.error(red("An ExodusII file name needs to be provided. Exiting."))
+            LGR.error("An ExodusII file name needs to be provided. Exiting.")
             sys.exit(1)
 
         # Unspecified visualization file name
         if (not file_name) or file_name == "''":
-            LGR.warning(cyan("Visualization file name has not been provided. Using ExodusII file name by default."))
+            LGR.warning("Visualization file name has not been provided. Using ExodusII file name by default.")
             file_name = exodus
 
         # PNG viewer
@@ -163,17 +159,17 @@ class ParaviewViewerBase(object):
 
         # Unspecified viewer type
         elif viewer_type == None:
-            LGR.error(red("A viewer type needs to be provided. Exiting."))
+            LGR.error("A viewer type needs to be provided. Exiting.")
             sys.exit(1)
 
         # Unsupported viewer type
         else:
-            LGR.error(red(f"{viewer_type} type viewer unsupported. Exiting."))
+            LGR.error(f"{viewer_type} type viewer unsupported. Exiting.")
             sys.exit(1)
 
         # Report not instantiated
         if not ret_object:
-            LGR.error(red(f"{viewer_type} viewer not instantiated. Exiting."))
+            LGR.error(f"{viewer_type} viewer not instantiated. Exiting.")
             sys.exit(1)
 
         # Return instantiated object
@@ -181,7 +177,7 @@ class ParaviewViewerBase(object):
         ret_object.file_name = "{}.e".format(file_name)
         ret_object.viewer_type = viewer_type
         ret_object.material_library = pv.GetMaterialLibrary()
-        LGR.info(grn(f"Instantiated {viewer_type} viewer."))
+        LGR.info(f"Instantiated {viewer_type} viewer.")
         return ret_object
 
     def get_exodus(self):
@@ -442,7 +438,7 @@ class ParaviewViewerBase(object):
         loadLUT = self.createColorTransferFunction(
             "Load",
             load_colors,
-            [1.,1.,1.],
+            [1., 1., 1.],
             None,
             "Never")
         loadPWF = self.createOpacityTransferFunction(

@@ -48,7 +48,6 @@ from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObject import Object
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsRank import Rank
-from src.Utils.logger import CLRS
 
 
 class TemperedCriterion(CriterionBase):
@@ -67,13 +66,8 @@ class TemperedCriterion(CriterionBase):
 
         # Assign logger to instance variable
         self.lgr = lgr
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
 
-        self.lgr.info(self.grn("Instantiated concrete criterion"))
+        self.lgr.info("Instantiated concrete criterion")
 
         # Determine how destination load is to be computed
         def get_dst_load_know_by_src(p_src, p_dst):

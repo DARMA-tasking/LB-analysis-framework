@@ -52,7 +52,7 @@ import sys
 import vtk
 
 from src.Applications.MoveCountsViewerParameters import MoveCountsViewerParameters
-from src.Utils.logger import logger, CLRS
+from src.Utils.logger import logger
 
 
 class MoveCountsViewer:
@@ -107,7 +107,7 @@ class MoveCountsViewer:
         try:
             opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
         except getopt.GetoptError:
-            self.logger.error(CLRS.get('red')("Incorrect command line arguments."))
+            self.logger.error("Incorrect command line arguments.")
             self.usage()
             return True
 
@@ -137,13 +137,13 @@ class MoveCountsViewer:
 
         # If number of processors is not provided or set to 0
         if params.n_processors == 0:
-            self.logger.error(CLRS.get('red')("At least one processor needs to be defined. Exiting."))
+            self.logger.error("At least one processor needs to be defined. Exiting.")
             self.usage()
             return True
         # If  invalid file name is provided
         elif (not params.input_file_name.strip()
               or params.input_file_name.strip() == "''"):
-            self.logger.error(CLRS.get('red')("A file name needs to be defined. Exiting."))
+            self.logger.error("A file name needs to be defined. Exiting.")
             self.usage()
             return True
 
@@ -406,16 +406,13 @@ if __name__ == '__main__':
 
     # Assign logger to variable
     lgr = params.logger
-    # Assign colors
-    grn = CLRS.get('green')
-    red = CLRS.get('red')
 
     # Print startup information
     sv = sys.version_info
-    lgr.info(grn(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}"))
+    lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
 
     # Instantiate parameters and set values from command line arguments
-    lgr.info(grn("Parsing command line arguments"))
+    lgr.info("Parsing command line arguments")
 
     if params.parse_command_line():
         sys.exit(1)

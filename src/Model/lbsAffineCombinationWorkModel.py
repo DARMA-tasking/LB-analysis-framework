@@ -41,7 +41,6 @@ from logging import Logger
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Model.lbsRank import Rank
-from src.Utils.logger import CLRS
 
 
 class AffineCombinationWorkModel(WorkModelBase):
@@ -55,12 +54,6 @@ class AffineCombinationWorkModel(WorkModelBase):
         # Assign logger to instance variable
         self.lgr = lgr
 
-        # Assign colors for logger
-        self.grn = CLRS.get("green")
-        self.red = CLRS.get("red")
-        self.ylw = CLRS.get("yellow")
-        self.cyan = CLRS.get("cyan")
-
         # Use default values if parameters not provided
         self.alpha = parameters.get("alpha", 1.)
         self.beta = parameters.get("beta", 0.)
@@ -68,8 +61,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        self.lgr.info(
-            self.grn(f"Instantiated work model with alpha={self.alpha}, beta={self.beta}, gamma={self.gamma}"))
+        self.lgr.info(f"Instantiated work model with alpha={self.alpha}, beta={self.beta}, gamma={self.gamma}")
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
