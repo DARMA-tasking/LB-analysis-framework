@@ -288,9 +288,8 @@ class Runtime:
                     if srt_proc_obj:
                         o1 = random.choice(srt_proc_obj)
                         object_list.append(o1)
-                        c = transfer_criterion.compute(
-                            object_list, p_src, p_dst)
-                        if c < 0.:
+                        if transfer_criterion.compute(
+                            object_list, p_src, p_dst) < 0.:
                             n_rejects += 1
                             continue
                         else:
