@@ -227,6 +227,27 @@ class Runtime:
         self.lgr.info(self.grn(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} "
                                f"loaded ranks"))
 
+    def recursive_extended_search(self, pick_list, object_list, c_fct):
+        """Recursively extend search to other objects
+        """
+
+        # Terminate negatively when pick list is empty
+        if not pick_list:
+            return False
+
+        # Pick one object and move it from one list to the other
+        o = random.choice(pick_list)
+        pick_list.remove(o)
+        object_list.append(o)
+
+        # Decide whether criterion allows transfer
+        if c_fct(object_list) < 0.:
+            # Transfer is not possible, recurse further
+            self.recursive_extended_search(pick_list, object_list, c_fct)
+        else:
+            # Terminate positively when criterion is satisfied
+            return True
+
     def transfer_stage(self, transfer_criterion, deterministic_transfer):
         """Perform object transfer phase
         """
@@ -282,19 +303,19 @@ class Runtime:
                     p_dst = inverse_transform_sample(p_cmf)
                     c_dst = c_values[p_dst]
 
-                # Decide whether proposed transfer passes criterion
+                # Look for possible transfer including current object
                 object_list = [o]
+                pick_list = srt_proc_obj[:]
                 if c_dst < 0.:
-                    if srt_proc_obj:
-                        o1 = random.choice(srt_proc_obj)
-                        object_list.append(o1)
-                        if transfer_criterion.compute(
-                            object_list, p_src, p_dst) < 0.:
-                            n_rejects += 1
-                            continue
-                        else:
-                            srt_proc_obj.remove(o1)
+                    # Recursively extend search
+                    if self.recursive_extended_search(
+                        pick_list,
+                        object_list,
+                        lambda x: transfer_criterion.compute(x, p_src, p_dst)):
+                        # Remove accepted objects from remaining object list
+                        srt_proc_obj = pick_list
                     else:
+                        # No transferrable list of objects was foumd
                         n_rejects += 1
                         continue
 
