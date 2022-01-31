@@ -283,14 +283,21 @@ class Runtime:
                     c_dst = c_values[p_dst]
 
                 # Decide whether proposed transfer passes criterion
+                object_list = [o]
                 if c_dst < 0.:
-                    n_rejects += 1
-                    print(o, "was rejected:", c_dst)
                     if srt_proc_obj:
                         o1 = random.choice(srt_proc_obj)
-                        c = transfer_criterion.compute([o, o1], p_src, p_dst)
-                        print("trying:", o, o1, c_dst, c)
-                    continue
+                        object_list.append(o1)
+                        c = transfer_criterion.compute(
+                            object_list, p_src, p_dst)
+                        if c < 0.:
+                            n_rejects += 1
+                            continue
+                        else:
+                            srt_proc_obj.remove(o1)
+                    else:
+                        n_rejects += 1
+                        continue
 
                 # Sanity check before transfer
                 if p_dst not in p_src.known_loads:
@@ -299,11 +306,12 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
-                self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} (criterion: {c_dst})"))
-                p_src.remove_migratable_object(o, p_dst)
-                p_dst.add_migratable_object(o)
-                o.set_rank_id(p_dst.get_id())
-                n_transfers += 1
+                for o in object_list:
+                    self.lgr.debug(self.ylw(f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} (criterion: {c_dst})"))
+                    p_src.remove_migratable_object(o, p_dst)
+                    p_dst.add_migratable_object(o)
+                    o.set_rank_id(p_dst.get_id())
+                    n_transfers += 1
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects

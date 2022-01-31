@@ -57,7 +57,7 @@ work_model:
     gamma: 0.
 
 # Specify transfer strategy
-order_strategy: element_id
+order_strategy: arbitrary
 #deterministic_transfer: True
 criterion:
   name: "Tempered"

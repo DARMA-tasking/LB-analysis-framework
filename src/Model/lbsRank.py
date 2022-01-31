@@ -57,6 +57,7 @@ class Rank:
     def __init__(self, i, mo: set = None, so: set = None, logger: Logger = None):
         # Assign logger to instance variable
         self.lgr = logger
+
         # Assign colors for logger
         self.grn = CLRS.get('green')
         self.red = CLRS.get('red')
@@ -144,17 +145,7 @@ class Rank:
         self.migratable_objects.remove(o)
 
         # Update known loads
-        l_o = o.get_time()
-        l_dst = self.known_loads[p_dst]
-        if l_dst + l_o > self.get_load():
-            # Remove destination from known loads if more loaded than self
-            del self.known_loads[p_dst]
-        else:
-            # Update loads
-            self.known_loads[p_dst] += l_o
-
-        # Return removed object load
-        return l_o
+        self.known_loads[p_dst] += o.get_time()
         
     def add_as_viewer(self, ranks):
         """Add self as viewer to known peers

@@ -62,17 +62,16 @@ class TemperedCriterion(CriterionBase):
         """
 
         # Call superclass init
-
         super(TemperedCriterion, self).__init__(work_model, parameters)
 
-        # Assign logger to instance variable
-        self.lgr = lgr
         # Assign colors for logger
         self.grn = CLRS.get('green')
         self.red = CLRS.get('red')
         self.ylw = CLRS.get('yellow')
         self.cyan = CLRS.get('cyan')
 
+        # Assign logger to instance variable
+        self.lgr = lgr
         self.lgr.info(self.grn("Instantiated concrete criterion"))
 
         # Determine how destination load is to be computed
@@ -91,44 +90,46 @@ class TemperedCriterion(CriterionBase):
         """Tempered work criterion based on L1 norm of works
         """
 
-        # Initialize storage for work aggregation
+        # Initialize work value with load-based part of criterion
         values = {
-            "load": self.dst_load(p_src, p_dst) - p_src.get_load(),
+            "load": sum([o.get_time() for o in object_list])
+            + self.dst_load(p_src, p_dst) - p_src.get_load(),
             "received volume": 0.,
             "sent volume": 0.
             }
 
-        # Iterate over all objects in list
+        # Retrieve IDs of source and destination ranks
+        src_id = p_src.get_id()
+        dst_id = p_dst.get_id()
+
+        # Compute aggregate communicator
         for o in object_list:
-            # Update communication-based part of criterion    
-            values["load"] += o.get_time()
-
-            # Update communication-based part of criterion
+            # Skip objects without a communicator
             comm = o.get_communicator()
-            if isinstance(comm, ObjectCommunicator):
-                # Retrieve sent and received items from communicator
-                recv = comm.get_received().items()
-                sent = comm.get_sent().items()
+            if not isinstance(comm, ObjectCommunicator):
+                continue
 
-                # Retrieve IDs of source and destination ranks
-                src_id = p_src.get_id()
-                dst_id = p_dst.get_id()
+            # Retrieve items not sent nor received from object list
+            recv = {(k, v) for k, v in comm.get_received().items()
+                      if k not in object_list}
+            sent = {(k, v) for k, v in comm.get_sent().items()
+                      if k not in object_list}
 
-                # Aggregate communication volumes between source and destination
-                v_recv_dst = sum(
-                    [v for k, v in recv if k.get_rank_id() == dst_id])
-                v_sent_dst = sum(
-                    [v for k, v in sent if k.get_rank_id() == dst_id])
+            # Aggregate communication volumes between source and destination
+            v_recv_dst = sum(
+                [v for k, v in recv if k.get_rank_id() == dst_id])
+            v_sent_dst = sum(
+                [v for k, v in sent if k.get_rank_id() == dst_id])
 
-                # Aggregate communication volumes local to source
-                v_recv_src = sum(
-                    [v for k, v in recv if k.get_rank_id() == src_id])
-                v_sent_src = sum(
-                    [v for k, v in sent if k.get_rank_id() == src_id])
+            # Aggregate communication volumes local to source
+            v_recv_src = sum(
+                [v for k, v in recv if k.get_rank_id() == src_id])
+            v_sent_src = sum(
+                [v for k, v in sent if k.get_rank_id() == src_id])
 
-                # Compute differences between sent and received volumes
-                values["received volume"] += v_recv_src - v_recv_dst
-                values["sent volume"] += v_sent_src - v_sent_dst
+            # Compute differences between sent and received volumes
+            values["received volume"] += v_recv_src - v_recv_dst
+            values["sent volume"] += v_sent_src - v_sent_dst
 
         # Return aggregated criterion
         return - self.work_model.aggregate(values)
