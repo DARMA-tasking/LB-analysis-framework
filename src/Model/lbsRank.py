@@ -296,7 +296,7 @@ class Rank:
         else:
             # Otherwise use relative weights
             c_range = c_max - c_min
-            cmf = {k: (v + c_min) / c_range for k, v in c_values.items()}
+            cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 
         # Compute CMF
         sum_p = 0.
