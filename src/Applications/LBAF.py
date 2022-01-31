@@ -404,9 +404,6 @@ if __name__ == '__main__':
     lgr.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
     lgr.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
     imbalance = (n_p - r) / float(n_o) if r else 0.
-    imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
-    with open(imb_file, 'w') as file:
-        file.write(f"{imbalance}")
     lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}")
 
     # If this point is reached everything went fine
