@@ -31,6 +31,7 @@
 # exodus              [-e]        bool      generate Exodus type visualization output
 # generate_multimedia [-g]        bool      generate multimedia
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
+# terminal_background             str       terminal background for logging, set `light` or `dark`
 
 work_model:
   name: "AffineCombination"
@@ -56,6 +57,7 @@ z_procs: 1
 output_dir: "output"
 order_strategy: arbitrary
 logging_level: debug
+terminal_background: light
 
 # Simulating from samplers (comment out if reading from log)
 #n_objects: 200
