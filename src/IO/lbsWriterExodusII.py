@@ -64,8 +64,10 @@ class WriterExodusII:
         r: grid_resolution value
         output_dir: output directory
         """
+
         # Assign logger to instance variable
         self.lgr = logger
+
         # Assign colors for logger
         self.grn = CLRS.get('green')
         self.red = CLRS.get('red')
