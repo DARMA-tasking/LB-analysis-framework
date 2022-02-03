@@ -31,22 +31,7 @@
 # exodus              [-e]        bool      generate Exodus type visualization output
 # generate_multimedia [-g]        bool      generate multimedia
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
-
-# Simulate from VT trace data
-log_file: "data/synthetic_lb_stats/stats"
-#log_file: "data/vt_new_stat_format/stats"
-phase_id: 0
-file_suffix: json
-
-# Simulate from samplers (comment out if reading from log)
-#n_objects: 200
-#time_sampler_type: lognormal,1.0,10.0
-#volume_sampler_type: lognormal,1.0,10.0
-#communication_degree: 20
-
-# Specify information stage parameters
-n_rounds: 4
-fanout: 4
+# terminal_background             str       terminal background for logging, set `light` or `dark`
 
 # Specify work model
 work_model:
@@ -55,22 +40,34 @@ work_model:
     alpha: 1.
     beta: 1.
     gamma: 0.
-
 # Specify transfer strategy
-order_strategy: element_id
-#deterministic_transfer: True
+order_strategy: arbitrary
 criterion:
   name: "Tempered"
   parameters:
     actual_destination_load: True
+#deterministic_transfer: True
 
 # Specify number of simulation passes
 n_iterations: 8
+n_rounds: 4
+fanout: 4
+
+log_file: "data/synthetic_lb_stats/stats"
+phase_id: 0
+file_suffix: json
 
 # Specify output
 logging_level: info
+terminal_background: light
 exodus: True
 output_dir: "output"
 x_procs: 2
 y_procs: 2
 z_procs: 1
+
+# Simulate from samplers (comment out if reading from log)
+#n_objects: 200
+#time_sampler_type: lognormal,1.0,10.0
+#volume_sampler_type: lognormal,1.0,10.0
+#communication_degree: 20

@@ -47,13 +47,6 @@ import random as rnd
 
 import numpy as np
 
-from src.Utils.logger import CLRS
-
-# Setup colors
-grn = CLRS.get('green')
-red = CLRS.get('red')
-ylw = CLRS.get('yellow')
-
 
 def initialize():
     # Seed pseudo-random number generators
@@ -62,7 +55,7 @@ def initialize():
 
 
 def error_out(distribution_name, parameters, logger: Logger = None):
-    logger.error(red(f"not enough parameters in {parameters} for {distribution_name} distribution."))
+    logger.error(f"not enough parameters in {parameters} for {distribution_name} distribution.")
     return None
 
 
@@ -99,7 +92,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         v = parameters[1]
         r = math.sqrt(m2 + v)
         if r == 0:
-            logger.error(red(f"r={r} should not be zero."))
+            logger.error(f"r={r} should not be zero.")
             return None, None
         mu = math.log(m2 / r)
         sigma = math.sqrt(math.log(r * r / m2))
@@ -111,7 +104,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
 
     # Unsupported distribution type
     else:
-        logger.error(red(f"{distribution_name} distribution is not supported."))
+        logger.error(f"{distribution_name} distribution is not supported.")
         return None, None
 
 
@@ -120,7 +113,7 @@ def inverse_transform_sample(cmf):
     This is a.k.a. the Smirnov transform
     """
 
-    # Generate number from pseudo-random dsitribution U([0;1])
+    # Generate number from pseudo-random distribution U([0;1])
     u = rnd.random()
 
     # Look for when u is first encountered in CMF
@@ -201,10 +194,8 @@ def print_function_statistics(values, function, var_name, logger: Logger = None,
     """Compute and report descriptive statistics of function values
     """
     # Compute statistics
-    logger.info(grn(f"Descriptive statistics of {var_name}:"))
-    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
-        values,
-        function)
+    logger.info(f"Descriptive statistics of {var_name}:")
+    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(values, function)
 
     # Save imbalance for testing purposes
     if var_name == 'final rank loads' and file is not None:
@@ -213,13 +204,13 @@ def print_function_statistics(values, function, var_name, logger: Logger = None,
 
     # Print detailed load information if requested
     for i, v in enumerate(values):
-        logger.debug(ylw(f"\t{i}: {function(v)}"))
+        logger.debug(f"\t{i}: {function(v)}")
 
     # Print summary
-    logger.info(grn(f"\tcardinality: {n:.6g}  sum: {n * f_ave:.6g}  imbalance: {f_imb:.6g}"))
-    logger.info(grn(f"\tminimum: {f_min:.6g}  mean: {f_ave:.6g}  maximum: {f_max:.6g}"))
-    logger.info(grn(f"\tstandard deviation: {math.sqrt(f_var):.6g}  variance: {f_var:.6g}"))
-    logger.info(grn(f"\tskewness: {f_g1:.6g}  kurtosis excess: {f_g2 - 3.:.6g}"))
+    logger.info(f"\tcardinality: {n:.6g}  sum: {n * f_ave:.6g}  imbalance: {f_imb:.6g}")
+    logger.info(f"\tminimum: {f_min:.6g}  mean: {f_ave:.6g}  maximum: {f_max:.6g}")
+    logger.info(f"\tstandard deviation: {math.sqrt(f_var):.6g}  variance: {f_var:.6g}")
+    logger.info(f"\tskewness: {f_g1:.6g}  kurtosis excess: {f_g2 - 3.:.6g}")
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
@@ -231,8 +222,4 @@ def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger
 
     # Print summary
     ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''
-    logger.info(grn(f"{subset_name}: {subset_size:.6g} amongst {set_name}: {set_size:.6g} ({ss}%)"))
-
-
-        
-        
+    logger.info(f"{subset_name}: {subset_size:.6g} amongst {set_name}: {set_size:.6g} ({ss}%)")

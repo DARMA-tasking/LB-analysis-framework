@@ -1,5 +1,5 @@
 #
-#@HEADER
+# @HEADER
 ###############################################################################
 #
 #                       lbsTemperedCriterion.py
@@ -39,16 +39,14 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
+# @HEADER
 #
 ########################################################################
 from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
-from src.Model.lbsObject import Object
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsRank import Rank
-from src.Utils.logger import CLRS
 
 
 class TemperedCriterion(CriterionBase):
@@ -64,15 +62,9 @@ class TemperedCriterion(CriterionBase):
         # Call superclass init
         super(TemperedCriterion, self).__init__(work_model, parameters)
 
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
-
         # Assign logger to instance variable
         self.lgr = lgr
-        self.lgr.info(self.grn("Instantiated concrete criterion"))
+        self.lgr.info("Instantiated concrete criterion")
 
         # Determine how destination load is to be computed
         def get_dst_load_know_by_src(p_src, p_dst):
@@ -82,21 +74,16 @@ class TemperedCriterion(CriterionBase):
             return p_dst.get_load()
 
         # Retrieve relevant parameter when available
-        self.dst_load = get_dst_load_know_by_src if not (
-            parameters and parameters.get(
-                "actual_destination_load")) else get_actual_dst_load
+        self.dst_load = get_dst_load_know_by_src if not (parameters and parameters.get("actual_destination_load")) \
+            else get_actual_dst_load
 
     def compute(self, object_list: list, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
 
         # Initialize work value with load-based part of criterion
-        values = {
-            "load": sum([o.get_time() for o in object_list])
-            + self.dst_load(p_src, p_dst) - p_src.get_load(),
-            "received volume": 0.,
-            "sent volume": 0.
-            }
+        values = {"load": sum([o.get_time() for o in object_list]) + self.dst_load(p_src, p_dst) - p_src.get_load(),
+                  "received volume": 0., "sent volume": 0.}
 
         # Retrieve IDs of source and destination ranks
         src_id = p_src.get_id()
@@ -110,22 +97,16 @@ class TemperedCriterion(CriterionBase):
                 continue
 
             # Retrieve items not sent nor received from object list
-            recv = {(k, v) for k, v in comm.get_received().items()
-                      if k not in object_list}
-            sent = {(k, v) for k, v in comm.get_sent().items()
-                      if k not in object_list}
+            recv = {(k, v) for k, v in comm.get_received().items() if k not in object_list}
+            sent = {(k, v) for k, v in comm.get_sent().items() if k not in object_list}
 
             # Aggregate communication volumes between source and destination
-            v_recv_dst = sum(
-                [v for k, v in recv if k.get_rank_id() == dst_id])
-            v_sent_dst = sum(
-                [v for k, v in sent if k.get_rank_id() == dst_id])
+            v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])
+            v_sent_dst = sum([v for k, v in sent if k.get_rank_id() == dst_id])
 
             # Aggregate communication volumes local to source
-            v_recv_src = sum(
-                [v for k, v in recv if k.get_rank_id() == src_id])
-            v_sent_src = sum(
-                [v for k, v in sent if k.get_rank_id() == src_id])
+            v_recv_src = sum([v for k, v in recv if k.get_rank_id() == src_id])
+            v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
 
             # Compute differences between sent and received volumes
             values["received volume"] += v_recv_src - v_recv_dst

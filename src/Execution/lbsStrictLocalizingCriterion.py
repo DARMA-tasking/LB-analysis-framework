@@ -41,7 +41,6 @@ from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
-from src.Utils.logger import CLRS
 
 
 class StrictLocalizingCriterion(CriterionBase):
@@ -60,13 +59,8 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Assign logger to instance variable
         self.lgr = lgr
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
 
-        self.lgr.info(self.grn("Instantiated concrete criterion"))
+        self.lgr.info("Instantiated concrete criterion")
 
     def compute(self, object, p_src, _):
         """A criterion enforcing strict conservation of local communications
@@ -80,7 +74,7 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            self.lgr.warning(self.cyan(f"Object {object.get_id()} has no communicator"))
+            self.lgr.warning(f"Object {object.get_id()} has no communicator")
             return 0.
 
         # Iterate over sent messages

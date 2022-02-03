@@ -43,11 +43,9 @@
 #
 from logging import Logger
 import random as rnd
-import sys
 import math
 
 from src.Model.lbsMessage import Message
-from src.Utils.logger import CLRS
 
 
 class Rank:
@@ -57,12 +55,6 @@ class Rank:
     def __init__(self, i, mo: set = None, so: set = None, logger: Logger = None):
         # Assign logger to instance variable
         self.lgr = logger
-
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
-        self.cyan = CLRS.get('cyan')
 
         # Member variables passed by constructor
         self.index = i
@@ -257,7 +249,7 @@ class Rank:
 
         # Assert that message has the expected type
         if not isinstance(msg, Message):
-            self.lgr.warning(self.cyan(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it."))
+            self.lgr.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
 
         # Update load information
         self.known_loads.update(msg.get_content())
@@ -294,7 +286,7 @@ class Rank:
             # Sample uniformly if all criteria have same value
             cmf = {k: 1. / len(c_values) for k in c_values.keys()}
         else:
-            # Otherwise use relative weights
+            # Otherwise, use relative weights
             c_range = c_max - c_min
             cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 

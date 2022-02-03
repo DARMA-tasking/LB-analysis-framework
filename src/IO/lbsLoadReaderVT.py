@@ -54,7 +54,6 @@ from src.IO.schemaValidator import SchemaValidator
 from src.Model.lbsObject import Object
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsRank import Rank
-from src.Utils.logger import CLRS
 
 
 class LoadReader:
@@ -98,10 +97,6 @@ class LoadReader:
 
         # Assign logger to instance variable
         self.lgr = logger
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
-        self.ylw = CLRS.get('yellow')
 
     def get_node_trace_file_name(self, node_id):
         """Build the file name for a given rank/node ID
@@ -116,9 +111,9 @@ class LoadReader:
 
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
-        self.lgr.info(self.grn(f"Reading {file_name} VT object map"))
+        self.lgr.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
-            self.lgr.error(self.red(f"File {file_name} does not exist."))
+            self.lgr.error(f"File {file_name} does not exist.")
             sys.exit(1)
 
         # Retrieve communications from JSON reader
@@ -130,7 +125,7 @@ class LoadReader:
             node_id=node_id)
 
         # Print more information when requested
-        self.lgr.debug(self.ylw(f"Finished reading file: {file_name}"))
+        self.lgr.debug(f"Finished reading file: {file_name}")
 
         # Return map of populated ranks per iteration
         return iter_map, comm
@@ -154,7 +149,7 @@ class LoadReader:
             try:
                 rank_list[p] = rank_iter_map[phase_id]
             except KeyError:
-                self.lgr.error(self.red(f"Could not retrieve information for rank {p} at time_step {phase_id}"))
+                self.lgr.error(f"Could not retrieve information for rank {p} at time_step {phase_id}")
                 sys.exit(1)
 
             # Merge rank communication with existing ones
@@ -208,9 +203,9 @@ class LoadReader:
 
         # Validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            self.lgr.info(self.grn(f"Valid JSON schema in  {file_name}"))
+            self.lgr.info(f"Valid JSON schema in  {file_name}")
         else:
-            self.lgr.error(self.red(f"Invalid JSON schema in {file_name}"))
+            self.lgr.error(f"Invalid JSON schema in {file_name}")
             raise SyntaxError
 
         # Define phases from file
@@ -266,9 +261,9 @@ class LoadReader:
                                 {"from": c_from.get("id"), "bytes": c_bytes})
                             comm_dict[sender_obj_id]["sent"].append(
                                 {"to": c_to.get("id"), "bytes": c_bytes})
-                            self.lgr.debug(self.ylw(f"Added communication {num} to phase {phase_id}"))
+                            self.lgr.debug(f"Added communication {num} to phase {phase_id}")
                             for k, v in comm.items():
-                                self.lgr.debug(self.ylw(f"\t{k}: {v}"))
+                                self.lgr.debug(f"\t{k}: {v}")
 
             # Iterate over tasks
             for task in phase["tasks"]:
@@ -287,7 +282,7 @@ class LoadReader:
                     returned_dict[phase_id].add_migratable_object(obj)
 
                     # Print debug information when requested
-                    self.lgr.debug(self.ylw(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}"))
+                    self.lgr.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
 
         return returned_dict, comm_dict
 
@@ -312,7 +307,7 @@ class LoadReader:
                         phase, o_id = map(int, row[:2])
                         time = float(row[2])
                     except:
-                        self.lgr.error(self.red(f"Incorrect row format: {row}"))
+                        self.lgr.error(f"Incorrect row format: {row}")
 
                     # Update rank if iteration was requested
                     if phase_id in (phase, -1):
@@ -326,7 +321,7 @@ class LoadReader:
                         returned_dict[phase].add_migratable_object(obj)
 
                         # Print debug information when requested
-                        self.lgr.debug(self.ylw(f"iteration = {phase}, object id = {o_id}, time = {time}"))
+                        self.lgr.debug(f"iteration = {phase}, object id = {o_id}, time = {time}")
 
                 # Handle four-entry case that corresponds to a communication volume
                 elif n_entries == 5:
@@ -334,12 +329,12 @@ class LoadReader:
                     #   <time_step/phase>, <to-object-id>, <from-object-id>, <volume>, <comm-type>
                     # Converting these into integers and floats before using them or
                     # inserting the values in the dictionary
-                    self.lgr.error(self.red("Communication graph unimplemented"))
+                    self.lgr.error("Communication graph unimplemented")
                     continue
 
                 # Unrecognized line format
                 else:
-                    self.lgr.error(self.red(f"Wrong line length: {row}"))
+                    self.lgr.error(f"Wrong line length: {row}")
                     sys.exit(1)
 
         return returned_dict, comm_dict

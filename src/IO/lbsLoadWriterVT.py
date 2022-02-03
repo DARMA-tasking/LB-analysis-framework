@@ -50,7 +50,6 @@ import brotli
 
 from src.Model.lbsPhase import Phase
 from src.Model.lbsRank import Rank
-from src.Utils.logger import CLRS
 
 
 class LoadWriterVT:
@@ -74,13 +73,10 @@ class LoadWriterVT:
         """
         # Assign logger to instance variable
         self.lgr = logger
-        # Assign colors for logger
-        self.grn = CLRS.get('green')
-        self.red = CLRS.get('red')
 
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
-            self.lgr.error(self.red(f"Could not write to ExodusII file by lack of a LBS phase"))
+            self.lgr.error(f"Could not write to ExodusII file by lack of a LBS phase")
             return
 
         # Assign internals
@@ -141,6 +137,6 @@ class LoadWriterVT:
 
         # Sanity check
         if n_u:
-            self.lgr.error(self.red(f"{n_u} objects could not be written to JSON file {file_name}"))
+            self.lgr.error(f"{n_u} objects could not be written to JSON file {file_name}")
         else:
-            self.lgr.info(self.grn(f"Wrote {len(rank.get_objects())} objects to {file_name}"))
+            self.lgr.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")
