@@ -1,5 +1,5 @@
 #
-# @HEADER
+#@HEADER
 ###############################################################################
 #
 #                                 lbsRuntime.py
@@ -39,7 +39,7 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-# @HEADER
+#@HEADER
 #
 from logging import Logger
 from bisect import bisect
