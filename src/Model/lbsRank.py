@@ -129,28 +129,20 @@ class Rank:
         """
         return self.viewers
 
-    def remove_migratable_object(self, o, p_dst, work_model):
+    def remove_migratable_object(self, o, p_dst):
         """Remove migratable able object from self object sent to peer
         """
+
         # Remove object from those assigned to self
         self.migratable_objects.remove(o)
 
         # Update known loads
-        l_o = o.get_time()
-        l_dst = self.known_loads[p_dst]
-        if l_dst + l_o > self.get_load():
-            # Remove destination from known loads if more loaded than self
-            del self.known_loads[p_dst]
-        else:
-            # Update loads
-            self.known_loads[p_dst] += l_o
-
-        # Return removed object load
-        return l_o
+        self.known_loads[p_dst] += o.get_time()
         
     def add_as_viewer(self, ranks):
         """Add self as viewer to known peers
         """
+
         # Add self as viewer of each of provided ranks
         for p in ranks:
             p.viewers.add(self)
@@ -158,21 +150,25 @@ class Rank:
     def get_load(self):
         """Return total load on rank
         """
+
         return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
         """Return migratable load on rank
         """
+
         return sum([o.get_time() for o in self.migratable_objects])
 
     def get_sentinel_load(self):
         """Return sentinel load oon rank
         """
+
         return sum([o.get_time() for o in self.sentinel_objects])
 
     def get_received_volume(self):
         """Return volume received by objects assigned to rank from other ranks
         """
+
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -190,6 +186,7 @@ class Rank:
     def get_sent_volume(self):
         """Return volume sent by objects assigned to rank to other ranks
         """
+
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -217,6 +214,7 @@ class Rank:
     def initialize_message(self, loads, f):
         """Initialize maessage to be sent to selected peers
         """
+
         # Retrieve current load on this rank
         l = self.get_load()
 
@@ -248,6 +246,7 @@ class Rank:
     def process_message(self, msg):
         """Update internals when message is received
         """
+
         # Assert that message has the expected type
         if not isinstance(msg, Message):
             self.lgr.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
@@ -269,7 +268,7 @@ class Rank:
         # Iterate over potential targets
         for p_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute(o, self, p_dst)
+            c = transfer_criterion.compute([o], self, p_dst)
 
             # Do not include rejected targets for strict CMF
             if strict and c < 0.:
@@ -287,9 +286,9 @@ class Rank:
             # Sample uniformly if all criteria have same value
             cmf = {k: 1. / len(c_values) for k in c_values.keys()}
         else:
-            # Otherwise use relative weights
+            # Otherwise, use relative weights
             c_range = c_max - c_min
-            cmf = {k: (v + c_min) / c_range for k, v in c_values.items()}
+            cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 
         # Compute CMF
         sum_p = 0.

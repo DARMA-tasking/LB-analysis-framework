@@ -63,6 +63,7 @@ class WriterExodusII:
         r: grid_resolution value
         output_dir: output directory
         """
+
         # Assign logger to instance variable
         self.lgr = logger
 
@@ -78,7 +79,7 @@ class WriterExodusII:
             return
         self.mapping = m
 
-        # Assemble file name from constructor paramters
+        # Assemble file name from constructor parameters
         self.file_name = "{}.{}".format(f, s)
         self.output_dir = output_dir
         if self.output_dir is not None:

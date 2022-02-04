@@ -76,6 +76,8 @@ class CriterionBase:
     def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):
         """Produce the necessary concrete criterion
         """
+
+        # Load up available criteria
         from src.Execution.lbsTemperedCriterion import TemperedCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
         from src.Execution.lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
@@ -91,10 +93,11 @@ class CriterionBase:
             sys.exit(1)
 
     @abc.abstractmethod
-    def compute(self, object, rank_src, rank_dst):
-        """Return value of criterion for candidate object transfer
-        object: Object instance
+    def compute(self, object_list, rank_src, rank_dst):
+        """Return value of criterion for candidate objects transfer
+        object_list: list of object instance
         rank_src, rank_dst: Rank instances
         """
+
         # Must be implemented by concrete subclass
         pass

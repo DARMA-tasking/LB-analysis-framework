@@ -45,7 +45,6 @@
 from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
-from src.Model.lbsObject import Object
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsRank import Rank
 
@@ -61,12 +60,10 @@ class TemperedCriterion(CriterionBase):
         """
 
         # Call superclass init
-
         super(TemperedCriterion, self).__init__(work_model, parameters)
 
         # Assign logger to instance variable
         self.lgr = lgr
-
         self.lgr.info("Instantiated concrete criterion")
 
         # Determine how destination load is to be computed
@@ -77,30 +74,31 @@ class TemperedCriterion(CriterionBase):
             return p_dst.get_load()
 
         # Retrieve relevant parameter when available
-        self.dst_load = get_dst_load_know_by_src if not (
-            parameters and parameters.get(
-                "actual_destination_load")) else get_actual_dst_load
+        self.dst_load = get_dst_load_know_by_src if not (parameters and parameters.get("actual_destination_load")) \
+            else get_actual_dst_load
 
-    def compute(self, obj: Object, p_src: Rank, p_dst: Rank) -> float:
+    def compute(self, object_list: list, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
-        # Initialize storage for work aggregation
-        values = {}
 
-        # Compute load-based criterion
-        values["load"] = self.dst_load(
-            p_src, p_dst) + obj.get_time() - p_src.get_load()
+        # Initialize work value with load-based part of criterion
+        values = {"load": sum([o.get_time() for o in object_list]) + self.dst_load(p_src, p_dst) - p_src.get_load(),
+                  "received volume": 0., "sent volume": 0.}
 
-        # Retrieve object communications
-        comm = obj.get_communicator()
-        if isinstance(comm, ObjectCommunicator):
-            # Retrieve sent and received items from communicator
-            recv = comm.get_received().items()
-            sent = comm.get_sent().items()
+        # Retrieve IDs of source and destination ranks
+        src_id = p_src.get_id()
+        dst_id = p_dst.get_id()
 
-            # Retrieve IDs of source and destination ranks
-            src_id = p_src.get_id()
-            dst_id = p_dst.get_id()
+        # Compute aggregate communicator
+        for o in object_list:
+            # Skip objects without a communicator
+            comm = o.get_communicator()
+            if not isinstance(comm, ObjectCommunicator):
+                continue
+
+            # Retrieve items not sent nor received from object list
+            recv = {(k, v) for k, v in comm.get_received().items() if k not in object_list}
+            sent = {(k, v) for k, v in comm.get_sent().items() if k not in object_list}
 
             # Aggregate communication volumes between source and destination
             v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])
@@ -111,8 +109,8 @@ class TemperedCriterion(CriterionBase):
             v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
 
             # Compute differences between sent and received volumes
-            values["received volume"] = v_recv_src - v_recv_dst
-            values["sent volume"] = v_sent_src - v_sent_dst
+            values["received volume"] += v_recv_src - v_recv_dst
+            values["sent volume"] += v_sent_src - v_sent_dst
 
         # Return aggregated criterion
         return - self.work_model.aggregate(values)

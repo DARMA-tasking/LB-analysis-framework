@@ -47,6 +47,7 @@ from itertools import accumulate
 import math
 import sys
 from typing import Union
+import random
 
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
@@ -63,7 +64,7 @@ class Runtime:
         p: phase instance
         w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
-        order_strategy: Objects order strategy
+        order_strategy: objects order strategy
         """
 
         # Assign logger to instance variable
@@ -216,6 +217,27 @@ class Runtime:
         n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
         self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} loaded ranks")
 
+    def recursive_extended_search(self, pick_list, object_list, c_fct):
+        """Recursively extend search to other objects
+        """
+
+        # Terminate negatively when pick list is empty
+        if not pick_list:
+            return False
+
+        # Pick one object and move it from one list to the other
+        o = random.choice(pick_list)
+        pick_list.remove(o)
+        object_list.append(o)
+
+        # Decide whether criterion allows transfer
+        if c_fct(object_list) < 0.:
+            # Transfer is not possible, recurse further
+            self.recursive_extended_search(pick_list, object_list, c_fct)
+        else:
+            # Terminate positively when criterion is satisfied
+            return True
+
     def transfer_stage(self, transfer_criterion, deterministic_transfer):
         """Perform object transfer phase
         """
@@ -239,28 +261,25 @@ class Runtime:
             self.lgr.debug(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
-            srt_proc_obj = self.order_strategy(p_src.migratable_objects)
-            obj_it = iter(frozenset(srt_proc_obj))
-            while (o := next(obj_it, None)) is not None:
+
+            srt_proc_obj = list(self.order_strategy(p_src.migratable_objects))
+            while srt_proc_obj:
+                # Pick next object in ordered list
+                o = srt_proc_obj.pop()
                 self.lgr.debug(f"\t* object {o.get_id()}:")
-                # Initialize criterion value
-                c_value = -math.inf
-                
+
+                # Initialize destination information
+                p_dst = None
+                c_dst = -math.inf
+
                 # Use deterministic or probabilistic transfer method
                 if deterministic_transfer:
                     # Select best destination with respect to criterion
-                    p_dst = None
                     for p in targets.keys():
-                        c = transfer_criterion.compute(o, p_src, p)
-                        if c < 0.:
-                            n_rejects += 1
-                        elif c > c_value:
-                            c_value = c
+                        c = transfer_criterion.compute([o], p_src, p)
+                        if c > c_dst:
+                            c_dst = c
                             p_dst = p
-                    
-                    # Move to next object if no transfer was possible
-                    if not p_dst:
-                        continue
 
                 else:
                     # Compute transfer CMF given information known to source
@@ -268,13 +287,26 @@ class Runtime:
                         transfer_criterion, o, targets, False)
                     self.lgr.debug(f"\t  CMF = {p_cmf}")
                     if not p_cmf:
+                        n_rejects += 1
                         continue
 
                     # Pseudo-randomly select destination proc
                     p_dst = inverse_transform_sample(p_cmf)
+                    c_dst = c_values[p_dst]
 
-                    # Decide whether proposed transfer passes criterion
-                    if c_values[p_dst] < 0.:
+                # Look for possible transfer including current object
+                object_list = [o]
+                pick_list = srt_proc_obj[:]
+                if c_dst < 0.:
+                    # Recursively extend search
+                    if self.recursive_extended_search(
+                            pick_list,
+                            object_list,
+                            lambda x: transfer_criterion.compute(x, p_src, p_dst)):
+                        # Remove accepted objects from remaining object list
+                        srt_proc_obj = pick_list
+                    else:
+                        # No transferrable list of objects was foumd
                         n_rejects += 1
                         continue
 
@@ -284,13 +316,15 @@ class Runtime:
 
                     sys.exit(1)
 
-                # Transfer object
-                self.lgr.debug(f"\t\tmigrating object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
-                               f"(criterion: {c_value})")
-                p_src.remove_migratable_object(o, p_dst, self.work_model)
-                p_dst.add_migratable_object(o)
-                o.set_rank_id(p_dst.get_id())
-                n_transfers += 1
+                # Transfer objects
+                for o in object_list:
+                    self.lgr.debug(
+                        f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
+                        f"(criterion: {c_dst})")
+                    p_src.remove_migratable_object(o, p_dst)
+                    p_dst.add_migratable_object(o)
+                    o.set_rank_id(p_dst.get_id())
+                    n_transfers += 1
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
@@ -328,7 +362,7 @@ class Runtime:
                 transfer_criterion,
                 deterministic_transfer)
 
-             # Invalidate cache of edges
+            # Invalidate cache of edges
             self.phase.invalidate_edge_cache()
 
             # Report iteration statistics
@@ -408,11 +442,15 @@ class Runtime:
 
     @staticmethod
     def arbitrary(objects: set):
-        """ Random strategy. Objects are passed without any order. """
+        """ Random strategy: objects are passed without any order
+        """
+
         return objects
 
     def element_id(self, objects: set):
-        """ Objects ordered by ID. """
+        """ Order objects by ID
+        """
+
         return self.sort(objects, key=lambda x: x.get_id())
 
     def load_excess(self, objects: set):
