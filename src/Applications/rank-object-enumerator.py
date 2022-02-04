@@ -41,9 +41,21 @@
 #@HEADER
 #
 ###############################################################################
-import sys
-import math
 import itertools
+import math
+import os
+import sys
+
+import yaml
+
+
+def get_conf() -> dict:
+    """ Gets config from file and returns a dictionary. """
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    with open(os.path.join(project_path, "src", "Applications", "conf.yaml"), 'rt') as conf_file:
+        conf = yaml.safe_load(conf_file)
+    return conf
+
 
 # Dictionary of objects
 objects = (
@@ -53,36 +65,42 @@ objects = (
     {"id": 3, "time": 0.5, "from": {}, "to": {2: 1.0, 8: 0.5}},
     {"id": 4, "time": 0.5, "from": {1: 1.0}, "to": {1: 2.0}},
     {"id": 5, "time": 2.0, "from": {0: 2.0}, "to": {8: 2.0}},
-    {"id": 6, "time": 1.0, "from": {7: 1.0, 8: 1.5}, "to": {}}, 
+    {"id": 6, "time": 1.0, "from": {7: 1.0, 8: 1.5}, "to": {}},
     {"id": 7, "time": 0.5, "from": {}, "to": {6: 1.0}},
     {"id": 8, "time": 1.5, "from": {3: 0.5, 5: 2.0}, "to": {6: 1.5}})
 
+# Getting configuration:
+conf = get_conf()
+
 # Define number of ranks
-n_ranks = 4
+n_ranks = conf.get('x_procs') * conf.get('y_procs') * conf.get('z_procs')
 
 # Define work constants
-alpha = 1.
-beta = 1.
-gamma = 0.
+alpha = conf.get('work_model').get('parameters').get('alpha')
+beta = conf.get('work_model').get('parameters').get('beta')
+gamma = conf.get('work_model').get('parameters').get('gamma')
 
-def compute_load(object_list):
-    # Load is sum of all object times
+
+def compute_load(object_list: list) -> float:
+    """ Returns a load as a sum of all object times. """
     return sum([objects[i]["time"] for i in object_list])
 
-def compute_volume(rank_objects, direction):
+
+def compute_volume(rank_objects: list, direction: str) -> float:
+    """ Returns a volume of rank objects. """
     # Initialize volume
     volume = 0.
 
     # Iterate over all rank objects
     for o in rank_objects:
-        volume += sum([
-            v for k, v in objects[o].get(direction, 0.).items()
-            if not k in rank_objects])
+        volume += sum([v for k, v in objects[o].get(direction, 0.).items() if k not in rank_objects])
 
     # Return computed volume
     return volume
 
-def compute_arrangement_works(arrangement, alpha, beta, gamma):
+
+def compute_arrangement_works(arrangement: tuple, alpha_c: float, beta_c: float, gamma_c: float) -> dict:
+    """ Returns a dictionary with works of rank objects. """
     # Build object rank map from arrangement
     ranks = {}
     for i, j in enumerate(arrangement):
@@ -92,18 +110,19 @@ def compute_arrangement_works(arrangement, alpha, beta, gamma):
     works = {}
     for rank, rank_objects in ranks.items():
         # Compute per-rank loads
-        works[rank] = alpha * compute_load(rank_objects)
+        works[rank] = alpha_c * compute_load(rank_objects)
 
         # Compute communication volumes
-        works[rank] += beta * max(
+        works[rank] += beta_c * max(
             compute_volume(rank_objects, "from"),
             compute_volume(rank_objects, "to"))
 
         # Add constant
-        works[rank] + gamma
+        works[rank] += gamma_c
 
     # Return arrangement works
     return works
+
 
 if __name__ == '__main__':
     # Print out input parameters
@@ -112,13 +131,12 @@ if __name__ == '__main__':
     print("gamma:", gamma)
 
     # Report on some initial configuration
-    initial_works = compute_arrangement_works(
-        (0, 0, 0, 0, 1, 1, 1, 1, 2), alpha, beta, gamma)
+    initial_works = compute_arrangement_works((0, 0, 0, 0, 1, 1, 1, 1, 2), alpha, beta, gamma)
     print("Initial works:", initial_works)
     print("\tmaximum work: {:.4g} average work: {:.4g}".format(
         max(initial_works.values()),
         sum(initial_works.values()) / len(initial_works)))
-    
+
     # Generate all possible arrangements with repetition
     n_arrangements = 0
     works_min_max = math.inf
@@ -145,12 +163,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Report on optimal arrangements
-    print("\tminimax work: {:.4g} for {} arrangements".format(
-        works_min_max,
-        len(arrangements_min_max)))
+    print("\tminimax work: {:.4g} for {} arrangements".format(works_min_max, len(arrangements_min_max)))
     print("Example optimal arrangement:", arrangements_min_max[0])
-    optimal_works = compute_arrangement_works(
-        arrangements_min_max[0], alpha, beta, gamma)
+    optimal_works = compute_arrangement_works(arrangements_min_max[0], alpha, beta, gamma)
     print("\tmaximum work: {:.4g} average work: {:.4g}".format(
         max(optimal_works.values()),
         sum(optimal_works.values()) / len(optimal_works)))
