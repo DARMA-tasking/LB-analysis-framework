@@ -42,11 +42,11 @@
 #@HEADER
 #
 ########################################################################
-import json
-from logging import Logger
 import os
-
+import json
 import brotli
+from logging import Logger
+
 
 from src.Model.lbsPhase import Phase
 from src.Model.lbsRank import Rank
