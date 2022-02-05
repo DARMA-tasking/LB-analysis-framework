@@ -41,12 +41,12 @@
 #@HEADER
 #
 ###############################################################################
-import itertools
-import math
 import os
 import sys
-
+import math
+import itertools
 import yaml
+import csv
 
 
 def get_conf() -> dict:
@@ -131,8 +131,11 @@ if __name__ == '__main__':
     print("gamma:", gamma)
 
     # Report on some initial configuration
-    initial_works = compute_arrangement_works((0, 0, 0, 0, 1, 1, 1, 1, 2), alpha, beta, gamma)
-    print("Initial works:", initial_works)
+    initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
+    print("Initial arrangement:", initial_arrangement)
+    initial_works = compute_arrangement_works(
+        initial_arrangement, alpha, beta, gamma)
+    print("\tper-rank works:", initial_works)
     print("\tmaximum work: {:.4g} average work: {:.4g}".format(
         max(initial_works.values()),
         sum(initial_works.values()) / len(initial_works)))
@@ -164,8 +167,15 @@ if __name__ == '__main__':
 
     # Report on optimal arrangements
     print("\tminimax work: {:.4g} for {} arrangements".format(works_min_max, len(arrangements_min_max)))
-    print("Example optimal arrangement:", arrangements_min_max[0])
-    optimal_works = compute_arrangement_works(arrangements_min_max[0], alpha, beta, gamma)
-    print("\tmaximum work: {:.4g} average work: {:.4g}".format(
-        max(optimal_works.values()),
-        sum(optimal_works.values()) / len(optimal_works)))
+
+
+    # Write all optimal arrangements to CSV file
+    out_name = "optimal-arrangements.csv"
+    with open(out_name, 'w') as f:
+        writer = csv.writer(f)
+        for a in arrangements_min_max:
+            writer.writerow(a)
+    print("Wrote",
+          len(arrangements_min_max),
+          "optimal arrangement to",
+          out_name)
