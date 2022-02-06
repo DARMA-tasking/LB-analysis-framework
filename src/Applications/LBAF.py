@@ -227,8 +227,6 @@ class internalParameters:
             "volume_sampler_type", None), str):
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.conf["volume_sampler_type"])
-        if self.communication_degree > 0:
-            self.communication_enabled = True
 
         # Set object ranking strategy
         if isinstance(self.conf.get(
@@ -245,6 +243,8 @@ class internalParameters:
             self.logging_level.lower(), "info")
 
         # Enable communication when degree is positive
+        if self.communication_degree > 0:
+            self.communication_enabled = True
 
     def parse_sampler(self, cmd_str):
         """Parse command line arguments specifying sampler type and input parameters
