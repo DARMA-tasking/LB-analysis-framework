@@ -322,7 +322,7 @@ class Runtime:
                         # No transferrable list of objects was foumd
                         n_rejects += 1
                         continue
-
+                    
                 # Sanity check before transfer
                 if p_dst not in p_src.known_loads:
                     self.lgr.error(f"Destination rank {p_dst.get_id()} not in known ranks")
@@ -330,6 +330,7 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
+                self.lgr.info(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.lgr.debug(
                         f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
@@ -378,18 +379,18 @@ class Runtime:
                 transfer_criterion,
                 max_n_objects,
                 deterministic_transfer)
-
-            # Invalidate cache of edges
-            self.phase.invalidate_edge_cache()
-
-            # Report iteration statistics
-            self.lgr.info(f"Iteration complete ({n_ignored} skipped ranks)")
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self.lgr.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
                               f"({100. * n_rejects / n_proposed:.4}%)")
             else:
                 self.lgr.info("No transfers were proposed")
+
+            # Invalidate cache of edges
+            self.phase.invalidate_edge_cache()
+
+            # Report iteration statistics
+            self.lgr.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append([
