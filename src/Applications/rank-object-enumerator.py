@@ -73,12 +73,12 @@ objects = (
 conf = get_conf()
 
 # Define number of ranks
-n_ranks = conf.get('x_procs') * conf.get('y_procs') * conf.get('z_procs')
+n_ranks = conf.get("x_procs") * conf.get("y_procs") * conf.get("z_procs")
 
 # Define work constants
-alpha = conf.get('work_model').get('parameters').get('alpha')
-beta = conf.get('work_model').get('parameters').get('beta')
-gamma = conf.get('work_model').get('parameters').get('gamma')
+alpha = conf.get("work_model").get("parameters").get("alpha")
+beta = conf.get("work_model").get("parameters").get("beta")
+gamma = conf.get("work_model").get("parameters").get("gamma")
 
 
 def compute_load(object_list: list) -> float:
