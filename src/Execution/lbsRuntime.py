@@ -234,7 +234,6 @@ class Runtime:
         # Decide whether criterion allows transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
-            print("   ", c_fct(object_list), "must recurse at level", n_o)
             return self.recursive_extended_search(
                 pick_list,
                 object_list,
@@ -243,7 +242,6 @@ class Runtime:
                 max_n_o)
         else:
             # Terminate positively when criterion is satisfied
-            print("   terminate positively at level", n_o)
             return True, n_o
 
         # If this point was reach this is an error
