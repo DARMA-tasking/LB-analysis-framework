@@ -376,6 +376,7 @@ if __name__ == '__main__':
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
+               params.max_objects_per_transfer,
                params.deterministic_transfer)
 
     # Create mapping from rank to Cartesian grid

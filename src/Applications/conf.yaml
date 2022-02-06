@@ -47,7 +47,7 @@ criterion:
   name: "Tempered"
   parameters:
     actual_destination_load: True
-max_objects_per_transfer: 3
+max_objects_per_transfer: 1
 #deterministic_transfer: True
 
 # Specify number of simulation passes
