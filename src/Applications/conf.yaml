@@ -40,12 +40,14 @@ work_model:
     alpha: 1.
     beta: 1.
     gamma: 0.
+
 # Specify transfer strategy
 order_strategy: arbitrary
 criterion:
   name: "Tempered"
   parameters:
     actual_destination_load: True
+max_objects_per_transfer: 3
 #deterministic_transfer: True
 
 # Specify number of simulation passes
