@@ -33,29 +33,34 @@
 # order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
 # terminal_background             str       terminal background for logging, set `light` or `dark`
 
+# Specify input
+log_file: "data/synthetic_lb_stats/stats"
+phase_id: 0
+file_suffix: json
+
+# Specify information parameters
+n_rounds: 4
+fanout: 4
+
 # Specify work model
 work_model:
   name: "AffineCombination"
   parameters:
-    alpha: 1.
+    alpha: 0.
     beta: 1.
     gamma: 0.
+
 # Specify transfer strategy
 order_strategy: arbitrary
 criterion:
   name: "Tempered"
   parameters:
     actual_destination_load: True
+max_objects_per_transfer: 3
 #deterministic_transfer: True
 
 # Specify number of simulation passes
 n_iterations: 8
-n_rounds: 4
-fanout: 4
-
-log_file: "data/synthetic_lb_stats/stats"
-phase_id: 0
-file_suffix: json
 
 # Specify output
 logging_level: info

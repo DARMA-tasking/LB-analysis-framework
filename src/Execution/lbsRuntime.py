@@ -217,28 +217,38 @@ class Runtime:
         n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
         self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} loaded ranks")
 
-    def recursive_extended_search(self, pick_list, object_list, c_fct):
+    def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """Recursively extend search to other objects
         """
 
-        # Terminate negatively when pick list is empty
-        if not pick_list:
-            return False
+        # Terminate negatively when pick list is empty or maximum depth is reached
+        if not pick_list or n_o >= max_n_o:
+            return False, n_o
 
         # Pick one object and move it from one list to the other
         o = random.choice(pick_list)
         pick_list.remove(o)
         object_list.append(o)
+        n_o += 1
 
         # Decide whether criterion allows transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
-            self.recursive_extended_search(pick_list, object_list, c_fct)
+            return self.recursive_extended_search(
+                pick_list,
+                object_list,
+                c_fct,
+                n_o,
+                max_n_o)
         else:
             # Terminate positively when criterion is satisfied
-            return True
+            return True, n_o
 
-    def transfer_stage(self, transfer_criterion, deterministic_transfer):
+        # If this point was reach this is an error
+        self.lgr.error("Recursion error at depth". n_o)
+        sys.exit(1)
+
+    def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
         """Perform object transfer phase
         """
 
@@ -299,17 +309,20 @@ class Runtime:
                 pick_list = srt_proc_obj[:]
                 if c_dst < 0.:
                     # Recursively extend search
-                    if self.recursive_extended_search(
-                            pick_list,
-                            object_list,
-                            lambda x: transfer_criterion.compute(x, p_src, p_dst)):
+                    success, _ = self.recursive_extended_search(
+                        pick_list,
+                        object_list,
+                        lambda x: transfer_criterion.compute(x, p_src, p_dst),
+                        1,
+                        max_n_objects)
+                    if success:
                         # Remove accepted objects from remaining object list
                         srt_proc_obj = pick_list
                     else:
                         # No transferrable list of objects was foumd
                         n_rejects += 1
                         continue
-
+                    
                 # Sanity check before transfer
                 if p_dst not in p_src.known_loads:
                     self.lgr.error(f"Destination rank {p_dst.get_id()} not in known ranks")
@@ -317,6 +330,7 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
+                self.lgr.info(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.lgr.debug(
                         f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
@@ -329,17 +343,20 @@ class Runtime:
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
 
-    def execute(self, n_iterations, n_rounds, f, deterministic_transfer):
+    def execute(self, n_iterations, n_rounds, f, max_n_objects, deterministic_transfer):
         """Launch runtime execution
         n_iterations: integer number of load-balancing iterations
         n_rounds: integer number of gossiping rounds
         f: integer fanout
+        max_n_objects: maxium number of objects transferred at once
         deterministic_transfer: deterministic or probabilistic transfer
         """
 
         # Compute and report rank work statistics
-        print_function_statistics(self.phase.get_ranks(), lambda x: self.work_model.compute(x), "initial rank works",
-                                  logger=self.lgr)
+        print_function_statistics(
+            self.phase.get_ranks(),
+            lambda x: self.work_model.compute(x), "initial rank works",
+            logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
@@ -360,19 +377,20 @@ class Runtime:
             # Use criterion to perform transfer stage
             n_ignored, n_transfers, n_rejects = self.transfer_stage(
                 transfer_criterion,
+                max_n_objects,
                 deterministic_transfer)
-
-            # Invalidate cache of edges
-            self.phase.invalidate_edge_cache()
-
-            # Report iteration statistics
-            self.lgr.info(f"Iteration complete ({n_ignored} skipped ranks)")
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self.lgr.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
                               f"({100. * n_rejects / n_proposed:.4}%)")
             else:
                 self.lgr.info("No transfers were proposed")
+
+            # Invalidate cache of edges
+            self.phase.invalidate_edge_cache()
+
+            # Report iteration statistics
+            self.lgr.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append([

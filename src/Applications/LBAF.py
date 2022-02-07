@@ -107,10 +107,10 @@ class internalParameters:
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_ranks = 0
 
-        # Number of gossiping rounds
+        # Number of information rounds
         self.n_rounds = 1
 
-        # Fan-out factor for information spreading (gossiping)
+        # Fan-out factor for information spreading
         self.fanout = 1
 
         # Phase-id to obtain load distribution by reading VT log files
@@ -127,7 +127,7 @@ class internalParameters:
 
         # Starting logger
         self.logger = logger()
-        self.logging_level = 'info'
+        self.logging_level = "info"
 
         # Output directory
         self.output_dir = None
@@ -138,8 +138,11 @@ class internalParameters:
         # Data files suffix (data loading)
         self.file_suffix = "vom"
 
-        # Set default ordeer strategy
+        # Set default order strategy
         self.order_strategy = "arbitrary"
+
+        # By default only one object maybe transferred at once
+        self.max_objects_per_transfer = 1
 
         # Configuration file
         self.conf_file_found = False
@@ -205,25 +208,43 @@ class internalParameters:
             if param_key in self.__dict__:
                 self.__dict__[param_key] = param_val
 
-        # Handle special values
-        if isinstance(self.conf.get("x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
+        # Set number of ranks in each direction for ExodusII output
+        if isinstance(self.conf.get(
+            "x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
             self.grid_size[0] = self.conf.get("x_procs", 0)
-        if isinstance(self.conf.get("y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
+        if isinstance(self.conf.get(
+            "y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
             self.grid_size[1] = self.conf.get("y_procs", 0)
-        if isinstance(self.conf.get("z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
+        if isinstance(self.conf.get(
+            "z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
             self.grid_size[2] = self.conf.get("z_procs", 0)
-        if isinstance(self.conf.get("time_sampler_type", None), str):
+
+        # Set sampling parameters for random inputs
+        if isinstance(self.conf.get(
+            "time_sampler_type", None), str):
             self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(self.conf["time_sampler_type"])
-        if isinstance(self.conf.get("volume_sampler_type", None), str):
+        if isinstance(self.conf.get(
+            "volume_sampler_type", None), str):
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.conf["volume_sampler_type"])
+
+        # Set object ranking strategy
+        if isinstance(self.conf.get(
+            "order_strategy", None), str):
+            self.order_strategy = self.conf.get("order_strategy", None)
+
+        # Set logging level
+        logging_level = {
+            "info": logging.INFO,
+            "debug": logging.DEBUG,
+            "error": logging.ERROR,
+            "warning": logging.WARNING}
+        self.logger.level = logging_level.get(
+            self.logging_level.lower(), "info")
+
+        # Enable communication when degree is positive
         if self.communication_degree > 0:
             self.communication_enabled = True
-        if isinstance(self.conf.get("order_strategy", None), str):
-            self.order_strategy = self.conf.get("order_strategy", None)
-        logging_level = {'info': logging.INFO, 'debug': logging.DEBUG, 'error': logging.ERROR,
-                         'warning': logging.WARNING}
-        self.logger.level = logging_level.get(self.logging_level.lower(), 'info')
 
     def parse_sampler(self, cmd_str):
         """Parse command line arguments specifying sampler type and input parameters
@@ -355,6 +376,7 @@ if __name__ == '__main__':
     rt.execute(params.n_iterations,
                params.n_rounds,
                params.fanout,
+               params.max_objects_per_transfer,
                params.deterministic_transfer)
 
     # Create mapping from rank to Cartesian grid
