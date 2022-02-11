@@ -65,33 +65,32 @@ from src.Utils.logger import logger
 
 
 class MoveCountsViewer:
-    """A class to describe MoveCountsViewer attributes
+    """ A class to describe MoveCountsViewer attributes
     """
-
-    def __init__(self, input_file_suffix="vom"):
+    def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = 'out',
+                 output_file_name: str = 'move_counts', interactive: bool = True):
 
         # Size of subset to which objects are initially mapped (0 = all)
-        self.n_processors = 0
+        self.n_processors = n_processors
 
         # Input file name
-        self.input_file_name = None
+        self.input_file_name = input_file_name
 
         # Input file suffix -- .vom by default
         self.input_file_suffix = input_file_suffix
 
         # Output file name
-        self.output_file_name = None
+        self.output_file_name = output_file_name
 
         # Output file suffix -- .png by default
-        self.output_file_suffix = "png"
+        self.output_file_suffix = 'png'
 
         # Interactive call -- False by default
-        self.interactive = False
+        self.interactive = interactive
 
         # Starting logger
         self.logger = logger()
         self.logging_level = 'info'
-
 
     def usage(self):
         """Provide online help
@@ -411,7 +410,12 @@ class MoveCountsViewer:
 
 
 if __name__ == '__main__':
-    params = MoveCountsViewer()
+    n_processors = 8
+    input_file_name = '../../data/stats/lb_iter'
+    input_file_suffix = 'out'
+    output_file_name = 'move_counts'
+    params = MoveCountsViewer(n_processors=n_processors, input_file_name=input_file_name,
+                              input_file_suffix=input_file_suffix, output_file_name=output_file_name, interactive=False)
 
     # Assign logger to variable
     lgr = params.logger
