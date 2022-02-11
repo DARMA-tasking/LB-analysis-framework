@@ -1,4 +1,4 @@
-vtk==9.1.0
+vtk==9.0.1
 numpy==1.22.2
 PyYAML==6.0
 Brotli==1.0.9
