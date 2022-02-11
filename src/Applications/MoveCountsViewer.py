@@ -74,7 +74,10 @@ class MoveCountsViewer:
         self.n_processors = n_processors
 
         # Input file name
-        self.input_file_name = input_file_name
+        if isinstance(input_file_name, str):
+            self.input_file_name = os.path.join(project_path, input_file_name)
+        else:
+            self.input_file_name = input_file_name
 
         # Input file suffix -- .vom by default
         self.input_file_suffix = input_file_suffix
@@ -411,7 +414,7 @@ class MoveCountsViewer:
 
 if __name__ == '__main__':
     n_processors = 8
-    input_file_name = '../../data/stats/lb_iter'
+    input_file_name = 'data/stats/lb_iter'
     input_file_suffix = 'out'
     output_file_name = 'move_counts'
     params = MoveCountsViewer(n_processors=n_processors, input_file_name=input_file_name,
