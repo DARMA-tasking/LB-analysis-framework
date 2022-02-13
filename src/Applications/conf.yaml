@@ -9,6 +9,10 @@
 #    parameters: optional parameters that are specitic to each criterion
 # deterministic_transfer    decide whether transfer must be deterministic
 #    type: Boolean (default: False)
+# order_strategy            description of ordering of objects for transfer
+#    type: str in arbitrary (default), element_id, increasing_times, decreasing_times, fewest_migrations, small_objects
+# terminal_background       terminal background for standard output logging
+#    type: str in `light` or `dark`
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
 # x_procs             [-x <npx>]  int       number of procs in x direction
 # y_procs             [-y <npy>]  int       number of procs in y direction
@@ -30,8 +34,6 @@
 # actual_dst_load     [-a]        bool      use actual destination loads
 # exodus              [-e]        bool      generate Exodus type visualization output
 # generate_multimedia [-g]        bool      generate multimedia
-# order_strategy                  str       arbitrary, element_id, fewest_migrations, small_objects, largest_objects
-# terminal_background             str       terminal background for logging, set `light` or `dark`
 
 # Specify input
 log_file: "data/synthetic_lb_stats/stats"
@@ -44,16 +46,16 @@ fanout: 4
 
 # Specify work model
 work_model:
-  name: "AffineCombination"
+  name: AffineCombination
   parameters:
     alpha: 1.
     beta: 1.
     gamma: 0.
 
 # Specify transfer strategy
-order_strategy: arbitrary
+order_strategy: increasing_times
 criterion:
-  name: "Tempered"
+  name: Tempered
   parameters:
     actual_destination_load: True
 max_objects_per_transfer: 8
@@ -66,7 +68,7 @@ n_iterations: 8
 logging_level: info
 terminal_background: light
 exodus: True
-output_dir: "output"
+output_dir: output
 x_procs: 2
 y_procs: 2
 z_procs: 1

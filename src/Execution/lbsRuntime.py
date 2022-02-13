@@ -97,13 +97,13 @@ class Runtime:
             self.work_model.compute(p) for p in self.phase.ranks]]
 
         # Compute global load, volume and work statistics
-        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
+        _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
-        n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, w_min, self.average_work, w_max, w_var, _, _, w_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: self.work_model.compute(x))
 
@@ -118,7 +118,7 @@ class Runtime:
             "total largest directed volume": [n_v * v_ave],
             "minimum work": [w_min],
             "maximum work": [w_max],
-            "total work": [n_w * w_ave],
+            "total work": [n_w * self.average_work],
             "work variance": [w_var],
             "work imbalance": [w_imb]}
 
@@ -128,7 +128,8 @@ class Runtime:
             "element_id": self.element_id,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects,
-            "largest_objects": self.largest_objects}
+            "decreasing_times": self.decreasing_times,
+            "increasing_times": self.increasing_times}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def information_stage(self, n_rounds, f):
@@ -470,37 +471,39 @@ class Runtime:
 
         return self.sort(objects, key=lambda x: x.get_id())
 
-    def load_excess(self, objects: set):
-        proc_load = sum([obj.get_time() for obj in objects])
-        return proc_load - self.average_load
-
     def fewest_migrations(self, objects: set):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_excess
-            Sort smallest to largest if > load_excess
+            Sort largest to smallest if <= work_excess
+            Sort smallest to largest if > work_excess
         """
 
-        load_excess = self.load_excess(objects)
-        lt_load_excess = [obj for obj in objects if obj.get_time() <= load_excess]
-        get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
-        return self.sorted_descending(lt_load_excess) + self.sorted_ascending(get_load_excess)
+        work_excess = self.work_excess(objects)
+        lt_work_excess = [obj for obj in objects if obj.get_time() <= work_excess]
+        get_work_excess = [obj for obj in objects if obj.get_time() > work_excess]
+        return self.sorted_descending(lt_work_excess) + self.sorted_ascending(get_work_excess)
 
     def small_objects(self, objects: set):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_excess
-            Sort smallest to largest if > load_excess
+            Sort largest to smallest if <= work_excess
+            Sort smallest to largest if > work_excess
         """
 
-        load_excess = self.load_excess(objects)
+        work_excess = self.work_excess(objects)
         sorted_objects = self.sorted_ascending(objects)
         accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
-        idx = bisect(accumulated_times, load_excess) + 1
+        idx = bisect(accumulated_times, work_excess) + 1
         return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
 
-    def largest_objects(self, objects: set):
-        """ Objects ordered by object load/time. From bigger to smaller.
+    def decreasing_times(self, objects: set):
+        """ Objects ordered by decreasing object times
         """
 
         return self.sorted_descending(objects)
+
+    def increasing_times(self, objects: set):
+        """ Objects ordered by increasing object times
+        """
+
+        return self.sorted_ascending(objects)
