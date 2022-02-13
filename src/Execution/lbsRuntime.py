@@ -449,10 +449,6 @@ class Runtime:
                             self.lgr.debug(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
     @staticmethod
-    def sort(objects: set, key):
-        return sorted(list(objects), key=key)
-
-    @staticmethod
     def arbitrary(objects: set, _):
         """ Default: objects are passed as they are stored
         """
@@ -463,19 +459,19 @@ class Runtime:
         """ Order objects by ID
         """
 
-        return self.sort(objects, key=lambda x: x.get_id())
+        return sorted(objects, key=lambda x: x.get_id())
 
     def decreasing_times(self, objects: set, _):
         """ Order objects by decreasing object times
         """
 
-        return self.sort(objects, key=lambda x: -x.get_time())
+        return sorted(objects, key=lambda x: -x.get_time())
 
     def increasing_times(self, objects: set, _):
         """ Order objects by increasing object times
         """
 
-        return self.sort(objects, key=lambda x: x.get_time())
+        return sorted(objects, key=lambda x: x.get_time())
 
     def increasing_connectivity(self, objects: set, src_id):
         """ Order objects by increasing local communication volume
