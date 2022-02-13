@@ -103,7 +103,7 @@ class Runtime:
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
-        n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, w_min, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
             self.phase.ranks,
             lambda x: self.work_model.compute(x))
 
@@ -119,8 +119,7 @@ class Runtime:
             "minimum work": [w_min],
             "maximum work": [w_max],
             "total work": [n_w * w_ave],
-            "work variance": [w_var],
-            "work imbalance": [w_imb]}
+            "work variance": [w_var]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -409,7 +408,7 @@ class Runtime:
             n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
-            n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = print_function_statistics(
+            n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
                 self.phase.ranks,
                 lambda x: self.work_model.compute(x),
                 f"iteration {i + 1} rank works",
@@ -428,7 +427,6 @@ class Runtime:
             self.statistics["maximum work"].append(w_max)
             self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
-            self.statistics["work imbalance"].append(w_imb)
 
         # Report final mapping when requested
         for p in self.phase.get_ranks():
