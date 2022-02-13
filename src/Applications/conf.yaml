@@ -10,7 +10,7 @@
 # deterministic_transfer    decide whether transfer must be deterministic
 #    type: Boolean (default: False)
 # order_strategy            description of ordering of objects for transfer
-#    type: str in arbitrary (default), element_id, increasing_times, decreasing_times, fewest_migrations, small_objects
+#    type: str in arbitrary (default), element_id, increasing_times, decreasing_times, best_migrations
 # terminal_background       terminal background for standard output logging
 #    type: str in `light` or `dark`
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
@@ -53,7 +53,7 @@ work_model:
     gamma: 0.
 
 # Specify transfer strategy
-order_strategy: increasing_times
+order_strategy: increasing_connectivity
 criterion:
   name: Tempered
   parameters:

@@ -49,9 +49,10 @@ import sys
 from typing import Union
 import random
 
+from src.Model.lbsPhase import Phase
+from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
-from src.Model.lbsPhase import Phase
 from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics
 
 
@@ -127,8 +128,7 @@ class Runtime:
             "element_id": self.element_id,
             "decreasing_times": self.decreasing_times,
             "increasing_times": self.increasing_times,
-            "fewest_migrations": self.fewest_migrations,
-            "small_objects": self.small_objects}
+            "increasing_connectivity": self.increasing_connectivity}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def information_stage(self, n_rounds, f):
@@ -215,8 +215,10 @@ class Runtime:
 
         # Report viewers counts to loaded ranks
         self.lgr.info(f"Completed {n_rounds} information rounds")
-        n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
-        self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} loaded ranks")
+        n_v, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
+            viewers_counts.values(),
+            lambda x: x)
+        self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """Recursively extend search to other objects
@@ -272,7 +274,9 @@ class Runtime:
             self.lgr.debug(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
-            srt_proc_obj = list(self.order_strategy(p_src.migratable_objects))
+            srt_proc_obj = list(self.order_strategy(
+                p_src.get_migratable_objects(),
+                p_src.get_id()))
             while srt_proc_obj:
                 # Pick next object in ordered list
                 o = srt_proc_obj.pop()
@@ -290,7 +294,6 @@ class Runtime:
                         if c > c_dst:
                             c_dst = c
                             p_dst = p
-
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = p_src.compute_transfer_cmf(
@@ -414,7 +417,6 @@ class Runtime:
                 f"iteration {i + 1} rank works",
                 logger=self.lgr)
 
-
             # Update run statistics
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
@@ -450,59 +452,54 @@ class Runtime:
     def sort(objects: set, key):
         return sorted(list(objects), key=key)
 
-    def sorted_ascending(self, objects: Union[set, list]):
-        return self.sort(objects, key=lambda x: x.get_time())
-
-    def sorted_descending(self, objects: Union[set, list]):
-        return self.sort(objects, key=lambda x: -x.get_time())
-
     @staticmethod
-    def arbitrary(objects: set):
-        """ Random strategy: objects are passed without any order
+    def arbitrary(objects: set, _):
+        """ Default: objects are passed as they are stored
         """
 
         return objects
 
-    def element_id(self, objects: set):
+    def element_id(self, objects: set, _):
         """ Order objects by ID
         """
 
         return self.sort(objects, key=lambda x: x.get_id())
 
-    def decreasing_times(self, objects: set):
+    def decreasing_times(self, objects: set, _):
         """ Order objects by decreasing object times
         """
 
-        return self.sorted_descending(objects)
+        return self.sort(objects, key=lambda x: -x.get_time())
 
-    def increasing_times(self, objects: set):
+    def increasing_times(self, objects: set, _):
         """ Order objects by increasing object times
         """
 
-        return self.sorted_ascending(objects)
+        return self.sort(objects, key=lambda x: x.get_time())
 
-    def fewest_migrations(self, objects: set):
-        """ First find the load of the smallest single object that, if migrated
-            away, could bring this rank's load below the target load.
-            Sort largest to smallest if <= work_excess
-            Sort smallest to largest if > work_excess
+    def increasing_connectivity(self, objects: set, src_id):
+        """ Order objects by increasing local communication volume
         """
 
-        work_excess = self.work_excess(objects)
-        lt_work_excess = [obj for obj in objects if obj.get_time() <= work_excess]
-        get_work_excess = [obj for obj in objects if obj.get_time() > work_excess]
-        return self.sorted_descending(lt_work_excess) + self.sorted_ascending(get_work_excess)
+        # Initialize list with all objects without a communicator
+        no_comm = [o for o in objects
+                   if not isinstance(
+                       o.get_communicator(), ObjectCommunicator)]
 
-    def small_objects(self, objects: set):
-        """ First find the smallest object that, if migrated away along with all
-            smaller objects, could bring this rank's load below the target load.
-            Sort largest to smallest if <= work_excess
-            Sort smallest to largest if > work_excess
-        """
+        # Order objects with a communicator
+        with_comm = {}
+        for o in objects:
+            # Skip objects without a communicator
+            comm = o.get_communicator()
+            if not isinstance(o.get_communicator(), ObjectCommunicator):
+                continue
+            
+            # Update dict of objects with maximum local communication
+            with_comm[o] = max(
+                sum([v for k, v in comm.get_received().items()
+                     if k.get_rank_id() == src_id]),
+                sum([v for k, v in comm.get_sent().items()
+                     if k.get_rank_id() == src_id]))
 
-        work_excess = self.work_excess(objects)
-        sorted_objects = self.sorted_ascending(objects)
-        accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
-        idx = bisect(accumulated_times, work_excess) + 1
-        return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
-
+        # Return list of objects order by increased local connectivity
+        return no_comm + sorted(with_comm, key=with_comm.get)
