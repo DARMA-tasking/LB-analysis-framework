@@ -367,7 +367,7 @@ if __name__ == '__main__':
         # Keep track of number of objects
         n_o = params.n_objects
 
-    # Compute and print initial rank load and link volume statistics
+    # Compute and print initial rank load and edge volume statistics
     print_function_statistics(
         phase.get_ranks(),
         lambda x: x.get_load(),
@@ -437,14 +437,18 @@ if __name__ == '__main__':
 
     imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
 
-    # Compute and print final rank load and link volume statistics
+    # Compute and print final rank load and edge volume statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(
         phase.get_ranks(),
         lambda x: x.get_load(),
         "final rank loads",
         logger=lgr,
         file=imb_file)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "final sent volumes", logger=lgr)
+    print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x,
+        "final sent volumes",
+        logger=lgr)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)

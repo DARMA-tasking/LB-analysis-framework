@@ -63,7 +63,7 @@ max_objects_per_transfer: 8
 n_iterations: 8
 
 # Specify output
-logging_level: debug
+logging_level: info
 terminal_background: light
 exodus: True
 output_dir: "output"

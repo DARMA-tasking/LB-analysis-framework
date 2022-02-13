@@ -352,10 +352,11 @@ class Runtime:
         deterministic_transfer: deterministic or probabilistic transfer
         """
 
-        # Compute and report rank work statistics
+        # Report on initial per-rank work
         print_function_statistics(
             self.phase.get_ranks(),
-            lambda x: self.work_model.compute(x), "initial rank works",
+            lambda x: self.work_model.compute(x),
+            "initial rank works",
             logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
@@ -427,8 +428,13 @@ class Runtime:
 
             # Report partial statistics
             iteration = i + 1
-            self.lgr.info(f"Load imbalance({iteration}) = {l_imb:.6g}; min={l_min:.6g}, max={l_max:.6g}, "
-                          f"ave={self.load_average:.6g}, std={math.sqrt(l_var):.6g}")
+
+        # Report on final per-rank work
+        print_function_statistics(
+            self.phase.get_ranks(),
+            lambda x: self.work_model.compute(x),
+            "final rank works",
+            logger=self.lgr)
 
         # Report final mapping when requested
         for p in self.phase.get_ranks():
