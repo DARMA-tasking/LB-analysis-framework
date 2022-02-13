@@ -195,7 +195,8 @@ def print_function_statistics(values, function, var_name, logger: Logger = None,
     """
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
-    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(values, function)
+    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
+        values, function)
 
     # Save imbalance for testing purposes
     if var_name == 'final rank loads' and file is not None:

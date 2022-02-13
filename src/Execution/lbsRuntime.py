@@ -408,9 +408,12 @@ class Runtime:
             n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
-            n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+            n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = print_function_statistics(
                 self.phase.ranks,
-                lambda x: self.work_model.compute(x))
+                lambda x: self.work_model.compute(x),
+                f"iteration {i + 1} rank works",
+                logger=self.lgr)
+
 
             # Update run statistics
             self.statistics["minimum load"].append(l_min)
@@ -425,16 +428,6 @@ class Runtime:
             self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
             self.statistics["work imbalance"].append(w_imb)
-
-            # Report partial statistics
-            iteration = i + 1
-
-        # Report on final per-rank work
-        print_function_statistics(
-            self.phase.get_ranks(),
-            lambda x: self.work_model.compute(x),
-            "final rank works",
-            logger=self.lgr)
 
         # Report final mapping when requested
         for p in self.phase.get_ranks():
