@@ -62,7 +62,7 @@ class WorkModelBase:
         parameters: optional parameters dictionary
         """
         # Work keeps internal references to ranks and edges
-        LGR.info("Created base work model")
+        LGR.debug("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters=None, lgr: Logger = None):

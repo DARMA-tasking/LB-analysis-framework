@@ -63,6 +63,7 @@ class CriterionBase:
         work_model: a WorkModelBase instance
         parameters: optional parameters dictionary
         """
+
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
             LGR.error("Could not create a criterion without a work model")
@@ -70,7 +71,7 @@ class CriterionBase:
         self.work_model = work_model
 
         # Criterion keeps internal references to ranks and edges
-        LGR.info(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
+        LGR.debug(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
 
     @staticmethod
     def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):

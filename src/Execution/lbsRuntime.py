@@ -125,10 +125,10 @@ class Runtime:
         self.strategy_mapped = {
             "arbitrary": self.arbitrary,
             "element_id": self.element_id,
-            "fewest_migrations": self.fewest_migrations,
-            "small_objects": self.small_objects,
             "decreasing_times": self.decreasing_times,
-            "increasing_times": self.increasing_times}
+            "increasing_times": self.increasing_times,
+            "fewest_migrations": self.fewest_migrations,
+            "small_objects": self.small_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def information_stage(self, n_rounds, f):
@@ -167,7 +167,7 @@ class Runtime:
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
             # Initiate next gossiping round
-            self.lgr.info(f"Performing message forwarding round {gossip_round}")
+            self.lgr.debug(f"Performing message forwarding round {gossip_round}")
             gossip_round += 1
             gossips.clear()
 
@@ -214,6 +214,7 @@ class Runtime:
             self.lgr.debug(f"\tviewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}")
 
         # Report viewers counts to loaded ranks
+        self.lgr.info(f"Completed {n_rounds} information rounds")
         n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
         self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} loaded ranks")
 
@@ -271,7 +272,6 @@ class Runtime:
             self.lgr.debug(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
-
             srt_proc_obj = list(self.order_strategy(p_src.migratable_objects))
             while srt_proc_obj:
                 # Pick next object in ordered list
