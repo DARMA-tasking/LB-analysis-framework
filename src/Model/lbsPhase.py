@@ -156,9 +156,17 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.ranks)
         n_edges = len(self.edges)
-        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                logger=self.lgr)
-        print_subset_statistics("Rank-local communication volume", w_local, "total volume", w_total, logger=self.lgr)
+        print_subset_statistics(
+            "Inter-rank communication edges",
+            n_edges,
+            "possible ones", n_ranks * (n_ranks - 1) / 2,
+            logger=self.lgr)
+        print_subset_statistics(
+            "Rank-local communication volume",
+            w_local,
+            "total volume",
+            w_total,
+            logger=self.lgr)
 
     def get_edges(self):
         """Retrieve edges belonging to phase
@@ -197,8 +205,8 @@ class Phase:
             p_b = .5
             degree_sampler, degree_sampler_name = sampler("binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
                                                           logger=self.lgr)
-            self.lgr.info(f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n\tout-degrees"
-                          f" sampled from {degree_sampler_name}")
+            self.lgr.info(
+                f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n\tout-degrees sampled from {degree_sampler_name}")
 
             # Create communicator for each object with only sent communications
             start = time.time()
@@ -275,6 +283,7 @@ class Phase:
     def populate_from_log(self, n_p, t_s, basename):
         """Populate this phase by reading in a load profile from log files
         """
+
         # Instantiate VT load reader
         reader = LoadReader(basename, logger=self.lgr, file_suffix=self.file_suffix)
 
