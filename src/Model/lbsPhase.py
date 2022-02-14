@@ -171,6 +171,7 @@ class Phase:
     def get_edges(self):
         """Retrieve edges belonging to phase
         """
+
         # Force recompute if edges cache is not current
         if not self.cached_edges:
             self.compute_edges()
@@ -181,11 +182,13 @@ class Phase:
     def invalidate_edge_cache(self):
         """Mark cached edges as no longer current
         """
+
         self.cached_edges = False
 
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an phase
         """
+
         # Retrieve desired time sampler with its theoretical average
         time_sampler, sampler_name = sampler(ts, ts_params, logger=self.lgr)
 
@@ -238,7 +241,8 @@ class Phase:
                 continue
 
             # Check and summarize communications and update global counters
-            w_out, w_in = comm.summarize('\t' if self.logging_level == 'debug' else None)
+            w_out, w_in = comm.summarize(
+                '\t' if self.logging_level == "debug" else None)
             w_sent += w_out
             w_recv += w_in
 
@@ -248,7 +252,11 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(w_sent, lambda x: x, "communication volumes", logger=self.lgr)
+        print_function_statistics(
+            w_sent,
+            lambda x: x,
+            "communication volumes",
+            logger=self.lgr)
 
         # Create n_p ranks
         self.ranks = [Rank(i, logger=self.lgr) for i in range(n_p)]
@@ -259,7 +267,8 @@ class Phase:
         else:
             # Sanity check
             if s_s > n_p:
-                self.lgr.warning(f"Too many ranks ({s_s}) requested: only {n_p} available.")
+                self.lgr.warning(
+                    f"Too many ranks ({s_s}) requested: only {n_p} available.")
                 s_s = n_p
             self.lgr.info(f"Randomly assigning objects to {n_p} ranks")
         if s_s > 0:
@@ -295,7 +304,11 @@ class Phase:
         objects = set()
         for p in self.ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
+        print_function_statistics(
+            objects,
+            lambda x: x.get_time(),
+            "object times",
+            logger=self.lgr)
 
         # Return number of found objects
         return len(objects)
