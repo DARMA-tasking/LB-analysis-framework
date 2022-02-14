@@ -67,8 +67,8 @@ from src.Utils.logger import logger
 class MoveCountsViewer:
     """ A class to describe MoveCountsViewer attributes
     """
-    def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = 'out',
-                 output_file_name: str = 'move_counts', interactive: bool = True):
+    def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = "out",
+                 output_file_name: str = "move_counts", interactive: bool = True):
 
         # Size of subset to which objects are initially mapped (0 = all)
         self.n_processors = n_processors
@@ -86,14 +86,14 @@ class MoveCountsViewer:
         self.output_file_name = output_file_name
 
         # Output file suffix -- .png by default
-        self.output_file_suffix = 'png'
+        self.output_file_suffix = "png"
 
         # Interactive call -- False by default
         self.interactive = interactive
 
         # Starting logger
         self.logger = logger()
-        self.logging_level = 'info'
+        self.logging_level = "info"
 
     def usage(self):
         """Provide online help
@@ -108,7 +108,7 @@ class MoveCountsViewer:
         print("\t [-t]        output file format suffix")
         print("\t [-i]        interactive call")
         print("\t [-h]        help: print this message and exit")
-        print('')
+        print("")
 
     def parse_command_line(self):
         """Parse command line
@@ -192,9 +192,9 @@ class MoveCountsViewer:
             with open("{}.{}.{}".format(
                     self.input_file_name,
                     i,
-                    self.input_file_suffix), 'r') as f:
+                    self.input_file_suffix), "r") as f:
                 # Instantiate CSV reader
-                reader = csv.reader(f, delimiter=',')
+                reader = csv.reader(f, delimiter=",")
 
                 # Iterate over rows of processor file
                 for row in reader:
@@ -412,11 +412,11 @@ class MoveCountsViewer:
             writer.Write()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     n_processors = 8
-    input_file_name = 'data/stats/lb_iter'
-    input_file_suffix = 'out'
-    output_file_name = 'move_counts'
+    input_file_name = "data/stats/lb_iter"
+    input_file_suffix = "out"
+    output_file_name = "move_counts"
     params = MoveCountsViewer(n_processors=n_processors, input_file_name=input_file_name,
                               input_file_suffix=input_file_suffix, output_file_name=output_file_name, interactive=False)
 
