@@ -132,6 +132,9 @@ class internalParameters:
         # Output directory
         self.output_dir = None
 
+        # Output file steam
+        self.output_file_stem = None
+
         # Generate multimedia
         self.generate_multimedia = False
 
@@ -385,7 +388,10 @@ if __name__ == '__main__':
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
     # Assemble output file name stem
-    output_stem = get_output_file_stem(params)
+    if params.output_file_stem is not None:
+        output_stem = params.output_file_stem
+    else:
+        output_stem = get_output_file_stem(params)
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
