@@ -363,8 +363,16 @@ class Runtime:
             logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
+        arrangements = []
         for i in range(n_iterations):
+            # Compute arrangement at iteration start
             self.lgr.info(f"Starting iteration {i + 1}")
+            objects_to_ranks = {
+                o.get_id(): p.get_id()
+                for p in self.phase.get_ranks() for o in p.get_objects()}
+            arrangements.append(
+                tuple(v for _, v in sorted(objects_to_ranks.items())))
+            self.lgr.debug(f"Iteration {i} arrangement: {arrangements[i]}")
 
             # Start with information stage
             self.information_stage(n_rounds, f)
@@ -430,10 +438,12 @@ class Runtime:
             self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
 
-        # Report final mapping when requested
+        # Compute final mapping and arrangement
+        objects_to_ranks = {}
         for p in self.phase.get_ranks():
             self.lgr.debug(f"Rank {p.get_id()}:")
             for o in p.get_objects():
+                objects_to_ranks[o.get_id()] = p.get_id()
                 comm = o.get_communicator()
                 if comm:
                     self.lgr.debug(f"  Object {o.get_id()}:")
@@ -447,6 +457,10 @@ class Runtime:
                         self.lgr.debug("    sent to:")
                         for k, v in sent:
                             self.lgr.debug(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}")
+        arrangements.append(
+            tuple(v for _, v in sorted(objects_to_ranks.items())))
+        self.lgr.debug(f"Iteration {n_iterations} arrangement: {arrangements[i]}")
+
 
     @staticmethod
     def arbitrary(objects: set, _):
