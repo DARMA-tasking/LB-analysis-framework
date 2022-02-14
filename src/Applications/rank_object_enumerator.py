@@ -41,9 +41,17 @@
 #@HEADER
 #
 ###############################################################################
-from logging import Logger
 import os
 import sys
+
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    exit(1)
+
+from logging import Logger
 import math
 import itertools
 import yaml
@@ -51,8 +59,6 @@ import csv
 
 from src.IO.lbsLoadReaderVT import LoadReader
 from src.Utils.logger import logger
-
-project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
 
 
 def get_conf() -> dict:
