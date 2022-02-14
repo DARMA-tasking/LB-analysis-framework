@@ -102,7 +102,7 @@ class Phase:
         """Compute and return map of communication link IDs to volumes
         """
         # Compute or re-compute edges from scratch
-        self.lgr.info("Computing inter-process communication edges")
+        self.lgr.debug("Computing inter-process communication edges")
         self.edges.clear()
         directed_edges = {}
 
