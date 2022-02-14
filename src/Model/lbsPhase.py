@@ -197,7 +197,11 @@ class Phase:
         objects = set([Object(i, time_sampler()) for i in range(n_o)])
 
         # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
+        print_function_statistics(
+            objects,
+            lambda x: x.get_time(),
+            "object times",
+            logger=self.lgr)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -206,8 +210,9 @@ class Phase:
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
-            degree_sampler, degree_sampler_name = sampler("binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
-                                                          logger=self.lgr)
+            degree_sampler, degree_sampler_name = sampler(
+                "binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
+                logger=self.lgr)
             self.lgr.info(
                 f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n\tout-degrees sampled from {degree_sampler_name}")
 
