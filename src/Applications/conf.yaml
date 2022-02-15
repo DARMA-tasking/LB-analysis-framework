@@ -10,7 +10,7 @@
 # deterministic_transfer    decide whether transfer must be deterministic
 #    type: Boolean (default: False)
 # order_strategy            description of ordering of objects for transfer
-#    type: str in arbitrary (default), element_id, increasing_times, decreasing_times, best_migrations
+#    type: str in arbitrary (default), element_id, increasing_times, decreasing_times, increasing_connectivity, fewest_migrations, small_objects
 # terminal_background       terminal background for standard output logging
 #    type: str in `light` or `dark`
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
