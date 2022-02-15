@@ -98,7 +98,7 @@ class Runtime:
             self.work_model.compute(p) for p in self.phase.ranks]]
 
         # Compute global load, volume and work statistics
-        _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
+        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.phase.ranks,
             lambda x: x.get_load())
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
@@ -128,7 +128,9 @@ class Runtime:
             "element_id": self.element_id,
             "decreasing_times": self.decreasing_times,
             "increasing_times": self.increasing_times,
-            "increasing_connectivity": self.increasing_connectivity}
+            "increasing_connectivity": self.increasing_connectivity,
+            "fewest_migrations": self.fewest_migrations,
+            "small_objects": self.small_objects}
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def information_stage(self, n_rounds, f):
@@ -513,3 +515,39 @@ class Runtime:
 
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)
+
+
+    def sorted_ascending(self, objects: Union[set, list]):
+        return sorted(objects, key=lambda x: x.get_time())
+
+    def sorted_descending(self, objects: Union[set, list]):
+        return sorted(objects, key=lambda x: -x.get_time())
+
+    def load_excess(self, objects: set):
+        proc_load = sum([obj.get_time() for obj in objects])
+        return proc_load - self.average_load
+
+    def fewest_migrations(self, objects: set, _):
+        """ First find the load of the smallest single object that, if migrated
+            away, could bring this rank's load below the target load.
+            Sort largest to smallest if <= load_excess
+            Sort smallest to largest if > load_excess
+        """
+
+        load_excess = self.load_excess(objects)
+        lt_load_excess = [obj for obj in objects if obj.get_time() <= load_excess]
+        get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
+        return self.sorted_descending(lt_load_excess) + self.sorted_ascending(get_load_excess)
+
+    def small_objects(self, objects: set, _):
+        """ First find the smallest object that, if migrated away along with all
+            smaller objects, could bring this rank's load below the target load.
+            Sort largest to smallest if <= load_excess
+            Sort smallest to largest if > load_excess
+        """
+
+        load_excess = self.load_excess(objects)
+        sorted_objects = self.sorted_ascending(objects)
+        accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
+        idx = bisect(accumulated_times, load_excess) + 1
+        return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
