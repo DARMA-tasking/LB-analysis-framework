@@ -53,7 +53,7 @@ work_model:
     gamma: 0.
 
 # Specify transfer strategy
-order_strategy: small_objects
+order_strategy: arbitrary
 criterion:
   name: Tempered
   parameters:
