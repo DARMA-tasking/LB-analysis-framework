@@ -246,15 +246,13 @@ class LoadReader:
                             receiver_obj_id = c_to.get("id")
                             comm_dict.setdefault(
                                 receiver_obj_id,
-                                {"sent": [],
-                                 "received": []})
+                                {"sent": [], "received": []})
 
                             # Create sender if it does not exist
                             sender_obj_id = c_from.get("id")
                             comm_dict.setdefault(
                                 sender_obj_id,
-                                {"sent": [],
-                                 "received": []})
+                                {"sent": [], "received": []})
 
                             # Create communication edges
                             comm_dict[receiver_obj_id]["received"].append(

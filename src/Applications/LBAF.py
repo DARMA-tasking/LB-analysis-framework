@@ -351,36 +351,50 @@ if __name__ == '__main__':
     phase = Phase(0, logger=lgr, logging_level=params.logging_level, file_suffix=params.file_suffix)
     if params.log_file:
         # Populate phase from log files and store number of objects
-        n_o = phase.populate_from_log(n_p, params.phase_id, params.log_file)
+        n_o = phase.populate_from_log(
+            n_p,
+            params.phase_id,
+            params.log_file)
     else:
         # Populate phase pseudo-randomly
-        phase.populate_from_samplers(params.n_objects,
-                                     params.time_sampler_type,
-                                     params.time_sampler_parameters,
-                                     params.communication_degree,
-                                     params.volume_sampler_type,
-                                     params.volume_sampler_parameters,
-                                     n_p,
-                                     params.n_ranks)
+        phase.populate_from_samplers(
+            params.n_objects,
+            params.time_sampler_type,
+            params.time_sampler_parameters,
+            params.communication_degree,
+            params.volume_sampler_type,
+            params.volume_sampler_parameters,
+            n_p,
+            params.n_ranks)
 
         # Keep track of number of objects
         n_o = params.n_objects
 
-    # Compute and print initial rank load and link volume statistics
-    print_function_statistics(phase.get_ranks(), lambda x: x.get_load(), "initial rank loads", logger=lgr)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "initial sent volumes", logger=lgr)
+    # Compute and print initial rank load and edge volume statistics
+    print_function_statistics(
+        phase.get_ranks(),
+        lambda x: x.get_load(),
+        "initial rank loads",
+        logger=lgr)
+    print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x,
+        "initial sent volumes",
+        logger=lgr)
 
     # Instantiate runtime
-    rt = Runtime(phase,
-                 params.work_model,
-                 params.criterion,
-                 params.order_strategy,
-                 logger=lgr)
-    rt.execute(params.n_iterations,
-               params.n_rounds,
-               params.fanout,
-               params.max_objects_per_transfer,
-               params.deterministic_transfer)
+    rt = Runtime(
+        phase,
+        params.work_model,
+        params.criterion,
+        params.order_strategy,
+        logger=lgr)
+    rt.execute(
+        params.n_iterations,
+        params.n_rounds,
+        params.fanout,
+        params.max_objects_per_transfer,
+        params.deterministic_transfer)
 
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
@@ -401,8 +415,17 @@ if __name__ == '__main__':
     # If prefix parsed from command line
     if params.exodus:
         # Instantiate phase to ExodusII file writer if requested
-        ex_writer = WriterExodusII(phase, grid_map, output_stem, output_dir=params.output_dir, logger=lgr)
-        ex_writer.write(rt.statistics, rt.load_distributions, rt.sent_distributions, rt.work_distributions)
+        ex_writer = WriterExodusII(
+            phase,
+            grid_map,
+            output_stem,
+            output_dir=params.output_dir,
+            logger=lgr)
+        ex_writer.write(
+            rt.statistics,
+            rt.load_distributions,
+            rt.sent_distributions,
+            rt.work_distributions)
 
     # Create a viewer if paraview is available
     file_name = output_stem
@@ -411,20 +434,27 @@ if __name__ == '__main__':
         if params.output_dir is not None:
             file_name = os.path.join(params.output_dir, file_name)
             output_stem = file_name
-        viewer = ParaviewViewerBase.factory(exodus=output_stem, file_name=file_name, viewer_type='')
+        viewer = ParaviewViewerBase.factory(
+            exodus=output_stem,
+            file_name=file_name,
+            viewer_type='')
         reader = viewer.createViews()
         viewer.saveView(reader)
 
     imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
 
-    # Compute and print final rank load and link volume statistics
+    # Compute and print final rank load and edge volume statistics
     _, _, l_ave, _, _, _, _, _ = print_function_statistics(
         phase.get_ranks(),
         lambda x: x.get_load(),
         "final rank loads",
         logger=lgr,
         file=imb_file)
-    print_function_statistics(phase.get_edges().values(), lambda x: x, "final sent volumes", logger=lgr)
+    print_function_statistics(
+        phase.get_edges().values(),
+        lambda x: x,
+        "final sent volumes",
+        logger=lgr)
 
     # Report on theoretically optimal statistics
     q, r = divmod(n_o, n_p)

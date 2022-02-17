@@ -82,8 +82,10 @@ class TemperedCriterion(CriterionBase):
         """
 
         # Initialize work value with load-based part of criterion
-        values = {"load": sum([o.get_time() for o in object_list]) + self.dst_load(p_src, p_dst) - p_src.get_load(),
-                  "received volume": 0., "sent volume": 0.}
+        values = {"load": sum([o.get_time() for o in object_list])
+                  + self.dst_load(p_src, p_dst) - p_src.get_load(),
+                  "received volume": 0.,
+                  "sent volume": 0.}
 
         # Retrieve IDs of source and destination ranks
         src_id = p_src.get_id()
@@ -97,8 +99,10 @@ class TemperedCriterion(CriterionBase):
                 continue
 
             # Retrieve items not sent nor received from object list
-            recv = {(k, v) for k, v in comm.get_received().items() if k not in object_list}
-            sent = {(k, v) for k, v in comm.get_sent().items() if k not in object_list}
+            recv = {(k, v) for k, v in comm.get_received().items()
+                    if k not in object_list}
+            sent = {(k, v) for k, v in comm.get_sent().items()
+                    if k not in object_list}
 
             # Aggregate communication volumes between source and destination
             v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])

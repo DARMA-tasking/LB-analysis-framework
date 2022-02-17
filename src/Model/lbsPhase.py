@@ -102,7 +102,7 @@ class Phase:
         """Compute and return map of communication link IDs to volumes
         """
         # Compute or re-compute edges from scratch
-        self.lgr.info("Computing inter-process communication edges")
+        self.lgr.debug("Computing inter-process communication edges")
         self.edges.clear()
         directed_edges = {}
 
@@ -156,13 +156,22 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.ranks)
         n_edges = len(self.edges)
-        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                logger=self.lgr)
-        print_subset_statistics("Rank-local communication volume", w_local, "total volume", w_total, logger=self.lgr)
+        print_subset_statistics(
+            "Inter-rank communication edges",
+            n_edges,
+            "possible ones", n_ranks * (n_ranks - 1) / 2,
+            logger=self.lgr)
+        print_subset_statistics(
+            "Rank-local communication volume",
+            w_local,
+            "total volume",
+            w_total,
+            logger=self.lgr)
 
     def get_edges(self):
         """Retrieve edges belonging to phase
         """
+
         # Force recompute if edges cache is not current
         if not self.cached_edges:
             self.compute_edges()
@@ -173,11 +182,13 @@ class Phase:
     def invalidate_edge_cache(self):
         """Mark cached edges as no longer current
         """
+
         self.cached_edges = False
 
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """Use samplers to populate either all or n procs in an phase
         """
+
         # Retrieve desired time sampler with its theoretical average
         time_sampler, sampler_name = sampler(ts, ts_params, logger=self.lgr)
 
@@ -186,7 +197,11 @@ class Phase:
         objects = set([Object(i, time_sampler()) for i in range(n_o)])
 
         # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
+        print_function_statistics(
+            objects,
+            lambda x: x.get_time(),
+            "object times",
+            logger=self.lgr)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -195,10 +210,11 @@ class Phase:
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
-            degree_sampler, degree_sampler_name = sampler("binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
-                                                          logger=self.lgr)
-            self.lgr.info(f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n\tout-degrees"
-                          f" sampled from {degree_sampler_name}")
+            degree_sampler, degree_sampler_name = sampler(
+                "binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
+                logger=self.lgr)
+            self.lgr.info(
+                f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n\tout-degrees sampled from {degree_sampler_name}")
 
             # Create communicator for each object with only sent communications
             start = time.time()
@@ -230,7 +246,8 @@ class Phase:
                 continue
 
             # Check and summarize communications and update global counters
-            w_out, w_in = comm.summarize('\t' if self.logging_level == 'debug' else None)
+            w_out, w_in = comm.summarize(
+                '\t' if self.logging_level == "debug" else None)
             w_sent += w_out
             w_recv += w_in
 
@@ -240,7 +257,11 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(w_sent, lambda x: x, "communication volumes", logger=self.lgr)
+        print_function_statistics(
+            w_sent,
+            lambda x: x,
+            "communication volumes",
+            logger=self.lgr)
 
         # Create n_p ranks
         self.ranks = [Rank(i, logger=self.lgr) for i in range(n_p)]
@@ -251,7 +272,8 @@ class Phase:
         else:
             # Sanity check
             if s_s > n_p:
-                self.lgr.warning(f"Too many ranks ({s_s}) requested: only {n_p} available.")
+                self.lgr.warning(
+                    f"Too many ranks ({s_s}) requested: only {n_p} available.")
                 s_s = n_p
             self.lgr.info(f"Randomly assigning objects to {n_p} ranks")
         if s_s > 0:
@@ -275,6 +297,7 @@ class Phase:
     def populate_from_log(self, n_p, t_s, basename):
         """Populate this phase by reading in a load profile from log files
         """
+
         # Instantiate VT load reader
         reader = LoadReader(basename, logger=self.lgr, file_suffix=self.file_suffix)
 
@@ -286,7 +309,11 @@ class Phase:
         objects = set()
         for p in self.ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
+        print_function_statistics(
+            objects,
+            lambda x: x.get_time(),
+            "object times",
+            logger=self.lgr)
 
         # Return number of found objects
         return len(objects)

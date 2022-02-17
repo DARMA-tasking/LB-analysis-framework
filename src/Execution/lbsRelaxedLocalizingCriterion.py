@@ -60,7 +60,6 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Assign logger to instance variable
         self.lgr = lgr
-
         self.lgr.info("Instantiated concrete criterion")
 
     def compute(self, object, p_src, p_dst):

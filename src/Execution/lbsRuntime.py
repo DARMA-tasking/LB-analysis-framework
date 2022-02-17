@@ -49,9 +49,10 @@ import sys
 from typing import Union
 import random
 
+from src.Model.lbsPhase import Phase
+from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
-from src.Model.lbsPhase import Phase
 from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics
 
 
@@ -103,7 +104,7 @@ class Runtime:
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
             self.phase.get_edges().values(),
             lambda x: x)
-        n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+        n_w, w_min, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
             self.phase.ranks,
             lambda x: self.work_model.compute(x))
 
@@ -119,22 +120,21 @@ class Runtime:
             "minimum work": [w_min],
             "maximum work": [w_max],
             "total work": [n_w * w_ave],
-            "work variance": [w_var],
-            "work imbalance": [w_imb]}
+            "work variance": [w_var]}
 
         # Initialize strategy
         self.strategy_mapped = {
             "arbitrary": self.arbitrary,
             "element_id": self.element_id,
+            "decreasing_times": self.decreasing_times,
+            "increasing_times": self.increasing_times,
+            "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
-            "small_objects": self.small_objects,
-            "largest_objects": self.largest_objects}
-
+            "small_objects": self.small_objects}
         if order_strategy not in self.strategy_mapped:
             self.lgr.error(f"{order_strategy} does not exist in known strategies: "
                            f"{[x for x in self.strategy_mapped.keys()]}")
             sys.exit(1)
-
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def information_stage(self, n_rounds, f):
@@ -173,7 +173,7 @@ class Runtime:
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
             # Initiate next gossiping round
-            self.lgr.info(f"Performing message forwarding round {gossip_round}")
+            self.lgr.debug(f"Performing message forwarding round {gossip_round}")
             gossip_round += 1
             gossips.clear()
 
@@ -220,8 +220,11 @@ class Runtime:
             self.lgr.debug(f"\tviewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}")
 
         # Report viewers counts to loaded ranks
-        n_u, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
-        self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_u} loaded ranks")
+        self.lgr.info(f"Completed {n_rounds} information rounds")
+        n_v, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(
+            viewers_counts.values(),
+            lambda x: x)
+        self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """Recursively extend search to other objects
@@ -277,8 +280,9 @@ class Runtime:
             self.lgr.debug(f"\ttrying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
-
-            srt_proc_obj = list(self.order_strategy(p_src.migratable_objects))
+            srt_proc_obj = list(self.order_strategy(
+                p_src.get_migratable_objects(),
+                p_src.get_id()))
             while srt_proc_obj:
                 # Pick next object in ordered list
                 o = srt_proc_obj.pop()
@@ -296,7 +300,6 @@ class Runtime:
                         if c > c_dst:
                             c_dst = c
                             p_dst = p
-
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = p_src.compute_transfer_cmf(
@@ -358,15 +361,24 @@ class Runtime:
         deterministic_transfer: deterministic or probabilistic transfer
         """
 
-        # Compute and report rank work statistics
+        # Report on initial per-rank work
         print_function_statistics(
             self.phase.get_ranks(),
-            lambda x: self.work_model.compute(x), "initial rank works",
+            lambda x: self.work_model.compute(x),
+            "initial rank works",
             logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
+        arrangements = []
         for i in range(n_iterations):
+            # Compute arrangement at iteration start
             self.lgr.info(f"Starting iteration {i + 1}")
+            objects_to_ranks = {
+                o.get_id(): p.get_id()
+                for p in self.phase.get_ranks() for o in p.get_objects()}
+            arrangements.append(
+                tuple(v for _, v in sorted(objects_to_ranks.items())))
+            self.lgr.debug(f"Iteration {i} arrangement: {arrangements[i]}")
 
             # Start with information stage
             self.information_stage(n_rounds, f)
@@ -407,15 +419,17 @@ class Runtime:
                 self.work_model.compute(p) for p in self.phase.ranks])
 
             # Compute and store global rank load and link volume statistics
-            _, l_min, self.load_average, l_max, l_var, _, _, l_imb = compute_function_statistics(
+            _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
                 self.phase.ranks,
                 lambda x: x.get_load())
             n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
                 self.phase.get_edges().values(),
                 lambda x: x)
-            n_w, w_min, w_ave, w_max, w_var, _, _, w_imb = compute_function_statistics(
+            n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
                 self.phase.ranks,
-                lambda x: self.work_model.compute(x))
+                lambda x: self.work_model.compute(x),
+                f"iteration {i + 1} rank works",
+                logger=self.lgr)
 
             # Update run statistics
             self.statistics["minimum load"].append(l_min)
@@ -429,17 +443,13 @@ class Runtime:
             self.statistics["maximum work"].append(w_max)
             self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
-            self.statistics["work imbalance"].append(w_imb)
 
-            # Report partial statistics
-            iteration = i + 1
-            self.lgr.info(f"Load imbalance({iteration}) = {l_imb:.6g}; min={l_min:.6g}, max={l_max:.6g}, "
-                          f"ave={self.load_average:.6g}, std={math.sqrt(l_var):.6g}")
-
-        # Report final mapping when requested
+        # Compute final mapping and arrangement
+        objects_to_ranks = {}
         for p in self.phase.get_ranks():
             self.lgr.debug(f"Rank {p.get_id()}:")
             for o in p.get_objects():
+                objects_to_ranks[o.get_id()] = p.get_id()
                 comm = o.get_communicator()
                 if comm:
                     self.lgr.debug(f"  Object {o.get_id()}:")
@@ -453,35 +463,75 @@ class Runtime:
                         self.lgr.debug("    sent to:")
                         for k, v in sent:
                             self.lgr.debug(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}")
+        arrangements.append(
+            tuple(v for _, v in sorted(objects_to_ranks.items())))
+        self.lgr.debug(f"Iteration {n_iterations} arrangement: {arrangements[i]}")
+
 
     @staticmethod
-    def sort(objects: set, key):
-        return sorted(list(objects), key=key)
-
-    def sorted_ascending(self, objects: Union[set, list]):
-        return self.sort(objects, key=lambda x: x.get_time())
-
-    def sorted_descending(self, objects: Union[set, list]):
-        return self.sort(objects, key=lambda x: -x.get_time())
-
-    @staticmethod
-    def arbitrary(objects: set):
-        """ Random strategy: objects are passed without any order
+    def arbitrary(objects: set, _):
+        """ Default: objects are passed as they are stored
         """
 
         return objects
 
-    def element_id(self, objects: set):
+    def element_id(self, objects: set, _):
         """ Order objects by ID
         """
 
-        return self.sort(objects, key=lambda x: x.get_id())
+        return sorted(objects, key=lambda x: x.get_id())
+
+    def decreasing_times(self, objects: set, _):
+        """ Order objects by decreasing object times
+        """
+
+        return sorted(objects, key=lambda x: -x.get_time())
+
+    def increasing_times(self, objects: set, _):
+        """ Order objects by increasing object times
+        """
+
+        return sorted(objects, key=lambda x: x.get_time())
+
+    def increasing_connectivity(self, objects: set, src_id):
+        """ Order objects by increasing local communication volume
+        """
+
+        # Initialize list with all objects without a communicator
+        no_comm = [o for o in objects
+                   if not isinstance(
+                       o.get_communicator(), ObjectCommunicator)]
+
+        # Order objects with a communicator
+        with_comm = {}
+        for o in objects:
+            # Skip objects without a communicator
+            comm = o.get_communicator()
+            if not isinstance(o.get_communicator(), ObjectCommunicator):
+                continue
+            
+            # Update dict of objects with maximum local communication
+            with_comm[o] = max(
+                sum([v for k, v in comm.get_received().items()
+                     if k.get_rank_id() == src_id]),
+                sum([v for k, v in comm.get_sent().items()
+                     if k.get_rank_id() == src_id]))
+
+        # Return list of objects order by increased local connectivity
+        return no_comm + sorted(with_comm, key=with_comm.get)
+
+
+    def sorted_ascending(self, objects: Union[set, list]):
+        return sorted(objects, key=lambda x: x.get_time())
+
+    def sorted_descending(self, objects: Union[set, list]):
+        return sorted(objects, key=lambda x: -x.get_time())
 
     def load_excess(self, objects: set):
         proc_load = sum([obj.get_time() for obj in objects])
         return proc_load - self.average_load
 
-    def fewest_migrations(self, objects: set):
+    def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
             Sort largest to smallest if <= load_excess
@@ -493,7 +543,7 @@ class Runtime:
         get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
         return self.sorted_descending(lt_load_excess) + self.sorted_ascending(get_load_excess)
 
-    def small_objects(self, objects: set):
+    def small_objects(self, objects: set, _):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
             Sort largest to smallest if <= load_excess
@@ -505,9 +555,3 @@ class Runtime:
         accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
         idx = bisect(accumulated_times, load_excess) + 1
         return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])
-
-    def largest_objects(self, objects: set):
-        """ Objects ordered by object load/time. From bigger to smaller.
-        """
-
-        return self.sorted_descending(objects)
