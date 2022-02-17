@@ -43,50 +43,88 @@
 ###############################################################################
 import os
 import sys
+
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    exit(1)
+
+from logging import Logger
 import math
 import itertools
 import yaml
 import csv
 
+from src.IO.lbsLoadReaderVT import LoadReader
+from src.Utils.logger import logger
+
 
 def get_conf() -> dict:
     """ Gets config from file and returns a dictionary. """
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     with open(os.path.join(project_path, "src", "Applications", "conf.yaml"), 'rt') as conf_file:
         conf = yaml.safe_load(conf_file)
     return conf
 
-
-# Dictionary of objects
-objects = (
-    {"id": 0, "time": 1.0, "from": {}, "to": {5: 2.0}},
-    {"id": 1, "time": 0.5, "from": {4: 2.0}, "to": {4: 1.0}},
-    {"id": 2, "time": 0.5, "from": {3: 1.0}, "to": {}},
-    {"id": 3, "time": 0.5, "from": {}, "to": {2: 1.0, 8: 0.5}},
-    {"id": 4, "time": 0.5, "from": {1: 1.0}, "to": {1: 2.0}},
-    {"id": 5, "time": 2.0, "from": {0: 2.0}, "to": {8: 2.0}},
-    {"id": 6, "time": 1.0, "from": {7: 1.0, 8: 1.5}, "to": {}},
-    {"id": 7, "time": 0.5, "from": {}, "to": {6: 1.0}},
-    {"id": 8, "time": 1.5, "from": {3: 0.5, 5: 2.0}, "to": {6: 1.5}})
-
 # Getting configuration:
-conf = get_conf()
+CONF = get_conf()
 
 # Define number of ranks
-n_ranks = conf.get("x_procs") * conf.get("y_procs") * conf.get("z_procs")
+N_RANKS = CONF.get("x_procs") * CONF.get("y_procs") * CONF.get("z_procs")
 
 # Define work constants
-alpha = conf.get("work_model").get("parameters").get("alpha")
-beta = conf.get("work_model").get("parameters").get("beta")
-gamma = conf.get("work_model").get("parameters").get("gamma")
+ALPHA = CONF.get("work_model").get("parameters").get("alpha")
+BETA = CONF.get("work_model").get("parameters").get("beta")
+GAMMA = CONF.get("work_model").get("parameters").get("gamma")
+INPUT_DATA = os.path.join(project_path, CONF.get("log_file"))
+FILE_SUFFIX = CONF.get("file_suffix")
+LGR = logger()
 
 
-def compute_load(object_list: list) -> float:
+def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str) -> tuple:
+    """ Reads data from configuration and returns a tuple of objects with communication. """
+    # Instantiate data containers
+    objcts = list()
+    communication = dict()
+
+    # Instantiate data reader Class
+    lr = LoadReader(file_prefix=file_prefix, logger=logger, file_suffix=file_suffix)
+
+    # Iterate over ranks, collecting objects and communication
+    for rank in range(n_ranks):
+        iter_map, comm = lr.read(node_id=rank)
+        for rnk in iter_map.values():
+            for obj in rnk.migratable_objects:
+                objcts.append({"id": obj.index, "time": obj.time})
+        for obj_idx, obj_comm in comm.items():
+            if obj_idx not in communication.keys():
+                communication[obj_idx] = {"from": {}, "to": {}}
+            if obj_comm.get("sent"):
+                for snt in obj_comm.get("sent"):
+                    communication[obj_idx]["to"].update({snt.get("to"): snt.get("bytes")})
+            if obj_comm.get("received"):
+                for rec in obj_comm.get("received"):
+                    communication[obj_idx]["from"].update({rec.get("from"): rec.get("bytes")})
+
+    # Sort objects for debugging purposes
+    objcts.sort(key=lambda x: x.get("id"))
+
+    # Adding communication to objects
+    for objct in objcts:
+        idx = objct.get("id")
+        if communication.get(idx) is not None:
+            objct.update(communication.get(idx))
+
+    return tuple(objcts)
+
+
+def compute_load(objects: tuple, object_list: list) -> float:
     """ Returns a load as a sum of all object times. """
     return sum([objects[i]["time"] for i in object_list])
 
 
-def compute_volume(rank_objects: list, direction: str) -> float:
+def compute_volume(objects: tuple, rank_objects: list, direction: str) -> float:
     """ Returns a volume of rank objects. """
     # Initialize volume
     volume = 0.
@@ -99,23 +137,22 @@ def compute_volume(rank_objects: list, direction: str) -> float:
     return volume
 
 
-def compute_arrangement_works(arrangement: tuple, alpha_c: float, beta_c: float, gamma_c: float) -> dict:
+def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha_c: float, beta_c: float, gamma_c: float) -> dict:
     """ Returns a dictionary with works of rank objects. """
     # Build object rank map from arrangement
     ranks = {}
-    for i, j in enumerate(arrangement):
+    for i, j in enumerate(arrngmnt):
         ranks.setdefault(j, []).append(i)
 
     # iterate over ranks
     works = {}
     for rank, rank_objects in ranks.items():
         # Compute per-rank loads
-        works[rank] = alpha_c * compute_load(rank_objects)
+        works[rank] = alpha_c * compute_load(objects, rank_objects)
 
         # Compute communication volumes
-        works[rank] += beta_c * max(
-            compute_volume(rank_objects, "from"),
-            compute_volume(rank_objects, "to"))
+        works[rank] += beta_c * max(compute_volume(objects, rank_objects, "from"),
+                                    compute_volume(objects, rank_objects, "to"))
 
         # Add constant
         works[rank] += gamma_c
@@ -125,28 +162,29 @@ def compute_arrangement_works(arrangement: tuple, alpha_c: float, beta_c: float,
 
 
 if __name__ == '__main__':
+    # Getting objects from log files
+    objcts = get_objects(n_ranks=N_RANKS, logger=LGR, file_prefix=INPUT_DATA, file_suffix=FILE_SUFFIX)
+
     # Print out input parameters
-    print("alpha:", alpha)
-    print("beta:", beta)
-    print("gamma:", gamma)
+    LGR.info(f"alpha: {ALPHA}")
+    LGR.info(f"beta: {BETA}")
+    LGR.info(f"gamma: {GAMMA}")
 
     # Report on some initial configuration
     initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
-    print("Initial arrangement:", initial_arrangement)
-    initial_works = compute_arrangement_works(
-        initial_arrangement, alpha, beta, gamma)
-    print("\tper-rank works:", initial_works)
-    print("\tmaximum work: {:.4g} average work: {:.4g}".format(
-        max(initial_works.values()),
-        sum(initial_works.values()) / len(initial_works)))
+    LGR.info(f"Initial arrangement: {initial_arrangement}")
+    initial_works = compute_arrangement_works(objcts, initial_arrangement, ALPHA, BETA, GAMMA)
+    LGR.info(f"\tper-rank works: {initial_works}")
+    LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
+             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
     # Generate all possible arrangements with repetition
     n_arrangements = 0
     works_min_max = math.inf
     arrangements_min_max = []
-    for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
+    for arrangement in itertools.product(range(N_RANKS), repeat=len(objcts)):
         # Compute per-rank works for currrent arrangement
-        works = compute_arrangement_works(arrangement, alpha, beta, gamma)
+        works = compute_arrangement_works(objcts, arrangement, ALPHA, BETA, GAMMA)
 
         # Update minmax when relevant
         work_max = max(works.values())
@@ -160,22 +198,21 @@ if __name__ == '__main__':
         n_arrangements += 1
 
     # Sanity check
-    print("Number of generated arrangements:", n_arrangements)
-    if n_arrangements != n_ranks ** len(objects):
-        print("** ERROR: incorrect numnber of arrangements")
+    LGR.info(f"Number of generated arrangements: {n_arrangements}")
+    if n_arrangements != N_RANKS ** len(objcts):
+        LGR.error("Incorrect number of arrangements")
         sys.exit(1)
 
     # Report on optimal arrangements
-    print("\tminimax work: {:.4g} for {} arrangements".format(works_min_max, len(arrangements_min_max)))
-
+    LGR.info(f"\tminimax work: {works_min_max:.4g} for {len(arrangements_min_max)} arrangements")
 
     # Write all optimal arrangements to CSV file
-    out_name = "optimal-arrangements.csv"
+    output_dir = os.path.join(project_path, CONF.get("output_dir"))
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    out_name = os.path.join(output_dir, "optimal-arrangements.csv")
     with open(out_name, 'w') as f:
         writer = csv.writer(f)
         for a in arrangements_min_max:
             writer.writerow(a)
-    print("Wrote",
-          len(arrangements_min_max),
-          "optimal arrangement to",
-          out_name)
+    LGR.info(f"Wrote {len(arrangements_min_max)} optimal arrangement to {out_name}")

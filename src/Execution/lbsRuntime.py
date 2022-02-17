@@ -131,6 +131,10 @@ class Runtime:
             "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
+        if order_strategy not in self.strategy_mapped:
+            self.lgr.error(f"{order_strategy} does not exist in known strategies: "
+                           f"{[x for x in self.strategy_mapped.keys()]}")
+            sys.exit(1)
         self.order_strategy = self.strategy_mapped.get(order_strategy, None)
 
     def information_stage(self, n_rounds, f):
