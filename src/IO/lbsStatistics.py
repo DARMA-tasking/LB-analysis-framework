@@ -107,6 +107,23 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         logger.error(f"{distribution_name} distribution is not supported.")
         return None, None
 
+def hamming_distance(arrangement_1, arrangement_2):
+    """Compute Hamming distance between two arrangements
+    """
+
+    # Distance can only be compute between same length arrangements
+    if len(arrangement_1) != len(arrangement_2):
+        return math.inf
+
+    # Iterate over arrangement values
+    hd = 0
+    for i, j in zip(arrangement_1, arrangement_2):
+        # Increment distance for each pair of different entries
+        if i != j:
+            hd += 1
+
+    # Return the final count of differences
+    return hd
 
 def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
@@ -215,7 +232,6 @@ def print_function_statistics(values, function, var_name, logger: Logger = None,
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
-
 
 def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger = None):
     """Compute and report descriptive statistics of subset vs. full set
