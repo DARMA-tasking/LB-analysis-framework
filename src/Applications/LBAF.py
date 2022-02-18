@@ -413,7 +413,8 @@ if __name__ == '__main__':
         params.work_model,
         params.criterion,
         params.order_strategy,
-        logger=lgr)
+        a_min_max,
+        lgr)
     rt.execute(
         params.n_iterations,
         params.n_rounds,
