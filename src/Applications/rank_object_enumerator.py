@@ -84,8 +84,8 @@ LGR = logger()
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str) -> tuple:
     """ Reads data from configuration and returns a tuple of objects with communication. """
     # Instantiate data containers
-    objcts = list()
-    communication = dict()
+    object_list = []
+    communication = {}
 
     # Instantiate data reader Class
     lr = LoadReader(file_prefix=file_prefix, logger=logger, file_suffix=file_suffix)
@@ -95,7 +95,7 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
         iter_map, comm = lr.read(node_id=rank)
         for rnk in iter_map.values():
             for obj in rnk.migratable_objects:
-                objcts.append({"id": obj.index, "time": obj.time})
+                object_list.append({"id": obj.index, "time": obj.time})
         for obj_idx, obj_comm in comm.items():
             if obj_idx not in communication.keys():
                 communication[obj_idx] = {"from": {}, "to": {}}
@@ -107,15 +107,15 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
                     communication[obj_idx]["from"].update({rec.get("from"): rec.get("bytes")})
 
     # Sort objects for debugging purposes
-    objcts.sort(key=lambda x: x.get("id"))
+    object_list.sort(key=lambda x: x.get("id"))
 
     # Adding communication to objects
-    for objct in objcts:
+    for objct in object_list:
         idx = objct.get("id")
         if communication.get(idx) is not None:
             objct.update(communication.get(idx))
 
-    return tuple(objcts)
+    return tuple(object_list)
 
 
 def compute_load(objects: tuple, object_list: list) -> float:
@@ -159,7 +159,7 @@ def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha_c: float, b
     # Return arrangement works
     return works
 
-def compute_min_max_arrangements_work():
+def compute_min_max_arrangements_work(object_list):
     """Compute all possible arrangements with repetition and minimax work
     """
 
@@ -167,9 +167,14 @@ def compute_min_max_arrangements_work():
     n_arrangements = 0
     works_min_max = math.inf
     arrangements_min_max = []
-    for arrangement in itertools.product(range(N_RANKS), repeat=len(objcts)):
+    for arrangement in itertools.product(
+        range(N_RANKS),
+        repeat=len(object_list)):
         # Compute per-rank works for currrent arrangement
-        works = compute_arrangement_works(objcts, arrangement, ALPHA, BETA, GAMMA)
+        works = compute_arrangement_works(
+            object_list,
+            arrangement,
+            ALPHA, BETA, GAMMA)
 
         # Update minmax when relevant
         work_max = max(works.values())
@@ -187,7 +192,11 @@ def compute_min_max_arrangements_work():
     
 if __name__ == '__main__':
     # Getting objects from log files
-    objcts = get_objects(n_ranks=N_RANKS, logger=LGR, file_prefix=INPUT_DATA, file_suffix=FILE_SUFFIX)
+    object_list = get_objects(
+        n_ranks=N_RANKS,
+        logger=LGR,
+        file_prefix=INPUT_DATA,
+        file_suffix=FILE_SUFFIX)
 
     # Print out input parameters
     LGR.info(f"alpha: {ALPHA}")
@@ -197,14 +206,17 @@ if __name__ == '__main__':
     # Report on some initial configuration
     initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
     LGR.info(f"Initial arrangement: {initial_arrangement}")
-    initial_works = compute_arrangement_works(objcts, initial_arrangement, ALPHA, BETA, GAMMA)
+    initial_works = compute_arrangement_works(
+        object_list,
+        initial_arrangement,
+        ALPHA, BETA, GAMMA)
     LGR.info(f"\tper-rank works: {initial_works}")
     LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
     # Compute best possible arrangements,
-    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work()
-    if n_a != N_RANKS ** len(objcts):
+    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(object_list)
+    if n_a != N_RANKS ** len(object_list):
         LGR.error("Incorrect number of possible arrangements with repetition")
         sys.exit(1)
     LGR.info(f"Number of generated arrangements with repetition: {n_a}")
