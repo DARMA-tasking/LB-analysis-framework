@@ -126,6 +126,24 @@ def Hamming_distance(arrangement_1, arrangement_2):
     return hd
 
 
+def min_Hamming_distance(arrangement, arrangement_list):
+    """Compute minimum Hamming distance from arrangement to list of arrangements
+    """
+
+    # Minimum distance is at least equal to arrangement length
+    hd_min = len(arrangement)
+
+    # Iterate over list of arrangements
+    for a in arrangement_list:
+        # Compute distance and update minimum as needed
+        hd = Hamming_distance(arrangement, a)
+        if hd < hd_min:
+            hd_min = hd
+
+    # Return minimum distance
+    return hd_min
+
+
 def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform
