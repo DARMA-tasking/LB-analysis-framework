@@ -85,7 +85,7 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
     """ Read data from configuration and returns a tuple of objects with communication. """
 
     # Instantiate data containers
-    object_list = []
+    objects = []
     communication = {}
 
     # Instantiate data reader Class
@@ -96,7 +96,7 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
         iter_map, comm = lr.read(node_id=rank)
         for rnk in iter_map.values():
             for obj in rnk.migratable_objects:
-                object_list.append({"id": obj.get_id(), "time": obj.time})
+                objects.append({"id": obj.get_id(), "time": obj.time})
         for obj_idx, obj_comm in comm.items():
             if obj_idx not in communication.keys():
                 communication[obj_idx] = {"from": {}, "to": {}}
@@ -108,25 +108,25 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
                     communication[obj_idx]["from"].update({rec.get("from"): rec.get("bytes")})
 
     # Sort objects for debugging purposes
-    object_list.sort(key=lambda x: x.get("id"))
+    objects.sort(key=lambda x: x.get("id"))
 
     # Adding communication to objects
-    for objct in object_list:
+    for objct in objects:
         idx = objct.get("id")
         if communication.get(idx) is not None:
             objct.update(communication.get(idx))
 
-    return tuple(object_list)
+    return tuple(objects)
 
 
-def compute_load(objects: tuple, object_list: list) -> float:
+def compute_load(objects, rank_object_ids) -> float:
     """ Return a load as a sum of all object times
     """
 
-    return sum([objects[i]["time"] for i in object_list])
+    return sum([objects[i]["time"] for i in rank_object_ids])
 
 
-def compute_volume(objects: tuple, rank_objects: list, direction: str) -> float:
+def compute_volume(objects, rank_object_ids, direction: str) -> float:
     """ Return a volume of rank objects
     """
 
@@ -134,8 +134,10 @@ def compute_volume(objects: tuple, rank_objects: list, direction: str) -> float:
     volume = 0.
 
     # Iterate over all rank objects
-    for o in rank_objects:
-        volume += sum([v for k, v in objects[o].get(direction, 0.).items() if k not in rank_objects])
+    for i in rank_object_ids:
+        volume += sum(
+            [v for k, v in objects[i].get(direction, 0.).items()
+             if k not in rank_object_ids])
 
     # Return computed volume
     return volume
@@ -167,7 +169,7 @@ def compute_arrangement_works(object_tuple: tuple, arrngmnt: tuple, alpha_c: flo
     # Return arrangement works
     return works
 
-def compute_min_max_arrangements_work(object_tuple):
+def compute_min_max_arrangements_work(objects):
     """Compute all possible arrangements with repetition and minimax work
     """
 
@@ -177,11 +179,11 @@ def compute_min_max_arrangements_work(object_tuple):
     arrangements_min_max = []
     for arrangement in itertools.product(
         range(N_RANKS),
-        repeat=len(object_tuple)):
+        repeat=len(objects)):
 
         # Compute per-rank works for currrent arrangement
         works = compute_arrangement_works(
-            object_tuple,
+            objects,
             arrangement,
             ALPHA, BETA, GAMMA)
 
@@ -202,7 +204,7 @@ def compute_min_max_arrangements_work(object_tuple):
 if __name__ == '__main__':
 
     # Get objects from log files
-    object_tuple = get_objects(
+    objects = get_objects(
         n_ranks=N_RANKS,
         logger=LGR,
         file_prefix=INPUT_DATA,
@@ -217,7 +219,7 @@ if __name__ == '__main__':
     initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
     LGR.info(f"Initial arrangement: {initial_arrangement}")
     initial_works = compute_arrangement_works(
-        object_tuple,
+        objects,
         initial_arrangement,
         ALPHA, BETA, GAMMA)
     LGR.info(f"\tper-rank works: {initial_works}")
@@ -225,8 +227,8 @@ if __name__ == '__main__':
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
     # Compute best possible arrangements,
-    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(object_tuple)
-    if n_a != N_RANKS ** len(object_tuple):
+    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects)
+    if n_a != N_RANKS ** len(objects):
         LGR.error("Incorrect number of possible arrangements with repetition")
         sys.exit(1)
     LGR.info(f"Number of generated arrangements with repetition: {n_a}")
