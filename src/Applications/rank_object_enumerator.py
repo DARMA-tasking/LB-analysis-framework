@@ -169,6 +169,7 @@ def compute_arrangement_works(object_tuple: tuple, arrngmnt: tuple, alpha_c: flo
     # Return arrangement works
     return works
 
+
 def compute_min_max_arrangements_work(objects):
     """Compute all possible arrangements with repetition and minimax work
     """
@@ -226,14 +227,12 @@ if __name__ == '__main__':
     LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
-    # Compute best possible arrangements,
+    # Compute and report on best possible arrangements
     n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects)
     if n_a != N_RANKS ** len(objects):
         LGR.error("Incorrect number of possible arrangements with repetition")
         sys.exit(1)
     LGR.info(f"Number of generated arrangements with repetition: {n_a}")
-
-    # Report on optimal arrangements
     LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} arrangements")
 
     # Write all optimal arrangements to CSV file

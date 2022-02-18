@@ -45,7 +45,6 @@ import os
 import sys
 import logging
 import math
-import rank_object_enumerator
 import yaml
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
@@ -62,9 +61,10 @@ from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
 from src.IO.lbsLoadWriterVT import LoadWriterVT
 from src.IO.lbsWriterExodusII import WriterExodusII
-from src.IO.lbsStatistics import initialize, print_function_statistics
+from src.IO.lbsStatistics import initialize, print_function_statistics, Hamming_distance
 from src.Utils.logger import logger
 
+import rank_object_enumerator as roe
 
 class internalParameters:
     """A class to describe LBAF internal parameters
@@ -104,7 +104,7 @@ class internalParameters:
         self.communication_enabled = False
 
         # Size of subset to which objects are initially mapped (0 = all)
-        self.n_ranks = 0
+        self.n_mapped_ranks = 0
 
         # Number of information rounds
         self.n_rounds = 1
@@ -298,7 +298,7 @@ def global_id_to_cartesian(id, grid_sizes):
     return i, j, k
 
 
-def get_output_file_stem(params):
+def get_output_file_stem(params, n_ranks):
     """Build the file name for a given rank/node
     """
 
@@ -311,7 +311,7 @@ def get_output_file_stem(params):
             params.fanout)
     else:
         output_stem = "p{}-o{}-s{}-i{}-k{}-f{}".format(
-            params.n_ranks,
+            params.n_mapped_ranks,
             params.n_objects,
             params.time_sampler_type,
             params.n_iterations,
@@ -320,7 +320,7 @@ def get_output_file_stem(params):
 
     # Return assembled stem
     return "LBAF-n{}-{}-{}-{}".format(
-        n_p,
+        n_ranks,
         output_stem,
         params.criterion["name"],
         '-'.join([str(v).replace('.', '_') for v in params.criterion["parameters"].values()]))
@@ -338,9 +338,9 @@ if __name__ == '__main__':
     lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
 
     # Keep track of total number of procs
-    n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-    if n_p < 2:
-        lgr.info(f"Total number of ranks ({n_p}) must be > 1")
+    n_ranks = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
+    if n_ranks < 2:
+        lgr.info(f"Total number of ranks ({n_ranks}) must be > 1")
         sys.exit(1)
 
     # Initialize random number generator
@@ -351,7 +351,7 @@ if __name__ == '__main__':
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(
-            n_p,
+            n_ranks,
             params.phase_id,
             params.log_file)
     else:
@@ -363,8 +363,8 @@ if __name__ == '__main__':
             params.communication_degree,
             params.volume_sampler_type,
             params.volume_sampler_parameters,
-            n_p,
-            params.n_ranks)
+            n_ranks,
+            params.n_mapped_ranks)
 
         # Keep track of number of objects
         n_o = params.n_objects
@@ -397,14 +397,14 @@ if __name__ == '__main__':
 
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
-    lgr.info(f"Mapping {n_p} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
+    lgr.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
     grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
 
     # Assemble output file name stem
     if params.output_file_stem is not None:
         output_stem = params.output_file_stem
     else:
-        output_stem = get_output_file_stem(params)
+        output_stem = get_output_file_stem(params, n_ranks)
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
@@ -456,18 +456,42 @@ if __name__ == '__main__':
         logger=lgr)
 
     # Report on theoretically optimal statistics
-    q, r = divmod(n_o, n_p)
-    ell = n_p * l_ave / n_o
+    q, r = divmod(n_o, n_ranks)
+    ell = n_ranks * l_ave / n_o
     lgr.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
     lgr.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-    imbalance = (n_p - r) / float(n_o) if r else 0.
-    lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}")
+    imbalance = (n_ranks - r) / float(n_o) if r else 0.
+    lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_ranks - r)) / n_ranks:.6g}  imbalance: {imbalance:.6g}")
+
+
+    # Prepare input data for rank order enumerator
+    objects = []
+    for rank in phase.get_ranks():
+        for o in rank.get_objects():
+            entry = {
+                "id": o.get_id(),
+                "time": o.get_time(),
+                "to": {},
+                "from": {}}
+            comm = o.get_communicator()
+            if comm:
+                for k, v in comm.get_sent().items():
+                    entry["to"][k.get_id()] = v
+                for k, v in comm.get_received().items():
+                    entry["from"][k.get_id()] = v
+            objects.append(entry)
+    objects.sort(key=lambda x: x.get("id"))
 
     # Execute rank order enumerator and fetch optimal arrangements
-    exec(open("rank_object_enumerator.py").read())
-    with open("../../output/optimal-arrangements.csv",'r') as csv_file:
-        for row in csv_file:
-            print(row.strip())
+    n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
+        objects)
+    if n_a != n_ranks ** len(objects):
+        lgr.error("Incorrect number of possible arrangements with repetition")
+        sys.exit(1)
+    lgr.info(f"Number of generated arrangements with repetition: {n_a}")
+    lgr.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} arrangements")
 
+    # Compute Hamming distance
+    
     # If this point is reached everything went fine
     lgr.info("Process complete ###")

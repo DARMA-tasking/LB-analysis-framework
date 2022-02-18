@@ -107,7 +107,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         logger.error(f"{distribution_name} distribution is not supported.")
         return None, None
 
-def hamming_distance(arrangement_1, arrangement_2):
+def Hamming_distance(arrangement_1, arrangement_2):
     """Compute Hamming distance between two arrangements
     """
 
