@@ -125,6 +125,7 @@ def hamming_distance(arrangement_1, arrangement_2):
     # Return the final count of differences
     return hd
 
+
 def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform
@@ -232,6 +233,7 @@ def print_function_statistics(values, function, var_name, logger: Logger = None,
 
     # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
+
 
 def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger = None):
     """Compute and report descriptive statistics of subset vs. full set

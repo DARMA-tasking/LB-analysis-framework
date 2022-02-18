@@ -43,17 +43,16 @@
 ###############################################################################
 import os
 import sys
+import logging
+import math
+import rank_object_enumerator
+import yaml
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
-
-import logging
-import math
-
-import yaml
 try:
     import paraview.simple
 except:
@@ -463,6 +462,12 @@ if __name__ == '__main__':
     lgr.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
     imbalance = (n_p - r) / float(n_o) if r else 0.
     lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}")
+
+    # Execute rank order enumerator and fetch optimal arrangements
+    exec(open("rank_object_enumerator.py").read())
+    with open("../../output/optimal-arrangements.csv",'r') as csv_file:
+        for row in csv_file:
+            print(row.strip())
 
     # If this point is reached everything went fine
     lgr.info("Process complete ###")

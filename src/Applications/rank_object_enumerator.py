@@ -43,6 +43,11 @@
 ###############################################################################
 import os
 import sys
+import math
+import itertools
+import yaml
+import csv
+from logging import Logger
 
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
@@ -50,12 +55,6 @@ try:
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
-
-from logging import Logger
-import math
-import itertools
-import yaml
-import csv
 
 from src.IO.lbsLoadReaderVT import LoadReader
 from src.Utils.logger import logger
@@ -160,25 +159,11 @@ def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha_c: float, b
     # Return arrangement works
     return works
 
+def compute_min_max_arrangements_work():
+    """Compute all possible arrangements with repetition and minimax work
+    """
 
-if __name__ == '__main__':
-    # Getting objects from log files
-    objcts = get_objects(n_ranks=N_RANKS, logger=LGR, file_prefix=INPUT_DATA, file_suffix=FILE_SUFFIX)
-
-    # Print out input parameters
-    LGR.info(f"alpha: {ALPHA}")
-    LGR.info(f"beta: {BETA}")
-    LGR.info(f"gamma: {GAMMA}")
-
-    # Report on some initial configuration
-    initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
-    LGR.info(f"Initial arrangement: {initial_arrangement}")
-    initial_works = compute_arrangement_works(objcts, initial_arrangement, ALPHA, BETA, GAMMA)
-    LGR.info(f"\tper-rank works: {initial_works}")
-    LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
-             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
-
-    # Generate all possible arrangements with repetition
+    # Initialize quantities of interest
     n_arrangements = 0
     works_min_max = math.inf
     arrangements_min_max = []
@@ -197,14 +182,35 @@ if __name__ == '__main__':
         # Keep track of number of arrangements for sanity
         n_arrangements += 1
 
-    # Sanity check
-    LGR.info(f"Number of generated arrangements: {n_arrangements}")
-    if n_arrangements != N_RANKS ** len(objcts):
-        LGR.error("Incorrect number of arrangements")
+    # Return quantities of interest
+    return n_arrangements, works_min_max, arrangements_min_max
+    
+if __name__ == '__main__':
+    # Getting objects from log files
+    objcts = get_objects(n_ranks=N_RANKS, logger=LGR, file_prefix=INPUT_DATA, file_suffix=FILE_SUFFIX)
+
+    # Print out input parameters
+    LGR.info(f"alpha: {ALPHA}")
+    LGR.info(f"beta: {BETA}")
+    LGR.info(f"gamma: {GAMMA}")
+
+    # Report on some initial configuration
+    initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
+    LGR.info(f"Initial arrangement: {initial_arrangement}")
+    initial_works = compute_arrangement_works(objcts, initial_arrangement, ALPHA, BETA, GAMMA)
+    LGR.info(f"\tper-rank works: {initial_works}")
+    LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
+             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
+
+    # Compute best possible arrangements,
+    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work()
+    if n_a != N_RANKS ** len(objcts):
+        LGR.error("Incorrect number of possible arrangements with repetition")
         sys.exit(1)
+    LGR.info(f"Number of generated arrangements with repetition: {n_a}")
 
     # Report on optimal arrangements
-    LGR.info(f"\tminimax work: {works_min_max:.4g} for {len(arrangements_min_max)} arrangements")
+    LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} arrangements")
 
     # Write all optimal arrangements to CSV file
     output_dir = os.path.join(project_path, CONF.get("output_dir"))
@@ -213,6 +219,6 @@ if __name__ == '__main__':
     out_name = os.path.join(output_dir, "optimal-arrangements.csv")
     with open(out_name, 'w') as f:
         writer = csv.writer(f)
-        for a in arrangements_min_max:
+        for a in a_min_max:
             writer.writerow(a)
-    LGR.info(f"Wrote {len(arrangements_min_max)} optimal arrangement to {out_name}")
+    LGR.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
