@@ -381,6 +381,32 @@ if __name__ == '__main__':
         "initial sent volumes",
         logger=lgr)
 
+    # Prepare input data for rank order enumerator
+    objects = []
+    for rank in phase.get_ranks():
+        for o in rank.get_objects():
+            entry = {
+                "id": o.get_id(),
+                "time": o.get_time(),
+                "to": {},
+                "from": {}}
+            comm = o.get_communicator()
+            if comm:
+                for k, v in comm.get_sent().items():
+                    entry["to"][k.get_id()] = v
+                for k, v in comm.get_received().items():
+                    entry["from"][k.get_id()] = v
+            objects.append(entry)
+    objects.sort(key=lambda x: x.get("id"))
+
+    # Execute rank order enumerator and fetch optimal arrangements
+    n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
+        objects)
+    if n_a != n_ranks ** len(objects):
+        lgr.error("Incorrect number of possible arrangements with repetition")
+        sys.exit(1)
+    lgr.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+
     # Instantiate runtime
     rt = Runtime(
         phase,
@@ -463,35 +489,6 @@ if __name__ == '__main__':
     imbalance = (n_ranks - r) / float(n_o) if r else 0.
     lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_ranks - r)) / n_ranks:.6g}  imbalance: {imbalance:.6g}")
 
-
-    # Prepare input data for rank order enumerator
-    objects = []
-    for rank in phase.get_ranks():
-        for o in rank.get_objects():
-            entry = {
-                "id": o.get_id(),
-                "time": o.get_time(),
-                "to": {},
-                "from": {}}
-            comm = o.get_communicator()
-            if comm:
-                for k, v in comm.get_sent().items():
-                    entry["to"][k.get_id()] = v
-                for k, v in comm.get_received().items():
-                    entry["from"][k.get_id()] = v
-            objects.append(entry)
-    objects.sort(key=lambda x: x.get("id"))
-
-    # Execute rank order enumerator and fetch optimal arrangements
-    n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
-        objects)
-    if n_a != n_ranks ** len(objects):
-        lgr.error("Incorrect number of possible arrangements with repetition")
-        sys.exit(1)
-    lgr.info(f"Number of generated arrangements with repetition: {n_a}")
-    lgr.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} arrangements")
-
     # Compute Hamming distance
-    
     # If this point is reached everything went fine
     lgr.info("Process complete ###")

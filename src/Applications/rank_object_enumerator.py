@@ -233,7 +233,7 @@ if __name__ == '__main__':
         LGR.error("Incorrect number of possible arrangements with repetition")
         sys.exit(1)
     LGR.info(f"Number of generated arrangements with repetition: {n_a}")
-    LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} arrangements")
+    LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")
 
     # Write all optimal arrangements to CSV file
     output_dir = os.path.join(project_path, CONF.get("output_dir"))
