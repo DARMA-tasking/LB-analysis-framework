@@ -73,16 +73,17 @@ CONF = get_conf()
 N_RANKS = CONF.get("x_procs") * CONF.get("y_procs") * CONF.get("z_procs")
 
 # Define work constants
-ALPHA = CONF.get("work_model").get("parameters").get("alpha")
-BETA = CONF.get("work_model").get("parameters").get("beta")
-GAMMA = CONF.get("work_model").get("parameters").get("gamma")
+alpha_global = CONF.get("work_model").get("parameters").get("alpha")
+beta_global = CONF.get("work_model").get("parameters").get("beta")
+gamma_global = CONF.get("work_model").get("parameters").get("gamma")
 INPUT_DATA = os.path.join(project_path, CONF.get("log_file"))
 FILE_SUFFIX = CONF.get("file_suffix")
 LGR = logger()
 
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str) -> tuple:
-    """ Read data from configuration and returns a tuple of objects with communication. """
+    """ Read data from configuration and returns a tuple of objects with communication
+    """
 
     # Instantiate data containers
     objects = []
@@ -111,11 +112,12 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
     objects.sort(key=lambda x: x.get("id"))
 
     # Adding communication to objects
-    for objct in objects:
-        idx = objct.get("id")
+    for o in objects:
+        idx = o.get("id")
         if communication.get(idx) is not None:
-            objct.update(communication.get(idx))
+            o.update(communication.get(idx))
 
+    # Return objects as tuple
     return tuple(objects)
 
 
@@ -143,7 +145,7 @@ def compute_volume(objects, rank_object_ids, direction: str) -> float:
     return volume
 
 
-def compute_arrangement_works(object_tuple: tuple, arrngmnt: tuple, alpha_c: float, beta_c: float, gamma_c: float) -> dict:
+def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha: float, beta: float, gamma: float) -> dict:
     """ Return a dictionary with works of rank objects
     """
 
@@ -156,18 +158,62 @@ def compute_arrangement_works(object_tuple: tuple, arrngmnt: tuple, alpha_c: flo
     works = {}
     for rank, rank_objects in ranks.items():
         # Compute per-rank loads
-        works[rank] = alpha_c * compute_load(object_tuple, rank_objects)
+        works[rank] = alpha * compute_load(objects, rank_objects)
 
         # Compute communication volumes
-        works[rank] += beta_c * max(
-            compute_volume(object_tuple, rank_objects, "from"),
-            compute_volume(object_tuple, rank_objects, "to"))
+        works[rank] += beta * max(
+            compute_volume(objects, rank_objects, "from"),
+            compute_volume(objects, rank_objects, "to"))
 
         # Add constant
-        works[rank] += gamma_c
+        works[rank] += gamma
 
     # Return arrangement works
     return works
+
+def compute_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, from_id: int, to_id: int, n_ranks:int, max_objects:int=None):
+    """Compute arragnements reachable by moving up to a maximum number of objects from one rank to another
+    """
+
+    # Sanity checks regarding rank IDs
+    if from_id >= n_ranks:
+        LGR.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
+        sys.exit(1)
+    if to_id >= n_ranks:
+        LGR.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
+        sys.exit(1)
+
+    # Provide upper bounder on transfer size when none provided
+    if not max_objects:
+        max_objects = len(arrangement)
+
+    # Search for all arrangement entries matching sender ID
+    matches = [i for i, r in enumerate(arrangement) if r == from_id]
+
+    # Loop over all allowable transfers to find reachable arrangements
+    reachable = {}
+    n_possible = 0
+    for n in range(1, min(len(matches), max_objects) + 1):
+        LGR.debug(f"Generating possible arrangements with {n} transfer(s) from rank {from_id} to rank {to_id}")
+        # Iterate over all combinations with given size
+        for c in itertools.combinations(matches, n):
+            # Change all correspdonding entries
+            n_possible += 1
+            new_arrangement = tuple(
+                to_id if i in c else r for i, r in enumerate(arrangement))
+            works = compute_arrangement_works(
+                objects,
+                new_arrangement,
+                alpha, beta, gamma)
+
+            # Check whether new arrangements is reachable
+            w_max_new = max(works.values())
+            if w_max_new <= w_max:
+                reachable[new_arrangement] = w_max_new
+    LGR.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst {n_possible} possible one(s)")
+
+    # Return dict of reachable arrangements
+    return reachable
 
 
 def compute_min_max_arrangements_work(objects):
@@ -186,7 +232,7 @@ def compute_min_max_arrangements_work(objects):
         works = compute_arrangement_works(
             objects,
             arrangement,
-            ALPHA, BETA, GAMMA)
+            alpha_global, beta_global, gamma_global)
 
         # Update minmax when relevant
         work_max = max(works.values())
@@ -212,20 +258,37 @@ if __name__ == '__main__':
         file_suffix=FILE_SUFFIX)
 
     # Print out input parameters
-    LGR.info(f"alpha: {ALPHA}")
-    LGR.info(f"beta: {BETA}")
-    LGR.info(f"gamma: {GAMMA}")
+    LGR.info(f"alpha: {alpha_global}")
+    LGR.info(f"beta: {beta_global}")
+    LGR.info(f"gamma: {gamma_global}")
 
     # Report on some initial configuration
-    initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
+    initial_arrangement =  (3, 0, 0, 0, 0, 1, 3, 3, 2)
     LGR.info(f"Initial arrangement: {initial_arrangement}")
     initial_works = compute_arrangement_works(
         objects,
         initial_arrangement,
-        ALPHA, BETA, GAMMA)
+        alpha_global, beta_global, gamma_global)
+    w_max = max(initial_works.values())
     LGR.info(f"\tper-rank works: {initial_works}")
-    LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
+    LGR.info(f"\tmaximum work: {w_max:.4g} average work: "
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
+
+    # Compute all possible reachable arrangements
+    all_reachable = {}
+    for from_id in range(N_RANKS):
+        for to_id in range(N_RANKS):
+            if from_id == to_id:
+                continue
+            all_reachable.update(compute_reachable_arrangements(
+                objects,
+                initial_arrangement,
+                alpha_global, beta_global, gamma_global,
+                w_max,
+                from_id, to_id, N_RANKS))
+    LGR.info(f"Found {len(all_reachable)} reachable arrangements, with minimum maximum work: {min(all_reachable.values())}:")
+    for k, v in all_reachable.items():
+            LGR.info(f"\t{k}: {v}")
 
     # Compute and report on best possible arrangements
     n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects)
