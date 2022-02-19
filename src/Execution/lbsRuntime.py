@@ -151,7 +151,7 @@ class Runtime:
             self.lgr.error(f"{os} does not exist in known strategies: "
                            f"{[x for x in self.strategy_mapped.keys()]}")
             sys.exit(1)
-        self.order_strategy = self.strategy_mapped.get(os, None)
+        self.order_strategy = self.strategy_mapped[os]
 
     def information_stage(self, n_rounds, f):
         """Execute information phase

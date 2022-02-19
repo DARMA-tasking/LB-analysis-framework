@@ -415,12 +415,16 @@ if __name__ == '__main__':
         params.order_strategy,
         a_min_max,
         lgr)
-    rt.execute(
-        params.n_iterations,
-        params.n_rounds,
-        params.fanout,
-        params.max_objects_per_transfer,
-        params.deterministic_transfer)
+    lgr.info(f"Instantiated runtime with {params.order_strategy} object ordering strategy")
+
+    # Execute runtime iterations when requested
+    if params.n_iterations:
+        rt.execute(
+            params.n_iterations,
+            params.n_rounds,
+            params.fanout,
+            params.max_objects_per_transfer,
+            params.deterministic_transfer)
 
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
