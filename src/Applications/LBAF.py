@@ -59,7 +59,7 @@ except:
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
-from src.IO.lbsLoadWriterVT import LoadWriterVT
+from src.IO.lbsVTStatisticsWriter import VTStatisticsWriter
 from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics, Hamming_distance
 from src.Utils.logger import logger
@@ -441,11 +441,11 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(
+        vt_writer = VTStatisticsWriter(
             phase,
             output_stem,
-            params.output_dir,
-            lgr)
+            output_dir=params.output_dir,
+            logger=lgr)
         vt_writer.write()
 
     # If prefix parsed from command line
@@ -455,8 +455,8 @@ if __name__ == '__main__':
             phase,
             grid_map,
             output_stem,
-            params.output_dir,
-            lgr)
+            output_dir=params.output_dir,
+            logger=lgr)
         ex_writer.write(
             rt.statistics,
             rt.load_distributions,
@@ -479,6 +479,7 @@ if __name__ == '__main__':
         reader = viewer.createViews()
         viewer.saveView(reader)
 
+    # Create file to store imbalance statistics
     imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
 
     # Compute and print final rank load and edge volume statistics

@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                              lbsLoadWriterVT.py
+#                              lbsVTStatisticsWriter.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -52,7 +52,7 @@ from src.Model.lbsPhase import Phase
 from src.Model.lbsRank import Rank
 
 
-class LoadWriterVT:
+class VTStatisticsWriter:
     """A class to write load directives for VT as JSON files with
     the following format:
 
