@@ -429,7 +429,9 @@ if __name__ == '__main__':
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
     lgr.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
-    grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
+    grid_map = lambda x: global_id_to_cartesian(
+        x.get_id(),
+        params.grid_size)
 
     # Assemble output file name stem
     if params.output_file_stem is not None:
@@ -439,7 +441,11 @@ if __name__ == '__main__':
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(phase, output_stem, output_dir=params.output_dir, logger=lgr)
+        vt_writer = LoadWriterVT(
+            phase,
+            output_stem,
+            params.output_dir,
+            lgr)
         vt_writer.write()
 
     # If prefix parsed from command line
@@ -449,8 +455,8 @@ if __name__ == '__main__':
             phase,
             grid_map,
             output_stem,
-            output_dir=params.output_dir,
-            logger=lgr)
+            params.output_dir,
+            lgr)
         ex_writer.write(
             rt.statistics,
             rt.load_distributions,
@@ -462,7 +468,9 @@ if __name__ == '__main__':
     if params.generate_multimedia:
         from ParaviewViewerBase import ParaviewViewerBase
         if params.output_dir is not None:
-            file_name = os.path.join(params.output_dir, file_name)
+            file_name = os.path.join(
+                params.output_dir,
+                file_name)
             output_stem = file_name
         viewer = ParaviewViewerBase.factory(
             exodus=output_stem,
