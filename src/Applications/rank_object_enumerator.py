@@ -66,20 +66,19 @@ def get_conf() -> dict:
         conf = yaml.safe_load(conf_file)
     return conf
 
-# Getting configuration:
+# Getting configuration
 CONF = get_conf()
 
 # Define number of ranks
 N_RANKS = CONF.get("x_procs") * CONF.get("y_procs") * CONF.get("z_procs")
 
 # Define work constants
-alpha_global = CONF.get("work_model").get("parameters").get("alpha")
-beta_global = CONF.get("work_model").get("parameters").get("beta")
-gamma_global = CONF.get("work_model").get("parameters").get("gamma")
+ALPHA_G = CONF.get("work_model").get("parameters").get("alpha")
+BETA_G = CONF.get("work_model").get("parameters").get("beta")
+GAMMA_G = CONF.get("work_model").get("parameters").get("gamma")
 INPUT_DATA = os.path.join(project_path, CONF.get("log_file"))
 FILE_SUFFIX = CONF.get("file_suffix")
 LGR = logger()
-
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str) -> tuple:
     """ Read data from configuration and returns a tuple of objects with communication
@@ -230,14 +229,14 @@ def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta:
                 continue
             reachable.update(compute_pairwise_reachable_arrangements(
                 objects,
-                initial_arrangement,
-                alpha_global, beta_global, gamma_global,
+                arrangement,
+                ALPHA_G, BETA_G, GAMMA_G,
                 w_max,
                 from_id, to_id, n_ranks,
                 max_objects))
     LGR.info(f"Found {len(reachable)} reachable arrangements, with minimum maximum work: {min(reachable.values())}:")
     for k, v in reachable.items():
-            LGR.info(f"\t{k}: {v}")
+        LGR.info(f"\t{k}: {v}")
 
     # Return dict of reachable arrangements
     return reachable
@@ -258,7 +257,7 @@ def compute_min_max_arrangements_work(objects):
         works = compute_arrangement_works(
             objects,
             arrangement,
-            alpha_global, beta_global, gamma_global)
+            ALPHA_G, BETA_G, GAMMA_G)
 
         # Update minmax when relevant
         work_max = max(works.values())
@@ -273,7 +272,50 @@ def compute_min_max_arrangements_work(objects):
 
     # Return quantities of interest
     return n_arrangements, works_min_max, arrangements_min_max
-    
+
+
+def recursively_compute_transitions(visited, objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks:int, max_objects:int=None):
+    """Recursively compute all possible transitions to reachable arrangements from initial one
+    """
+
+    # Sanity checks regarding current arrangement
+    w_a = visited.get(arrangement, -1.)
+    if w_a < 0.:
+        LGR.error(f"Arrangement {arrangement} not found in visited map")
+        sys.exit(1)
+
+
+    # Terminate recursion if global optimum was found
+    if w_a == w_min_max:
+        LGR.info(f"Global optimum found: {arrangement} with maximum work: {w_a}")
+        return
+        
+    # Compute all reachable arrangements
+    reachable = compute_all_reachable_arrangements(
+        objects,
+        arrangement,
+        alpha, beta, gamma,
+        w_max,
+        n_ranks,
+        max_objects)
+
+    # Otherwise iterate over all reachable arrangements
+    for k, v in reachable.items():
+        # Skip already visited arrangements
+        if k in visited:
+            continue
+
+        # Add newly visited arrangements to map and recurse to it
+        visited[k] = v
+        recursively_compute_transitions(
+            visited,
+            objects,
+            k,
+            alpha, beta, gamma,
+            w_max, w_min_max,
+            n_ranks,
+            max_objects)
+
 if __name__ == '__main__':
 
     # Get objects from log files
@@ -284,9 +326,9 @@ if __name__ == '__main__':
         file_suffix=FILE_SUFFIX)
 
     # Print out input parameters
-    LGR.info(f"alpha: {alpha_global}")
-    LGR.info(f"beta: {beta_global}")
-    LGR.info(f"gamma: {gamma_global}")
+    LGR.info(f"alpha: {ALPHA_G}")
+    LGR.info(f"beta: {BETA_G}")
+    LGR.info(f"gamma: {GAMMA_G}")
 
     # Compute and report on best possible arrangements
     n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects)
@@ -307,24 +349,29 @@ if __name__ == '__main__':
             writer.writerow(a)
     LGR.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
 
-    # Report on some initial configuration
+    # Start fom initial configuration
     initial_arrangement =  (3, 0, 0, 0, 0, 1, 3, 3, 2)
     LGR.info(f"Initial arrangement: {initial_arrangement}")
     initial_works = compute_arrangement_works(
         objects,
         initial_arrangement,
-        alpha_global, beta_global, gamma_global)
+        ALPHA_G, BETA_G, GAMMA_G)
     w_max = max(initial_works.values())
+    visited = {initial_arrangement: w_max}
     LGR.info(f"\tper-rank works: {initial_works}")
     LGR.info(f"\tmaximum work: {w_max:.4g} average work: "
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
     # Compute all possible reachable arrangements
-    all_reachable = compute_all_reachable_arrangements(
+    recursively_compute_transitions(
+        visited,
         objects,
         initial_arrangement,
-        alpha_global, beta_global, gamma_global,
-        w_max,
+        ALPHA_G, BETA_G, GAMMA_G,
+        w_max, w_min_max,
         N_RANKS)
 
-    print(all_reachable)
+    # Report all optimal arrangements
+    for k, v in visited.items():
+        if v == w_min_max:
+            LGR.info(f"Reachable optimal arrangement: {k}")

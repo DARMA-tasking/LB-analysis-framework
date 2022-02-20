@@ -270,7 +270,7 @@ class Runtime:
             return True, n_o
 
         # If this point was reach this is an error
-        self.lgr.error("Recursion error at depth". n_o)
+        self.lgr.error("Recursion error at depth", n_o)
         sys.exit(1)
 
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
