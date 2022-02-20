@@ -171,7 +171,7 @@ def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha: float, bet
     # Return arrangement works
     return works
 
-def compute_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, from_id: int, to_id: int, n_ranks:int, max_objects:int=None):
+def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, from_id: int, to_id: int, n_ranks:int, max_objects:int=None):
     """Compute arragnements reachable by moving up to a maximum number of objects from one rank to another
     """
 
@@ -215,6 +215,32 @@ def compute_reachable_arrangements(objects, arrangement, alpha: float, beta: flo
     # Return dict of reachable arrangements
     return reachable
 
+def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, n_ranks:int, max_objects:int=None):
+    """Compute all arragnements reachable by moving up to a maximum number of objects
+    """
+
+    # Storage for all reachable arrangements with their maximum work
+    reachable = {}
+
+    # Loop over all possible senders
+    for from_id in range(n_ranks):
+        # Loop over all possible receivers
+        for to_id in range(n_ranks):
+            if from_id == to_id:
+                continue
+            reachable.update(compute_pairwise_reachable_arrangements(
+                objects,
+                initial_arrangement,
+                alpha_global, beta_global, gamma_global,
+                w_max,
+                from_id, to_id, n_ranks,
+                max_objects))
+    LGR.info(f"Found {len(reachable)} reachable arrangements, with minimum maximum work: {min(reachable.values())}:")
+    for k, v in reachable.items():
+            LGR.info(f"\t{k}: {v}")
+
+    # Return dict of reachable arrangements
+    return reachable
 
 def compute_min_max_arrangements_work(objects):
     """Compute all possible arrangements with repetition and minimax work
@@ -262,34 +288,6 @@ if __name__ == '__main__':
     LGR.info(f"beta: {beta_global}")
     LGR.info(f"gamma: {gamma_global}")
 
-    # Report on some initial configuration
-    initial_arrangement =  (3, 0, 0, 0, 0, 1, 3, 3, 2)
-    LGR.info(f"Initial arrangement: {initial_arrangement}")
-    initial_works = compute_arrangement_works(
-        objects,
-        initial_arrangement,
-        alpha_global, beta_global, gamma_global)
-    w_max = max(initial_works.values())
-    LGR.info(f"\tper-rank works: {initial_works}")
-    LGR.info(f"\tmaximum work: {w_max:.4g} average work: "
-             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
-
-    # Compute all possible reachable arrangements
-    all_reachable = {}
-    for from_id in range(N_RANKS):
-        for to_id in range(N_RANKS):
-            if from_id == to_id:
-                continue
-            all_reachable.update(compute_reachable_arrangements(
-                objects,
-                initial_arrangement,
-                alpha_global, beta_global, gamma_global,
-                w_max,
-                from_id, to_id, N_RANKS))
-    LGR.info(f"Found {len(all_reachable)} reachable arrangements, with minimum maximum work: {min(all_reachable.values())}:")
-    for k, v in all_reachable.items():
-            LGR.info(f"\t{k}: {v}")
-
     # Compute and report on best possible arrangements
     n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects)
     if n_a != N_RANKS ** len(objects):
@@ -308,3 +306,25 @@ if __name__ == '__main__':
         for a in a_min_max:
             writer.writerow(a)
     LGR.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
+
+    # Report on some initial configuration
+    initial_arrangement =  (3, 0, 0, 0, 0, 1, 3, 3, 2)
+    LGR.info(f"Initial arrangement: {initial_arrangement}")
+    initial_works = compute_arrangement_works(
+        objects,
+        initial_arrangement,
+        alpha_global, beta_global, gamma_global)
+    w_max = max(initial_works.values())
+    LGR.info(f"\tper-rank works: {initial_works}")
+    LGR.info(f"\tmaximum work: {w_max:.4g} average work: "
+             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
+
+    # Compute all possible reachable arrangements
+    all_reachable = compute_all_reachable_arrangements(
+        objects,
+        initial_arrangement,
+        alpha_global, beta_global, gamma_global,
+        w_max,
+        N_RANKS)
+
+    print(all_reachable)
