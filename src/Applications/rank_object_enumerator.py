@@ -234,7 +234,7 @@ def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta:
                 w_max,
                 from_id, to_id, n_ranks,
                 max_objects))
-    LGR.info(f"Found {len(reachable)} reachable arrangements, with minimum maximum work: {min(reachable.values())}:")
+    LGR.info(f"Found {len(reachable)} reachable arrangements, with maximum work: {min(reachable.values())}:")
     for k, v in reachable.items():
         LGR.info(f"\t{k}: {v}")
 
@@ -287,7 +287,7 @@ def recursively_compute_transitions(visited, objects, arrangement, alpha: float,
 
     # Terminate recursion if global optimum was found
     if w_a == w_min_max:
-        LGR.info(f"Global optimum found: {arrangement} with maximum work: {w_a}")
+        LGR.info(f"Global optimum found ({w_a}) for {arrangement}")
         return
         
     # Compute all reachable arrangements
