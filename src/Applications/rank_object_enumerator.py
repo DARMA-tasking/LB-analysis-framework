@@ -59,6 +59,7 @@ except Exception as e:
 from src.IO.lbsVTStatisticsReader import LoadReader
 from src.Utils.logger import logger
 
+sys.setrecursionlimit(1500)
 
 def get_conf() -> dict:
     """ Gets config from file and returns a dictionary. """
@@ -362,7 +363,7 @@ if __name__ == '__main__':
     LGR.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
 
     # Start fom initial configuration
-    initial_arrangement =  (3, 0, 0, 0, 0, 1, 3, 3, 2)
+    initial_arrangement = (0, 3, 3, 3, 3, 1, 0, 2, 2)
     LGR.info(f"Initial arrangement: {initial_arrangement}")
     initial_works = compute_arrangement_works(
         objects,

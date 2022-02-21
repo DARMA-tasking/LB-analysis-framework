@@ -282,7 +282,7 @@ class Rank:
                 c_max = c
 
         # Initialize CMF depending on singleton or non-singleton support
-        if True or c_min == c_max:
+        if c_min == c_max:
             # Sample uniformly if all criteria have same value
             cmf = {k: 1. / len(c_values) for k in c_values.keys()}
         else:

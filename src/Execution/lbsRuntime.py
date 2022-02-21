@@ -120,8 +120,8 @@ class Runtime:
                 for p in self.phase.get_ranks() for o in p.get_objects()
                 }.items()))
         hd_min = min_Hamming_distance(arrangement, self.a_min_max)
-        self.lgr.info(f"Initial minimum Hamming distance to optimal arrangements: {hd_min}")
-        self.lgr.debug(f"Initial arrangement: {arrangement}")
+        self.lgr.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
+        self.lgr.debug(f"Iteration 0 arrangement: {arrangement}")
 
         # Initialize run statistics
         self.statistics = {
@@ -447,7 +447,7 @@ class Runtime:
                     }.items()))
             hd_min = min_Hamming_distance(arrangement, self.a_min_max)
             self.lgr.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
-            self.lgr.debug(f"Arrangement: {arrangement}")
+            self.lgr.debug(f"\Iteration {i + 1} tarrangement: {arrangement}")
 
             # Update run statistics
             self.statistics["minimum load"].append(l_min)
