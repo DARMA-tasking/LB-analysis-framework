@@ -170,6 +170,7 @@ def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha: float, bet
     # Return arrangement works
     return works
 
+
 def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, from_id: int, to_id: int, n_ranks:int, max_objects:int=None):
     """Compute arragnements reachable by moving up to a maximum number of objects from one rank to another
     """
@@ -213,6 +214,7 @@ def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, 
 
     # Return dict of reachable arrangements
     return reachable
+
 
 def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, n_ranks:int, max_objects:int=None):
     """Compute all arragnements reachable by moving up to a maximum number of objects

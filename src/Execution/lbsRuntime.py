@@ -60,12 +60,12 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, w: dict, c: dict, os: str, a: list, l: Logger):
+    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, l: Logger):
         """Class constructor:
         p: phase instance
         w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
-        os: name of object ordering strategy
+        o_s: name of object ordering strategy
         a: arrangements that minimize maximum work
         l: logger for output messages
         """
@@ -148,10 +148,10 @@ class Runtime:
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
         if os not in self.strategy_mapped:
-            self.lgr.error(f"{os} does not exist in known strategies: "
+            self.lgr.error(f"{o_s} does not exist in known strategies: "
                            f"{[x for x in self.strategy_mapped.keys()]}")
             sys.exit(1)
-        self.order_strategy = self.strategy_mapped[os]
+        self.order_strategy = self.strategy_mapped[o_s]
 
     def information_stage(self, n_rounds, f):
         """Execute information phase
