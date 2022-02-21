@@ -66,6 +66,7 @@ from src.Utils.logger import logger
 
 import rank_object_enumerator as roe
 
+
 class internalParameters:
     """A class to describe LBAF internal parameters
     """
