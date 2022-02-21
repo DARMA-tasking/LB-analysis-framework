@@ -241,6 +241,7 @@ def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta:
     # Return dict of reachable arrangements
     return reachable
 
+
 def compute_min_max_arrangements_work(objects):
     """Compute all possible arrangements with repetition and minimax work
     """
