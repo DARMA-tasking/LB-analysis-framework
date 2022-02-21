@@ -277,7 +277,7 @@ def compute_min_max_arrangements_work(objects):
     return n_arrangements, works_min_max, arrangements_min_max
 
 
-def recursively_compute_transitions(visited, objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks:int, max_objects:int=None):
+def recursively_compute_transitions(stack, visited, objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks:int, max_objects:int=None):
     """Recursively compute all possible transitions to reachable arrangements from initial one
     """
 
@@ -288,8 +288,11 @@ def recursively_compute_transitions(visited, objects, arrangement, alpha: float,
         sys.exit(1)
 
     # Terminate recursion if global optimum was found
+    stack.append(arrangement)
     if w_a == w_min_max:
         LGR.info(f"Global optimum found ({w_a}) for {arrangement}")
+        for a in stack:
+            LGR.info(f"\t{a} with maximum work {visited[a]}")
         return
         
     # Compute all reachable arrangements
@@ -310,6 +313,7 @@ def recursively_compute_transitions(visited, objects, arrangement, alpha: float,
         # Add newly visited arrangements to map and recurse to it
         visited[k] = v
         recursively_compute_transitions(
+            stack,
             visited,
             objects,
             k,
@@ -317,6 +321,7 @@ def recursively_compute_transitions(visited, objects, arrangement, alpha: float,
             w_max, w_min_max,
             n_ranks,
             max_objects)
+        stack.pop()
 
 
 if __name__ == '__main__':
@@ -366,7 +371,9 @@ if __name__ == '__main__':
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
     # Compute all possible reachable arrangements
+    stack = []
     recursively_compute_transitions(
+        stack,
         visited,
         objects,
         initial_arrangement,

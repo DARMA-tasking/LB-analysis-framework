@@ -60,21 +60,21 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger l: Logger=None):
+    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger=None):
         """Class constructor:
         p: phase instance
         w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
         o_s: name of object ordering strategy
         a: arrangements that minimize maximum work
-        l: logger for output messages
+        logger: logger for output messages
         """
 
         # Keep track of list of arrangements with minimax work
         self.a_min_max = a
 
         # Assign logger to instance variable
-        self.lgr = l
+        self.lgr = logger
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, Phase):
@@ -147,7 +147,7 @@ class Runtime:
             "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
-        if os not in self.strategy_mapped:
+        if o_s not in self.strategy_mapped:
             self.lgr.error(f"{o_s} does not exist in known strategies: "
                            f"{[x for x in self.strategy_mapped.keys()]}")
             sys.exit(1)
