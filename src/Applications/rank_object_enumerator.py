@@ -287,8 +287,10 @@ def recursively_compute_transitions(stack, visited, objects, arrangement, alpha:
         LGR.error(f"Arrangement {arrangement} not found in visited map")
         sys.exit(1)
 
-    # Terminate recursion if global optimum was found
+    # Appent current arrangement to trajectory stack
     stack.append(arrangement)
+
+    # Terminate recursion if global optimum was found
     if w_a == w_min_max:
         LGR.info(f"Global optimum found ({w_a}) for {arrangement}")
         for a in stack:
@@ -321,6 +323,8 @@ def recursively_compute_transitions(stack, visited, objects, arrangement, alpha:
             w_max, w_min_max,
             n_ranks,
             max_objects)
+
+        # Pop last stack entry
         stack.pop()
 
 
