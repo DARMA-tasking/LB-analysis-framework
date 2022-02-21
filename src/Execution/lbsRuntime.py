@@ -60,7 +60,7 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, l: Logger):
+    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger l: Logger=None):
         """Class constructor:
         p: phase instance
         w: dictionary with work model name and optional parameters
