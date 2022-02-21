@@ -316,6 +316,7 @@ def recursively_compute_transitions(visited, objects, arrangement, alpha: float,
             n_ranks,
             max_objects)
 
+
 if __name__ == '__main__':
 
     # Get objects from log files
