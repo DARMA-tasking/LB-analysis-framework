@@ -285,7 +285,6 @@ def recursively_compute_transitions(visited, objects, arrangement, alpha: float,
         LGR.error(f"Arrangement {arrangement} not found in visited map")
         sys.exit(1)
 
-
     # Terminate recursion if global optimum was found
     if w_a == w_min_max:
         LGR.info(f"Global optimum found: {arrangement} with maximum work: {w_a}")
