@@ -71,7 +71,7 @@ class internalParameters:
     """A class to describe LBAF internal parameters
     """
 
-    def __init__(self):
+    def __init__(self, config_file: str = None):
         # By default use load-only work model
         self.work_model = {"name": "LoadOnly", "parameters": {}}
 
@@ -149,7 +149,10 @@ class internalParameters:
 
         # Configuration file
         self.conf_file_found = False
-        self.conf = self.get_conf_file()
+        if config_file is None:
+            self.conf = self.get_conf_file()
+        else:
+            self.conf = self.get_conf_file(conf_file=config_file)
         if self.conf_file_found:
             self.parse_conf_file()
         self.checks_after_init()
@@ -329,7 +332,7 @@ def get_output_file_stem(params):
 
 if __name__ == '__main__':
     # Instantiate parameters
-    params = internalParameters()
+    params = internalParameters(config_file=os.path.join(project_path, "src", "Applications", "conf.yaml"))
 
     # Assign logger to variable
     lgr = params.logger
