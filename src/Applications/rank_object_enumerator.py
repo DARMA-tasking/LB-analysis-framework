@@ -1,4 +1,4 @@
-#@HEADER
+# @HEADER
 ###############################################################################
 #
 #                          rank-object-enumerator.py
@@ -38,11 +38,16 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
+# @HEADER
 #
 ###############################################################################
 import os
 import sys
+import math
+import itertools
+import yaml
+import csv
+from logging import Logger
 
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
@@ -51,14 +56,10 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
 
-from logging import Logger
-import math
-import itertools
-import yaml
-import csv
-
-from src.IO.lbsLoadReaderVT import LoadReader
+from src.IO.lbsVTStatisticsReader import LoadReader
 from src.Utils.logger import logger
+
+sys.setrecursionlimit(1500)
 
 
 def get_conf() -> dict:
@@ -67,26 +68,29 @@ def get_conf() -> dict:
         conf = yaml.safe_load(conf_file)
     return conf
 
-# Getting configuration:
+
+# Getting configuration
 CONF = get_conf()
 
 # Define number of ranks
 N_RANKS = CONF.get("x_procs") * CONF.get("y_procs") * CONF.get("z_procs")
 
 # Define work constants
-ALPHA = CONF.get("work_model").get("parameters").get("alpha")
-BETA = CONF.get("work_model").get("parameters").get("beta")
-GAMMA = CONF.get("work_model").get("parameters").get("gamma")
+ALPHA_G = CONF.get("work_model").get("parameters").get("alpha")
+BETA_G = CONF.get("work_model").get("parameters").get("beta")
+GAMMA_G = CONF.get("work_model").get("parameters").get("gamma")
 INPUT_DATA = os.path.join(project_path, CONF.get("log_file"))
 FILE_SUFFIX = CONF.get("file_suffix")
 LGR = logger()
 
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str) -> tuple:
-    """ Reads data from configuration and returns a tuple of objects with communication. """
+    """ Read data from configuration and returns a tuple of objects with communication
+    """
+
     # Instantiate data containers
-    objcts = list()
-    communication = dict()
+    objects = []
+    communication = {}
 
     # Instantiate data reader Class
     lr = LoadReader(file_prefix=file_prefix, logger=logger, file_suffix=file_suffix)
@@ -96,7 +100,7 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
         iter_map, comm = lr.read(node_id=rank)
         for rnk in iter_map.values():
             for obj in rnk.migratable_objects:
-                objcts.append({"id": obj.index, "time": obj.time})
+                objects.append({"id": obj.get_id(), "time": obj.time})
         for obj_idx, obj_comm in comm.items():
             if obj_idx not in communication.keys():
                 communication[obj_idx] = {"from": {}, "to": {}}
@@ -108,37 +112,46 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
                     communication[obj_idx]["from"].update({rec.get("from"): rec.get("bytes")})
 
     # Sort objects for debugging purposes
-    objcts.sort(key=lambda x: x.get("id"))
+    objects.sort(key=lambda x: x.get("id"))
 
     # Adding communication to objects
-    for objct in objcts:
-        idx = objct.get("id")
+    for o in objects:
+        idx = o.get("id")
         if communication.get(idx) is not None:
-            objct.update(communication.get(idx))
+            o.update(communication.get(idx))
 
-    return tuple(objcts)
-
-
-def compute_load(objects: tuple, object_list: list) -> float:
-    """ Returns a load as a sum of all object times. """
-    return sum([objects[i]["time"] for i in object_list])
+    # Return objects as tuple
+    return tuple(objects)
 
 
-def compute_volume(objects: tuple, rank_objects: list, direction: str) -> float:
-    """ Returns a volume of rank objects. """
+def compute_load(objects, rank_object_ids) -> float:
+    """ Return a load as a sum of all object times
+    """
+
+    return sum([objects[i]["time"] for i in rank_object_ids])
+
+
+def compute_volume(objects, rank_object_ids, direction: str) -> float:
+    """ Return a volume of rank objects
+    """
+
     # Initialize volume
     volume = 0.
 
     # Iterate over all rank objects
-    for o in rank_objects:
-        volume += sum([v for k, v in objects[o].get(direction, 0.).items() if k not in rank_objects])
+    for i in rank_object_ids:
+        volume += sum(
+            [v for k, v in objects[i].get(direction, 0.).items()
+             if k not in rank_object_ids])
 
     # Return computed volume
     return volume
 
 
-def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha_c: float, beta_c: float, gamma_c: float) -> dict:
-    """ Returns a dictionary with works of rank objects. """
+def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha: float, beta: float, gamma: float) -> dict:
+    """ Return a dictionary with works of rank objects
+    """
+
     # Build object rank map from arrangement
     ranks = {}
     for i, j in enumerate(arrngmnt):
@@ -148,43 +161,113 @@ def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha_c: float, b
     works = {}
     for rank, rank_objects in ranks.items():
         # Compute per-rank loads
-        works[rank] = alpha_c * compute_load(objects, rank_objects)
+        works[rank] = alpha * compute_load(objects, rank_objects)
 
         # Compute communication volumes
-        works[rank] += beta_c * max(compute_volume(objects, rank_objects, "from"),
-                                    compute_volume(objects, rank_objects, "to"))
+        works[rank] += beta * max(
+            compute_volume(objects, rank_objects, "from"),
+            compute_volume(objects, rank_objects, "to"))
 
         # Add constant
-        works[rank] += gamma_c
+        works[rank] += gamma
 
     # Return arrangement works
     return works
 
 
-if __name__ == '__main__':
-    # Getting objects from log files
-    objcts = get_objects(n_ranks=N_RANKS, logger=LGR, file_prefix=INPUT_DATA, file_suffix=FILE_SUFFIX)
+def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float,
+                                            from_id: int, to_id: int, n_ranks: int, max_objects: int = None):
+    """Compute arragnements reachable by moving up to a maximum number of objects from one rank to another
+    """
 
-    # Print out input parameters
-    LGR.info(f"alpha: {ALPHA}")
-    LGR.info(f"beta: {BETA}")
-    LGR.info(f"gamma: {GAMMA}")
+    # Sanity checks regarding rank IDs
+    if from_id >= n_ranks:
+        LGR.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
+        sys.exit(1)
+    if to_id >= n_ranks:
+        LGR.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
+        sys.exit(1)
 
-    # Report on some initial configuration
-    initial_arrangement = (0, 0, 0, 0, 1, 1, 1, 1, 2)
-    LGR.info(f"Initial arrangement: {initial_arrangement}")
-    initial_works = compute_arrangement_works(objcts, initial_arrangement, ALPHA, BETA, GAMMA)
-    LGR.info(f"\tper-rank works: {initial_works}")
-    LGR.info(f"\tmaximum work: {max(initial_works.values()):.4g} average work: "
-             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
+    # Provide upper bounder on transfer size when none provided
+    if not max_objects:
+        max_objects = len(arrangement)
 
-    # Generate all possible arrangements with repetition
+    # Search for all arrangement entries matching sender ID
+    matches = [i for i, r in enumerate(arrangement) if r == from_id]
+
+    # Loop over all allowable transfers to find reachable arrangements
+    reachable = {}
+    n_possible = 0
+    for n in range(1, min(len(matches), max_objects) + 1):
+        LGR.debug(f"Generating possible arrangements with {n} transfer(s) from rank {from_id} to rank {to_id}")
+        # Iterate over all combinations with given size
+        for c in itertools.combinations(matches, n):
+            # Change all correspdonding entries
+            n_possible += 1
+            new_arrangement = tuple(
+                to_id if i in c else r for i, r in enumerate(arrangement))
+            works = compute_arrangement_works(
+                objects,
+                new_arrangement,
+                alpha, beta, gamma)
+
+            # Check whether new arrangements is reachable
+            w_max_new = max(works.values())
+            if w_max_new <= w_max:
+                reachable[new_arrangement] = w_max_new
+    LGR.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst "
+              f"{n_possible} possible one(s)")
+
+    # Return dict of reachable arrangements
+    return reachable
+
+
+def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float,
+                                       n_ranks: int, max_objects: int = None):
+    """Compute all arragnements reachable by moving up to a maximum number of objects
+    """
+
+    # Storage for all reachable arrangements with their maximum work
+    reachable = {}
+
+    # Loop over all possible senders
+    for from_id in range(n_ranks):
+        # Loop over all possible receivers
+        for to_id in range(n_ranks):
+            if from_id == to_id:
+                continue
+            reachable.update(compute_pairwise_reachable_arrangements(
+                objects,
+                arrangement,
+                ALPHA_G, BETA_G, GAMMA_G,
+                w_max,
+                from_id, to_id, n_ranks,
+                max_objects))
+    LGR.info(f"Found {len(reachable)} reachable arrangements, with maximum work: {min(reachable.values())}:")
+    for k, v in reachable.items():
+        LGR.info(f"\t{k}: {v}")
+
+    # Return dict of reachable arrangements
+    return reachable
+
+
+def compute_min_max_arrangements_work(objects):
+    """Compute all possible arrangements with repetition and minimax work
+    """
+
+    # Initialize quantities of interest
     n_arrangements = 0
     works_min_max = math.inf
     arrangements_min_max = []
-    for arrangement in itertools.product(range(N_RANKS), repeat=len(objcts)):
+    for arrangement in itertools.product(
+            range(N_RANKS),
+            repeat=len(objects)):
+
         # Compute per-rank works for currrent arrangement
-        works = compute_arrangement_works(objcts, arrangement, ALPHA, BETA, GAMMA)
+        works = compute_arrangement_works(
+            objects,
+            arrangement,
+            ALPHA_G, BETA_G, GAMMA_G)
 
         # Update minmax when relevant
         work_max = max(works.values())
@@ -197,14 +280,83 @@ if __name__ == '__main__':
         # Keep track of number of arrangements for sanity
         n_arrangements += 1
 
-    # Sanity check
-    LGR.info(f"Number of generated arrangements: {n_arrangements}")
-    if n_arrangements != N_RANKS ** len(objcts):
-        LGR.error("Incorrect number of arrangements")
+    # Return quantities of interest
+    return n_arrangements, works_min_max, arrangements_min_max
+
+
+def recursively_compute_transitions(stack, visited, objects, arrangement, alpha: float, beta: float, gamma: float,
+                                    w_max: float, w_min_max: float, n_ranks: int, max_objects: int = None):
+    """Recursively compute all possible transitions to reachable arrangements from initial one
+    """
+
+    # Sanity checks regarding current arrangement
+    w_a = visited.get(arrangement, -1.)
+    if w_a < 0.:
+        LGR.error(f"Arrangement {arrangement} not found in visited map")
         sys.exit(1)
 
-    # Report on optimal arrangements
-    LGR.info(f"\tminimax work: {works_min_max:.4g} for {len(arrangements_min_max)} arrangements")
+    # Appent current arrangement to trajectory stack
+    stack.append(arrangement)
+
+    # Terminate recursion if global optimum was found
+    if w_a == w_min_max:
+        LGR.info(f"Global optimum found ({w_a}) for {arrangement}")
+        for a in stack:
+            LGR.info(f"\t{a} with maximum work {visited[a]}")
+        return
+
+    # Compute all reachable arrangements
+    reachable = compute_all_reachable_arrangements(
+        objects,
+        arrangement,
+        alpha, beta, gamma,
+        w_max,
+        n_ranks,
+        max_objects)
+
+    # Otherwise iterate over all reachable arrangements
+    for k, v in reachable.items():
+        # Skip already visited arrangements
+        if k in visited:
+            continue
+
+        # Add newly visited arrangements to map and recurse to it
+        visited[k] = v
+        recursively_compute_transitions(
+            stack,
+            visited,
+            objects,
+            k,
+            alpha, beta, gamma,
+            w_max, w_min_max,
+            n_ranks,
+            max_objects)
+
+        # Pop last stack entry
+        stack.pop()
+
+
+if __name__ == '__main__':
+
+    # Get objects from log files
+    objects = get_objects(
+        n_ranks=N_RANKS,
+        logger=LGR,
+        file_prefix=INPUT_DATA,
+        file_suffix=FILE_SUFFIX)
+
+    # Print out input parameters
+    LGR.info(f"alpha: {ALPHA_G}")
+    LGR.info(f"beta: {BETA_G}")
+    LGR.info(f"gamma: {GAMMA_G}")
+
+    # Compute and report on best possible arrangements
+    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects)
+    if n_a != N_RANKS ** len(objects):
+        LGR.error("Incorrect number of possible arrangements with repetition")
+        sys.exit(1)
+    LGR.info(f"Number of generated arrangements with repetition: {n_a}")
+    LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")
 
     # Write all optimal arrangements to CSV file
     output_dir = os.path.join(project_path, CONF.get("output_dir"))
@@ -213,6 +365,35 @@ if __name__ == '__main__':
     out_name = os.path.join(output_dir, "optimal-arrangements.csv")
     with open(out_name, 'w') as f:
         writer = csv.writer(f)
-        for a in arrangements_min_max:
+        for a in a_min_max:
             writer.writerow(a)
-    LGR.info(f"Wrote {len(arrangements_min_max)} optimal arrangement to {out_name}")
+    LGR.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
+
+    # Start fom initial configuration
+    initial_arrangement = (0, 3, 3, 3, 3, 1, 0, 2, 2)
+    LGR.info(f"Initial arrangement: {initial_arrangement}")
+    initial_works = compute_arrangement_works(
+        objects,
+        initial_arrangement,
+        ALPHA_G, BETA_G, GAMMA_G)
+    w_max = max(initial_works.values())
+    visited = {initial_arrangement: w_max}
+    LGR.info(f"\tper-rank works: {initial_works}")
+    LGR.info(f"\tmaximum work: {w_max:.4g} average work: "
+             f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
+
+    # Compute all possible reachable arrangements
+    stack = []
+    recursively_compute_transitions(
+        stack,
+        visited,
+        objects,
+        initial_arrangement,
+        ALPHA_G, BETA_G, GAMMA_G,
+        w_max, w_min_max,
+        N_RANKS)
+
+    # Report all optimal arrangements
+    for k, v in visited.items():
+        if v == w_min_max:
+            LGR.info(f"Reachable optimal arrangement: {k}")

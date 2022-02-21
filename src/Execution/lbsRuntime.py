@@ -53,20 +53,25 @@ from src.Model.lbsPhase import Phase
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.Model.lbsWorkModelBase import WorkModelBase
 from src.Execution.lbsCriterionBase import CriterionBase
-from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics
+from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics, min_Hamming_distance
 
 
 class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, w: dict, c: dict, order_strategy: str, logger: Logger = None):
+    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger=None):
         """Class constructor:
         p: phase instance
         w: dictionary with work model name and optional parameters
         c: dictionary with riterion name and optional parameters
-        order_strategy: objects order strategy
+        o_s: name of object ordering strategy
+        a: arrangements that minimize maximum work
+        logger: logger for output messages
         """
+
+        # Keep track of list of arrangements with minimax work
+        self.a_min_max = a
 
         # Assign logger to instance variable
         self.lgr = logger
@@ -85,7 +90,7 @@ class Runtime:
             self.lgr.error(f"Could not instantiate a work model of type {self.work_model}")
             sys.exit(1)
 
-        # Transfer critertion type and parameters
+        # Transfer criterion type and parameters
         self.criterion_name = c.get("name")
         self.criterion_params = c.get("parameters", {})
 
@@ -108,6 +113,16 @@ class Runtime:
             self.phase.ranks,
             lambda x: self.work_model.compute(x))
 
+        # Compute initial arrangement and report minimum Hamming distance
+        arrangement = tuple(
+            v for _, v in sorted({
+                o.get_id(): p.get_id()
+                for p in self.phase.get_ranks() for o in p.get_objects()
+                }.items()))
+        hd_min = min_Hamming_distance(arrangement, self.a_min_max)
+        self.lgr.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
+        self.lgr.debug(f"Iteration 0 arrangement: {arrangement}")
+
         # Initialize run statistics
         self.statistics = {
             "minimum load": [l_min],
@@ -120,7 +135,8 @@ class Runtime:
             "minimum work": [w_min],
             "maximum work": [w_max],
             "total work": [n_w * w_ave],
-            "work variance": [w_var]}
+            "work variance": [w_var],
+            "minimum Hamming distance to optimum": [hd_min]}
 
         # Initialize strategy
         self.strategy_mapped = {
@@ -131,11 +147,11 @@ class Runtime:
             "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
-        if order_strategy not in self.strategy_mapped:
-            self.lgr.error(f"{order_strategy} does not exist in known strategies: "
+        if o_s not in self.strategy_mapped:
+            self.lgr.error(f"{o_s} does not exist in known strategies: "
                            f"{[x for x in self.strategy_mapped.keys()]}")
             sys.exit(1)
-        self.order_strategy = self.strategy_mapped.get(order_strategy, None)
+        self.order_strategy = self.strategy_mapped[o_s]
 
     def information_stage(self, n_rounds, f):
         """Execute information phase
@@ -253,9 +269,6 @@ class Runtime:
             # Terminate positively when criterion is satisfied
             return True, n_o
 
-        # If this point was reach this is an error
-        self.lgr.error("Recursion error at depth". n_o)
-        sys.exit(1)
 
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
         """Perform object transfer phase
@@ -369,16 +382,8 @@ class Runtime:
             logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
-        arrangements = []
         for i in range(n_iterations):
-            # Compute arrangement at iteration start
             self.lgr.info(f"Starting iteration {i + 1}")
-            objects_to_ranks = {
-                o.get_id(): p.get_id()
-                for p in self.phase.get_ranks() for o in p.get_objects()}
-            arrangements.append(
-                tuple(v for _, v in sorted(objects_to_ranks.items())))
-            self.lgr.debug(f"Iteration {i} arrangement: {arrangements[i]}")
 
             # Start with information stage
             self.information_stage(n_rounds, f)
@@ -431,6 +436,16 @@ class Runtime:
                 f"iteration {i + 1} rank works",
                 logger=self.lgr)
 
+            # Compute current arrangement and report minimum Hamming distance
+            arrangement = tuple(
+                v for _, v in sorted({
+                    o.get_id(): p.get_id()
+                    for p in self.phase.get_ranks() for o in p.get_objects()
+                    }.items()))
+            hd_min = min_Hamming_distance(arrangement, self.a_min_max)
+            self.lgr.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
+            self.lgr.debug(f"\Iteration {i + 1} tarrangement: {arrangement}")
+
             # Update run statistics
             self.statistics["minimum load"].append(l_min)
             self.statistics["maximum load"].append(l_max)
@@ -443,13 +458,12 @@ class Runtime:
             self.statistics["maximum work"].append(w_max)
             self.statistics["total work"].append(n_w * w_ave)
             self.statistics["work variance"].append(w_var)
+            self.statistics["minimum Hamming distance to optimum"].append(hd_min)
 
-        # Compute final mapping and arrangement
-        objects_to_ranks = {}
+        # Report final mapping
         for p in self.phase.get_ranks():
             self.lgr.debug(f"Rank {p.get_id()}:")
             for o in p.get_objects():
-                objects_to_ranks[o.get_id()] = p.get_id()
                 comm = o.get_communicator()
                 if comm:
                     self.lgr.debug(f"  Object {o.get_id()}:")
@@ -463,9 +477,6 @@ class Runtime:
                         self.lgr.debug("    sent to:")
                         for k, v in sent:
                             self.lgr.debug(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}")
-        arrangements.append(
-            tuple(v for _, v in sorted(objects_to_ranks.items())))
-        self.lgr.debug(f"Iteration {n_iterations} arrangement: {arrangements[i]}")
 
 
     @staticmethod

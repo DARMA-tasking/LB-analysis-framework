@@ -108,6 +108,43 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         return None, None
 
 
+def Hamming_distance(arrangement_1, arrangement_2):
+    """Compute Hamming distance between two arrangements
+    """
+
+    # Distance can only be compute between same length arrangements
+    if len(arrangement_1) != len(arrangement_2):
+        return math.inf
+
+    # Iterate over arrangement values
+    hd = 0
+    for i, j in zip(arrangement_1, arrangement_2):
+        # Increment distance for each pair of different entries
+        if i != j:
+            hd += 1
+
+    # Return the final count of differences
+    return hd
+
+
+def min_Hamming_distance(arrangement, arrangement_list):
+    """Compute minimum Hamming distance from arrangement to list of arrangements
+    """
+
+    # Minimum distance is at least equal to arrangement length
+    hd_min = len(arrangement)
+
+    # Iterate over list of arrangements
+    for a in arrangement_list:
+        # Compute distance and update minimum as needed
+        hd = Hamming_distance(arrangement, a)
+        if hd < hd_min:
+            hd_min = hd
+
+    # Return minimum distance
+    return hd_min
+
+
 def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform

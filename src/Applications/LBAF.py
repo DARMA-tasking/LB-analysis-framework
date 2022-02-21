@@ -43,17 +43,15 @@
 ###############################################################################
 import os
 import sys
+import logging
+import math
+import yaml
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
-
-import logging
-import math
-
-import yaml
 try:
     import paraview.simple
 except:
@@ -61,10 +59,12 @@ except:
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
-from src.IO.lbsLoadWriterVT import LoadWriterVT
+from src.IO.lbsVTStatisticsWriter import VTStatisticsWriter
 from src.IO.lbsWriterExodusII import WriterExodusII
-from src.IO.lbsStatistics import initialize, print_function_statistics
+from src.IO.lbsStatistics import initialize, print_function_statistics, Hamming_distance
 from src.Utils.logger import logger
+
+import rank_object_enumerator as roe
 
 
 class internalParameters:
@@ -105,7 +105,7 @@ class internalParameters:
         self.communication_enabled = False
 
         # Size of subset to which objects are initially mapped (0 = all)
-        self.n_ranks = 0
+        self.n_mapped_ranks = 0
 
         # Number of information rounds
         self.n_rounds = 1
@@ -215,28 +215,22 @@ class internalParameters:
                 self.__dict__[param_key] = param_val
 
         # Set number of ranks in each direction for ExodusII output
-        if isinstance(self.conf.get(
-            "x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
+        if isinstance(self.conf.get("x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
             self.grid_size[0] = self.conf.get("x_procs", 0)
-        if isinstance(self.conf.get(
-            "y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
+        if isinstance(self.conf.get("y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
             self.grid_size[1] = self.conf.get("y_procs", 0)
-        if isinstance(self.conf.get(
-            "z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
+        if isinstance(self.conf.get("z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
             self.grid_size[2] = self.conf.get("z_procs", 0)
 
         # Set sampling parameters for random inputs
-        if isinstance(self.conf.get(
-            "time_sampler_type", None), str):
+        if isinstance(self.conf.get("time_sampler_type", None), str):
             self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(self.conf["time_sampler_type"])
-        if isinstance(self.conf.get(
-            "volume_sampler_type", None), str):
+        if isinstance(self.conf.get("volume_sampler_type", None), str):
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.conf["volume_sampler_type"])
 
         # Set object ranking strategy
-        if isinstance(self.conf.get(
-            "order_strategy", None), str):
+        if isinstance(self.conf.get("order_strategy", None), str):
             self.order_strategy = self.conf.get("order_strategy", None)
 
         # Set logging level
@@ -302,7 +296,7 @@ def global_id_to_cartesian(id, grid_sizes):
     return i, j, k
 
 
-def get_output_file_stem(params):
+def get_output_file_stem(params, n_ranks):
     """Build the file name for a given rank/node
     """
 
@@ -315,7 +309,7 @@ def get_output_file_stem(params):
             params.fanout)
     else:
         output_stem = "p{}-o{}-s{}-i{}-k{}-f{}".format(
-            params.n_ranks,
+            params.n_mapped_ranks,
             params.n_objects,
             params.time_sampler_type,
             params.n_iterations,
@@ -324,7 +318,7 @@ def get_output_file_stem(params):
 
     # Return assembled stem
     return "LBAF-n{}-{}-{}-{}".format(
-        n_p,
+        n_ranks,
         output_stem,
         params.criterion["name"],
         '-'.join([str(v).replace('.', '_') for v in params.criterion["parameters"].values()]))
@@ -342,9 +336,9 @@ if __name__ == '__main__':
     lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
 
     # Keep track of total number of procs
-    n_p = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
-    if n_p < 2:
-        lgr.info(f"Total number of ranks ({n_p}) must be > 1")
+    n_ranks = params.grid_size[0] * params.grid_size[1] * params.grid_size[2]
+    if n_ranks < 2:
+        lgr.info(f"Total number of ranks ({n_ranks}) must be > 1")
         sys.exit(1)
 
     # Initialize random number generator
@@ -355,7 +349,7 @@ if __name__ == '__main__':
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(
-            n_p,
+            n_ranks,
             params.phase_id,
             params.log_file)
     else:
@@ -367,8 +361,8 @@ if __name__ == '__main__':
             params.communication_degree,
             params.volume_sampler_type,
             params.volume_sampler_parameters,
-            n_p,
-            params.n_ranks)
+            n_ranks,
+            params.n_mapped_ranks)
 
         # Keep track of number of objects
         n_o = params.n_objects
@@ -385,34 +379,71 @@ if __name__ == '__main__':
         "initial sent volumes",
         logger=lgr)
 
+    # Prepare input data for rank order enumerator
+    objects = []
+    for rank in phase.get_ranks():
+        for o in rank.get_objects():
+            entry = {
+                "id": o.get_id(),
+                "time": o.get_time(),
+                "to": {},
+                "from": {}}
+            comm = o.get_communicator()
+            if comm:
+                for k, v in comm.get_sent().items():
+                    entry["to"][k.get_id()] = v
+                for k, v in comm.get_received().items():
+                    entry["from"][k.get_id()] = v
+            objects.append(entry)
+    objects.sort(key=lambda x: x.get("id"))
+
+    # Execute rank order enumerator and fetch optimal arrangements
+    n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
+        objects)
+    if n_a != n_ranks ** len(objects):
+        lgr.error("Incorrect number of possible arrangements with repetition")
+        sys.exit(1)
+    lgr.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+
     # Instantiate runtime
     rt = Runtime(
         phase,
         params.work_model,
         params.criterion,
         params.order_strategy,
-        logger=lgr)
-    rt.execute(
-        params.n_iterations,
-        params.n_rounds,
-        params.fanout,
-        params.max_objects_per_transfer,
-        params.deterministic_transfer)
+        a_min_max,
+        lgr)
+    lgr.info(f"Instantiated runtime with {params.order_strategy} object ordering strategy")
+
+    # Execute runtime iterations when requested
+    if params.n_iterations:
+        rt.execute(
+            params.n_iterations,
+            params.n_rounds,
+            params.fanout,
+            params.max_objects_per_transfer,
+            params.deterministic_transfer)
 
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
-    lgr.info(f"Mapping {n_p} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
-    grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
+    lgr.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
+    grid_map = lambda x: global_id_to_cartesian(
+        x.get_id(),
+        params.grid_size)
 
     # Assemble output file name stem
     if params.output_file_stem is not None:
         output_stem = params.output_file_stem
     else:
-        output_stem = get_output_file_stem(params)
+        output_stem = get_output_file_stem(params, n_ranks)
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = LoadWriterVT(phase, output_stem, output_dir=params.output_dir, logger=lgr)
+        vt_writer = VTStatisticsWriter(
+            phase,
+            output_stem,
+            output_dir=params.output_dir,
+            logger=lgr)
         vt_writer.write()
 
     # If prefix parsed from command line
@@ -435,7 +466,9 @@ if __name__ == '__main__':
     if params.generate_multimedia:
         from ParaviewViewerBase import ParaviewViewerBase
         if params.output_dir is not None:
-            file_name = os.path.join(params.output_dir, file_name)
+            file_name = os.path.join(
+                params.output_dir,
+                file_name)
             output_stem = file_name
         viewer = ParaviewViewerBase.factory(
             exodus=output_stem,
@@ -444,6 +477,7 @@ if __name__ == '__main__':
         reader = viewer.createViews()
         viewer.saveView(reader)
 
+    # Create file to store imbalance statistics
     imb_file = "imbalance.txt" if params.output_dir is None else os.path.join(params.output_dir, "imbalance.txt")
 
     # Compute and print final rank load and edge volume statistics
@@ -460,12 +494,13 @@ if __name__ == '__main__':
         logger=lgr)
 
     # Report on theoretically optimal statistics
-    q, r = divmod(n_o, n_p)
-    ell = n_p * l_ave / n_o
+    q, r = divmod(n_o, n_ranks)
+    ell = n_ranks * l_ave / n_o
     lgr.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
     lgr.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-    imbalance = (n_p - r) / float(n_o) if r else 0.
-    lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_p - r)) / n_p:.6g}  imbalance: {imbalance:.6g}")
+    imbalance = (n_ranks - r) / float(n_o) if r else 0.
+    lgr.info(f"\tstandard deviation: {ell * math.sqrt(r * (n_ranks - r)) / n_ranks:.6g}  imbalance: {imbalance:.6g}")
 
+    # Compute Hamming distance
     # If this point is reached everything went fine
     lgr.info("Process complete ###")
