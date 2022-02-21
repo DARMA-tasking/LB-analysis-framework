@@ -212,28 +212,22 @@ class internalParameters:
                 self.__dict__[param_key] = param_val
 
         # Set number of ranks in each direction for ExodusII output
-        if isinstance(self.conf.get(
-            "x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
+        if isinstance(self.conf.get("x_procs", None), int) and self.conf.get("x_procs", 0) > 0:
             self.grid_size[0] = self.conf.get("x_procs", 0)
-        if isinstance(self.conf.get(
-            "y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
+        if isinstance(self.conf.get("y_procs", None), int) and self.conf.get("y_procs", 0) > 0:
             self.grid_size[1] = self.conf.get("y_procs", 0)
-        if isinstance(self.conf.get(
-            "z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
+        if isinstance(self.conf.get("z_procs", None), int) and self.conf.get("z_procs", 0) > 0:
             self.grid_size[2] = self.conf.get("z_procs", 0)
 
         # Set sampling parameters for random inputs
-        if isinstance(self.conf.get(
-            "time_sampler_type", None), str):
+        if isinstance(self.conf.get("time_sampler_type", None), str):
             self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(self.conf["time_sampler_type"])
-        if isinstance(self.conf.get(
-            "volume_sampler_type", None), str):
+        if isinstance(self.conf.get("volume_sampler_type", None), str):
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.conf["volume_sampler_type"])
 
         # Set object ranking strategy
-        if isinstance(self.conf.get(
-            "order_strategy", None), str):
+        if isinstance(self.conf.get("order_strategy", None), str):
             self.order_strategy = self.conf.get("order_strategy", None)
 
         # Set logging level

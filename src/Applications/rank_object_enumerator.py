@@ -1,4 +1,4 @@
-#@HEADER
+# @HEADER
 ###############################################################################
 #
 #                          rank-object-enumerator.py
@@ -38,7 +38,7 @@
 # Questions? Contact darma@sandia.gov
 #
 ###############################################################################
-#@HEADER
+# @HEADER
 #
 ###############################################################################
 import os
@@ -61,11 +61,13 @@ from src.Utils.logger import logger
 
 sys.setrecursionlimit(1500)
 
+
 def get_conf() -> dict:
     """ Gets config from file and returns a dictionary. """
     with open(os.path.join(project_path, "src", "Applications", "conf.yaml"), 'rt') as conf_file:
         conf = yaml.safe_load(conf_file)
     return conf
+
 
 # Getting configuration
 CONF = get_conf()
@@ -80,6 +82,7 @@ GAMMA_G = CONF.get("work_model").get("parameters").get("gamma")
 INPUT_DATA = os.path.join(project_path, CONF.get("log_file"))
 FILE_SUFFIX = CONF.get("file_suffix")
 LGR = logger()
+
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str) -> tuple:
     """ Read data from configuration and returns a tuple of objects with communication
@@ -172,7 +175,8 @@ def compute_arrangement_works(objects: tuple, arrngmnt: tuple, alpha: float, bet
     return works
 
 
-def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, from_id: int, to_id: int, n_ranks:int, max_objects:int=None):
+def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float,
+                                            from_id: int, to_id: int, n_ranks: int, max_objects: int = None):
     """Compute arragnements reachable by moving up to a maximum number of objects from one rank to another
     """
 
@@ -211,13 +215,15 @@ def compute_pairwise_reachable_arrangements(objects, arrangement, alpha: float, 
             w_max_new = max(works.values())
             if w_max_new <= w_max:
                 reachable[new_arrangement] = w_max_new
-    LGR.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst {n_possible} possible one(s)")
+    LGR.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst "
+              f"{n_possible} possible one(s)")
 
     # Return dict of reachable arrangements
     return reachable
 
 
-def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, n_ranks:int, max_objects:int=None):
+def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float,
+                                       n_ranks: int, max_objects: int = None):
     """Compute all arragnements reachable by moving up to a maximum number of objects
     """
 
@@ -254,8 +260,8 @@ def compute_min_max_arrangements_work(objects):
     works_min_max = math.inf
     arrangements_min_max = []
     for arrangement in itertools.product(
-        range(N_RANKS),
-        repeat=len(objects)):
+            range(N_RANKS),
+            repeat=len(objects)):
 
         # Compute per-rank works for currrent arrangement
         works = compute_arrangement_works(
@@ -278,7 +284,8 @@ def compute_min_max_arrangements_work(objects):
     return n_arrangements, works_min_max, arrangements_min_max
 
 
-def recursively_compute_transitions(stack, visited, objects, arrangement, alpha: float, beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks:int, max_objects:int=None):
+def recursively_compute_transitions(stack, visited, objects, arrangement, alpha: float, beta: float, gamma: float,
+                                    w_max: float, w_min_max: float, n_ranks: int, max_objects: int = None):
     """Recursively compute all possible transitions to reachable arrangements from initial one
     """
 
@@ -297,7 +304,7 @@ def recursively_compute_transitions(stack, visited, objects, arrangement, alpha:
         for a in stack:
             LGR.info(f"\t{a} with maximum work {visited[a]}")
         return
-        
+
     # Compute all reachable arrangements
     reachable = compute_all_reachable_arrangements(
         objects,

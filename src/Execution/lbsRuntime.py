@@ -90,7 +90,7 @@ class Runtime:
             self.lgr.error(f"Could not instantiate a work model of type {self.work_model}")
             sys.exit(1)
 
-        # Transfer critertion type and parameters
+        # Transfer criterion type and parameters
         self.criterion_name = c.get("name")
         self.criterion_params = c.get("parameters", {})
 
@@ -269,9 +269,6 @@ class Runtime:
             # Terminate positively when criterion is satisfied
             return True, n_o
 
-        # If this point was reach this is an error
-        self.lgr.error("Recursion error at depth", n_o)
-        sys.exit(1)
 
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
         """Perform object transfer phase
