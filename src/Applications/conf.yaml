@@ -48,7 +48,7 @@ fanout: 4
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 0.
+    alpha: 1.
     beta: 1.
     gamma: 0.
 
@@ -58,7 +58,7 @@ criterion:
   name: Tempered
   parameters:
     actual_destination_load: True
-max_objects_per_transfer: 3
+max_objects_per_transfer: 8
 #deterministic_transfer: True
 
 # Specify number of simulation passes
