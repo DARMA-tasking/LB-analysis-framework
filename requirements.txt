@@ -1,5 +1,5 @@
 vtk==9.0.1
-numpy==1.19.5
+numpy==1.20.1
 PyYAML==6.0
 Brotli==1.0.9
 schema==0.7.5
