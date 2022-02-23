@@ -1,0 +1,29 @@
+name: Imbalance check
+on: push
+concurrency:
+  group: CI-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  CI:
+    continue-on-error: false
+    strategy:
+      max-parallel: 10
+      fail-fast: false
+      matrix:
+        config:
+          - { os: ubuntu-latest, image: 3.8-slim-buster }
+          - { os: ubuntu-latest, image: 3.9-slim-buster }
+          - { os: ubuntu-latest, image: 3.10-slim-buster }
+    runs-on: ${{ matrix.config.os }}
+    container: python:${{ matrix.config.image }}
+    env:
+      home_dir: /__w
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: checking-home-dir
+        run: |
+          cd ${{ env.home_dir }}
+          ls
