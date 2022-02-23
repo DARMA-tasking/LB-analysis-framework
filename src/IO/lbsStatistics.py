@@ -70,7 +70,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
             return error_out(distribution_name, parameters, logger=logger)
 
         # Return uniform distribution over given interval
-        return lambda: rnd.uniform(*parameters), "U[{};{}]".format(*parameters)
+        return lambda: rnd.uniform(*parameters), f"U[{parameters[0]};{parameters[1]}]"
 
     # Binomial B(n,p) distribution
     elif distribution_name.lower() == "binomial":
@@ -79,7 +79,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
             return error_out(distribution_name, parameters, logger=logger)
 
         # Return binomial distribution with given number of Bernoulli trials
-        return lambda: np.random.binomial(*parameters), "B[{};{}]".format(*parameters)
+        return lambda: np.random.binomial(*parameters), f"B[{parameters[0]};{parameters[1]}]"
 
     # Log-normal distribution with given mean and variance
     elif distribution_name.lower() == "lognormal":
@@ -98,9 +98,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
         sigma = math.sqrt(math.log(r * r / m2))
 
         # Return log-normal distribution with given mean and variance
-        return lambda : rnd.lognormvariate(mu, sigma), "LogN({:.6g};{:.6g})".format(
-            mu,
-            sigma)
+        return lambda: rnd.lognormvariate(mu, sigma), f"LogN({mu:.6g};{sigma:.6g})"
 
     # Unsupported distribution type
     else:
