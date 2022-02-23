@@ -12,11 +12,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { os: ubuntu-latest, image: 3.8-slim-buster }
-#          - { os: ubuntu-latest, image: 3.9-slim-buster }
-#          - { os: ubuntu-latest, image: 3.10-slim-buster }
+          - { os: ubuntu-latest, image: 3.8 }
+#          - { os: ubuntu-latest, image: 3.9 }
+#          - { os: ubuntu-latest, image: 3.10 }
     runs-on: ${{ matrix.config.os }}
-    container: python:${{ matrix.config.image }}
+    container: python:${{ matrix.config.image }}-slim-buster
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
       test_output: /__w/LB-analysis-framework/LB-analysis-framework/output/imbalance.txt
@@ -24,15 +24,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install packages
+        run: |
+          apt-get update && apt-get upgrade -y
+          apt-get install -y git xvfb 
+
       - name: Install requirements
         run: |
           cd ${{ env.home_dir }}
+          pip install virtualenv
+          virtualenv --python /usr/local/bin/python${{ matrix.config.image }} venv
+          source venv/bin/activate
           pip install -r requirements.txt
 
       - name: Run LBAF Test
         run: |
           cd ${{ env.home_dir }}
           cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/Applications/conf.yaml
+          source venv/bin/activate
           python src/Applications/LBAF.py
 
       - name: Check output
