@@ -13,17 +13,28 @@ jobs:
       matrix:
         config:
           - { os: ubuntu-latest, image: 3.8-slim-buster }
-          - { os: ubuntu-latest, image: 3.9-slim-buster }
-          - { os: ubuntu-latest, image: 3.10-slim-buster }
+#          - { os: ubuntu-latest, image: 3.9-slim-buster }
+#          - { os: ubuntu-latest, image: 3.10-slim-buster }
     runs-on: ${{ matrix.config.os }}
     container: python:${{ matrix.config.image }}
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
+      test_output: ${{ env.home_dir }}/output/imbalance.txt
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: checking-home-dir
+      - name: Install requirements
         run: |
           cd ${{ env.home_dir }}
-          ls
+          pip install -r requirements.txt
+
+      - name: Run LBAF Test
+        run: |
+          cd ${{ env.home_dir }}
+          cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/Applications/conf.yaml
+          python src/Applications/LBAF.py
+
+      - name: Check output
+        run: |
+          cat ${{ env.test_output }}
