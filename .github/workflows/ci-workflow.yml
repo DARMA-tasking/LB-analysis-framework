@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     container: python:${{ matrix.config.image }}
     env:
-      home_dir: /__w/LB-analysis-framework
+      home_dir: /__w/LB-analysis-framework/LB-analysis-framework
 
     steps:
       - uses: actions/checkout@v2
