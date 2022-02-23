@@ -34,7 +34,7 @@ jobs:
           cd ${{ env.home_dir }}
           pip install virtualenv
           virtualenv --python /usr/local/bin/python${{ matrix.config.image }} venv
-          source venv/bin/activate
+          /bin/sh venv/bin/activate
           pip install -r requirements.txt
 
       - name: Run LBAF Test
