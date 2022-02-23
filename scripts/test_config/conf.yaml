@@ -21,4 +21,4 @@ y_procs: 2
 z_procs: 1
 output_dir: "output"
 order_strategy: arbitrary
-logging_level: debug
+logging_level: info
