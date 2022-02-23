@@ -41,7 +41,7 @@ jobs:
         run: |
           cd ${{ env.home_dir }}
           cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/Applications/conf.yaml
-          source venv/bin/activate
+          /bin/sh venv/bin/activate
           python src/Applications/LBAF.py
 
       - name: Check output
