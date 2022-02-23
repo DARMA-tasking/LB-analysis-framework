@@ -45,7 +45,7 @@ import sys
 
 
 def run_tests():
-    imbalance_file = f"/lbaf/output/imbalance.txt"
+    imbalance_file = sys.argv[1]
     with open(imbalance_file, 'r') as imb_file:
         imb_level = float(imb_file.read())
         print(f"@@@@@ FOUND IMBALANCE: {imb_level} @@@@@")

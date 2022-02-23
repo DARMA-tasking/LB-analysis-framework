@@ -46,4 +46,6 @@ jobs:
 
       - name: Check output
         run: |
-          cat ${{ env.test_output }}
+          cd ${{ env.home_dir }}
+          /bin/sh venv/bin/activate
+          python scripts/test_lbaf.py ${{ env.test_output }}
