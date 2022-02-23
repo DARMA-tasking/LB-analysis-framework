@@ -43,9 +43,9 @@ jobs:
           cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/Applications/conf.yaml
           /bin/sh venv/bin/activate
           echo "================================================================================"
-          echo "Printing used configuration:"
+          echo "Printing used configuration:\n"
           cat ${{ env.home_dir }}/src/Applications/conf.yaml
-          echo "Running LBAF:"
+          echo "\nRunning LBAF:"
           echo "================================================================================"
           python src/Applications/LBAF.py
 
