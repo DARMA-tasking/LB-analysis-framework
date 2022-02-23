@@ -19,7 +19,7 @@ jobs:
     container: python:${{ matrix.config.image }}
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
-      test_output: ${{ env.home_dir }}/output/imbalance.txt
+      test_output: /__w/LB-analysis-framework/LB-analysis-framework/output/imbalance.txt
 
     steps:
       - uses: actions/checkout@v2
