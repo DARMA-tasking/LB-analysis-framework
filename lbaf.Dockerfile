@@ -13,7 +13,7 @@ COPY scripts/test_config/conf.yaml /lbaf/src/Applications/conf.yaml
 
 WORKDIR /lbaf
 RUN mkdir /lbaf/in /lbaf/out
-RUN pip install virtualenv
+RUN /usr/local/bin/python -m pip install --upgrade pip && pip install virtualenv
 RUN virtualenv --python /usr/local/bin/python3.8 venv
 RUN /bin/sh venv/bin/activate && pip install -r requirements.txt
 
