@@ -73,6 +73,7 @@ x_procs: 2
 y_procs: 2
 z_procs: 1
 output_file_stem: output_file
+brute_force_optimization: False
 
 # Simulate from samplers (comment out if reading from log)
 #n_objects: 200
