@@ -42,6 +42,8 @@
 #@HEADER
 #
 ########################################################################
+import copy
+
 from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
@@ -81,6 +83,28 @@ class TemperedCriterion(CriterionBase):
         """Tempered work criterion based on L1 norm of works
         """
 
+        w_max_ini = max(
+            self.work_model.compute(p_src),
+            self.work_model.compute(p_dst))
+
+        p_src_new = Rank(p_src.get_id() + 1000)
+        for o in p_src.get_migratable_objects():
+            if o in object_list:
+                continue
+            p_src_new.add_migratable_object(o)
+
+        p_dst_new = Rank(p_dst.get_id() + 1000)
+        for o in p_dst.get_migratable_objects():
+            p_dst_new.add_migratable_object(o)
+        for o in object_list:
+            p_dst_new.add_migratable_object(o)
+
+
+        w_max_end = max(
+            self.work_model.compute(p_src_new),
+            self.work_model.compute(p_dst_new))
+        return w_max_ini - w_max_end
+
         # Initialize work value with load-based part of criterion
         values = {"load": sum([o.get_time() for o in object_list])
                   + self.dst_load(p_src, p_dst) - p_src.get_load(),
@@ -117,4 +141,6 @@ class TemperedCriterion(CriterionBase):
             values["sent volume"] += v_sent_src - v_sent_dst
 
         # Return aggregated criterion
+        print(self.work_model.aggregate(values))
+        sys.exit(0)
         return - self.work_model.aggregate(values)
