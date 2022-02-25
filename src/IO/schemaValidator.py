@@ -47,7 +47,8 @@ class SchemaValidator:
                                     Optional('home'): int,
                                     Optional('collection_id'): int,
                                     Optional('migratable'): bool,
-                                    Optional('index'): [int]
+                                    Optional('index'): [int],
+                                    Optional('objgroup_id'): int,
                                 },
                                 'messages': int,
                                 'from': {
@@ -56,7 +57,8 @@ class SchemaValidator:
                                     Optional('home'): int,
                                     Optional('collection_id'): int,
                                     Optional('migratable'): bool,
-                                    Optional('index'): [int]
+                                    Optional('index'): [int],
+                                    Optional('objgroup_id'): int,
                                 },
                                 'bytes': float
                             }
@@ -68,7 +70,10 @@ class SchemaValidator:
         return valid_schema
 
     def is_valid(self, schema_to_validate: dict) -> bool:
-        """ Returns True is schema_to_validate is valid with self.valid_schema else False
-        """
+        """ Returns True is schema_to_validate is valid with self.valid_schema else False. """
         is_valid = self.valid_schema.is_valid(schema_to_validate)
         return is_valid
+
+    def validate(self, schema_to_validate: dict):
+        """ Returns validated schema. """
+        return self.valid_schema.validate(schema_to_validate)

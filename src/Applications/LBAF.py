@@ -51,7 +51,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    sys.exit(1)
 try:
     import paraview.simple
 except:
