@@ -410,8 +410,7 @@ if __name__ == '__main__':
             sys.exit(1)
         lgr.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
     else:
-        lgr.info(f"brute_force_optimization parameter in config file not set to True, "
-                 f"brute force optimization will not take place")
+        lgr.info("No brute force optimization performed")
         a_min_max = []
 
     # Instantiate runtime
