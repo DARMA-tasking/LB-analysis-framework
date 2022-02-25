@@ -214,7 +214,8 @@ class Phase:
                 "binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
                 logger=self.lgr)
             self.lgr.info(
-                f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n\tout-degrees sampled from {degree_sampler_name}")
+                f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n"
+                f"\tout-degrees sampled from {degree_sampler_name}")
 
             # Create communicator for each object with only sent communications
             start = time.time()
@@ -281,13 +282,13 @@ class Phase:
             proc_list = rnd.sample(self.ranks, s_s)
             for o in objects:
                 p = rnd.choice(proc_list)
-                p.add_object(o)
+                p.add_migratable_object(o)
                 o.set_rank_id(p.get_id())
         else:
             # Randomly assign objects to all ranks
             for o in objects:
                 p = rnd.choice(self.ranks)
-                p.add_object(o)
+                p.add_migratable_object(o)
                 o.set_rank_id(p.get_id())
 
         # Print debug information when requested
