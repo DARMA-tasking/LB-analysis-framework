@@ -20,5 +20,5 @@ x_procs: 2
 y_procs: 2
 z_procs: 1
 output_dir: "output"
-order_strategy: arbitrary
-logging_level: debug
+order_strategy: element_id
+logging_level: info
