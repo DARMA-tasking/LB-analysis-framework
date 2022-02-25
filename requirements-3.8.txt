@@ -1,0 +1,7 @@
+vtk==9.0.1
+numpy==1.22.2
+PyYAML==6.0
+Brotli==1.0.9
+schema==0.7.5
+scikit-learn==1.0.2
+colorama==0.4.4
