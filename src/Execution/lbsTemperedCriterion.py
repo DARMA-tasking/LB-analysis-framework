@@ -141,6 +141,4 @@ class TemperedCriterion(CriterionBase):
             values["sent volume"] += v_sent_src - v_sent_dst
 
         # Return aggregated criterion
-        print(self.work_model.aggregate(values))
-        sys.exit(0)
         return - self.work_model.aggregate(values)
