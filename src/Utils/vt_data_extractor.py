@@ -16,11 +16,11 @@ from src.IO.schemaValidator import SchemaValidator
 
 class VTDataExtractor:
     """ Reads VT data stats and saves chosen phases from it. """
-    def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = 'stats',
-                 file_suffix: str = 'json', compressed: bool = True):
+    def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
+                 file_suffix: str = "json", compressed: bool = True):
         self.input_data_dir = input_data_dir
         self.output_data_dir = os.path.join(project_path, output_data_dir)
-        self.phases_to_extract = phases_to_extract
+        self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
         self.file_prefix = file_prefix
         self.file_suffix = file_suffix
         self.compressed = compressed
@@ -37,12 +37,29 @@ class VTDataExtractor:
             self.input_data_dir = os.path.join(project_path, self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
-            print('Input data directory NOT FOUND!')
+            print("Input data directory NOT FOUND!")
             sys.exit(1)
         # Output data
         if not os.path.exists(self.output_data_dir):
-            print('Output data directory not found, CREATING ...')
+            print("Output data directory not found, CREATING ...")
             os.makedirs(self.output_data_dir)
+
+    @staticmethod
+    def _process_input_phases(phases_to_extract: list) -> list:
+        """ Creates a list of integers, based on input phases_to_extract. """
+        processed_list = []
+        for phase in phases_to_extract:
+            if isinstance(phase, int):
+                processed_list.append(phase)
+            elif isinstance(phase, str):
+                phase_list = phase.split('-')
+                if int(phase_list[0]) >= int(phase_list[1]):
+                    print('Phase range wrongly declared!')
+                    sys.exit(1)
+                phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
+                processed_list.extend(phase_range)
+        processed_list.sort()
+        return processed_list
 
     def _get_files_list(self) -> list:
         """ Returns list of files to iterate over and read data from them. """
@@ -79,39 +96,44 @@ class VTDataExtractor:
     @staticmethod
     def get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
         """ Returns just wanted phases from given data and list of phases to extract. """
-        extracted_phases = {'phases': []}
-        for phase_number, phase in enumerate(data['phases']):
+        extracted_phases = {"phases": []}
+        for phase_number, phase in enumerate(data["phases"]):
             if phase_number in phases_to_extract:
-                extracted_phases['phases'].append(phase)
+                extracted_phases["phases"].append(phase)
+
         return extracted_phases
 
     @staticmethod
     def save_extracted_phases(extracted_phases: dict, file_path: str, compressed: bool = True) -> None:
         """ Saves extracted data with or without compression. """
-        json_str = json.dumps(extracted_phases, separators=(',', ':'))
+        json_str = json.dumps(extracted_phases, separators=(",", ":"))
         if compressed:
-            saved_str = brotli.compress(string=json_str.encode('utf-8'), mode=brotli.MODE_TEXT)
+            saved_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
         else:
             saved_str = json_str
 
-        print(f'Saving file: {file_path}')
-        with open(file_path, 'wb') as compr_json_file:
+        print(f"Saving file: {file_path}")
+        with open(file_path, "wb") as compr_json_file:
             compr_json_file.write(saved_str)
 
     def main(self):
         files = self._get_files_list()
         for file in files:
-            print(f'Processing file: {file}')
+            print(f"Processing file: {file}")
             file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
             data = self.get_data_from_file(file_path=file)
             extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
             self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path,
                                        compressed=self.compressed)
-        print('=====> DONE <=====')
+        print("=====> DONE <=====")
 
 
 if __name__ == '__main__':
-    phases = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900]
-    vtde = VTDataExtractor(input_data_dir='data/nolb-8color-16nodes-stats', output_data_dir='output',
+    # Here phases are declared
+    # It should be declared as list of [int or str]
+    # Int is just a phase number/id
+    # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
+    phases = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, "9-11"]
+    vtde = VTDataExtractor(input_data_dir="data/nolb-8color-16nodes-stats", output_data_dir="output",
                            phases_to_extract=phases)
     vtde.main()
