@@ -147,6 +147,9 @@ class internalParameters:
         # By default only one object maybe transferred at once
         self.max_objects_per_transfer = 1
 
+        # By default False
+        self.brute_force_optimization = False
+
         # Configuration file
         self.conf_file_found = False
         if config_file is None:
@@ -379,31 +382,36 @@ if __name__ == '__main__':
         "initial sent volumes",
         logger=lgr)
 
-    # Prepare input data for rank order enumerator
-    objects = []
-    for rank in phase.get_ranks():
-        for o in rank.get_objects():
-            entry = {
-                "id": o.get_id(),
-                "time": o.get_time(),
-                "to": {},
-                "from": {}}
-            comm = o.get_communicator()
-            if comm:
-                for k, v in comm.get_sent().items():
-                    entry["to"][k.get_id()] = v
-                for k, v in comm.get_received().items():
-                    entry["from"][k.get_id()] = v
-            objects.append(entry)
-    objects.sort(key=lambda x: x.get("id"))
+    if params.brute_force_optimization:
+        lgr.info(f"Starting brute force optimization")
+        # Prepare input data for rank order enumerator
+        objects = []
+        for rank in phase.get_ranks():
+            for o in rank.get_objects():
+                entry = {
+                    "id": o.get_id(),
+                    "time": o.get_time(),
+                    "to": {},
+                    "from": {}}
+                comm = o.get_communicator()
+                if comm:
+                    for k, v in comm.get_sent().items():
+                        entry["to"][k.get_id()] = v
+                    for k, v in comm.get_received().items():
+                        entry["from"][k.get_id()] = v
+                objects.append(entry)
+        objects.sort(key=lambda x: x.get("id"))
 
-    # Execute rank order enumerator and fetch optimal arrangements
-    n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
-        objects)
-    if n_a != n_ranks ** len(objects):
-        lgr.error("Incorrect number of possible arrangements with repetition")
-        sys.exit(1)
-    lgr.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+        # Execute rank order enumerator and fetch optimal arrangements
+        n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
+            objects)
+        if n_a != n_ranks ** len(objects):
+            lgr.error("Incorrect number of possible arrangements with repetition")
+            sys.exit(1)
+        lgr.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+    else:
+        lgr.info("No brute force optimization performed")
+        a_min_max = []
 
     # Instantiate runtime
     rt = Runtime(
