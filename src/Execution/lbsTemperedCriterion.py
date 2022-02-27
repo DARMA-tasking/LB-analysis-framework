@@ -42,6 +42,7 @@
 #@HEADER
 #
 ########################################################################
+import sys
 import copy
 
 from logging import Logger
@@ -79,44 +80,40 @@ class TemperedCriterion(CriterionBase):
         self.dst_load = get_dst_load_know_by_src if not (parameters and parameters.get("actual_destination_load")) \
             else get_actual_dst_load
 
-    def compute(self, object_list: list, p_src: Rank, p_dst: Rank) -> float:
+    def compute(self, objects: list, p_src: Rank, p_dst: Rank) -> float:
         """Tempered work criterion based on L1 norm of works
         """
 
-        w_max_ini = max(
-            self.work_model.compute(p_src),
-            self.work_model.compute(p_dst))
+        # Compute original arrangement works
+        values_src = {
+            "load": p_src.get_load(),
+            "received volume": p_src.get_received_volume(),
+            "sent volume": p_src.get_sent_volume()}
+        w_src_0 = self.work_model.aggregate(values_src)
+        values_dst = {
+            "load": p_dst.get_load(),
+            "received volume": p_dst.get_received_volume(),
+            "sent volume": p_dst.get_sent_volume()}
+        w_dst_0 = self.work_model.aggregate(values_dst)
+        w_max_0 = max(w_src_0, w_dst_0)
 
-        p_src_new = Rank(p_src.get_id() + 1000)
-        for o in p_src.get_migratable_objects():
-            if o in object_list:
-                continue
-            p_src_new.add_migratable_object(o)
-
-        p_dst_new = Rank(p_dst.get_id() + 1000)
-        for o in p_dst.get_migratable_objects():
-            p_dst_new.add_migratable_object(o)
-        for o in object_list:
-            p_dst_new.add_migratable_object(o)
-
-
-        w_max_end = max(
-            self.work_model.compute(p_src_new),
-            self.work_model.compute(p_dst_new))
-        return w_max_ini - w_max_end
-
-        # Initialize work value with load-based part of criterion
-        values = {"load": sum([o.get_time() for o in object_list])
-                  + self.dst_load(p_src, p_dst) - p_src.get_load(),
-                  "received volume": 0.,
-                  "sent volume": 0.}
+        # Update loads in proposed new arrangement
+        object_loads = sum([o.get_time() for o in objects])
+        values_src["load"] -= object_loads
+        values_dst["load"] += object_loads
 
         # Retrieve IDs of source and destination ranks
         src_id = p_src.get_id()
         dst_id = p_dst.get_id()
 
-        # Compute aggregate communicator
-        for o in object_list:
+        # Update communication volumes
+        v_src_to_src = 0.
+        v_src_to_dst = 0.
+        v_src_to_oth = 0.
+        v_src_from_src = 0.
+        v_src_from_dst = 0.
+        v_src_from_oth = 0.
+        for o in objects:
             # Skip objects without a communicator
             comm = o.get_communicator()
             if not isinstance(comm, ObjectCommunicator):
@@ -124,21 +121,42 @@ class TemperedCriterion(CriterionBase):
 
             # Retrieve items not sent nor received from object list
             recv = {(k, v) for k, v in comm.get_received().items()
-                    if k not in object_list}
+                    if k not in objects}
             sent = {(k, v) for k, v in comm.get_sent().items()
-                    if k not in object_list}
+                    if k not in objects}
 
-            # Aggregate communication volumes between source and destination
-            v_recv_dst = sum([v for k, v in recv if k.get_rank_id() == dst_id])
-            v_sent_dst = sum([v for k, v in sent if k.get_rank_id() == dst_id])
+            # Tally sent communication volumes by destination
+            for k, v in sent:
+                if k.get_rank_id() == src_id:
+                    v_src_to_src += v
+                elif k.get_rank_id() == dst_id:
+                    v_src_to_dst += v
+                else:
+                    v_src_to_oth += v
 
-            # Aggregate communication volumes local to source
-            v_recv_src = sum([v for k, v in recv if k.get_rank_id() == src_id])
-            v_sent_src = sum([v for k, v in sent if k.get_rank_id() == src_id])
+            # Tally received communication volumes by source
+            for k, v in recv:
+                if k.get_rank_id() == src_id:
+                    v_src_from_src += v
+                elif k.get_rank_id() == dst_id:
+                    v_src_from_dst += v
+                else:
+                    v_src_from_oth += v
 
-            # Compute differences between sent and received volumes
-            values["received volume"] += v_recv_src - v_recv_dst
-            values["sent volume"] += v_sent_src - v_sent_dst
+        # Compute proposed new arrangement communication volumes
+        values_src["sent volume"] += v_src_from_src
+        values_src["sent volume"] -= v_src_to_dst + v_src_to_oth
+        values_src["received volume"] += v_src_to_src
+        values_src["received volume"] -= v_src_from_dst + v_src_from_oth
+        values_dst["sent volume"] += v_src_to_src + v_src_to_oth
+        values_dst["sent volume"] -= v_src_from_dst 
+        values_dst["received volume"] += v_src_from_src + v_src_from_oth
+        values_dst["received volume"] -= v_src_to_dst
 
-        # Return aggregated criterion
-        return - self.work_model.aggregate(values)
+        # Compute proposed new arrangement works
+        w_src_new = self.work_model.aggregate(values_src)
+        w_dst_new = self.work_model.aggregate(values_dst)
+        w_max_new = max(w_src_new, w_dst_new)
+
+        # Return criterion value
+        return w_max_0 - w_max_new
