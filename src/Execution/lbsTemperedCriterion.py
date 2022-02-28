@@ -143,14 +143,16 @@ class TemperedCriterion(CriterionBase):
                 else:
                     v_src_from_oth += v
 
-        # Compute proposed new arrangement communication volumes
-        values_src["sent volume"] += v_src_from_src
+        # Update volumes by transferring non-local communications
         values_src["sent volume"] -= v_src_to_dst + v_src_to_oth
-        values_src["received volume"] += v_src_to_src
-        values_src["received volume"] -= v_src_from_dst + v_src_from_oth
         values_dst["sent volume"] += v_src_to_src + v_src_to_oth
-        values_dst["sent volume"] -= v_src_from_dst 
+        values_src["received volume"] -= v_src_from_dst + v_src_from_oth
         values_dst["received volume"] += v_src_from_src + v_src_from_oth
+
+        # Swap sent/receieved volumes for local commmunications
+        values_src["sent volume"] += v_src_from_src
+        values_dst["sent volume"] -= v_src_from_dst 
+        values_src["received volume"] += v_src_to_src
         values_dst["received volume"] -= v_src_to_dst
 
         # Compute proposed new arrangement works
