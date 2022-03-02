@@ -110,7 +110,7 @@ class Phase:
         n_loaded = 0
 
         # Initialize sum of total and rank-local volumes
-        w_total, w_local = 0., 0.
+        v_total, v_local = 0., 0.
 
         # Iterate over ranks
         for p in self.ranks:
@@ -125,7 +125,7 @@ class Phase:
                 # Iterate over recipient objects
                 for q, volume in o.get_sent().items():
                     # Update total volume
-                    w_total += volume
+                    v_total += volume
 
                     # Retrieve recipient rank ID
                     j = q.get_rank_id()
@@ -134,7 +134,7 @@ class Phase:
                     # Skip rank-local communications
                     if i == j:
                         # Update sum of local volumes and continue
-                        w_local += volume
+                        v_local += volume
                         continue
 
                     # Create or update an inter-rank directed edge
@@ -163,9 +163,9 @@ class Phase:
             logger=self.lgr)
         print_subset_statistics(
             "Rank-local communication volume",
-            w_local,
+            v_local,
             "total volume",
-            w_total,
+            v_total,
             logger=self.lgr)
 
     def get_edges(self):
@@ -235,7 +235,7 @@ class Phase:
                     k.get_communicator().get_received()[obj] = v
 
         # Iterate over all object communicators to valid global communication graph
-        w_sent, w_recv = [], []
+        v_sent, v_recv = [], []
         for obj in objects:
             i = obj.get_id()
             self.lgr.debug(f"\tobject {i}:")
@@ -247,19 +247,19 @@ class Phase:
                 continue
 
             # Check and summarize communications and update global counters
-            w_out, w_in = comm.summarize(
+            v_out, v_in = comm.summarize(
                 '\t' if self.logging_level == "debug" else None)
-            w_sent += w_out
-            w_recv += w_in
+            v_sent += v_out
+            v_recv += v_in
 
         # Perform sanity checks
-        if len(w_recv) != len(w_sent):
-            self.lgr.error(f"Number of sent and received communications differ: {len(w_sent)} <> {len(w_recv)}")
+        if len(v_recv) != len(v_sent):
+            self.lgr.error(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
             sys.exit(1)
 
         # Compute and report communication volume statistics
         print_function_statistics(
-            w_sent,
+            v_sent,
             lambda x: x,
             "communication volumes",
             logger=self.lgr)

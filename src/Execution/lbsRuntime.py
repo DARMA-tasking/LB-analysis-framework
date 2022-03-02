@@ -246,7 +246,7 @@ class Runtime:
         """Recursively extend search to other objects
         """
 
-        # Terminate negatively when pick list is empty or maximum depth is reached
+        # Fail when no more objects available or maximum depth is reached
         if not pick_list or n_o >= max_n_o:
             return False, n_o
 
@@ -256,7 +256,7 @@ class Runtime:
         object_list.append(o)
         n_o += 1
 
-        # Decide whether criterion allows transfer
+        # Decide whether criterion allows for transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
             return self.recursive_extended_search(
@@ -266,7 +266,7 @@ class Runtime:
                 n_o,
                 max_n_o)
         else:
-            # Terminate positively when criterion is satisfied
+            # Succeed when criterion is satisfied
             return True, n_o
 
 
@@ -299,6 +299,7 @@ class Runtime:
             while srt_proc_obj:
                 # Pick next object in ordered list
                 o = srt_proc_obj.pop()
+                object_list = [o]
                 self.lgr.debug(f"\t* object {o.get_id()}:")
 
                 # Initialize destination information
@@ -326,11 +327,15 @@ class Runtime:
                     p_dst = inverse_transform_sample(p_cmf)
                     c_dst = c_values[p_dst]
 
-                # Look for possible transfer including current object
-                object_list = [o]
-                pick_list = srt_proc_obj[:]
+                # Handle case where object not suitable for transfer
                 if c_dst < 0.:
-                    # Recursively extend search
+                    if not srt_proc_obj:
+                        # No more transferrable objects are available
+                        n_rejects += 1
+                        continue
+
+                    # Recursively extend search if possible
+                    pick_list = srt_proc_obj[:]
                     success, _ = self.recursive_extended_search(
                         pick_list,
                         object_list,

@@ -94,9 +94,9 @@ class CriterionBase:
             sys.exit(1)
 
     @abc.abstractmethod
-    def compute(self, object_list, rank_src, rank_dst):
+    def compute(self, objects, rank_src, rank_dst):
         """Return value of criterion for candidate objects transfer
-        object_list: list of object instance
+        objects: iterable containing object instances
         rank_src, rank_dst: Rank instances
         """
 
