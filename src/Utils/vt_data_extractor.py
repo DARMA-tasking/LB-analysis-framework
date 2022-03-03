@@ -58,7 +58,10 @@ class VTDataExtractor:
                     sys.exit(1)
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
+        processed_set = set(processed_list)
+        processed_list = list(processed_set)
         processed_list.sort()
+
         return processed_list
 
     def _get_files_list(self) -> list:
