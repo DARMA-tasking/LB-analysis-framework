@@ -88,7 +88,7 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix, logger: Logger = None, file_suffix="vom"):
+    def __init__(self, file_prefix: str, logger: Logger = None, file_suffix: str = "vom"):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
 
