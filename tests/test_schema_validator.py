@@ -10,6 +10,7 @@ except Exception as e:
 import json
 import unittest
 
+import brotli
 
 from src.IO.schemaValidator import SchemaValidator
 
@@ -24,10 +25,22 @@ class TestConfig(unittest.TestCase):
             exit(1)
 
     def test_schema_validator_valid_001(self):
-        with open(os.path.join(self.data_dir, 'valid_schema.json'), 'r') as valid_json_schema:
-            vjs_str = valid_json_schema.read()
-            vjs_json = json.loads(vjs_str)
+        with open(os.path.join(self.data_dir, 'valid_schema_001.json'), 'rb') as compr_json_file:
+            compr_bytes = compr_json_file.read()
+        decompr_bytes = brotli.decompress(compr_bytes)
+        vjs_json = json.loads(decompr_bytes.decode("utf-8"))
         is_valid = SchemaValidator().is_valid(schema_to_validate=vjs_json)
+        validated_schema = SchemaValidator().validate(schema_to_validate=vjs_json)
+        self.assertEqual(vjs_json, validated_schema)
+        self.assertEqual(True, is_valid)
+
+    def test_schema_validator_valid_uncompressed_001(self):
+        with open(os.path.join(self.data_dir, 'valid_schema_uncompressed_001.json'), 'r') as uncompr_json_file:
+            uncompr_txt = uncompr_json_file.read()
+        vjs_json = json.loads(uncompr_txt)
+        is_valid = SchemaValidator().is_valid(schema_to_validate=vjs_json)
+        validated_schema = SchemaValidator().validate(schema_to_validate=vjs_json)
+        self.assertEqual(vjs_json, validated_schema)
         self.assertEqual(True, is_valid)
 
     def test_schema_validator_invalid_001(self):
