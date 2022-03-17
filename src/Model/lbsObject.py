@@ -47,77 +47,88 @@ from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class Object:
-    """A class representing an object with time and communicator
+    """ A class representing an object with time and communicator
     """
-
-    def __init__(self, i, t, p=None, c=None):
+    def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None):
         # Object index
-        self.index = i
+        if not isinstance(i, int) or isinstance(i, bool):
+            raise TypeError(f"i: {i} is type of {type(i)}! Must be <class 'int'>!")
+        else:
+            self.index = i
 
         # Time required to perform the work of this object
-        self.time = t
+        if not isinstance(t, float):
+            raise TypeError(f"t: {t} is type of {type(t)}! Must be <class 'float'>!")
+        else:
+            self.time = t
 
         # Rank to which object is currently assigned if defined
-        self.rank_id = p
+        if bool(isinstance(p, int) or p is None) and not isinstance(p, bool):
+            self.rank_id = p
+        else:
+            raise TypeError(f"p: {p} is type of {type(p)}! Must be <class 'int'>!")
 
         # Communication graph of this object if defined
-        self.communicator = c if isinstance(c, ObjectCommunicator) else None
+        if isinstance(c, ObjectCommunicator) or c is None:
+            self.communicator = c
+        else:
+            raise TypeError(f"c: {c} is type of {type(c)}! Must be <class 'ObjectCommunicator'>!")
 
     def __repr__(self):
         return f"Object id: {self.index}, time: {self.time}"
 
     def get_id(self):
-        """Return object ID
+        """ Return object ID
         """
         return self.index
 
     def get_time(self):
-        """Return object time
+        """ Return object time
         """
         return self.time
 
     def get_sent(self):
-        """Return communications sent by object to other objects
+        """ Return communications sent by object to other objects
         """
         return self.communicator.get_sent() if self.communicator else {}
 
     def get_received(self):
-        """Return communications received by object from other objects
+        """ Return communications received by object from other objects
         """
         return self.communicator.get_received() if self.communicator else {}
 
-    def get_received_volume(self):
-        """Return volume of communications received by object
+    def get_received_volume(self) -> float:
+        """ Return volume of communications received by object
         """
         return sum([v for v in self.communicator.get_received().values()]) if self.communicator else 0
 
-    def get_sent_volume(self):
-        """Return volume of communications sent by object
+    def get_sent_volume(self) -> float:
+        """ Return volume of communications sent by object
         """
         return sum([v for v in self.communicator.get_sent().values()]) if self.communicator else 0
 
     def set_rank_id(self, p_id):
-        """Assign object to rank ID
+        """ Assign object to rank ID
         """
         self.rank_id = p_id
 
     def get_rank_id(self):
-        """Return ID of rank to which object is currently assigned
+        """ Return ID of rank to which object is currently assigned
         """
         return self.rank_id
 
-    def has_communicator(self):
-        """Return whether the object has communication graph data
+    def has_communicator(self) -> bool:
+        """ Return whether the object has communication graph data
         """
         return self.communicator is not None
 
-    def get_communicator(self):
-        """Return the communication graph for this object
+    def get_communicator(self) -> ObjectCommunicator:
+        """ Return the communication graph for this object
         """
         return self.communicator
 
-    def set_communicator(self, c):
-        """Assign the communication graph for this object
+    def set_communicator(self, c) -> None:
+        """ Assign the communication graph for this object
         """
         # Perform sanity check prior to assignment
         if isinstance(c, ObjectCommunicator):
