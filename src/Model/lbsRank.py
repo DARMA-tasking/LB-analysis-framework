@@ -208,11 +208,11 @@ class Rank:
         # Reset information about known peers
         self.known_loads = {}
 
-        # Reset information about overloaded viwewer peers
+        # Reset information about overloaded viewer peers
         self.viewers = set()
 
     def initialize_message(self, loads, f):
-        """Initialize maessage to be sent to selected peers
+        """ Initialize message to be sent to selected peers
         """
 
         # Retrieve current load on this rank
@@ -225,8 +225,7 @@ class Rank:
         msg = Message(1, self.known_loads)
 
         # Broadcast message to pseudo-random sample of ranks excluding self
-        return rnd.sample(
-            set(loads).difference([self]), min(f, len(loads) - 1)), msg
+        return rnd.sample(set(loads).difference([self]), min(f, len(loads) - 1)), msg
 
     def forward_message(self, r, s, f):
         """Formard information message to sample of selected peers

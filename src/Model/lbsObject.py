@@ -77,22 +77,22 @@ class Object:
     def __repr__(self):
         return f"Object id: {self.index}, time: {self.time}"
 
-    def get_id(self):
+    def get_id(self) -> int:
         """ Return object ID
         """
         return self.index
 
-    def get_time(self):
+    def get_time(self) -> float:
         """ Return object time
         """
         return self.time
 
-    def get_sent(self):
+    def get_sent(self) -> dict:
         """ Return communications sent by object to other objects
         """
         return self.communicator.get_sent() if self.communicator else {}
 
-    def get_received(self):
+    def get_received(self) -> dict:
         """ Return communications received by object from other objects
         """
         return self.communicator.get_received() if self.communicator else {}
@@ -107,12 +107,12 @@ class Object:
         """
         return sum([v for v in self.communicator.get_sent().values()]) if self.communicator else 0
 
-    def set_rank_id(self, p_id):
+    def set_rank_id(self, p_id) -> None:
         """ Assign object to rank ID
         """
         self.rank_id = p_id
 
-    def get_rank_id(self):
+    def get_rank_id(self) -> int:
         """ Return ID of rank to which object is currently assigned
         """
         return self.rank_id
