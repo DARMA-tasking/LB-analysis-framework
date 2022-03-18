@@ -57,7 +57,7 @@ from src.Model.lbsRank import Rank
 
 
 class LoadReader:
-    """A class to read VT Object Map files. These CSV files conform
+    """ A class to read VT Object Map files. These CSV files conform
     to the following format:
 
       <phase_id/phase>, <object-id>, <time>
@@ -99,14 +99,13 @@ class LoadReader:
         self.lgr = logger
 
     def get_node_trace_file_name(self, node_id):
-        """Build the file name for a given rank/node ID
+        """ Build the file name for a given rank/node ID
         """
-
         return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
 
     def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> tuple:
-        """Read the file for a given node/rank. If phase_id==-1 then all
-        steps are read from the file; otherwise, only `phase_id` is.
+        """ Read the file for a given node/rank. If phase_id==-1 then all
+            steps are read from the file; otherwise, only `phase_id` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
@@ -114,7 +113,7 @@ class LoadReader:
         self.lgr.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
             self.lgr.error(f"File {file_name} does not exist.")
-            sys.exit(1)
+            raise FileNotFoundError(f"File {file_name} not found!")
 
         # Retrieve communications from JSON reader
         iter_map = {}
@@ -175,16 +174,10 @@ class LoadReader:
                 # Check if there is any communication for the object
                 obj_comm = communications.get(obj_id)
                 if obj_comm:
-                    sent = {
-                        rank_objects_dict.get(c.get("to")):
-                        c.get("bytes") for c in
-                        obj_comm.get("sent")
-                        if rank_objects_dict.get(c.get("to"))}
-                    received = {
-                        rank_objects_dict.get(c.get("from")):
-                        c.get("bytes") for c in
-                        obj_comm.get("received")
-                        if rank_objects_dict.get(c.get("from"))}
+                    sent = {rank_objects_dict.get(c.get("to")): c.get("bytes") for c in obj_comm.get("sent")
+                            if rank_objects_dict.get(c.get("to"))}
+                    received = {rank_objects_dict.get(c.get("from")): c.get("bytes") for c in obj_comm.get("received")
+                                if rank_objects_dict.get(c.get("from"))}
                     rank_obj.set_communicator(ObjectCommunicator(r=received, s=sent))
 
         # Return populated list of ranks
@@ -203,10 +196,10 @@ class LoadReader:
 
         # Validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            self.lgr.info(f"Valid JSON schema in  {file_name}")
+            self.lgr.info(f"Valid JSON schema in {file_name}")
         else:
             self.lgr.error(f"Invalid JSON schema in {file_name}")
-            raise SyntaxError
+            SchemaValidator().validate(schema_to_validate=decompressed_dict)
 
         # Define phases from file
         phases = decompressed_dict["phases"]

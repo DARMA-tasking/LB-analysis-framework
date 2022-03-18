@@ -92,7 +92,7 @@ class ObjectCommunicator:
         # Return list of volumes
         return volumes
 
-    def get_received(self):
+    def get_received(self) -> dict:
         """ Return all from_object=volume pairs received by object
         """
         return self.received
@@ -102,7 +102,7 @@ class ObjectCommunicator:
         """
         return self.received.get(o)
 
-    def get_sent(self):
+    def get_sent(self) -> dict:
         """ Return all to_object=volume pairs sent from object
         """
         return self.sent
@@ -112,7 +112,7 @@ class ObjectCommunicator:
         """
         return self.sent.get(o)
 
-    def summarize(self, print_indent=None):
+    def summarize(self, print_indent=None) -> tuple:
         """ Summarize communicator properties and check for errors
         """
         # Summarize sent communications

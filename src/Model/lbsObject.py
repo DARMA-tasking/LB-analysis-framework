@@ -77,6 +77,12 @@ class Object:
     def __repr__(self):
         return f"Object id: {self.index}, time: {self.time}"
 
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __hash__(self):
+        return hash(self.index) ^ hash(self.time)
+
     def get_id(self) -> int:
         """ Return object ID
         """

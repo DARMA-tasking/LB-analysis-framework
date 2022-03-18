@@ -60,7 +60,7 @@ def error_out(distribution_name, parameters, logger: Logger = None):
 
 
 def sampler(distribution_name, parameters, logger: Logger = None):
-    """Return a pseudo-random number generator based of requested type
+    """ Return a pseudo-random number generator based of requested type
     """
 
     # Uniform U(a,b) distribution
@@ -107,7 +107,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
 
 
 def Hamming_distance(arrangement_1, arrangement_2):
-    """Compute Hamming distance between two arrangements
+    """ Compute Hamming distance between two arrangements
     """
 
     # Distance can only be compute between same length arrangements
@@ -126,7 +126,7 @@ def Hamming_distance(arrangement_1, arrangement_2):
 
 
 def min_Hamming_distance(arrangement, arrangement_list):
-    """Compute minimum Hamming distance from arrangement to list of arrangements
+    """ Compute minimum Hamming distance from arrangement to list of arrangements
     """
 
     # Minimum distance is at least equal to arrangement length
@@ -144,7 +144,7 @@ def min_Hamming_distance(arrangement, arrangement_list):
 
 
 def inverse_transform_sample(cmf):
-    """Sample from distribution defined by cumulative mass function
+    """ Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform
     """
 

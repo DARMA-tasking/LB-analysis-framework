@@ -56,11 +56,10 @@ from src.IO.lbsVTStatisticsReader import LoadReader
 
 
 class Phase:
-    """A class representing the state of collection of ranks with
-    objects at a given round
+    """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, t=0, logger: Logger = None, logging_level: str = 'info', file_suffix="vom"):
+    def __init__(self, t=0, logger: Logger = None, logging_level: str = "info", file_suffix="vom"):
         # Initialize empty list of ranks
         self.ranks = []
 
@@ -186,7 +185,7 @@ class Phase:
         self.cached_edges = False
 
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
-        """Use samplers to populate either all or n procs in an phase
+        """ Use samplers to populate either all or n procs in a phase
         """
 
         # Retrieve desired time sampler with its theoretical average
