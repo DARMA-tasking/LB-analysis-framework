@@ -11,11 +11,11 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: ['3.8', '3.9']
     runs-on: ${{ matrix.os }}
     env:
-      home_dir: /__w/LB-analysis-framework/LB-analysis-framework
+      home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
 
     steps:
       - uses: actions/checkout@v2
