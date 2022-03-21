@@ -37,7 +37,24 @@ jobs:
           pip install -r requirements-${{ matrix.python-version }}.txt
           pip install tox-gh-actions
 
-      - name: Test with tox
+      - name: Test with TOX
         run: |
           cd ${{ env.home_dir }}
           tox
+
+      - name: Create badges
+        run: |
+          cd ${{ env.home_dir }}
+          mkdir badges
+          PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./artifacts/pylint.txt)
+          anybadge --label=pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
+          COVERAGE_SCORE=$(sed -n '/TOTAL/,/%/p' artifacts/coverage.txt | rev | cut -d" " -f1 | rev | tr -d % )
+          anybadge --value=$COVERAGE_SCORE --file=badges/coverage.svg coverage
+
+      - name: Deploy badges
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          commit_message: ${{steps.tag_version.outputs.tag}} ${{ github.event.head_commit.message }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./badges
