@@ -34,7 +34,7 @@ jobs:
         run: |
           cd ${{ env.home_dir }}
           python -m pip install --upgrade pip
-          pip install -r requirements-${{ matrix.config.image }}.txt
+          pip install -r requirements-${{ matrix.python-version }}.txt
           pip install tox-gh-actions
 
       - name: Test with tox
