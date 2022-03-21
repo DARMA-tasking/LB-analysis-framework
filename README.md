@@ -1,3 +1,5 @@
+[![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml)
+
 This is the repository for Load-Balancing Simulation research
 It contains the following subdirectories:
 * `src`: Load-Balancing Simulator code
