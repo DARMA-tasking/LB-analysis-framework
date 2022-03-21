@@ -22,8 +22,8 @@ jobs:
 
       - name: Install packages
         run: |
-          apt-get update && apt-get upgrade -y
-          apt-get install -y git xvfb 
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install -y git xvfb 
 
       - name: Python Setup
         uses: actions/setup-python@v2
