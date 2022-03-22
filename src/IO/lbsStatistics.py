@@ -235,7 +235,7 @@ def print_function_statistics(values, function, var_name, logger: Logger = None,
 
     # Save imbalance for testing purposes
     if var_name == 'final rank loads' and file is not None:
-        logger.info(f"\nFinal imbalance: {f_imb}\n")
+        logger.info(f"Final imbalance: {f_imb}\n")
         with open(file, 'w') as imbalance_file:
             imbalance_file.write(f"{f_imb}")
 
