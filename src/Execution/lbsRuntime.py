@@ -60,7 +60,7 @@ class Runtime:
     """A class to handle the execution of the LBS
     """
 
-    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger=None):
+    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger = None):
         """Class constructor:
         p: phase instance
         w: dictionary with work model name and optional parameters
@@ -269,7 +269,6 @@ class Runtime:
             # Succeed when criterion is satisfied
             return True, n_o
 
-
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
         """Perform object transfer phase
         """
@@ -357,7 +356,7 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
-                self.lgr.info(f"Transferring {len(object_list)} object(s) at once")
+                self.lgr.debug(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.lgr.debug(
                         f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
@@ -371,12 +370,12 @@ class Runtime:
         return n_ignored, n_transfers, n_rejects
 
     def execute(self, n_iterations, n_rounds, f, max_n_objects, deterministic_transfer):
-        """Launch runtime execution
-        n_iterations: integer number of load-balancing iterations
-        n_rounds: integer number of gossiping rounds
-        f: integer fanout
-        max_n_objects: maxium number of objects transferred at once
-        deterministic_transfer: deterministic or probabilistic transfer
+        """ Launch runtime execution
+            n_iterations: integer number of load-balancing iterations
+            n_rounds: integer number of gossiping rounds
+            f: integer fanout
+            max_n_objects: maxium number of objects transferred at once
+            deterministic_transfer: deterministic or probabilistic transfer
         """
 
         # Report on initial per-rank work
@@ -535,7 +534,6 @@ class Runtime:
 
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)
-
 
     def sorted_ascending(self, objects: Union[set, list]):
         return sorted(objects, key=lambda x: x.get_time())

@@ -351,10 +351,7 @@ if __name__ == '__main__':
     phase = Phase(0, logger=lgr, logging_level=params.logging_level, file_suffix=params.file_suffix)
     if params.log_file:
         # Populate phase from log files and store number of objects
-        n_o = phase.populate_from_log(
-            n_ranks,
-            params.phase_id,
-            params.log_file)
+        n_o = phase.populate_from_log(n_ranks, params.phase_id, params.log_file)
     else:
         # Populate phase pseudo-randomly
         phase.populate_from_samplers(
@@ -403,8 +400,11 @@ if __name__ == '__main__':
         objects.sort(key=lambda x: x.get("id"))
 
         # Execute rank order enumerator and fetch optimal arrangements
-        n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(
-            objects)
+        alpha = params.work_model.get('parameters').get('alpha')
+        beta = params.work_model.get('parameters').get('beta')
+        gamma = params.work_model.get('parameters').get('gamma')
+        n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(objects, alpha=alpha, beta=beta, gamma=gamma,
+                                                                          n_ranks=n_ranks)
         if n_a != n_ranks ** len(objects):
             lgr.error("Incorrect number of possible arrangements with repetition")
             sys.exit(1)
