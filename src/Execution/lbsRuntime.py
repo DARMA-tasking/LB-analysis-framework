@@ -57,17 +57,16 @@ from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_
 
 
 class Runtime:
-    """A class to handle the execution of the LBS
+    """ A class to handle the execution of the LBS
     """
-
     def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger = None):
-        """Class constructor:
-        p: phase instance
-        w: dictionary with work model name and optional parameters
-        c: dictionary with riterion name and optional parameters
-        o_s: name of object ordering strategy
-        a: arrangements that minimize maximum work
-        logger: logger for output messages
+        """ Class constructor:
+            p: phase instance
+            w: dictionary with work model name and optional parameters
+            c: dictionary with riterion name and optional parameters
+            o_s: name of object ordering strategy
+            a: arrangements that minimize maximum work
+            logger: logger for output messages
         """
 
         # Keep track of list of arrangements with minimax work
@@ -259,12 +258,7 @@ class Runtime:
         # Decide whether criterion allows for transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
-            return self.recursive_extended_search(
-                pick_list,
-                object_list,
-                c_fct,
-                n_o,
-                max_n_o)
+            return self.recursive_extended_search(pick_list, object_list, c_fct, n_o, max_n_o)
         else:
             # Succeed when criterion is satisfied
             return True, n_o
@@ -482,36 +476,34 @@ class Runtime:
                         for k, v in sent:
                             self.lgr.debug(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
-
     @staticmethod
     def arbitrary(objects: set, _):
         """ Default: objects are passed as they are stored
         """
-
         return objects
 
-    def element_id(self, objects: set, _):
+    @staticmethod
+    def element_id(objects: set, _):
         """ Order objects by ID
         """
-
         return sorted(objects, key=lambda x: x.get_id())
 
-    def decreasing_times(self, objects: set, _):
+    @staticmethod
+    def decreasing_times(objects: set, _):
         """ Order objects by decreasing object times
         """
-
         return sorted(objects, key=lambda x: -x.get_time())
 
-    def increasing_times(self, objects: set, _):
+    @staticmethod
+    def increasing_times(objects: set, _):
         """ Order objects by increasing object times
         """
-
         return sorted(objects, key=lambda x: x.get_time())
 
-    def increasing_connectivity(self, objects: set, src_id):
+    @staticmethod
+    def increasing_connectivity(objects: set, src_id):
         """ Order objects by increasing local communication volume
         """
-
         # Initialize list with all objects without a communicator
         no_comm = [o for o in objects
                    if not isinstance(
@@ -535,10 +527,12 @@ class Runtime:
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)
 
-    def sorted_ascending(self, objects: Union[set, list]):
+    @staticmethod
+    def sorted_ascending(objects: Union[set, list]):
         return sorted(objects, key=lambda x: x.get_time())
 
-    def sorted_descending(self, objects: Union[set, list]):
+    @staticmethod
+    def sorted_descending(objects: Union[set, list]):
         return sorted(objects, key=lambda x: -x.get_time())
 
     def load_excess(self, objects: set):
@@ -548,8 +542,8 @@ class Runtime:
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_excess
-            Sort smallest to largest if > load_excess
+            Sort largest to the smallest if <= load_excess
+            Sort smallest to the largest if > load_excess
         """
 
         load_excess = self.load_excess(objects)
@@ -560,8 +554,8 @@ class Runtime:
     def small_objects(self, objects: set, _):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_excess
-            Sort smallest to largest if > load_excess
+            Sort largest to the smallest if <= load_excess
+            Sort smallest to the largest if > load_excess
         """
 
         load_excess = self.load_excess(objects)
