@@ -153,9 +153,9 @@ class Runtime:
         self.order_strategy = self.strategy_mapped[o_s]
 
     def information_stage(self, n_rounds, f):
-        """Execute information phase
-        n_rounds: integer number of gossiping rounds
-        f: integer fanout
+        """ Execute information phase
+            n_rounds: integer number of gossiping rounds
+            f: integer fanout
         """
 
         # Build set of all ranks in the phase
@@ -242,7 +242,7 @@ class Runtime:
         self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
-        """Recursively extend search to other objects
+        """ Recursively extend search to other objects
         """
 
         # Fail when no more objects available or maximum depth is reached
@@ -264,7 +264,7 @@ class Runtime:
             return True, n_o
 
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
-        """Perform object transfer phase
+        """ Perform object transfer phase
         """
 
         # Initialize transfer stage
@@ -373,11 +373,8 @@ class Runtime:
         """
 
         # Report on initial per-rank work
-        print_function_statistics(
-            self.phase.get_ranks(),
-            lambda x: self.work_model.compute(x),
-            "initial rank works",
-            logger=self.lgr)
+        print_function_statistics(self.phase.get_ranks(), lambda x: self.work_model.compute(x), "initial rank works",
+                                  logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
