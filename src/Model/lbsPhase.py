@@ -246,8 +246,7 @@ class Phase:
                 continue
 
             # Check and summarize communications and update global counters
-            v_out, v_in = comm.summarize(
-                '\t' if self.logging_level == "debug" else None)
+            v_out, v_in = comm.summarize()
             v_sent += v_out
             v_recv += v_in
 

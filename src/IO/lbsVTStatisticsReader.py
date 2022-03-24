@@ -58,7 +58,7 @@ from src.Model.lbsRank import Rank
 class LoadReader:
     """ A class to read VT Object Map files. These json files could be compressed with Brotli.
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
-        Schema of the compatible files is defined in <project-path>src/IO/schemaValidator.py
+        The schema of the compatible files is defined in <project-path>src/IO/schemaValidator.py
     """
 
     CommCategory = {

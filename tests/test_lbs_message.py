@@ -17,8 +17,8 @@ class TestConfig(unittest.TestCase):
         self.msg = Message(1, 'something')
 
     def test_message_initialization_001(self):
-        self.assertEqual(self.msg.round, 1)
-        self.assertEqual(self.msg.content, 'something')
+        self.assertEqual(self.msg._Message__round, 1)
+        self.assertEqual(self.msg._Message__content, 'something')
 
     def test_message_get_round(self):
         self.assertEqual(self.msg.get_round(), 1)

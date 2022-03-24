@@ -64,7 +64,7 @@ class ObjectCommunicator:
         # Assign logger to instance variable
         self.lgr = logger
 
-    def _summarize_unidirectional(self, direction, print_indent=None):
+    def _summarize_unidirectional(self, direction):
         """ Summarize one-way communicator properties and check for errors
         """
         # Initialize list of volumes
@@ -83,11 +83,7 @@ class ObjectCommunicator:
             volumes.append(v)
 
             # Report current communication item if requested
-            # TODO: is this indentation really needed?
-            if print_indent:
-                self.lgr.info(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
-            else:
-                self.lgr.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
+            self.lgr.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of volumes
         return volumes
@@ -112,14 +108,14 @@ class ObjectCommunicator:
         """
         return self.sent.get(o)
 
-    def summarize(self, print_indent=None) -> tuple:
+    def summarize(self) -> tuple:
         """ Summarize communicator properties and check for errors
         """
         # Summarize sent communications
-        w_sent = self._summarize_unidirectional("to", print_indent)
+        w_sent = self._summarize_unidirectional("to")
 
         # Summarize received communications
-        w_recv = self._summarize_unidirectional("from", print_indent)
+        w_recv = self._summarize_unidirectional("from")
 
         # Return counters
         return w_sent, w_recv

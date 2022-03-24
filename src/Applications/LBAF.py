@@ -189,7 +189,7 @@ class internalParameters:
                  (self.time_sampler_type and self.volume_sampler_type))
                 or (self.log_file and
                     (self.time_sampler_type or self.volume_sampler_type))):
-            self.logger.error('exactly one strategy to populate initial phase must be chosen.')
+            self.logger.error("Exactly one strategy to populate initial phase must be chosen.")
             sys.exit(1)
 
         # Case when phases are populated from samplers not from log file
@@ -200,7 +200,7 @@ class internalParameters:
             elif os.path.isdir(os.path.join(project_path, os.path.split(self.log_file)[0])):
                 self.log_file = os.path.join(project_path, self.log_file)
             else:
-                self.logger.error('LOG directory NOT FOUND!')
+                self.logger.error("LOG directory NOT FOUND!")
                 sys.exit(1)
 
         # Checking if output dir exists, if not, creating one
@@ -259,7 +259,7 @@ class internalParameters:
         sampler_args = []
 
         # Try to parse the sampler from `cmd_str`
-        a_s = cmd_str.split(',')
+        a_s = cmd_str.split(",")
         if len(a_s):
             sampler_type = a_s[0].lower()
             for p in a_s[1:]:
@@ -324,10 +324,10 @@ def get_output_file_stem(params, n_ranks):
         n_ranks,
         output_stem,
         params.criterion["name"],
-        '-'.join([str(v).replace('.', '_') for v in params.criterion["parameters"].values()]))
+        "-".join([str(v).replace(".", "_") for v in params.criterion["parameters"].values()]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Instantiate parameters
     params = internalParameters(config_file=os.path.join(project_path, "src", "Applications", "conf.yaml"))
 
@@ -400,9 +400,9 @@ if __name__ == '__main__':
         objects.sort(key=lambda x: x.get("id"))
 
         # Execute rank order enumerator and fetch optimal arrangements
-        alpha = params.work_model.get('parameters').get('alpha')
-        beta = params.work_model.get('parameters').get('beta')
-        gamma = params.work_model.get('parameters').get('gamma')
+        alpha = params.work_model.get("parameters").get("alpha")
+        beta = params.work_model.get("parameters").get("beta")
+        gamma = params.work_model.get("parameters").get("gamma")
         n_a, w_min_max, a_min_max = roe.compute_min_max_arrangements_work(objects, alpha=alpha, beta=beta, gamma=gamma,
                                                                           n_ranks=n_ranks)
         if n_a != n_ranks ** len(objects):
@@ -481,7 +481,7 @@ if __name__ == '__main__':
         viewer = ParaviewViewerBase.factory(
             exodus=output_stem,
             file_name=file_name,
-            viewer_type='')
+            viewer_type="")
         reader = viewer.createViews()
         viewer.saveView(reader)
 
