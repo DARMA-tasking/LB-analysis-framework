@@ -59,7 +59,7 @@ class Phase:
     """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, t=0, logger: Logger = None, logging_level: str = "info", file_suffix="vom"):
+    def __init__(self, t=0, logger: Logger = None, file_suffix="vom"):
         # Initialize empty list of ranks
         self.ranks = []
 
@@ -72,9 +72,6 @@ class Phase:
         # Assign logger to instance variable
         self.lgr = logger
 
-        # Pass info when in debug mode
-        self.logging_level = logging_level
-
         # Start with empty edges cache
         self.edges = {}
         self.cached_edges = False
@@ -83,22 +80,22 @@ class Phase:
         self.file_suffix = file_suffix
 
     def get_ranks(self):
-        """Retrieve ranks belonging to phase
+        """ Retrieve ranks belonging to phase
         """
         return self.ranks
 
     def get_ranks_ids(self):
-        """Retrieve IDs of ranks belonging to phase
+        """ Retrieve IDs of ranks belonging to phase
         """
         return [p.get_id() for p in self.ranks]
 
     def get_phase_id(self):
-        """Retrieve the time-step/phase for this phase
+        """ Retrieve the time-step/phase for this phase
         """
         return self.phase_id
 
     def compute_edges(self):
-        """Compute and return map of communication link IDs to volumes
+        """ Compute and return map of communication link IDs to volumes
         """
         # Compute or re-compute edges from scratch
         self.lgr.debug("Computing inter-process communication edges")
@@ -168,7 +165,7 @@ class Phase:
             logger=self.lgr)
 
     def get_edges(self):
-        """Retrieve edges belonging to phase
+        """ Retrieve edges belonging to phase
         """
 
         # Force recompute if edges cache is not current
@@ -179,7 +176,7 @@ class Phase:
         return self.edges
 
     def invalidate_edge_cache(self):
-        """Mark cached edges as no longer current
+        """ Mark cached edges as no longer current
         """
 
         self.cached_edges = False
@@ -256,11 +253,7 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(
-            v_sent,
-            lambda x: x,
-            "communication volumes",
-            logger=self.lgr)
+        print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.lgr)
 
         # Create n_p ranks
         self.ranks = [Rank(i, logger=self.lgr) for i in range(n_p)]
@@ -294,7 +287,7 @@ class Phase:
             self.lgr.debug(f"\t{p.get_id()} <- {p.get_object_ids()}")
 
     def populate_from_log(self, n_p, t_s, basename):
-        """Populate this phase by reading in a load profile from log files
+        """ Populate this phase by reading in a load profile from log files
         """
 
         # Instantiate VT load reader
@@ -308,11 +301,7 @@ class Phase:
         objects = set()
         for p in self.ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(
-            objects,
-            lambda x: x.get_time(),
-            "object times",
-            logger=self.lgr)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
 
         # Return number of found objects
         return len(objects)

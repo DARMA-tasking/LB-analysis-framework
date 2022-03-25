@@ -1,4 +1,3 @@
-
 #@HEADER
 ###############################################################################
 #
@@ -52,7 +51,7 @@ class Rank:
     """ A class representing a rank to which objects are assigned
     """
 
-    def __init__(self, i, mo: set = None, so: set = None, logger: Logger = None):
+    def __init__(self, i: int, mo: set = None, so: set = None, logger: Logger = None):
         # Assign logger to instance variable
         self.lgr = logger
 
@@ -79,52 +78,52 @@ class Rank:
     def __repr__(self):
         return f"<Rank index: {self.index}>"
 
-    def get_id(self):
+    def get_id(self) -> int:
         """ Return rank ID
         """
         return self.index
 
-    def get_objects(self):
+    def get_objects(self) -> set:
         """ Return all objects assigned to rank
         """
         return self.migratable_objects.union(self.sentinel_objects)
 
-    def add_migratable_object(self, o):
+    def add_migratable_object(self, o) -> None:
         """ Add object to migratable objects
         """
         return self.migratable_objects.add(o)
 
-    def get_migratable_objects(self):
+    def get_migratable_objects(self) -> set:
         """ Return migratable objects assigned to rank
         """
         return self.migratable_objects
 
-    def get_sentinel_objects(self):
+    def get_sentinel_objects(self) -> set:
         """ Return sentinel objects assigned to rank
         """
         return self.sentinel_objects
 
-    def get_object_ids(self):
+    def get_object_ids(self) -> list:
         """ Return IDs of all objects assigned to rank
         """
         return [o.get_id() for o in self.migratable_objects.union(self.sentinel_objects)]
 
-    def get_migratable_object_ids(self):
+    def get_migratable_object_ids(self) -> list:
         """ Return IDs of migratable objects assigned to rank
         """
         return [o.get_id() for o in self.migratable_objects]
 
-    def get_sentinel_object_ids(self):
+    def get_sentinel_object_ids(self) -> list:
         """ Return IDs of sentinel objects assigned to rank
         """
         return [o.get_id() for o in self.sentinel_objects]
 
-    def get_known_loads(self):
+    def get_known_loads(self) -> dict:
         """ Return loads of peers know to self
         """
         return self.known_loads
 
-    def get_viewers(self):
+    def get_viewers(self) -> set:
         """ Return peers knowing about self
         """
         return self.viewers
@@ -145,17 +144,17 @@ class Rank:
         for p in ranks:
             p.viewers.add(self)
 
-    def get_load(self):
+    def get_load(self) -> float:
         """ Return total load on rank
         """
         return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
-    def get_migratable_load(self):
+    def get_migratable_load(self) -> float:
         """ Return migratable load on rank
         """
         return sum([o.get_time() for o in self.migratable_objects])
 
-    def get_sentinel_load(self):
+    def get_sentinel_load(self) -> float:
         """ Return sentinel load oon rank
         """
         return sum([o.get_time() for o in self.sentinel_objects])

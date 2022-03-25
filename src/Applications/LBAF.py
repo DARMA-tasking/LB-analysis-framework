@@ -348,7 +348,7 @@ if __name__ == "__main__":
     initialize()
 
     # Create a phase and populate it
-    phase = Phase(0, logger=lgr, logging_level=params.logging_level, file_suffix=params.file_suffix)
+    phase = Phase(0, logger=lgr, file_suffix=params.file_suffix)
     if params.log_file:
         # Populate phase from log files and store number of objects
         n_o = phase.populate_from_log(n_ranks, params.phase_id, params.log_file)
