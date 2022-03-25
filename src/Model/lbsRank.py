@@ -49,7 +49,7 @@ from src.Model.lbsMessage import Message
 
 
 class Rank:
-    """A class representing a rank to which objects are assigned
+    """ A class representing a rank to which objects are assigned
     """
 
     def __init__(self, i, mo: set = None, so: set = None, logger: Logger = None):
@@ -80,59 +80,58 @@ class Rank:
         return f"<Rank index: {self.index}>"
 
     def get_id(self):
-        """Return rank ID
+        """ Return rank ID
         """
         return self.index
 
     def get_objects(self):
-        """Return all objects assigned to rank
+        """ Return all objects assigned to rank
         """
         return self.migratable_objects.union(self.sentinel_objects)
 
     def add_migratable_object(self, o):
-        """Add object to migratable objects
+        """ Add object to migratable objects
         """
         return self.migratable_objects.add(o)
 
     def get_migratable_objects(self):
-        """Return migratable objects assigned to rank
+        """ Return migratable objects assigned to rank
         """
         return self.migratable_objects
 
     def get_sentinel_objects(self):
-        """Return sentinel objects assigned to rank
+        """ Return sentinel objects assigned to rank
         """
         return self.sentinel_objects
 
     def get_object_ids(self):
-        """Return IDs of all objects assigned to rank
+        """ Return IDs of all objects assigned to rank
         """
         return [o.get_id() for o in self.migratable_objects.union(self.sentinel_objects)]
 
     def get_migratable_object_ids(self):
-        """Return IDs of migratable objects assigned to rank
+        """ Return IDs of migratable objects assigned to rank
         """
         return [o.get_id() for o in self.migratable_objects]
 
     def get_sentinel_object_ids(self):
-        """Return IDs of sentinel objects assigned to rank
+        """ Return IDs of sentinel objects assigned to rank
         """
         return [o.get_id() for o in self.sentinel_objects]
 
     def get_known_loads(self):
-        """Return loads of peers know to self
+        """ Return loads of peers know to self
         """
         return self.known_loads
 
     def get_viewers(self):
-        """Return peers knowing about self
+        """ Return peers knowing about self
         """
         return self.viewers
 
     def remove_migratable_object(self, o, p_dst):
-        """Remove migratable able object from self object sent to peer
+        """ Remove migratable able object from self object sent to peer
         """
-
         # Remove object from those assigned to self
         self.migratable_objects.remove(o)
 
@@ -140,35 +139,30 @@ class Rank:
         self.known_loads[p_dst] += o.get_time()
         
     def add_as_viewer(self, ranks):
-        """Add self as viewer to known peers
+        """ Add self as viewer to known peers
         """
-
         # Add self as viewer of each of provided ranks
         for p in ranks:
             p.viewers.add(self)
 
     def get_load(self):
-        """Return total load on rank
+        """ Return total load on rank
         """
-
         return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
 
     def get_migratable_load(self):
-        """Return migratable load on rank
+        """ Return migratable load on rank
         """
-
         return sum([o.get_time() for o in self.migratable_objects])
 
     def get_sentinel_load(self):
-        """Return sentinel load oon rank
+        """ Return sentinel load oon rank
         """
-
         return sum([o.get_time() for o in self.sentinel_objects])
 
     def get_received_volume(self):
-        """Return volume received by objects assigned to rank from other ranks
+        """ Return volume received by objects assigned to rank from other ranks
         """
-
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -184,9 +178,8 @@ class Rank:
         return volume    
 
     def get_sent_volume(self):
-        """Return volume sent by objects assigned to rank to other ranks
+        """ Return volume sent by objects assigned to rank to other ranks
         """
-
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.migratable_objects.union(self.sentinel_objects)
@@ -202,9 +195,8 @@ class Rank:
         return volume    
 
     def reset_all_load_information(self):
-        """Reset all load information known to self
+        """ Reset all load information known to self
         """
-
         # Reset information about known peers
         self.known_loads = {}
 
@@ -214,7 +206,6 @@ class Rank:
     def initialize_message(self, loads, f):
         """ Initialize message to be sent to selected peers
         """
-
         # Retrieve current load on this rank
         l = self.get_load()
 
@@ -228,9 +219,8 @@ class Rank:
         return rnd.sample(set(loads).difference([self]), min(f, len(loads) - 1)), msg
 
     def forward_message(self, r, s, f):
-        """Formard information message to sample of selected peers
+        """ Formard information message to sample of selected peers
         """
-
         # Create load message tagged at current round
         msg = Message(r, self.known_loads)
 
@@ -243,9 +233,8 @@ class Rank:
             complement, min(f, len(complement))), msg
 
     def process_message(self, msg):
-        """Update internals when message is received
+        """ Update internals when message is received
         """
-
         # Assert that message has the expected type
         if not isinstance(msg, Message):
             self.lgr.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
@@ -257,9 +246,8 @@ class Rank:
         self.round_last_received = msg.get_round()
 
     def compute_transfer_cmf(self, transfer_criterion, o, targets, strict=False):
-        """Compute CMF for the sampling of transfer targets
+        """ Compute CMF for the sampling of transfer targets
         """
-
         # Initialize criterion values
         c_values = {}
         c_min, c_max = math.inf, -math.inf

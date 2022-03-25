@@ -45,13 +45,12 @@ from logging import Logger
 import math
 import random as rnd
 
-import numpy as np
-
+from numpy import random
 
 def initialize():
     # Seed pseudo-random number generators
     rnd.seed(820)
-    np.random.seed(820)
+    random.seed(820)
 
 
 def error_out(distribution_name, parameters, logger: Logger = None):
@@ -79,7 +78,7 @@ def sampler(distribution_name, parameters, logger: Logger = None):
             return error_out(distribution_name, parameters, logger=logger)
 
         # Return binomial distribution with given number of Bernoulli trials
-        return lambda: np.random.binomial(*parameters), f"B[{parameters[0]};{parameters[1]}]"
+        return lambda: random.binomial(*parameters), f"B[{parameters[0]};{parameters[1]}]"
 
     # Log-normal distribution with given mean and variance
     elif distribution_name.lower() == "lognormal":
