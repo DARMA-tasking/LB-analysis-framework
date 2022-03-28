@@ -76,7 +76,7 @@ class VTStatisticsWriter:
 
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
-            self.lgr.error(f"Could not write to ExodusII file by lack of a LBS phase")
+            self.lgr.error("Could not write to ExodusII file by lack of a LBS phase")
             return
 
         # Assign internals

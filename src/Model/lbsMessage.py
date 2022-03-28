@@ -43,20 +43,20 @@
 #
 
 class Message:
-    """A class representing information sent between ranks
+    """ A class representing information sent between ranks
     """
 
     def __init__(self, r, c):
         # Member variables passed by constructor
-        self.round = r
-        self.content = c
+        self.__round = r
+        self.__content = c
 
     def get_round(self):
-        """Return message round index
+        """ Return message round index
         """
-        return self.round
+        return self.__round
 
     def get_content(self):
-        """Return message content
+        """ Return message content
         """
-        return self.content
+        return self.__content

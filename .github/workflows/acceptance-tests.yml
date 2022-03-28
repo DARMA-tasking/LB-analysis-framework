@@ -1,11 +1,11 @@
-name: Imbalance check
+name: Acceptance Tests
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  CI:
+  Acceptance-Test:
     continue-on-error: false
     strategy:
       max-parallel: 10
@@ -34,6 +34,7 @@ jobs:
           pip install virtualenv
           virtualenv --python /usr/local/bin/python${{ matrix.config.image }} venv
           /bin/sh venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements-${{ matrix.config.image }}.txt
 
       - name: Run LBAF Test

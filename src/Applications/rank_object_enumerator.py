@@ -251,23 +251,16 @@ def compute_all_reachable_arrangements(objects, arrangement, alpha: float, beta:
     return reachable
 
 
-def compute_min_max_arrangements_work(objects):
+def compute_min_max_arrangements_work(objects, alpha: float, beta: float, gamma: float, n_ranks: int):
     """Compute all possible arrangements with repetition and minimax work
     """
-
     # Initialize quantities of interest
     n_arrangements = 0
     works_min_max = math.inf
     arrangements_min_max = []
-    for arrangement in itertools.product(
-            range(N_RANKS),
-            repeat=len(objects)):
-
+    for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
         # Compute per-rank works for currrent arrangement
-        works = compute_arrangement_works(
-            objects,
-            arrangement,
-            ALPHA_G, BETA_G, GAMMA_G)
+        works = compute_arrangement_works(objects, arrangement, alpha, beta, gamma)
 
         # Update minmax when relevant
         work_max = max(works.values())

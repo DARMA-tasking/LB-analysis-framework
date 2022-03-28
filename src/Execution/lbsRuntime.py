@@ -57,17 +57,16 @@ from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_
 
 
 class Runtime:
-    """A class to handle the execution of the LBS
+    """ A class to handle the execution of the LBS
     """
-
-    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger=None):
-        """Class constructor:
-        p: phase instance
-        w: dictionary with work model name and optional parameters
-        c: dictionary with riterion name and optional parameters
-        o_s: name of object ordering strategy
-        a: arrangements that minimize maximum work
-        logger: logger for output messages
+    def __init__(self, p, w: dict, c: dict, o_s: str, a: list, logger: Logger = None):
+        """ Class constructor:
+            p: phase instance
+            w: dictionary with work model name and optional parameters
+            c: dictionary with riterion name and optional parameters
+            o_s: name of object ordering strategy
+            a: arrangements that minimize maximum work
+            logger: logger for output messages
         """
 
         # Keep track of list of arrangements with minimax work
@@ -154,9 +153,9 @@ class Runtime:
         self.order_strategy = self.strategy_mapped[o_s]
 
     def information_stage(self, n_rounds, f):
-        """Execute information phase
-        n_rounds: integer number of gossiping rounds
-        f: integer fanout
+        """ Execute information phase
+            n_rounds: integer number of gossiping rounds
+            f: integer fanout
         """
 
         # Build set of all ranks in the phase
@@ -243,7 +242,7 @@ class Runtime:
         self.lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
-        """Recursively extend search to other objects
+        """ Recursively extend search to other objects
         """
 
         # Fail when no more objects available or maximum depth is reached
@@ -259,19 +258,13 @@ class Runtime:
         # Decide whether criterion allows for transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
-            return self.recursive_extended_search(
-                pick_list,
-                object_list,
-                c_fct,
-                n_o,
-                max_n_o)
+            return self.recursive_extended_search(pick_list, object_list, c_fct, n_o, max_n_o)
         else:
             # Succeed when criterion is satisfied
             return True, n_o
 
-
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
-        """Perform object transfer phase
+        """ Perform object transfer phase
         """
 
         # Initialize transfer stage
@@ -357,7 +350,7 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
-                self.lgr.info(f"Transferring {len(object_list)} object(s) at once")
+                self.lgr.debug(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.lgr.debug(
                         f"\t\ttransferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
@@ -371,20 +364,17 @@ class Runtime:
         return n_ignored, n_transfers, n_rejects
 
     def execute(self, n_iterations, n_rounds, f, max_n_objects, deterministic_transfer):
-        """Launch runtime execution
-        n_iterations: integer number of load-balancing iterations
-        n_rounds: integer number of gossiping rounds
-        f: integer fanout
-        max_n_objects: maxium number of objects transferred at once
-        deterministic_transfer: deterministic or probabilistic transfer
+        """ Launch runtime execution
+            n_iterations: integer number of load-balancing iterations
+            n_rounds: integer number of gossiping rounds
+            f: integer fanout
+            max_n_objects: maxium number of objects transferred at once
+            deterministic_transfer: deterministic or probabilistic transfer
         """
 
         # Report on initial per-rank work
-        print_function_statistics(
-            self.phase.get_ranks(),
-            lambda x: self.work_model.compute(x),
-            "initial rank works",
-            logger=self.lgr)
+        print_function_statistics(self.phase.get_ranks(), lambda x: self.work_model.compute(x), "initial rank works",
+                                  logger=self.lgr)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
@@ -483,36 +473,34 @@ class Runtime:
                         for k, v in sent:
                             self.lgr.debug(f"\tobject {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
-
     @staticmethod
     def arbitrary(objects: set, _):
         """ Default: objects are passed as they are stored
         """
-
         return objects
 
-    def element_id(self, objects: set, _):
+    @staticmethod
+    def element_id(objects: set, _):
         """ Order objects by ID
         """
-
         return sorted(objects, key=lambda x: x.get_id())
 
-    def decreasing_times(self, objects: set, _):
+    @staticmethod
+    def decreasing_times(objects: set, _):
         """ Order objects by decreasing object times
         """
-
         return sorted(objects, key=lambda x: -x.get_time())
 
-    def increasing_times(self, objects: set, _):
+    @staticmethod
+    def increasing_times(objects: set, _):
         """ Order objects by increasing object times
         """
-
         return sorted(objects, key=lambda x: x.get_time())
 
-    def increasing_connectivity(self, objects: set, src_id):
+    @staticmethod
+    def increasing_connectivity(objects: set, src_id):
         """ Order objects by increasing local communication volume
         """
-
         # Initialize list with all objects without a communicator
         no_comm = [o for o in objects
                    if not isinstance(
@@ -536,11 +524,12 @@ class Runtime:
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)
 
-
-    def sorted_ascending(self, objects: Union[set, list]):
+    @staticmethod
+    def sorted_ascending(objects: Union[set, list]):
         return sorted(objects, key=lambda x: x.get_time())
 
-    def sorted_descending(self, objects: Union[set, list]):
+    @staticmethod
+    def sorted_descending(objects: Union[set, list]):
         return sorted(objects, key=lambda x: -x.get_time())
 
     def load_excess(self, objects: set):
@@ -550,8 +539,8 @@ class Runtime:
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_excess
-            Sort smallest to largest if > load_excess
+            Sort largest to the smallest if <= load_excess
+            Sort smallest to the largest if > load_excess
         """
 
         load_excess = self.load_excess(objects)
@@ -562,8 +551,8 @@ class Runtime:
     def small_objects(self, objects: set, _):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
-            Sort largest to smallest if <= load_excess
-            Sort smallest to largest if > load_excess
+            Sort largest to the smallest if <= load_excess
+            Sort smallest to the largest if > load_excess
         """
 
         load_excess = self.load_excess(objects)

@@ -5,3 +5,9 @@ src/Applications/Scripts
 src/Applications/tcl
 /.idea
 /venv
+/artifacts
+.tox
+/tests/.pytest_cache
+/output
+.coverage
+.env
