@@ -414,7 +414,7 @@ class MoveCountsViewer:
 
 if __name__ == "__main__":
     n_processors = 8
-    input_file_name = "data/stats/lb_iter"
+    input_file_name = "data/data/lb_iter"
     input_file_suffix = "out"
     output_file_name = "move_counts"
     params = MoveCountsViewer(n_processors=n_processors, input_file_name=input_file_name,
