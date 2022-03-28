@@ -25,7 +25,7 @@ class TestConfig(unittest.TestCase):
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
             exit(1)
-        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats', 'stats')
+        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', 'data')
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix='json')
         self.ranks_comm = [
@@ -50,12 +50,11 @@ class TestConfig(unittest.TestCase):
             {}
         ]
         self.ranks_iter_map = [{0: Rank(i=0, mo={Object(i=3, t=0.5), Object(i=2, t=0.5), Object(i=0, t=1.0),
-                                            Object(i=1, t=0.5)}, logger=self.logger)},
-                          {0: Rank(i=1, mo={Object(i=5, t=2.0), Object(i=7, t=0.5), Object(i=6, t=1.0),
-                                            Object(i=4, t=0.5)}, logger=self.logger)},
-                          {0: Rank(i=2, mo={Object(i=8, t=1.5)}, logger=self.logger)},
-                          {0: Rank(i=3, logger=self.logger)}
-                          ]
+                                                 Object(i=1, t=0.5)}, logger=self.logger)},
+                               {0: Rank(i=1, mo={Object(i=5, t=2.0), Object(i=7, t=0.5), Object(i=6, t=1.0),
+                                                 Object(i=4, t=0.5)}, logger=self.logger)},
+                               {0: Rank(i=2, mo={Object(i=8, t=1.5)}, logger=self.logger)},
+                               {0: Rank(i=3, logger=self.logger)}]
 
     def test_lbs_vt_statistics_reader_initialization(self):
         self.assertEqual(self.lr.file_prefix, self.file_prefix)
@@ -82,7 +81,7 @@ class TestConfig(unittest.TestCase):
                              sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index))
 
     def test_lbs_vt_statistics_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'stats')
+        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
         lr = LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix='json')
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
@@ -96,7 +95,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], f"File {self.file_prefix}xd.0.json not found!")
 
     def test_lbs_vt_statistics_reader_read_wrong_schema(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'stats')
+        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'data')
         with self.assertRaises(SchemaError) as err:
             LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix='json').read(0, 0)
         with open(os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'schema_error.txt'), 'rt') as se:
@@ -111,8 +110,6 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(self.ranks_comm[phase], rank_comm)
             self.assertEqual(sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index),
                              sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index))
-
-
 
 
 if __name__ == '__main__':
