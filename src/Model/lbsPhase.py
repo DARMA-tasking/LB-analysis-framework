@@ -52,7 +52,7 @@ from src.Model.lbsRank import Rank
 from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 from src.IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
-from src.IO.lbsVTStatisticsReader import LoadReader
+from src.IO.lbsVTDataReader import LoadReader
 
 
 class Phase:
