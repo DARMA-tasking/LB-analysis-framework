@@ -59,7 +59,7 @@ except:
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
-from src.IO.lbsVTStatisticsWriter import VTStatisticsWriter
+from src.IO.lbsVTDataWriter import VTStatisticsWriter
 from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics, Hamming_distance
 from src.Utils.logger import logger

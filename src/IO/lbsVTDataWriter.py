@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                              lbsVTStatisticsWriter.py
+#                              lbsVTDataWriter.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #

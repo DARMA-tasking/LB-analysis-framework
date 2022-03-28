@@ -12,7 +12,7 @@ import unittest
 
 from schema import SchemaError
 
-from src.IO.lbsVTStatisticsReader import LoadReader
+from src.IO.lbsVTDataReader import LoadReader
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
 

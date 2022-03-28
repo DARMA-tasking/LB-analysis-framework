@@ -56,7 +56,7 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     exit(1)
 
-from src.IO.lbsVTStatisticsReader import LoadReader
+from src.IO.lbsVTDataReader import LoadReader
 from src.Utils.logger import logger
 
 sys.setrecursionlimit(1500)

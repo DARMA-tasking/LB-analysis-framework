@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                              lbsVTStatisticsReader.py
+#                              lbsVTDataReader.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -58,7 +58,7 @@ from src.Model.lbsRank import Rank
 class LoadReader:
     """ A class to read VT Object Map files. These json files could be compressed with Brotli.
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
-        The schema of the compatible files is defined in <project-path>src/IO/schemaValidator.py
+        The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
 
     CommCategory = {
