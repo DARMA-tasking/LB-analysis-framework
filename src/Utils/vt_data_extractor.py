@@ -15,8 +15,8 @@ from src.IO.schemaValidator import SchemaValidator
 
 
 class VTDataExtractor:
-    """ Reads VT data stats and saves chosen phases from it. """
-    def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
+    """ Reads VT data and saves chosen phases from it. """
+    def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "data",
                  file_suffix: str = "json", compressed: bool = True):
         self.input_data_dir = input_data_dir
         self.output_data_dir = os.path.join(project_path, output_data_dir)
@@ -137,6 +137,6 @@ if __name__ == '__main__':
     # Int is just a phase number/id
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
     phases = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, "9-11"]
-    vtde = VTDataExtractor(input_data_dir="data/nolb-8color-16nodes-stats", output_data_dir="output",
+    vtde = VTDataExtractor(input_data_dir="data/nolb-8color-16nodes-data", output_data_dir="output",
                            phases_to_extract=phases)
     vtde.main()
