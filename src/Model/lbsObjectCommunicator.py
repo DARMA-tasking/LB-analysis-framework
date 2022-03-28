@@ -50,8 +50,7 @@ class ObjectCommunicator:
     """ A class holding received and sent messages for an object
     """
 
-    def __init__(self, r: dict = None, s: dict = None, i=None, logger: Logger = None):
-        # TODO: if i is needed? What for? i is used only when populate from samplers
+    def __init__(self, i: int, r: dict = None, s: dict = None, logger: Logger = None):
         # Index of object having this communicator if defined
         self.object_index = i
 
@@ -74,7 +73,6 @@ class ObjectCommunicator:
         communications = self.sent if direction == "to" else self.received
         for k, v in communications.items():
             # Sanity check
-            # TODO: if self.object_index will be removed, then it needs to be removed as well
             if k.get_id() == self.object_index:
                 self.lgr.error(f"object {self.object_index} cannot send communication to itself.")
                 sys.exit(1)

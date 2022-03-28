@@ -19,7 +19,7 @@ class TestConfig(unittest.TestCase):
         self.logger = logging.getLogger()
         self.simple_obj_001 = Object(i=1, t=2.5)
         self.simple_obj_002 = Object(i=2, t=4.5, p=0)
-        self.oc = ObjectCommunicator(logger=self.logger)
+        self.oc = ObjectCommunicator(i=3, logger=self.logger)
         self.simple_obj_003 = Object(i=3, t=3.5, p=2, c=self.oc)
         self.sent_objects = {Object(i=0, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
                              Object(i=3, t=0.5): 1.5}
@@ -161,12 +161,12 @@ class TestConfig(unittest.TestCase):
 
     def test_object_get_sent_002(self):
         sent_object = {Object(i=0, t=1.0): 6.0}
-        oc = ObjectCommunicator(s=sent_object, logger=self.logger)
+        oc = ObjectCommunicator(i=3, s=sent_object, logger=self.logger)
         obj_with_comm = Object(i=3, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_sent(), sent_object)
 
     def test_object_get_sent_003(self):
-        oc = ObjectCommunicator(s=self.sent_objects, logger=self.logger)
+        oc = ObjectCommunicator(i=23, s=self.sent_objects, logger=self.logger)
         obj_with_comm = Object(i=23, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_sent(), self.sent_objects)
 
@@ -176,12 +176,12 @@ class TestConfig(unittest.TestCase):
 
     def test_object_get_received_002(self):
         received_object = {Object(i=1, t=2.5): 5.0}
-        oc = ObjectCommunicator(r=received_object, logger=self.logger)
+        oc = ObjectCommunicator(i=1, r=received_object, logger=self.logger)
         obj_with_comm = Object(i=3, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_received(), received_object)
 
     def test_object_get_received_003(self):
-        oc = ObjectCommunicator(r=self.received_objects, logger=self.logger)
+        oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
         obj_with_comm = Object(i=23, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_received(), self.received_objects)
 
@@ -191,12 +191,12 @@ class TestConfig(unittest.TestCase):
 
     def test_object_get_sent_volume_002(self):
         sent_object = {Object(i=0, t=1.0): 6.0}
-        oc = ObjectCommunicator(s=sent_object, logger=self.logger)
+        oc = ObjectCommunicator(i=3, s=sent_object, logger=self.logger)
         obj_with_comm = Object(i=3, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_sent_volume(), 6.0)
 
     def test_object_get_sent_volume_003(self):
-        oc = ObjectCommunicator(s=self.sent_objects, logger=self.logger)
+        oc = ObjectCommunicator(i=23, s=self.sent_objects, logger=self.logger)
         obj_with_comm = Object(i=23, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_sent_volume(), 6.5)
 
@@ -206,12 +206,12 @@ class TestConfig(unittest.TestCase):
 
     def test_object_get_received_volume_002(self):
         received_object = {Object(i=5, t=2.5): 7.0}
-        oc = ObjectCommunicator(r=received_object, logger=self.logger)
+        oc = ObjectCommunicator(i=3, r=received_object, logger=self.logger)
         obj_with_comm = Object(i=3, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 7.0)
 
     def test_object_get_received_volume_003(self):
-        oc = ObjectCommunicator(r=self.received_objects, logger=self.logger)
+        oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
         obj_with_comm = Object(i=23, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 4.5)
 

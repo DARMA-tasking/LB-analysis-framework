@@ -160,7 +160,7 @@ class LoadReader:
                             if rank_objects_dict.get(c.get("to"))}
                     received = {rank_objects_dict.get(c.get("from")): c.get("bytes") for c in obj_comm.get("received")
                                 if rank_objects_dict.get(c.get("from"))}
-                    rank_obj.set_communicator(ObjectCommunicator(r=received, s=sent))
+                    rank_obj.set_communicator(ObjectCommunicator(i=obj_id, r=received, s=sent))
 
         # Return populated list of ranks
         return rank_list

@@ -19,17 +19,18 @@ class TestConfig(unittest.TestCase):
         self.logger = logging.getLogger()
         self.sent_object = {Object(i=0, t=1.0): 6.0}
         self.received_object = {Object(i=1, t=2.5): 5.0}
-        self.oc = ObjectCommunicator(r=self.received_object, s=self.sent_object, logger=self.logger)
+        self.oc = ObjectCommunicator(i=123, r=self.received_object, s=self.sent_object, logger=self.logger)
 
     def test_object_communicator_initialization_001(self):
         self.assertEqual(self.oc.received, self.received_object)
         self.assertEqual(self.oc.sent, self.sent_object)
-        self.assertEqual(self.oc.object_index, None)
+        self.assertEqual(self.oc.object_index, 123)
 
     def test_object_communicator_initialization_002(self):
-        oc = ObjectCommunicator(logger=self.logger)
+        oc = ObjectCommunicator(i=133, logger=self.logger)
         self.assertEqual(oc.received, {})
         self.assertEqual(oc.sent, {})
+        self.assertEqual(oc.object_index, 133)
 
     def test_object_communicator_get_received(self):
         self.assertEqual(self.oc.get_received(), self.received_object)
@@ -50,7 +51,7 @@ class TestConfig(unittest.TestCase):
                         Object(i=3, t=0.5): 1.5}
         received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
                             Object(i=8, t=1.5): 0.5}
-        oc_sum = ObjectCommunicator(r=received_objects, s=sent_objects, logger=self.logger)
+        oc_sum = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
         w_sent, w_recv = oc_sum.summarize()
         self.assertEqual(w_sent, [2.0, 1.0, 2.0, 1.5])
         self.assertEqual(w_recv, [2.0, 1.0, 1.0, 0.5])

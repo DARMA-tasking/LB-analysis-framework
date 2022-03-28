@@ -218,9 +218,9 @@ class Phase:
             for obj in objects:
                 # Create object communicator with outgoing messages
                 obj.set_communicator(ObjectCommunicator(
-                    {},
-                    {o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
-                    obj.get_id(),
+                    i=obj.get_id(),
+                    r={},
+                    s={o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
                     logger=self.lgr
                 ))
             self.lgr.info(f"\tgenerated in {time.time() - start:.6g} seconds")
