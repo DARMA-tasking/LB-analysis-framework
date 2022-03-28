@@ -42,7 +42,6 @@
 #@HEADER
 #
 ########################################################################
-import csv
 import json
 from logging import Logger
 import os
@@ -57,25 +56,9 @@ from src.Model.lbsRank import Rank
 
 
 class LoadReader:
-    """A class to read VT Object Map files. These CSV files conform
-    to the following format:
-
-      <phase_id/phase>, <object-id>, <time>
-      <phase_id/phase>, <object-id1>, <object-id2>, <num-bytes>
-
-    Each file is named as <base-name>.<node>.vom, where <node> spans the number
-    of MPI ranks that VT is utilizing.
-
-    Each line in a given file specifies the load of each object that is
-    currently mapped to that VT node for a given phase_id/phase. Lines with 3
-    entries specify load for an object in term of wall time. Lines with 4
-    entries specify the communication volume between objects in bytes.
-
-    Load profile collection and output is enabled in VT with the following flags:
-
-      mpirun -n 4 ./program --vt_lb_stats
-                            --vt_lb_stats_dir=my-stats-dir
-                            --vt_lb_stats_file=<base-name>
+    """ A class to read VT Object Map files. These json files could be compressed with Brotli.
+        Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
+        The schema of the compatible files is defined in <project-path>src/IO/schemaValidator.py
     """
 
     CommCategory = {
@@ -88,7 +71,7 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix, logger: Logger = None, file_suffix="vom"):
+    def __init__(self, file_prefix: str, logger: Logger = None, file_suffix: str = "json"):
         # The base directory and file name for the log files
         self.file_prefix = file_prefix
 
@@ -99,14 +82,13 @@ class LoadReader:
         self.lgr = logger
 
     def get_node_trace_file_name(self, node_id):
-        """Build the file name for a given rank/node ID
+        """ Build the file name for a given rank/node ID
         """
-
         return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
 
     def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> tuple:
-        """Read the file for a given node/rank. If phase_id==-1 then all
-        steps are read from the file; otherwise, only `phase_id` is.
+        """ Read the file for a given node/rank. If phase_id==-1 then all
+            steps are read from the file; otherwise, only `phase_id` is.
         """
 
         # Retrieve file name for given node and make sure that it exists
@@ -114,7 +96,7 @@ class LoadReader:
         self.lgr.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
             self.lgr.error(f"File {file_name} does not exist.")
-            sys.exit(1)
+            raise FileNotFoundError(f"File {file_name} not found!")
 
         # Retrieve communications from JSON reader
         iter_map = {}
@@ -131,9 +113,8 @@ class LoadReader:
         return iter_map, comm
 
     def read_iteration(self, n_p: int, phase_id: int) -> list:
-        """Read all the data in the range of ranks [0..n_p) for a given
-        iteration `phase_id`. Collapse the iter_map dictionary from `read(..)`
-        into a list of ranks to be returned for the given iteration.
+        """ Read all the data in the range of ranks [0..n_p] for a given iteration `phase_id`.
+            Collapse the iter_map dictionary from `read()` into a list of ranks to be returned for the given iteration.
         """
 
         # Create storage for ranks
@@ -175,17 +156,11 @@ class LoadReader:
                 # Check if there is any communication for the object
                 obj_comm = communications.get(obj_id)
                 if obj_comm:
-                    sent = {
-                        rank_objects_dict.get(c.get("to")):
-                        c.get("bytes") for c in
-                        obj_comm.get("sent")
-                        if rank_objects_dict.get(c.get("to"))}
-                    received = {
-                        rank_objects_dict.get(c.get("from")):
-                        c.get("bytes") for c in
-                        obj_comm.get("received")
-                        if rank_objects_dict.get(c.get("from"))}
-                    rank_obj.set_communicator(ObjectCommunicator(r=received, s=sent))
+                    sent = {rank_objects_dict.get(c.get("to")): c.get("bytes") for c in obj_comm.get("sent")
+                            if rank_objects_dict.get(c.get("to"))}
+                    received = {rank_objects_dict.get(c.get("from")): c.get("bytes") for c in obj_comm.get("received")
+                                if rank_objects_dict.get(c.get("from"))}
+                    rank_obj.set_communicator(ObjectCommunicator(i=obj_id, r=received, s=sent))
 
         # Return populated list of ranks
         return rank_list
@@ -203,10 +178,10 @@ class LoadReader:
 
         # Validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            self.lgr.info(f"Valid JSON schema in  {file_name}")
+            self.lgr.info(f"Valid JSON schema in {file_name}")
         else:
             self.lgr.error(f"Invalid JSON schema in {file_name}")
-            raise SyntaxError
+            SchemaValidator().validate(schema_to_validate=decompressed_dict)
 
         # Define phases from file
         phases = decompressed_dict["phases"]
@@ -281,58 +256,5 @@ class LoadReader:
 
                     # Print debug information when requested
                     self.lgr.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
-
-        return returned_dict, comm_dict
-
-    def csv_reader(self, returned_dict: dict, file_name: str, phase_id, node_id: int) -> tuple:
-        """ Reader compatible with previous VT Object Map files (csv)
-        """
-        # Open specified input file
-        with open(file_name, 'r') as f:
-            log = csv.reader(f, delimiter=',')
-            # Iterate over rows of input file
-            comm_dict = {}
-            for row in log:
-                n_entries = len(row)
-
-                # Handle three-entry case that corresponds to an object load
-                if n_entries == 3:
-                    # Parsing the three-entry case, thus this format:
-                    #   <time_step/phase>, <object-id>, <time>
-                    # Converting these into integers and floats before using them or
-                    # inserting the values in the dictionary
-                    try:
-                        phase, o_id = map(int, row[:2])
-                        time = float(row[2])
-                    except:
-                        self.lgr.error(f"Incorrect row format: {row}")
-
-                    # Update rank if iteration was requested
-                    if phase_id in (phase, -1):
-                        # Instantiate object with retrieved parameters
-                        obj = Object(o_id, time, node_id)
-
-                        # If this iteration was never encoutered initialize rank object
-                        returned_dict.setdefault(phase, Rank(node_id, logger=self.lgr))
-
-                        # Add object to rank
-                        returned_dict[phase].add_migratable_object(obj)
-
-                        # Print debug information when requested
-                        self.lgr.debug(f"iteration = {phase}, object id = {o_id}, time = {time}")
-
-                # Handle four-entry case that corresponds to a communication volume
-                elif n_entries == 5:
-                    # Parsing the five-entry case, thus this format:
-                    #   <time_step/phase>, <to-object-id>, <from-object-id>, <volume>, <comm-type>
-                    # Converting these into integers and floats before using them or
-                    # inserting the values in the dictionary
-                    self.lgr.error("Communication graph unimplemented")
-                    continue
-
-                # Unrecognized line format
-                else:
-                    self.lgr.error(f"Wrong line length: {row}")
-                    sys.exit(1)
 
         return returned_dict, comm_dict

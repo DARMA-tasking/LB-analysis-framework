@@ -1,0 +1,60 @@
+name: Unit Tests
+on: push
+concurrency:
+  group: CI-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  Unit-Test:
+    continue-on-error: false
+    strategy:
+      max-parallel: 10
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9']
+    runs-on: ${{ matrix.os }}
+    env:
+      home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install packages
+        run: |
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install -y git xvfb 
+
+      - name: Python Setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          cd ${{ env.home_dir }}
+          python -m pip install --upgrade pip
+          pip install -r requirements-${{ matrix.python-version }}.txt
+          pip install tox-gh-actions
+
+      - name: Test with TOX
+        run: |
+          cd ${{ env.home_dir }}
+          tox
+
+#      - name: Create badges
+#        run: |
+#          cd ${{ env.home_dir }}
+#          mkdir badges
+#          PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./artifacts/pylint.txt)
+#          anybadge --label=pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
+#          COVERAGE_SCORE=$(sed -n '/TOTAL/,/%/p' artifacts/coverage.txt | rev | cut -d" " -f1 | rev | tr -d % )
+#          anybadge --value=$COVERAGE_SCORE --file=badges/coverage.svg coverage
+#
+#      - name: Deploy badges
+#        uses: peaceiris/actions-gh-pages@v3
+#        if: github.ref == '201-add_unit_tests'
+#        with:
+#          commit_message: ${{steps.tag_version.outputs.tag}} ${{ github.event.head_commit.message }}
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          publish_dir: ./badges

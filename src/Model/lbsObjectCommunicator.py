@@ -47,14 +47,10 @@ import sys
 
 
 class ObjectCommunicator:
-    """A class holding received and sent messages for an object
+    """ A class holding received and sent messages for an object
     """
 
-    def __init__(self, r: dict = None, s: dict = None, i=None, logger: Logger = None):
-        if r is None:
-            r = {}
-        if s is None:
-            s = {}
+    def __init__(self, i: int, r: dict = None, s: dict = None, logger: Logger = None):
         # Index of object having this communicator if defined
         self.object_index = i
 
@@ -67,39 +63,9 @@ class ObjectCommunicator:
         # Assign logger to instance variable
         self.lgr = logger
 
-    def get_received(self):
-        """Return all from_object=volume pairs received by object
+    def _summarize_unidirectional(self, direction):
+        """ Summarize one-way communicator properties and check for errors
         """
-
-        return self.received
-
-    def get_received_from_object(self, o):
-        """Return the volume of a message received from an object if any
-        """
-
-        return self.received.get(o)
-
-    def get_sent(self):
-        """Return all to_object=volume pairs sent from object
-        """
-
-        return self.sent
-
-    def get_sent_to_object(self, o):
-        """Return the volume of a message received from an object if any
-        """
-
-        return self.sent.get(o)
-
-    def summarize_unidirectional(self, direction, print_indent=None):
-        """Summarize one-way communicator properties and check for errors
-        """
-
-        # Assert that direction is of known type
-        if direction not in ("to", "from"):
-            self.lgr.error(f"Unknown direction string: {direction}")
-            sys.exit(1)
-
         # Initialize list of volumes
         volumes = []
 
@@ -115,21 +81,39 @@ class ObjectCommunicator:
             volumes.append(v)
 
             # Report current communication item if requested
-            if print_indent:
-                self.lgr.info(f'{print_indent}{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
+            self.lgr.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of volumes
         return volumes
 
-    def summarize(self, print_indent=None):
-        """Summarize communicator properties and check for errors
+    def get_received(self) -> dict:
+        """ Return all from_object=volume pairs received by object
         """
+        return self.received
 
+    def get_received_from_object(self, o):
+        """ Return the volume of a message received from an object if any
+        """
+        return self.received.get(o)
+
+    def get_sent(self) -> dict:
+        """ Return all to_object=volume pairs sent from object
+        """
+        return self.sent
+
+    def get_sent_to_object(self, o):
+        """ Return the volume of a message received from an object if any
+        """
+        return self.sent.get(o)
+
+    def summarize(self) -> tuple:
+        """ Summarize communicator properties and check for errors
+        """
         # Summarize sent communications
-        w_sent = self.summarize_unidirectional("to", print_indent)
+        w_sent = self._summarize_unidirectional("to")
 
         # Summarize received communications
-        w_recv = self.summarize_unidirectional("from", print_indent)
+        w_recv = self._summarize_unidirectional("from")
 
         # Return counters
         return w_sent, w_recv
