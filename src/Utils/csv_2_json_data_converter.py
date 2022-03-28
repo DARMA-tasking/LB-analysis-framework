@@ -18,7 +18,7 @@ import brotli
 class Csv2JsonConverter:
     """ A Class responsible for conversion from previous log structure (CSV) to a current log structure (JSON)
         with/without Brotli compression.
-        Files for conversion should be named as follows 'prefix.rank/node.extension' e.g. 'stats.0.vom', 'stats.1.vom'
+        Files for conversion should be named as follows 'prefix.rank/node.extension' e.g. 'data.0.vom', 'data.1.vom'
         Changes input CSV files e.g. <time_step/phase>, <object-id>, <time> to JSON:
         {"phases":[
             {"tasks":[
@@ -28,7 +28,7 @@ class Csv2JsonConverter:
             "id":0}]}
         :param dir_path: Absolute dir path or relative(from project path) dir path
         :param compressed: If output file should be compressed, default = True
-        :param in_file_name_prefix: Input file name prefix e.g. 'stats'
+        :param in_file_name_prefix: Input file name prefix e.g. 'data'
         :param in_file_extension: Input file extension, e.g. '.vom'
         :param out_dir_path: Output dir, relative to project path
     """
@@ -166,4 +166,4 @@ class Csv2JsonConverter:
 
 
 if __name__ == '__main__':
-    Csv2JsonConverter(dir_path='data/vt_example_lb_stats', compressed=False).main()
+    Csv2JsonConverter(dir_path='data/vt_example_lb_data', compressed=False).main()
