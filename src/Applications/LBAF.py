@@ -59,7 +59,7 @@ except:
 
 from src.Model.lbsPhase import Phase
 from src.Execution.lbsRuntime import Runtime
-from src.IO.lbsVTDataWriter import VTStatisticsWriter
+from src.IO.lbsVTDataWriter import VTDataWriter
 from src.IO.lbsWriterExodusII import WriterExodusII
 from src.IO.lbsStatistics import initialize, print_function_statistics, Hamming_distance
 from src.Utils.logger import logger
@@ -447,7 +447,7 @@ if __name__ == "__main__":
 
     # Instantiate phase to VT file writer if started from a log file
     if params.log_file:
-        vt_writer = VTStatisticsWriter(
+        vt_writer = VTDataWriter(
             phase,
             output_stem,
             output_dir=params.output_dir,

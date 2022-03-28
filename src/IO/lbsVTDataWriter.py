@@ -52,24 +52,17 @@ from src.Model.lbsPhase import Phase
 from src.Model.lbsRank import Rank
 
 
-class VTStatisticsWriter:
-    """A class to write load directives for VT as JSON files with
-    the following format:
-
-      <iter/phase>, <object-id>, <time>
-
-    Each file is named as <base-name>.<node>.out, where <node> spans the number
-    of MPI ranks that VT is utilizing.
-
-    Each line in a given file specifies the load of each object that must
-    be mapped to that VT node for a given iteration/phase.
+class VTDataWriter:
+    """ A class to write load directives for VT as JSON files
+        Each file is named as <base-name>.<node>.out, where <node> spans the number
+        of MPI ranks that VT is utilizing.
     """
 
     def __init__(self, phase: Phase, f="lbs_out", s="vom", output_dir=None, logger: Logger = None):
-        """Class constructor:
-        phase: Phase instance
-        f: file name stem
-        s: suffix
+        """ Class constructor:
+            phase: Phase instance
+            f: file name stem
+            s: suffix
         """
         # Assign logger to instance variable
         self.lgr = logger
