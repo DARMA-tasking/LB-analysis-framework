@@ -12,7 +12,7 @@ import unittest
 
 from schema import SchemaError
 
-from src.IO.lbsVTStatisticsReader import LoadReader
+from src.IO.lbsVTDataReader import LoadReader
 from src.Model.lbsObject import Object
 from src.Model.lbsRank import Rank
 
@@ -77,8 +77,14 @@ class TestConfig(unittest.TestCase):
         for phase in range(4):
             rank_iter_map, rank_comm = self.lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
-            self.assertEqual(sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index),
-                             sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index))
+            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index)
+            generated_list = sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index)
+            prep_time_list = [obj.get_time() for obj in prepared_list]
+            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_id_list = [obj.get_id() for obj in prepared_list]
+            gen_id_list = [obj.get_id() for obj in generated_list]
+            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_statistics_reader_read_compressed(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
@@ -86,8 +92,14 @@ class TestConfig(unittest.TestCase):
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
-            self.assertEqual(sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index),
-                             sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index))
+            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index)
+            generated_list = sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index)
+            prep_time_list = [obj.get_time() for obj in prepared_list]
+            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_id_list = [obj.get_id() for obj in prepared_list]
+            gen_id_list = [obj.get_id() for obj in generated_list]
+            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_statistics_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
@@ -108,8 +120,14 @@ class TestConfig(unittest.TestCase):
             rank_iter_map, rank_comm = self.lr.json_reader(returned_dict={}, file_name=file_name, phase_ids=0,
                                                            node_id=phase)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
-            self.assertEqual(sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index),
-                             sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index))
+            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index)
+            generated_list = sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index)
+            prep_time_list = [obj.get_time() for obj in prepared_list]
+            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_id_list = [obj.get_id() for obj in prepared_list]
+            gen_id_list = [obj.get_id() for obj in generated_list]
+            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_id_list, gen_id_list)
 
 
 if __name__ == '__main__':
