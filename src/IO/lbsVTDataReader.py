@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                              lbsVTStatisticsReader.py
+#                              lbsVTDataReader.py
 #                           DARMA Toolkit v. 1.0.0
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
@@ -58,7 +58,7 @@ from src.Model.lbsRank import Rank
 class LoadReader:
     """ A class to read VT Object Map files. These json files could be compressed with Brotli.
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
-        The schema of the compatible files is defined in <project-path>src/IO/schemaValidator.py
+        The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
 
     CommCategory = {
@@ -247,13 +247,10 @@ class LoadReader:
                 if phase_ids in (phase_id, -1):
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
-
-                    # If this iteration was never encoutered initialize rank object
+                    # If this iteration was never encountered initialize rank object
                     returned_dict.setdefault(phase_id, Rank(node_id, logger=self.lgr))
-
                     # Add object to rank
                     returned_dict[phase_id].add_migratable_object(obj)
-
                     # Print debug information when requested
                     self.lgr.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
 
