@@ -27,22 +27,22 @@ class TestConfig(unittest.TestCase):
                                  Object(i=8, t=1.5): 0.5}
 
     def test_object_initialization_001(self):
-        self.assertEqual(self.simple_obj_001.index, 1)
-        self.assertEqual(self.simple_obj_001.time, 2.5)
-        self.assertEqual(self.simple_obj_001.rank_id, None)
-        self.assertEqual(self.simple_obj_001.communicator, None)
+        self.assertEqual(self.simple_obj_001._Object__index, 1)
+        self.assertEqual(self.simple_obj_001._Object__time, 2.5)
+        self.assertEqual(self.simple_obj_001._Object__rank_id, None)
+        self.assertEqual(self.simple_obj_001._Object__communicator, None)
 
     def test_object_initialization_002(self):
-        self.assertEqual(self.simple_obj_002.index, 2)
-        self.assertEqual(self.simple_obj_002.time, 4.5)
-        self.assertEqual(self.simple_obj_002.rank_id, 0)
-        self.assertEqual(self.simple_obj_002.communicator, None)
+        self.assertEqual(self.simple_obj_002._Object__index, 2)
+        self.assertEqual(self.simple_obj_002._Object__time, 4.5)
+        self.assertEqual(self.simple_obj_002._Object__rank_id, 0)
+        self.assertEqual(self.simple_obj_002._Object__communicator, None)
 
     def test_object_initialization_003(self):
-        self.assertEqual(self.simple_obj_003.index, 3)
-        self.assertEqual(self.simple_obj_003.time, 3.5)
-        self.assertEqual(self.simple_obj_003.rank_id, 2)
-        self.assertEqual(self.simple_obj_003.communicator, self.oc)
+        self.assertEqual(self.simple_obj_003._Object__index, 3)
+        self.assertEqual(self.simple_obj_003._Object__time, 3.5)
+        self.assertEqual(self.simple_obj_003._Object__rank_id, 2)
+        self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
 
     def test_object_repr(self):
         self.assertEqual(str(self.simple_obj_001), 'Object id: 1, time: 2.5')
@@ -63,9 +63,9 @@ class TestConfig(unittest.TestCase):
         self.simple_obj_001.set_rank_id(15)
         self.simple_obj_002.set_rank_id(24)
         self.simple_obj_003.set_rank_id(33)
-        self.assertEqual(self.simple_obj_001.rank_id, 15)
-        self.assertEqual(self.simple_obj_002.rank_id, 24)
-        self.assertEqual(self.simple_obj_003.rank_id, 33)
+        self.assertEqual(self.simple_obj_001._Object__rank_id, 15)
+        self.assertEqual(self.simple_obj_002._Object__rank_id, 24)
+        self.assertEqual(self.simple_obj_003._Object__rank_id, 33)
 
     def test_object_get_rank_id(self):
         self.assertEqual(self.simple_obj_001.get_rank_id(), None)
@@ -149,7 +149,7 @@ class TestConfig(unittest.TestCase):
 
     def test_object_set_communicator(self):
         self.simple_obj_002.set_communicator(self.oc)
-        self.assertEqual(self.simple_obj_002.communicator, self.oc)
+        self.assertEqual(self.simple_obj_002._Object__communicator, self.oc)
 
     def test_object_set_communicator_get_communicator(self):
         self.simple_obj_002.set_communicator(self.oc)

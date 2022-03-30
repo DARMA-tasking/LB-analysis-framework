@@ -44,7 +44,7 @@ from src.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class StrictLocalizingCriterion(CriterionBase):
-    """A concrete class for a strictly localizing criterion
+    """ A concrete class for a strictly localizing criterion
     """
     
     def __init__(self, ranks, edges, _, lgr: Logger = None):
@@ -58,8 +58,8 @@ class StrictLocalizingCriterion(CriterionBase):
         super(StrictLocalizingCriterion, self).__init__(ranks, edges)
 
         # Assign logger to instance variable
-        self.lgr = lgr
-        self.lgr.info("Instantiated concrete criterion")
+        self.__lgr = lgr
+        self.__lgr.info("Instantiated concrete criterion")
 
     def compute(self, object, p_src, _):
         """A criterion enforcing strict conservation of local communications
@@ -73,7 +73,7 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Iterate over sent messages
         if not isinstance(comm, ObjectCommunicator):
-            self.lgr.warning(f"Object {object.get_id()} has no communicator")
+            self.__lgr.warning(f"Object {object.get_id()} has no communicator")
             return 0.
 
         # Iterate over sent messages

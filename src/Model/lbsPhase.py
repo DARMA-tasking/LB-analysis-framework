@@ -59,47 +59,48 @@ class Phase:
     """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, t=0, logger: Logger = None, file_suffix="vom"):
+    def __init__(self, t: int = 0, logger: Logger = None, file_suffix="vom"):
         # Initialize empty list of ranks
-        self.ranks = []
+        self.__ranks = []
 
         # Default time-step/phase of this phase
-        self.phase_id = t
+        self.__phase_id = t
 
         # Initialize gossiping round
+        # TODO: seems not to be used anywhere
         self.round_index = 0
 
         # Assign logger to instance variable
-        self.lgr = logger
+        self.__lgr = logger
 
         # Start with empty edges cache
-        self.edges = {}
-        self.cached_edges = False
+        self.__edges = {}
+        self.__cached_edges = False
 
         # Data files suffix(reading from data)
-        self.file_suffix = file_suffix
+        self.__file_suffix = file_suffix
 
     def get_ranks(self):
         """ Retrieve ranks belonging to phase
         """
-        return self.ranks
+        return self.__ranks
 
     def get_ranks_ids(self):
         """ Retrieve IDs of ranks belonging to phase
         """
-        return [p.get_id() for p in self.ranks]
+        return [p.get_id() for p in self.__ranks]
 
     def get_phase_id(self):
         """ Retrieve the time-step/phase for this phase
         """
-        return self.phase_id
+        return self.__phase_id
 
     def compute_edges(self):
         """ Compute and return map of communication link IDs to volumes
         """
         # Compute or re-compute edges from scratch
-        self.lgr.debug("Computing inter-process communication edges")
-        self.edges.clear()
+        self.__lgr.debug("Computing inter-process communication edges")
+        self.__edges.clear()
         directed_edges = {}
 
         # Initialize count of loaded ranks
@@ -109,14 +110,14 @@ class Phase:
         v_total, v_local = 0., 0.
 
         # Iterate over ranks
-        for p in self.ranks:
+        for p in self.__ranks:
             # Retrieve sender rank ID
             i = p.get_id()
-            self.lgr.debug(f"\trank {i}:")
+            self.__lgr.debug(f"rank {i}:")
 
             # Iterate over objects of current rank
             for o in p.get_objects():
-                self.lgr.debug(f"\t* object {o.get_id()}:")
+                self.__lgr.debug(f"* object {o.get_id()}:")
 
                 # Iterate over recipient objects
                 for q, volume in o.get_sent().items():
@@ -125,7 +126,7 @@ class Phase:
 
                     # Retrieve recipient rank ID
                     j = q.get_rank_id()
-                    self.lgr.debug(f"\tsent volume {volume} to object {q.get_id()} assigned to rank {j}")
+                    self.__lgr.debug(f"sent volume {volume} to object {q.get_id()} assigned to rank {j}")
 
                     # Skip rank-local communications
                     if i == j:
@@ -140,78 +141,63 @@ class Phase:
                         directed_edges[ij][0] += volume
                     else:
                         directed_edges[ij][1] += volume
-                    self.lgr.debug(f"\tedge rank {i} --> rank {j}, volume: {directed_edges[ij]}")
+                    self.__lgr.debug(f"edge rank {i} --> rank {j}, volume: {directed_edges[ij]}")
 
         # Reduce directed edges into undirected ones with maximum
         for k, v in directed_edges.items():
-            self.edges[k] = max(v)
+            self.__edges[k] = max(v)
 
         # Edges cache was fully updated
-        self.cached_edges = True
+        self.__cached_edges = True
 
         # Report on computed edges
-        n_ranks = len(self.ranks)
-        n_edges = len(self.edges)
-        print_subset_statistics(
-            "Inter-rank communication edges",
-            n_edges,
-            "possible ones", n_ranks * (n_ranks - 1) / 2,
-            logger=self.lgr)
-        print_subset_statistics(
-            "Rank-local communication volume",
-            v_local,
-            "total volume",
-            v_total,
-            logger=self.lgr)
+        n_ranks = len(self.__ranks)
+        n_edges = len(self.__edges)
+        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
+                                logger=self.__lgr)
+        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, logger=self.__lgr)
 
     def get_edges(self):
         """ Retrieve edges belonging to phase
         """
-
         # Force recompute if edges cache is not current
-        if not self.cached_edges:
+        if not self.__cached_edges:
             self.compute_edges()
 
         # Return cached edges
-        return self.edges
+        return self.__edges
 
     def invalidate_edge_cache(self):
         """ Mark cached edges as no longer current
         """
-
-        self.cached_edges = False
+        self.__cached_edges = False
 
     def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
         """ Use samplers to populate either all or n procs in a phase
         """
-
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = sampler(ts, ts_params, logger=self.lgr)
+        time_sampler, sampler_name = sampler(ts, ts_params, logger=self.__lgr)
 
         # Create n_o objects with uniformly distributed times in given range
-        self.lgr.info(f"Creating {n_o} objects with times sampled from {sampler_name}")
+        self.__lgr.info(f"Creating {n_o} objects with times sampled from {sampler_name}")
         objects = set([Object(i, time_sampler()) for i in range(n_o)])
 
         # Compute and report object time statistics
-        print_function_statistics(
-            objects,
-            lambda x: x.get_time(),
-            "object times",
-            logger=self.lgr)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__lgr)
 
         # Decide whether communications must be created
         if c_degree > 0:
-            # Instantiante communication samplers with requested properties
-            volume_sampler, volume_sampler_name = sampler(cs, cs_params, logger=self.lgr)
+            # Instantiate communication samplers with requested properties
+            volume_sampler, volume_sampler_name = sampler(cs, cs_params, logger=self.__lgr)
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
             degree_sampler, degree_sampler_name = sampler(
                 "binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
-                logger=self.lgr)
-            self.lgr.info(
-                f"Creating communications with: \n\tvolumes sampled from {volume_sampler_name}\n"
-                f"\tout-degrees sampled from {degree_sampler_name}")
+                logger=self.__lgr)
+            self.__lgr.info(
+                f"Creating communications with: \nvolumes sampled from {volume_sampler_name}\n"
+                f"out-degrees sampled from {degree_sampler_name}")
 
             # Create communicator for each object with only sent communications
             start = time.time()
@@ -221,9 +207,9 @@ class Phase:
                     i=obj.get_id(),
                     r={},
                     s={o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
-                    logger=self.lgr
+                    logger=self.__lgr
                 ))
-            self.lgr.info(f"\tgenerated in {time.time() - start:.6g} seconds")
+            self.__lgr.info(f"generated in {time.time() - start:.6g} seconds")
 
             # Create symmetric received communications
             for obj in objects:
@@ -234,12 +220,12 @@ class Phase:
         v_sent, v_recv = [], []
         for obj in objects:
             i = obj.get_id()
-            self.lgr.debug(f"\tobject {i}:")
+            self.__lgr.debug(f"object {i}:")
 
             # Retrieve communicator and proceed to next object if empty
             comm = obj.get_communicator()
             if not comm:
-                self.lgr.debug("\t  None")
+                self.__lgr.debug("None")
                 continue
 
             # Check and summarize communications and update global counters
@@ -249,28 +235,28 @@ class Phase:
 
         # Perform sanity checks
         if len(v_recv) != len(v_sent):
-            self.lgr.error(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
+            self.__lgr.error(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.lgr)
+        print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.__lgr)
 
         # Create n_p ranks
-        self.ranks = [Rank(i, logger=self.lgr) for i in range(n_p)]
+        self.__ranks = [Rank(i, logger=self.__lgr) for i in range(n_p)]
 
         # Randomly assign objects to ranks
         if s_s and s_s <= n_p:
-            self.lgr.info(f"Randomly assigning objects to {s_s} ranks amongst {n_p}")
+            self.__lgr.info(f"Randomly assigning objects to {s_s} ranks amongst {n_p}")
         else:
             # Sanity check
             if s_s > n_p:
-                self.lgr.warning(
+                self.__lgr.warning(
                     f"Too many ranks ({s_s}) requested: only {n_p} available.")
                 s_s = n_p
-            self.lgr.info(f"Randomly assigning objects to {n_p} ranks")
+            self.__lgr.info(f"Randomly assigning objects to {n_p} ranks")
         if s_s > 0:
             # Randomly assign objects to a subset o ranks of size s_s
-            proc_list = rnd.sample(self.ranks, s_s)
+            proc_list = rnd.sample(self.__ranks, s_s)
             for o in objects:
                 p = rnd.choice(proc_list)
                 p.add_migratable_object(o)
@@ -278,30 +264,29 @@ class Phase:
         else:
             # Randomly assign objects to all ranks
             for o in objects:
-                p = rnd.choice(self.ranks)
+                p = rnd.choice(self.__ranks)
                 p.add_migratable_object(o)
                 o.set_rank_id(p.get_id())
 
         # Print debug information when requested
-        for p in self.ranks:
-            self.lgr.debug(f"\t{p.get_id()} <- {p.get_object_ids()}")
+        for p in self.__ranks:
+            self.__lgr.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
     def populate_from_log(self, n_p, t_s, basename):
         """ Populate this phase by reading in a load profile from log files
         """
-
         # Instantiate VT load reader
-        reader = LoadReader(basename, logger=self.lgr, file_suffix=self.file_suffix)
+        reader = LoadReader(basename, logger=self.__lgr, file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
-        self.lgr.info(f"Reading objects from time-step {t_s} of VOM files with prefix {basename}")
-        self.ranks = reader.read_iteration(n_p, t_s)
+        self.__lgr.info(f"Reading objects from time-step {t_s} of VOM files with prefix {basename}")
+        self.__ranks = reader.read_iteration(n_p, t_s)
 
         # Compute and report object statistics
         objects = set()
-        for p in self.ranks:
+        for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.lgr)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__lgr)
 
         # Return number of found objects
         return len(objects)

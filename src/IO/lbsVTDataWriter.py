@@ -58,37 +58,37 @@ class VTDataWriter:
         of MPI ranks that VT is utilizing.
     """
 
-    def __init__(self, phase: Phase, f="lbs_out", s="vom", output_dir=None, logger: Logger = None):
+    def __init__(self, phase: Phase, f: str = "lbs_out", s: str = "vom", output_dir=None, logger: Logger = None):
         """ Class constructor:
             phase: Phase instance
             f: file name stem
             s: suffix
         """
         # Assign logger to instance variable
-        self.lgr = logger
+        self.__lgr = logger
 
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
-            self.lgr.error("Could not write to ExodusII file by lack of a LBS phase")
+            self.__lgr.error("Could not write to ExodusII file by lack of a LBS phase")
             return
 
         # Assign internals
-        self.phase = phase
-        self.file_stem = "{}".format(f)
-        self.suffix = s
-        self.output_dir = output_dir
+        self.__phase = phase
+        self.__file_stem = f"{f}"
+        self.__suffix = s
+        self.__output_dir = output_dir
 
     def write(self):
         """Write one JSON file per rank with the following format:
             <phase-id>, <object-id>, <time>
         """
         # Iterate over ranks
-        for p in self.phase.ranks:
+        for p in self.__phase.get_ranks():
             # Create file name for current rank
-            file_name = f"{self.file_stem}.{p.get_id()}.{self.suffix}"
+            file_name = f"{self.__file_stem}.{p.get_id()}.{self.__suffix}"
 
-            if self.output_dir is not None:
-                file_name = os.path.join(self.output_dir, file_name)
+            if self.__output_dir is not None:
+                file_name = os.path.join(self.__output_dir, file_name)
 
             # Count number of unsaved objects for sanity
             n_u = 0
@@ -130,6 +130,6 @@ class VTDataWriter:
 
         # Sanity check
         if n_u:
-            self.lgr.error(f"{n_u} objects could not be written to JSON file {file_name}")
+            self.__lgr.error(f"{n_u} objects could not be written to JSON file {file_name}")
         else:
-            self.lgr.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")
+            self.__lgr.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")

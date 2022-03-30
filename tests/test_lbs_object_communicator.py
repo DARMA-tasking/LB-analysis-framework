@@ -22,15 +22,15 @@ class TestConfig(unittest.TestCase):
         self.oc = ObjectCommunicator(i=123, r=self.received_object, s=self.sent_object, logger=self.logger)
 
     def test_object_communicator_initialization_001(self):
-        self.assertEqual(self.oc.received, self.received_object)
-        self.assertEqual(self.oc.sent, self.sent_object)
-        self.assertEqual(self.oc.object_index, 123)
+        self.assertEqual(self.oc._ObjectCommunicator__received, self.received_object)
+        self.assertEqual(self.oc._ObjectCommunicator__sent, self.sent_object)
+        self.assertEqual(self.oc._ObjectCommunicator__object_index, 123)
 
     def test_object_communicator_initialization_002(self):
         oc = ObjectCommunicator(i=133, logger=self.logger)
-        self.assertEqual(oc.received, {})
-        self.assertEqual(oc.sent, {})
-        self.assertEqual(oc.object_index, 133)
+        self.assertEqual(oc._ObjectCommunicator__received, {})
+        self.assertEqual(oc._ObjectCommunicator__sent, {})
+        self.assertEqual(oc._ObjectCommunicator__object_index, 133)
 
     def test_object_communicator_get_received(self):
         self.assertEqual(self.oc.get_received(), self.received_object)

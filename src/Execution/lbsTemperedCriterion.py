@@ -42,9 +42,6 @@
 #@HEADER
 #
 ########################################################################
-import sys
-import copy
-
 from logging import Logger
 
 from src.Execution.lbsCriterionBase import CriterionBase
@@ -53,21 +50,21 @@ from src.Model.lbsRank import Rank
 
 
 class TemperedCriterion(CriterionBase):
-    """A concrete class for the Grapevine criterion modified in line 6
+    """ A concrete class for the Grapevine criterion modified in line 6
     """
 
     def __init__(self, work_model, parameters: dict = None, lgr: Logger = None):
-        """Class constructor
-        work_model: WorkModel instante
-        parameters: optional parameters dictionary
+        """ Class constructor
+            work_model: WorkModel instante
+            parameters: optional parameters dictionary
         """
 
         # Call superclass init
         super(TemperedCriterion, self).__init__(work_model, parameters)
 
         # Assign logger to instance variable
-        self.lgr = lgr
-        self.lgr.info("Instantiated concrete criterion")
+        self.__lgr = lgr
+        self.__lgr.info("Instantiated concrete criterion")
 
         # Determine how destination load is to be computed
         def get_dst_load_know_by_src(p_src, p_dst):
@@ -77,13 +74,13 @@ class TemperedCriterion(CriterionBase):
             return p_dst.get_load()
 
         # Retrieve relevant parameter when available
+        # TODO: self.dst_load is not used anywhere
         self.dst_load = get_dst_load_know_by_src if not (parameters and parameters.get("actual_destination_load")) \
             else get_actual_dst_load
 
     def compute(self, objects: list, p_src: Rank, p_dst: Rank) -> float:
-        """Tempered work criterion based on L1 norm of works
+        """ Tempered work criterion based on L1 norm of works
         """
-
         # Compute original arrangement works
         values_src = {
             "load": p_src.get_load(),

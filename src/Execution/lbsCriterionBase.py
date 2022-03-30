@@ -55,13 +55,13 @@ LGR = logger()
 
 class CriterionBase:
     __metaclass__ = abc.ABCMeta
-    """An abstract base class of optimization criteria for LBAF execution
+    """ An abstract base class of optimization criteria for LBAF execution
     """
 
     def __init__(self, work_model, parameters: dict = None):
-        """Class constructor:
-        work_model: a WorkModelBase instance
-        parameters: optional parameters dictionary
+        """ Class constructor:
+            work_model: a WorkModelBase instance
+            parameters: optional parameters dictionary
         """
 
         # Assert that a work model base instance was passed
@@ -75,9 +75,8 @@ class CriterionBase:
 
     @staticmethod
     def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):
-        """Produce the necessary concrete criterion
+        """ Produce the necessary concrete criterion
         """
-
         # Load up available criteria
         from src.Execution.lbsTemperedCriterion import TemperedCriterion
         from src.Execution.lbsStrictLocalizingCriterion import StrictLocalizingCriterion
@@ -89,16 +88,15 @@ class CriterionBase:
             criterion = locals()[criterion_name + "Criterion"]
             return criterion(work_model, parameters, lgr=lgr)
         except:
-            # Otherwise error out
+            # Otherwise, error out
             LGR.error(f"Could not create a criterion with name {criterion_name}")
             sys.exit(1)
 
     @abc.abstractmethod
     def compute(self, objects, rank_src, rank_dst):
-        """Return value of criterion for candidate objects transfer
-        objects: iterable containing object instances
-        rank_src, rank_dst: Rank instances
+        """ Return value of criterion for candidate objects transfer
+            objects: iterable containing object instances
+            rank_src, rank_dst: Rank instances
         """
-
         # Must be implemented by concrete subclass
         pass
