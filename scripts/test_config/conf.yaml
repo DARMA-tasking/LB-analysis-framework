@@ -13,7 +13,7 @@ n_iterations: 8
 n_rounds: 4
 fanout: 4
 phase_id: 0
-log_file: "data/synthetic_lb_stats/stats"
+log_file: "data/synthetic_lb_data/data"
 file_suffix: json
 exodus: True
 x_procs: 2

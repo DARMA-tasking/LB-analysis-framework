@@ -247,13 +247,10 @@ class LoadReader:
                 if phase_ids in (phase_id, -1):
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
-
-                    # If this iteration was never encoutered initialize rank object
+                    # If this iteration was never encountered initialize rank object
                     returned_dict.setdefault(phase_id, Rank(node_id, logger=self.lgr))
-
                     # Add object to rank
                     returned_dict[phase_id].add_migratable_object(obj)
-
                     # Print debug information when requested
                     self.lgr.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
 
