@@ -238,7 +238,7 @@ class Runtime:
         """
         # Fail when no more objects available or maximum depth is reached
         if not pick_list or n_o >= max_n_o:
-            return False, n_o
+            return False
 
         # Pick one object and move it from one list to the other
         o = random.choice(pick_list)
@@ -252,7 +252,7 @@ class Runtime:
             return self.recursive_extended_search(pick_list, object_list, c_fct, n_o, max_n_o)
         else:
             # Succeed when criterion is satisfied
-            return True, n_o
+            return True
 
     def transfer_stage(self, transfer_criterion, max_n_objects, deterministic_transfer):
         """ Perform object transfer phase
@@ -317,7 +317,7 @@ class Runtime:
 
                     # Recursively extend search if possible
                     pick_list = srt_proc_obj[:]
-                    success, _ = self.recursive_extended_search(
+                    success = self.recursive_extended_search(
                         pick_list,
                         object_list,
                         lambda x: transfer_criterion.compute(x, p_src, p_dst),
@@ -337,7 +337,10 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
-                self.__lgr.debug(f"Transferring {len(object_list)} object(s) at once")
+                if len(object_list) > 1:
+                    self.__lgr.info(f"Transferring {len(object_list)} object(s) at once")
+                else:
+                    self.__lgr.debug(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.__lgr.debug(
                         f"transferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
