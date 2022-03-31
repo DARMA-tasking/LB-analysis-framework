@@ -64,7 +64,7 @@ class Runtime:
         """ Class constructor:
             p: phase instance
             w: dictionary with work model name and optional parameters
-            c: dictionary with riterion name and optional parameters
+            c: dictionary with criterion name and optional parameters
             o_s: name of object ordering strategy
             a: arrangements that minimize maximum work
             logger: logger for output messages
@@ -261,6 +261,9 @@ class Runtime:
         self.__lgr.info("Executing transfer phase")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
+        # Biggest transfer (num of object transferred at once)
+        max_obj_transfers = 0
+
         # Iterate over ranks
         for p_src in self.__phase.get_ranks():
             # Skip workless ranks
@@ -337,10 +340,10 @@ class Runtime:
                     sys.exit(1)
 
                 # Transfer objects
-                if len(object_list) > 1:
-                    self.__lgr.info(f"Transferring {len(object_list)} object(s) at once")
-                else:
-                    self.__lgr.debug(f"Transferring {len(object_list)} object(s) at once")
+                if len(object_list) > max_obj_transfers:
+                    max_obj_transfers = len(object_list)
+
+                self.__lgr.debug(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.__lgr.debug(
                         f"transferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
@@ -349,6 +352,8 @@ class Runtime:
                     p_dst.add_migratable_object(o)
                     o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
+
+        self.__lgr.info(f"Maximum number of objects transferred at once: {max_obj_transfers}")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
