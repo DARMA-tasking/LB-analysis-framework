@@ -65,11 +65,11 @@ class VTDataWriter:
             s: suffix
         """
         # Assign logger to instance variable
-        self.__lgr = logger
+        self.__logger = logger
 
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
-            self.__lgr.error("Could not write to ExodusII file by lack of a LBS phase")
+            self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
             return
 
         # Assign internals
@@ -130,6 +130,6 @@ class VTDataWriter:
 
         # Sanity check
         if n_u:
-            self.__lgr.error(f"{n_u} objects could not be written to JSON file {file_name}")
+            self.__logger.error(f"{n_u} objects could not be written to JSON file {file_name}")
         else:
-            self.__lgr.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")
+            self.__logger.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")

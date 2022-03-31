@@ -52,11 +52,11 @@ class LoadOnlyWorkModel(WorkModelBase):
             _: no parameters dictionary needed for this work model
         """
         # Assign logger to instance variable
-        self.__lgr = lgr
+        self.__logger = lgr
 
         # Call superclass init
         super(LoadOnlyWorkModel, self).__init__()
-        self.__lgr.info("Instantiated concrete work model")
+        self.__logger.info("Instantiated concrete work model")
 
     def compute(self, rank: Rank):
         """ A work model summing all object times on given rank

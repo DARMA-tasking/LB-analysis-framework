@@ -61,7 +61,7 @@ class ObjectCommunicator:
         self.__sent = s if isinstance(s, dict) else {}
 
         # Assign logger to instance variable
-        self.__lgr = logger
+        self.__logger = logger
 
     def _summarize_unidirectional(self, direction):
         """ Summarize one-way communicator properties and check for errors
@@ -74,14 +74,14 @@ class ObjectCommunicator:
         for k, v in communications.items():
             # Sanity check
             if k.get_id() == self.__object_index:
-                self.__lgr.error(f"object {self.__object_index} cannot send communication to itself.")
+                self.__logger.error(f"object {self.__object_index} cannot send communication to itself.")
                 sys.exit(1)
 
             # Update list of volumes
             volumes.append(v)
 
             # Report current communication item if requested
-            self.__lgr.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
+            self.__logger.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of volumes
         return volumes

@@ -57,46 +57,46 @@ class GridStreamer:
         """Class constructor
         """
         # Assign logger to instance variable
-        self.__lgr = lgr
+        self.__logger = lgr
 
         # Sanity checks
         self.Error = False
         if not isinstance(points, vtk.vtkPoints):
-            self.__lgr.error("A vtkPoints instance is required as points input")
+            self.__logger.error("A vtkPoints instance is required as points input")
             self.Error = True
             return
         if not isinstance(lines, vtk.vtkCellArray):
-            self.__lgr.error("A vtkCellArray instance is required as lines input")
+            self.__logger.error("A vtkCellArray instance is required as lines input")
             self.Error = True
             return
         if not isinstance(field_arrays, dict):
-            self.__lgr.error("A dict of vtkDataArray instances is required as field data input")
+            self.__logger.error("A dict of vtkDataArray instances is required as field data input")
             self.Error = True
         if not isinstance(point_arrays, list):
-            self.__lgr.error("A list of vtkDataArray instances is required as point data input")
+            self.__logger.error("A list of vtkDataArray instances is required as point data input")
             self.Error = True
             return
         if not isinstance(cell_arrays, list):
-            self.__lgr.error("A list of vtkDataArray instances is required as cell data input")
+            self.__logger.error("A list of vtkDataArray instances is required as cell data input")
             self.Error = True
             return
 
         # Keep track of requested number of steps and check consistency
         n_steps = len(cell_arrays)
         if any([n_steps != len(p) for p in point_arrays]):
-            self.__lgr.error(f"Number of time steps not all equal to {n_steps}")
+            self.__logger.error(f"Number of time steps not all equal to {n_steps}")
             self.Error = True
             return
 
         # More sanity checks
         for f_name, f_list in field_arrays.items():
             if n_steps != len(f_list):
-                self.__lgr.error(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> {n_steps}")
+                self.__logger.error(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> {n_steps}")
                 self.Error = True
                 return
 
         # Instantiate the streaming source
-        self.__lgr.info(f"Streaming {n_steps} load-balancing steps")
+        self.__logger.info(f"Streaming {n_steps} load-balancing steps")
         self.Algorithm = vtk.vtkProgrammableSource()
 
         # Set source information

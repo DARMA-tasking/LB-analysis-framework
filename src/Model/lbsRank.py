@@ -53,7 +53,7 @@ class Rank:
 
     def __init__(self, i: int, mo: set = None, so: set = None, logger: Logger = None):
         # Assign logger to instance variable
-        self.__lgr = logger
+        self.__logger = logger
 
         # Member variables passed by constructor
         self.__index = i
@@ -218,7 +218,7 @@ class Rank:
         return rnd.sample(set(loads).difference([self]), min(f, len(loads) - 1)), msg
 
     def forward_message(self, r, s, f):
-        """ Formard information message to sample of selected peers
+        """ Forward information message to sample of selected peers
         """
         # Create load message tagged at current round
         msg = Message(r, self.__known_loads)
@@ -236,7 +236,7 @@ class Rank:
         """
         # Assert that message has the expected type
         if not isinstance(msg, Message):
-            self.__lgr.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
+            self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
 
         # Update load information
         self.__known_loads.update(msg.get_content())

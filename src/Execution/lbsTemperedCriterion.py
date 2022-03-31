@@ -63,8 +63,8 @@ class TemperedCriterion(CriterionBase):
         super(TemperedCriterion, self).__init__(work_model, parameters)
 
         # Assign logger to instance variable
-        self.__lgr = lgr
-        self.__lgr.info("Instantiated concrete criterion")
+        self.__logger = lgr
+        self.__logger.info("Instantiated concrete criterion")
 
         # Determine how destination load is to be computed
         def get_dst_load_know_by_src(p_src, p_dst):

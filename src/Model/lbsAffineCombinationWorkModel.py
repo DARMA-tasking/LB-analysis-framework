@@ -52,7 +52,7 @@ class AffineCombinationWorkModel(WorkModelBase):
             parameters: dictionary with alpha, beta, and gamma values
         """
         # Assign logger to instance variable
-        self.__lgr = lgr
+        self.__logger = lgr
 
         # Use default values if parameters not provided
         self.__alpha = parameters.get("alpha", 1.)
@@ -61,7 +61,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        self.__lgr.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
+        self.__logger.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication

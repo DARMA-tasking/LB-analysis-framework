@@ -73,19 +73,19 @@ class Runtime:
         self.__a_min_max = a
 
         # Assign logger to instance variable
-        self.__lgr = logger
+        self.__logger = logger
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, Phase):
-            self.__lgr.warning("Could not create a LBS runtime without a phase")
+            self.__logger.warning("Could not create a LBS runtime without a phase")
             return
         else:
             self.__phase = p
 
         # Instantiate work model
-        self.__work_model = WorkModelBase.factory(w.get("name"), w.get("parameters", {}), lgr=self.__lgr)
+        self.__work_model = WorkModelBase.factory(w.get("name"), w.get("parameters", {}), lgr=self.__logger)
         if not self.__work_model:
-            self.__lgr.error(f"Could not instantiate a work model of type {self.__work_model}")
+            self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
             sys.exit(1)
 
         # Transfer criterion type and parameters
@@ -115,8 +115,8 @@ class Runtime:
                 for p in self.__phase.get_ranks() for o in p.get_objects()
                 }.items()))
         hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
-        self.__lgr.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
-        self.__lgr.debug(f"Iteration 0 arrangement: {arrangement}")
+        self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
+        self.__logger.debug(f"Iteration 0 arrangement: {arrangement}")
 
         # Initialize run statistics
         self.statistics = {
@@ -143,7 +143,7 @@ class Runtime:
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
         if o_s not in self.__strategy_mapped:
-            self.__lgr.error(f"{o_s} does not exist in known strategies: {[x for x in self.__strategy_mapped.keys()]}")
+            self.__logger.error(f"{o_s} does not exist in known strategies: {[x for x in self.__strategy_mapped.keys()]}")
             sys.exit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
 
@@ -156,7 +156,7 @@ class Runtime:
         rank_set = set(self.__phase.get_ranks())
 
         # Initialize gossip process
-        self.__lgr.info(f"Initializing information messages with fanout = {f}")
+        self.__logger.info(f"Initializing information messages with fanout = {f}")
         gossip_round = 1
         gossips = {}
 
@@ -177,12 +177,12 @@ class Runtime:
 
         # Report on gossiping status when requested
         for p in rank_set:
-            self.__lgr.debug(f"information known to rank {p.get_id()}: {[p_u.get_id() for p_u in p.get_known_loads()]}")
+            self.__logger.debug(f"information known to rank {p.get_id()}: {[p_u.get_id() for p_u in p.get_known_loads()]}")
 
         # Forward messages for as long as necessary and requested
         while gossip_round < n_rounds:
             # Initiate next gossiping round
-            self.__lgr.debug(f"Performing message forwarding round {gossip_round}")
+            self.__logger.debug(f"Performing message forwarding round {gossip_round}")
             gossip_round += 1
             gossips.clear()
 
@@ -202,7 +202,7 @@ class Runtime:
 
             # Report on gossiping status when requested
             for p in rank_set:
-                self.__lgr.debug(f"information known to rank {p.get_id()}: "
+                self.__logger.debug(f"information known to rank {p.get_id()}: "
                                f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
 
         # Build reverse lookup of ranks to those aware of them
@@ -226,12 +226,12 @@ class Runtime:
             viewers_counts[p] = len(viewers)
 
             # Report on viewers of loaded rank when requested
-            self.__lgr.debug(f"viewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}")
+            self.__logger.debug(f"viewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}")
 
         # Report viewers counts to loaded ranks
-        self.__lgr.info(f"Completed {n_rounds} information rounds")
+        self.__logger.info(f"Completed {n_rounds} information rounds")
         n_v, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
-        self.__lgr.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
+        self.__logger.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """ Recursively extend search to other objects
@@ -258,7 +258,7 @@ class Runtime:
         """ Perform object transfer phase
         """
         # Initialize transfer stage
-        self.__lgr.info("Executing transfer phase")
+        self.__logger.info("Executing transfer phase")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Biggest transfer (num of object transferred at once)
@@ -276,7 +276,7 @@ class Runtime:
             if not targets:
                 n_ignored += 1
                 continue
-            self.__lgr.debug(f"trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
+            self.__logger.debug(f"trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = list(self.__order_strategy(p_src.get_migratable_objects(), p_src.get_id()))
@@ -284,7 +284,7 @@ class Runtime:
                 # Pick next object in ordered list
                 o = srt_proc_obj.pop()
                 object_list = [o]
-                self.__lgr.debug(f"* object {o.get_id()}:")
+                self.__logger.debug(f"* object {o.get_id()}:")
 
                 # Initialize destination information
                 p_dst = None
@@ -302,7 +302,7 @@ class Runtime:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = p_src.compute_transfer_cmf(
                         transfer_criterion, o, targets, False)
-                    self.__lgr.debug(f"CMF = {p_cmf}")
+                    self.__logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
                         continue
@@ -336,16 +336,16 @@ class Runtime:
                     
                 # Sanity check before transfer
                 if p_dst not in p_src.get_known_loads():
-                    self.__lgr.error(f"Destination rank {p_dst.get_id()} not in known ranks")
+                    self.__logger.error(f"Destination rank {p_dst.get_id()} not in known ranks")
                     sys.exit(1)
 
                 # Transfer objects
                 if len(object_list) > max_obj_transfers:
                     max_obj_transfers = len(object_list)
 
-                self.__lgr.debug(f"Transferring {len(object_list)} object(s) at once")
+                self.__logger.debug(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
-                    self.__lgr.debug(
+                    self.__logger.debug(
                         f"transferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
                         f"(criterion: {c_dst})")
                     p_src.remove_migratable_object(o, p_dst)
@@ -353,7 +353,7 @@ class Runtime:
                     o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
 
-        self.__lgr.info(f"Maximum number of objects transferred at once: {max_obj_transfers}")
+        self.__logger.info(f"Maximum number of objects transferred at once: {max_obj_transfers}")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
@@ -368,20 +368,20 @@ class Runtime:
         """
         # Report on initial per-rank work
         print_function_statistics(self.__phase.get_ranks(), lambda x: self.__work_model.compute(x), "initial rank works",
-                                  logger=self.__lgr)
+                                  logger=self.__logger)
 
         # Perform requested number of load-balancing iterations
         for i in range(n_iterations):
-            self.__lgr.info(f"Starting iteration {i + 1}")
+            self.__logger.info(f"Starting iteration {i + 1}")
 
             # Start with information stage
             self.information_stage(n_rounds, f)
 
             # Instantiate object transfer criterion
             transfer_criterion = CriterionBase.factory(self.__criterion_name, self.__work_model, self.__criterion_params,
-                                                       lgr=self.__lgr)
+                                                       lgr=self.__logger)
             if not transfer_criterion:
-                self.__lgr.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
+                self.__logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
                 sys.exit(1)
 
             # Use criterion to perform transfer stage
@@ -391,16 +391,16 @@ class Runtime:
                 deterministic_transfer)
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                self.__lgr.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                self.__logger.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
                                 f"({100. * n_rejects / n_proposed:.4}%)")
             else:
-                self.__lgr.info("No transfers were proposed")
+                self.__logger.info("No transfers were proposed")
 
             # Invalidate cache of edges
             self.__phase.invalidate_edge_cache()
 
             # Report iteration statistics
-            self.__lgr.info(f"Iteration complete ({n_ignored} skipped ranks)")
+            self.__logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Append new load and sent distributions to existing lists
             self.load_distributions.append([p.get_load() for p in self.__phase.get_ranks()])
@@ -418,15 +418,15 @@ class Runtime:
                 self.__phase.get_ranks(),
                 lambda x: self.__work_model.compute(x),
                 f"iteration {i + 1} rank works",
-                logger=self.__lgr)
+                logger=self.__logger)
 
             # Compute current arrangement and report minimum Hamming distance
             arrangement = tuple(
                 v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks() for o
                                       in p.get_objects()}.items()))
             hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
-            self.__lgr.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
-            self.__lgr.debug(f"Iteration {i + 1} arrangement: {arrangement}")
+            self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
+            self.__logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 
             # Update run statistics
             self.statistics["minimum load"].append(l_min)
@@ -444,21 +444,21 @@ class Runtime:
 
         # Report final mapping
         for p in self.__phase.get_ranks():
-            self.__lgr.debug(f"Rank {p.get_id()}:")
+            self.__logger.debug(f"Rank {p.get_id()}:")
             for o in p.get_objects():
                 comm = o.get_communicator()
                 if comm:
-                    self.__lgr.debug(f"Object {o.get_id()}:")
+                    self.__logger.debug(f"Object {o.get_id()}:")
                     recv = comm.get_received().items()
                     if recv:
-                        self.__lgr.debug("received from:")
+                        self.__logger.debug("received from:")
                         for k, v in recv:
-                            self.__lgr.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+                            self.__logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
                     sent = comm.get_sent().items()
                     if sent:
-                        self.__lgr.debug("sent to:")
+                        self.__logger.debug("sent to:")
                         for k, v in sent:
-                            self.__lgr.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+                            self.__logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
     @staticmethod
     def arbitrary(objects: set, _):
