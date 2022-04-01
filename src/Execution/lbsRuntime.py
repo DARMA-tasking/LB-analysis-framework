@@ -60,7 +60,8 @@ from src.IO.lbsStatistics import compute_function_statistics, inverse_transform_
 class Runtime:
     """ A class to handle the execution of the LBS
     """
-    def __init__(self, p: Phase, w: dict, c: dict, o_s: str, a: list, logger: Logger = None):
+    def __init__(self, p: Phase, w: dict, c: dict, o_s: str, a: list, brute_force_optimization: bool,
+                 logger: Logger = None):
         """ Class constructor:
             p: phase instance
             w: dictionary with work model name and optional parameters
@@ -74,6 +75,9 @@ class Runtime:
 
         # Assign logger to instance variable
         self.__logger = logger
+
+        # Assign brute_force_optimization to instance variable
+        self.bfo = brute_force_optimization
 
         # If no LBS phase was provided, do not do anything
         if not isinstance(p, Phase):
@@ -115,7 +119,8 @@ class Runtime:
                 for p in self.__phase.get_ranks() for o in p.get_objects()
                 }.items()))
         hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
-        self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
+        if self.bfo:
+            self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
         self.__logger.debug(f"Iteration 0 arrangement: {arrangement}")
 
         # Initialize run statistics
@@ -425,7 +430,8 @@ class Runtime:
                 v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks() for o
                                       in p.get_objects()}.items()))
             hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
-            self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
+            if self.bfo:
+                self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
             self.__logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 
             # Update run statistics
