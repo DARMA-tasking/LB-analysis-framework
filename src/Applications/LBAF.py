@@ -414,8 +414,13 @@ if __name__ == "__main__":
         a_min_max = []
 
     # Instantiate runtime
-    rt = Runtime(phase, params.work_model, params.criterion, params.order_strategy, a_min_max,
-                 params.brute_force_optimization, lgr)
+    rt = Runtime(phase,
+                 params.work_model,
+                 params.criterion,
+                 params.order_strategy,
+                 a_min_max,
+                 params.brute_force_optimization,
+                 lgr)
     lgr.info(f"Instantiated runtime with {params.order_strategy} object ordering strategy")
 
     # Execute runtime iterations when requested
@@ -430,7 +435,9 @@ if __name__ == "__main__":
     # Create mapping from rank to Cartesian grid
     pgs = params.grid_size
     lgr.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
-    grid_map = lambda x: global_id_to_cartesian(x.get_id(), params.grid_size)
+    grid_map = lambda x: global_id_to_cartesian(
+        x.get_id(),
+        params.grid_size)
 
     # Assemble output file name stem
     if params.output_file_stem is not None:
