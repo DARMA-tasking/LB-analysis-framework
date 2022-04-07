@@ -66,10 +66,6 @@ class Phase:
         # Default time-step/phase of this phase
         self.__phase_id = t
 
-        # Initialize gossiping round
-        # TODO: seems not to be used anywhere
-        self.round_index = 0
-
         # Assign logger to instance variable
         self.__logger = logger
 
