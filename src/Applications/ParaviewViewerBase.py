@@ -55,11 +55,11 @@ LGR = logger()
 
 
 class ViewerParameters:
-    """A class to describe ParaviewViewerBase parameters
+    """ A class to describe ParaviewViewerBase parameters
     """
 
     def usage(self):
-        """Provide online help
+        """ Provide online help
         """
 
         print("Usage:")
@@ -69,7 +69,7 @@ class ViewerParameters:
         print('')
 
     def parse_command_line(self):
-        """Parse command line
+        """ Parse command line
         """
         # Try to hash command line with respect to allowable flags
         try:
@@ -116,10 +116,10 @@ class ParaviewViewerBase(object):
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
 
         # ExodusII file to be displayed
-        self.exodus = "{}.e".format(exodus)
+        self.exodus = f"{exodus}.e"
 
         # visualization file name
-        self.file_name = "{}.e".format(file_name)
+        self.file_name = f"{file_name}.e"
 
         # Viewer type
         self.viewer_type = viewer_type
@@ -129,7 +129,7 @@ class ParaviewViewerBase(object):
 
     @staticmethod
     def factory(exodus, file_name, viewer_type):
-        """Produce the necessary concrete backend instance
+        """ Produce the necessary concrete backend instance
         """
         from AnimationViewer import AnimationViewer
         from PNGViewer import PNGViewer
@@ -181,25 +181,25 @@ class ParaviewViewerBase(object):
         return ret_object
 
     def get_exodus(self):
-        """Convenience method to get ExodusII file name
+        """ Convenience method to get ExodusII file name
         """
         # Return value of ExodusII file name
         return self.exodus
 
     def get_file_name(self):
-        """Convenience method to get visualization file name
+        """ Convenience method to get visualization file name
         """
         # Return value of visualization file name
         return self.file_name
 
     def get_viewer_type(self):
-        """Convenience method to get viewer type
+        """ Convenience method to get viewer type
         """
         # Return value of viewer type
         return self.viewer_type
 
     def createRenderView(self, view_size=[1024, 1024]):
-        """Create a new 'Render View'
+        """ Create a new 'Render View'
         """
 
         renderView = pv.CreateView('RenderView')
@@ -228,7 +228,7 @@ class ParaviewViewerBase(object):
         return renderView
 
     def createExodusIIReader(self, elt_var, pt_var):
-        """Create a new 'ExodusIIReader'
+        """ Create a new 'ExodusIIReader'
         """
 
         reader = pv.ExodusIIReader(FileName=[self.exodus])
@@ -243,7 +243,7 @@ class ParaviewViewerBase(object):
         return reader
 
     def createCalculator(self, reader, fct, var):
-        """Create a new 'Calculator'
+        """ Create a new 'Calculator'
         """
 
         calculator = pv.Calculator(Input=reader)
@@ -253,7 +253,7 @@ class ParaviewViewerBase(object):
         return calculator
 
     def createGlyph(self, input, type='Box', factor=0.1, mode="All Points"):
-        """Create a new 'Glyph'
+        """ Create a new 'Glyph'
         """
 
         glyph = pv.Glyph(Input=input, GlyphType=type)
@@ -267,7 +267,7 @@ class ParaviewViewerBase(object):
 
     def createColorTransferFunction(self, var, colors=None, nan_color=[1., 1., 1.], nan_opacity=None,
                                     auto_rescale_range_mode="Never"):
-        """Create a color transfer function/color map
+        """ Create a color transfer function/color map
         """
         # get color transfer function/color map
         fct = pv.GetColorTransferFunction(var)
@@ -284,7 +284,7 @@ class ParaviewViewerBase(object):
         return fct
 
     def createOpacityTransferFunction(self, var, points=None):
-        """Create an opacity transfer function/color map
+        """ Create an opacity transfer function/color map
         """
         # get color transfer function/color map
         fct = pv.GetOpacityTransferFunction(var)
@@ -296,7 +296,7 @@ class ParaviewViewerBase(object):
 
     def createDisplay(self, reader, renderView, array_name, color_transfert_fct, line_width=None, scale_factor=0.3,
                       glyph_type="Box", opacity_fct=None):
-        """Create a 'Display'
+        """ Create a 'Display'
         """
         # Show data from reader
         display = pv.Show(reader, renderView)
@@ -346,12 +346,12 @@ class ParaviewViewerBase(object):
 
     @abc.abstractmethod
     def saveView(self, reader):
-        """Save view
+        """ Save view
         """
         pass
 
     def createViews(self):
-        """Create views
+        """ Create views
         """
         # Disable automatic camera reset on 'Show'
         pv._DisableFirstRenderCameraReset()

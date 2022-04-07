@@ -43,7 +43,7 @@
 #
 ########################################################################
 class MoveCountsViewerParameters:
-    """A class to describe MoveCountsViewer parameters
+    """ A class to describe MoveCountsViewer parameters
     """
 
     def __init__(self, viewer):

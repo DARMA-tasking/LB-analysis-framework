@@ -44,33 +44,33 @@ from src.Model.lbsRank import Rank
 
 
 class AffineCombinationWorkModel(WorkModelBase):
-    """A concrete class for a load-only work model
+    """ A concrete class for a load-only work model
     """
 
     def __init__(self, parameters, lgr: Logger = None):
-        """Class constructor:
-        parameters: dictionary with alpha, beta, and gamma values
+        """ Class constructor:
+            parameters: dictionary with alpha, beta, and gamma values
         """
         # Assign logger to instance variable
-        self.lgr = lgr
+        self.__logger = lgr
 
         # Use default values if parameters not provided
-        self.alpha = parameters.get("alpha", 1.)
-        self.beta = parameters.get("beta", 0.)
-        self.gamma = parameters.get("gamma", 0.)
+        self.__alpha = parameters.get("alpha", 1.)
+        self.__beta = parameters.get("beta", 0.)
+        self.__gamma = parameters.get("gamma", 0.)
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        self.lgr.info(f"Instantiated work model with alpha={self.alpha}, beta={self.beta}, gamma={self.gamma}")
+        self.__logger.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
         alpha * load + beta * max(sent, received) + gamma
         """
         # Compute affine combination of load and volumes
-        return self.alpha * rank.get_load() + self.beta * max(
+        return self.__alpha * rank.get_load() + self.__beta * max(
             rank.get_received_volume(),
-            rank.get_sent_volume()) + self.gamma
+            rank.get_sent_volume()) + self.__gamma
 
     def aggregate(self, values: dict):
         """A work model with affine combination of load and communication
@@ -78,6 +78,6 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
 
         # Return work using provided values
-        return self.alpha * values.get("load", 0.) + self.beta * max(
+        return self.__alpha * values.get("load", 0.) + self.__beta * max(
             values.get("received volume", 0.),
-            values.get("sent volume", 0.)) + self.gamma
+            values.get("sent volume", 0.)) + self.__gamma

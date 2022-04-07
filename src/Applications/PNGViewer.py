@@ -52,7 +52,7 @@ from src.Utils.logger import logger
 
 
 class PNGViewer(ParaviewViewer):
-    """A concrete class providing a PNG Viewer
+    """ A concrete class providing a PNG Viewer
     """
 
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
@@ -61,10 +61,10 @@ class PNGViewer(ParaviewViewer):
         super(PNGViewer, self).__init__(exodus, file_name, viewer_type)
 
         # Starting logger
-        self.logger = logger()
+        self.__logger = logger()
 
     def saveView(self, reader):
-        """Save figure
+        """ Save figure
         """
 
         # Get animation scene
@@ -72,12 +72,12 @@ class PNGViewer(ParaviewViewer):
         animationScene.PlayMode = "Snap To TimeSteps"
 
         # Save animation images
-        self.logger.info("###  Generating PNG images...")
+        self.__logger.info("###  Generating PNG images...")
         for t in reader.TimestepValues.GetData()[:]:
             animationScene.AnimationTime = t
             pv.WriteImage(f"{self.file_name}.{t:.6f}.png")
 
-        self.logger.info("### All PNG images generated.")
+        self.__logger.info("### All PNG images generated.")
 
 
 if __name__ == '__main__':

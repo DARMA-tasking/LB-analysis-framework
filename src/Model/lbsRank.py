@@ -53,118 +53,118 @@ class Rank:
 
     def __init__(self, i: int, mo: set = None, so: set = None, logger: Logger = None):
         # Assign logger to instance variable
-        self.lgr = logger
+        self.__logger = logger
 
         # Member variables passed by constructor
-        self.index = i
-        self.migratable_objects = set()
+        self.__index = i
+        self.__migratable_objects = set()
         if mo is not None:
             for o in mo:
-                self.migratable_objects.add(o)
-        self.sentinel_objects = set()
+                self.__migratable_objects.add(o)
+        self.__sentinel_objects = set()
         if so is not None:
             for o in so:
-                self.sentinel_objects.add(o)
+                self.__sentinel_objects.add(o)
 
         # No information about peers is known initially
-        self.known_loads = {}
+        self.__known_loads = {}
 
         # No viewers exist initially
-        self.viewers = set()
+        self.__viewers = set()
 
         # No message was received initially
         self.round_last_received = 0
 
     def __repr__(self):
-        return f"<Rank index: {self.index}>"
+        return f"<Rank index: {self.__index}>"
 
     def get_id(self) -> int:
         """ Return rank ID
         """
-        return self.index
+        return self.__index
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank
         """
-        return self.migratable_objects.union(self.sentinel_objects)
+        return self.__migratable_objects.union(self.__sentinel_objects)
 
     def add_migratable_object(self, o) -> None:
         """ Add object to migratable objects
         """
-        return self.migratable_objects.add(o)
+        return self.__migratable_objects.add(o)
 
     def get_migratable_objects(self) -> set:
         """ Return migratable objects assigned to rank
         """
-        return self.migratable_objects
+        return self.__migratable_objects
 
     def get_sentinel_objects(self) -> set:
         """ Return sentinel objects assigned to rank
         """
-        return self.sentinel_objects
+        return self.__sentinel_objects
 
     def get_object_ids(self) -> list:
         """ Return IDs of all objects assigned to rank
         """
-        return [o.get_id() for o in self.migratable_objects.union(self.sentinel_objects)]
+        return [o.get_id() for o in self.__migratable_objects.union(self.__sentinel_objects)]
 
     def get_migratable_object_ids(self) -> list:
         """ Return IDs of migratable objects assigned to rank
         """
-        return [o.get_id() for o in self.migratable_objects]
+        return [o.get_id() for o in self.__migratable_objects]
 
     def get_sentinel_object_ids(self) -> list:
         """ Return IDs of sentinel objects assigned to rank
         """
-        return [o.get_id() for o in self.sentinel_objects]
+        return [o.get_id() for o in self.__sentinel_objects]
 
     def get_known_loads(self) -> dict:
         """ Return loads of peers know to self
         """
-        return self.known_loads
+        return self.__known_loads
 
     def get_viewers(self) -> set:
         """ Return peers knowing about self
         """
-        return self.viewers
+        return self.__viewers
 
     def remove_migratable_object(self, o, p_dst):
         """ Remove migratable able object from self object sent to peer
         """
         # Remove object from those assigned to self
-        self.migratable_objects.remove(o)
+        self.__migratable_objects.remove(o)
 
         # Update known loads
-        self.known_loads[p_dst] += o.get_time()
+        self.__known_loads[p_dst] += o.get_time()
         
     def add_as_viewer(self, ranks):
         """ Add self as viewer to known peers
         """
         # Add self as viewer of each of provided ranks
         for p in ranks:
-            p.viewers.add(self)
+            p.__viewers.add(self)
 
     def get_load(self) -> float:
         """ Return total load on rank
         """
-        return sum([o.get_time() for o in self.migratable_objects.union(self.sentinel_objects)])
+        return sum([o.get_time() for o in self.__migratable_objects.union(self.__sentinel_objects)])
 
     def get_migratable_load(self) -> float:
         """ Return migratable load on rank
         """
-        return sum([o.get_time() for o in self.migratable_objects])
+        return sum([o.get_time() for o in self.__migratable_objects])
 
     def get_sentinel_load(self) -> float:
         """ Return sentinel load oon rank
         """
-        return sum([o.get_time() for o in self.sentinel_objects])
+        return sum([o.get_time() for o in self.__sentinel_objects])
 
     def get_received_volume(self):
         """ Return volume received by objects assigned to rank from other ranks
         """
         # Iterate over all objects assigned to rank
         volume = 0
-        obj_set = self.migratable_objects.union(self.sentinel_objects)
+        obj_set = self.__migratable_objects.union(self.__sentinel_objects)
         for o in obj_set:
             # Skip objects without communication
             if not o.has_communicator():
@@ -181,7 +181,7 @@ class Rank:
         """
         # Iterate over all objects assigned to rank
         volume = 0
-        obj_set = self.migratable_objects.union(self.sentinel_objects)
+        obj_set = self.__migratable_objects.union(self.__sentinel_objects)
         for o in obj_set:
             # Skip objects without communication
             if not o.has_communicator():
@@ -197,10 +197,10 @@ class Rank:
         """ Reset all load information known to self
         """
         # Reset information about known peers
-        self.known_loads = {}
+        self.__known_loads = {}
 
         # Reset information about overloaded viewer peers
-        self.viewers = set()
+        self.__viewers = set()
 
     def initialize_message(self, loads, f):
         """ Initialize message to be sent to selected peers
@@ -209,23 +209,23 @@ class Rank:
         l = self.get_load()
 
         # Make rank aware of own load
-        self.known_loads[self] = l
+        self.__known_loads[self] = l
 
         # Create load message tagged at first round
-        msg = Message(1, self.known_loads)
+        msg = Message(1, self.__known_loads)
 
         # Broadcast message to pseudo-random sample of ranks excluding self
         return rnd.sample(set(loads).difference([self]), min(f, len(loads) - 1)), msg
 
     def forward_message(self, r, s, f):
-        """ Formard information message to sample of selected peers
+        """ Forward information message to sample of selected peers
         """
         # Create load message tagged at current round
-        msg = Message(r, self.known_loads)
+        msg = Message(r, self.__known_loads)
 
         # Compute complement of set of known peers
         complement = set(
-            self.known_loads).difference([self])
+            self.__known_loads).difference([self])
 
         # Forward message to pseudo-random sample of ranks
         return rnd.sample(
@@ -236,10 +236,10 @@ class Rank:
         """
         # Assert that message has the expected type
         if not isinstance(msg, Message):
-            self.lgr.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
+            self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
 
         # Update load information
-        self.known_loads.update(msg.get_content())
+        self.__known_loads.update(msg.get_content())
 
         # Update last received message index
         self.round_last_received = msg.get_round()

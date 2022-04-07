@@ -49,18 +49,18 @@ class RelaxedLocalizingCriterion(CriterionBase):
     """
 
     def __init__(self, ranks, edges, _, lgr: Logger = None):
-        """Class constructor:
-        ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (pairs)
-        _: no parameters dictionary needed for this criterion
+        """ Class constructor:
+            ranks: set of ranks (lbsRank.Rank instances)
+            edges: dictionary of edges (pairs)
+            _: no parameters dictionary needed for this criterion
         """
 
         # Call superclass init
         super(RelaxedLocalizingCriterion, self).__init__(ranks, edges)
 
         # Assign logger to instance variable
-        self.lgr = lgr
-        self.lgr.info("Instantiated concrete criterion")
+        self.__logger = lgr
+        self.__logger.info("Instantiated concrete criterion")
 
     def compute(self, object, p_src, p_dst):
         """A criterion allowing for local disruptions for more locality
@@ -69,7 +69,7 @@ class RelaxedLocalizingCriterion(CriterionBase):
         # Retrieve object communications
         comm = object.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            self.lgr.warning(f"Object {object.get_id()} has no communicator")
+            self.__logger.warning(f"Object {object.get_id()} has no communicator")
             return 0.
 
         # Retrieve sent and received items from communicator
