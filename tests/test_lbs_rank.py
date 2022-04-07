@@ -10,8 +10,8 @@ except Exception as e:
 import logging
 import unittest
 
-from src.Model.lbsObject import Object
-from src.Model.lbsRank import Rank
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):

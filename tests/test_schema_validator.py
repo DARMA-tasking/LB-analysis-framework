@@ -12,7 +12,7 @@ import unittest
 
 import brotli
 
-from src.IO.schemaValidator import SchemaValidator
+from src.lbaf.IO.schemaValidator import SchemaValidator
 
 
 class TestConfig(unittest.TestCase):

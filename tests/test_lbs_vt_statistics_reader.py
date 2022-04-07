@@ -12,9 +12,9 @@ import unittest
 
 from schema import SchemaError
 
-from src.IO.lbsVTDataReader import LoadReader
-from src.Model.lbsObject import Object
-from src.Model.lbsRank import Rank
+from src.lbaf.IO.lbsVTDataReader import LoadReader
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):
