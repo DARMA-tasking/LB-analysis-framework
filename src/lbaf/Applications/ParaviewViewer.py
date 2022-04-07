@@ -49,7 +49,7 @@ from lbaf.Utils.logger import logger
 
 
 class ParaviewViewer(ParaviewViewerBase):
-    """A concrete class providing a Paraview Viewer
+    """ A concrete class providing a Paraview Viewer
     """
 
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
@@ -58,7 +58,7 @@ class ParaviewViewer(ParaviewViewerBase):
         super(ParaviewViewer, self).__init__(exodus, file_name, viewer_type)
 
     def saveView(self, reader):
-        """Save figure
+        """ Save figure
         """
         from lbaf.Applications.AnimationViewer import AnimationViewer
         from lbaf.Applications.PNGViewer import PNGViewer

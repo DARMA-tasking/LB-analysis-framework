@@ -55,21 +55,19 @@ from lbaf.Utils.logger import logger
 
 
 class AnimationViewer(ParaviewViewer):
-    """A concrete class providing an Animation Viewer
+    """ A concrete class providing an Animation Viewer
     """
 
     def __init__(self, exodus=None, file_name=None, viewer_type=None):
-
         # Call superclass init
         super().__init__(exodus, file_name, viewer_type)
 
         # Starting logger
-        self.logger = logger()
+        self.__logger = logger()
 
     def saveView(self, reader):
-        """Save animation
+        """ Save animation
         """
-
         # Get animation scene
         animationScene = pv.GetAnimationScene()
         animationScene.PlayMode = "Snap To TimeSteps"
@@ -79,10 +77,10 @@ class AnimationViewer(ParaviewViewer):
             animationScene.AnimationTime = t
 
         # Save animation movie
-        self.logger.info("###  Generating AVI animation...")
+        self.__logger.info("###  Generating AVI animation...")
         pv.AssignViewToLayout()
         pv.WriteAnimation(f"{self.file_name}.avi", Magnification=1, Quality=2, FrameRate=1.0, Compression=True)
-        self.logger.info(f"### AVI animation generated.")
+        self.__logger.info(f"### AVI animation generated.")
 
 
 if __name__ == '__main__':

@@ -22,12 +22,12 @@ class TestConfig(unittest.TestCase):
         self.rank = Rank(i=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
 
     def test_lbs_rank_initialization(self):
-        self.assertEqual(self.rank.index, 0)
-        self.assertEqual(self.rank.migratable_objects, self.migratable_objects)
-        self.assertEqual(self.rank.known_loads, {})
-        self.assertEqual(self.rank.viewers, set())
+        self.assertEqual(self.rank._Rank__index, 0)
+        self.assertEqual(self.rank._Rank__migratable_objects, self.migratable_objects)
+        self.assertEqual(self.rank._Rank__known_loads, {})
+        self.assertEqual(self.rank._Rank__viewers, set())
         self.assertEqual(self.rank.round_last_received, 0)
-        self.assertEqual(self.rank.sentinel_objects, self.sentinel_objects)
+        self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
     def test_lbs_rank_repr(self):
         self.assertEqual(self.rank.__repr__(), '<Rank index: 0>')

@@ -96,7 +96,7 @@ class MoveCountsViewer:
         self.logging_level = "info"
 
     def usage(self):
-        """Provide online help
+        """ Provide online help
         """
 
         print("Usage:")
@@ -111,7 +111,7 @@ class MoveCountsViewer:
         print("")
 
     def parse_command_line(self):
-        """Parse command line
+        """ Parse command line
         """
 
         # Try to hash command line with respect to allowable flags
@@ -162,7 +162,7 @@ class MoveCountsViewer:
         return False
 
     def computeMoveCountsViewer(self):
-        """Compute MoveCountsViewer
+        """ Compute MoveCountsViewer
         """
 
         # Instantiate MoveCountsViewerParameters
@@ -406,9 +406,7 @@ class MoveCountsViewer:
             # Write PNG image
             writer = vtk.vtkPNGWriter()
             writer.SetInputConnection(wti.GetOutputPort())
-            writer.SetFileName("{}.{}".format(
-                self.output_file_name,
-                self.output_file_suffix))
+            writer.SetFileName(f"{self.output_file_name}.{self.output_file_suffix}")
             writer.Write()
 
 

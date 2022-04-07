@@ -54,82 +54,82 @@ class Object:
         if not isinstance(i, int) or isinstance(i, bool):
             raise TypeError(f"i: {i} is type of {type(i)}! Must be <class 'int'>!")
         else:
-            self.index = i
+            self.__index = i
 
         # Time required to perform the work of this object
         if not isinstance(t, float):
             raise TypeError(f"t: {t} is type of {type(t)}! Must be <class 'float'>!")
         else:
-            self.time = t
+            self.__time = t
 
         # Rank to which object is currently assigned if defined
         if bool(isinstance(p, int) or p is None) and not isinstance(p, bool):
-            self.rank_id = p
+            self.__rank_id = p
         else:
             raise TypeError(f"p: {p} is type of {type(p)}! Must be <class 'int'>!")
 
         # Communication graph of this object if defined
         if isinstance(c, ObjectCommunicator) or c is None:
-            self.communicator = c
+            self.__communicator = c
         else:
             raise TypeError(f"c: {c} is type of {type(c)}! Must be <class 'ObjectCommunicator'>!")
 
     def __repr__(self):
-        return f"Object id: {self.index}, time: {self.time}"
+        return f"Object id: {self.__index}, time: {self.__time}"
 
     def get_id(self) -> int:
         """ Return object ID
         """
-        return self.index
+        return self.__index
 
     def get_time(self) -> float:
         """ Return object time
         """
-        return self.time
+        return self.__time
 
     def get_sent(self) -> dict:
         """ Return communications sent by object to other objects
         """
-        return self.communicator.get_sent() if self.communicator else {}
+        return self.__communicator.get_sent() if self.__communicator else {}
 
     def get_received(self) -> dict:
         """ Return communications received by object from other objects
         """
-        return self.communicator.get_received() if self.communicator else {}
+        return self.__communicator.get_received() if self.__communicator else {}
 
     def get_received_volume(self) -> float:
         """ Return volume of communications received by object
         """
-        return sum([v for v in self.communicator.get_received().values()]) if self.communicator else 0
+        return sum([v for v in self.__communicator.get_received().values()]) if self.__communicator else 0
 
     def get_sent_volume(self) -> float:
         """ Return volume of communications sent by object
         """
-        return sum([v for v in self.communicator.get_sent().values()]) if self.communicator else 0
+        return sum([v for v in self.__communicator.get_sent().values()]) if self.__communicator else 0
 
     def set_rank_id(self, p_id) -> None:
         """ Assign object to rank ID
         """
-        self.rank_id = p_id
+        self.__rank_id = p_id
 
     def get_rank_id(self) -> int:
         """ Return ID of rank to which object is currently assigned
         """
-        return self.rank_id
+        return self.__rank_id
 
     def has_communicator(self) -> bool:
         """ Return whether the object has communication graph data
         """
-        return self.communicator is not None
+        return self.__communicator is not None
 
     def get_communicator(self) -> ObjectCommunicator:
         """ Return the communication graph for this object
         """
-        return self.communicator
+        return self.__communicator
 
     def set_communicator(self, c) -> None:
         """ Assign the communication graph for this object
         """
         # Perform sanity check prior to assignment
         if isinstance(c, ObjectCommunicator):
-            self.communicator = c
+            self.__communicator = c

@@ -73,18 +73,18 @@ class LoadReader:
 
     def __init__(self, file_prefix: str, logger: Logger = None, file_suffix: str = "json"):
         # The base directory and file name for the log files
-        self.file_prefix = file_prefix
+        self.__file_prefix = file_prefix
 
         # Data files(data loading) suffix
-        self.file_suffix = file_suffix
+        self.__file_suffix = file_suffix
 
         # Assign logger to instance variable
-        self.lgr = logger
+        self.__logger = logger
 
     def get_node_trace_file_name(self, node_id):
         """ Build the file name for a given rank/node ID
         """
-        return f"{self.file_prefix}.{node_id}.{self.file_suffix}"
+        return f"{self.__file_prefix}.{node_id}.{self.__file_suffix}"
 
     def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> tuple:
         """ Read the file for a given node/rank. If phase_id==-1 then all
@@ -93,9 +93,9 @@ class LoadReader:
 
         # Retrieve file name for given node and make sure that it exists
         file_name = self.get_node_trace_file_name(node_id)
-        self.lgr.info(f"Reading {file_name} VT object map")
+        self.__logger.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
-            self.lgr.error(f"File {file_name} does not exist.")
+            self.__logger.error(f"File {file_name} does not exist.")
             raise FileNotFoundError(f"File {file_name} not found!")
 
         # Retrieve communications from JSON reader
@@ -107,7 +107,7 @@ class LoadReader:
             node_id=node_id)
 
         # Print more information when requested
-        self.lgr.debug(f"Finished reading file: {file_name}")
+        self.__logger.debug(f"Finished reading file: {file_name}")
 
         # Return map of populated ranks per iteration
         return iter_map, comm
@@ -130,7 +130,7 @@ class LoadReader:
             try:
                 rank_list[p] = rank_iter_map[phase_id]
             except KeyError:
-                self.lgr.error(f"Could not retrieve information for rank {p} at time_step {phase_id}")
+                self.__logger.error(f"Could not retrieve information for rank {p} at time_step {phase_id}")
                 sys.exit(1)
 
             # Merge rank communication with existing ones
@@ -178,9 +178,9 @@ class LoadReader:
 
         # Validate schema
         if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            self.lgr.info(f"Valid JSON schema in {file_name}")
+            self.__logger.info(f"Valid JSON schema in {file_name}")
         else:
-            self.lgr.error(f"Invalid JSON schema in {file_name}")
+            self.__logger.error(f"Invalid JSON schema in {file_name}")
             SchemaValidator().validate(schema_to_validate=decompressed_dict)
 
         # Define phases from file
@@ -189,7 +189,7 @@ class LoadReader:
 
         # Handle empty Rank case
         if not phases:
-            returned_dict.setdefault(0, Rank(node_id, logger=self.lgr))
+            returned_dict.setdefault(0, Rank(node_id, logger=self.__logger))
 
         # Iterate over phases
         for phase in phases:
@@ -234,9 +234,9 @@ class LoadReader:
                                 {"from": c_from.get("id"), "bytes": c_bytes})
                             comm_dict[sender_obj_id]["sent"].append(
                                 {"to": c_to.get("id"), "bytes": c_bytes})
-                            self.lgr.debug(f"Added communication {num} to phase {phase_id}")
+                            self.__logger.debug(f"Added communication {num} to phase {phase_id}")
                             for k, v in comm.items():
-                                self.lgr.debug(f"\t{k}: {v}")
+                                self.__logger.debug(f"{k}: {v}")
 
             # Iterate over tasks
             for task in phase["tasks"]:
@@ -248,10 +248,10 @@ class LoadReader:
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id)
                     # If this iteration was never encountered initialize rank object
-                    returned_dict.setdefault(phase_id, Rank(node_id, logger=self.lgr))
+                    returned_dict.setdefault(phase_id, Rank(node_id, logger=self.__logger))
                     # Add object to rank
                     returned_dict[phase_id].add_migratable_object(obj)
                     # Print debug information when requested
-                    self.lgr.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
+                    self.__logger.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
 
         return returned_dict, comm_dict
