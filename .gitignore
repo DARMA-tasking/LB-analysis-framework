@@ -14,3 +14,4 @@ src/Applications/tcl
 .env
 /dist
 /output
+/build
