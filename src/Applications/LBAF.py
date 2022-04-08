@@ -414,13 +414,13 @@ if __name__ == "__main__":
         a_min_max = []
 
     # Instantiate runtime
-    rt = Runtime(
-        phase,
-        params.work_model,
-        params.criterion,
-        params.order_strategy,
-        a_min_max,
-        lgr)
+    rt = Runtime(phase,
+                 params.work_model,
+                 params.criterion,
+                 params.order_strategy,
+                 a_min_max,
+                 params.brute_force_optimization,
+                 lgr)
     lgr.info(f"Instantiated runtime with {params.order_strategy} object ordering strategy")
 
     # Execute runtime iterations when requested

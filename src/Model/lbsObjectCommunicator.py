@@ -52,16 +52,16 @@ class ObjectCommunicator:
 
     def __init__(self, i: int, r: dict = None, s: dict = None, logger: Logger = None):
         # Index of object having this communicator if defined
-        self.object_index = i
+        self.__object_index = i
 
         # Dictionary of communications received by object
-        self.received = r if isinstance(r, dict) else {}
+        self.__received = r if isinstance(r, dict) else {}
 
         # Dictionary of communications sent by object
-        self.sent = s if isinstance(s, dict) else {}
+        self.__sent = s if isinstance(s, dict) else {}
 
         # Assign logger to instance variable
-        self.lgr = logger
+        self.__logger = logger
 
     def _summarize_unidirectional(self, direction):
         """ Summarize one-way communicator properties and check for errors
@@ -70,18 +70,18 @@ class ObjectCommunicator:
         volumes = []
 
         # Iterate over one-way communications
-        communications = self.sent if direction == "to" else self.received
+        communications = self.__sent if direction == "to" else self.__received
         for k, v in communications.items():
             # Sanity check
-            if k.get_id() == self.object_index:
-                self.lgr.error(f"object {self.object_index} cannot send communication to itself.")
+            if k.get_id() == self.__object_index:
+                self.__logger.error(f"object {self.__object_index} cannot send communication to itself.")
                 sys.exit(1)
 
             # Update list of volumes
             volumes.append(v)
 
             # Report current communication item if requested
-            self.lgr.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
+            self.__logger.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of volumes
         return volumes
@@ -89,22 +89,22 @@ class ObjectCommunicator:
     def get_received(self) -> dict:
         """ Return all from_object=volume pairs received by object
         """
-        return self.received
+        return self.__received
 
     def get_received_from_object(self, o):
         """ Return the volume of a message received from an object if any
         """
-        return self.received.get(o)
+        return self.__received.get(o)
 
     def get_sent(self) -> dict:
         """ Return all to_object=volume pairs sent from object
         """
-        return self.sent
+        return self.__sent
 
     def get_sent_to_object(self, o):
         """ Return the volume of a message received from an object if any
         """
-        return self.sent.get(o)
+        return self.__sent.get(o)
 
     def summarize(self) -> tuple:
         """ Summarize communicator properties and check for errors

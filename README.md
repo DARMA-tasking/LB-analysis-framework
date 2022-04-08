@@ -50,12 +50,45 @@ tox
 
 ## Usage
 
+### LBAF
+
 In order to run LBAF from main project directory:
 ```shell
 cd <project-path>
 python src/Applications/LBAF.py
 ```
 
+### JSON data files Validator
+
+JSON data files Validator validates VT data files against defined schema.
+
+Schema is defined in `<project-path>/src/IO/schemaValidator.py`.
+
+JSON data files Validator is located in `<project-path>/src/Utils/JSON_data_files_validator.py`.
+
+Usage for single file:
+```shell
+# With relative path
+python JSON_data_files_validator.py --file_path=../../data/8color-4node/data.0.json
+
+# With absolute path
+python JSON_data_files_validator.py --file_path=<project-path>/data/8color-4node/data.0.json
+```
+
+Usage for many files in the same directory:
+```shell
+# With relative path
+python JSON_data_files_validator.py --dir_path=../../data/8color-4node
+
+# With absolute path
+python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node
+
+# Optionally one could pass --file_prefix and/or --file_suffix
+# When one passes files with given prefix/suffix or both will be validated
+# When no prefix and suffix will be given validator will find most common prefix and suffix in the directory 
+# and will use them for validation process
+python JSON_data_files_validator.py --dir_path=../../data/8color-4node --file_prefix=data --file_suffix=json
+```
 
 [//]: # (## Getting Started with Docker)
 

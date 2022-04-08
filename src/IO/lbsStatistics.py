@@ -47,6 +47,7 @@ import random as rnd
 
 from numpy import random
 
+
 def initialize():
     # Seed pseudo-random number generators
     rnd.seed(820)

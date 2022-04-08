@@ -57,28 +57,29 @@ class TestConfig(unittest.TestCase):
                                {0: Rank(i=3, logger=self.logger)}]
 
     def test_lbs_vt_statistics_reader_initialization(self):
-        self.assertEqual(self.lr.file_prefix, self.file_prefix)
-        self.assertEqual(self.lr.file_suffix, 'json')
+        self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
+        self.assertEqual(self.lr._LoadReader__file_suffix, 'json')
 
     def test_lbs_vt_statistics_reader_get_node_trace_file_name_001(self):
-        file_name = f"{self.lr.file_prefix}.0.{self.lr.file_suffix}"
+        file_name = f"{self.lr._LoadReader__file_prefix}.0.{self.lr._LoadReader__file_suffix}"
         self.assertEqual(file_name, self.lr.get_node_trace_file_name(node_id=0))
 
     def test_lbs_vt_statistics_reader_get_node_trace_file_name_002(self):
-        file_name = f"{self.lr.file_prefix}.100.{self.lr.file_suffix}"
+        file_name = f"{self.lr._LoadReader__file_prefix}.100.{self.lr._LoadReader__file_suffix}"
         self.assertEqual(file_name, self.lr.get_node_trace_file_name(node_id=100))
 
     def test_lbs_vt_statistics_reader_get_node_trace_file_name_003(self):
         # Node_id is an in 000 is converted to 0
-        file_name = f"{self.lr.file_prefix}.000.{self.lr.file_suffix}"
+        file_name = f"{self.lr._LoadReader__file_prefix}.000.{self.lr._LoadReader__file_suffix}"
         self.assertNotEqual(file_name, self.lr.get_node_trace_file_name(node_id=000))
 
     def test_lbs_vt_statistics_reader_read(self):
         for phase in range(4):
             rank_iter_map, rank_comm = self.lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
-            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index)
-            generated_list = sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index)
+            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
+                                   key=lambda x: x.get_id())
+            generated_list = sorted(list(rank_iter_map.get(0).get_migratable_objects()), key=lambda x: x.get_id())
             prep_time_list = [obj.get_time() for obj in prepared_list]
             gen_time_list = [obj.get_time() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
@@ -92,8 +93,9 @@ class TestConfig(unittest.TestCase):
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
-            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index)
-            generated_list = sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index)
+            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
+                                   key=lambda x: x.get_id())
+            generated_list = sorted(list(rank_iter_map.get(0).get_migratable_objects()), key=lambda x: x.get_id())
             prep_time_list = [obj.get_time() for obj in prepared_list]
             gen_time_list = [obj.get_time() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
@@ -120,8 +122,9 @@ class TestConfig(unittest.TestCase):
             rank_iter_map, rank_comm = self.lr.json_reader(returned_dict={}, file_name=file_name, phase_ids=0,
                                                            node_id=phase)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
-            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).migratable_objects), key=lambda x: x.index)
-            generated_list = sorted(list(rank_iter_map.get(0).migratable_objects), key=lambda x: x.index)
+            prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
+                                   key=lambda x: x.get_id())
+            generated_list = sorted(list(rank_iter_map.get(0).get_migratable_objects()), key=lambda x: x.get_id())
             prep_time_list = [obj.get_time() for obj in prepared_list]
             gen_time_list = [obj.get_time() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
