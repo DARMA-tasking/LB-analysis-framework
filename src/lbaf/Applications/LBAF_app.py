@@ -207,7 +207,6 @@ class internalParameters:
 
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
-            self.output_dir = os.path.abspath(self.output_dir)
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
@@ -251,6 +250,8 @@ class internalParameters:
         # Enable communication when degree is positive
         if self.communication_degree > 0:
             self.communication_enabled = True
+
+        self.output_dir = os.path.abspath(self.output_dir)
 
     def parse_sampler(self, cmd_str):
         """Parse command line arguments specifying sampler type and input parameters
