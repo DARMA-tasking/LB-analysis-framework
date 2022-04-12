@@ -252,6 +252,7 @@ class internalParameters:
             self.communication_enabled = True
 
         self.output_dir = os.path.abspath(self.output_dir)
+        self.logger.info(f"Output directory: {self.output_dir}")
 
     def parse_sampler(self, cmd_str):
         """Parse command line arguments specifying sampler type and input parameters
