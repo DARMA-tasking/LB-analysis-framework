@@ -7,6 +7,9 @@
 * `doc`: research and papers and related documents
 * `data`: various data inputs or outputs
 
+### Please check Wiki for more details:
+[Load Balancing Analysis Framework Wikipedia](https://github.com/DARMA-tasking/LB-analysis-framework/wiki)
+
 ## Before starting
 
 The LBAF is available from source only now. It requires [Python 3.8](https://www.python.org/downloads/) to run.
