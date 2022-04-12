@@ -75,6 +75,7 @@ class WorkModelBase:
         try:
             # Instantiate and return object
             work = locals()[work_name + "WorkModel"]
+            lgr = LGR if lgr is None else lgr
             return work(parameters, lgr=lgr)
         except:
             # Otherwise, error out

@@ -68,7 +68,7 @@ n_iterations: 8
 logging_level: info
 terminal_background: light
 exodus: True
-output_dir: output
+output_dir: ../../../output
 x_procs: 2
 y_procs: 2
 z_procs: 1

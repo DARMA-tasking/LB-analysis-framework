@@ -437,6 +437,7 @@ class LBAFApp:
             self.params.criterion,
             self.params.order_strategy,
             a_min_max,
+            self.params.brute_force_optimization,
             self.logger)
         self.logger.info(f"Instantiated runtime with {self.params.order_strategy} object ordering strategy")
 
