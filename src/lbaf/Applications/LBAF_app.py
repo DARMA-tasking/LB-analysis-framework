@@ -207,6 +207,7 @@ class internalParameters:
 
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
+            self.output_dir = os.path.abspath(self.output_dir)
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
 
