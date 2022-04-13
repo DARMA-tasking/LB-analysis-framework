@@ -74,8 +74,8 @@ def get_objects(n_ranks: int, lgr: Logger, file_prefix: str, file_suffix: str) -
     for rank in range(n_ranks):
         iter_map, comm = lr.read(node_id=rank)
         for rnk in iter_map.values():
-            for obj in rnk.migratable_objects:
-                objects.append({"id": obj.get_id(), "time": obj.time})
+            for obj in rnk.get_migratable_objects():
+                objects.append({"id": obj.get_id(), "time": obj.get_time()})
         for obj_idx, obj_comm in comm.items():
             if obj_idx not in communication.keys():
                 communication[obj_idx] = {"from": {}, "to": {}}
@@ -293,7 +293,7 @@ if __name__ == '__main__':
 
     def get_conf() -> dict:
         """ Gets config from file and returns a dictionary. """
-        with open(os.path.join(project_path, "src", "Applications", "conf.yaml"), 'rt') as conf_file:
+        with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), 'rt') as conf_file:
             conf = yaml.safe_load(conf_file)
         return conf
 
