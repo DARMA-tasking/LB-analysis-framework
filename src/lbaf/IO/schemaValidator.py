@@ -20,7 +20,7 @@ class SchemaValidator:
                             {
                                 'entity': {
                                     Optional('collection_id'): int,
-                                    Optional('home'): int,
+                                    'home': int,
                                     'id': int,
                                     Optional('index'): [int],
                                     'type': str,
