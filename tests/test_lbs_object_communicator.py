@@ -10,8 +10,8 @@ except Exception as e:
 import logging
 import unittest
 
-from src.Model.lbsObject import Object
-from src.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class TestConfig(unittest.TestCase):

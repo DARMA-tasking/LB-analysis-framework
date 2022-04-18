@@ -13,12 +13,12 @@ n_iterations: 8
 n_rounds: 4
 fanout: 4
 phase_id: 0
-log_file: "data/synthetic_lb_data/data"
+log_file: "../data/synthetic_lb_data/data"
 file_suffix: json
 exodus: True
 x_procs: 2
 y_procs: 2
 z_procs: 1
-output_dir: "output"
+output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
 order_strategy: element_id
 logging_level: info

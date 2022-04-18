@@ -9,7 +9,7 @@ except Exception as e:
 
 import unittest
 
-from src.Model.lbsMessage import Message
+from src.lbaf.Model.lbsMessage import Message
 
 
 class TestConfig(unittest.TestCase):
