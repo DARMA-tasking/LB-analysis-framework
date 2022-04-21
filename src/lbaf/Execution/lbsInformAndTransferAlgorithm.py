@@ -2,6 +2,8 @@ import math
 import random
 from logging import Logger
 from typing import Union
+from itertools import accumulate
+from bisect import bisect
 
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
@@ -284,7 +286,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return n_ignored, n_transfers, n_rejects
 
 
-    def execute(self, phase: Phase, load_distributions: list, sent_distributions: list, work_distributions: list, statistics: dict, a_min_max):
+    def execute(self, phase: Phase, load_distributions: list, sent_distributions: list, work_distributions: list, statistics: dict, average_load, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance
         """
 
@@ -293,6 +295,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             sys.exit(1)
         self.__phase = phase
+
+        # Keep track of average load
+        self.__average_load = average_load
 
         # Perform requested number of load-balancing iterations
         for i in range(self.__n_iterations):
@@ -434,7 +439,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def load_excess(self, objects: set):
         proc_load = sum([obj.get_time() for obj in objects])
-        return proc_load - self.average_load
+        return proc_load - self.__average_load
 
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated

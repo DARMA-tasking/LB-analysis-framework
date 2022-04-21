@@ -121,6 +121,7 @@ class Runtime:
             self.sent_distributions,
             self.work_distributions,
             self.statistics,
+            self.average_load,
             self.__a_min_max)
 
 

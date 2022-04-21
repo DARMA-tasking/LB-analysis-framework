@@ -50,9 +50,10 @@ class AlgorithmBase:
             sys.exit(1)
 
     @abc.abstractmethod
-    def execute(self, phase):
+    def execute(self, phase, *args):
         """ Excecute algorithm on given phase
             phase: Phase instance
+            *args: variadic arguments
         """
 
         # Must be implemented by concrete subclass

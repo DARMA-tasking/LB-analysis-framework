@@ -6,13 +6,11 @@
 #    parameters: optional parameters that are specitic to each work model
 # algorithm                 description of the algorithm to be used
 #    type: str in InformAndTransfer(default), AffineCombination
-# criterion                 description of the object transfer criterion
-#    type: str in Tempered (default), StrictLocalizer, RelaxedLocalizer
-#    parameters: optional parameters that are specitic to each criterion
-# deterministic_transfer    decide whether transfer must be deterministic
-#    type: Boolean (default: False)
-# order_strategy            description of ordering of objects for transfer
-#    type: str in arbitrary (default), element_id, increasing_times, decreasing_times, increasing_connectivity, fewest_migrations, small_objects
+#    parameters: parameters that are specitic to each algorithm
+#      criterion: str in Tempered (default), StrictLocalizer
+#      deterministic_transfer: Boolean (default: False) for deterministic transfer
+#      order_strategy: str describing ordering of objects for transfer
+#    	in arbitrary (default), element_id, increasing_times, decreasing_times, increasing_connectivity, fewest_migrations, small_objects
 # terminal_background       terminal background for standard output logging
 #    type: str in `light` or `dark`
 # n_iterations        [-i <ni>]   int       number of load-balancing iterations
@@ -57,10 +55,11 @@ algorithm:
     n_iterations: 8
     n_rounds: 4
     fanout: 4
-    order_strategy: arbitrary
+    order_strategy: small_objects
     criterion: Tempered
-    #deterministic_transfer: True
     max_objects_per_transfer: 8
+    #deterministic_transfer: True
+brute_force_optimization: False
 
 # Specify output
 #logging_level: debug
@@ -71,7 +70,6 @@ x_procs: 2
 y_procs: 2
 z_procs: 1
 output_file_stem: output_file
-brute_force_optimization: False
 
 # Simulate from samplers (comment out if reading from log)
 #n_objects: 200
