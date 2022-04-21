@@ -10,18 +10,19 @@ from .lbsCriterionBase import CriterionBase
 from ..Model.lbsPhase import Phase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsWorkModelBase import WorkModelBase
-from ..IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics, \
-    min_Hamming_distance
+from ..Execution.lbsAlgorithmBase import AlgorithmBase
+from ..IO.lbsStatistics import compute_function_statistics, inverse_transform_sample, print_function_statistics, min_Hamming_distance
 
 
 class Runtime:
     """ A class to handle the execution of the LBS
     """
-    def __init__(self, p: Phase, w: dict, c: dict, o_s: str, a: list, brute_force_optimization: bool,
+    def __init__(self, phase: Phase, w: dict, b: dict, c: dict, o_s: str, a: list, brute_force_optimization: bool,
                  logger: Logger = None):
         """ Class constructor:
-            p: phase instance
+            phase: phase instance
             w: dictionary with work model name and optional parameters
+            b: dictionary with balancing algorithm and optional parameters
             c: dictionary with criterion name and optional parameters
             o_s: name of object ordering strategy
             a: arrangements that minimize maximum work
@@ -37,16 +38,22 @@ class Runtime:
         self.bfo = brute_force_optimization
 
         # If no LBS phase was provided, do not do anything
-        if not isinstance(p, Phase):
+        if not isinstance(phase, Phase):
             self.__logger.warning("Could not create a LBS runtime without a phase")
             return
         else:
-            self.__phase = p
+            self.__phase = phase
 
         # Instantiate work model
         self.__work_model = WorkModelBase.factory(w.get("name"), w.get("parameters", {}), lgr=self.__logger)
         if not self.__work_model:
             self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
+            sys.exit(1)
+
+        # Instantiate balancing algorithm
+        self.__algorithm = AlgorithmBase.factory(b.get("name"), self.__work_model, b.get("parameters", {}), lgr=self.__logger)
+        if not self.__algorithm:
+            self.__logger.error(f"Could not instantiate an algorithm of type {self.__algorithm}")
             sys.exit(1)
 
         # Transfer criterion type and parameters
@@ -114,6 +121,7 @@ class Runtime:
             n_rounds: integer number of gossiping rounds
             f: integer fanout
         """
+
         # Build set of all ranks in the phase
         rank_set = set(self.__phase.get_ranks())
 

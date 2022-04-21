@@ -33,6 +33,7 @@ class CriterionBase:
     def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):
         """ Produce the necessary concrete criterion
         """
+
         # Load up available criteria
         from .lbsTemperedCriterion import TemperedCriterion
         from .lbsStrictLocalizingCriterion import StrictLocalizingCriterion
@@ -54,5 +55,6 @@ class CriterionBase:
             objects: iterable containing object instances
             rank_src, rank_dst: Rank instances
         """
+
         # Must be implemented by concrete subclass
         pass

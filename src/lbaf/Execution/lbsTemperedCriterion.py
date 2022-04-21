@@ -11,7 +11,7 @@ class TemperedCriterion(CriterionBase):
 
     def __init__(self, work_model, parameters: dict = None, lgr: Logger = None):
         """ Class constructor
-            work_model: WorkModel instante
+            work_model: WorkModelBase instance
             parameters: optional parameters dictionary
         """
 
@@ -20,7 +20,7 @@ class TemperedCriterion(CriterionBase):
 
         # Assign logger to instance variable
         self.__logger = lgr
-        self.__logger.info("Instantiated concrete criterion")
+        self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
         # Determine how destination load is to be computed
         def get_dst_load_know_by_src(p_src, p_dst):
@@ -37,6 +37,7 @@ class TemperedCriterion(CriterionBase):
     def compute(self, objects: list, p_src: Rank, p_dst: Rank) -> float:
         """ Tempered work criterion based on L1 norm of works
         """
+
         # Compute original arrangement works
         values_src = {
             "load": p_src.get_load(),

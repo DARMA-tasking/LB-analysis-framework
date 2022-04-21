@@ -21,7 +21,7 @@ class RelaxedLocalizingCriterion(CriterionBase):
 
         # Assign logger to instance variable
         self.__logger = lgr
-        self.__logger.info("Instantiated concrete criterion")
+        self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
     def compute(self, object, p_src, p_dst):
         """A criterion allowing for local disruptions for more locality

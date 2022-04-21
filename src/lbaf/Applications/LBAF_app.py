@@ -33,6 +33,9 @@ class internalParameters:
         # By default, use load-only work model
         self.work_model = {"name": "LoadOnly", "parameters": {}}
 
+        # By default, use inform and transfer algorithm
+        self.algorithm = {"name": "InformAndTransfer", "parameters": {}}
+
         # By default, use tempered criterion
         self.criterion = {"name": "Tempered", "parameters": {}}
 
@@ -394,6 +397,7 @@ class LBAFApp:
         rt = Runtime(
             phase,
             self.params.work_model,
+            self.params.algorithm,
             self.params.criterion,
             self.params.order_strategy,
             a_min_max,

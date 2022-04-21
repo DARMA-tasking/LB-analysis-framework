@@ -4,6 +4,8 @@
 # work_model                description of the work model to be used
 #    type: str in LoadOnly (default), AffineCombination
 #    parameters: optional parameters that are specitic to each work model
+# algorithm                 description of the algorithm to be used
+#    type: str in InformAndTransfer(default), AffineCombination
 # criterion                 description of the object transfer criterion
 #    type: str in Tempered (default), StrictLocalizer, RelaxedLocalizer
 #    parameters: optional parameters that are specitic to each criterion
@@ -40,10 +42,6 @@ log_file: "../data/synthetic_lb_data/data"
 phase_id: 0
 file_suffix: json
 
-# Specify information parameters
-n_rounds: 4
-fanout: 4
-
 # Specify work model
 work_model:
   name: AffineCombination
@@ -52,17 +50,22 @@ work_model:
     beta: 0.
     gamma: 0.
 
-# Specify transfer strategy
-order_strategy: arbitrary
+# Specify balancing algorithm
+algorithm:
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 8
+    n_rounds: 4
+    fanout: 4
+    order_strategy: arbitrary
+    #deterministic_transfer: True
+    
+# Specify criterion
 criterion:
   name: Tempered
   parameters:
     actual_destination_load: True
 max_objects_per_transfer: 8
-#deterministic_transfer: True
-
-# Specify number of simulation passes
-n_iterations: 8
 
 # Specify output
 logging_level: info
