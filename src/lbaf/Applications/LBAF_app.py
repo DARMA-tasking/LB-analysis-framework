@@ -36,9 +36,6 @@ class internalParameters:
         # By default, use inform and transfer algorithm
         self.algorithm = {"name": "InformAndTransfer", "parameters": {}}
 
-        # By default, use tempered criterion
-        self.criterion = {"name": "Tempered", "parameters": {}}
-
         # Decide whether transfer must be deterministic
         self.deterministic_transfer = False
 
@@ -194,10 +191,6 @@ class internalParameters:
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.conf["volume_sampler_type"])
 
-        # Set object ranking strategy
-        if isinstance(self.conf.get("order_strategy", None), str):
-            self.order_strategy = self.conf.get("order_strategy", None)
-
         # Set logging level
         logging_level = {
             "info": logging.INFO,
@@ -285,10 +278,9 @@ def get_output_file_stem(params, n_ranks):
             params.fanout)
 
     # Return assembled stem
-    return "LBAF-n{}-{}-{}-{}".format(
+    return "LBAF-n{}-{}-{}".format(
         n_ranks,
         output_stem,
-        params.criterion["name"],
         "-".join([str(v).replace(".", "_") for v in params.criterion["parameters"].values()]))
 
 
@@ -398,7 +390,6 @@ class LBAFApp:
             phase,
             self.params.work_model,
             self.params.algorithm,
-            self.params.criterion,
             self.params.order_strategy,
             a_min_max,
             self.params.brute_force_optimization,

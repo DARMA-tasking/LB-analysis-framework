@@ -14,10 +14,10 @@ class AlgorithmBase:
     """ An abstract base class of load/work balancing algorithms
     """
 
-    def __init__(self, work_model, parameters: dict = None):
+    def __init__(self, work_model, parameters: dict):
         """ Class constructor:
             work_model: a WorkModelBase instance
-            parameters: optional parameters dictionary
+            parameters: a parameters dictionary
         """
 
         # Assert that a work model base instance was passed
@@ -30,7 +30,7 @@ class AlgorithmBase:
         LGR.debug(f"Created base balancing algorithm")
 
     @staticmethod
-    def factory(algorithm_name:str, work_model, parameters={}, lgr: Logger = None):
+    def factory(algorithm_name:str, work_model, parameters: dict, lgr: Logger):
         """ Produce the necessary concrete algorithm
         """
 

@@ -58,17 +58,12 @@ algorithm:
     n_rounds: 4
     fanout: 4
     order_strategy: arbitrary
+    criterion: Tempered
     #deterministic_transfer: True
-    
-# Specify criterion
-criterion:
-  name: Tempered
-  parameters:
-    actual_destination_load: True
-max_objects_per_transfer: 8
+    max_objects_per_transfer: 8
 
 # Specify output
-logging_level: info
+#logging_level: debug
 terminal_background: light
 exodus: True
 output_dir: ../../../output

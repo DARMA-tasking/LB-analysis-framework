@@ -2,7 +2,6 @@ import logging
 import logging.config
 from logging import Formatter
 import os
-
 import yaml
 
 from .colors import red, green, blue, cyan, magenta, yellow, white, black, light_red, light_green, light_blue, \
@@ -22,19 +21,14 @@ class CustomFormatter(Formatter):
         return formatter.format(record)
 
 
-def logger(name: str = 'root'):
+def logger(name: str = "root"):
     """ Returns logger with config from logger.ini
     """
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), 'rt') as conf_file:
+    with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), "rt") as conf_file:
         conf = yaml.safe_load(conf_file)
-    loggin_level = conf.get('logging_level', None)
-    if loggin_level is not None:
-        ll = loggin_level.upper()
-    else:
-        raise KeyError('No logging_level key in config file!')
-    terminal_bg = conf.get('terminal_background', None)
-    if terminal_bg == 'light':
+    terminal_bg = conf.get("terminal_background", None)
+    if terminal_bg == "light":
         clr_fnc = black
     else:
         clr_fnc = light_white
@@ -52,7 +46,9 @@ def logger(name: str = 'root'):
         logging.ERROR: red("[%(module)s] ") + clr_fnc("%(message)s"),
     }
 
+    # Set logger properties in INFO mode by default
     lgr = logging.getLogger(name)
+    ll = conf.get("logging_level", "INFO").upper()
     lgr.setLevel(LOGGING_LEVEL.get(ll))
     if not lgr.hasHandlers():
         ch = logging.StreamHandler()
@@ -60,4 +56,6 @@ def logger(name: str = 'root'):
         ch.setFormatter(CustomFormatter(frmttr=FORMATER_PPP))
         lgr.addHandler(ch)
 
+
+    # Return logger
     return lgr

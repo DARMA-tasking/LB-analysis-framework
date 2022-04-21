@@ -8,15 +8,12 @@ class StrictLocalizingCriterion(CriterionBase):
     """ A concrete class for a strictly localizing criterion
     """
     
-    def __init__(self, ranks, edges, _, lgr: Logger = None):
+    def __init__(self, lgr: Logger):
         """Class constructor:
-        ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (pairs)
-        _: no parameters dictionary needed for this criterion
         """
 
         # Call superclass init
-        super(StrictLocalizingCriterion, self).__init__(ranks, edges)
+        super(StrictLocalizingCriterion, self).__init__(work_model)
 
         # Assign logger to instance variable
         self.__logger = lgr
