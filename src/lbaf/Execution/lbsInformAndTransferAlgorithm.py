@@ -25,23 +25,23 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Call superclass init
         super(InformAndTransferAlgorithm, self).__init__(work_model, parameters)
 
-        # Assign logger to instance variable
-        self.__logger = lgr
-        self.__logger.info(f"Instantiated {type(self).__name__} concrete algorithm")
-
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
-            self.__logger.error(f"{type(self).__name__} concrete algorithm requires a positive number of iterations")
+            self.__logger.error(f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
             sys.exit(1)
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
-            self.__logger.error(f"{type(self).__name__} concrete algorithm requires a positive number of rounds")
+            self.__logger.error(f"Incorrect provided number of information rounds: {self.__n_rounds}")
             sys.exit(1)
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
-            self.__logger.error(f"{type(self).__name__} concrete algorithm requires a positive fanout")
+            self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
             sys.exit(1)
+
+        # Assign logger to instance variable
+        self.__logger = lgr
+        self.__logger.info(f"Instantiated algorithm with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout: {self.__fanout}")
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -80,7 +80,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         rank_set = set(self.__phase.get_ranks())
 
         # Initialize information messages
-        self.__logger.info(f"Initializing information messages with fanout = {self.__fanout}")
+        self.__logger.info(f"Initializing information messages with fanout: {self.__fanout}")
         information_round = 1
         messages = {}
 
