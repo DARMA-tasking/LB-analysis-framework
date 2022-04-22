@@ -58,7 +58,7 @@ class Runtime:
             "work": [[self.__work_model.compute(p) for p in self.__phase.get_ranks()]]}
 
         # Compute global load, volume and work statistics
-        _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
+        _, l_min, l_ave, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self.__phase.get_ranks(),
             lambda x: x.get_load())
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
@@ -83,6 +83,7 @@ class Runtime:
 
         # Initialize run statistics
         self.statistics = {
+            "average load": l_ave,
             "minimum load": [l_min],
             "maximum load": [l_max],
             "load variance": [l_var],
@@ -118,7 +119,6 @@ class Runtime:
             self.__phase,
             self.distributions,
             self.statistics,
-            self.average_load,
             self.__a_min_max)
 
 

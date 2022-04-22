@@ -286,7 +286,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return n_ignored, n_transfers, n_rejects
 
 
-    def execute(self, phase: Phase, distributions: dict, statistics: dict, average_load, a_min_max):
+    def execute(self, phase: Phase, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance
         """
 
@@ -297,7 +297,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__phase = phase
 
         # Keep track of average load
-        self.__average_load = average_load
+        self.__average_load = statistics.get("average load", math.nan)
 
         # Perform requested number of load-balancing iterations
         for i in range(self.__n_iterations):

@@ -47,7 +47,7 @@ class WriterExodusII:
         except:
             self.__grid_resolution = 1.
 
-    def write(self,  statistics: dict, distributions: dict):
+    def write(self, distributions: dict, statistics: dict):
         """ Map ranks to grid and write ExodusII file
         """
 
@@ -64,6 +64,10 @@ class WriterExodusII:
         # Create and populate field data arrays for statistics
         time_stats = {}
         for stat_name, stat_values in statistics.items():
+            # Skip non-list entries
+            if not isinstance(stat_values, list):
+                continue
+
             # Create one singleton for each value of each statistic
             for v in stat_values:
                 s_arr = vtk.vtkDoubleArray()

@@ -436,9 +436,7 @@ class LBAFApp:
                 output_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)
-            ex_writer.write(
-                rt.statistics,
-                rt.distributions)
+            ex_writer.write(rt.distributions, rt.statistics)
 
         # Create a viewer if paraview is available
         file_name = output_stem
