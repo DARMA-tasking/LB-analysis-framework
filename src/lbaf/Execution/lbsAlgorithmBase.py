@@ -50,10 +50,12 @@ class AlgorithmBase:
             sys.exit(1)
 
     @abc.abstractmethod
-    def execute(self, phase, *args):
+    def execute(self, phase, distributions, statistics, a_min_max):
         """ Excecute algorithm on given phase
             phase: Phase instance
-            *args: variadic arguments
+            distributions: dictionary of time-varying variables
+            statistics: dictionary of  statistics
+            a_min_max: possibly empty list of optimal arrangements
         """
 
         # Must be implemented by concrete subclass
