@@ -286,7 +286,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return n_ignored, n_transfers, n_rejects
 
 
-    def execute(self, phase: Phase, load_distributions: list, sent_distributions: list, work_distributions: list, statistics: dict, average_load, a_min_max):
+    def execute(self, phase: Phase, distributions: dict, statistics: dict, average_load, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance
         """
 
@@ -321,10 +321,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report iteration statistics
             self.__logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
-            # Append new load and sent distributions to existing lists
-            load_distributions.append([p.get_load() for p in self.__phase.get_ranks()])
-            sent_distributions.append({k: v for k, v in self.__phase.get_edges().items()})
-            work_distributions.append([self.work_model.compute(p) for p in self.__phase.get_ranks()])
+            # Append new load and sent distributions to previous ones
+            distributions["load"].append(
+                [p.get_load() for p in self.__phase.get_ranks()])
+            distributions["sent"].append(
+                {k: v for k, v in self.__phase.get_edges().items()})
+            distributions["work"].append(
+                [self.work_model.compute(p) for p in self.__phase.get_ranks()])
 
             # Compute and store global rank load and link volume statistics
             _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(

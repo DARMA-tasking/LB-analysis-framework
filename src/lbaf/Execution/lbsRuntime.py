@@ -1,8 +1,6 @@
 import sys
 import math
 from logging import Logger
-from bisect import bisect
-from itertools import accumulate
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
@@ -14,8 +12,7 @@ from ..IO.lbsStatistics import print_function_statistics, compute_function_stati
 class Runtime:
     """ A class to handle the execution of the LBS
     """
-    def __init__(self, phase: Phase, w: dict, b: dict, o_s: str, a: list, brute_force_optimization: bool,
-                 logger: Logger = None):
+    def __init__(self, phase: Phase, w: dict, b: dict, o_s: str, a: list, brute_force_optimization: bool, logger: Logger = None):
         """ Class constructor:
             phase: phase instance
             w: dictionary with work model name and optional parameters
@@ -24,6 +21,7 @@ class Runtime:
             a: arrangements that minimize maximum work
             logger: logger for output messages
         """
+
         # Keep track of list of arrangements with minimax work
         self.__a_min_max = a if brute_force_optimization else None
 
@@ -54,9 +52,10 @@ class Runtime:
             sys.exit(1)
 
         # Initialize load, sent, and work distributions
-        self.load_distributions = [[p.get_load() for p in self.__phase.get_ranks()]]
-        self.sent_distributions = [{k: v for k, v in self.__phase.get_edges().items()}]
-        self.work_distributions = [[self.__work_model.compute(p) for p in self.__phase.get_ranks()]]
+        self.distributions = {
+            "load": [[p.get_load() for p in self.__phase.get_ranks()]],
+            "sent": [{k: v for k, v in self.__phase.get_edges().items()}],
+            "work": [[self.__work_model.compute(p) for p in self.__phase.get_ranks()]]}
 
         # Compute global load, volume and work statistics
         _, l_min, self.average_load, l_max, l_var, _, _, l_imb = compute_function_statistics(
@@ -117,9 +116,7 @@ class Runtime:
         # Execute balancing algorithm
         self.__algorithm.execute(
             self.__phase,
-            self.load_distributions,
-            self.sent_distributions,
-            self.work_distributions,
+            self.distributions,
             self.statistics,
             self.average_load,
             self.__a_min_max)

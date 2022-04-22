@@ -47,7 +47,7 @@ class WriterExodusII:
         except:
             self.__grid_resolution = 1.
 
-    def write(self, load_statistics, load_distributions, volume_distributions, work_distributions):
+    def write(self,  statistics: dict, distributions: dict):
         """ Map ranks to grid and write ExodusII file
         """
 
@@ -61,9 +61,9 @@ class WriterExodusII:
         n_e = int(n_p * (n_p - 1) / 2)
         self.__logger.info(f"Creating mesh with {n_p} points and {n_e} edges")
 
-        # Create and populate field data arrays for load statistics
+        # Create and populate field data arrays for statistics
         time_stats = {}
-        for stat_name, stat_values in load_statistics.items():
+        for stat_name, stat_values in statistics.items():
             # Create one singleton for each value of each statistic
             for v in stat_values:
                 s_arr = vtk.vtkDoubleArray()
@@ -74,7 +74,7 @@ class WriterExodusII:
 
         # Create attribute data arrays for rank loads and works
         time_loads, time_works = [], []
-        for _, _ in zip(load_distributions, work_distributions):
+        for _, _ in zip(distributions["load"], distributions["work"]):
             # Create and append new load and work point arrays
             l_arr, w_arr = vtk.vtkDoubleArray(), vtk.vtkDoubleArray()
             l_arr.SetName("Load")
@@ -91,8 +91,8 @@ class WriterExodusII:
             # Insert point based on Cartesian coordinates
             points.SetPoint(i, [self.__grid_resolution * c for c in self.__mapping(p)])
             for l, (l_arr, w_arr) in enumerate(zip(time_loads, time_works)):
-                l_arr.SetTuple1(i, load_distributions[l][i])
-                w_arr.SetTuple1(i, work_distributions[l][i])
+                l_arr.SetTuple1(i, distributions["load"][l][i])
+                w_arr.SetTuple1(i, distributions["work"][l][i])
 
         # Iterate over all possible links and create edges
         lines = vtk.vtkCellArray()
@@ -110,9 +110,9 @@ class WriterExodusII:
                 edge_indices[flat_index] = frozenset([i, j])
                 flat_index += 1
 
-        # Create attribute data arrays for edge volumes
+        # Create attribute data arrays for edge sent volumes
         time_volumes = []
-        for i, volumes in enumerate(volume_distributions):
+        for i, volumes in enumerate(distributions["sent"]):
             # Reduce directed edges into undirected ones
             u_edges = {}
             for k, v in volumes.items():
