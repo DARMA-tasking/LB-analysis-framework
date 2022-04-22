@@ -375,8 +375,8 @@ class LBAFApp:
             alpha = self.params.work_model.get("parameters").get("alpha")
             beta = self.params.work_model.get("parameters").get("beta")
             gamma = self.params.work_model.get("parameters").get("gamma")
-            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha=alpha, beta=beta, gamma=gamma,
-                                                                          n_ranks=n_ranks)
+            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
+                objects, alpha, beta, gamma, n_ranks)
             if n_a != n_ranks ** len(objects):
                 self.logger.error("Incorrect number of possible arrangements with repetition")
                 sys.exit(1)
@@ -385,25 +385,16 @@ class LBAFApp:
             self.logger.info("No brute force optimization performed")
             a_min_max = []
 
-        # Instantiate runtime
+        # Instantiate and execute runtime
         rt = Runtime(
             phase,
             self.params.work_model,
             self.params.algorithm,
             self.params.order_strategy,
             a_min_max,
-            self.params.brute_force_optimization,
             self.logger)
         self.logger.info(f"Instantiated runtime with {self.params.order_strategy} object ordering strategy")
-
-        # Execute runtime iterations when requested
-        if self.params.n_iterations:
-            rt.execute(
-                self.params.n_iterations,
-                self.params.n_rounds,
-                self.params.fanout,
-                self.params.max_objects_per_transfer,
-                self.params.deterministic_transfer)
+        rt.execute()
 
         # Create mapping from rank to Cartesian grid
         pgs = self.params.grid_size

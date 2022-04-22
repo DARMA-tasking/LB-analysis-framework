@@ -49,6 +49,7 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
+brute_force_optimization: True
 algorithm:
   name: InformAndTransfer
   parameters:
@@ -59,7 +60,6 @@ algorithm:
     criterion: Tempered
     max_objects_per_transfer: 8
     #deterministic_transfer: True
-brute_force_optimization: False
 
 # Specify output
 #logging_level: debug

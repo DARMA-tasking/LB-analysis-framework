@@ -8,22 +8,27 @@ from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
 from ..IO.lbsStatistics import print_function_statistics, compute_function_statistics, min_Hamming_distance
 
-
 class Runtime:
     """ A class to handle the execution of the LBS
     """
-    def __init__(self, phase: Phase, w: dict, b: dict, o_s: str, a: list, brute_force_optimization: bool, logger: Logger = None):
+    def __init__(
+        self, phase: Phase,
+        work_model: dict,
+        algorithm: dict,
+        o_s: str,
+        arrangements: list,
+        logger: Logger):
         """ Class constructor:
             phase: phase instance
-            w: dictionary with work model name and optional parameters
-            b: dictionary with balancing algorithm and optional parameters
+            work_model: dictionary with work model name and optional parameters
+            algorithm: dictionary with balancing algorithm and optional parameters
             o_s: name of object ordering strategy
             a: arrangements that minimize maximum work
             logger: logger for output messages
         """
 
-        # Keep track of list of arrangements with minimax work
-        self.__a_min_max = a if brute_force_optimization else None
+        # Keep track of possibly empty list of arrangements with minimax work
+        self.__a_min_max = arrangements
 
         # Assign logger to instance variable
         self.__logger = logger
@@ -36,16 +41,19 @@ class Runtime:
             self.__phase = phase
 
         # Instantiate work model
-        self.__work_model = WorkModelBase.factory(w.get("name"), w.get("parameters", {}), lgr=self.__logger)
+        self.__work_model = WorkModelBase.factory(
+            work_model.get("name"),
+            work_model.get("parameters", {}),
+            lgr=self.__logger)
         if not self.__work_model:
             self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
             sys.exit(1)
 
         # Instantiate balancing algorithm
         self.__algorithm = AlgorithmBase.factory(
-            b.get("name"),
+            algorithm.get("name"),
             self.__work_model,
-            b.get("parameters", {}),
+            algorithm.get("parameters", {}),
             lgr=self.__logger)
         if not self.__algorithm:
             self.__logger.error(f"Could not instantiate an algorithm of type {self.__algorithm}")
@@ -74,7 +82,7 @@ class Runtime:
                 o.get_id(): p.get_id()
                 for p in self.__phase.get_ranks() for o in p.get_objects()
                 }.items()))
-        if brute_force_optimization:
+        if self.__a_min_max:
             hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
             self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
         else:
@@ -98,13 +106,8 @@ class Runtime:
             "minimum Hamming distance to optimum": [hd_min]}
 
 
-    def execute(self, n_iterations, n_rounds, f, max_n_objects, deterministic_transfer):
+    def execute(self):
         """ Launch runtime execution
-            n_iterations: integer number of load-balancing iterations
-            n_rounds: integer number of gossiping rounds
-            f: integer fanout
-            max_n_objects: maximum number of objects transferred at once
-            deterministic_transfer: deterministic or probabilistic transfer
         """
 
         # Report on initial per-rank work

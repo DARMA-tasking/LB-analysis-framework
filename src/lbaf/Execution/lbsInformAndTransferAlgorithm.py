@@ -344,9 +344,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Compute current arrangement and report minimum Hamming distance
             arrangement = tuple(
-                v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks() for o
-                                      in p.get_objects()}.items()))
-            if a_min_max != None:
+                v for _, v in sorted(
+                    {o.get_id(): p.get_id()
+                     for p in self.__phase.get_ranks()
+                     for o in p.get_objects()}.items()))
+            if a_min_max:
                 hd_min = min_Hamming_distance(arrangement, a_min_max)
                 self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
             else:
