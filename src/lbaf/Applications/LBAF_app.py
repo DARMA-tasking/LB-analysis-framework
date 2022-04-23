@@ -59,18 +59,6 @@ class internalParameters:
         sv = sys.version_info
         self.logger.info(f"Executing with Python {sv.major}.{sv.minor}.{sv.micro}")
 
-        # Object communication graph degree (constant for now)
-        self.communication_degree = 0
-
-        # Object communication graph analysis enabled
-        self.communication_enabled = False
-
-        # Output directory
-        self.output_dir = None
-
-        # Output file steam
-        self.output_file_stem = None
-
         # Read configuration values from file
         self.configuration_file_found = False
         self.configuration = self.get_configuration_file(
@@ -178,11 +166,8 @@ class internalParameters:
         self.logger.level = logging_level.get(ll)
         self.logger.info(f"Logging level: {ll}")
 
-        # Enable communication when degree is positive
-        if self.communication_degree > 0:
-            self.communication_enabled = True
-
-        self.output_dir = os.path.abspath(self.output_dir)
+        # Set output directory, local by default
+        self.output_dir = os.path.abspath(self.__dict__.get("output_dir", '.'))
         self.logger.info(f"Output directory: {self.output_dir}")
 
     def parse_sampler(self, cmd_str):
