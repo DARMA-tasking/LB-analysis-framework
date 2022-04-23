@@ -4,10 +4,13 @@ from logging import Formatter
 import os
 import yaml
 
-from .colors import red, green, blue, cyan, magenta, yellow, white, black, light_red, light_green, light_blue, \
-    light_cyan, light_magenta, light_yellow, light_white, light_black
+from .colors import red, green, blue, cyan, magenta, yellow, white, black, light_red, light_green, light_blue, light_cyan, light_magenta, light_yellow, light_white, light_black
 
-LOGGING_LEVEL = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, 'WARNING': logging.WARNING, 'ERROR': logging.ERROR}
+LOGGING_LEVEL = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR}
 
 
 class CustomFormatter(Formatter):
@@ -22,29 +25,29 @@ class CustomFormatter(Formatter):
 
 
 def logger(name: str = "root"):
-    """ Returns logger with config from logger.ini
+    """ Return logger with config from logger.ini
     """
+
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), "rt") as conf_file:
         conf = yaml.safe_load(conf_file)
-    terminal_bg = conf.get("terminal_background", None)
-    if terminal_bg == "light":
-        clr_fnc = black
-    else:
-        clr_fnc = light_white
-    FORMATER_EXTENDED = {
-        logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-        logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-        logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-        logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-    }
 
+    # Assign formatting properties
+    clr_fnc = black if conf.get("terminal_background") == "light" else light_white
+    FORMATER_EXTENDED = {
+        logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] "
+                              ) + clr_fnc("msg:[%(message)s]"),
+        logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] "
+                            ) + clr_fnc("msg:[%(message)s]"),
+        logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] "
+                              ) + clr_fnc("msg:[%(message)s]"),
+        logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] "
+                           ) + clr_fnc("msg:[%(message)s]")}
     FORMATER_PPP = {
         logging.DEBUG: yellow("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.INFO: green("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.WARNING: cyan("[%(module)s] ") + clr_fnc("%(message)s"),
-        logging.ERROR: red("[%(module)s] ") + clr_fnc("%(message)s"),
-    }
+        logging.ERROR: red("[%(module)s] ") + clr_fnc("%(message)s")}
 
     # Set logger properties in INFO mode by default
     lgr = logging.getLogger(name)
@@ -55,7 +58,6 @@ def logger(name: str = "root"):
         ch.setLevel(LOGGING_LEVEL.get(ll))
         ch.setFormatter(CustomFormatter(frmttr=FORMATER_PPP))
         lgr.addHandler(ch)
-
 
     # Return logger
     return lgr

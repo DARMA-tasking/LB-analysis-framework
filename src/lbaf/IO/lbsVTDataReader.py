@@ -52,7 +52,7 @@ class LoadReader:
         self.__logger.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
             self.__logger.error(f"File {file_name} does not exist.")
-            raise FileNotFoundError(f"File {file_name} not found!")
+            sys.exit(1)
 
         # Retrieve communications from JSON reader
         iter_map = {}

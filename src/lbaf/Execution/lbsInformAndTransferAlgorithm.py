@@ -18,12 +18,15 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def __init__(self, work_model, parameters: dict, lgr: Logger):
         """ Class constructor
-            work_model: WorkModelBase instance
-            parameters: optional parameters dictionary
+            work_model: a WorkModelBase instance
+            parameters: a dictionary of parameters
         """
 
         # Call superclass init
         super(InformAndTransferAlgorithm, self).__init__(work_model, parameters)
+
+        # Assign logger to instance variable
+        self.__logger = lgr
 
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
@@ -38,10 +41,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
             sys.exit(1)
-
-        # Assign logger to instance variable
-        self.__logger = lgr
-        self.__logger.info(f"Instantiated algorithm with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout: {self.__fanout}")
+        self.__logger.info(f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -72,15 +72,16 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__deterministic_transfer = parameters.get("deterministic_transfer", False)
         self.__max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf) 
 
+
     def information_stage(self):
         """ Execute information stage
         """
 
         # Build set of all ranks in the phase
-        rank_set = set(self.__phase.get_ranks())
+        rank_set = set(self.phase.get_ranks())
 
         # Initialize information messages
-        self.__logger.info(f"Initializing information messages with fanout: {self.__fanout}")
+        self.__logger.info(f"Initializing information messages with fanout={self.__fanout}")
         information_round = 1
         messages = {}
 
@@ -193,7 +194,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         max_obj_transfers = 0
 
         # Iterate over ranks
-        for p_src in self.__phase.get_ranks():
+        for p_src in self.phase.get_ranks():
             # Skip workless ranks
             if not self.work_model.compute(p_src) > 0.:
                 continue
@@ -295,7 +296,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if not isinstance(phase, Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             sys.exit(1)
-        self.__phase = phase
+        self.phase = phase
+
+        # Initialize run distributions and statistics
+        self.update_distributions_and_statistics(distributions, statistics)
 
         # Keep track of average load
         self.__average_load = statistics.get("average load", math.nan)
@@ -316,78 +320,38 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             else:
                 self.__logger.info("No transfers were proposed")
 
-            # Invalidate cache of edges
-            self.__phase.invalidate_edge_cache()
-
             # Report iteration statistics
             self.__logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
-            # Append new load and sent distributions to previous ones
-            distributions["load"].append(
-                [p.get_load() for p in self.__phase.get_ranks()])
-            distributions["sent"].append(
-                {k: v for k, v in self.__phase.get_edges().items()})
-            distributions["work"].append(
-                [self.work_model.compute(p) for p in self.__phase.get_ranks()])
+            # Invalidate cache of edges
+            self.phase.invalidate_edge_cache()
 
-            # Compute and store global rank load and link volume statistics
-            _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
-                self.__phase.get_ranks(),
-                lambda x: x.get_load())
-            n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-                self.__phase.get_edges().values(),
-                lambda x: x)
+            # Compute and report iteration work statistics
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
-                self.__phase.get_ranks(),
+                self.phase.get_ranks(),
                 lambda x: self.work_model.compute(x),
                 f"iteration {i + 1} rank works",
                 logger=self.__logger)
 
-            # Compute current arrangement and report minimum Hamming distance
+            # Update run distributions and statistics
+            self.update_distributions_and_statistics(distributions, statistics)
+
+            # Compute current arrangement
             arrangement = tuple(
                 v for _, v in sorted(
                     {o.get_id(): p.get_id()
-                     for p in self.__phase.get_ranks()
+                     for p in self.phase.get_ranks()
                      for o in p.get_objects()}.items()))
+            self.__logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
+
+            # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:
                 hd_min = min_Hamming_distance(arrangement, a_min_max)
                 self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
-            else:
-                hd_min = math.nan
-            self.__logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
-
-            # Update run statistics
-            statistics["minimum load"].append(l_min)
-            statistics["maximum load"].append(l_max)
-            statistics["load variance"].append(l_var)
-            statistics["load imbalance"].append(l_imb)
-            statistics["number of communication edges"].append(n_v)
-            statistics["maximum largest directed volume"].append(v_max)
-            statistics["total largest directed volume"].append(n_v * v_ave)
-            statistics["minimum work"].append(w_min)
-            statistics["maximum work"].append(w_max)
-            statistics["total work"].append(n_w * w_ave)
-            statistics["work variance"].append(w_var)
-            statistics["minimum Hamming distance to optimum"].append(hd_min)
+                statistics["minimum Hamming distance to optimum"].append(hd_min)
 
         # Report final mapping in debug mode
-        for p in self.__phase.get_ranks():
-            self.__logger.debug(f"Rank {p.get_id()}:")
-            for o in p.get_objects():
-                comm = o.get_communicator()
-                if comm:
-                    self.__logger.debug(f"Object {o.get_id()}:")
-                    recv = comm.get_received().items()
-                    if recv:
-                        self.__logger.debug("received from:")
-                        for k, v in recv:
-                            self.__logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
-                    sent = comm.get_sent().items()
-                    if sent:
-                        self.__logger.debug("sent to:")
-                        for k, v in sent:
-                            self.__logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
-
+        self.report_final_mapping(self.__logger)
 
     @staticmethod
     def arbitrary(objects: set, _):
