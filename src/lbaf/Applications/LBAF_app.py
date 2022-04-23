@@ -84,7 +84,7 @@ class internalParameters:
                                   f"{err.context})")
                 sys.exit(1)
         else:
-            self.logger.error(f"Config file in {conf_file} NOT FOUND!")
+            self.logger.error(f"Configuration file in {conf_file} not found")
             sys.exit(1)
 
     def checks_after_init(self):
@@ -220,33 +220,6 @@ def global_id_to_cartesian(id, grid_sizes):
     return i, j, k
 
 
-def get_output_file_stem(params, n_ranks):
-    """Build the file name for a given rank/node
-    """
-
-    # Assemble output file stem name based on phase population strategy
-    if params.data_stem:
-        output_stem = "{}-i{}-k{}-f{}".format(
-            os.path.basename(params.data_stem),
-            params.n_iterations,
-            params.n_rounds,
-            params.fanout)
-    else:
-        output_stem = "p{}-o{}-s{}-i{}-k{}-f{}".format(
-            params.n_mapped_ranks,
-            params.n_objects,
-            params.time_sampler_type,
-            params.n_iterations,
-            params.n_rounds,
-            params.fanout)
-
-    # Return assembled stem
-    return "LBAF-n{}-{}-{}".format(
-        n_ranks,
-        output_stem,
-        "-".join([str(v).replace(".", "_") for v in params.criterion["parameters"].values()]))
-
-
 class LBAFApp:
     def __init__(self):
         self.config_file = self.__get_config_file()
@@ -376,17 +349,17 @@ class LBAFApp:
             x.get_id(),
             self.params.grid_size)
 
-        # Assemble output file name stem
-        if self.params.output_file_stem is not None:
-            output_stem = self.params.output_file_stem
-        else:
-            output_stem = get_output_file_stem(self.params, n_ranks)
+        # Try to output file name stem
+        if not (output_file_stem :=
+                self.params.__dict__.get("output_file_stem")):
+            self.logger.error("An output file stem must be provided")
+            sys.exit(1)
 
         # Instantiate phase to VT file writer if started from a log file
         if self.params.data_stem:
             vt_writer = VTDataWriter(
                 phase,
-                output_stem,
+                output_file_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)
             vt_writer.write()
@@ -397,25 +370,25 @@ class LBAFApp:
             ex_writer = WriterExodusII(
                 phase,
                 grid_map,
-                output_stem,
+                output_file_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)
             ex_writer.write(rt.distributions, rt.statistics)
 
         # Create a viewer if paraview is available
-        file_name = output_stem
+        file_name = output_file_stem
         if self.params.__dict__.get("generate_multimedia"):
             from ParaviewViewerBase import ParaviewViewerBase
             if self.params.output_dir is not None:
                 file_name = os.path.join(
                     self.params.output_dir,
                     file_name)
-                output_stem = file_name
-            viewer = ParaviewViewerBase.factory(
-                exodus=output_stem,
-                file_name=file_name,
-                viewer_type='')
-            reader = viewer.createViews()
+                output_file_stem = file_name
+                viewer = ParaviewViewerBase.factory(
+                    exodus=output_file_stem,
+                    file_name=file_name,
+                    viewer_type='')
+                reader = viewer.createViews()
             viewer.saveView(reader)
 
         # Create file to store imbalance statistics
