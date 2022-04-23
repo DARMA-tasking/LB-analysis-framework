@@ -92,8 +92,9 @@ class Rank:
         # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
 
-        # Update known loads
-        self.__known_loads[p_dst] += o.get_time()
+        # Update known loads when these exist
+        if self.__known_loads:
+            self.__known_loads[p_dst] += o.get_time()
         
     def add_as_viewer(self, ranks):
         """ Add self as viewer to known peers

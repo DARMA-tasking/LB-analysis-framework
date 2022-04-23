@@ -1,44 +1,46 @@
 # Docs
-# param_name_in_conf  [CL arg]    [type]    Description
-
+# param_name_in_conf [type]    Description
 # work_model                description of the work model to be used
-#    type: str in LoadOnly (default), AffineCombination
-#    parameters: optional parameters that are specific to each work model
+#    name [str] in LoadOnly, AffineCombination
+#    parameters: optional parameters that are specitic to each work model
 # algorithm                 description of the algorithm to be used
-#    type: str in InformAndTransfer(default), AffineCombination
-#    parameters: parameters that are specific to each algorithm
-#      criterion: str in Tempered (default), StrictLocalizing
-#      deterministic_transfer: Boolean (default: False) for deterministic transfer
-#      order_strategy: str describing ordering of objects for transfer
-#    	in arbitrary (default), element_id, increasing_times, decreasing_times, increasing_connectivity, fewest_migrations, small_objects
-# terminal_background       terminal background for standard output logging
-#    type: str in `light` or `dark`
-# n_iterations        [-i <ni>]   int       number of load-balancing iterations
-# x_procs             [-x <npx>]  int       number of procs in x direction
-# y_procs             [-y <npy>]  int       number of procs in y direction
-# z_procs             [-z <npz>]  int       number of procs in z direction
-# n_objects           [-o <no>]   int       number of objects
-# n_init_procs        [-p <np>]   int       number of initially used processors
-# n_rounds            [-k <nr>]   int       number of gossiping rounds
-# fanout              [-f <fo>]   int       gossiping fan-out value
-# threshold           [-r <rt>]   float     overload relative threshold
-# time_sampler_type   [-t <ts>]   str       object times sampler: <ts> in {uniform,lognormal} e.g. lognormal,1.0,10.0
-# volume_sampler_type [-w <ws>]   str       communications volumes sampler: <cs> in {uniform,lognormal} e.g. lognormal,1.0,10.0
-# phase_id            [-s <ts>]   int       phase id for reading VT load logs
-# log_file            [-l <blog>] str       base file name for reading VT load logs
-# map_file            [-m <bmap>] str       base file name for VT object/proc mapping
-# communication_degree[-d <d>]    int       object communication degree (no communication if 0)
-# output_dir          [-b <odir>] str       output directory
-# file_suffix         [-j <fsuf>] str       file suffix for reading data files. E.g. 'vom', 'out'... DEFAULT = 'vom'
-# logging_level                   str       set to `info`, `debug`, `warning` or `error`
-# actual_dst_load     [-a]        bool      use actual destination loads
-# exodus              [-e]        bool      generate Exodus type visualization output
-# generate_multimedia [-g]        bool      generate multimedia
+#    name [str] in InformAndTransfer, BruteForce
+#    parameters: parameters that are specitic to each algorithm
+#      InformAndtransfer:
+#        criterion [str] in Tempered (default), StrictLocalizer
+#        n_iterations [int] number of load-balancing iterations
+#        deterministic_transfer [bool] (default: False) for deterministic transfer
+#        n_rounds [int]       number of information rounds
+#        fanout [int]       information fanout index
+#        order_strategy [str] describing ordering of objects for transfer
+#    	   in arbitrary (default), element_id, increasing_times, decreasing_times, increasing_connectivity, fewest_migrations, small_objects
+#      BruteForce: 
+#        skip_transfer [bool] (default: False) skip transfer phase
+# logging_level [str]       set to `info`, `debug`, `warning` or `error`
+# x_procs [int]       number of procs in x direction for rank visualization
+# y_procs [int]       number of procs in y direction for rank visualization
+# z_procs [int]       number of procs in z direction for rank visualization
+# data_stem [str]      base file name of VT load logs
+# phase_id [int]       id of phase to be read in VT load logs
+# map_file [str]       base file name for VT object/proc mapping
+# file_suffix [str]    file suffix of VT data files (default: "json")
+# output_dir [str]       output directory
+# terminal_background [str]   background color for terminal output
+# exodus [bool]               generate ExodusII mesh output (default: False)
+# generate_multimedia [bool]  generate multimedia visualization (default: False)
+# n_objects [int]             number of objects
+# n_mapped_ranks [int]        number of initially mapped processors
+# communication_degree [int]  object communication degree (no communication if 0)
+# time_sampler                description of object times sampler: 
+#    name [str]  in uniform, lognormal
+#    parameters  list of parameters e.g. 1.0,10.0 for lognormal
+# volume_sampler              description of object communication volumes sampler: 
+#    name [str]  in uniform, lognormal
+#    parameters  list of parameters e.g. 1.0,10.0 for lognormal
 
 # Specify input
-log_file: "../data/synthetic_lb_data/data"
+#data_stem: "../data/synthetic_lb_data/data"
 phase_id: 0
-file_suffix: json
 
 # Specify work model
 work_model:
@@ -49,8 +51,9 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
-brute_force_optimization: False
+#brute_force_optimization: True
 algorithm:
+  #name: BruteForce
   name: InformAndTransfer
   parameters:
     n_iterations: 8
@@ -65,6 +68,7 @@ algorithm:
 #logging_level: debug
 terminal_background: light
 exodus: True
+generate_multimedia: False
 output_dir: ../../../output
 x_procs: 2
 y_procs: 2
@@ -72,7 +76,16 @@ z_procs: 1
 output_file_stem: output_file
 
 # Simulate from samplers (comment out if reading from log)
-#n_objects: 200
-#time_sampler_type: lognormal,1.0,10.0
-#volume_sampler_type: lognormal,1.0,10.0
-#communication_degree: 20
+n_objects: 200
+n_mapped_ranks: 2
+communication_degree: 20
+time_sampler:
+  name: lognormal
+  parameters:
+    - 1.0
+    - 10.0
+volume_sampler:
+  name: lognormal
+  parameters:
+    - 1.0
+    - 10.0
