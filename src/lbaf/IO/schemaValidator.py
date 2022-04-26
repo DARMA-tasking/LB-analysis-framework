@@ -35,7 +35,12 @@ class SchemaValidator:
                                         'time': float,
                                     }
                                 ],
-                                'time': float
+                                'time': float,
+                                Optional('user_defined'): {
+                                    'block_bytes': float,
+                                    'block_id': int,
+                                    'task_bytes': float
+                                }
                             },
                         ],
                         Optional('communications'): [
