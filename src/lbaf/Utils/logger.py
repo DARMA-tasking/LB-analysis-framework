@@ -2,7 +2,6 @@ import logging
 import logging.config
 from logging import Formatter
 import os
-
 import yaml
 
 from .colors import red, green, blue, cyan, magenta, yellow, white, black, light_red, light_green, light_blue, \
@@ -22,42 +21,40 @@ class CustomFormatter(Formatter):
         return formatter.format(record)
 
 
-def logger(name: str = 'root'):
+def logger(name: str = "root"):
     """ Returns logger with config from logger.ini
     """
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), 'rt') as conf_file:
+    with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), "rt") as conf_file:
         conf = yaml.safe_load(conf_file)
-    loggin_level = conf.get('logging_level', None)
-    if loggin_level is not None:
-        ll = loggin_level.upper()
-    else:
-        raise KeyError('No logging_level key in config file!')
-    terminal_bg = conf.get('terminal_background', None)
-    if terminal_bg == 'light':
+    terminal_bg = conf.get("terminal_background", None)
+    if terminal_bg == "light":
         clr_fnc = black
     else:
         clr_fnc = light_white
-    FORMATER_EXTENDED = {
+    formater_extended = {
         logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
         logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
         logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
         logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
     }
 
-    FORMATER_PPP = {
+    formater_PPP = {
         logging.DEBUG: yellow("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.INFO: green("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.WARNING: cyan("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.ERROR: red("[%(module)s] ") + clr_fnc("%(message)s"),
     }
 
+    # Set logger properties in INFO mode by default
     lgr = logging.getLogger(name)
+    ll = conf.get("logging_level", "INFO").upper()
     lgr.setLevel(LOGGING_LEVEL.get(ll))
     if not lgr.hasHandlers():
         ch = logging.StreamHandler()
         ch.setLevel(LOGGING_LEVEL.get(ll))
-        ch.setFormatter(CustomFormatter(frmttr=FORMATER_PPP))
+        ch.setFormatter(CustomFormatter(frmttr=formater_PPP))
         lgr.addHandler(ch)
 
+    # Return logger
     return lgr

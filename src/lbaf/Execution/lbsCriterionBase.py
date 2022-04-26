@@ -14,10 +14,9 @@ class CriterionBase:
     """ An abstract base class of optimization criteria for LBAF execution
     """
 
-    def __init__(self, work_model, parameters: dict = None):
+    def __init__(self, work_model):
         """ Class constructor:
             work_model: a WorkModelBase instance
-            parameters: optional parameters dictionary
         """
 
         # Assert that a work model base instance was passed
@@ -30,19 +29,19 @@ class CriterionBase:
         LGR.debug(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
 
     @staticmethod
-    def factory(criterion_name, work_model, parameters={}, lgr: Logger = None):
+    def factory(criterion_name, work_model, lgr: Logger):
         """ Produce the necessary concrete criterion
         """
+
         # Load up available criteria
         from .lbsTemperedCriterion import TemperedCriterion
         from .lbsStrictLocalizingCriterion import StrictLocalizingCriterion
-        from .lbsRelaxedLocalizingCriterion import RelaxedLocalizingCriterion
 
         # Ensure that criterion name is valid
         try:
             # Instantiate and return object
             criterion = locals()[criterion_name + "Criterion"]
-            return criterion(work_model, parameters, lgr=lgr)
+            return criterion(work_model, lgr=lgr)
         except:
             # Otherwise, error out
             LGR.error(f"Could not create a criterion with name {criterion_name}")
@@ -54,5 +53,6 @@ class CriterionBase:
             objects: iterable containing object instances
             rank_src, rank_dst: Rank instances
         """
+
         # Must be implemented by concrete subclass
         pass

@@ -2,34 +2,31 @@ from logging import Logger
 
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
+from ..Model.lbsRank import Rank
 
 
 class StrictLocalizingCriterion(CriterionBase):
     """ A concrete class for a strictly localizing criterion
     """
     
-    def __init__(self, ranks, edges, _, lgr: Logger = None):
-        """Class constructor:
-        ranks: set of ranks (lbsRank.Rank instances)
-        edges: dictionary of edges (pairs)
-        _: no parameters dictionary needed for this criterion
+    def __init__(self, workmodel, lgr: Logger):
+        """ Class constructor:
         """
-
         # Call superclass init
-        super(StrictLocalizingCriterion, self).__init__(ranks, edges)
+        super().__init__(workmodel)
 
         # Assign logger to instance variable
         self.__logger = lgr
-        self.__logger.info("Instantiated concrete criterion")
+        self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-    def compute(self, object, p_src, _):
-        """A criterion enforcing strict conservation of local communications
+    def compute(self, object: list, p_src: Rank, _):
+        """ A criterion enforcing strict conservation of local communications
         """
-
-        # Keep track source processsor ID
+        # Keep track source processor ID
         p_src_id = p_src.get_id()
 
         # Retrieve object communications
+        # TODO: compute method should be updated like `TemperedCriterion`, object is a list, so iteration is needed
         comm = object.get_communicator()
 
         # Iterate over sent messages
