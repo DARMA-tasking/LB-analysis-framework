@@ -3,11 +3,11 @@
 
 # work_model                description of the work model to be used
 #    type: str in LoadOnly (default), AffineCombination
-#    parameters: optional parameters that are specitic to each work model
+#    parameters: optional parameters that are specific to each work model
 # algorithm                 description of the algorithm to be used
 #    type: str in InformAndTransfer(default), AffineCombination
-#    parameters: parameters that are specitic to each algorithm
-#      criterion: str in Tempered (default), StrictLocalizer
+#    parameters: parameters that are specific to each algorithm
+#      criterion: str in Tempered (default), StrictLocalizing
 #      deterministic_transfer: Boolean (default: False) for deterministic transfer
 #      order_strategy: str describing ordering of objects for transfer
 #    	in arbitrary (default), element_id, increasing_times, decreasing_times, increasing_connectivity, fewest_migrations, small_objects
@@ -59,7 +59,7 @@ algorithm:
     order_strategy: element_id
     criterion: Tempered
     max_objects_per_transfer: 8
-#    deterministic_transfer: True
+    deterministic_transfer: True
 
 # Specify output
 #logging_level: debug

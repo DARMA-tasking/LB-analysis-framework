@@ -3,26 +3,19 @@ import math
 from logging import Logger
 
 from ..Model.lbsPhase import Phase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
 from ..IO.lbsStatistics import print_function_statistics, compute_function_statistics, min_Hamming_distance
 
+
 class Runtime:
     """ A class to handle the execution of the LBS
     """
-    def __init__(
-        self, phase: Phase,
-        work_model: dict,
-        algorithm: dict,
-        o_s: str,
-        arrangements: list,
-        logger: Logger):
+    def __init__(self, phase: Phase, work_model: dict, algorithm: dict, arrangements: list, logger: Logger):
         """ Class constructor:
             phase: phase instance
             work_model: dictionary with work model name and optional parameters
             algorithm: dictionary with balancing algorithm and optional parameters
-            o_s: name of object ordering strategy
             a: arrangements that minimize maximum work
             logger: logger for output messages
         """
@@ -77,11 +70,8 @@ class Runtime:
             lambda x: self.__work_model.compute(x))
 
         # Compute initial arrangement and report minimum Hamming distance
-        arrangement = tuple(
-            v for _, v in sorted({
-                o.get_id(): p.get_id()
-                for p in self.__phase.get_ranks() for o in p.get_objects()
-                }.items()))
+        arrangement = tuple(v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks()
+                                                  for o in p.get_objects()}.items()))
         if self.__a_min_max:
             hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
             self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
@@ -105,11 +95,9 @@ class Runtime:
             "work variance": [w_var],
             "minimum Hamming distance to optimum": [hd_min]}
 
-
     def execute(self):
         """ Launch runtime execution
         """
-
         # Report on initial per-rank work
         print_function_statistics(
             self.__phase.get_ranks(),
@@ -123,5 +111,3 @@ class Runtime:
             self.distributions,
             self.statistics,
             self.__a_min_max)
-
-

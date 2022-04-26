@@ -15,17 +15,15 @@ class TemperedCriterion(CriterionBase):
         """
 
         # Call superclass init
-        super(TemperedCriterion, self).__init__(work_model)
+        super().__init__(work_model)
 
         # Assign logger to instance variable
         self.__logger = lgr
         self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-
     def compute(self, objects: list, p_src: Rank, p_dst: Rank) -> float:
         """ Tempered work criterion based on L1 norm of works
         """
-
         # Compute original arrangement works
         values_src = {
             "load": p_src.get_load(),

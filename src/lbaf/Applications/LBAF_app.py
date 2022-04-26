@@ -390,7 +390,6 @@ class LBAFApp:
             phase,
             self.params.work_model,
             self.params.algorithm,
-            self.params.order_strategy,
             a_min_max,
             self.logger)
         self.logger.info(f"Instantiated runtime with {self.params.order_strategy} object ordering strategy")
