@@ -56,7 +56,7 @@ def logger(name: str = "root"):
     if not lgr.hasHandlers():
         ch = logging.StreamHandler()
         ch.setLevel(LOGGING_LEVEL.get(ll))
-        ch.setFormatter(CustomFormatter(frmttr=formater_PPP))
+        ch.setFormatter(CustomFormatter(frmttr=FORMATER_PPP))
         lgr.addHandler(ch)
 
     # Return logger
