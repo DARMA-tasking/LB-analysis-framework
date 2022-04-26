@@ -43,6 +43,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
             sys.exit(1)
+        self.__logger.info(f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
         # Select object order strategy
         self.__strategy_mapped = {

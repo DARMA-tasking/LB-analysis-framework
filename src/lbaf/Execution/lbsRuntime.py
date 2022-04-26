@@ -87,6 +87,7 @@ class Runtime:
             self.statistics["minimum Hamming distance to optimum"] = [hd_min]
             self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
 
+
     def execute(self):
         """ Launch runtime execution
         """
