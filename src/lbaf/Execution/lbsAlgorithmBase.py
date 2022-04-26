@@ -30,15 +30,13 @@ class AlgorithmBase:
         LGR.debug(f"Created base balancing algorithm")
 
     @staticmethod
-    def factory(algorithm_name:str, work_model, parameters: dict, lgr: Logger):
+    def factory(algorithm_name: str, work_model, parameters: dict, lgr: Logger):
         """ Produce the necessary concrete algorithm
         """
 
         # Load up available algorithms
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
 
-        algorithm = locals()[algorithm_name + "Algorithm"]
-        return algorithm(work_model, parameters, lgr=lgr)
         # Ensure that algorithm name is valid
         try:
             # Instantiate and return object

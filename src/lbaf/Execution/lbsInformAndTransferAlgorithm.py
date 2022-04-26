@@ -10,7 +10,9 @@ from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, min_Hamming_distance
+from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, \
+    min_Hamming_distance
+
 
 class InformAndTransferAlgorithm(AlgorithmBase):
     """ A concrete class for the 2-phase gossip+transfer algorithm
@@ -41,7 +43,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Assign logger to instance variable
         self.__logger = lgr
-        self.__logger.info(f"Instantiated algorithm with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout: {self.__fanout}")
+        self.__logger.info(f"Instantiated algorithm with {self.__n_iterations} iterations, {self.__n_rounds} rounds, "
+                           f"fanout: {self.__fanout}")
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -54,7 +57,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             "small_objects": self.small_objects}
         o_s = parameters.get("order_strategy")
         if o_s not in self.__strategy_mapped:
-            self.__logger.error(f"{o_s} does not exist in known ordering strategies: {[x for x in self.__strategy_mapped.keys()]}")
+            self.__logger.error(f"{o_s} does not exist in known ordering strategies: "
+                                f"{[x for x in self.__strategy_mapped.keys()]}")
             sys.exit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self.__logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
@@ -101,7 +105,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Report on gossiping status when requested
         for p in rank_set:
-            self.__logger.debug(f"information known to rank {p.get_id()}: {[p_u.get_id() for p_u in p.get_known_loads()]}")
+            self.__logger.debug(f"information known to rank {p.get_id()}: "
+                                f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
 
         # Forward messages for as long as necessary and requested
         while information_round < self.__n_rounds:
@@ -128,7 +133,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report on gossiping status when requested
             for p in rank_set:
                 self.__logger.debug(f"information known to rank {p.get_id()}: "
-                               f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
+                                    f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
 
         # Build reverse lookup of ranks to those aware of them
         for p in rank_set:
@@ -156,8 +161,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Report viewers counts to loaded ranks
         self.__logger.info(f"Completed {self.__n_rounds} information rounds")
         n_v, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
-        self.__logger.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} loaded ranks")
-
+        self.__logger.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} "
+                           f"loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """ Recursively extend search to other objects
@@ -179,7 +184,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         else:
             # Succeed when criterion is satisfied
             return True
-
 
     def transfer_stage(self):
         """ Perform object transfer stage
@@ -204,7 +208,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             if not targets:
                 n_ignored += 1
                 continue
-            self.__logger.debug(f"trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
+            self.__logger.debug(f"Trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
             srt_proc_obj = list(self.__order_strategy(p_src.get_migratable_objects(), p_src.get_id()))
@@ -286,11 +290,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
 
-
     def execute(self, phase: Phase, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance
         """
-
         # Ensure that a phase was properly passed
         if not isinstance(phase, Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
@@ -312,7 +314,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self.__logger.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
-                                f"({100. * n_rejects / n_proposed:.4}%)")
+                                   f"({100. * n_rejects / n_proposed:.4}%)")
             else:
                 self.__logger.info("No transfers were proposed")
 
@@ -387,7 +389,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         self.__logger.debug("sent to:")
                         for k, v in sent:
                             self.__logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
-
 
     @staticmethod
     def arbitrary(objects: set, _):

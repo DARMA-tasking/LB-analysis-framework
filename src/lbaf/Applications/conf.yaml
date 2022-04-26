@@ -56,10 +56,10 @@ algorithm:
     n_iterations: 8
     n_rounds: 4
     fanout: 4
-    order_strategy: small_objects
+    order_strategy: element_id
     criterion: Tempered
     max_objects_per_transfer: 8
-    #deterministic_transfer: True
+#    deterministic_transfer: True
 
 # Specify output
 #logging_level: debug
