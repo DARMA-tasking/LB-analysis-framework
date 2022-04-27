@@ -29,24 +29,24 @@ class TestConfig(unittest.TestCase):
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix='json')
         self.ranks_comm = [
-            {
+            {0: {
                 5: {'sent': [], 'received': [{'from': 0, 'bytes': 2.0}]},
                 0: {'sent': [{'to': 5, 'bytes': 2.0}], 'received': []},
                 4: {'sent': [], 'received': [{'from': 1, 'bytes': 1.0}]},
                 1: {'sent': [{'to': 4, 'bytes': 1.0}], 'received': []},
                 2: {'sent': [], 'received': [{'from': 3, 'bytes': 1.0}]},
                 3: {'sent': [{'to': 2, 'bytes': 1.0}, {'to': 8, 'bytes': 0.5}], 'received': []},
-                8: {'sent': [], 'received': [{'from': 3, 'bytes': 0.5}]}},
-            {
+                8: {'sent': [], 'received': [{'from': 3, 'bytes': 0.5}]}}},
+            {0: {
                 1: {'sent': [], 'received': [{'from': 4, 'bytes': 2.0}]},
                 4: {'sent': [{'to': 1, 'bytes': 2.0}], 'received': []},
                 8: {'sent': [], 'received': [{'from': 5, 'bytes': 2.0}]},
                 5: {'sent': [{'to': 8, 'bytes': 2.0}], 'received': []},
                 6: {'sent': [], 'received': [{'from': 7, 'bytes': 1.0}]},
-                7: {'sent': [{'to': 6, 'bytes': 1.0}], 'received': []}},
-            {
+                7: {'sent': [{'to': 6, 'bytes': 1.0}], 'received': []}}},
+            {0: {
                 6: {'sent': [], 'received': [{'from': 8, 'bytes': 1.5}]},
-                8: {'sent': [{'to': 6, 'bytes': 1.5}], 'received': []}},
+                8: {'sent': [{'to': 6, 'bytes': 1.5}], 'received': []}}},
             {}
         ]
         self.ranks_iter_map = [{0: Rank(i=0, mo={Object(i=3, t=0.5), Object(i=2, t=0.5), Object(i=0, t=1.0),
