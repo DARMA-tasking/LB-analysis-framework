@@ -56,24 +56,24 @@ class TestConfig(unittest.TestCase):
                                {0: Rank(i=2, mo={Object(i=8, t=1.5)}, logger=self.logger)},
                                {0: Rank(i=3, logger=self.logger)}]
 
-    def test_lbs_vt_statistics_reader_initialization(self):
+    def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
         self.assertEqual(self.lr._LoadReader__file_suffix, 'json')
 
-    def test_lbs_vt_statistics_reader_get_node_trace_file_name_001(self):
+    def test_lbs_vt_data_reader_get_node_trace_file_name_001(self):
         file_name = f"{self.lr._LoadReader__file_prefix}.0.{self.lr._LoadReader__file_suffix}"
         self.assertEqual(file_name, self.lr.get_node_trace_file_name(node_id=0))
 
-    def test_lbs_vt_statistics_reader_get_node_trace_file_name_002(self):
+    def test_lbs_vt_data_reader_get_node_trace_file_name_002(self):
         file_name = f"{self.lr._LoadReader__file_prefix}.100.{self.lr._LoadReader__file_suffix}"
         self.assertEqual(file_name, self.lr.get_node_trace_file_name(node_id=100))
 
-    def test_lbs_vt_statistics_reader_get_node_trace_file_name_003(self):
+    def test_lbs_vt_data_reader_get_node_trace_file_name_003(self):
         # Node_id is an in 000 is converted to 0
         file_name = f"{self.lr._LoadReader__file_prefix}.000.{self.lr._LoadReader__file_suffix}"
         self.assertNotEqual(file_name, self.lr.get_node_trace_file_name(node_id=000))
 
-    def test_lbs_vt_statistics_reader_read(self):
+    def test_lbs_vt_data_reader_read(self):
         for phase in range(4):
             rank_iter_map, rank_comm = self.lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
@@ -87,7 +87,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_time_list, gen_time_list)
             self.assertEqual(prep_id_list, gen_id_list)
 
-    def test_lbs_vt_statistics_reader_read_compressed(self):
+    def test_lbs_vt_data_reader_read_compressed(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
         lr = LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix='json')
         for phase in range(4):
@@ -103,12 +103,12 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_time_list, gen_time_list)
             self.assertEqual(prep_id_list, gen_id_list)
 
-    def test_lbs_vt_statistics_reader_read_file_not_found(self):
+    def test_lbs_vt_data_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
             LoadReader(file_prefix=f"{self.file_prefix}xd", logger=self.logger, file_suffix='json').read(0, 0)
         self.assertEqual(err.exception.args[0], f"File {self.file_prefix}xd.0.json not found!")
 
-    def test_lbs_vt_statistics_reader_read_wrong_schema(self):
+    def test_lbs_vt_data_reader_read_wrong_schema(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'data')
         with self.assertRaises(SchemaError) as err:
             LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix='json').read(0, 0)
@@ -116,7 +116,7 @@ class TestConfig(unittest.TestCase):
             err_msg = se.read()
         self.assertEqual(err.exception.args[0], err_msg)
 
-    def test_lbs_vt_statistics_reader_json_reader(self):
+    def test_lbs_vt_data_reader_json_reader(self):
         for phase in range(4):
             file_name = self.lr.get_node_trace_file_name(phase)
             rank_iter_map, rank_comm = self.lr.json_reader(returned_dict={}, file_name=file_name, phase_ids=0,
