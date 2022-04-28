@@ -4,6 +4,7 @@ import sys
 import logging
 import math
 import yaml
+
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     sys.path.append(project_path)
@@ -29,29 +30,7 @@ class internalParameters:
     """A class to describe LBAF internal parameters
     """
 
-    __allowed_config_keys = [
-        "algorithm",
-        "brute_force_optimization",
-        "communication_degree",
-        "exodus",
-        "file_suffix",
-        "generate_multimedia",
-        "data_stem",
-        "logging_level",
-        "output_dir",
-        "output_file_stem",
-        "n_mapped_ranks",
-        "n_objects",
-        "phase_id",
-        "terminal_background",
-        "time_sampler",
-        "volume_sampler",
-        "work_model",
-        "x_procs",
-        "y_procs",
-        "z_procs"]
-
-    def __init__(self, config_file: str = ''):
+    def __init__(self, config_file: str):
         # Starting logger
         self.logger = logger()
 
@@ -59,10 +38,58 @@ class internalParameters:
         sv = sys.version_info
         self.logger.info(f"Executing with Python {sv.major}.{sv.minor}.{sv.micro}")
 
+        self.__allowed_config_keys = [
+            "algorithm",
+            "brute_force_optimization",
+            "communication_degree",
+            "exodus",
+            "file_suffix",
+            "generate_multimedia",
+            "data_stem",
+            "logging_level",
+            "output_dir",
+            "output_file_stem",
+            "n_mapped_ranks",
+            "n_objects",
+            "phase_id",
+            "terminal_background",
+            "time_sampler",
+            "volume_sampler",
+            "work_model",
+            "x_procs",
+            "y_procs",
+            "z_procs"]
+
+        # Initializing instance variables
+        self.algorithm = None
+        self.brute_force_optimization = None
+        self.communication_degree = None
+        self.exodus = None
+        self.file_suffix = None
+        self.generate_multimedia = None
+        self.grid_size = None
+        self.data_stem = None
+        self.logging_level = None
+        self.output_dir = None
+        self.output_file_stem = None
+        self.n_mapped_ranks = None
+        self.n_objects = None
+        self.phase_id = None
+        self.terminal_background = None
+        self.time_sampler = None
+        self.time_sampler_type = None
+        self.time_sampler_parameters = None
+        self.volume_sampler = None
+        self.volume_sampler_type = None
+        self.volume_sampler_parameters = None
+        self.work_model = None
+        self.x_procs = None
+        self.y_procs = None
+        self.z_procs = None
+
         # Read configuration values from file
         self.configuration_file_found = False
-        self.configuration = self.get_configuration_file(
-            conf_file=config_file) if config_file else self.get_configuration_file()
+        self.configuration = self.get_configuration_file(conf_file=config_file)
         if self.configuration_file_found:
             self.parse_conf_file()
         self.checks_after_init()
@@ -70,7 +97,6 @@ class internalParameters:
     def get_configuration_file(self, conf_file: str):
         """ Check extension, read YML file and return parsed YAML configuration file
         """
-
         if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
             # Try to open configuration file
             self.logger.info(f"Found configuration file {conf_file}")
@@ -90,40 +116,34 @@ class internalParameters:
     def checks_after_init(self):
         """ Checks after initialization.
         """
-
         # Ensure that an algorithm was chosen
-        if (not (algo := self.__dict__.get("algorithm")) or
-            not algo.get("name") or not algo.get("parameters")):
+        if not (algo := self.algorithm) or not algo.get("name") or not algo.get("parameters"):
             self.logger.error("An algorithm name and its parameters must be defined")
             sys.exit(1)
 
         # Ensure that a work model algorithm was chosen
-        if (not (wm := self.__dict__.get("work_model")) or
-            not wm.get("name")):
+        if not (wm := self.work_model) or not wm.get("name"):
             self.logger.error("A work model name must be defined")
             sys.exit(1)
-            
+
         # Ensure that exactly one population strategy was chosen
-        if (not ("data_stem" in self.__dict__ or
-                 ("time_sampler" in self.__dict__ and "volume_sampler"  in self.__dict__))
-            or ("data_stem" in self.__dict__ and
-                ("time_sampler" in self.__dict__ or "volume_sampler" in self.__dict__))):
+        # Make sure that when populate from sampling both time_sampler and volume_sampler are defined
+        # Both data and sampling are set
+        both_on = self.data_stem is not None and bool(self.time_sampler is not None or self.volume_sampler is not None)
+        # Both data and sampling are not set
+        both_off = self.data_stem is None and bool(self.time_sampler is None or self.volume_sampler is None)
+
+        if both_on or both_off:
             self.logger.error("Exactly one strategy to populate phase must be chosen: either log file or sampler types")
             sys.exit(1)
 
-        # Case when phases are populated from samplers not from log file
-        if (data_stem := self.__dict__.get("data_stem")):
+        # Case when phases are populated from data file
+        if self.data_stem is not None:
             # Checking if log dir exists, if not, checking if dir exists in project path
-            if os.path.isdir(os.path.abspath(os.path.split(data_stem)[0])):
+            if os.path.isdir(os.path.abspath(os.path.split(self.data_stem)[0])):
                 self.data_stem = os.path.abspath(self.data_stem)
-            elif os.path.isdir(os.path.join(project_path, os.path.split(self.data_stem)[0])):
-                self.data_stem = os.path.join(project_path, self.data_stem)
-            else:
-                self.logger.error(f"Data file stem not found: {self.data_stem} ")
-                sys.exit(1)
-            self.logger.info(f"Data stem found: {self.data_stem}")
-        else:
-            self.data_stem = None
+            elif os.path.isdir(os.path.abspath(os.path.join(project_path, os.path.split(self.data_stem)[0]))):
+                self.data_stem = os.path.abspath(os.path.join(project_path, self.data_stem))
 
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
@@ -133,11 +153,13 @@ class internalParameters:
     def parse_conf_file(self):
         """ Execute when YAML configuration file was found and checked
         """
-
         # Assign parameters found in configuration file
         for param_key, param_val in self.configuration.items():
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
+
+        self.generate_multimedia = None if not self.generate_multimedia else self.generate_multimedia
+        self.brute_force_optimization = None if not self.brute_force_optimization else self.brute_force_optimization
 
         # Set number of ranks in each direction for ExodusII output
         self.grid_size = []
@@ -151,28 +173,29 @@ class internalParameters:
 
         # Set sampling parameters for random inputs
         if isinstance(self.configuration.get("time_sampler_type", None), str):
-            self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(self.configuration["time_sampler_type"])
+            self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(
+                self.configuration["time_sampler_type"])
         if isinstance(self.configuration.get("volume_sampler_type", None), str):
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.configuration["volume_sampler_type"])
 
         # Set logging level
-        ll = self.__dict__.get("logging_level", "info").lower() 
+        ll = self.logging_level or "info"
         logging_level = {
             "info": logging.INFO,
             "debug": logging.DEBUG,
             "error": logging.ERROR,
             "warning": logging.WARNING}
-        self.logger.level = logging_level.get(ll)
-        self.logger.info(f"Logging level: {ll}")
+        self.logger.level = logging_level.get(ll.lower())
+        self.logger.info(f"Logging level: {ll.lower()}")
 
         # Set output directory, local by default
-        self.output_dir = os.path.abspath(self.__dict__.get("output_dir", '.'))
+        self.output_dir = os.path.abspath(self.output_dir or '.')
         self.logger.info(f"Output directory: {self.output_dir}")
 
     def parse_sampler(self, cmd_str):
-        """Parse command line arguments specifying sampler type and input parameters
-           Example: lognormal,1.0,10.0
+        """ Parse command line arguments specifying sampler type and input parameters
+            Example: lognormal,1.0,10.0
         """
 
         # Default return values
@@ -254,35 +277,37 @@ class LBAFApp:
         initialize()
 
         # Create a phase and populate it
-        phase = Phase(0, self.logger, self.params.__dict__.get("file_suffix", "json"))
+        if self.params.file_suffix is not None:
+            phase = Phase(0, self.logger, self.params.file_suffix)
+        else:
+            phase = Phase(0, self.logger)
         if self.params.data_stem:
             # Try to populate phase from log files and store number of objects
-            phase_id = self.params.__dict__.get("phase_id", -1)
-            if not isinstance(phase_id, int) or phase_id < 0:
-                self.logger.error(f"A valid phase ID is required to populate from VT log file: {phase_id}")
+            if not isinstance(self.params.phase_id, int) or self.params.phase_id < 0:
+                self.logger.error(f"A valid phase ID is required to populate from VT log file: {self.params.phase_id}")
                 sys.exit(1)
-            n_objects = phase.populate_from_log(n_ranks, phase_id, self.params.data_stem)
+            self.params.n_objects = phase.populate_from_log(n_ranks, self.params.phase_id, self.params.data_stem)
         else:
             # Try to populate phase pseudo-randomly
-            if (not (n_objects := self.params.__dict__.get("n_objects"))
-                or not isinstance(n_objects, int) or n_objects < 1):
-                self.logger.error(f"A valid number of objects is required: {n_objects}")
+            if self.params.n_objects is None or not isinstance(self.params.n_objects, int) or self.params.n_objects < 1:
+                self.logger.error(f"A valid number of objects is required: {self.params.n_objects}")
                 sys.exit(1)
-            if (not (c_d := self.params.__dict__.get("communication_degree"))
-                or not isinstance(c_d, int) or c_d < 0):
-                self.logger.error(f"A valid communication degree is required: {c_d}")
+            if self.params.communication_degree is None or not isinstance(self.params.communication_degree, int) \
+                    or self.params.communication_degree < 0:
+                self.logger.error(f"A valid communication degree is required: {self.params.communication_degree}")
                 sys.exit(1)
-            if (not (t_s := self.params.__dict__.get("time_sampler")) or
-                not t_s.get("name") or not t_s.get("parameters")):
+            if self.params.time_sampler is None or self.params.time_sampler.get("name") is None \
+                    or self.params.time_sampler.get("parameters") is None:
                 self.logger.error("A time sampler name and its parameters must be defined")
                 sys.exit(1)
-            if (not (v_s := self.params.__dict__.get("volume_sampler")) or
-                not v_s.get("name") or not v_s.get("parameters")):
+            if self.params.volume_sampler is None or self.params.volume_sampler.get("name") is None \
+                    or self.params.volume_sampler.get("parameters") is None:
                 self.logger.error("A volume sampler name and its parameters must be defined")
                 sys.exit(1)
-            phase.populate_from_samplers(
-                n_ranks, n_objects, t_s, v_s, c_d,
-                self.params.__dict__.get("n_mapped_ranks", 0))
+            self.params.n_mapped_ranks = 0 if self.params.n_mapped_ranks is None else self.params.n_mapped_ranks
+            phase.populate_from_samplers(n_ranks, self.params.n_objects, self.params.time_sampler,
+                                         self.params.volume_sampler, self.params.communication_degree,
+                                         self.params.n_mapped_ranks)
 
         # Compute and print initial rank load and edge volume statistics
         print_function_statistics(
@@ -297,7 +322,7 @@ class LBAFApp:
             logger=self.logger)
 
         # Perform brute force optimization when needed
-        if "brute_force_optimization" in self.params.__dict__ and self.params.brute_force_optimization and self.params.algorithm["name"] != "BruteForce":
+        if self.params.brute_force_optimization is not None and self.params.algorithm["name"] != "BruteForce":
             # Prepare input data for rank order enumerator
             self.logger.info(f"Starting brute force optimization")
             objects = []
@@ -345,13 +370,10 @@ class LBAFApp:
         # Create mapping from rank to Cartesian grid
         pgs = self.params.grid_size
         self.logger.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
-        grid_map = lambda x: global_id_to_cartesian(
-            x.get_id(),
-            self.params.grid_size)
+        grid_map = lambda x: global_id_to_cartesian(x.get_id(), self.params.grid_size)
 
         # Try to output file name stem
-        if not (output_file_stem :=
-                self.params.__dict__.get("output_file_stem")):
+        if self.params.output_file_stem is None:
             self.logger.error("An output file stem must be provided")
             sys.exit(1)
 
@@ -359,30 +381,28 @@ class LBAFApp:
         if self.params.data_stem:
             vt_writer = VTDataWriter(
                 phase,
-                output_file_stem,
+                self.params.output_file_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)
             vt_writer.write()
 
         # If prefix parsed from command line
-        if self.params.__dict__.get("exodus"):
+        if self.params.exodus:
             # Instantiate phase to ExodusII file writer if requested
             ex_writer = WriterExodusII(
                 phase,
                 grid_map,
-                output_file_stem,
+                self.params.output_file_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)
             ex_writer.write(rt.distributions, rt.statistics)
 
         # Create a viewer if paraview is available
-        file_name = output_file_stem
-        if self.params.__dict__.get("generate_multimedia"):
+        file_name = self.params.output_file_stem
+        if self.params.generate_multimedia is not None:
             from ParaviewViewerBase import ParaviewViewerBase
             if self.params.output_dir is not None:
-                file_name = os.path.join(
-                    self.params.output_dir,
-                    file_name)
+                file_name = os.path.join(self.params.output_dir, file_name)
                 output_file_stem = file_name
                 viewer = ParaviewViewerBase.factory(
                     exodus=output_file_stem,
@@ -409,11 +429,11 @@ class LBAFApp:
             logger=self.logger)
 
         # Report on theoretically optimal statistics
-        q, r = divmod(n_objects, n_ranks)
-        ell = n_ranks * l_ave / n_objects
-        self.logger.info(f"Optimal load statistics for {n_objects} objects with iso-time: {ell:.6g}")
+        q, r = divmod(self.params.n_objects, n_ranks)
+        ell = n_ranks * l_ave / self.params.n_objects
+        self.logger.info(f"Optimal load statistics for {self.params.n_objects} objects with iso-time: {ell:.6g}")
         self.logger.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-        imbalance = (n_ranks - r) / float(n_objects) if r else 0.
+        imbalance = (n_ranks - r) / float(self.params.n_objects) if r else 0.
         self.logger.info(
             f"\tstandard deviation: {ell * math.sqrt(r * (n_ranks - r)) / n_ranks:.6g}  imbalance: {imbalance:.6g}")
 

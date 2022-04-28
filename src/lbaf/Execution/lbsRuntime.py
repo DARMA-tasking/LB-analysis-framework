@@ -1,5 +1,4 @@
 import sys
-import math
 from logging import Logger
 
 from ..Model.lbsPhase import Phase
@@ -12,12 +11,7 @@ class Runtime:
     """ A class to handle the execution of the LBS
     """
 
-    def __init__(
-        self, phase: Phase,
-        work_model: dict,
-        algorithm: dict,
-        arrangements: list,
-        logger: Logger):
+    def __init__(self, phase: Phase, work_model: dict, algorithm: dict, arrangements: list, logger: Logger):
         """ Class constructor:
             phase: phase instance
             work_model: dictionary with work model name and optional parameters
@@ -66,7 +60,8 @@ class Runtime:
         self.statistics = {"average load": l_ave}
 
         # Compute load, volume and work statistics
-        self.__logger.info(f"Instantiated with {len(arrangements)} optimal arrangements for Hamming distance comparison")
+        self.__logger.info(f"Instantiated with {len(arrangements)} optimal arrangements for Hamming distance "
+                           f"comparison")
         print_function_statistics(
             self.__phase.get_ranks(),
             lambda x: self.__work_model.compute(x),
@@ -74,11 +69,8 @@ class Runtime:
             logger=self.__logger)
 
         # Compute initial arrangement
-        arrangement = tuple(
-            v for _, v in sorted({
-                o.get_id(): p.get_id()
-                for p in self.__phase.get_ranks() for o in p.get_objects()
-                }.items()))
+        arrangement = tuple(v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks()
+                                                  for o in p.get_objects()}.items()))
         self.__logger.debug(f"Iteration 0 arrangement: {arrangement}")
 
         # Report minimum Hamming distance when minimax optimum is available
@@ -87,11 +79,9 @@ class Runtime:
             self.statistics["minimum Hamming distance to optimum"] = [hd_min]
             self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
 
-
     def execute(self):
         """ Launch runtime execution
         """
-
         # Execute balancing algorithm
         self.__logger.info(f"Executing {type(self.__algorithm).__name__}")
         self.__algorithm.execute(

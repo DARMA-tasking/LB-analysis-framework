@@ -51,8 +51,7 @@ class LoadReader:
         file_name = self.get_node_trace_file_name(node_id)
         self.__logger.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
-            self.__logger.error(f"File {file_name} does not exist.")
-            sys.exit(1)
+            raise FileNotFoundError(f"File {file_name} not found!")
 
         # Retrieve communications from JSON reader
         iter_map = {}

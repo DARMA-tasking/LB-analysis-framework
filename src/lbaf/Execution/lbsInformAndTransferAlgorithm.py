@@ -75,7 +75,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__deterministic_transfer = parameters.get("deterministic_transfer", False)
         self.__max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf) 
 
-
     def information_stage(self):
         """ Execute information stage
         """

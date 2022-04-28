@@ -22,7 +22,8 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        self.__logger.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
+        self.__logger.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, "
+                           f"gamma={self.__gamma}")
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication

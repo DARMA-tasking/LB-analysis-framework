@@ -134,8 +134,7 @@ class Phase:
         """
 
         # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = sampler(
-            t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
+        time_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
 
         # Create n_objects objects with uniformly distributed times in given range
         self.__logger.info(f"Creating {n_objects} objects with times sampled from {sampler_name}")

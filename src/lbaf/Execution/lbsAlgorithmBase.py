@@ -52,7 +52,6 @@ class AlgorithmBase:
             LGR.error(f"Could not create an algorithm with name {algorithm_name}")
             sys.exit(1)
 
-
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """ Compute and update run distributions and statistics
         """
@@ -89,7 +88,6 @@ class AlgorithmBase:
         statistics.setdefault("total work", []).append(n_w * w_ave)
         statistics.setdefault("work variance", []).append(w_var)
 
-
     def report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode
         """
@@ -110,8 +108,6 @@ class AlgorithmBase:
                         logger.debug("sent to:")
                         for k, v in sent:
                             logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
-
-
 
     @abc.abstractmethod
     def execute(self, phase, distributions, statistics, a_min_max):

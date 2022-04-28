@@ -1,15 +1,11 @@
 import sys
 import math
-import random
 import itertools
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
-from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..Model.lbsWorkModelBase import WorkModelBase
-from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample
 
 
 class BruteForceAlgorithm(AlgorithmBase):
@@ -66,7 +62,6 @@ class BruteForceAlgorithm(AlgorithmBase):
 
         # Return arrangement works
         return works
-
 
     def execute(self, phase: Phase, distributions: dict, statistics: dict, _):
         """ Execute brute force optimization algorithm on Phase instance
@@ -173,7 +168,6 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Report final mapping in debug mode
         self.report_final_mapping(self.__logger)
 
-
     @staticmethod
     def arbitrary(objects: set, _):
         """ Default: objects are passed as they are stored
@@ -222,4 +216,3 @@ class BruteForceAlgorithm(AlgorithmBase):
 
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)
-

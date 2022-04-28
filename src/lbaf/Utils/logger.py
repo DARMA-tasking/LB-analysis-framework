@@ -34,16 +34,12 @@ def logger(name: str = "root"):
 
     # Assign formatting properties
     clr_fnc = black if conf.get("terminal_background") == "light" else light_white
-    FORMATER_EXTENDED = {
-        logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] "
-                              ) + clr_fnc("msg:[%(message)s]"),
-        logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] "
-                            ) + clr_fnc("msg:[%(message)s]"),
-        logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] "
-                              ) + clr_fnc("msg:[%(message)s]"),
-        logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] "
-                           ) + clr_fnc("msg:[%(message)s]")}
-    FORMATER_PPP = {
+    formater_extended = {
+        logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
+        logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
+        logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
+        logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]")}
+    formater_PPP = {
         logging.DEBUG: yellow("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.INFO: green("[%(module)s] ") + clr_fnc("%(message)s"),
         logging.WARNING: cyan("[%(module)s] ") + clr_fnc("%(message)s"),
@@ -56,7 +52,7 @@ def logger(name: str = "root"):
     if not lgr.hasHandlers():
         ch = logging.StreamHandler()
         ch.setLevel(LOGGING_LEVEL.get(ll))
-        ch.setFormatter(CustomFormatter(frmttr=FORMATER_PPP))
+        ch.setFormatter(CustomFormatter(frmttr=formater_PPP))
         lgr.addHandler(ch)
 
     # Return logger
