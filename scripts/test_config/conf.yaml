@@ -1,5 +1,5 @@
 # Specify input
-log_file: "../data/synthetic_lb_data/data"
+data_stem: "../data/synthetic_lb_data/data"
 phase_id: 0
 file_suffix: json
 
