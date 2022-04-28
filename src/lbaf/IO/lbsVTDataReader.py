@@ -89,15 +89,16 @@ class LoadReader:
                 sys.exit(1)
 
             # Merge rank communication with existing ones
-            for k, v in rank_comm.items():
-                if k in communications:
-                    c = communications[k]
-                    c.get("sent").extend(v.get("sent"))
-                    c.get("received").extend(v.get("received"))
-                else:
-                    communications[k] = v
+            if rank_comm.get(phase_id) is not None:
+                for k, v in rank_comm[phase_id].items():
+                    if k in communications:
+                        c = communications[k]
+                        c.get("sent").extend(v.get("sent"))
+                        c.get("received").extend(v.get("received"))
+                    else:
+                        communications[k] = v
 
-        # Build dictionnary of rank objects
+        # Build dictionary of rank objects
         rank_objects_set = set()
         for rank in rank_list:
             rank_objects_set.update(rank.get_objects())
@@ -152,15 +153,11 @@ class LoadReader:
             phase_id = phase["id"]
 
             # Create communicator dictionary
-            comm_dict = {}
-
-            # Temporary communication list to avoid duplicates
-            temp_comm = []
+            comm_dict[phase_id] = {}
 
             # Add communications to the object
             communications = phase.get("communications")
-            if communications and communications not in temp_comm:
-                temp_comm.append(communications)
+            if communications:
                 for num, comm in enumerate(communications):
                     # Retrieve communication attributes
                     c_type = comm.get("type")
@@ -174,21 +171,16 @@ class LoadReader:
                         if c_to.get("type") == "object" and c_from.get("type") == "object":
                             # Create receiver if it does not exist
                             receiver_obj_id = c_to.get("id")
-                            comm_dict.setdefault(
-                                receiver_obj_id,
-                                {"sent": [], "received": []})
+                            comm_dict[phase_id].setdefault(receiver_obj_id, {"sent": [], "received": []})
 
                             # Create sender if it does not exist
                             sender_obj_id = c_from.get("id")
-                            comm_dict.setdefault(
-                                sender_obj_id,
-                                {"sent": [], "received": []})
+                            comm_dict[phase_id].setdefault(sender_obj_id, {"sent": [], "received": []})
 
                             # Create communication edges
-                            comm_dict[receiver_obj_id]["received"].append(
-                                {"from": c_from.get("id"), "bytes": c_bytes})
-                            comm_dict[sender_obj_id]["sent"].append(
-                                {"to": c_to.get("id"), "bytes": c_bytes})
+                            comm_dict[phase_id][receiver_obj_id]["received"].append({"from": c_from.get("id"),
+                                                                                     "bytes": c_bytes})
+                            comm_dict[phase_id][sender_obj_id]["sent"].append({"to": c_to.get("id"), "bytes": c_bytes})
                             self.__logger.debug(f"Added communication {num} to phase {phase_id}")
                             for k, v in comm.items():
                                 self.__logger.debug(f"{k}: {v}")
