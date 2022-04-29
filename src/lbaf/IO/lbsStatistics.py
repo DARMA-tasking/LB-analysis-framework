@@ -11,12 +11,12 @@ def initialize():
     random.seed(820)
 
 
-def error_out(distribution_name, parameters, logger: Logger = None):
+def error_out(distribution_name, parameters, logger: Logger):
     logger.error(f"not enough parameters in {parameters} for {distribution_name} distribution.")
     return None
 
 
-def sampler(distribution_name, parameters, logger: Logger = None):
+def sampler(distribution_name, parameters, logger: Logger):
     """ Return a pseudo-random number generator based of requested type
     """
 

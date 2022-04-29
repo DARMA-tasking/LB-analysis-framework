@@ -20,6 +20,7 @@ from lbaf.Utils.logger import logger
 def get_objects(n_ranks: int, lgr: Logger, file_prefix: str, file_suffix: str) -> tuple:
     """ Read data from configuration and returns a tuple of objects with communication
     """
+
     # Instantiate data containers
     objects = []
     communication = {}
@@ -59,12 +60,14 @@ def get_objects(n_ranks: int, lgr: Logger, file_prefix: str, file_suffix: str) -
 def compute_load(objects: tuple, rank_object_ids: list) -> float:
     """ Return a load as a sum of all object times
     """
+
     return sum([objects[i].get("time") for i in rank_object_ids])
 
 
 def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
     """ Return a volume of rank objects
     """
+
     # Initialize volume
     volume = 0.
 
@@ -79,6 +82,7 @@ def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> flo
 def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
     """ Return a dictionary with works of rank objects
     """
+
     # Build object rank map from arrangement
     ranks = {}
     for i, j in enumerate(arrangement):
@@ -106,6 +110,7 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
                                             max_objects: int = None):
     """ Compute arrangements reachable by moving up to a maximum number of objects from one rank to another
     """
+
     # Sanity checks regarding rank IDs
     if from_id >= n_ranks:
         LGR.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
@@ -148,6 +153,7 @@ def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha
                                        w_max: float, n_ranks: int, max_objects: int = None):
     """ Compute all arrangements reachable by moving up to a maximum number of objects
     """
+
     # Storage for all reachable arrangements with their maximum work
     reachable = {}
 
@@ -170,6 +176,7 @@ def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha
 def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int):
     """ Compute all possible arrangements with repetition and minimax work
     """
+
     # Initialize quantities of interest
     n_arrangements = 0
     works_min_max = math.inf
@@ -198,6 +205,7 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
                                     max_objects: int = None):
     """ Recursively compute all possible transitions to reachable arrangements from initial one
     """
+
     # Sanity checks regarding current arrangement
     w_a = visited.get(arrangement, -1.)
     if w_a < 0.:
@@ -254,7 +262,7 @@ if __name__ == '__main__':
             conf = yaml.safe_load(conf_file)
         return conf
 
-    # Getting configuration
+    # Retrieve configuration
     CONF = get_conf()
 
     # Define number of ranks
