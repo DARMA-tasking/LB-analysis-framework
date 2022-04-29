@@ -9,30 +9,17 @@ class TemperedCriterion(CriterionBase):
     """ A concrete class for the Grapevine criterion modified in line 6
     """
 
-    def __init__(self, work_model, parameters: dict = None, lgr: Logger = None):
+    def __init__(self, work_model, lgr: Logger):
         """ Class constructor
-            work_model: WorkModel instante
-            parameters: optional parameters dictionary
+            work_model: WorkModelBase instance
         """
 
         # Call superclass init
-        super(TemperedCriterion, self).__init__(work_model, parameters)
+        super().__init__(work_model)
 
         # Assign logger to instance variable
         self.__logger = lgr
-        self.__logger.info("Instantiated concrete criterion")
-
-        # Determine how destination load is to be computed
-        def get_dst_load_know_by_src(p_src, p_dst):
-            return p_src.get_known_loads()[p_dst]
-
-        def get_actual_dst_load(_, p_dst):
-            return p_dst.get_load()
-
-        # Retrieve relevant parameter when available
-        # TODO: self.dst_load is not used anywhere
-        self.dst_load = get_dst_load_know_by_src if not (parameters and parameters.get("actual_destination_load")) \
-            else get_actual_dst_load
+        self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
     def compute(self, objects: list, p_src: Rank, p_dst: Rank) -> float:
         """ Tempered work criterion based on L1 norm of works

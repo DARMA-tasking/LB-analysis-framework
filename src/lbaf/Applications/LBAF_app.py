@@ -33,8 +33,8 @@ class internalParameters:
         # By default, use load-only work model
         self.work_model = {"name": "LoadOnly", "parameters": {}}
 
-        # By default, use tempered criterion
-        self.criterion = {"name": "Tempered", "parameters": {}}
+        # By default, use inform and transfer algorithm
+        self.algorithm = {"name": "InformAndTransfer", "parameters": {}}
 
         # Decide whether transfer must be deterministic
         self.deterministic_transfer = False
@@ -191,10 +191,6 @@ class internalParameters:
             self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
                 self.conf["volume_sampler_type"])
 
-        # Set object ranking strategy
-        if isinstance(self.conf.get("order_strategy", None), str):
-            self.order_strategy = self.conf.get("order_strategy", None)
-
         # Set logging level
         logging_level = {
             "info": logging.INFO,
@@ -282,10 +278,9 @@ def get_output_file_stem(params, n_ranks):
             params.fanout)
 
     # Return assembled stem
-    return "LBAF-n{}-{}-{}-{}".format(
+    return "LBAF-n{}-{}-{}".format(
         n_ranks,
         output_stem,
-        params.criterion["name"],
         "-".join([str(v).replace(".", "_") for v in params.criterion["parameters"].values()]))
 
 
@@ -380,8 +375,8 @@ class LBAFApp:
             alpha = self.params.work_model.get("parameters").get("alpha")
             beta = self.params.work_model.get("parameters").get("beta")
             gamma = self.params.work_model.get("parameters").get("gamma")
-            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha=alpha, beta=beta, gamma=gamma,
-                                                                          n_ranks=n_ranks)
+            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
+                objects, alpha, beta, gamma, n_ranks)
             if n_a != n_ranks ** len(objects):
                 self.logger.error("Incorrect number of possible arrangements with repetition")
                 sys.exit(1)
@@ -390,25 +385,15 @@ class LBAFApp:
             self.logger.info("No brute force optimization performed")
             a_min_max = []
 
-        # Instantiate runtime
+        # Instantiate and execute runtime
         rt = Runtime(
             phase,
             self.params.work_model,
-            self.params.criterion,
-            self.params.order_strategy,
+            self.params.algorithm,
             a_min_max,
-            self.params.brute_force_optimization,
             self.logger)
         self.logger.info(f"Instantiated runtime with {self.params.order_strategy} object ordering strategy")
-
-        # Execute runtime iterations when requested
-        if self.params.n_iterations:
-            rt.execute(
-                self.params.n_iterations,
-                self.params.n_rounds,
-                self.params.fanout,
-                self.params.max_objects_per_transfer,
-                self.params.deterministic_transfer)
+        rt.execute()
 
         # Create mapping from rank to Cartesian grid
         pgs = self.params.grid_size
@@ -441,11 +426,7 @@ class LBAFApp:
                 output_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)
-            ex_writer.write(
-                rt.statistics,
-                rt.load_distributions,
-                rt.sent_distributions,
-                rt.work_distributions)
+            ex_writer.write(rt.distributions, rt.statistics)
 
         # Create a viewer if paraview is available
         file_name = output_stem
