@@ -4,7 +4,7 @@ from .lbsObjectCommunicator import ObjectCommunicator
 class Object:
     """ A class representing an object with time and communicator
     """
-    def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None):
+    def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None):
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
             raise TypeError(f"i: {i} is type of {type(i)}! Must be <class 'int'>!")
@@ -28,6 +28,12 @@ class Object:
             self.__communicator = c
         else:
             raise TypeError(f"c: {c} is type of {type(c)}! Must be <class 'ObjectCommunicator'>!")
+
+        # User defined fields
+        if isinstance(user_defined, dict) or user_defined is None:
+            self.__user_defined = user_defined
+        else:
+            raise TypeError(f"user_defined: {user_defined} is type of {type(user_defined)}! Must be <class 'dict'>!")
 
     def __repr__(self):
         return f"Object id: {self.__index}, time: {self.__time}"

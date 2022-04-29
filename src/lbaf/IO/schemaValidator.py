@@ -36,11 +36,7 @@ class SchemaValidator:
                                     }
                                 ],
                                 'time': float,
-                                Optional('user_defined'): {
-                                    'block_bytes': float,
-                                    'block_id': int,
-                                    'task_bytes': float
-                                }
+                                Optional('user_defined'): dict
                             },
                         ],
                         Optional('communications'): [
