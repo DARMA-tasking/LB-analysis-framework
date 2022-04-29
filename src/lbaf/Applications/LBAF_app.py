@@ -16,6 +16,7 @@ try:
 except:
     pass
 
+from lbaf import __version__
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
@@ -35,6 +36,7 @@ class internalParameters:
         self.logger = logger()
 
         # Print startup information
+        self.logger.info(f"Executing LBAF version {__version__}")
         sv = sys.version_info
         self.logger.info(f"Executing with Python {sv.major}.{sv.minor}.{sv.micro}")
 
