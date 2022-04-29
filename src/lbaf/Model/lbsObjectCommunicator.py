@@ -37,7 +37,7 @@ class ObjectCommunicator:
             volumes.append(v)
 
             # Report current communication item if requested
-            self.__logger.info(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
+            self.__logger.debug(f'{"->" if direction == "to" else "<-"} object {k.get_id()}: {v}')
 
         # Return list of volumes
         return volumes

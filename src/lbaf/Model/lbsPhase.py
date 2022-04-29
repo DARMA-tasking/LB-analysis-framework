@@ -1,7 +1,6 @@
 from logging import Logger
 import random as rnd
 import sys
-import time
 
 from .lbsObject import Object
 from .lbsRank import Rank
@@ -15,7 +14,7 @@ class Phase:
     """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, t: int = 0, logger: Logger = None, file_suffix="vom"):
+    def __init__(self, t: int = 0, logger: Logger = None, file_suffix="json"):
         # Initialize empty list of ranks
         self.__ranks = []
 
@@ -35,21 +34,25 @@ class Phase:
     def get_ranks(self):
         """ Retrieve ranks belonging to phase
         """
+
         return self.__ranks
 
     def get_ranks_ids(self):
         """ Retrieve IDs of ranks belonging to phase
         """
+
         return [p.get_id() for p in self.__ranks]
 
     def get_phase_id(self):
         """ Retrieve the time-step/phase for this phase
         """
+
         return self.__phase_id
 
     def compute_edges(self):
         """ Compute and return map of communication link IDs to volumes
         """
+
         # Compute or re-compute edges from scratch
         self.__logger.debug("Computing inter-process communication edges")
         self.__edges.clear()
@@ -112,6 +115,7 @@ class Phase:
     def get_edges(self):
         """ Retrieve edges belonging to phase
         """
+
         # Force recompute if edges cache is not current
         if not self.__cached_edges:
             self.compute_edges()
@@ -122,17 +126,19 @@ class Phase:
     def invalidate_edge_cache(self):
         """ Mark cached edges as no longer current
         """
+
         self.__cached_edges = False
 
-    def populate_from_samplers(self, n_o, ts, ts_params, c_degree, cs, cs_params, n_p, s_s=0):
+    def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n procs in a phase
         """
-        # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = sampler(ts, ts_params, logger=self.__logger)
 
-        # Create n_o objects with uniformly distributed times in given range
-        self.__logger.info(f"Creating {n_o} objects with times sampled from {sampler_name}")
-        objects = set([Object(i, time_sampler()) for i in range(n_o)])
+        # Retrieve desired time sampler with its theoretical average
+        time_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
+
+        # Create n_objects objects with uniformly distributed times in given range
+        self.__logger.info(f"Creating {n_objects} objects with times sampled from {sampler_name}")
+        objects = set([Object(i, time_sampler()) for i in range(n_objects)])
 
         # Compute and report object time statistics
         print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
@@ -140,19 +146,18 @@ class Phase:
         # Decide whether communications must be created
         if c_degree > 0:
             # Instantiate communication samplers with requested properties
-            volume_sampler, volume_sampler_name = sampler(cs, cs_params, logger=self.__logger)
+            volume_sampler, volume_sampler_name = sampler(
+                v_sampler.get("name"), v_sampler.get("parameters"), self.__logger)
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
             degree_sampler, degree_sampler_name = sampler(
-                "binomial", [min(n_o - 1, int(c_degree / p_b)), p_b],
-                logger=self.__logger)
-            self.__logger.info(
-                f"Creating communications with: \nvolumes sampled from {volume_sampler_name}\n"
-                f"out-degrees sampled from {degree_sampler_name}")
+                "binomial", [min(n_objects - 1, int(c_degree / p_b)), p_b], self.__logger)
+            self.__logger.info("Creating communications with:")
+            self.__logger.info(f"\tvolumes sampled from {volume_sampler_name}")
+            self.__logger.info(f"\tout-degrees sampled from {degree_sampler_name}")
 
             # Create communicator for each object with only sent communications
-            start = time.time()
             for obj in objects:
                 # Create object communicator with outgoing messages
                 obj.set_communicator(ObjectCommunicator(
@@ -161,7 +166,6 @@ class Phase:
                     s={o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
                     logger=self.__logger
                 ))
-            self.__logger.info(f"generated in {time.time() - start:.6g} seconds")
 
             # Create symmetric received communications
             for obj in objects:
@@ -193,22 +197,22 @@ class Phase:
         # Compute and report communication volume statistics
         print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.__logger)
 
-        # Create n_p ranks
-        self.__ranks = [Rank(i, logger=self.__logger) for i in range(n_p)]
+        # Create n_ranks ranks
+        self.__ranks = [Rank(i, logger=self.__logger) for i in range(n_ranks)]
 
         # Randomly assign objects to ranks
-        if s_s and s_s <= n_p:
-            self.__logger.info(f"Randomly assigning objects to {s_s} ranks amongst {n_p}")
+        if n_r_mapped and n_r_mapped <= n_ranks:
+            self.__logger.info(f"Randomly assigning objects to {n_r_mapped} ranks amongst {n_ranks}")
         else:
             # Sanity check
-            if s_s > n_p:
+            if n_r_mapped > n_ranks:
                 self.__logger.warning(
-                    f"Too many ranks ({s_s}) requested: only {n_p} available.")
-                s_s = n_p
-            self.__logger.info(f"Randomly assigning objects to {n_p} ranks")
-        if s_s > 0:
-            # Randomly assign objects to a subset o ranks of size s_s
-            proc_list = rnd.sample(self.__ranks, s_s)
+                    f"Too many ranks ({n_r_mapped}) requested: only {n_ranks} available.")
+                n_r_mapped = n_ranks
+            self.__logger.info(f"Randomly assigning objects to {n_ranks} ranks")
+        if n_r_mapped > 0:
+            # Randomly assign objects to a subset o ranks of size n_r_mapped
+            proc_list = rnd.sample(self.__ranks, n_r_mapped)
             for o in objects:
                 p = rnd.choice(proc_list)
                 p.add_migratable_object(o)
@@ -224,15 +228,16 @@ class Phase:
         for p in self.__ranks:
             self.__logger.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
-    def populate_from_log(self, n_p, t_s, basename):
+    def populate_from_log(self, n_ranks, t_s, basename):
         """ Populate this phase by reading in a load profile from log files
         """
+
         # Instantiate VT load reader
         reader = LoadReader(basename, logger=self.__logger, file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
-        self.__logger.info(f"Reading objects from time-step {t_s} of VOM files with prefix {basename}")
-        self.__ranks = reader.read_iteration(n_p, t_s)
+        self.__logger.info(f"Reading objects from time-step {t_s} of data files with prefix {basename}")
+        self.__ranks = reader.read_iteration(n_ranks, t_s)
 
         # Compute and report object statistics
         objects = set()

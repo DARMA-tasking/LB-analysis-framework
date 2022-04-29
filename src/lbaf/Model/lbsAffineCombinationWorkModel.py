@@ -16,13 +16,14 @@ class AffineCombinationWorkModel(WorkModelBase):
         self.__logger = lgr
 
         # Use default values if parameters not provided
-        self.__alpha = parameters.get("alpha", 1.)
-        self.__beta = parameters.get("beta", 0.)
-        self.__gamma = parameters.get("gamma", 0.)
+        self.__alpha = parameters.get("alpha", 1.0)
+        self.__beta = parameters.get("beta", 0.0)
+        self.__gamma = parameters.get("gamma", 0.0)
 
         # Call superclass init
         super(AffineCombinationWorkModel, self).__init__(parameters)
-        self.__logger.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
+        self.__logger.info(f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, "
+                           f"gamma={self.__gamma}")
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication
@@ -39,6 +40,6 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
 
         # Return work using provided values
-        return self.__alpha * values.get("load", 0.) + self.__beta * max(
-            values.get("received volume", 0.),
-            values.get("sent volume", 0.)) + self.__gamma
+        return self.__alpha * values.get("load", 0.0) + self.__beta * max(
+            values.get("received volume", 0.0),
+            values.get("sent volume", 0.0)) + self.__gamma
