@@ -31,6 +31,8 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 ### Installing PyZoltan on MacOS/Linux
 
+Open MPI is needed to be installed. For Ubuntu based distributions packages `openmpi-bin libopenmpi-dev` have to be installed.
+
 One needs to clone PyZoltan repository:
 ```shell
 cd <some-directory>
