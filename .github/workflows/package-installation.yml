@@ -47,3 +47,7 @@ jobs:
           export ZOLTAN=${{ env.zoltan_dir }}
           pip install -r ${{ env.zoltan_dir }}/pyzoltan/requirements.txt
           pip install pyzoltan --no-build-isolation
+
+      - name: Importing Packages
+        run: |
+          python3 ${{ env.home_dir }}/scripts/test_imports.py
