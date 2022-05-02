@@ -39,6 +39,7 @@ jobs:
 
       - name: Install PyZoltan
         run: |
+          mkdir ${{ env.zoltan_dir }}
           cd ${{ env.zoltan_dir }}
           git clone https://github.com/pypr/pyzoltan.git
           cd pyzoltan
