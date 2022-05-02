@@ -29,6 +29,40 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF testing` are needed for testing purposes.
 
+### Installing PyZoltan on MacOS/Linux
+
+One needs to clone PyZoltan repository:
+```shell
+cd <some-directory>
+git clone https://github.com/pypr/pyzoltan.git
+```
+
+One needs to build and link PyZoltan. Easiest way is to use the script provided in PyZoltan repository:
+```shell
+cd <some-directory>/pyzoltan
+# INSTALL_PREFIX is an ABSOLUTE path to the directory, where Zoltan will be installed
+./build_zoltan.sh INSTALL_PREFIX
+# One needs to export ZOLTAN as an environment variable
+export ZOLTAN=$INSTALL_PREFIX
+```
+
+`ZOLTAN` environment variable is very important, and it's used when installing `PyZoltan`
+
+One needs to install `PyZoltan` requirements with:
+```shell
+pip install -r <some-directory>/pyzoltan/requirements.txt
+```
+
+Last step is to install `PyZoltan` itself:
+```shell
+pip install pyzoltan --no-build-isolation
+```
+
+One could check if `PyZoltan` is correctly installed by trying to import zoltan:
+```Python3
+from pyzoltan.core import zoltan
+```
+
 ## Configuration file
 
 LBAF run base of configuration file which could be find here:
