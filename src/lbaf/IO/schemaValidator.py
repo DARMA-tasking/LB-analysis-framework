@@ -35,7 +35,8 @@ class SchemaValidator:
                                         'time': float,
                                     }
                                 ],
-                                'time': float
+                                'time': float,
+                                Optional('user_defined'): dict
                             },
                         ],
                         Optional('communications'): [
