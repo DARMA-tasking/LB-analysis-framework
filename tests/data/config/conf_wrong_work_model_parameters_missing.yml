@@ -1,0 +1,33 @@
+# Specify input
+from_data:
+  data_stem: "../data/synthetic_lb_data/data"
+  phase_id: 0
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    beta: 0.
+    gamma: 0.
+
+# Specify balancing algorithm
+algorithm:
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 8
+    n_rounds: 4
+    fanout: 4
+    order_strategy: element_id
+    criterion: Tempered
+    max_objects_per_transfer: 8
+    deterministic_transfer: True
+
+# Specify output
+terminal_background: light
+generate_multimedia: False
+output_dir: ../../../output
+output_file_stem: output_file
+exodus:
+  x_procs: 2
+  y_procs: 2
+  z_procs: 1

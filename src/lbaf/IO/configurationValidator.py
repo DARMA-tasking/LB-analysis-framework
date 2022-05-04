@@ -55,10 +55,12 @@ class ConfigurationValidator:
             "communication_degree": int,
             "time_sampler": {"name": And(str, Use(str.lower), lambda a: a in ALLOWED_TIME_VOLUME_SAMPLER,
                                          error=f"{get_error_msg(ALLOWED_TIME_VOLUME_SAMPLER)} needs to be chosen"),
-                             "parameters": [float, float]},
+                             "parameters": And([float], lambda s: len(s) == 2,
+                                               error="There should be exactly 2 parameters provided")},
             "volume_sampler": {"name": And(str, Use(str.lower), lambda b: b in ALLOWED_TIME_VOLUME_SAMPLER,
                                            error=f"{get_error_msg(ALLOWED_TIME_VOLUME_SAMPLER)} needs to be chosen"),
-                               "parameters": [float, float]}
+                               "parameters": And([float], lambda s: len(s) == 2,
+                                                 error="There should be exactly 2 parameters provided")}
         })
         self.__algorithm = {
             "InformAndTransfer": Schema(

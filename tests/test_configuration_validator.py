@@ -107,6 +107,53 @@ class TestConfig(unittest.TestCase):
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
         self.assertEqual(err.exception.args[0], "LoadOnly or AffineCombination needs to be chosen")
 
+    def test_config_validator_wrong_work_model_parameters_missing(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_work_model_parameters_missing.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "Key 'work_model' error:\nKey 'parameters' error:\n"
+                                                "Missing key: 'alpha'")
+
+    def test_config_validator_wrong_work_model_parameters_type(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_work_model_parameters_type.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "Key 'work_model' error:\nKey 'parameters' error:\nKey 'beta' error:\n"
+                                                "'0.' should be instance of 'float'")
+
+    def test_config_validator_wrong_from_samplers_time_sampler_001(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_001.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "There should be exactly 2 parameters provided")
+
+    def test_config_validator_wrong_from_samplers_time_sampler_002(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_002.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "There should be exactly 2 parameters provided")
+
+    # def test_config_validator_wrong_from_samplers_time_sampler_003(self):
+    #     with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_003.yml'), 'rt') as config_file:
+    #         yaml_str = config_file.read()
+    #         configuration = yaml.safe_load(yaml_str)
+
+        # with self.assertRaises(SchemaError) as err:
+        #     ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        # self.assertEqual(err.exception.args[0], "There should be exactly 2 parameters provided")
+
 
 if __name__ == '__main__':
     unittest.main()
