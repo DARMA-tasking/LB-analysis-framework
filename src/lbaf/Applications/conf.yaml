@@ -41,8 +41,9 @@
 #    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
 
 # Specify input
-data_stem: "../data/synthetic_lb_data/data"
-phase_id: 0
+from_data:
+  data_stem: "../data/synthetic_lb_data/data"
+  phase_id: 0
 
 # Specify work model
 work_model:
@@ -78,16 +79,17 @@ output_dir: ../../../output
 output_file_stem: output_file
 
 # Simulate from samplers (comment out if reading from log)
-#n_objects: 200
-#n_mapped_ranks: 2
-#communication_degree: 20
-#time_sampler:
-#  name: lognormal
-#  parameters:
-#    - 1.0
-#    - 10.0
-#volume_sampler:
-#  name: lognormal
-#  parameters:
-#    - 1.0
-#    - 10.0
+#from_samplers:
+#  n_objects: 200
+#  n_mapped_ranks: 2
+#  communication_degree: 20
+#  time_sampler:
+#    name: lognormal
+#    parameters:
+#      - 1.0
+#      - 10.0
+#  volume_sampler:
+#    name: lognormal
+#    parameters:
+#      - 1.0
+#      - 10.0
