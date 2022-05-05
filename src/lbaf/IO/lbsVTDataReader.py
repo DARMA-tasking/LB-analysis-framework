@@ -189,11 +189,12 @@ class LoadReader:
             for task in phase["tasks"]:
                 task_time = task.get("time")
                 task_object_id = task.get("entity").get("id")
+                task_used_defined = task.get("user_defined")
 
                 # Update rank if iteration was requested
                 if phase_ids in (phase_id, -1):
                     # Instantiate object with retrieved parameters
-                    obj = Object(task_object_id, task_time, node_id)
+                    obj = Object(task_object_id, task_time, node_id, user_defined=task_used_defined)
                     # If this iteration was never encountered initialize rank object
                     returned_dict.setdefault(phase_id, Rank(node_id, logger=self.__logger))
                     # Add object to rank
