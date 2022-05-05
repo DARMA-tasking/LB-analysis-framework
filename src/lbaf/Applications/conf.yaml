@@ -73,6 +73,7 @@ terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output
 output_file_stem: output_file
+n_ranks: 4
 exodus:
   x_procs: 2
   y_procs: 2

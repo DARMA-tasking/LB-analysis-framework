@@ -19,6 +19,7 @@ algorithm:
     deterministic_transfer: True
 
 # Specify output
+n_ranks: 4
 terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output

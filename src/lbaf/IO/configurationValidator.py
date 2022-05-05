@@ -38,9 +38,10 @@ class ConfigurationValidator:
                 Optional("parameters"): dict
             },
             "output_file_stem": str,
-            "exodus": {"x_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
-                       "y_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
-                       "z_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0")},
+            "n_ranks": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+            Optional("exodus"): {"x_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+                                 "y_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+                                 "z_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0")},
             Optional("brute_force_optimization"): bool,
             Optional("logging_level"): And(str, Use(str.lower), lambda f: f in ALLOWED_LOGGING_LEVELS,
                                            error=f"{get_error_msg(ALLOWED_LOGGING_LEVELS)} needs to be chosen"),

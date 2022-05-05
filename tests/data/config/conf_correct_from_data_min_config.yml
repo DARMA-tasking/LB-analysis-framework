@@ -16,6 +16,7 @@ algorithm:
   name: BruteForce
 
 # Specify output
+n_ranks: 4
 output_file_stem: output_file
 exodus:
   x_procs: 2

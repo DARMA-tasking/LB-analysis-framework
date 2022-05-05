@@ -17,6 +17,7 @@ algorithm:
   name: BruteForce
 
 # Specify output
+n_ranks: 4
 logging_level: debug
 terminal_background: light
 generate_multimedia: False

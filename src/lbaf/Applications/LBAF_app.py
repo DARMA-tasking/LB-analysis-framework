@@ -49,6 +49,7 @@ class internalParameters:
             "from_samplers",
             "generate_multimedia",
             "logging_level",
+            "n_ranks",
             "output_dir",
             "output_file_stem",
             "terminal_background",
@@ -98,6 +99,8 @@ class internalParameters:
             self.grid_size = []
             for key in ["x_procs", "y_procs", "z_procs"]:
                 self.grid_size.append(self.configuration.get("exodus").get(key))
+            if math.prod(self.grid_size) != self.n_ranks:
+                raise AssertionError(f"Grid size: {self.grid_size} from exodus is not equal to n_ranks: {self.n_ranks}")
 
         # Parsing from data parameters if present
         if self.configuration.get('from_data') is not None:
@@ -184,12 +187,6 @@ class LBAFApp:
         return config_file
 
     def main(self):
-        # Keep track of total number of procs
-        n_ranks = self.params.grid_size[0] * self.params.grid_size[1] * self.params.grid_size[2]
-        if n_ranks < 2:
-            self.logger.info(f"Total number of ranks ({n_ranks}) must be > 1")
-            sys.exit(1)
-
         # Initialize random number generator
         initialize()
 
@@ -200,10 +197,11 @@ class LBAFApp:
             phase = Phase(0, self.logger)
         if "data_stem" in self.params.__dict__:
             # Try to populate phase from log files and store number of objects
-            self.params.n_objects = phase.populate_from_log(n_ranks, self.params.phase_id, self.params.data_stem)
+            self.params.n_objects = phase.populate_from_log(self.params.n_ranks, self.params.phase_id,
+                                                            self.params.data_stem)
         else:
             # Try to populate phase pseudo-randomly
-            phase.populate_from_samplers(n_ranks, self.params.n_objects, self.params.time_sampler,
+            phase.populate_from_samplers(self.params.n_ranks, self.params.n_objects, self.params.time_sampler,
                                          self.params.volume_sampler, self.params.communication_degree,
                                          self.params.n_mapped_ranks)
 
@@ -247,8 +245,8 @@ class LBAFApp:
             beta = self.params.work_model.get("parameters").get("beta")
             gamma = self.params.work_model.get("parameters").get("gamma")
             n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, n_ranks)
-            if n_a != n_ranks ** len(objects):
+                objects, alpha, beta, gamma, self.params.n_ranks)
+            if n_a != self.params.n_ranks ** len(objects):
                 self.logger.error("Incorrect number of possible arrangements with repetition")
                 sys.exit(1)
             self.logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
@@ -265,16 +263,6 @@ class LBAFApp:
             self.logger)
         rt.execute()
 
-        # Create mapping from rank to Cartesian grid
-        pgs = self.params.grid_size
-        self.logger.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
-        grid_map = lambda x: global_id_to_cartesian(x.get_id(), self.params.grid_size)
-
-        # Try to output file name stem
-        if self.params.output_file_stem is None:
-            self.logger.error("An output file stem must be provided")
-            sys.exit(1)
-
         # Instantiate phase to VT file writer if started from a log file
         if "data_stem" in self.params.__dict__:
             vt_writer = VTDataWriter(
@@ -285,7 +273,11 @@ class LBAFApp:
             vt_writer.write()
 
         # If prefix parsed from command line
-        if self.params.exodus:
+        if "exodus" in self.params.__dict__:
+            # Create mapping from rank to Cartesian grid
+            pgs = self.params.grid_size
+            self.logger.info(f"Mapping {self.params.n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
+            grid_map = lambda x: global_id_to_cartesian(x.get_id(), self.params.grid_size)
             # Instantiate phase to ExodusII file writer if requested
             ex_writer = WriterExodusII(
                 phase,
@@ -328,13 +320,14 @@ class LBAFApp:
             logger=self.logger)
 
         # Report on theoretically optimal statistics
-        q, r = divmod(self.params.n_objects, n_ranks)
-        ell = n_ranks * l_ave / self.params.n_objects
+        q, r = divmod(self.params.n_objects, self.params.n_ranks)
+        ell = self.params.n_ranks * l_ave / self.params.n_objects
         self.logger.info(f"Optimal load statistics for {self.params.n_objects} objects with iso-time: {ell:.6g}")
         self.logger.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-        imbalance = (n_ranks - r) / float(self.params.n_objects) if r else 0.
+        imbalance = (self.params.n_ranks - r) / float(self.params.n_objects) if r else 0.
         self.logger.info(
-            f"\tstandard deviation: {ell * math.sqrt(r * (n_ranks - r)) / n_ranks:.6g}  imbalance: {imbalance:.6g}")
+            f"\tstandard deviation: {ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:.6g} "
+            f"imbalance: {imbalance:.6g}")
 
         # If this point is reached everything went fine
         self.logger.info("Process completed without errors")
