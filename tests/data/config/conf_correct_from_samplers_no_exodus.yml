@@ -23,10 +23,6 @@ terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output
 output_file_stem: output_file
-exodus:
-  x_procs: 2
-  y_procs: 2
-  z_procs: 1
 
 # Simulate from samplers (comment out if reading from log)
 from_samplers:
@@ -37,7 +33,7 @@ from_samplers:
     name: lognormal
     parameters:
       - 1.0
-      - "10.0"
+      - 10.0
   volume_sampler:
     name: lognormal
     parameters:

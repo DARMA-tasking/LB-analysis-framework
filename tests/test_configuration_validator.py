@@ -134,7 +134,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "There should be exactly 2 parameters provided")
+        self.assertEqual(err.exception.args[0], "There should be exactly 2 provided parameters of type 'float'")
 
     def test_config_validator_wrong_from_samplers_time_sampler_002(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_002.yml'), 'rt') as config_file:
@@ -143,16 +143,49 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "There should be exactly 2 parameters provided")
+        self.assertEqual(err.exception.args[0], "There should be exactly 2 provided parameters of type 'float'")
 
-    # def test_config_validator_wrong_from_samplers_time_sampler_003(self):
-    #     with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_003.yml'), 'rt') as config_file:
-    #         yaml_str = config_file.read()
-    #         configuration = yaml.safe_load(yaml_str)
+    def test_config_validator_wrong_from_samplers_time_sampler_003(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_003.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "There should be exactly 2 provided parameters of type 'float'")
 
-        # with self.assertRaises(SchemaError) as err:
-        #     ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        # self.assertEqual(err.exception.args[0], "There should be exactly 2 parameters provided")
+    def test_config_validator_wrong_from_samplers_time_sampler_004(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_004.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "uniform or lognormal needs to be chosen")
+
+    def test_config_validator_wrong_from_samplers_time_sampler_005(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_005.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "Missing key: 'time_sampler'")
+
+    def test_config_validator_correct_from_samplers_no_exodus(self):
+        with open(os.path.join(self.config_dir, 'conf_correct_from_samplers_no_exodus.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+
+    def test_config_validator_correct_brute_force(self):
+        with open(os.path.join(self.config_dir, 'conf_correct_brute_force.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+
+    def test_config_from_data_min_config(self):
+        with open(os.path.join(self.config_dir, 'conf_correct_from_data_min_config.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
 
 
 if __name__ == '__main__':

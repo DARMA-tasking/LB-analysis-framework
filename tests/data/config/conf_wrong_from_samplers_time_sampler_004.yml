@@ -34,10 +34,10 @@ from_samplers:
   n_mapped_ranks: 2
   communication_degree: 20
   time_sampler:
-    name: lognormal
+    name: lognorma
     parameters:
       - 1.0
-      - "10.0"
+      - 10.0
   volume_sampler:
     name: lognormal
     parameters:
