@@ -78,7 +78,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "Key 'phase_id' error:\n0.0 should be instance of 'int'")
+        self.assertEqual(err.exception.args[0], "Should be type of 'int' and >= 0")
 
     def test_config_validator_wrong_from_data_phase_name(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_from_data_phase_name.yml'), 'rt') as config_file:
@@ -169,8 +169,8 @@ class TestConfig(unittest.TestCase):
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
         self.assertEqual(err.exception.args[0], "Missing key: 'time_sampler'")
 
-    def test_config_validator_correct_from_samplers_no_exodus(self):
-        with open(os.path.join(self.config_dir, 'conf_correct_from_samplers_no_exodus.yml'), 'rt') as config_file:
+    def test_config_validator_correct_from_samplers_no_logging_level(self):
+        with open(os.path.join(self.config_dir, 'conf_correct_from_samplers_no_ll.yml'), 'rt') as config_file:
             yaml_str = config_file.read()
             configuration = yaml.safe_load(yaml_str)
         ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()

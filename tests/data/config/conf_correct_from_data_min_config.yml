@@ -17,3 +17,7 @@ algorithm:
 
 # Specify output
 output_file_stem: output_file
+exodus:
+  x_procs: 2
+  y_procs: 2
+  z_procs: 1

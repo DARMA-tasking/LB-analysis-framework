@@ -38,7 +38,9 @@ class ConfigurationValidator:
                 Optional("parameters"): dict
             },
             "output_file_stem": str,
-            Optional("exodus"): {"x_procs": int, "y_procs": int, "z_procs": int},
+            "exodus": {"x_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+                       "y_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+                       "z_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0")},
             Optional("brute_force_optimization"): bool,
             Optional("logging_level"): And(str, Use(str.lower), lambda f: f in ALLOWED_LOGGING_LEVELS,
                                            error=f"{get_error_msg(ALLOWED_LOGGING_LEVELS)} needs to be chosen"),
@@ -46,12 +48,14 @@ class ConfigurationValidator:
                                                  error=f"{get_error_msg(ALLOWED_TERMINAL_BACKGROUND)} needs to be "
                                                        f"chosen"),
             Optional("output_dir"): str,
-            Optional("generate_multimedia"): bool
+            Optional("generate_multimedia"): bool,
+            Optional("file_suffix"): str
         })
-        self.__from_data = Schema({"data_stem": str, "phase_id": int})
+        self.__from_data = Schema({"data_stem": str,
+                                   "phase_id": And(int, lambda x: x >= 0, error="Should be type of 'int' and >= 0")})
         self.__from_samplers = Schema({
-            "n_objects": int,
-            "n_mapped_ranks": int,
+            "n_objects": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+            "n_mapped_ranks": And(int, lambda x: x >= 0, error="Should be type of 'int' and >= 0"),
             "communication_degree": int,
             "time_sampler": {"name": And(str, Use(str.lower), lambda a: a in ALLOWED_TIME_VOLUME_SAMPLER,
                                          error=f"{get_error_msg(ALLOWED_TIME_VOLUME_SAMPLER)} needs to be chosen"),

@@ -1,7 +1,7 @@
 # Specify input
-data_stem: "../data/synthetic_lb_data/data"
-phase_id: 0
-file_suffix: json
+from_data:
+  data_stem: "../data/synthetic_lb_data/data"
+  phase_id: 0
 
 # Specify work model
 work_model:
@@ -12,7 +12,7 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
-brute_force_optimization: False
+brute_force_optimization: True
 algorithm:
   name: InformAndTransfer
   parameters:
@@ -27,9 +27,9 @@ algorithm:
 # Specify output
 logging_level: info
 terminal_background: light
-exodus: True
 output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
-x_procs: 2
-y_procs: 2
-z_procs: 1
 output_file_stem: output_file
+exodus:
+  x_procs: 2
+  y_procs: 2
+  z_procs: 1
