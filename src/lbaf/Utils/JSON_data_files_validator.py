@@ -86,12 +86,17 @@ class JSONDataFilesValidator:
             except brotli.error:
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
+        # Extracting type from JSON data
+        schema_type = decompressed_dict.get("type")
+        if schema_type is None:
+            raise TypeError("JSON data is missing 'type' key")
+
         # Validate schema
-        if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
+        if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
             print(f"=> Valid JSON schema in {file_path}")
         else:
             print(f"=> Invalid JSON schema in {file_path}")
-            SchemaValidator().validate(schema_to_validate=decompressed_dict)
+            SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
 
     def main(self):
         if self.__file_path is not None:
