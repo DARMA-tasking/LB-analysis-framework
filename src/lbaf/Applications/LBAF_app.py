@@ -40,7 +40,7 @@ class internalParameters:
         sv = sys.version_info
         self.logger.info(f"Executing with Python {sv.major}.{sv.minor}.{sv.micro}")
 
-        self.__allowed_config_keys = [
+        self.__allowed_config_keys = (
             "algorithm",
             "brute_force_optimization",
             "exodus",
@@ -54,7 +54,7 @@ class internalParameters:
             "output_file_stem",
             "terminal_background",
             "work_model"
-        ]
+        )
 
         # Read configuration values from file
         self.configuration_file_found = False
@@ -95,20 +95,20 @@ class internalParameters:
                 self.__dict__[param_key] = param_val
 
         # Parsing exodus if present
-        if self.configuration.get('exodus') is not None:
+        if self.configuration.get("exodus") is not None:
             self.grid_size = []
-            for key in ["x_procs", "y_procs", "z_procs"]:
+            for key in ("x_procs", "y_procs", "z_procs"):
                 self.grid_size.append(self.configuration.get("exodus").get(key))
             if math.prod(self.grid_size) != self.n_ranks:
                 raise AssertionError(f"Grid size: {self.grid_size} from exodus is not equal to n_ranks: {self.n_ranks}")
 
         # Parsing from data parameters if present
-        if self.configuration.get('from_data') is not None:
+        if self.configuration.get("from_data") is not None:
             self.data_stem = self.configuration.get("from_data").get("data_stem")
             self.phase_id = self.configuration.get("from_data").get("phase_id")
 
         # Parsing sampling parameters if present
-        if self.configuration.get('from_samplers') is not None:
+        if self.configuration.get("from_samplers") is not None:
             self.n_objects = self.configuration.get("from_samplers").get("n_objects")
             self.n_mapped_ranks = self.configuration.get("from_samplers").get("n_mapped_ranks")
             self.communication_degree = self.configuration.get("from_samplers").get("communication_degree")
@@ -126,7 +126,7 @@ class internalParameters:
         self.logger.info(f"Logging level: {ll.lower()}")
 
         # Set output directory, local by default
-        self.output_dir = os.path.abspath(self.output_dir or '.')
+        self.output_dir = os.path.abspath(self.output_dir or ".")
         self.logger.info(f"Output directory: {self.output_dir}")
 
     def checks_after_init(self):
@@ -275,8 +275,8 @@ class LBAFApp:
         # If prefix parsed from command line
         if "exodus" in self.params.__dict__:
             # Create mapping from rank to Cartesian grid
-            pgs = self.params.grid_size
-            self.logger.info(f"Mapping {self.params.n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
+            self.logger.info(f"Mapping {self.params.n_ranks} ranks onto a {self.params.grid_size[0]}x"
+                             f"{self.params.grid_size[1]}x{self.params.grid_size[2]} rectilinear grid")
             grid_map = lambda x: global_id_to_cartesian(x.get_id(), self.params.grid_size)
             # Instantiate phase to ExodusII file writer if requested
             ex_writer = WriterExodusII(
