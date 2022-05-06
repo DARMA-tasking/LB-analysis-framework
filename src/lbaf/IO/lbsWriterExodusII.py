@@ -1,6 +1,7 @@
 from logging import Logger
 import os
 import vtk
+import numbers
 
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
@@ -26,26 +27,26 @@ class WriterExodusII:
         # Ensure that provided phase has correct type
         if not isinstance(p, Phase):
             self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
-            return
+            sys.exit(1)
         self.__phase = p
 
         # If no rank mapping was provided, do not do anything
         if not callable(m):
             self.__logger.error("Could not write to ExodusII file by lack of a rank mapping")
-            return
+            sys.exit(1)
         self.__mapping = m
 
-        # Assemble file name from constructor parameters
-        self.__file_name = f"{f}.{s}"
+        # Ensure that specified grid resolution is correct
+        if not isinstance(r, numbers.Number) or r <= 0.:
+            self.__logger.error("Grid resolution must be a positive number")
+            sys.exit(1)
+        self.__grid_resolution = float(r)
+
+        # Assemble file names from constructor parameters
+        self.__rank_file_name = f"{f}_rank_view.{s}"
         self.__output_dir = output_dir
         if self.__output_dir is not None:
-            self.__file_name = os.path.join(self.__output_dir, self.__file_name)
-
-        # Grid_resolution between points
-        try:
-            self.__grid_resolution = float(r)
-        except:
-            self.__grid_resolution = 1.
+            self.__rank_file_name = os.path.join(self.__output_dir, self.__rank_file_name)
 
     def write(self, distributions: dict, statistics: dict):
         """ Map ranks to grid and write ExodusII file
@@ -139,11 +140,11 @@ class WriterExodusII:
 
         # Write to ExodusII file when possible
         if streamer.Error:
-            self.__logger.error(f"Failed to instantiate a grid streamer for file {self.__file_name}")
+            self.__logger.error(f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
         else:
-            self.__logger.info(f"Writing ExodusII file: {self.__file_name}")
+            self.__logger.info(f"Writing ExodusII file: {self.__rank_file_name}")
             writer = vtk.vtkExodusIIWriter()
-            writer.SetFileName(self.__file_name)
+            writer.SetFileName(self.__rank_file_name)
             writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
             writer.WriteAllTimeStepsOn()
             writer.Update()
