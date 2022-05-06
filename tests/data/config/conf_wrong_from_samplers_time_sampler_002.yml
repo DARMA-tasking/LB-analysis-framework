@@ -1,8 +1,3 @@
-# Specify input
-from_data:
-  data_stem: "../data/synthetic_lb_data/data"
-  phase_id: 0
-
 # Specify work model
 work_model:
   name: AffineCombination
@@ -12,7 +7,6 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
-brute_force_optimization: True
 algorithm:
   name: InformAndTransfer
   parameters:
@@ -26,7 +20,26 @@ algorithm:
 
 # Specify output
 n_ranks: 4
-logging_level: info
 terminal_background: light
-output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
+generate_multimedia: False
+output_dir: ../../../output
 output_file_stem: output_file
+exodus:
+  x_procs: 2
+  y_procs: 2
+  z_procs: 1
+
+# Simulate from samplers (comment out if reading from log)
+from_samplers:
+  n_objects: 200
+  n_mapped_ranks: 2
+  communication_degree: 20
+  time_sampler:
+    name: lognormal
+    parameters:
+      - 1.0
+      - 10.0
+  volume_sampler:
+    name: lognormal
+    parameters:
+      - 1.0

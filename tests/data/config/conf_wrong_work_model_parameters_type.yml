@@ -8,11 +8,10 @@ work_model:
   name: AffineCombination
   parameters:
     alpha: 1.
-    beta: 0.
+    beta: "0."
     gamma: 0.
 
 # Specify balancing algorithm
-brute_force_optimization: True
 algorithm:
   name: InformAndTransfer
   parameters:
@@ -26,7 +25,11 @@ algorithm:
 
 # Specify output
 n_ranks: 4
-logging_level: info
 terminal_background: light
-output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
+generate_multimedia: False
+output_dir: ../../../output
 output_file_stem: output_file
+exodus:
+  x_procs: 2
+  y_procs: 2
+  z_procs: 1
