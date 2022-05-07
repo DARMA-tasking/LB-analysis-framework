@@ -33,25 +33,36 @@ class ConfigurationValidator:
         self.__config_to_validate = config_to_validate
         self.__skeleton = Schema({
             Or("from_data", "from_samplers", only_one=True): dict,
-            "work_model": {"name": And(str, lambda c: c in ALLOWED_WORK_MODELS,
-                                       error=f"{get_error_message(ALLOWED_WORK_MODELS)} must be chosen"),
-                           "parameters": {"alpha": float,
-                                          "beta": float,
-                                          "gamma": float}},
+            "work_model": {
+                "name": And(
+                    str,
+                    lambda c: c in ALLOWED_WORK_MODELS,
+                    error=f"{get_error_message(ALLOWED_WORK_MODELS)} must be chosen"),
+                "parameters": {
+                    "alpha": float,
+                    "beta": float,
+                    "gamma": float}},
             "algorithm": {
-                "name": And(str, lambda d: d in ALLOWED_ALGORITHMS,
-                            error=f"{get_error_message(ALLOWED_ALGORITHMS)} must be chosen"),
-                Optional("parameters"): dict
-            },
+                "name": And(
+                    str,
+                    lambda d: d in ALLOWED_ALGORITHMS,
+                    error=f"{get_error_message(ALLOWED_ALGORITHMS)} must be chosen"),
+                Optional("parameters"): dict},
             "output_file_stem": str,
-            "n_ranks": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
+            "n_ranks": And(
+                int,
+                lambda x: x > 0,
+                error="Should be of type 'int' and > 0"),
             Optional("generate_meshes"): {
                 "x_procs": And(int, lambda x: x > 0,
-                               error="Should be type of 'int' and > 0"),
+                               error="Should be of type 'int' and > 0"),
                 "y_procs": And(int, lambda x: x > 0,
-                               error="Should be type of 'int' and > 0"),
+                               error="Should be of type 'int' and > 0"),
                 "z_procs": And(int, lambda x: x > 0,
-                               error="Should be type of 'int' and > 0")},
+                               error="Should be of type 'int' and > 0"),
+                "object_jitter": And(float, lambda x: abs(x) < 1.0,
+                               error="Should be of type 'float' and magnitude < 1")
+                },
             Optional("brute_force_optimization"): bool,
             Optional("logging_level"): And(
                 str, Use(str.lower),
@@ -69,12 +80,12 @@ class ConfigurationValidator:
         self.__from_data = Schema(
             {"data_stem": str,
              "phase_id": And(int, lambda x: x >= 0,
-                             error="Should be type of 'int' and >= 0")})
+                             error="Should be of type 'int' and >= 0")})
         self.__from_samplers = Schema({
             "n_objects": And(int, lambda x: x > 0,
-                             error="Should be type of 'int' and > 0"),
+                             error="Should be of type 'int' and > 0"),
             "n_mapped_ranks": And(int, lambda x: x >= 0,
-                                  error="Should be type of 'int' and >= 0"),
+                                  error="Should be of type 'int' and >= 0"),
             "communication_degree": int,
             "time_sampler": {
                 "name": And(

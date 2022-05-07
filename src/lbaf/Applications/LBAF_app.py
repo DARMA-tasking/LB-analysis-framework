@@ -95,20 +95,21 @@ class internalParameters:
                 self.__dict__[param_key] = param_val
 
         # Parse whether meshes must be generated
-        if self.configuration.get("generate_meshes") is not None:
+        if (gm := self.configuration.get("generate_meshes")) is not None:
             self.grid_size = []
             for key in ("x_procs", "y_procs", "z_procs"):
-                self.grid_size.append(self.configuration.get("generate_meshes").get(key))
+                self.grid_size.append(gm.get(key))
             if math.prod(self.grid_size) < self.n_ranks:
                 self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")
                 sys.exit(1)
+            self.object_jitter = gm.get("object_jitter")
 
-        # Parsing from data parameters if present
+        # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
             self.data_stem = self.configuration.get("from_data").get("data_stem")
             self.phase_id = self.configuration.get("from_data").get("phase_id")
 
-        # Parsing sampling parameters if present
+        # Parse sampling parameters if present
         if self.configuration.get("from_samplers") is not None:
             self.n_objects = self.configuration.get("from_samplers").get("n_objects")
             self.n_mapped_ranks = self.configuration.get("from_samplers").get("n_mapped_ranks")
@@ -268,6 +269,7 @@ class LBAFApp:
             ex_writer = MeshWriter(
                 phase,
                 self.params.grid_size,
+                self.params.object_jitter,
                 self.params.output_file_stem,
                 output_dir=self.params.output_dir,
                 logger=self.logger)

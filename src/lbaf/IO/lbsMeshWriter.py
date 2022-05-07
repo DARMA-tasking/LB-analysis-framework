@@ -14,10 +14,11 @@ class MeshWriter:
     """A class to write LBAF results to mesh files via VTK layer
     """
 
-    def __init__(self, p: Phase, grid_size, f="lbs_out", r=1., output_dir=None, logger: Logger = None):
+    def __init__(self, p: Phase, grid_size, object_jitter: float, f="lbs_out", r=1., output_dir=None, logger: Logger = None):
         """ Class constructor:
             p: Phase instance
             grid_size: iterable containing grid sizes in each dimension
+            object_jitter: coefficient of random jitter with magnitude < 1
             f: file name stem
             r: grid_resolution value
             output_dir: output directory
@@ -39,13 +40,19 @@ class MeshWriter:
 
         # Ensure that an iterable of grid sizes was passed
         if not isinstance(grid_size, (list, tuple)):
-            self.__logger.error("Could not write to ExodusII file by lack of a grid size iterable")
+            self.__logger.error("Could not generate meshes by lack of a grid size iterable")
             sys.exit(1)
         self.__grid_size = grid_size
         self.__logger.info(
             f"Mapping {self.__n_p} ranks onto a {grid_size[0]}x"
             f"{grid_size[1]}x{grid_size[2]} rectilinear grid")
 
+        # Ensure that a valid object jitter coefficient was passed
+        if not isinstance(object_jitter, float) or abs(object_jitter) >= 1.0:
+            self.__logger.error(f"Could not generate meshes due to unsuitable object jitter coefficient: {object_jitter}")
+            sys.exit(1)
+        self.__object_jitter = object_jitter
+        
         # Ensure that specified grid resolution is correct
         if not isinstance(r, numbers.Number) or r <= 0.:
             self.__logger.error("Grid resolution must be a positive number")
@@ -191,7 +198,7 @@ class MeshWriter:
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(n_o * (n_o - 1) / 2)
-        self.__logger.info(f"Creating object view mesh with {n_o} points and {n_e} edges")
+        self.__logger.info(f"Creating object view mesh with {n_o} points, {n_e} edges, and jitter factor: {self.__object_jitter}")
 
         # Determine object resolution and placement in grid
         rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
@@ -226,7 +233,7 @@ class MeshWriter:
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
                     jitter = [
-                        (random.random() - 0.5) * o_resolution * 0.5
+                        (random.random() - 0.5) * o_resolution * self.__object_jitter
                         if d in rank_dims else 0.0 for d in range(3)]
                     points.SetPoint(point_index, [
                         offsets[d] - centering[d] + jitter[d] + o_resolution * c 
