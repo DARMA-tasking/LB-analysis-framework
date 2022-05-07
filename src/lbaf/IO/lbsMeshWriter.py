@@ -129,8 +129,8 @@ class MeshWriter:
 
         # Iterate over all possible links and create edges
         lines = vtk.vtkCellArray()
-        edge_indices = {}
-        flat_index = 0
+        index_to_edge = {}
+        edge_index = 0
         for i in range(self.__n_p):
             for j in range(i + 1, self.__n_p):
                 # Insert new link based on endpoint indices
@@ -140,8 +140,8 @@ class MeshWriter:
                 lines.InsertNextCell(line)
 
                 # Update flat index map
-                edge_indices[flat_index] = frozenset([i, j])
-                flat_index += 1
+                index_to_edge[edge_index] = frozenset([i, j])
+                edge_index += 1
 
         # Create attribute data arrays for edge sent volumes
         volumes = []
@@ -160,8 +160,8 @@ class MeshWriter:
             # Assign edge volume values
             self.__logger.debug(f"\titeration {i} edges:")
             for e in range(n_e):
-                v_arr.SetTuple1(e, u_edges.get(edge_indices[e], float("nan")))
-                self.__logger.debug(f"\t {e} {edge_indices[e]}): {v_arr.GetTuple1(e)}")
+                v_arr.SetTuple1(e, u_edges.get(index_to_edge[e], float("nan")))
+                self.__logger.debug(f"\t {e} {index_to_edge[e]}): {v_arr.GetTuple1(e)}")
 
         # Create grid streamer
         streamer = GridStreamer(points, lines, global_stats, [loads, works], volumes, lgr=self.__logger)
@@ -193,11 +193,11 @@ class MeshWriter:
         self.__logger.info(f"Creating object view mesh with {n_o} points and {n_e} edges")
 
         # Determine object resolution in grid
-        block_dims = [d for d in range(3) if self.__grid_size[d] > 1]
-        n_o_per_dim = math.ceil(n_o ** (1. / len(block_dims)))
-        self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {block_dims}")
-        o_resolution = self.__grid_resolution / n_o_per_dim
-        block_size = [n_o_per_dim if d in block_dims else 1 for d in range(3)]
+        rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
+        n_o_per_dim = math.ceil(n_o ** (1. / len(rank_dims)))
+        self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
+        o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
+        rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
 
         # Iterate over all object distributions
         for iteration, object_mapping in enumerate(distributions["objects"]):
@@ -206,59 +206,74 @@ class MeshWriter:
             t_arr.SetName("Time")
             t_arr.SetNumberOfTuples(n_o)
 
-            # Iterate over objects to create mesh points
+            # Iterate over ranks and objects to create mesh points
             points = vtk.vtkPoints()
             points.SetNumberOfPoints(n_o)
             point_to_index = {}
             index_to_point = []
-            point_id = 0
+            point_index = 0
             sent_volumes = []
-
-            # Iterate over ranks in current mapping
-            for b, objects in enumerate(object_mapping):
-                # Determine block offsets
+            for rank_id, objects in enumerate(object_mapping):
+                # Determine rank offsets
                 offsets = [
                     self.__grid_resolution * c
-                    for c in self.global_id_to_cartesian(b, self.__grid_size)]
+                    for c in self.global_id_to_cartesian(rank_id, self.__grid_size)]
 
                 # Iterate over objects and create point coordinates
                 for i, o in enumerate(objects):
-                    # Insert point using offset and block coordinates
-                    points.SetPoint(point_id, [
+                    # Insert point using offset and rank coordinates
+                    points.SetPoint(point_index, [
                         offsets[d] + o_resolution * c 
-                        for d, c in enumerate(self.global_id_to_cartesian(i, block_size))])
-                    t_arr.SetTuple1(point_id, o.get_time())
+                        for d, c in enumerate(self.global_id_to_cartesian(i, rank_size))])
+                    t_arr.SetTuple1(point_index, o.get_time())
 
                     # Update sent volumes
                     for k, v in o.get_sent().items():
-                        sent_volumes.append((point_id, k.get_id(), v))
+                        sent_volumes.append((point_index, k, v))
 
                     # Update maps and counters
-                    point_to_index[o] = point_id
+                    point_to_index[o] = point_index
                     index_to_point.append(o)
-                    point_id += 1
+                    point_index += 1
 
-                # Iterate over all possible links and create edges
-                lines = vtk.vtkCellArray()
-                edge_indices = {}
-                flat_index = 0
-                for i in range(n_o):
-                    for j in range(i + 1, n_o):
-                        # Insert new link based on endpoint indices
-                        line = vtk.vtkLine()
-                        line.GetPointIds().SetId(0, i)
-                        line.GetPointIds().SetId(1, j)
-                        lines.InsertNextCell(line)
+            # Summarize edges
+            edges = {
+                (tr[0], point_to_index[tr[1]]): tr[2]
+                for tr in sent_volumes}
 
-                        # Update flat index map
-                        edge_indices[flat_index] = frozenset([i, j])
-                        flat_index += 1
+            # Iterate over all possible links and create edges
+            lines = vtk.vtkCellArray()
+            index_to_edge = {}
+            edge_index = 0
+            for i in range(n_o):
+                for j in range(i + 1, n_o):
+                    # Insert new link based on endpoint indices
+                    line = vtk.vtkLine()
+                    line.GetPointIds().SetId(0, i)
+                    line.GetPointIds().SetId(1, j)
+                    lines.InsertNextCell(line)
+
+                    # Update flat index map
+                    index_to_edge[edge_index] = (i, j)
+                    edge_index += 1
+
+            # Create and append volume array for edges
+            v_arr = vtk.vtkDoubleArray()
+            v_arr.SetName("Volume")
+            v_arr.SetNumberOfTuples(n_e)
+
+            # Assign edge volume values
+            self.__logger.debug(f"\titeration {iteration} edges:")
+            for e in range(n_e):
+                v_arr.SetTuple1(e, edges.get(index_to_edge[e], float("nan")))
+                self.__logger.debug(f"\t {e} {index_to_edge[e]}): {v_arr.GetTuple1(e)}")
 
             # Create VTK polygonal data mesh
             pd_mesh = vtk.vtkPolyData()
             pd_mesh.SetPoints(points)
-            pd_mesh.SetLines(lines)
             pd_mesh.GetPointData().SetScalars(t_arr)
+            pd_mesh.SetLines(lines)
+            pd_mesh.GetCellData().SetScalars(v_arr)
 
             # Write to VTP file
             file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
