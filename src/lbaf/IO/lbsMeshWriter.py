@@ -198,7 +198,8 @@ class MeshWriter:
         self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
         o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
         rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
-
+        centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
+                     if d in rank_dims else 0.0 for d in range(3)]
         # Iterate over all object distributions
         for iteration, object_mapping in enumerate(distributions["objects"]):
             # Create point array for object times
@@ -223,7 +224,7 @@ class MeshWriter:
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
                     points.SetPoint(point_index, [
-                        offsets[d] + o_resolution * c 
+                        offsets[d] - centering[d] + o_resolution * c 
                         for d, c in enumerate(self.global_id_to_cartesian(i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
 
