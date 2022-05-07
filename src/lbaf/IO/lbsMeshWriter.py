@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import numbers
+import random
 import vtk
 
 from .lbsGridStreamer import GridStreamer
@@ -192,7 +193,7 @@ class MeshWriter:
         n_e = int(n_o * (n_o - 1) / 2)
         self.__logger.info(f"Creating object view mesh with {n_o} points and {n_e} edges")
 
-        # Determine object resolution in grid
+        # Determine object resolution and placement in grid
         rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
         n_o_per_dim = math.ceil(n_o ** (1. / len(rank_dims)))
         self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
@@ -200,6 +201,7 @@ class MeshWriter:
         rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
         centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
                      if d in rank_dims else 0.0 for d in range(3)]
+
         # Iterate over all object distributions
         for iteration, object_mapping in enumerate(distributions["objects"]):
             # Create point array for object times
@@ -223,8 +225,11 @@ class MeshWriter:
                 # Iterate over objects and create point coordinates
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
+                    jitter = [
+                        (random.random() - 0.5) * o_resolution * 0.5
+                        if d in rank_dims else 0.0 for d in range(3)]
                     points.SetPoint(point_index, [
-                        offsets[d] - centering[d] + o_resolution * c 
+                        offsets[d] - centering[d] + jitter[d] + o_resolution * c 
                         for d, c in enumerate(self.global_id_to_cartesian(i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
 
