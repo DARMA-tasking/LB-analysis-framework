@@ -56,8 +56,12 @@ class MeshWriter:
         self.__object_file_name = f"{f}_object_view"
         self.__output_dir = output_dir
         if self.__output_dir is not None:
-            self.__rank_file_name = os.path.join(self.__output_dir, self.__rank_file_name)
-            self.__object_file_name = os.path.join(self.__output_dir, self.__object_file_name)
+            self.__rank_file_name = os.path.join(
+                self.__output_dir,
+                self.__rank_file_name)
+            self.__object_file_name = os.path.join(
+                self.__output_dir,
+                self.__object_file_name)
 
 
     def global_id_to_cartesian(self, flat_id, grid_sizes):
@@ -250,16 +254,18 @@ class MeshWriter:
                         edge_indices[flat_index] = frozenset([i, j])
                         flat_index += 1
 
-            # Write to ExodusII file
-            output = vtk.vtkPolyData()
-            output.SetPoints(points)
-            output.SetLines(lines)
-            output.GetPointData().SetScalars(t_arr)
-            file_name = f"{self.__object_file_name}_{iteration:03d}.vtp"
-            self.__logger.info(f"Writing ExodusII file: {file_name}")
+            # Create VTK polygonal data mesh
+            pd_mesh = vtk.vtkPolyData()
+            pd_mesh.SetPoints(points)
+            pd_mesh.SetLines(lines)
+            pd_mesh.GetPointData().SetScalars(t_arr)
+
+            # Write to VTP file
+            file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
+            self.__logger.info(f"Writing VTP file: {file_name}")
             writer = vtk.vtkXMLPolyDataWriter()
             writer.SetFileName(file_name)
-            writer.SetInputData(output)
+            writer.SetInputData(pd_mesh)
             writer.Update()
 
     def write(self, distributions: dict, statistics: dict):
