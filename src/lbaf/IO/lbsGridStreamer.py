@@ -9,9 +9,8 @@ class GridStreamer:
     """A class containing to stream a grid with time-varying attributes
     """
 
-    def __init__(self, points, lines, field_arrays, point_arrays, cell_arrays, lgr: Logger = None):
-        """Class constructor
-        """
+    def __init__(self, points: vtk.vtkPoints, lines: vtk.vtkCellArray, field_arrays: dict = {}, point_arrays: list = [], cell_arrays: list = [], lgr: Logger = None):
+        """ Class constructor."""
         # Assign logger to instance variable
         self.__logger = lgr
 

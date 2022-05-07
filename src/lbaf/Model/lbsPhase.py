@@ -16,6 +16,9 @@ class Phase:
         # Initialize empty list of ranks
         self.__ranks = []
 
+        # Initialize null number of objects
+        self.__n_objects = 0
+
         # Default time-step/phase of this phase
         self.__phase_id = t
 
@@ -41,16 +44,9 @@ class Phase:
         """ Retrieve the time-step/phase for this phase."""
         return self.__phase_id
 
-    def get_objects(self):
-        """ Get all objects belonging to ranks in phase."""
-        # Iterate over all ranks
-        objects = set()
-        for p in self.__ranks:
-            # Retrieve objects from current rank
-            objects = objects.union(p.get_objects())
-
-        # Return set of objects
-        return objects
+    def get_number_of_objects(self):
+        """ Return number of objects."""
+        return self.__n_objects
 
     def compute_edges(self):
         """ Compute and return map of communication link IDs to volumes."""
@@ -133,6 +129,7 @@ class Phase:
 
         # Create n_objects objects with uniformly distributed times in given range
         self.__logger.info(f"Creating {n_objects} objects with times sampled from {sampler_name}")
+        self.__number_of_objects = n_objects
         objects = set([Object(i, time_sampler()) for i in range(n_objects)])
 
         # Compute and report object time statistics
@@ -229,7 +226,6 @@ class Phase:
         reader = LoadReader(basename, logger=self.__logger, file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
-        self.__logger.info(f"Reading objects from time-step {t_s} of data files with prefix {basename}")
         self.__ranks = reader.read_iteration(n_ranks, t_s)
 
         # Compute and report object statistics
@@ -238,5 +234,6 @@ class Phase:
             objects = objects.union(p.get_objects())
         print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
 
-        # Return number of found objects
-        return len(objects)
+        # Set number of read objects
+        self.__n_objects = len(objects)
+        self.__logger.info(f"Read {self.__n_objects} objects from time-step {t_s} of data files with prefix {basename}")

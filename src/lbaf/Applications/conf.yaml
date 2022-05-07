@@ -28,7 +28,7 @@
 # file_suffix [str]            file suffix of VT data files (default: "json")
 # output_dir [str]             output directory (default: '.')
 # terminal_background [str]    background color for terminal output
-# exodus [bool]                generate ExodusII mesh output (default: False)
+# generate_meshes [bool]       generate mesh outputs (default: False)
 # generate_multimedia [bool]   generate multimedia visualization (default: False)
 # n_objects [int]              number of objects
 # n_mapped_ranks [int]         number of initially mapped processors
@@ -54,12 +54,12 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
-brute_force_optimization: True
+#brute_force_optimization: True
 algorithm:
 #  name: BruteForce
   name: InformAndTransfer
   parameters:
-    n_iterations: 8
+    n_iterations: 1
     n_rounds: 4
     fanout: 4
     order_strategy: element_id
@@ -74,7 +74,7 @@ generate_multimedia: False
 output_dir: ../../../output
 output_file_stem: output_file
 n_ranks: 4
-exodus:
+generate_meshes:
   x_procs: 2
   y_procs: 2
   z_procs: 1

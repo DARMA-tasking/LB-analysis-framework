@@ -18,7 +18,7 @@ algorithm:
 # Specify output
 n_ranks: 4
 output_file_stem: output_file
-exodus:
+generate_meshes:
   x_procs: 2
   y_procs: 2
   z_procs: 1

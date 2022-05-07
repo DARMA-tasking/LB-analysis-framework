@@ -1,0 +1,272 @@
+from logging import Logger
+import os
+import sys
+import math
+import numbers
+import vtk
+
+from .lbsGridStreamer import GridStreamer
+from ..Model.lbsPhase import Phase
+
+
+class MeshWriter:
+    """A class to write LBAF results to mesh files via VTK layer
+    """
+
+    def __init__(self, p: Phase, grid_size, f="lbs_out", r=1., output_dir=None, logger: Logger = None):
+        """ Class constructor:
+            p: Phase instance
+            grid_size: iterable containing grid sizes in each dimension
+            f: file name stem
+            r: grid_resolution value
+            output_dir: output directory
+        """
+        # Assign logger to instance variable
+        self.__logger = logger
+
+        # Ensure that provided phase has correct type
+        if not isinstance(p, Phase):
+            self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
+            sys.exit(1)
+        self.__phase = p
+
+        # Retrieve number of mesh points and bail out early if empty set
+        if not (n_p := len(self.__phase.get_ranks())):
+            self.__logger.error("Empty list of ranks, cannot write a mesh file")
+            return
+        self.__n_p = n_p
+
+        # Ensure that an iterable of grid sizes was passed
+        if not isinstance(grid_size, (list, tuple)):
+            self.__logger.error("Could not write to ExodusII file by lack of a grid size iterable")
+            sys.exit(1)
+        self.__grid_size = grid_size
+        self.__logger.info(
+            f"Mapping {self.__n_p} ranks onto a {grid_size[0]}x"
+            f"{grid_size[1]}x{grid_size[2]} rectilinear grid")
+
+        # Ensure that specified grid resolution is correct
+        if not isinstance(r, numbers.Number) or r <= 0.:
+            self.__logger.error("Grid resolution must be a positive number")
+            sys.exit(1)
+        self.__grid_resolution = float(r)
+
+        # Assemble file and path names from constructor parameters
+        self.__rank_file_name = f"{f}_rank_view.e"
+        self.__object_file_name = f"{f}_object_view"
+        self.__output_dir = output_dir
+        if self.__output_dir is not None:
+            self.__rank_file_name = os.path.join(self.__output_dir, self.__rank_file_name)
+            self.__object_file_name = os.path.join(self.__output_dir, self.__object_file_name)
+
+
+    def global_id_to_cartesian(self, flat_id, grid_sizes):
+        """Map global index to its Cartesian grid coordinates."""
+
+        # Sanity check
+        n01 = grid_sizes[0] * grid_sizes[1]
+        if flat_id < 0 or flat_id >= n01 * grid_sizes[2]:
+            return None, None, None
+
+        # Compute successive Euclidean divisions
+        k, r = divmod(flat_id, n01)
+        j, i = divmod(r, grid_sizes[0])
+
+        # Return Cartesian coordinates
+        return i, j, k
+
+
+    def write_rank_view_file(self, distributions: dict, statistics: dict):
+        """ Map ranks to grid and write ExodusII file
+        """
+        # Number of edges is fixed due to vtkExodusIIWriter limitation
+        n_e = int(self.__n_p * (self.__n_p - 1) / 2)
+        self.__logger.info(f"Creating rank view mesh with {self.__n_p} points and {n_e} edges")
+
+        # Create and populate global field arrays for statistics
+        global_stats = {}
+        for stat_name, stat_values in statistics.items():
+            # Skip non-list entries
+            if not isinstance(stat_values, list):
+                continue
+
+            # Create one singleton for each value of each statistic
+            for v in stat_values:
+                s_arr = vtk.vtkDoubleArray()
+                s_arr.SetNumberOfTuples(1)
+                s_arr.SetTuple1(0, v)
+                s_arr.SetName(stat_name)
+                global_stats.setdefault(stat_name, []).append(s_arr)
+
+        # Create attribute data arrays for rank loads and works
+        loads, works = [], []
+        for _, _ in zip(distributions["load"], distributions["work"]):
+            # Create and append new load and work point arrays
+            l_arr, w_arr = vtk.vtkDoubleArray(), vtk.vtkDoubleArray()
+            l_arr.SetName("Load")
+            w_arr.SetName("Work")
+            l_arr.SetNumberOfTuples(self.__n_p)
+            w_arr.SetNumberOfTuples(self.__n_p)
+            loads.append(l_arr)
+            works.append(w_arr)
+
+        # Iterate over ranks and create mesh points
+        points = vtk.vtkPoints()
+        points.SetNumberOfPoints(self.__n_p)
+        for i, p in enumerate(self.__phase.get_ranks()):
+            # Insert point based on Cartesian coordinates
+            points.SetPoint(i, [
+                self.__grid_resolution * c
+                for c in self.global_id_to_cartesian(
+                    p.get_id(), self.__grid_size)])
+            for l, (l_arr, w_arr) in enumerate(zip(loads, works)):
+                l_arr.SetTuple1(i, distributions["load"][l][i])
+                w_arr.SetTuple1(i, distributions["work"][l][i])
+
+        # Iterate over all possible links and create edges
+        lines = vtk.vtkCellArray()
+        edge_indices = {}
+        flat_index = 0
+        for i in range(self.__n_p):
+            for j in range(i + 1, self.__n_p):
+                # Insert new link based on endpoint indices
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, i)
+                line.GetPointIds().SetId(1, j)
+                lines.InsertNextCell(line)
+
+                # Update flat index map
+                edge_indices[flat_index] = frozenset([i, j])
+                flat_index += 1
+
+        # Create attribute data arrays for edge sent volumes
+        volumes = []
+        for i, sent in enumerate(distributions["sent"]):
+            # Reduce directed edges into undirected ones
+            u_edges = {}
+            for k, v in sent.items():
+                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
+
+            # Create and append new volume array for edges
+            v_arr = vtk.vtkDoubleArray()
+            v_arr.SetName("Largest Directed Volume")
+            v_arr.SetNumberOfTuples(n_e)
+            volumes.append(v_arr)
+            
+            # Assign edge volume values
+            self.__logger.debug(f"\titeration {i} edges:")
+            for e in range(n_e):
+                v_arr.SetTuple1(e, u_edges.get(edge_indices[e], float("nan")))
+                self.__logger.debug(f"\t {e} {edge_indices[e]}): {v_arr.GetTuple1(e)}")
+
+        # Create grid streamer
+        streamer = GridStreamer(points, lines, global_stats, [loads, works], volumes, lgr=self.__logger)
+
+        # Write to ExodusII file when possible
+        if streamer.Error:
+            self.__logger.error(f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
+            sys.exit(1)
+        else:
+            self.__logger.info(f"Writing ExodusII file: {self.__rank_file_name}")
+            writer = vtk.vtkExodusIIWriter()
+            writer.SetFileName(self.__rank_file_name)
+            writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
+            writer.WriteAllTimeStepsOn()
+            writer.Update()
+
+    def write_object_view_file(self, distributions: dict):
+        """ Map objects to grid and write ExodusII file
+        """
+
+        # Retrieve number of mesh points and bail out early if empty set
+        n_o = self.__phase.get_number_of_objects()
+        if not n_o:
+            self.__logger.error("Empty list of objects, cannot write a mesh file")
+            return
+
+        # Number of edges is fixed due to vtkExodusIIWriter limitation
+        n_e = int(n_o * (n_o - 1) / 2)
+        self.__logger.info(f"Creating object view mesh with {n_o} points and {n_e} edges")
+
+        # Determine object resolution in grid
+        block_dims = [d for d in range(3) if self.__grid_size[d] > 1]
+        n_o_per_dim = math.ceil(n_o ** (1. / len(block_dims)))
+        self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {block_dims}")
+        o_resolution = self.__grid_resolution / n_o_per_dim
+        block_size = [n_o_per_dim if d in block_dims else 1 for d in range(3)]
+
+        # Iterate over all object distributions
+        for iteration, object_mapping in enumerate(distributions["objects"]):
+            # Create point array for object times
+            t_arr = vtk.vtkDoubleArray()
+            t_arr.SetName("Time")
+            t_arr.SetNumberOfTuples(n_o)
+
+            # Iterate over objects to create mesh points
+            points = vtk.vtkPoints()
+            points.SetNumberOfPoints(n_o)
+            point_to_index = {}
+            index_to_point = []
+            point_id = 0
+            sent_volumes = []
+
+            # Iterate over ranks in current mapping
+            for b, objects in enumerate(object_mapping):
+                # Determine block offsets
+                offsets = [
+                    self.__grid_resolution * c
+                    for c in self.global_id_to_cartesian(b, self.__grid_size)]
+
+                # Iterate over objects and create point coordinates
+                for i, o in enumerate(objects):
+                    # Insert point using offset and block coordinates
+                    points.SetPoint(point_id, [
+                        offsets[d] + o_resolution * c 
+                        for d, c in enumerate(self.global_id_to_cartesian(i, block_size))])
+                    t_arr.SetTuple1(point_id, o.get_time())
+
+                    # Update sent volumes
+                    for k, v in o.get_sent().items():
+                        sent_volumes.append((point_id, k.get_id(), v))
+
+                    # Update maps and counters
+                    point_to_index[o] = point_id
+                    index_to_point.append(o)
+                    point_id += 1
+
+                # Iterate over all possible links and create edges
+                lines = vtk.vtkCellArray()
+                edge_indices = {}
+                flat_index = 0
+                for i in range(n_o):
+                    for j in range(i + 1, n_o):
+                        # Insert new link based on endpoint indices
+                        line = vtk.vtkLine()
+                        line.GetPointIds().SetId(0, i)
+                        line.GetPointIds().SetId(1, j)
+                        lines.InsertNextCell(line)
+
+                        # Update flat index map
+                        edge_indices[flat_index] = frozenset([i, j])
+                        flat_index += 1
+
+            # Write to ExodusII file
+            output = vtk.vtkPolyData()
+            output.SetPoints(points)
+            output.SetLines(lines)
+            output.GetPointData().SetScalars(t_arr)
+            file_name = f"{self.__object_file_name}_{iteration:03d}.vtp"
+            self.__logger.info(f"Writing ExodusII file: {file_name}")
+            writer = vtk.vtkXMLPolyDataWriter()
+            writer.SetFileName(file_name)
+            writer.SetInputData(output)
+            writer.Update()
+
+    def write(self, distributions: dict, statistics: dict):
+        """ Write rank and object ExodusII files
+        """
+        # Write rank view file with global per-rank statistics
+        self.write_rank_view_file(distributions, statistics)
+
+        # Write object view file
+        self.write_object_view_file(distributions)
