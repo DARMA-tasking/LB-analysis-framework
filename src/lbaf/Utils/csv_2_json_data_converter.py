@@ -16,7 +16,7 @@ import brotli
 
 
 class Csv2JsonConverter:
-    """ A Class responsible for conversion from previous log structure (CSV) to a current log structure (JSON)
+    """ A class to convert from previous log structure (CSV) to a current log structure (JSON)
         with/without Brotli compression.
         Files for conversion should be named as follows 'prefix.rank/node.extension' e.g. 'data.0.vom', 'data.1.vom'
         Changes input CSV files e.g. <time_step/phase>, <object-id>, <time> to JSON:
@@ -30,11 +30,10 @@ class Csv2JsonConverter:
         :param compressed: If output file should be compressed, default = True
         :param in_file_name_prefix: Input file name prefix e.g. 'data'
         :param in_file_extension: Input file extension, e.g. '.vom'
-        :param out_dir_path: Output dir, relative to project path
-    """
+        :param out_dir_path: Output dir, relative to project path."""
 
     def __init__(self, dir_path: str, compressed: bool = True, in_file_name_prefix: str = None,
-                 in_file_extension: str = None, out_dir_path: str = 'converted_data'):
+                 in_file_extension: str = None, out_dir_path: str = "converted_data"):
         self.dir_path = dir_path
         self.compressed = compressed
         self.in_file_name_prefix = in_file_name_prefix
@@ -45,8 +44,7 @@ class Csv2JsonConverter:
 
     @staticmethod
     def _get_data_dir(dir_path: str) -> str:
-        """ Method returns a path to data directory
-        """
+        """ Return a path to data directory."""
         if os.path.isdir(dir_path):
             return dir_path
         elif os.path.isdir(os.path.join(project_path, dir_path)):
@@ -56,8 +54,7 @@ class Csv2JsonConverter:
             exit(1)
 
     def _get_files_for_conversion(self) -> list:
-        """ Method returns list of tuples as follows (file_to_convert_path, converted_file_path)
-        """
+        """ Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
         # Defining output path and creating if not exists
         output_path = os.path.join(project_path, self.out_dir_path)
         if not os.path.exists(output_path):
@@ -96,8 +93,7 @@ class Csv2JsonConverter:
         return dir_list
 
     def _convert_file(self, file_path: tuple) -> None:
-        """ Method converts a file and saves converted file to given path
-        """
+        """ Convert a file and saves converted file to given path."""
         file_to_convert = file_path[0]
         node = int(os.path.split(file_to_convert)[-1].split('.')[-2])
         file_to_save = file_path[1]
@@ -107,63 +103,71 @@ class Csv2JsonConverter:
 
     @staticmethod
     def _read_csv(file_to_read: str) -> list:
-        """ Method reads csv and returns a list of dicts (phase, object_id, time) ready to save into JSON
-        """
-        with open(file_to_read, 'rt') as csv_file:
+        """ Read CSV and returns a list of dicts (phase, object_id, time) ready to save into JSON."""
+        with open(file_to_read, "rt") as csv_file:
             log = csv.reader(csv_file, delimiter=',')
-            read_list = [{'phase_id': int(row[0]), 'obj_id': int(row[1]), 'obj_time': float(row[2])} for row in log
+            read_list = [{"phase_id": int(row[0]), "obj_id": int(row[1]), "obj_time": float(row[2])} for row in log
                          if len(row) == 3]
 
         return read_list
 
     @staticmethod
     def _get_data_phase_sorted(data: list) -> dict:
-        """ Method sorts data with respect to the phase. Returns dict with phases as keys
-        """
-        # Creating temporary dict, so rows are sorted by phase_id
+        """ Sort data with respect to the phase. Return dict with phases as keys."""
+        # Create temporary dict so rows are sorted by phase_id
         temp_dict = dict()
         for dict_ in data:
-            phase_id = dict_.get('phase_id', None)
-            obj_id = dict_.get('obj_id', None)
-            obj_time = dict_.get('obj_time', None)
+            phase_id = dict_.get("phase_id", None)
+            obj_id = dict_.get("obj_id", None)
+            obj_time = dict_.get("obj_time", None)
             if isinstance(temp_dict.get(phase_id, None), list):
-                temp_dict[phase_id].append({'phase_id': phase_id, 'obj_id': obj_id, 'obj_time': obj_time})
+                temp_dict[phase_id].append({
+                    "phase_id": phase_id,
+                    "obj_id": obj_id,
+                    "obj_time": obj_time})
             else:
                 temp_dict[phase_id] = list()
-                temp_dict[phase_id].append({'phase_id': phase_id, 'obj_id': obj_id, 'obj_time': obj_time})
+                temp_dict[phase_id].append({
+                    "phase_id": phase_id,
+                    "obj_id": obj_id,
+                    "obj_time": obj_time})
 
+        # Return temporary dict
         return temp_dict
 
     def _write_json(self, output_path: str, data_to_convert: dict, node: int) -> None:
-        """ Method converts data to JSON and saves to output path
-        """
+        """ Convert data to JSON and saves to output path."""
         # Creating dictionary with right structure, which will be dumped
         dict_to_dump = dict()
-        dict_to_dump['phases'] = list()
-        for proc_id, others_list in data_to_convert.items():
-            phase_dict = {'tasks': list(), 'id': proc_id}
+        dict_to_dump["phases"] = list()
+        for rank_id, others_list in data_to_convert.items():
+            phase_dict = {"tasks": list(), "id": rank_id}
             for task in others_list:
-                task_dict = {'time': task['obj_time'], 'resource': 'cpu',
-                             'entity': {'id': task['obj_id'], 'type': 'object'}, 'node': node}
-                phase_dict['tasks'].append(task_dict)
-            dict_to_dump['phases'].append(phase_dict)
+                task_dict = {
+                    "time": task["obj_time"],
+                    "resource": "cpu",
+                    "entity": {
+                        "id": task["obj_id"],
+                        "type": "object"},
+                    "node": node}
+                phase_dict["tasks"].append(task_dict)
+            dict_to_dump["phases"].append(phase_dict)
 
         json_str = json.dumps(dict_to_dump, separators=(',', ':'))
         if self.compressed:
-            compressed_str = brotli.compress(string=json_str.encode('utf-8'), mode=brotli.MODE_TEXT)
-            with open(output_path, 'wb') as compr_json_file:
+            compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
+            with open(output_path, "wb") as compr_json_file:
                 compr_json_file.write(compressed_str)
         else:
-            with open(output_path, 'wt') as json_file:
+            with open(output_path, "wt") as json_file:
                 json_file.write(json_str)
 
     def main(self):
-        """ Main Class method. Gets lists of files to convert. Iterate over it and converts each file.
-        """
+        """ Get lists of files to convert. Iterate over it and converts each file."""
         files_to_convert = self._get_files_for_conversion()
         for file in files_to_convert:
             self._convert_file(file_path=file)
 
 
-if __name__ == '__main__':
-    Csv2JsonConverter(dir_path='data/vt_example_lb_data', compressed=False).main()
+if __name__ == "__main__":
+    Csv2JsonConverter(dir_path="data/vt_example_lb_data", compressed=False).main()
