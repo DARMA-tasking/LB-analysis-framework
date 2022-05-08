@@ -51,7 +51,7 @@ class Phase:
     def compute_edges(self):
         """ Compute and return map of communication link IDs to volumes."""
         # Compute or re-compute edges from scratch
-        self.__logger.debug("Computing inter-process communication edges")
+        self.__logger.debug("Computing inter-rank communication edges")
         self.__edges.clear()
         directed_edges = {}
 
@@ -123,7 +123,7 @@ class Phase:
         self.__cached_edges = False
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
-        """ Use samplers to populate either all or n procs in a phase."""
+        """ Use samplers to populate either all or n ranks in a phase."""
         # Retrieve desired time sampler with its theoretical average
         time_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
 
@@ -204,9 +204,9 @@ class Phase:
             self.__logger.info(f"Randomly assigning objects to {n_ranks} ranks")
         if n_r_mapped > 0:
             # Randomly assign objects to a subset o ranks of size n_r_mapped
-            proc_list = rnd.sample(self.__ranks, n_r_mapped)
+            rank_list = rnd.sample(self.__ranks, n_r_mapped)
             for o in objects:
-                p = rnd.choice(proc_list)
+                p = rnd.choice(rank_list)
                 p.add_migratable_object(o)
                 o.set_rank_id(p.get_id())
         else:
