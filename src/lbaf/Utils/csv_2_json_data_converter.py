@@ -99,16 +99,24 @@ class Csv2JsonConverter:
         file_to_save = file_path[1]
         read_file_list = self._read_csv(file_to_read=file_to_convert)
         read_file_dict = self._get_data_phase_sorted(data=read_file_list)
-        self._write_json(output_path=file_to_save, data_to_convert=read_file_dict, node=node)
+        self._write_json(
+            output_path=file_to_save,
+            data_to_convert=read_file_dict,
+            node=node)
 
     @staticmethod
     def _read_csv(file_to_read: str) -> list:
         """ Read CSV and returns a list of dicts (phase, object_id, time) ready to save into JSON."""
+        # Parse CSV file lines
         with open(file_to_read, "rt") as csv_file:
             log = csv.reader(csv_file, delimiter=',')
-            read_list = [{"phase_id": int(row[0]), "obj_id": int(row[1]), "obj_time": float(row[2])} for row in log
-                         if len(row) == 3]
+            read_list = [{
+                "phase_id": int(row[0]),
+                "obj_id": int(row[1]),
+                "obj_time": float(row[2])}
+                         for row in log if len(row) == 3]
 
+        # Return read list
         return read_list
 
     @staticmethod
