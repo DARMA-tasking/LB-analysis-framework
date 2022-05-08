@@ -97,7 +97,7 @@ class internalParameters:
         # Parse whether meshes must be generated
         if (gm := self.configuration.get("generate_meshes")) is not None:
             self.grid_size = []
-            for key in ("x_procs", "y_procs", "z_procs"):
+            for key in ("x_ranks", "y_ranks", "z_ranks"):
                 self.grid_size.append(gm.get(key))
             if math.prod(self.grid_size) < self.n_ranks:
                 self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")

@@ -75,9 +75,9 @@ output_dir: ../../../output
 output_file_stem: output_file
 n_ranks: 4
 generate_meshes:
-  x_procs: 2
-  y_procs: 2
-  z_procs: 1
+  x_ranks: 2
+  y_ranks: 2
+  z_ranks: 1
   object_jitter: 0.5
 
 # Simulate from samplers (comment out if reading from log)
