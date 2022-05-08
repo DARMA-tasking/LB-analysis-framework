@@ -203,10 +203,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self.__logger.debug(f"Trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
-            srt_proc_obj = list(self.__order_strategy(p_src.get_migratable_objects(), p_src.get_id()))
-            while srt_proc_obj:
+            srt_rank_obj = list(self.__order_strategy(
+                p_src.get_migratable_objects(), p_src.get_id()))
+            while srt_rank_obj:
                 # Pick next object in ordered list
-                o = srt_proc_obj.pop()
+                o = srt_rank_obj.pop()
                 object_list = [o]
                 self.__logger.debug(f"* object {o.get_id()}:")
 
@@ -237,13 +238,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.:
-                    if not srt_proc_obj:
+                    if not srt_rank_obj:
                         # No more transferable objects are available
                         n_rejects += 1
                         continue
 
                     # Recursively extend search if possible
-                    pick_list = srt_proc_obj[:]
+                    pick_list = srt_rank_obj[:]
                     success = self.recursive_extended_search(
                         pick_list,
                         object_list,
@@ -252,7 +253,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         self.__max_objects_per_transfer)
                     if success:
                         # Remove accepted objects from remaining object list
-                        srt_proc_obj = pick_list
+                        srt_rank_obj = pick_list
                     else:
                         # No transferable list of objects was found
                         n_rejects += 1
@@ -395,8 +396,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return sorted(objects, key=lambda x: -x.get_time())
 
     def load_excess(self, objects: set):
-        proc_load = sum([obj.get_time() for obj in objects])
-        return proc_load - self.__average_load
+        rank_load = sum([obj.get_time() for obj in objects])
+        return rank_load - self.__average_load
 
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated
