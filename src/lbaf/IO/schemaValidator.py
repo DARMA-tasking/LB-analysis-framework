@@ -85,8 +85,8 @@ class SchemaValidator:
                 'phases': [
                     {
                         "id": int,
-                        "migration count": int,
-                        "post-LB": {
+                        Optional("migration count"): int,
+                        Optional("post-LB"): {
                             "Object_comm": {
                                 "avg": float,
                                 "car": float,
