@@ -27,7 +27,7 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix: str, logger: Logger = None, file_suffix: str = "json"):
+    def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json"):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -116,7 +116,7 @@ class LoadReader:
                             if rank_objects_dict.get(c.get("to"))}
                     received = {rank_objects_dict.get(c.get("from")): c.get("bytes") for c in obj_comm.get("received")
                                 if rank_objects_dict.get(c.get("from"))}
-                    rank_obj.set_communicator(ObjectCommunicator(i=obj_id, r=received, s=sent))
+                    rank_obj.set_communicator(ObjectCommunicator(i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
         return rank_list
@@ -145,7 +145,7 @@ class LoadReader:
 
         # Handle empty Rank case
         if not phases:
-            returned_dict.setdefault(0, Rank(node_id, logger=self.__logger))
+            returned_dict.setdefault(0, Rank(node_id, self.__logger))
 
         # Iterate over phases
         for phase in phases:
@@ -196,7 +196,7 @@ class LoadReader:
                     # Instantiate object with retrieved parameters
                     obj = Object(task_object_id, task_time, node_id, user_defined=task_used_defined)
                     # If this iteration was never encountered initialize rank object
-                    returned_dict.setdefault(phase_id, Rank(node_id, logger=self.__logger))
+                    returned_dict.setdefault(phase_id, Rank(node_id, self.__logger))
                     # Add object to rank
                     returned_dict[phase_id].add_migratable_object(obj)
                     # Print debug information when requested

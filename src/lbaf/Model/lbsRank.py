@@ -9,7 +9,7 @@ class Rank:
     """ A class representing a rank to which objects are assigned
     """
 
-    def __init__(self, i: int, mo: set = None, so: set = None, logger: Logger = None):
+    def __init__(self, i: int, logger: Logger, mo: set = None, so: set = None):
         # Assign logger to instance variable
         self.__logger = logger
 

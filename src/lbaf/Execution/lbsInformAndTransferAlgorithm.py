@@ -331,7 +331,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self.phase.get_ranks(),
                 lambda x: self.work_model.compute(x),
                 f"iteration {i + 1} rank works",
-                logger=self.__logger)
+                self.__logger)
 
             # Update run distributions and statistics
             self.update_distributions_and_statistics(distributions, statistics)

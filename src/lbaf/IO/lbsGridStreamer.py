@@ -9,7 +9,7 @@ class GridStreamer:
     """A class containing to stream a grid with time-varying attributes
     """
 
-    def __init__(self, points, lines, field_arrays, point_arrays, cell_arrays, lgr: Logger = None):
+    def __init__(self, points, lines, field_arrays, point_arrays, cell_arrays, lgr: Logger):
         """Class constructor
         """
         # Assign logger to instance variable

@@ -14,7 +14,7 @@ class Phase:
     """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, t: int = 0, logger: Logger = None, file_suffix="json"):
+    def __init__(self, logger: Logger, t: int = 0, file_suffix="json"):
         # Initialize empty list of ranks
         self.__ranks = []
 
@@ -109,8 +109,8 @@ class Phase:
         n_ranks = len(self.__ranks)
         n_edges = len(self.__edges)
         print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                logger=self.__logger)
-        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, logger=self.__logger)
+                                self.__logger)
+        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, self.__logger)
 
     def get_edges(self):
         """ Retrieve edges belonging to phase
@@ -141,7 +141,7 @@ class Phase:
         objects = set([Object(i, time_sampler()) for i in range(n_objects)])
 
         # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.__logger)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -162,9 +162,9 @@ class Phase:
                 # Create object communicator with outgoing messages
                 obj.set_communicator(ObjectCommunicator(
                     i=obj.get_id(),
+                    logger=self.__logger,
                     r={},
                     s={o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
-                    logger=self.__logger
                 ))
 
             # Create symmetric received communications
@@ -195,10 +195,10 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.__logger)
+        print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)
 
         # Create n_ranks ranks
-        self.__ranks = [Rank(i, logger=self.__logger) for i in range(n_ranks)]
+        self.__ranks = [Rank(i, self.__logger) for i in range(n_ranks)]
 
         # Randomly assign objects to ranks
         if n_r_mapped and n_r_mapped <= n_ranks:
@@ -233,7 +233,7 @@ class Phase:
         """
 
         # Instantiate VT load reader
-        reader = LoadReader(basename, logger=self.__logger, file_suffix=self.__file_suffix)
+        reader = LoadReader(basename, self.__logger, file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
         self.__logger.info(f"Reading objects from time-step {t_s} of data files with prefix {basename}")
@@ -243,7 +243,7 @@ class Phase:
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
+        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.__logger)
 
         # Return number of found objects
         return len(objects)

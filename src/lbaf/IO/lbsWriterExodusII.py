@@ -10,7 +10,7 @@ class WriterExodusII:
     """A class to write LBS data to Exodus II files via VTK layer
     """
 
-    def __init__(self, p: Phase, m, f="lbs_out", s='e', r=1., output_dir=None, logger: Logger = None):
+    def __init__(self, p: Phase, m, logger: Logger, f="lbs_out", s='e', r=1., output_dir=None):
         """ Class constructor:
             p: Phase instance
             m: Rank dictionary
@@ -135,7 +135,7 @@ class WriterExodusII:
                 self.__logger.debug(f"\t {e} {edge_indices[e]}): {v_arr.GetTuple1(e)}")
 
         # Create grid streamer
-        streamer = GridStreamer(points, lines, time_stats, [time_loads, time_works], time_volumes, lgr=self.__logger)
+        streamer = GridStreamer(points, lines, time_stats, [time_loads, time_works], time_volumes, self.__logger)
 
         # Write to ExodusII file when possible
         if streamer.Error:

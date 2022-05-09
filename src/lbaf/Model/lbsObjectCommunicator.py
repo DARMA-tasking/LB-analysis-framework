@@ -6,7 +6,7 @@ class ObjectCommunicator:
     """ A class holding received and sent messages for an object
     """
 
-    def __init__(self, i: int, r: dict = None, s: dict = None, logger: Logger = None):
+    def __init__(self, i: int, logger: Logger, r: dict = None, s: dict = None):
         # Index of object having this communicator if defined
         self.__object_index = i
 
