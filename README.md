@@ -7,6 +7,9 @@
 * `doc`: research and papers and related documents
 * `data`: various data inputs or outputs
 
+### Please check Wiki for more details:
+[Load Balancing Analysis Framework Wikipedia](https://github.com/DARMA-tasking/LB-analysis-framework/wiki)
+
 ## Before starting
 
 The LBAF is available from source only now. It requires [Python 3.8](https://www.python.org/downloads/) to run.
@@ -30,7 +33,7 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 LBAF run base of configuration file which could be find here:
 ```shell
-<project-path>/src/Applications/conf.yaml
+<project-path>/src/lbaf/Applications/conf.yaml
 ```
 
 Description of each parameter in configuration file could be found at the top of configuration file.
@@ -55,21 +58,21 @@ tox
 In order to run LBAF from main project directory:
 ```shell
 cd <project-path>
-python src/Applications/LBAF.py
+python src/lbaf/Applications/LBAF.py
 ```
 
 ### JSON data files Validator
 
 JSON data files Validator validates VT data files against defined schema.
 
-Schema is defined in `<project-path>/src/IO/schemaValidator.py`.
+Schema is defined in `<project-path>/src/lbaf/IO/schemaValidator.py`.
 
-JSON data files Validator is located in `<project-path>/src/Utils/JSON_data_files_validator.py`.
+JSON data files Validator is located in `<project-path>/src/lbaf/Utils/JSON_data_files_validator.py`.
 
 Usage for single file:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --file_path=../../data/8color-4node/data.0.json
+python JSON_data_files_validator.py --file_path=../../../data/8color-4node/data.0.json
 
 # With absolute path
 python JSON_data_files_validator.py --file_path=<project-path>/data/8color-4node/data.0.json
@@ -78,7 +81,7 @@ python JSON_data_files_validator.py --file_path=<project-path>/data/8color-4node
 Usage for many files in the same directory:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --dir_path=../../data/8color-4node
+python JSON_data_files_validator.py --dir_path=../../../data/8color-4node
 
 # With absolute path
 python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node

@@ -12,10 +12,10 @@ import unittest
 
 from schema import SchemaError
 
-from src.IO.lbsVTDataReader import LoadReader
-from src.Model.lbsObject import Object
-from src.Model.lbsObjectCommunicator import ObjectCommunicator
-from src.Model.lbsRank import Rank
+from src.lbaf.IO.lbsVTDataReader import LoadReader
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):
@@ -26,28 +26,28 @@ class TestConfig(unittest.TestCase):
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
             exit(1)
-        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats', 'stats')
+        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', 'data')
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix='json')
         self.ranks_comm = [
-            {
+            {0: {
                 5: {'sent': [], 'received': [{'from': 0, 'bytes': 2.0}]},
                 0: {'sent': [{'to': 5, 'bytes': 2.0}], 'received': []},
                 4: {'sent': [], 'received': [{'from': 1, 'bytes': 1.0}]},
                 1: {'sent': [{'to': 4, 'bytes': 1.0}], 'received': []},
                 2: {'sent': [], 'received': [{'from': 3, 'bytes': 1.0}]},
                 3: {'sent': [{'to': 2, 'bytes': 1.0}, {'to': 8, 'bytes': 0.5}], 'received': []},
-                8: {'sent': [], 'received': [{'from': 3, 'bytes': 0.5}]}},
-            {
+                8: {'sent': [], 'received': [{'from': 3, 'bytes': 0.5}]}}},
+            {0: {
                 1: {'sent': [], 'received': [{'from': 4, 'bytes': 2.0}]},
                 4: {'sent': [{'to': 1, 'bytes': 2.0}], 'received': []},
                 8: {'sent': [], 'received': [{'from': 5, 'bytes': 2.0}]},
                 5: {'sent': [{'to': 8, 'bytes': 2.0}], 'received': []},
                 6: {'sent': [], 'received': [{'from': 7, 'bytes': 1.0}]},
-                7: {'sent': [{'to': 6, 'bytes': 1.0}], 'received': []}},
-            {
+                7: {'sent': [{'to': 6, 'bytes': 1.0}], 'received': []}}},
+            {0: {
                 6: {'sent': [], 'received': [{'from': 8, 'bytes': 1.5}]},
-                8: {'sent': [{'to': 6, 'bytes': 1.5}], 'received': []}},
+                8: {'sent': [{'to': 6, 'bytes': 1.5}], 'received': []}}},
             {}
         ]
         self.ranks_iter_map = [{0: Rank(i=0, mo={Object(i=3, t=0.5), Object(i=2, t=0.5), Object(i=0, t=1.0),
@@ -111,7 +111,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'stats')
+        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
         lr = LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix='json')
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
@@ -132,7 +132,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], f"File {self.file_prefix}xd.0.json not found!")
 
     def test_lbs_vt_data_reader_read_wrong_schema(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'stats')
+        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'data')
         with self.assertRaises(SchemaError) as err:
             LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix='json').read(0, 0)
         with open(os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'schema_error.txt'), 'rt') as se:

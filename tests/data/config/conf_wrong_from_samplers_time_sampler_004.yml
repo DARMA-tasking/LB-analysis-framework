@@ -1,0 +1,46 @@
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.
+    beta: 0.
+    gamma: 0.
+
+# Specify balancing algorithm
+algorithm:
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 8
+    n_rounds: 4
+    fanout: 4
+    order_strategy: element_id
+    criterion: Tempered
+    max_objects_per_transfer: 8
+    deterministic_transfer: True
+
+# Specify output
+n_ranks: 4
+terminal_background: light
+generate_multimedia: False
+output_dir: ../../../output
+output_file_stem: output_file
+exodus:
+  x_procs: 2
+  y_procs: 2
+  z_procs: 1
+
+# Simulate from samplers (comment out if reading from log)
+from_samplers:
+  n_objects: 200
+  n_mapped_ranks: 2
+  communication_degree: 20
+  time_sampler:
+    name: lognorma
+    parameters:
+      - 1.0
+      - 10.0
+  volume_sampler:
+    name: lognormal
+    parameters:
+      - 1.0
+      - 10.0

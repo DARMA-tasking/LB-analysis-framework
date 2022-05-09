@@ -40,14 +40,14 @@ jobs:
       - name: Run LBAF Test
         run: |
           cd ${{ env.home_dir }}
-          cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/Applications/conf.yaml
+          cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
           /bin/sh venv/bin/activate
           echo "\n================================================================================"
           echo "Printing used configuration:\n"
-          cat ${{ env.home_dir }}/src/Applications/conf.yaml
+          cat ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/Applications/LBAF.py
+          python src/lbaf/Applications/LBAF_app.py
 
       - name: Check output
         run: |
