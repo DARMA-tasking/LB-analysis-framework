@@ -11,6 +11,7 @@ import logging
 import unittest
 
 from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.lbaf.Model.lbsRank import Rank
 
 
@@ -75,10 +76,50 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_sentinel_load(), 7.0)
 
     def test_lbs_rank_get_received_volume_001(self):
-        self.assertEqual(self.rank.get_received_volume(), 0.0)
+        sent_objects = {Object(i=123, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
+                        Object(i=3, t=0.5): 1.5}
+        received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
+                            Object(i=8, t=1.5): 0.5}
+        oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
+        temp_mig_object = Object(i=123, t=1.0, c=oc)
+        self.rank.add_migratable_object(temp_mig_object)
+        self.assertEqual(self.rank.get_received_volume(), 4.5)
 
     def test_lbs_rank_get_sent_volume_001(self):
-        self.assertEqual(self.rank.get_sent_volume(), 0.0)
+        sent_objects = {Object(i=123, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
+                        Object(i=3, t=0.5): 1.5}
+        received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
+                            Object(i=8, t=1.5): 0.5}
+        oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
+        temp_mig_object = Object(i=123, t=1.0, c=oc)
+        self.rank.add_migratable_object(temp_mig_object)
+        self.assertEqual(self.rank.get_sent_volume(), 6.5)
+
+    def test_lbs_rank_remove_migratable_object(self):
+        temp_rank = Rank(i=1, logger=self.logger)
+        temp_object = Object(i=7, t=1.5)
+        self.rank.add_migratable_object(temp_object)
+        self.migratable_objects.add(temp_object)
+        self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
+        self.rank._Rank__known_loads[temp_rank] = 4.0
+        self.rank.remove_migratable_object(temp_object, temp_rank)
+        self.migratable_objects.remove(temp_object)
+        self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
+
+    def test_lbs_rank_add_as_viewer(self):
+        temp_rank_list = [Rank(i=1, logger=self.logger)]
+        self.rank.add_as_viewer(temp_rank_list)
+        self.assertEqual(temp_rank_list[0].get_viewers(), {self.rank})
+
+    def test_lbs_rank_reset_all_load_information(self):
+        temp_rank = Rank(i=1, logger=self.logger)
+        temp_rank.add_as_viewer([self.rank])
+        self.assertEqual(self.rank.get_viewers(), {temp_rank})
+        self.rank._Rank__known_loads[temp_rank] = 4.0
+        self.assertEqual(self.rank.get_known_loads(), {temp_rank: 4.0})
+        self.rank.reset_all_load_information()
+        self.assertEqual(self.rank.get_viewers(), set())
+        self.assertEqual(self.rank.get_known_loads(), {})
 
 
 if __name__ == '__main__':

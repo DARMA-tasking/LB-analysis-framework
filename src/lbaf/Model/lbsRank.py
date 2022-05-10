@@ -3,6 +3,7 @@ import random as rnd
 import math
 
 from .lbsMessage import Message
+from .lbsObject import Object
 
 
 class Rank:
@@ -86,7 +87,7 @@ class Rank:
         """
         return self.__viewers
 
-    def remove_migratable_object(self, o, p_dst):
+    def remove_migratable_object(self, o: Object, p_dst):
         """ Remove migratable able object from self object sent to peer
         """
         # Remove object from those assigned to self
