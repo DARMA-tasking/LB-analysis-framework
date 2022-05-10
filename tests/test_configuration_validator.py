@@ -187,6 +187,22 @@ class TestConfig(unittest.TestCase):
             configuration = yaml.safe_load(yaml_str)
         ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
 
+    def test_config_from_data_algorithm_invalid_001(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_algorithm_invalid_001.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "Key 'parameters' error:\nMissing key: 'skip_transfer'")
+
+    def test_config_from_data_algorithm_invalid_002(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_algorithm_invalid_002.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "Key 'parameters' error:\nMissing key: 'fanout'")
+
 
 if __name__ == '__main__':
     unittest.main()
