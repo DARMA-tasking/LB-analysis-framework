@@ -8,8 +8,11 @@ except Exception as e:
     exit(1)
 
 import logging
+import random
 import unittest
+from unittest.mock import patch
 
+from src.lbaf.Model.lbsMessage import Message
 from src.lbaf.Model.lbsObject import Object
 from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.lbaf.Model.lbsRank import Rank
@@ -120,6 +123,45 @@ class TestConfig(unittest.TestCase):
         self.rank.reset_all_load_information()
         self.assertEqual(self.rank.get_viewers(), set())
         self.assertEqual(self.rank.get_known_loads(), {})
+
+    @patch.object(random, 'sample')
+    def test_lbs_rank_initialize_message(self, random_mock):
+        self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
+        temp_rank_1 = Rank(i=1, logger=self.logger)
+        temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
+        temp_rank_2 = Rank(i=2, logger=self.logger)
+        temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
+        random_mock.return_value = [temp_rank_1, temp_rank_2]
+        self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[0],
+                         [temp_rank_1, temp_rank_2])
+        self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[1].get_round(),
+                         Message(1, self.rank._Rank__known_loads).get_round())
+        self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[1].get_content(),
+                         Message(1, self.rank._Rank__known_loads).get_content())
+
+    @patch.object(random, 'sample')
+    def test_lbs_rank_forward_message(self, random_mock):
+        self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
+        temp_rank_1 = Rank(i=1, logger=self.logger)
+        temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
+        temp_rank_2 = Rank(i=2, logger=self.logger)
+        temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
+        random_mock.return_value = [temp_rank_1, temp_rank_2]
+        self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[0],
+                         [temp_rank_1, temp_rank_2])
+        self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[1].get_round(),
+                         Message(2, self.rank._Rank__known_loads).get_round())
+        self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[1].get_content(),
+                         Message(2, self.rank._Rank__known_loads).get_content())
+
+    def test_lbs_rank_process_message(self):
+        self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
+        temp_rank_1 = Rank(i=1, logger=self.logger)
+        temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
+        self.assertEqual(self.rank.get_load(), 9.5)
+        self.rank.process_message(Message(1, {temp_rank_1: 4.0}))
+        self.assertEqual(self.rank._Rank__known_loads, {self.rank: 9.5, temp_rank_1: 4.0})
+        self.assertEqual(self.rank.round_last_received, 1)
 
 
 if __name__ == '__main__':

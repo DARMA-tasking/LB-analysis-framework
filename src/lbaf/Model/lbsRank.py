@@ -180,21 +180,21 @@ class Rank:
     def forward_message(self, r, s, f):
         """ Forward information message to sample of selected peers
         """
+        # TODO: s which is set of Ranks is not used, should it be removed?
         # Create load message tagged at current round
         msg = Message(r, self.__known_loads)
 
         # Compute complement of set of known peers
-        complement = set(
-            self.__known_loads).difference([self])
+        complement = set(self.__known_loads).difference([self])
 
         # Forward message to pseudo-random sample of ranks
-        return rnd.sample(
-            complement, min(f, len(complement))), msg
+        return rnd.sample(complement, min(f, len(complement))), msg
 
     def process_message(self, msg):
         """ Update internals when message is received
         """
         # Assert that message has the expected type
+        # TODO: Better message checking needed
         if not isinstance(msg, Message):
             self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
 

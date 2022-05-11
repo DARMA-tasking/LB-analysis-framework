@@ -119,8 +119,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 # Check whether rank must relay previously received message
                 if p_snd.round_last_received + 1 == information_round:
                     # Collect message when destination list is not empty
-                    dst, msg = p_snd.forward_message(
-                        information_round, rank_set, self.__fanout)
+                    dst, msg = p_snd.forward_message(information_round, rank_set, self.__fanout)
                     for p_rcv in dst:
                         messages.setdefault(p_rcv, []).append(msg)
 

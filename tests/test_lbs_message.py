@@ -20,6 +20,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.msg._Message__round, 1)
         self.assertEqual(self.msg._Message__content, 'something')
 
+    def test_object_repr(self):
+        self.assertEqual(str(self.msg), 'Message round: 1, Content: something')
+
     def test_message_get_round(self):
         self.assertEqual(self.msg.get_round(), 1)
 
