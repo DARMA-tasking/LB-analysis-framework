@@ -310,7 +310,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self.__logger.info(
-                    f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected ({100. * n_rejects / n_proposed:.4}%)")
+                    f"{n_proposed} proposed transfers, "
+                    f"{n_transfers} occurred, {n_rejects} rejected "
+                    f"({100. * n_rejects / n_proposed:.4}%)")
             else:
                 self.__logger.info("No transfers were proposed")
 
