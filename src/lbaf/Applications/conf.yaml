@@ -42,30 +42,30 @@
 
 # Specify input
 from_data:
-  #data_stem: "../data/synthetic_lb_data/data"
-  data_stem: "../data/nolb-8color-16nodes-data/data"
+  data_stem: "../data/synthetic_lb_data/data"
+  #data_stem: "../data/nolb-8color-16nodes-data/data"
   phase_id: 1
 
 # Specify work model
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 0.
-    beta: 1.
+    alpha: 1.
+    beta: 0.
     gamma: 0.
 
 # Specify balancing algorithm
-#brute_force_optimization: True
+brute_force_optimization: True
 algorithm:
 #  name: BruteForce
   name: InformAndTransfer
   parameters:
-    n_iterations: 1
+    n_iterations: 8
     n_rounds: 4
     fanout: 4
     order_strategy: arbitrary
     criterion: Tempered
-    max_objects_per_transfer: 8
+    max_objects_per_transfer: 480
     deterministic_transfer: True
 
 # Specify output

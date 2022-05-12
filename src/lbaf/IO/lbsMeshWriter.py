@@ -226,7 +226,7 @@ class MeshWriter:
                 # Iterate over objects and create point coordinates
                 n_o_rank = len(objects)
                 n_o_per_dim = math.ceil(n_o_rank ** (1. / len(rank_dims)))
-                self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
+                self.__logger.debug(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
                 o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
                 rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
                 centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
