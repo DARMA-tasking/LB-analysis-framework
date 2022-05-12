@@ -43,7 +43,6 @@
 # Specify input
 from_data:
   data_stem: "../data/synthetic_lb_data/data"
-  #data_stem: "../data/nolb-8color-16nodes-data/data"
   phase_id: 1
 
 # Specify work model
@@ -65,7 +64,7 @@ algorithm:
     fanout: 4
     order_strategy: arbitrary
     criterion: Tempered
-    max_objects_per_transfer: 480
+    max_objects_per_transfer: 8
     deterministic_transfer: True
 
 # Specify output
@@ -80,19 +79,3 @@ generate_meshes:
   y_ranks: 4
   z_ranks: 1
   object_jitter: 0.5
-
-# Simulate from samplers (comment out if reading from log)
-#from_samplers:
-#  n_objects: 200
-#  n_mapped_ranks: 2
-#  communication_degree: 20
-#  time_sampler:
-#    name: lognormal
-#    parameters:
-#      - 1.0
-#      - 10.0
-#  volume_sampler:
-#    name: lognormal
-#    parameters:
-#      - 1.0
-#      - 10.0
