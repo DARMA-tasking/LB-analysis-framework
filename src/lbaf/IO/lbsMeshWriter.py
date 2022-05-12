@@ -200,14 +200,8 @@ class MeshWriter:
         n_e = int(n_o * (n_o - 1) / 2)
         self.__logger.info(f"Creating object view mesh with {n_o} points, {n_e} edges, and jitter factor: {self.__object_jitter}")
 
-        # Determine object resolution and placement in grid
+        # Determine available dimensions for object placement in ranks
         rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
-        n_o_per_dim = math.ceil(n_o ** (1. / len(rank_dims)))
-        self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
-        o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
-        rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
-        centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
-                     if d in rank_dims else 0.0 for d in range(3)]
 
         # Iterate over all object distributions
         for iteration, object_mapping in enumerate(distributions["objects"]):
@@ -230,6 +224,14 @@ class MeshWriter:
                     for c in self.global_id_to_cartesian(rank_id, self.__grid_size)]
 
                 # Iterate over objects and create point coordinates
+                n_o_rank = len(objects)
+                n_o_per_dim = math.ceil(n_o_rank ** (1. / len(rank_dims)))
+                self.__logger.info(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
+                o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
+                rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
+                centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
+                             if d in rank_dims else 0.0 for d in range(3)]
+                    
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
                     jitter = [
