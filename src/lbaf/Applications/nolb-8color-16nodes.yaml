@@ -43,14 +43,14 @@
 # Specify input
 from_data:
   data_stem: "../data/nolb-8color-16nodes-data/data"
-  phase_id: 1
+  phase_id: 501
 
 # Specify work model
 work_model:
   name: AffineCombination
   parameters:
     alpha: 1.
-    beta: 0.00001
+    beta: 1.0e-9
     gamma: 0.
 
 # Specify balancing algorithm

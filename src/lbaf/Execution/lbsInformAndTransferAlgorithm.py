@@ -203,6 +203,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self.__logger.debug(f"Trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
+            print(len(p_src.get_migratable_objects()), len(p_src.get_sentinel_objects()))
             srt_rank_obj = list(self.__order_strategy(
                 p_src.get_migratable_objects(), p_src.get_id()))
             while srt_rank_obj:
