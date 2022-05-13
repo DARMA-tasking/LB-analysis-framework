@@ -12,10 +12,12 @@ import random
 import unittest
 from unittest.mock import patch
 
+from src.lbaf.Execution.lbsCriterionBase import CriterionBase
 from src.lbaf.Model.lbsMessage import Message
 from src.lbaf.Model.lbsObject import Object
 from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.lbaf.Model.lbsRank import Rank
+from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 
 
 class TestConfig(unittest.TestCase):
@@ -162,6 +164,22 @@ class TestConfig(unittest.TestCase):
         self.rank.process_message(Message(1, {temp_rank_1: 4.0}))
         self.assertEqual(self.rank._Rank__known_loads, {self.rank: 9.5, temp_rank_1: 4.0})
         self.assertEqual(self.rank.round_last_received, 1)
+
+    def test_lbs_rank_compute_transfer_cmf(self):
+        work_model = WorkModelBase.factory("AffineCombination", {"alpha": 1.0, "beta": 0.0, "gamma": 0.0},
+                                           lgr=self.logger)
+        transfer_criterion = CriterionBase.factory("Tempered", work_model, lgr=self.logger)
+        targets = {Rank(i=1, logger=self.logger): 1.0, Rank(i=2, logger=self.logger): 1.5}
+        result_1, result_2 = self.rank.compute_transfer_cmf(transfer_criterion=transfer_criterion, o=Object(i=2, t=0.5),
+                                                            targets=targets)
+        list_of_keys_1 = sorted([k.get_id() for k, v in result_1.items()])
+        list_of_values_1 = sorted([v for k, v in result_1.items()])
+        list_of_keys_2 = sorted([k.get_id() for k, v in result_2.items()])
+        list_of_values_2 = sorted([v for k, v in result_2.items()])
+        self.assertEqual(list_of_keys_1, [1, 2])
+        self.assertEqual(list_of_values_1, [0.5, 1.0])
+        self.assertEqual(list_of_keys_2, [1, 2])
+        self.assertEqual(list_of_values_2, [0.5, 0.5])
 
 
 if __name__ == '__main__':

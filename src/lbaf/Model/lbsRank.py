@@ -204,7 +204,7 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_transfer_cmf(self, transfer_criterion, o, targets, strict=False):
+    def compute_transfer_cmf(self, transfer_criterion, o: Object, targets: dict, strict=False):
         """ Compute CMF for the sampling of transfer targets
         """
         # Initialize criterion values
