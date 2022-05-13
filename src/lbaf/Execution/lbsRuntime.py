@@ -38,9 +38,10 @@ class Runtime:
             work_model.get("name"),
             work_model.get("parameters", {}),
             lgr=self.__logger)
-        if not self.__work_model:
-            self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
-            sys.exit(1)
+        # TODO: Code not reachable
+        # if not self.__work_model:
+        #     self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
+        #     raise NameError(f"Could not instantiate a work model of type {self.__work_model}")
 
         # Instantiate balancing algorithm
         self.__algorithm = AlgorithmBase.factory(
