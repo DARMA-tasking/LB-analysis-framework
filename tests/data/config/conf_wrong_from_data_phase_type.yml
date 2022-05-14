@@ -33,3 +33,4 @@ generate_meshes:
   x_ranks: 2
   y_ranks: 2
   z_ranks: 1
+  object_jitter: 0.5
