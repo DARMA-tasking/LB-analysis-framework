@@ -43,7 +43,7 @@
 # Specify input
 from_data:
   data_stem: "../data/synthetic_lb_data/data"
-  phase_id: 1
+  phase_id: 0
 
 # Specify work model
 work_model:
@@ -73,9 +73,9 @@ terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output
 output_file_stem: output_file
-n_ranks: 32
+n_ranks: 4
 generate_meshes:
-  x_ranks: 8
-  y_ranks: 4
+  x_ranks: 2
+  y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
