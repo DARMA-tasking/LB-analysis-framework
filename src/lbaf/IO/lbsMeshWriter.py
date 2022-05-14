@@ -203,6 +203,12 @@ class MeshWriter:
         # Determine available dimensions for object placement in ranks
         rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
 
+        # Compute constant per object jitter
+        jitter_dims = {
+            i: [(random.random() - 0.5) * self.__object_jitter
+                if d in rank_dims else 0.0 for d in range(3)]
+            for i in self.__phase.get_object_ids()}
+
         # Iterate over all object distributions
         for iteration, object_mapping in enumerate(distributions["objects"]):
             # Create point array for object times
@@ -234,12 +240,11 @@ class MeshWriter:
                     
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
-                    jitter = [
-                        (random.random() - 0.5) * o_resolution * self.__object_jitter
-                        if d in rank_dims else 0.0 for d in range(3)]
                     points.SetPoint(point_index, [
-                        offsets[d] - centering[d] + jitter[d] + o_resolution * c 
-                        for d, c in enumerate(self.global_id_to_cartesian(i, rank_size))])
+                        offsets[d] - centering[d] + (
+                            jitter_dims[o.get_id()][d] + c) * o_resolution
+                        for d, c in enumerate(self.global_id_to_cartesian(
+                            i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
 
                     # Update sent volumes

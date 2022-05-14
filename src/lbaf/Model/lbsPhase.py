@@ -36,7 +36,7 @@ class Phase:
         """ Retrieve ranks belonging to phase."""
         return self.__ranks
 
-    def get_ranks_ids(self):
+    def get_rank_ids(self):
         """ Retrieve IDs of ranks belonging to phase."""
         return [p.get_id() for p in self.__ranks]
 
@@ -47,6 +47,13 @@ class Phase:
     def get_number_of_objects(self):
         """ Return number of objects."""
         return self.__n_objects
+
+    def get_object_ids(self):
+        """ Return IDs of ranks belonging to phase."""
+        ids = []
+        for p in self.__ranks:
+            ids += p.get_object_ids()
+        return ids
 
     def compute_edges(self):
         """ Compute and return map of communication link IDs to volumes."""
