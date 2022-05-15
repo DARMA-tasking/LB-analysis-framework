@@ -14,6 +14,42 @@ paraview.simple._DisableFirstRenderCameraReset()
 # setup views used in the visualization
 # ----------------------------------------------------------------
 
+# Create a new 'Line Chart View'
+lineChartView1 = CreateView('XYChartView')
+lineChartView1.ViewSize = [882, 594]
+lineChartView1.LegendPosition = [643, 1211]
+lineChartView1.LeftAxisRangeMinimum = 0.06
+lineChartView1.LeftAxisRangeMaximum = 0.115
+lineChartView1.BottomAxisRangeMaximum = 8.0
+lineChartView1.RightAxisRangeMaximum = 6.66
+lineChartView1.TopAxisRangeMaximum = 6.66
+
+# Create a new 'Line Chart View'
+lineChartView2 = CreateView('XYChartView')
+lineChartView2.ViewSize = [882, 594]
+lineChartView2.LegendPosition = [634, 541]
+lineChartView2.LeftAxisRangeMaximum = 1.1
+lineChartView2.BottomAxisRangeMaximum = 8.0
+lineChartView2.RightAxisRangeMaximum = 6.66
+lineChartView2.TopAxisRangeMaximum = 6.66
+
+# Create a new 'Line Chart View'
+lineChartView3 = CreateView('XYChartView')
+lineChartView3.ViewSize = [882, 592]
+lineChartView3.LeftAxisRangeMinimum = 1.79
+lineChartView3.LeftAxisRangeMaximum = 1.92
+lineChartView3.BottomAxisRangeMaximum = 8.0
+lineChartView3.RightAxisRangeMaximum = 6.66
+lineChartView3.TopAxisRangeMaximum = 6.66
+
+# Create a new 'Line Chart View'
+lineChartView4 = CreateView('XYChartView')
+lineChartView4.ViewSize = [882, 592]
+lineChartView4.LeftAxisRangeMaximum = 1100000.0
+lineChartView4.BottomAxisRangeMaximum = 8.0
+lineChartView4.RightAxisRangeMaximum = 6.66
+lineChartView4.TopAxisRangeMaximum = 6.66
+
 # get the material library
 materialLibrary1 = GetMaterialLibrary()
 
@@ -43,23 +79,25 @@ layout1 = CreateLayout(name='Layout #1')
 layout1.AssignView(0, renderView1)
 layout1.SetSize(1784, 1264)
 
+# create new layout object 'Layout #2'
+layout2 = CreateLayout(name='Layout #2')
+layout2.SplitHorizontal(0, 0.500000)
+layout2.SplitVertical(1, 0.500000)
+layout2.AssignView(3, lineChartView1)
+layout2.AssignView(4, lineChartView4)
+layout2.SplitVertical(2, 0.500000)
+layout2.AssignView(5, lineChartView2)
+layout2.AssignView(6, lineChartView3)
+layout2.SetSize(1765, 1187)
+
 # ----------------------------------------------------------------
 # restore active view
-SetActiveView(renderView1)
+SetActiveView(lineChartView2)
 # ----------------------------------------------------------------
 
 # ----------------------------------------------------------------
 # setup the data processing pipelines
 # ----------------------------------------------------------------
-
-# create a new 'IOSS Reader'
-output_file_rank_viewe = IOSSReader(registrationName='output_file_rank_view.e', FileName=['/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_rank_view.e'])
-output_file_rank_viewe.ElementBlocks = ['block_3']
-output_file_rank_viewe.NodeBlockFields = ['load', 'work']
-output_file_rank_viewe.ElementBlockFields = ['largest_directed_volume']
-
-# create a new 'Plot Global Variables Over Time'
-plotGlobalVariablesOverTime1 = PlotGlobalVariablesOverTime(registrationName='PlotGlobalVariablesOverTime1', Input=output_file_rank_viewe)
 
 # create a new 'XML PolyData Reader'
 output_file_object_view_0 = XMLPolyDataReader(registrationName='output_file_object_view_0*', FileName=['/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_00.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_01.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_02.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_03.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_04.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_05.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_06.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_07.vtp', '/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_object_view_08.vtp'])
@@ -67,15 +105,15 @@ output_file_object_view_0.CellArrayStatus = ['Volume']
 output_file_object_view_0.PointArrayStatus = ['Time']
 output_file_object_view_0.TimeArray = 'None'
 
-# create a new 'Threshold'
-threshold1 = Threshold(registrationName='Threshold1', Input=output_file_object_view_0)
-threshold1.Scalars = ['CELLS', 'Volume']
-threshold1.LowerThreshold = 8000.0
-threshold1.UpperThreshold = 591572.0
-
 # create a new 'Calculator'
 calculator1 = Calculator(registrationName='Calculator1', Input=output_file_object_view_0)
 calculator1.Function = 'sqrt(Time)'
+
+# create a new 'IOSS Reader'
+output_file_rank_viewe = IOSSReader(registrationName='output_file_rank_view.e', FileName=['/Users/pppebay/Documents/Git/LB-analysis-framework/output/output_file_rank_view.e'])
+output_file_rank_viewe.ElementBlocks = ['block_3']
+output_file_rank_viewe.NodeBlockFields = ['load', 'work']
+output_file_rank_viewe.ElementBlockFields = ['largest_directed_volume']
 
 # create a new 'Glyph'
 glyph2 = Glyph(registrationName='Glyph2', Input=calculator1,
@@ -102,6 +140,99 @@ glyph1.GlyphMode = 'All Points'
 # init the '2D Glyph' selected for 'GlyphType'
 glyph1.GlyphType.GlyphType = 'Square'
 glyph1.GlyphType.Filled = 1
+
+# create a new 'Plot Global Variables Over Time'
+plotGlobalVariablesOverTime1 = PlotGlobalVariablesOverTime(registrationName='PlotGlobalVariablesOverTime1', Input=output_file_rank_viewe)
+
+# create a new 'Threshold'
+threshold1 = Threshold(registrationName='Threshold1', Input=output_file_object_view_0)
+threshold1.Scalars = ['CELLS', 'Volume']
+threshold1.LowerThreshold = 8000.0
+threshold1.UpperThreshold = 591572.0
+
+# ----------------------------------------------------------------
+# setup the visualization in view 'lineChartView1'
+# ----------------------------------------------------------------
+
+# show data from plotGlobalVariablesOverTime1
+plotGlobalVariablesOverTime1Display = Show(plotGlobalVariablesOverTime1, lineChartView1, 'XYChartRepresentation')
+
+# trace defaults for the display properties.
+plotGlobalVariablesOverTime1Display.AttributeType = 'Row Data'
+plotGlobalVariablesOverTime1Display.UseIndexForXAxis = 0
+plotGlobalVariablesOverTime1Display.XArrayName = 'Time'
+plotGlobalVariablesOverTime1Display.SeriesVisibility = ['maximum_work']
+plotGlobalVariablesOverTime1Display.SeriesLabel = ['load_imbalance', 'load_imbalance', 'load_variance', 'load_variance', 'maximum_largest_directed_volume', 'maximum_largest_directed_volume', 'maximum_load', 'maximum_load', 'maximum_work', 'maximum_work', 'minimum_load', 'minimum_load', 'minimum_work', 'minimum_work', 'number_of_communication_edges', 'number_of_communication_edges', 'Time', 'Time', 'total_largest_directed_volume', 'total_largest_directed_volume', 'total_work', 'total_work', 'work_variance', 'work_variance']
+plotGlobalVariablesOverTime1Display.SeriesColor = ['load_imbalance', '0', '0', '0', 'load_variance', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'maximum_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'maximum_load', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'maximum_work', '0.6', '0.3100022888532845', '0.6399938963912413', 'minimum_load', '1', '0.5000076295109483', '0', 'minimum_work', '0.6500038147554742', '0.3400015259021897', '0.16000610360875867', 'number_of_communication_edges', '0', '0', '0', 'Time', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'total_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'total_work', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'work_variance', '0.6', '0.3100022888532845', '0.6399938963912413']
+plotGlobalVariablesOverTime1Display.SeriesPlotCorner = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display.SeriesLabelPrefix = ''
+plotGlobalVariablesOverTime1Display.SeriesLineStyle = ['Time', '1', 'load_imbalance', '1', 'load_variance', '1', 'maximum_largest_directed_volume', '1', 'maximum_load', '1', 'maximum_work', '1', 'minimum_load', '1', 'minimum_work', '1', 'number_of_communication_edges', '1', 'total_largest_directed_volume', '1', 'total_work', '1', 'work_variance', '1']
+plotGlobalVariablesOverTime1Display.SeriesLineThickness = ['Time', '2', 'load_imbalance', '2', 'load_variance', '2', 'maximum_largest_directed_volume', '2', 'maximum_load', '2', 'maximum_work', '2', 'minimum_load', '2', 'minimum_work', '2', 'number_of_communication_edges', '2', 'total_largest_directed_volume', '2', 'total_work', '2', 'work_variance', '2']
+plotGlobalVariablesOverTime1Display.SeriesMarkerStyle = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display.SeriesMarkerSize = ['Time', '4', 'load_imbalance', '4', 'load_variance', '4', 'maximum_largest_directed_volume', '4', 'maximum_load', '4', 'maximum_work', '4', 'minimum_load', '4', 'minimum_work', '4', 'number_of_communication_edges', '4', 'total_largest_directed_volume', '4', 'total_work', '4', 'work_variance', '4']
+
+# ----------------------------------------------------------------
+# setup the visualization in view 'lineChartView2'
+# ----------------------------------------------------------------
+
+# show data from plotGlobalVariablesOverTime1
+plotGlobalVariablesOverTime1Display_1 = Show(plotGlobalVariablesOverTime1, lineChartView2, 'XYChartRepresentation')
+
+# trace defaults for the display properties.
+plotGlobalVariablesOverTime1Display_1.AttributeType = 'Row Data'
+plotGlobalVariablesOverTime1Display_1.UseIndexForXAxis = 0
+plotGlobalVariablesOverTime1Display_1.XArrayName = 'Time'
+plotGlobalVariablesOverTime1Display_1.SeriesVisibility = ['load_imbalance']
+plotGlobalVariablesOverTime1Display_1.SeriesLabel = ['load_imbalance', 'load_imbalance', 'load_variance', 'load_variance', 'maximum_largest_directed_volume', 'maximum_largest_directed_volume', 'maximum_load', 'maximum_load', 'maximum_work', 'maximum_work', 'minimum_load', 'minimum_load', 'minimum_work', 'minimum_work', 'number_of_communication_edges', 'number_of_communication_edges', 'Time', 'Time', 'total_largest_directed_volume', 'total_largest_directed_volume', 'total_work', 'total_work', 'work_variance', 'work_variance']
+plotGlobalVariablesOverTime1Display_1.SeriesColor = ['load_imbalance', '0', '0', '0', 'load_variance', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'maximum_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'maximum_load', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'maximum_work', '0.6', '0.3100022888532845', '0.6399938963912413', 'minimum_load', '1', '0.5000076295109483', '0', 'minimum_work', '0.6500038147554742', '0.3400015259021897', '0.16000610360875867', 'number_of_communication_edges', '0', '0', '0', 'Time', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'total_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'total_work', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'work_variance', '0.6', '0.3100022888532845', '0.6399938963912413']
+plotGlobalVariablesOverTime1Display_1.SeriesPlotCorner = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display_1.SeriesLabelPrefix = ''
+plotGlobalVariablesOverTime1Display_1.SeriesLineStyle = ['Time', '1', 'load_imbalance', '1', 'load_variance', '1', 'maximum_largest_directed_volume', '1', 'maximum_load', '1', 'maximum_work', '1', 'minimum_load', '1', 'minimum_work', '1', 'number_of_communication_edges', '1', 'total_largest_directed_volume', '1', 'total_work', '1', 'work_variance', '1']
+plotGlobalVariablesOverTime1Display_1.SeriesLineThickness = ['Time', '2', 'load_imbalance', '2', 'load_variance', '2', 'maximum_largest_directed_volume', '2', 'maximum_load', '2', 'maximum_work', '2', 'minimum_load', '2', 'minimum_work', '2', 'number_of_communication_edges', '2', 'total_largest_directed_volume', '2', 'total_work', '2', 'work_variance', '2']
+plotGlobalVariablesOverTime1Display_1.SeriesMarkerStyle = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display_1.SeriesMarkerSize = ['Time', '4', 'load_imbalance', '4', 'load_variance', '4', 'maximum_largest_directed_volume', '4', 'maximum_load', '4', 'maximum_work', '4', 'minimum_load', '4', 'minimum_work', '4', 'number_of_communication_edges', '4', 'total_largest_directed_volume', '4', 'total_work', '4', 'work_variance', '4']
+
+# ----------------------------------------------------------------
+# setup the visualization in view 'lineChartView3'
+# ----------------------------------------------------------------
+
+# show data from plotGlobalVariablesOverTime1
+plotGlobalVariablesOverTime1Display_2 = Show(plotGlobalVariablesOverTime1, lineChartView3, 'XYChartRepresentation')
+
+# trace defaults for the display properties.
+plotGlobalVariablesOverTime1Display_2.AttributeType = 'Row Data'
+plotGlobalVariablesOverTime1Display_2.UseIndexForXAxis = 0
+plotGlobalVariablesOverTime1Display_2.XArrayName = 'Time'
+plotGlobalVariablesOverTime1Display_2.SeriesVisibility = ['total_work']
+plotGlobalVariablesOverTime1Display_2.SeriesLabel = ['load_imbalance', 'load_imbalance', 'load_variance', 'load_variance', 'maximum_largest_directed_volume', 'maximum_largest_directed_volume', 'maximum_load', 'maximum_load', 'maximum_work', 'maximum_work', 'minimum_load', 'minimum_load', 'minimum_work', 'minimum_work', 'number_of_communication_edges', 'number_of_communication_edges', 'Time', 'Time', 'total_largest_directed_volume', 'total_largest_directed_volume', 'total_work', 'total_work', 'work_variance', 'work_variance']
+plotGlobalVariablesOverTime1Display_2.SeriesColor = ['load_imbalance', '0', '0', '0', 'load_variance', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'maximum_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'maximum_load', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'maximum_work', '0.6', '0.3100022888532845', '0.6399938963912413', 'minimum_load', '1', '0.5000076295109483', '0', 'minimum_work', '0.6500038147554742', '0.3400015259021897', '0.16000610360875867', 'number_of_communication_edges', '0', '0', '0', 'Time', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'total_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'total_work', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'work_variance', '0.6', '0.3100022888532845', '0.6399938963912413']
+plotGlobalVariablesOverTime1Display_2.SeriesPlotCorner = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display_2.SeriesLabelPrefix = ''
+plotGlobalVariablesOverTime1Display_2.SeriesLineStyle = ['Time', '1', 'load_imbalance', '1', 'load_variance', '1', 'maximum_largest_directed_volume', '1', 'maximum_load', '1', 'maximum_work', '1', 'minimum_load', '1', 'minimum_work', '1', 'number_of_communication_edges', '1', 'total_largest_directed_volume', '1', 'total_work', '1', 'work_variance', '1']
+plotGlobalVariablesOverTime1Display_2.SeriesLineThickness = ['Time', '2', 'load_imbalance', '2', 'load_variance', '2', 'maximum_largest_directed_volume', '2', 'maximum_load', '2', 'maximum_work', '2', 'minimum_load', '2', 'minimum_work', '2', 'number_of_communication_edges', '2', 'total_largest_directed_volume', '2', 'total_work', '2', 'work_variance', '2']
+plotGlobalVariablesOverTime1Display_2.SeriesMarkerStyle = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display_2.SeriesMarkerSize = ['Time', '4', 'load_imbalance', '4', 'load_variance', '4', 'maximum_largest_directed_volume', '4', 'maximum_load', '4', 'maximum_work', '4', 'minimum_load', '4', 'minimum_work', '4', 'number_of_communication_edges', '4', 'total_largest_directed_volume', '4', 'total_work', '4', 'work_variance', '4']
+
+# ----------------------------------------------------------------
+# setup the visualization in view 'lineChartView4'
+# ----------------------------------------------------------------
+
+# show data from plotGlobalVariablesOverTime1
+plotGlobalVariablesOverTime1Display_3 = Show(plotGlobalVariablesOverTime1, lineChartView4, 'XYChartRepresentation')
+
+# trace defaults for the display properties.
+plotGlobalVariablesOverTime1Display_3.AttributeType = 'Row Data'
+plotGlobalVariablesOverTime1Display_3.UseIndexForXAxis = 0
+plotGlobalVariablesOverTime1Display_3.XArrayName = 'Time'
+plotGlobalVariablesOverTime1Display_3.SeriesVisibility = ['maximum_largest_directed_volume']
+plotGlobalVariablesOverTime1Display_3.SeriesLabel = ['load_imbalance', 'load_imbalance', 'load_variance', 'load_variance', 'maximum_largest_directed_volume', 'maximum_largest_directed_volume', 'maximum_load', 'maximum_load', 'maximum_work', 'maximum_work', 'minimum_load', 'minimum_load', 'minimum_work', 'minimum_work', 'number_of_communication_edges', 'number_of_communication_edges', 'Time', 'Time', 'total_largest_directed_volume', 'total_largest_directed_volume', 'total_work', 'total_work', 'work_variance', 'work_variance']
+plotGlobalVariablesOverTime1Display_3.SeriesColor = ['load_imbalance', '0', '0', '0', 'load_variance', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'maximum_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'maximum_load', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'maximum_work', '0.6', '0.3100022888532845', '0.6399938963912413', 'minimum_load', '1', '0.5000076295109483', '0', 'minimum_work', '0.6500038147554742', '0.3400015259021897', '0.16000610360875867', 'number_of_communication_edges', '0', '0', '0', 'Time', '0.8899977111467154', '0.10000762951094835', '0.1100022888532845', 'total_largest_directed_volume', '0.220004577706569', '0.4899977111467155', '0.7199969481956207', 'total_work', '0.30000762951094834', '0.6899977111467155', '0.2899977111467155', 'work_variance', '0.6', '0.3100022888532845', '0.6399938963912413']
+plotGlobalVariablesOverTime1Display_3.SeriesPlotCorner = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display_3.SeriesLabelPrefix = ''
+plotGlobalVariablesOverTime1Display_3.SeriesLineStyle = ['Time', '1', 'load_imbalance', '1', 'load_variance', '1', 'maximum_largest_directed_volume', '1', 'maximum_load', '1', 'maximum_work', '1', 'minimum_load', '1', 'minimum_work', '1', 'number_of_communication_edges', '1', 'total_largest_directed_volume', '1', 'total_work', '1', 'work_variance', '1']
+plotGlobalVariablesOverTime1Display_3.SeriesLineThickness = ['Time', '2', 'load_imbalance', '2', 'load_variance', '2', 'maximum_largest_directed_volume', '2', 'maximum_load', '2', 'maximum_work', '2', 'minimum_load', '2', 'minimum_work', '2', 'number_of_communication_edges', '2', 'total_largest_directed_volume', '2', 'total_work', '2', 'work_variance', '2']
+plotGlobalVariablesOverTime1Display_3.SeriesMarkerStyle = ['Time', '0', 'load_imbalance', '0', 'load_variance', '0', 'maximum_largest_directed_volume', '0', 'maximum_load', '0', 'maximum_work', '0', 'minimum_load', '0', 'minimum_work', '0', 'number_of_communication_edges', '0', 'total_largest_directed_volume', '0', 'total_work', '0', 'work_variance', '0']
+plotGlobalVariablesOverTime1Display_3.SeriesMarkerSize = ['Time', '4', 'load_imbalance', '4', 'load_variance', '4', 'maximum_largest_directed_volume', '4', 'maximum_load', '4', 'maximum_work', '4', 'minimum_load', '4', 'minimum_work', '4', 'number_of_communication_edges', '4', 'total_largest_directed_volume', '4', 'total_work', '4', 'work_variance', '4']
 
 # ----------------------------------------------------------------
 # setup the visualization in view 'renderView1'
@@ -303,19 +434,19 @@ threshold1Display.SetScalarBarVisibility(renderView1, True)
 # note: the Get..() functions create a new object, if needed
 # ----------------------------------------------------------------
 
-# get opacity transfer function/opacity map for 'work'
-workPWF = GetOpacityTransferFunction('work')
-workPWF.Points = [0.01876189599921769, 0.0, 0.5, 0.0, 0.11381317000039654, 1.0, 0.5, 0.0]
-workPWF.ScalarRangeInitialized = 1
-
 # get opacity transfer function/opacity map for 'Time'
 timePWF = GetOpacityTransferFunction('Time')
 timePWF.Points = [0.0, 0.0, 0.5, 0.0, 0.015457009000073185, 1.0, 0.5, 0.0]
 timePWF.ScalarRangeInitialized = 1
 
+# get opacity transfer function/opacity map for 'work'
+workPWF = GetOpacityTransferFunction('work')
+workPWF.Points = [0.01876189599921769, 0.0, 0.5, 0.0, 0.11381317000039654, 1.0, 0.5, 0.0]
+workPWF.ScalarRangeInitialized = 1
+
 # ----------------------------------------------------------------
 # restore active source
-SetActiveSource(output_file_object_view_0)
+SetActiveSource(plotGlobalVariablesOverTime1)
 # ----------------------------------------------------------------
 
 
