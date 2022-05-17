@@ -58,6 +58,10 @@ class JSONDataFilesValidator:
     def __get_files_for_validation(dir_path: str, file_prefix: str, file_suffix: str) -> list:
         """ Check for existence of a given directory. Returns True when file exists. """
         list_of_files = os.listdir(dir_path)
+
+        if not list_of_files:
+            raise FileNotFoundError(f"Directory: {dir_path} is EMPTY!")
+
         if file_prefix is None and file_suffix is None:
             print("File prefix and file suffix not given!")
             file_prefix = Counter([file.split('.')[0] for file in list_of_files]).most_common()[0][0]
@@ -98,8 +102,7 @@ class JSONDataFilesValidator:
             if self.__check_if_file_exists(file_path=self.__file_path):
                 self.__validate_file(file_path=self.__file_path)
             else:
-                print(f"File: {self.__file_path} does NOT exist!")
-                sys.exit(1)
+                raise FileNotFoundError(f"File: {self.__file_path} NOT found!")
         elif self.__dir_path is not None:
             if self.__check_if_dir_exists(dir_path=self.__dir_path):
                 list_of_files_for_validation = self.__get_files_for_validation(dir_path=self.__dir_path,
@@ -108,11 +111,9 @@ class JSONDataFilesValidator:
                 for file in list_of_files_for_validation:
                     self.__validate_file(file_path=file)
             else:
-                print(f"Directory: {self.__dir_path} does NOT exist!")
-                sys.exit(1)
+                raise FileNotFoundError(f"Directory: {self.__dir_path} does NOT exist!")
         else:
-            print("FILE path or DIRECTORY path has to be given!")
-            sys.exit(1)
+            raise Exception("FILE path or DIRECTORY path has to be given!")
 
 
 if __name__ == "__main__":
