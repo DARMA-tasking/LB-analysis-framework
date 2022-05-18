@@ -90,9 +90,7 @@ class TestConfig(unittest.TestCase):
                                                                              file_suffix=None)
         with self.assertRaises(FileNotFoundError) as err:
             JSONDataFilesValidator().main()
-        self.assertEqual(err.exception.args[0],
-                         "Directory: /home/marcin/Dokumenty/NGA/projects/LB-analysis-framework/tests/data/JSON_data_"
-                         "file_validator_empty is EMPTY!")
+        self.assertEqual(err.exception.args[0], f"Directory: {self.dir_path_empty} is EMPTY!")
 
     def test_json_data_files_validator_file_not_found(self):
         argparse.ArgumentParser.parse_args = Mock()
@@ -102,9 +100,7 @@ class TestConfig(unittest.TestCase):
                                                                              file_suffix=None)
         with self.assertRaises(FileNotFoundError) as err:
             JSONDataFilesValidator().main()
-        self.assertEqual(err.exception.args[0],
-                         "File: /home/marcin/Dokumenty/NGA/projects/LB-analysis-framework/tests/data/"
-                         "JSON_data_file_validator/data.0.jso NOT found!")
+        self.assertEqual(err.exception.args[0], f"File: {self.wrong_file_path} NOT found!")
 
     def test_json_data_files_validator_dir_not_found(self):
         argparse.ArgumentParser.parse_args = Mock()
@@ -114,9 +110,7 @@ class TestConfig(unittest.TestCase):
                                                                              file_suffix=None)
         with self.assertRaises(FileNotFoundError) as err:
             JSONDataFilesValidator().main()
-        self.assertEqual(err.exception.args[0],
-                         "Directory: /home/marcin/Dokumenty/NGA/projects/LB-analysis-framework/tests/data/"
-                         "wrong_dir_path does NOT exist!")
+        self.assertEqual(err.exception.args[0], f"Directory: {self.wrong_dir_path} does NOT exist!")
 
     def test_json_data_files_validator_no_args(self):
         argparse.ArgumentParser.parse_args = Mock()
