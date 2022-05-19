@@ -105,7 +105,6 @@ class ConfigurationValidator:
         if self.is_valid(valid_schema=self.__skeleton, schema_to_validate=self.__config_to_validate):
             self.__logger.info("Skeleton schema is valid")
         else:
-            self.__logger.error("Skeleton schema is invalid")
             self.validate(valid_schema=self.__skeleton, schema_to_validate=self.__config_to_validate)
 
         # Validate from_data/from_samplers
@@ -114,14 +113,12 @@ class ConfigurationValidator:
             if self.is_valid(valid_schema=self.__from_data, schema_to_validate=from_data):
                 self.__logger.info("from_data schema is valid")
             else:
-                self.__logger.error("from_data schema is invalid")
                 self.validate(valid_schema=self.__from_data, schema_to_validate=from_data)
         elif (from_samplers := self.__config_to_validate.get("from_samplers")) is not None:
             self.__logger.info("Simulate from samplers was chosen.")
             if self.is_valid(valid_schema=self.__from_samplers, schema_to_validate=from_samplers):
                 self.__logger.info("from_samplers schema is valid")
             else:
-                self.__logger.error("from_samplers schema is invalid")
                 self.validate(valid_schema=self.__from_samplers, schema_to_validate=from_samplers)
 
         # Validate algorithm
@@ -131,6 +128,5 @@ class ConfigurationValidator:
                              schema_to_validate=self.__config_to_validate.get("algorithm")):
                 self.__logger.info(f"Algorithm: {algorithm} schema is valid")
             else:
-                self.__logger.error("Algorithm: {algorithm} schema is invalid")
                 self.validate(valid_schema=self.__algorithm.get(algorithm),
                               schema_to_validate=self.__config_to_validate.get("algorithm"))
