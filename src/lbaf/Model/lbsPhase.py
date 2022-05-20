@@ -112,9 +112,14 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.__ranks)
         n_edges = len(self.__edges)
-        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                logger=self.__logger)
-        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, logger=self.__logger)
+        print_subset_statistics(
+            "Inter-rank communication edges", n_edges,
+            "possible ones", n_ranks * (n_ranks - 1) / 2,
+            logger=self.__logger)
+        print_subset_statistics(
+            "Rank-local communication volume", v_local,
+            "total volume", v_total,
+            logger=self.__logger)
 
     def get_edges(self):
         """ Retrieve edges belonging to phase. """
@@ -140,7 +145,9 @@ class Phase:
         objects = set([Object(i, time_sampler()) for i in range(n_objects)])
 
         # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_time(), "object times",
+            logger=self.__logger)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -194,7 +201,9 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.__logger)
+        print_function_statistics(
+            v_sent, lambda x: x, "communication volumes",
+            logger=self.__logger)
 
         # Create n_ranks ranks
         self.__ranks = [Rank(i, logger=self.__logger) for i in range(n_ranks)]
@@ -230,7 +239,10 @@ class Phase:
     def populate_from_log(self, n_ranks, t_s, basename):
         """ Populate this phase by reading in a load profile from log files."""
         # Instantiate VT load reader
-        reader = LoadReader(basename, logger=self.__logger, file_suffix=self.__file_suffix)
+        reader = LoadReader(
+            basename,
+            logger=self.__logger,
+            file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
         self.__ranks = reader.read_iteration(n_ranks, t_s)
@@ -239,7 +251,9 @@ class Phase:
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_time(), "object times",
+            logger=self.__logger)
 
         # Set number of read objects
         self.__n_objects = len(objects)
