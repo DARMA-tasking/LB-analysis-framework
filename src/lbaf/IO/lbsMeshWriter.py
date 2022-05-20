@@ -32,32 +32,16 @@ class MeshWriter:
             sys.exit(1)
         self.__phase = p
 
-        # Retrieve number of mesh points and bail out early if empty set
-        if not (n_p := len(self.__phase.get_ranks())):
-            self.__logger.error("Empty list of ranks, cannot write a mesh file")
-            return
-        self.__n_p = n_p
-
-        # Ensure that an iterable of grid sizes was passed
-        if not isinstance(grid_size, (list, tuple)):
-            self.__logger.error("Could not generate meshes by lack of a grid size iterable")
-            sys.exit(1)
-        self.__grid_size = grid_size
-        self.__logger.info(
-            f"Mapping {self.__n_p} ranks onto a {grid_size[0]}x"
-            f"{grid_size[1]}x{grid_size[2]} rectilinear grid")
-
-        # Ensure that a valid object jitter coefficient was passed
-        if not isinstance(object_jitter, float) or abs(object_jitter) >= 1.0:
-            self.__logger.error(f"Could not generate meshes due to unsuitable object jitter coefficient: {object_jitter}")
-            sys.exit(1)
-        self.__object_jitter = object_jitter
-        
         # Ensure that specified grid resolution is correct
         if not isinstance(r, numbers.Number) or r <= 0.:
             self.__logger.error("Grid resolution must be a positive number")
             sys.exit(1)
         self.__grid_resolution = float(r)
+
+        # Keep track of mesh properties
+        self.__n_p =  len(self.__phase.get_ranks())
+        self.__grid_size = grid_size
+        self.__object_jitter = object_jitter
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{f}_rank_view.e"
