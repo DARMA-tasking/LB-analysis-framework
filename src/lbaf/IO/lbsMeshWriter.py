@@ -14,7 +14,15 @@ class MeshWriter:
     """A class to write LBAF results to mesh files via VTK layer
     """
 
-    def __init__(self, p: Phase, grid_size, object_jitter: float, f="lbs_out", r=1., output_dir=None, logger: Logger = None):
+    def __init__(
+        self,
+        p: Phase,
+        grid_size,
+        object_jitter: float,
+        f="lbs_out",
+        r=1.,
+        output_dir=None,
+        logger: Logger = None):
         """ Class constructor:
             p: Phase instance
             grid_size: iterable containing grid sizes in each dimension
