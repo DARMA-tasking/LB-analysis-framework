@@ -31,17 +31,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
-            self.__logger.error(f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
+            self.__logger.error(
+                f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
             sys.exit(1)
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
-            self.__logger.error(f"Incorrect provided number of information rounds: {self.__n_rounds}")
+            self.__logger.error(
+                f"Incorrect provided number of information rounds: {self.__n_rounds}")
             sys.exit(1)
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
             sys.exit(1)
-        self.__logger.info(f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
+        self.__logger.info(
+            f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
         # Select object order strategy
         self.__strategy_mapped = {
