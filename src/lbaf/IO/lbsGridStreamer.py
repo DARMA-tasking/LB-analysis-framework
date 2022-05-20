@@ -10,7 +10,7 @@ class GridStreamer:
     """
 
     def __init__(self, points: vtk.vtkPoints, lines: vtk.vtkCellArray, field_arrays: dict = {}, point_arrays: list = [], cell_arrays: list = [], lgr: Logger = None):
-        """ Class constructor."""
+        """ Class constructor. """
         # Assign logger to instance variable
         self.__logger = lgr
 
