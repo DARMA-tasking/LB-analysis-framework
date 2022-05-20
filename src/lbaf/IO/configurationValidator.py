@@ -54,14 +54,18 @@ class ConfigurationValidator:
                 lambda x: x > 0,
                 error="Should be of type 'int' and > 0"),
             Optional("generate_meshes"): {
-                "x_ranks": And(int, lambda x: x > 0,
-                               error="Should be of type 'int' and > 0"),
-                "y_ranks": And(int, lambda x: x > 0,
-                               error="Should be of type 'int' and > 0"),
-                "z_ranks": And(int, lambda x: x > 0,
-                               error="Should be of type 'int' and > 0"),
-                "object_jitter": And(float, lambda x: abs(x) < 1.0,
-                               error="Should be of type 'float' and magnitude < 1")
+                "x_ranks": And(
+                    int, lambda x: x > 0,
+                    error="Should be of type 'int' and > 0"),
+                "y_ranks": And(
+                    int, lambda x: x > 0,
+                    error="Should be of type 'int' and > 0"),
+                "z_ranks": And(
+                    int, lambda x: x > 0,
+                    error="Should be of type 'int' and > 0"),
+                "object_jitter": And(
+                    float, lambda x: abs(x) < 1.0,
+                    error="Should be of type 'float' and magnitude < 1")
                 },
             Optional("brute_force_optimization"): bool,
             Optional("logging_level"): And(
