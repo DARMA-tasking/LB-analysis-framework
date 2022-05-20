@@ -55,7 +55,6 @@ class MeshWriter:
                 self.__output_dir,
                 self.__object_file_name)
 
-
     def global_id_to_cartesian(self, flat_id, grid_sizes):
         """Map global index to its Cartesian grid coordinates."""
 
@@ -70,7 +69,6 @@ class MeshWriter:
 
         # Return Cartesian coordinates
         return i, j, k
-
 
     def write_rank_view_file(self, distributions: dict, statistics: dict):
         """ Map ranks to grid and write ExodusII file
