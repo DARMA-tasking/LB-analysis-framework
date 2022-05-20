@@ -198,7 +198,9 @@ class MeshWriter:
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(n_o * (n_o - 1) / 2)
-        self.__logger.info(f"Creating object view mesh with {n_o} points, {n_e} edges, and jitter factor: {self.__object_jitter}")
+        self.__logger.info(
+            f"Creating object view mesh with {n_o} points, " +
+            f"{n_e} edges, and jitter factor: {self.__object_jitter}")
 
         # Determine available dimensions for object placement in ranks
         rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
