@@ -64,7 +64,8 @@ class MeshWriter:
                 self.__object_file_name)
 
     def global_id_to_cartesian(self, flat_id, grid_sizes):
-        """Map global index to its Cartesian grid coordinates."""
+        """ Map global index to its Cartesian grid coordinates
+        """
 
         # Sanity check
         n01 = grid_sizes[0] * grid_sizes[1]
