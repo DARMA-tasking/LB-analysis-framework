@@ -11,12 +11,13 @@ from ..IO.lbsVTDataReader import LoadReader
 
 
 class Phase:
-    """ A class representing the state of collection of ranks with objects at a given round
-    """
-
+    """ A class representing the state of collection of ranks with objects at a given round."""
     def __init__(self, t: int = 0, logger: Logger = None, file_suffix="json"):
         # Initialize empty list of ranks
         self.__ranks = []
+
+        # Initialize null number of objects
+        self.__n_objects = 0
 
         # Default time-step/phase of this phase
         self.__phase_id = t
@@ -32,29 +33,32 @@ class Phase:
         self.__file_suffix = file_suffix
 
     def get_ranks(self):
-        """ Retrieve ranks belonging to phase
-        """
-
+        """ Retrieve ranks belonging to phase."""
         return self.__ranks
 
-    def get_ranks_ids(self):
-        """ Retrieve IDs of ranks belonging to phase
-        """
-
+    def get_rank_ids(self):
+        """ Retrieve IDs of ranks belonging to phase."""
         return [p.get_id() for p in self.__ranks]
 
     def get_phase_id(self):
-        """ Retrieve the time-step/phase for this phase
-        """
-
+        """ Retrieve the time-step/phase for this phase."""
         return self.__phase_id
 
-    def compute_edges(self):
-        """ Compute and return map of communication link IDs to volumes
-        """
+    def get_number_of_objects(self):
+        """ Return number of objects."""
+        return self.__n_objects
 
+    def get_object_ids(self):
+        """ Return IDs of ranks belonging to phase."""
+        ids = []
+        for p in self.__ranks:
+            ids += p.get_object_ids()
+        return ids
+
+    def compute_edges(self):
+        """ Compute and return map of communication link IDs to volumes."""
         # Compute or re-compute edges from scratch
-        self.__logger.debug("Computing inter-process communication edges")
+        self.__logger.debug("Computing inter-rank communication edges")
         self.__edges.clear()
         directed_edges = {}
 
@@ -108,14 +112,17 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.__ranks)
         n_edges = len(self.__edges)
-        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                logger=self.__logger)
-        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, logger=self.__logger)
+        print_subset_statistics(
+            "Inter-rank communication edges", n_edges,
+            "possible ones", n_ranks * (n_ranks - 1) / 2,
+            logger=self.__logger)
+        print_subset_statistics(
+            "Rank-local communication volume", v_local,
+            "total volume", v_total,
+            logger=self.__logger)
 
     def get_edges(self):
-        """ Retrieve edges belonging to phase
-        """
-
+        """ Retrieve edges belonging to phase. """
         # Force recompute if edges cache is not current
         if not self.__cached_edges:
             self.compute_edges()
@@ -124,24 +131,23 @@ class Phase:
         return self.__edges
 
     def invalidate_edge_cache(self):
-        """ Mark cached edges as no longer current
-        """
-
+        """ Mark cached edges as no longer current."""
         self.__cached_edges = False
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
-        """ Use samplers to populate either all or n procs in a phase
-        """
-
+        """ Use samplers to populate either all or n ranks in a phase."""
         # Retrieve desired time sampler with its theoretical average
         time_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
 
         # Create n_objects objects with uniformly distributed times in given range
         self.__logger.info(f"Creating {n_objects} objects with times sampled from {sampler_name}")
+        self.__number_of_objects = n_objects
         objects = set([Object(i, time_sampler()) for i in range(n_objects)])
 
         # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_time(), "object times",
+            logger=self.__logger)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -195,7 +201,9 @@ class Phase:
             sys.exit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(v_sent, lambda x: x, "communication volumes", logger=self.__logger)
+        print_function_statistics(
+            v_sent, lambda x: x, "communication volumes",
+            logger=self.__logger)
 
         # Create n_ranks ranks
         self.__ranks = [Rank(i, logger=self.__logger) for i in range(n_ranks)]
@@ -212,9 +220,9 @@ class Phase:
             self.__logger.info(f"Randomly assigning objects to {n_ranks} ranks")
         if n_r_mapped > 0:
             # Randomly assign objects to a subset o ranks of size n_r_mapped
-            proc_list = rnd.sample(self.__ranks, n_r_mapped)
+            rank_list = rnd.sample(self.__ranks, n_r_mapped)
             for o in objects:
-                p = rnd.choice(proc_list)
+                p = rnd.choice(rank_list)
                 p.add_migratable_object(o)
                 o.set_rank_id(p.get_id())
         else:
@@ -229,21 +237,24 @@ class Phase:
             self.__logger.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
     def populate_from_log(self, n_ranks, t_s, basename):
-        """ Populate this phase by reading in a load profile from log files
-        """
-
+        """ Populate this phase by reading in a load profile from log files."""
         # Instantiate VT load reader
-        reader = LoadReader(basename, logger=self.__logger, file_suffix=self.__file_suffix)
+        reader = LoadReader(
+            basename,
+            logger=self.__logger,
+            file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
-        self.__logger.info(f"Reading objects from time-step {t_s} of data files with prefix {basename}")
         self.__ranks = reader.read_iteration(n_ranks, t_s)
 
         # Compute and report object statistics
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", logger=self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_time(), "object times",
+            logger=self.__logger)
 
-        # Return number of found objects
-        return len(objects)
+        # Set number of read objects
+        self.__n_objects = len(objects)
+        self.__logger.info(f"Read {self.__n_objects} objects from time-step {t_s} of data files with prefix {basename}")

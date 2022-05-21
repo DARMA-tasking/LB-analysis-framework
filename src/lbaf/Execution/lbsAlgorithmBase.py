@@ -18,8 +18,7 @@ class AlgorithmBase:
     def __init__(self, work_model, parameters: dict):
         """ Class constructor:
             work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-        """
+            parameters: a dictionary of parameters"""
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
@@ -35,8 +34,7 @@ class AlgorithmBase:
 
     @staticmethod
     def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger):
-        """ Produce the necessary concrete algorithm
-        """
+        """ Produce the necessary concrete algorithm."""
 
         # Load up available algorithms
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
@@ -53,10 +51,11 @@ class AlgorithmBase:
             sys.exit(1)
 
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
-        """ Compute and update run distributions and statistics
-        """
+        """ Compute and update run distributions and statistics."""
 
-        # Create or update load, sent, and work distributions
+        # Create or update object, load, sent, and work distributions
+        distributions.setdefault("objects", []).append(
+            [p.get_objects() for p in self.phase.get_ranks()])
         distributions.setdefault("load", []).append(
             [p.get_load() for p in self.phase.get_ranks()])
         distributions.setdefault("sent", []).append(
@@ -89,8 +88,7 @@ class AlgorithmBase:
         statistics.setdefault("work variance", []).append(w_var)
 
     def report_final_mapping(self, logger):
-        """ Report final rank object mapping in debug mode
-        """
+        """ Report final rank object mapping in debug mode."""
 
         for p in self.phase.get_ranks():
             logger.debug(f"Rank {p.get_id()}:")
@@ -115,8 +113,7 @@ class AlgorithmBase:
             phase: Phase instance
             distributions: dictionary of time-varying variables
             statistics: dictionary of  statistics
-            a_min_max: possibly empty list of optimal arrangements
-        """
+            a_min_max: possibly empty list of optimal arrangements"""
 
         # Must be implemented by concrete subclass
         pass

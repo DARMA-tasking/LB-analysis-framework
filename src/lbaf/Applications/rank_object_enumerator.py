@@ -266,7 +266,7 @@ if __name__ == '__main__':
     CONF = get_conf()
 
     # Define number of ranks
-    N_RANKS = CONF.get("x_procs") * CONF.get("y_procs") * CONF.get("z_procs")
+    N_RANKS = CONF.get("x_ranks") * CONF.get("y_ranks") * CONF.get("z_ranks")
 
     # Define work constants
     ALPHA_G = CONF.get("work_model").get("parameters").get("alpha")

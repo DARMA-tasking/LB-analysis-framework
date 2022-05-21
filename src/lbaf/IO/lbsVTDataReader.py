@@ -188,7 +188,8 @@ class LoadReader:
             # Iterate over tasks
             for task in phase["tasks"]:
                 task_time = task.get("time")
-                task_object_id = task.get("entity").get("id")
+                entity = task.get("entity")
+                task_object_id = entity.get("id")
                 task_used_defined = task.get("user_defined")
 
                 # Update rank if iteration was requested
@@ -197,8 +198,12 @@ class LoadReader:
                     obj = Object(task_object_id, task_time, node_id, user_defined=task_used_defined)
                     # If this iteration was never encountered initialize rank object
                     returned_dict.setdefault(phase_id, Rank(node_id, logger=self.__logger))
-                    # Add object to rank
-                    returned_dict[phase_id].add_migratable_object(obj)
+                    # Add object to rank given its type
+                    if entity.get("migratable"):
+                        returned_dict[phase_id].add_migratable_object(obj)
+                    else:
+                        returned_dict[phase_id].add_sentinel_object(obj)
+
                     # Print debug information when requested
                     self.__logger.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
 

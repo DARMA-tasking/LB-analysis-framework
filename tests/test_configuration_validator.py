@@ -78,7 +78,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "Should be type of 'int' and >= 0")
+        self.assertEqual(err.exception.args[0], "Should be of type 'int' and >= 0")
 
     def test_config_validator_wrong_from_data_phase_name(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_from_data_phase_name.yml'), 'rt') as config_file:
@@ -105,7 +105,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "LoadOnly or AffineCombination needs to be chosen")
+        self.assertEqual(err.exception.args[0], "LoadOnly or AffineCombination must be chosen")
 
     def test_config_validator_wrong_work_model_parameters_missing(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_work_model_parameters_missing.yml'), 'rt') as config_file:
@@ -159,7 +159,7 @@ class TestConfig(unittest.TestCase):
             configuration = yaml.safe_load(yaml_str)
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "uniform or lognormal needs to be chosen")
+        self.assertEqual(err.exception.args[0], "uniform or lognormal must be chosen")
 
     def test_config_validator_wrong_from_samplers_time_sampler_005(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_from_samplers_time_sampler_005.yml'), 'rt') as config_file:

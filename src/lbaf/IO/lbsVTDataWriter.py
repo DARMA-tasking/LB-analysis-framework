@@ -58,30 +58,39 @@ class VTDataWriter:
             # Write object to file and increment count
             try:
                 # writer.writerow([o.get_rank_id(), o.get_id(), o.get_time()])
-                proc_id = o.get_rank_id()
+                rank_id = o.get_rank_id()
                 obj_id = o.get_id()
                 obj_time = o.get_time()
-                if isinstance(temp_dict.get(proc_id, None), list):
-                    temp_dict[proc_id].append({'proc_id': proc_id, 'obj_id': obj_id, 'obj_time': obj_time})
+                if isinstance(temp_dict.get(rank_id, None), list):
+                    temp_dict[rank_id].append({
+                        "rank_id": rank_id,
+                        "obj_id": obj_id,
+                        "obj_time": obj_time})
                 else:
-                    temp_dict[proc_id] = list()
-                    temp_dict[proc_id].append({'proc_id': proc_id, 'obj_id': obj_id, 'obj_time': obj_time})
+                    temp_dict[rank_id] = list()
+                    temp_dict[rank_id].append({
+                        "rank_id": rank_id,
+                        "obj_id": obj_id,
+                        "obj_time": obj_time})
             except:
                 n_u += 1
 
         dict_to_dump = {}
-        dict_to_dump['phases'] = list()
-        for proc_id, others_list in temp_dict.items():
-            phase_dict = {'tasks': list(), 'id': proc_id}
+        dict_to_dump["phases"] = list()
+        for rank_id, others_list in temp_dict.items():
+            phase_dict = {"tasks": list(), "id": rank_id}
             for task in others_list:
-                task_dict = {'time': task['obj_time'], 'resource': 'cpu', 'object': task['obj_id']}
-                phase_dict['tasks'].append(task_dict)
-            dict_to_dump['phases'].append(phase_dict)
+                task_dict = {
+                    "time": task["obj_time"],
+                    "resource": "cpu",
+                    "object": task["obj_id"]}
+                phase_dict["tasks"].append(task_dict)
+            dict_to_dump["phases"].append(phase_dict)
 
         json_str = json.dumps(dict_to_dump, separators=(',', ':'))
-        compressed_str = brotli.compress(string=json_str.encode('utf-8'), mode=brotli.MODE_TEXT)
+        compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
 
-        with open(file_name, 'wb') as compr_json_file:
+        with open(file_name, "wb") as compr_json_file:
             compr_json_file.write(compressed_str)
 
         # Sanity check

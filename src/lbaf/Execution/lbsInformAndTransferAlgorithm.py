@@ -21,9 +21,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def __init__(self, work_model, parameters: dict, lgr: Logger):
         """ Class constructor
             work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-        """
-
+            parameters: a dictionary of parameters"""
         # Call superclass init
         super(InformAndTransferAlgorithm, self).__init__(work_model, parameters)
 
@@ -33,17 +31,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
-            self.__logger.error(f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
+            self.__logger.error(
+                f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
             sys.exit(1)
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
-            self.__logger.error(f"Incorrect provided number of information rounds: {self.__n_rounds}")
+            self.__logger.error(
+                f"Incorrect provided number of information rounds: {self.__n_rounds}")
             sys.exit(1)
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
             sys.exit(1)
-        self.__logger.info(f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
+        self.__logger.info(
+            f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -76,9 +77,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf) 
 
     def information_stage(self):
-        """ Execute information stage
-        """
-
+        """ Execute information stage."""
         # Build set of all ranks in the phase
         rank_set = set(self.phase.get_ranks())
 
@@ -164,8 +163,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                            f"loaded ranks")
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
-        """ Recursively extend search to other objects
-        """
+        """ Recursively extend search to other objects."""
         # Fail when no more objects available or maximum depth is reached
         if not pick_list or n_o >= max_n_o:
             return False
@@ -185,9 +183,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             return True
 
     def transfer_stage(self):
-        """ Perform object transfer stage
-        """
-
+        """ Perform object transfer stage."""
         # Initialize transfer stage
         self.__logger.info("Executing transfer phase")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
@@ -210,10 +206,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self.__logger.debug(f"Trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
-            srt_proc_obj = list(self.__order_strategy(p_src.get_migratable_objects(), p_src.get_id()))
-            while srt_proc_obj:
+            srt_rank_obj = list(self.__order_strategy(
+                p_src.get_migratable_objects(), p_src.get_id()))
+            while srt_rank_obj:
                 # Pick next object in ordered list
-                o = srt_proc_obj.pop()
+                o = srt_rank_obj.pop()
                 object_list = [o]
                 self.__logger.debug(f"* object {o.get_id()}:")
 
@@ -244,13 +241,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.:
-                    if not srt_proc_obj:
+                    if not srt_rank_obj:
                         # No more transferable objects are available
                         n_rejects += 1
                         continue
 
                     # Recursively extend search if possible
-                    pick_list = srt_proc_obj[:]
+                    pick_list = srt_rank_obj[:]
                     success = self.recursive_extended_search(
                         pick_list,
                         object_list,
@@ -259,7 +256,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         self.__max_objects_per_transfer)
                     if success:
                         # Remove accepted objects from remaining object list
-                        srt_proc_obj = pick_list
+                        srt_rank_obj = pick_list
                     else:
                         # No transferable list of objects was found
                         n_rejects += 1
@@ -290,8 +287,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return n_ignored, n_transfers, n_rejects
 
     def execute(self, phase: Phase, distributions: dict, statistics: dict, a_min_max):
-        """ Execute 2-phase gossip+transfer algorithm on Phase instance
-        """
+        """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
         # Ensure that a phase was properly passed
         if not isinstance(phase, Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
@@ -355,32 +351,27 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     @staticmethod
     def arbitrary(objects: set, _):
-        """ Default: objects are passed as they are stored
-        """
+        """ Default: objects are passed as they are stored."""
         return objects
 
     @staticmethod
     def element_id(objects: set, _):
-        """ Order objects by ID
-        """
+        """ Order objects by ID."""
         return sorted(objects, key=lambda x: x.get_id())
 
     @staticmethod
     def decreasing_times(objects: set, _):
-        """ Order objects by decreasing object times
-        """
+        """ Order objects by decreasing object times."""
         return sorted(objects, key=lambda x: -x.get_time())
 
     @staticmethod
     def increasing_times(objects: set, _):
-        """ Order objects by increasing object times
-        """
+        """ Order objects by increasing object times."""
         return sorted(objects, key=lambda x: x.get_time())
 
     @staticmethod
     def increasing_connectivity(objects: set, src_id):
-        """ Order objects by increasing local communication volume
-        """
+        """ Order objects by increasing local communication volume."""
         # Initialize list with all objects without a communicator
         no_comm = [o for o in objects if not isinstance(o.get_communicator(), ObjectCommunicator)]
 
@@ -408,15 +399,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return sorted(objects, key=lambda x: -x.get_time())
 
     def load_excess(self, objects: set):
-        proc_load = sum([obj.get_time() for obj in objects])
-        return proc_load - self.__average_load
+        rank_load = sum([obj.get_time() for obj in objects])
+        return rank_load - self.__average_load
 
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated
             away, could bring this rank's load below the target load.
             Sort largest to the smallest if <= load_excess
-            Sort smallest to the largest if > load_excess
-        """
+            Sort smallest to the largest if > load_excess"""
         load_excess = self.load_excess(objects)
         lt_load_excess = [obj for obj in objects if obj.get_time() <= load_excess]
         get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
@@ -426,8 +416,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ First find the smallest object that, if migrated away along with all
             smaller objects, could bring this rank's load below the target load.
             Sort largest to the smallest if <= load_excess
-            Sort smallest to the largest if > load_excess
-        """
+            Sort smallest to the largest if > load_excess"""
         load_excess = self.load_excess(objects)
         sorted_objects = self.sorted_ascending(objects)
         accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
