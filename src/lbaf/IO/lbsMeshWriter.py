@@ -19,7 +19,7 @@ class MeshWriter:
         p: Phase,
         grid_size,
         object_jitter: float,
-        logger: Logger = None,
+        logger: Logger,
         f="lbs_out",
         r=1.,
         output_dir=None
