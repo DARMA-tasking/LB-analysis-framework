@@ -56,6 +56,11 @@ class Rank:
         """
         return self.__migratable_objects
 
+    def add_sentinel_object(self, o) -> None:
+        """ Add object to sentinel objects
+        """
+        return self.__sentinel_objects.add(o)
+
     def get_sentinel_objects(self) -> set:
         """ Return sentinel objects assigned to rank
         """
