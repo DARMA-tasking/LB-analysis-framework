@@ -88,15 +88,15 @@ class JSONDataFilesValidator:
 
         # Extracting type from JSON data
         schema_type = decompressed_dict.get("type")
-        if schema_type is None:
-            raise TypeError("JSON data is missing 'type' key")
-
-        # Validate schema
-        if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
-            print(f"=> Valid JSON schema in {file_path}")
+        if schema_type is not None:
+            # Validate schema
+            if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
+                print(f"=> Valid JSON schema in {file_path}")
+            else:
+                print(f"=> Invalid JSON schema in {file_path}")
+                SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
         else:
-            print(f"=> Invalid JSON schema in {file_path}")
-            SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
+            print(f"=> Schema type not found in file: {file_path}. \n=> Passing by default when schema type not found.")
 
     def main(self):
         if self.__file_path is not None:
