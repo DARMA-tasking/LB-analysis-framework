@@ -14,7 +14,7 @@ class VTDataWriter:
         of MPI ranks that VT is utilizing.
     """
 
-    def __init__(self, phase: Phase, f: str = "lbs_out", s: str = "vom", output_dir=None, logger: Logger = None):
+    def __init__(self, phase: Phase, logger: Logger, f: str = "lbs_out", s: str = "vom", output_dir=None):
         """ Class constructor:
             phase: Phase instance
             f: file name stem

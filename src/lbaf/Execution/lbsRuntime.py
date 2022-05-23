@@ -37,7 +37,7 @@ class Runtime:
         self.__work_model = WorkModelBase.factory(
             work_model.get("name"),
             work_model.get("parameters", {}),
-            lgr=self.__logger)
+            self.__logger)
         if not self.__work_model:
             self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
             sys.exit(1)
@@ -66,7 +66,7 @@ class Runtime:
             self.__phase.get_ranks(),
             lambda x: self.__work_model.compute(x),
             "initial rank works",
-            logger=self.__logger)
+            self.__logger)
 
         # Compute initial arrangement
         arrangement = tuple(v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks()

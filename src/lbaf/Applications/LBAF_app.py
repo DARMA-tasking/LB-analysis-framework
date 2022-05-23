@@ -177,9 +177,9 @@ class LBAFApp:
 
         # Create a phase and populate it
         if "file_suffix" in self.params.__dict__:
-            phase = Phase(0, self.logger, self.params.file_suffix)
+            phase = Phase(self.logger, 0, self.params.file_suffix)
         else:
-            phase = Phase(0, self.logger)
+            phase = Phase(self.logger, 0)
         if "data_stem" in self.params.__dict__:
             # Try to populate phase from log files and store number of objects
             phase.populate_from_log(
@@ -201,12 +201,12 @@ class LBAFApp:
             phase.get_ranks(),
             lambda x: x.get_load(),
             "initial rank loads",
-            logger=self.logger)
+            self.logger)
         lbstats.print_function_statistics(
             phase.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
-            logger=self.logger)
+            self.logger)
 
         # Perform brute force optimization when needed
         if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm["name"] != "BruteForce":
@@ -258,9 +258,9 @@ class LBAFApp:
         if "data_stem" in self.params.__dict__:
             vt_writer = VTDataWriter(
                 phase,
+                self.logger,
                 self.params.output_file_stem,
-                output_dir=self.params.output_dir,
-                logger=self.logger)
+                output_dir=self.params.output_dir)
             vt_writer.write()
 
         # If prefix parsed from command line
@@ -270,9 +270,10 @@ class LBAFApp:
                 phase,
                 self.params.grid_size,
                 self.params.object_jitter,
+                self.logger,
                 self.params.output_file_stem,
                 output_dir=self.params.output_dir,
-                logger=self.logger)
+                )
             ex_writer.write(rt.distributions, rt.statistics)
 
         # Create a viewer if paraview is available
@@ -299,13 +300,13 @@ class LBAFApp:
             phase.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
-            logger=self.logger,
+            self.logger,
             file=imb_file)
         lbstats.print_function_statistics(
             phase.get_edges().values(),
             lambda x: x,
             "final sent volumes",
-            logger=self.logger)
+            self.logger)
 
         # Report on theoretically optimal statistics
         n_o = phase.get_number_of_objects()

@@ -19,10 +19,11 @@ class MeshWriter:
         p: Phase,
         grid_size,
         object_jitter: float,
+        logger: Logger,
         f="lbs_out",
         r=1.,
-        output_dir=None,
-        logger: Logger = None):
+        output_dir=None
+    ):
         """ Class constructor:
             p: Phase instance
             grid_size: iterable containing grid sizes in each dimension
