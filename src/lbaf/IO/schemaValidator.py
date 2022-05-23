@@ -22,7 +22,7 @@ class SchemaValidator:
         valid_schema_data = Schema(
             {
                 'type': And(str, lambda a: a in allowed_types,
-                            error=f"{self.get_error_message(allowed_types)} needs to be chosen"),
+                            error=f"{self.get_error_message(allowed_types)} must be chosen"),
                 'phases': [
                     {
                         'id': int,
@@ -81,7 +81,7 @@ class SchemaValidator:
         valid_schema_stats = Schema(
             {
                 'type': And(str, lambda a: a in allowed_types,
-                            error=f"{self.get_error_message(allowed_types)} needs to be chosen"),
+                            error=f"{self.get_error_message(allowed_types)} must be chosen"),
                 'phases': [
                     {
                         "id": int,
@@ -256,10 +256,10 @@ class SchemaValidator:
         elif self.schema_type == "LBStatsfile":
             return valid_schema_stats
 
-        raise TypeError(f"Not supported schema type: {self.schema_type} were given")
+        raise TypeError(f"Unsupported schema type: {self.schema_type} was given")
 
     def is_valid(self, schema_to_validate: dict) -> bool:
-        """ Returns True is schema_to_validate is valid with self.valid_schema else False. """
+        """ Returns True if schema_to_validate is valid with self.valid_schema else False. """
         is_valid = self.valid_schema.is_valid(schema_to_validate)
         return is_valid
 

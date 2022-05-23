@@ -77,7 +77,7 @@ class JSONDataFilesValidator:
     @staticmethod
     def __validate_file(file_path):
         """ Validates the file against the schema. """
-        print(f"==> Validating file: {file_path}")
+        print(f"Validating file: {file_path}")
         with open(file_path, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
             try:
@@ -91,12 +91,12 @@ class JSONDataFilesValidator:
         if schema_type is not None:
             # Validate schema
             if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
-                print(f"=> Valid JSON schema in {file_path}")
+                print(f"Valid JSON schema in {file_path}")
             else:
-                print(f"=> Invalid JSON schema in {file_path}")
+                print(f"Invalid JSON schema in {file_path}")
                 SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
         else:
-            print(f"=> Schema type not found in file: {file_path}. \n=> Passing by default when schema type not found.")
+            print(f"Schema type not found in file: {file_path}. \nPassing by default when schema type not found.")
 
     def main(self):
         if self.__file_path is not None:
