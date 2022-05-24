@@ -22,7 +22,7 @@ class TestConfig(unittest.TestCase):
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
             exit(1)
         self.logger = logging.getLogger()
-        self.phase = Phase(0, self.logger)
+        self.phase = Phase(self.logger, 0)
 
     def test_lbs_phase_initialization(self):
         self.assertEqual(self.phase._Phase__ranks, [])
@@ -32,15 +32,15 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_phase_populate_from_log(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
-        number_of_objects = self.phase.populate_from_log(n_ranks=4, t_s=0, basename=file_prefix)
-        self.assertEqual(number_of_objects, 9)
+        self.phase.populate_from_log(n_ranks=4, t_s=0, basename=file_prefix)
+        self.assertEqual(len(self.phase.get_object_ids()), 9)
 
     def test_lbs_phase_getters(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
         self.phase.populate_from_log(n_ranks=4, t_s=0, basename=file_prefix)
         ranks = sorted([rank.get_id() for rank in self.phase.get_ranks()])
         self.assertEqual(ranks, [0, 1, 2, 3])
-        self.assertEqual(sorted(self.phase.get_ranks_ids()), [0, 1, 2, 3])
+        self.assertEqual(sorted(self.phase.get_rank_ids()), [0, 1, 2, 3])
         self.assertEqual(self.phase.get_phase_id(), 0)
 
     def test_lbs_phase_edges(self):
