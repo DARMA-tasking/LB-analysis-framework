@@ -21,8 +21,8 @@ from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangement
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.configurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.IO.lbsWriterExodusII import WriterExodusII
-from lbaf.IO.lbsStatistics import initialize, print_function_statistics
+from lbaf.IO.lbsMeshWriter import MeshWriter
+import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Utils.logger import logger
 
@@ -43,7 +43,7 @@ class internalParameters:
         self.__allowed_config_keys = (
             "algorithm",
             "brute_force_optimization",
-            "exodus",
+            "generate_meshes",
             "file_suffix",
             "from_data",
             "from_samplers",
@@ -94,20 +94,22 @@ class internalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
-        # Parsing exodus if present
-        if self.configuration.get("exodus") is not None:
+        # Parse whether meshes must be generated
+        if (gm := self.configuration.get("generate_meshes")) is not None:
             self.grid_size = []
-            for key in ("x_procs", "y_procs", "z_procs"):
-                self.grid_size.append(self.configuration.get("exodus").get(key))
-            if math.prod(self.grid_size) != self.n_ranks:
-                raise AssertionError(f"Grid size: {self.grid_size} from exodus is not equal to n_ranks: {self.n_ranks}")
+            for key in ("x_ranks", "y_ranks", "z_ranks"):
+                self.grid_size.append(gm.get(key))
+            if math.prod(self.grid_size) < self.n_ranks:
+                self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")
+                sys.exit(1)
+            self.object_jitter = gm.get("object_jitter")
 
-        # Parsing from data parameters if present
+        # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
             self.data_stem = self.configuration.get("from_data").get("data_stem")
             self.phase_id = self.configuration.get("from_data").get("phase_id")
 
-        # Parsing sampling parameters if present
+        # Parse sampling parameters if present
         if self.configuration.get("from_samplers") is not None:
             self.n_objects = self.configuration.get("from_samplers").get("n_objects")
             self.n_mapped_ranks = self.configuration.get("from_samplers").get("n_mapped_ranks")
@@ -146,23 +148,6 @@ class internalParameters:
                 os.makedirs(self.output_dir)
 
 
-def global_id_to_cartesian(id, grid_sizes):
-    """Map global index to its Cartesian coordinates in a grid
-    """
-
-    # Sanity check
-    n01 = grid_sizes[0] * grid_sizes[1]
-    if id < 0 or id >= n01 * grid_sizes[2]:
-        return None
-
-    # Compute successive euclidean divisions
-    k, r = divmod(id, n01)
-    j, i = divmod(r, grid_sizes[0])
-
-    # Return Cartesian coordinates
-    return i, j, k
-
-
 class LBAFApp:
     def __init__(self):
         self.config_file = self.__get_config_file()
@@ -188,34 +173,40 @@ class LBAFApp:
 
     def main(self):
         # Initialize random number generator
-        initialize()
+        lbstats.initialize()
 
         # Create a phase and populate it
         if "file_suffix" in self.params.__dict__:
-            phase = Phase(0, self.logger, self.params.file_suffix)
+            phase = Phase(self.logger, 0, self.params.file_suffix)
         else:
-            phase = Phase(0, self.logger)
+            phase = Phase(self.logger, 0)
         if "data_stem" in self.params.__dict__:
             # Try to populate phase from log files and store number of objects
-            self.params.n_objects = phase.populate_from_log(self.params.n_ranks, self.params.phase_id,
-                                                            self.params.data_stem)
+            phase.populate_from_log(
+                self.params.n_ranks,
+                self.params.phase_id,
+                self.params.data_stem)
         else:
             # Try to populate phase pseudo-randomly
-            phase.populate_from_samplers(self.params.n_ranks, self.params.n_objects, self.params.time_sampler,
-                                         self.params.volume_sampler, self.params.communication_degree,
-                                         self.params.n_mapped_ranks)
+            phase.populate_from_samplers(
+                self.params.n_ranks,
+                self.params.n_objects,
+                self.params.time_sampler,
+                self.params.volume_sampler,
+                self.params.communication_degree,
+                self.params.n_mapped_ranks)
 
         # Compute and print initial rank load and edge volume statistics
-        print_function_statistics(
+        lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_load(),
             "initial rank loads",
-            logger=self.logger)
-        print_function_statistics(
+            self.logger)
+        lbstats.print_function_statistics(
             phase.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
-            logger=self.logger)
+            self.logger)
 
         # Perform brute force optimization when needed
         if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm["name"] != "BruteForce":
@@ -267,24 +258,22 @@ class LBAFApp:
         if "data_stem" in self.params.__dict__:
             vt_writer = VTDataWriter(
                 phase,
+                self.logger,
                 self.params.output_file_stem,
-                output_dir=self.params.output_dir,
-                logger=self.logger)
+                output_dir=self.params.output_dir)
             vt_writer.write()
 
         # If prefix parsed from command line
-        if "exodus" in self.params.__dict__:
-            # Create mapping from rank to Cartesian grid
-            self.logger.info(f"Mapping {self.params.n_ranks} ranks onto a {self.params.grid_size[0]}x"
-                             f"{self.params.grid_size[1]}x{self.params.grid_size[2]} rectilinear grid")
-            grid_map = lambda x: global_id_to_cartesian(x.get_id(), self.params.grid_size)
-            # Instantiate phase to ExodusII file writer if requested
-            ex_writer = WriterExodusII(
+        if "generate_meshes" in self.params.__dict__:
+            # Instantiate phase to mesh writer if requested
+            ex_writer = MeshWriter(
                 phase,
-                grid_map,
+                self.params.grid_size,
+                self.params.object_jitter,
+                self.logger,
                 self.params.output_file_stem,
                 output_dir=self.params.output_dir,
-                logger=self.logger)
+                )
             ex_writer.write(rt.distributions, rt.statistics)
 
         # Create a viewer if paraview is available
@@ -307,24 +296,25 @@ class LBAFApp:
                                                                                        "imbalance.txt")
 
         # Compute and print final rank load and edge volume statistics
-        _, _, l_ave, _, _, _, _, _ = print_function_statistics(
+        _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
-            logger=self.logger,
+            self.logger,
             file=imb_file)
-        print_function_statistics(
+        lbstats.print_function_statistics(
             phase.get_edges().values(),
             lambda x: x,
             "final sent volumes",
-            logger=self.logger)
+            self.logger)
 
         # Report on theoretically optimal statistics
-        q, r = divmod(self.params.n_objects, self.params.n_ranks)
-        ell = self.params.n_ranks * l_ave / self.params.n_objects
-        self.logger.info(f"Optimal load statistics for {self.params.n_objects} objects with iso-time: {ell:.6g}")
+        n_o = phase.get_number_of_objects()
+        q, r = divmod(n_o, self.params.n_ranks)
+        ell = self.params.n_ranks * l_ave / n_o
+        self.logger.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
         self.logger.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-        imbalance = (self.params.n_ranks - r) / float(self.params.n_objects) if r else 0.
+        imbalance = (self.params.n_ranks - r) / float(n_o) if r else 0.
         self.logger.info(
             f"\tstandard deviation: {ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:.6g} "
             f"imbalance: {imbalance:.6g}")

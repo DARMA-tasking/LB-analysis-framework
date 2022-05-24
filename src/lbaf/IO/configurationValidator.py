@@ -5,8 +5,14 @@ from schema import And, Optional, Or, Schema, Use
 
 
 # Allowed configuration values
-ALLOWED_STRATEGIES = ("arbitrary", "element_id", "increasing_times", "decreasing_times", "increasing_connectivity",
-                      "fewest_migrations", "small_objects")
+ALLOWED_STRATEGIES = (
+    "arbitrary",
+    "element_id",
+    "increasing_times",
+    "decreasing_times",
+    "increasing_connectivity",
+    "fewest_migrations",
+    "small_objects")
 ALLOWED_WORK_MODELS = ("LoadOnly", "AffineCombination")
 ALLOWED_ALGORITHMS = ("InformAndTransfer", "BruteForce")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizer")
@@ -27,61 +33,103 @@ class ConfigurationValidator:
         self.__config_to_validate = config_to_validate
         self.__skeleton = Schema({
             Or("from_data", "from_samplers", only_one=True): dict,
-            "work_model": {"name": And(str, lambda c: c in ALLOWED_WORK_MODELS,
-                                       error=f"{get_error_message(ALLOWED_WORK_MODELS)} needs to be chosen"),
-                           "parameters": {"alpha": float,
-                                          "beta": float,
-                                          "gamma": float}},
+            "work_model": {
+                "name": And(
+                    str,
+                    lambda c: c in ALLOWED_WORK_MODELS,
+                    error=f"{get_error_message(ALLOWED_WORK_MODELS)} must be chosen"),
+                "parameters": {
+                    "alpha": float,
+                    "beta": float,
+                    "gamma": float}},
             "algorithm": {
-                "name": And(str, lambda d: d in ALLOWED_ALGORITHMS,
-                            error=f"{get_error_message(ALLOWED_ALGORITHMS)} needs to be chosen"),
-                Optional("parameters"): dict
-            },
+                "name": And(
+                    str,
+                    lambda d: d in ALLOWED_ALGORITHMS,
+                    error=f"{get_error_message(ALLOWED_ALGORITHMS)} must be chosen"),
+                Optional("parameters"): dict},
             "output_file_stem": str,
-            "n_ranks": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
-            Optional("exodus"): {"x_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
-                                 "y_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
-                                 "z_procs": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0")},
+            "n_ranks": And(
+                int,
+                lambda x: x > 0,
+                error="Should be of type 'int' and > 0"),
+            Optional("generate_meshes"): {
+                "x_ranks": And(
+                    int, lambda x: x > 0,
+                    error="Should be of type 'int' and > 0"),
+                "y_ranks": And(
+                    int, lambda x: x > 0,
+                    error="Should be of type 'int' and > 0"),
+                "z_ranks": And(
+                    int, lambda x: x > 0,
+                    error="Should be of type 'int' and > 0"),
+                "object_jitter": And(
+                    float, lambda x: abs(x) < 1.0,
+                    error="Should be of type 'float' and magnitude < 1")
+                },
             Optional("brute_force_optimization"): bool,
-            Optional("logging_level"): And(str, Use(str.lower), lambda f: f in ALLOWED_LOGGING_LEVELS,
-                                           error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} needs to be chosen"),
-            Optional("terminal_background"): And(str, Use(str.lower), lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
-                                                 error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} needs to be "
-                                                       f"chosen"),
+            Optional("logging_level"): And(
+                str, Use(str.lower),
+                lambda f: f in ALLOWED_LOGGING_LEVELS,
+                error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
+            Optional("terminal_background"): And(
+                str,
+                Use(str.lower),
+                lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
+                error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
             Optional("generate_multimedia"): bool,
             Optional("file_suffix"): str
         })
-        self.__from_data = Schema({"data_stem": str,
-                                   "phase_id": And(int, lambda x: x >= 0, error="Should be type of 'int' and >= 0")})
+        self.__from_data = Schema(
+            {"data_stem": str,
+             "phase_id": And(int, lambda x: x >= 0,
+                             error="Should be of type 'int' and >= 0")})
         self.__from_samplers = Schema({
-            "n_objects": And(int, lambda x: x > 0, error="Should be type of 'int' and > 0"),
-            "n_mapped_ranks": And(int, lambda x: x >= 0, error="Should be type of 'int' and >= 0"),
+            "n_objects": And(int, lambda x: x > 0,
+                             error="Should be of type 'int' and > 0"),
+            "n_mapped_ranks": And(int, lambda x: x >= 0,
+                                  error="Should be of type 'int' and >= 0"),
             "communication_degree": int,
-            "time_sampler": {"name": And(str, Use(str.lower), lambda a: a in ALLOWED_TIME_VOLUME_SAMPLER,
-                                         error=f"{get_error_message(ALLOWED_TIME_VOLUME_SAMPLER)} needs to be chosen"),
-                             "parameters": And([float], lambda s: len(s) == 2,
-                                               error="There should be exactly 2 provided parameters of type 'float'")},
-            "volume_sampler": {"name": And(str, Use(str.lower), lambda b: b in ALLOWED_TIME_VOLUME_SAMPLER,
-                                           error=f"{get_error_message(ALLOWED_TIME_VOLUME_SAMPLER)} needs to be "
-                                                 f"chosen"),
-                               "parameters": And([float], lambda s: len(s) == 2,
-                                                 error="There should be exactly 2 provided parameters of type 'float'")}
+            "time_sampler": {
+                "name": And(
+                    str,
+                    Use(str.lower),
+                    lambda a: a in ALLOWED_TIME_VOLUME_SAMPLER,
+                    error=f"{get_error_message(ALLOWED_TIME_VOLUME_SAMPLER)} must be chosen"),
+                "parameters": And(
+                    [float],
+                    lambda s: len(s) == 2,
+                    error="There should be exactly 2 provided parameters of type 'float'")},
+            "volume_sampler": {
+                "name": And(
+                    str,
+                    Use(str.lower),
+                    lambda b: b in ALLOWED_TIME_VOLUME_SAMPLER,
+                    error=f"{get_error_message(ALLOWED_TIME_VOLUME_SAMPLER)} must be chosen"),
+                "parameters": And(
+                    [float],
+                    lambda s: len(s) == 2,
+                    error="There should be exactly 2 provided parameters of type 'float'")}
         })
         self.__algorithm = {
             "InformAndTransfer": Schema(
                 {"name": "InformAndTransfer",
-                 "parameters": {"n_iterations": int,
-                                "n_rounds": int,
-                                "fanout": int,
-                                "order_strategy": And(str, Use(str.lower),
-                                                      lambda e: e in ALLOWED_STRATEGIES,
-                                                      error=f"{get_error_message(ALLOWED_STRATEGIES)} needs to be "
-                                                            f"chosen"),
-                                "criterion": And(str, lambda f: f in ALLOWED_CRITERIA,
-                                                 error=f"{get_error_message(ALLOWED_CRITERIA)} needs to be chosen"),
-                                "max_objects_per_transfer": int,
-                                "deterministic_transfer": bool}}),
+                 "parameters": {
+                     "n_iterations": int,
+                     "n_rounds": int,
+                     "fanout": int,
+                     "order_strategy": And(
+                         str,
+                         Use(str.lower),
+                         lambda e: e in ALLOWED_STRATEGIES,
+                         error=f"{get_error_message(ALLOWED_STRATEGIES)} must be chosen"),
+                     "criterion": And(
+                         str,
+                         lambda f: f in ALLOWED_CRITERIA,
+                         error=f"{get_error_message(ALLOWED_CRITERIA)} must be chosen"),
+                     "max_objects_per_transfer": int,
+                     "deterministic_transfer": bool}}),
             "BruteForce": Schema(
                 {"name": "BruteForce",
                  Optional("parameters"): {"skip_transfer": bool}})

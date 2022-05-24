@@ -21,7 +21,7 @@ class WorkModelBase:
         LGR.debug("Created base work model")
 
     @staticmethod
-    def factory(work_name, parameters=None, lgr: Logger = None):
+    def factory(work_name, parameters, lgr: Logger):
         """ Produce the necessary concrete work model
         """
         from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
@@ -32,7 +32,6 @@ class WorkModelBase:
         try:
             # Instantiate and return object
             work = locals()[work_name + "WorkModel"]
-            lgr = LGR if lgr is None else lgr
             return work(parameters, lgr=lgr)
         except:
             # Otherwise, error out

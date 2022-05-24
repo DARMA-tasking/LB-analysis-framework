@@ -8,7 +8,7 @@ class AffineCombinationWorkModel(WorkModelBase):
     """ A concrete class for a load-only work model
     """
 
-    def __init__(self, parameters, lgr: Logger = None):
+    def __init__(self, parameters, lgr: Logger):
         """ Class constructor:
             parameters: dictionary with alpha, beta, and gamma values
         """

@@ -10,7 +10,7 @@ class Rank:
     """ A class representing a rank to which objects are assigned
     """
 
-    def __init__(self, i: int, mo: set = None, so: set = None, logger: Logger = None):
+    def __init__(self, i: int, logger: Logger, mo: set = None, so: set = None):
         # Assign logger to instance variable
         self.__logger = logger
 
@@ -56,6 +56,11 @@ class Rank:
         """ Return migratable objects assigned to rank
         """
         return self.__migratable_objects
+
+    def add_sentinel_object(self, o) -> None:
+        """ Add object to sentinel objects
+        """
+        return self.__sentinel_objects.add(o)
 
     def get_sentinel_objects(self) -> set:
         """ Return sentinel objects assigned to rank
