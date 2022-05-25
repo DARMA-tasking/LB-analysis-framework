@@ -47,7 +47,7 @@ class Rank:
         """
         return self.__migratable_objects.union(self.__sentinel_objects)
 
-    def add_migratable_object(self, o) -> None:
+    def add_migratable_object(self, o: Object) -> None:
         """ Add object to migratable objects
         """
         return self.__migratable_objects.add(o)
@@ -57,7 +57,7 @@ class Rank:
         """
         return self.__migratable_objects
 
-    def add_sentinel_object(self, o) -> None:
+    def add_sentinel_object(self, o: Object) -> None:
         """ Add object to sentinel objects
         """
         return self.__sentinel_objects.add(o)
@@ -92,7 +92,7 @@ class Rank:
         """
         return self.__viewers
 
-    def remove_migratable_object(self, o: Object, p_dst):
+    def remove_migratable_object(self, o: Object, p_dst: 'Rank'):
         """ Remove migratable able object from self object sent to peer
         """
         # Remove object from those assigned to self
@@ -167,7 +167,7 @@ class Rank:
         # Reset information about overloaded viewer peers
         self.__viewers = set()
 
-    def initialize_message(self, loads, f):
+    def initialize_message(self, loads: set, f: int):
         """ Initialize message to be sent to selected peers
         """
         # Retrieve current load on this rank
