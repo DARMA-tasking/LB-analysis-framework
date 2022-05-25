@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     params = ViewerParameters()
     if params.parse_command_line():
-        sys.exit(1)
+        raise SystemExit(1)
     pngViewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "PNG")
 
     # Create view from PNGViewer instance

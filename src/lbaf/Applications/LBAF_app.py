@@ -10,7 +10,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    sys.exit(1)
+    raise SystemExit(1)
 try:
     import paraview.simple
 except:
@@ -77,10 +77,10 @@ class internalParameters:
             except yaml.MarkedYAMLError as err:
                 self.logger.error(f"Invalid YAML file {conf_file} in line {err.problem_mark.line} ({err.problem,} "
                                   f"{err.context})")
-                sys.exit(1)
+                raise SystemExit(1)
         else:
             self.logger.error(f"Configuration file in {conf_file} not found")
-            sys.exit(1)
+            raise SystemExit(1)
 
     def configuration_validation(self):
         """ Configuration file validation. """
@@ -101,7 +101,7 @@ class internalParameters:
                 self.grid_size.append(gm.get(key))
             if math.prod(self.grid_size) < self.n_ranks:
                 self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")
-                sys.exit(1)
+                raise SystemExit(1)
             self.object_jitter = gm.get("object_jitter")
 
         # Parse data parameters if present
@@ -239,7 +239,7 @@ class LBAFApp:
                 objects, alpha, beta, gamma, self.params.n_ranks)
             if n_a != self.params.n_ranks ** len(objects):
                 self.logger.error("Incorrect number of possible arrangements with repetition")
-                sys.exit(1)
+                raise SystemExit(1)
             self.logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
         else:
             self.logger.info("No brute force optimization performed")

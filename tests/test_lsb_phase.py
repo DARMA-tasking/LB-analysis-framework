@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    sys.exit(1)
+    raise SystemExit(1)
 
 import logging
 import unittest
@@ -20,7 +20,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.data_dir)
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
-            sys.exit(1)
+            raise SystemExit(1)
         self.logger = logging.getLogger()
         self.phase = Phase(self.logger, 0)
 

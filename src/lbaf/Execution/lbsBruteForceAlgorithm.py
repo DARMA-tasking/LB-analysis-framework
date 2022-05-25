@@ -70,7 +70,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Ensure that a phase was properly passed
         if not isinstance(phase, Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
-            sys.exit(1)
+            raise SystemExit(1)
         self.phase = phase
 
         # Initialize run distributions and statistics
@@ -124,10 +124,10 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Sanity checks
         if not len(a_min_max):
             self.__logger.error("No optimal arrangements were found")
-            sys.exit(1)
+            raise SystemExit(1)
         if n_arrangements != n_ranks ** len(objects):
             self.__logger.error("Incorrect number of possible arrangements with repetition")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_arrangements}")
 
         # Skip object transfers when requested

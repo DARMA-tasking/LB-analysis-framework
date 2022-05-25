@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    sys.exit(1)
+    raise SystemExit(1)
 
 import logging
 import unittest

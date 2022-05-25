@@ -193,7 +193,7 @@ class Phase:
         # Perform sanity checks
         if len(v_recv) != len(v_sent):
             self.__logger.error(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Compute and report communication volume statistics
         print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)

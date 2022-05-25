@@ -6,7 +6,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    sys.exit(1)
+    raise SystemExit(1)
 
 import brotli
 import json
@@ -38,7 +38,7 @@ class VTDataExtractor:
             print(f"Input data directory: {self.input_data_dir}")
         else:
             print("Input data directory NOT FOUND!")
-            sys.exit(1)
+            raise SystemExit(1)
         # Output data
         if not os.path.exists(self.output_data_dir):
             print("Output data directory not found, CREATING ...")
@@ -55,7 +55,7 @@ class VTDataExtractor:
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
                     print('Phase range wrongly declared!')
-                    sys.exit(1)
+                    raise SystemExit(1)
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
         processed_set = set(processed_list)
@@ -92,7 +92,7 @@ class VTDataExtractor:
         else:
             print(f"Invalid JSON schema in {file_path}")
             SchemaValidator().validate(schema_to_validate=decompressed_dict)
-            sys.exit(1)
+            raise SystemExit(1)
 
         return decompressed_dict
 

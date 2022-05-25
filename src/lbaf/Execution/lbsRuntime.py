@@ -47,7 +47,7 @@ class Runtime:
             lgr=self.__logger)
         if not self.__algorithm:
             self.__logger.error(f"Could not instantiate an algorithm of type {self.__algorithm}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Initialize run distributions and statistics
         self.distributions = {}

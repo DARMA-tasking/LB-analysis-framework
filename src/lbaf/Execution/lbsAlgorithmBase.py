@@ -23,7 +23,7 @@ class AlgorithmBase:
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
             LGR.error("Could not create an algorithm without a work model")
-            sys.exit(1)
+            raise SystemExit(1)
         self.work_model = work_model
 
         # Algorithm keeps internal references to ranks and edges
@@ -48,7 +48,7 @@ class AlgorithmBase:
         except:
             # Otherwise, error out
             LGR.error(f"Could not create an algorithm with name {algorithm_name}")
-            sys.exit(1)
+            raise SystemExit(1)
 
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """ Compute and update run distributions and statistics."""

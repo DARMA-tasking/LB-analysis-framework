@@ -94,7 +94,7 @@ class ParaviewViewerBase(object):
         # Unspecified ExodusII file name
         if not exodus:
             LGR.error("An ExodusII file name needs to be provided. Exiting.")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Unspecified visualization file name
         if (not file_name) or file_name == "''":
@@ -116,17 +116,17 @@ class ParaviewViewerBase(object):
         # Unspecified viewer type
         elif viewer_type == None:
             LGR.error("A viewer type needs to be provided. Exiting.")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Unsupported viewer type
         else:
             LGR.error(f"{viewer_type} type viewer unsupported. Exiting.")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Report not instantiated
         if not ret_object:
             LGR.error(f"{viewer_type} viewer not instantiated. Exiting.")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Return instantiated object
         ret_object.exodus = "{}.e".format(exodus)
