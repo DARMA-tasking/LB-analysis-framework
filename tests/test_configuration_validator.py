@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    sys.exit(1)
 
 from schema import SchemaError, SchemaMissingKeyError, SchemaOnlyOneAllowedError, SchemaUnexpectedTypeError
 import unittest
@@ -23,7 +23,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.config_dir)
         except Exception as e:
             print(f"Can not add config path to system path! Exiting!\nERROR: {e}")
-            exit(1)
+            sys.exit(1)
 
     def test_config_validator_correct_001(self):
         with open(os.path.join(self.config_dir, 'conf_correct_001.yml'), 'rt') as config_file:

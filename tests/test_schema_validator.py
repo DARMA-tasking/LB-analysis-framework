@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    sys.exit(1)
 
 import json
 import unittest
@@ -23,7 +23,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.data_dir)
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
-            exit(1)
+            sys.exit(1)
 
     def test_schema_validator_valid_001(self):
         with open(os.path.join(self.data_dir, 'valid_schema_001.json'), 'rb') as compr_json_file:

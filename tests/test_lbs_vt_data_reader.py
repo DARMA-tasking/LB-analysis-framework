@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    sys.exit(1)
 
 import logging
 import unittest
@@ -25,7 +25,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.data_dir)
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
-            exit(1)
+            sys.exit(1)
         self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', 'data')
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix='json')

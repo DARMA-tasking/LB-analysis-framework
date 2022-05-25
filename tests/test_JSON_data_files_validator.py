@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    sys.exit(1)
 
 import argparse
 import logging
@@ -24,7 +24,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.data_dir)
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
-            exit(1)
+            sys.exit(1)
         self.file_path = os.path.join(self.data_dir, 'JSON_data_file_validator', 'data.0.json')
         self.wrong_file_path = os.path.join(self.data_dir, 'JSON_data_file_validator', 'data.0.jso')
         self.wrong_file_schema = os.path.join(self.data_dir, 'JSON_data_file_validator_wrong', 'data.0.json')
