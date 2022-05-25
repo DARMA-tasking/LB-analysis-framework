@@ -34,6 +34,8 @@ class TestConfig(unittest.TestCase):
         self.stats_file_004 = os.path.join(self.data_dir, 'JSON_data_file_validator_stats', 'vt_lb_statistics_004.json')
         self.vt_lb_statistics_wrong = os.path.join(self.data_dir, 'JSON_data_file_validator_stats',
                                                    'vt_lb_statistics_wrong.json')
+        self.vt_lb_statistics_no_schema_type = os.path.join(self.data_dir, 'JSON_data_file_validator_stats',
+                                                            'vt_lb_statistics_no_schema_type.json')
         self.dir_path = os.path.join(self.data_dir, 'JSON_data_file_validator')
         self.dir_path_compressed = os.path.join(self.data_dir, 'JSON_data_file_validator_compressed')
         self.dir_path_empty = os.path.join(self.data_dir, 'JSON_data_file_validator_empty')
@@ -107,6 +109,12 @@ class TestConfig(unittest.TestCase):
         with open(os.path.join(self.data_dir, 'JSON_data_file_validator_stats', 'schema_error.txt'), 'rt') as se:
             err_msg = se.read()
         self.assertEqual(err.exception.args[0], err_msg)
+
+    def test_json_data_files_validator_file_stats_no_schema_type(self):
+        argparse.ArgumentParser.parse_args = Mock()
+        argparse.ArgumentParser.parse_args.return_value = argparse.Namespace(
+            file_path=self.vt_lb_statistics_no_schema_type, dir_path=None, file_prefix=None, file_suffix=None)
+        JSONDataFilesValidator().main()
 
     def test_json_data_files_validator_prefix(self):
         argparse.ArgumentParser.parse_args = Mock()
