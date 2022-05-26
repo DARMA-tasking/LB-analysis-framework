@@ -6,7 +6,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    raise SystemExit(1)
 
 from collections import Counter
 import csv
@@ -51,7 +51,7 @@ class Csv2JsonConverter:
             return os.path.join(project_path, dir_path)
         else:
             print(f"Can not find dir {dir_path}!")
-            exit(1)
+            raise SystemExit(1)
 
     def _get_files_for_conversion(self) -> list:
         """ Return list of tuples as follows (file_to_convert_path, converted_file_path)."""

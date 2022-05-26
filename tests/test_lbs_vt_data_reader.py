@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    raise SystemExit(1)
 
 import logging
 import unittest
@@ -14,6 +14,7 @@ from schema import SchemaError
 
 from src.lbaf.IO.lbsVTDataReader import LoadReader
 from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 from src.lbaf.Model.lbsRank import Rank
 
 
@@ -24,7 +25,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.data_dir)
         except Exception as e:
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
-            exit(1)
+            raise SystemExit(1)
         self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', 'data')
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix='json')
@@ -55,6 +56,36 @@ class TestConfig(unittest.TestCase):
                                                  Object(i=4, t=0.5)}, logger=self.logger)},
                                {0: Rank(i=2, mo={Object(i=8, t=1.5)}, logger=self.logger)},
                                {0: Rank(i=3, logger=self.logger)}]
+
+        self.rank_list = [Rank(i=0, mo={Object(i=3, t=0.5, p=0, c=ObjectCommunicator(i=3, logger=self.logger,
+                                                                                     s={Object(i=2, t=0.5): 1.0,
+                                                                                        Object(i=8, t=1.5): 0.5})),
+                                        Object(i=2, t=0.5, p=0, c=ObjectCommunicator(i=2, logger=self.logger,
+                                                                                     r={Object(i=3, t=0.5): 1.0})),
+                                        Object(i=0, t=1.0, p=0, c=ObjectCommunicator(i=0, logger=self.logger,
+                                                                                     s={Object(i=5, t=2.0): 2.0})),
+                                        Object(i=1, t=0.5, p=0, c=ObjectCommunicator(i=1, logger=self.logger,
+                                                                                     r={Object(i=4, t=0.5): 2.0},
+                                                                                     s={Object(i=4, t=0.5): 1.0}))},
+                               logger=self.logger),
+                          Rank(i=1, mo={Object(i=5, t=2.0, p=1, c=ObjectCommunicator(i=5, logger=self.logger,
+                                                                                     r={Object(i=0, t=1.0): 2.0},
+                                                                                     s={Object(i=8, t=1.5): 2.0})),
+                                        Object(i=7, t=0.5, p=1, c=ObjectCommunicator(i=7, logger=self.logger,
+                                                                                     s={Object(i=6, t=1.0): 1.0})),
+                                        Object(i=6, t=1.0, p=1, c=ObjectCommunicator(i=6, logger=self.logger,
+                                                                                     r={Object(i=7, t=0.5): 1.0,
+                                                                                        Object(i=8, t=1.5): 1.5})),
+                                        Object(i=4, t=0.5, p=1, c=ObjectCommunicator(i=4, logger=self.logger,
+                                                                                     r={Object(i=1, t=0.5): 1.0},
+                                                                                     s={Object(i=1, t=0.5): 2.0}))},
+                               logger=self.logger),
+                          Rank(i=2, mo={Object(i=8, t=1.5, p=2, c=ObjectCommunicator(i=8, logger=self.logger,
+                                                                                     r={Object(i=3, t=0.5): 0.5,
+                                                                                        Object(i=5, t=2.0): 2.0},
+                                                                                     s={Object(i=6, t=1.0): 1.5}))},
+                               logger=self.logger),
+                          Rank(i=3, logger=self.logger)]
 
     def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
@@ -131,6 +162,54 @@ class TestConfig(unittest.TestCase):
             gen_id_list = [obj.get_id() for obj in generated_list]
             self.assertEqual(prep_time_list, gen_time_list)
             self.assertEqual(prep_id_list, gen_id_list)
+
+    def test_lbs_vt_data_reader_read_iteration(self):
+        rank_list = self.lr.read_iteration(n_p=4, phase_id=0)
+        for rank_real, rank_mock in zip(rank_list, self.rank_list):
+            generated_list = sorted(list(rank_real.get_migratable_objects()), key=lambda x: x.get_id())
+            prepared_list = sorted(list(rank_mock.get_migratable_objects()), key=lambda x: x.get_id())
+            prep_time_list = [obj.get_time() for obj in prepared_list]
+            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_id_list = [obj.get_id() for obj in prepared_list]
+            gen_id_list = [obj.get_id() for obj in generated_list]
+            prep_rank_list = [obj.get_rank_id() for obj in prepared_list]
+            gen_rank_list = [obj.get_rank_id() for obj in generated_list]
+
+            prep_comm_idx_list = [obj.get_communicator()._ObjectCommunicator__object_index for obj in prepared_list]
+            gen_comm_idx_list = [obj.get_communicator()._ObjectCommunicator__object_index for obj in generated_list]
+
+            prep_comm_rcv_list = []
+            prep_comm_rcv_time_list = []
+            prep_comm_rcv_id_list = []
+            gen_comm_rcv_list = []
+            gen_comm_rcv_time_list = []
+            gen_comm_rcv_id_list = []
+
+            for obj in prepared_list:
+                for key, val in obj.get_communicator().get_received().items():
+                    prep_comm_rcv_list.append(val)
+                    prep_comm_rcv_time_list.append(key.get_time())
+                    prep_comm_rcv_id_list.append(key.get_id())
+
+            for obj in generated_list:
+                for key, val in obj.get_communicator().get_received().items():
+                    gen_comm_rcv_list.append(val)
+                    gen_comm_rcv_time_list.append(key.get_time())
+                    gen_comm_rcv_id_list.append(key.get_id())
+
+            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_id_list, gen_id_list)
+            self.assertEqual(prep_rank_list, gen_rank_list)
+            self.assertEqual(prep_comm_idx_list, gen_comm_idx_list)
+            self.assertEqual(prep_comm_rcv_list, gen_comm_rcv_list)
+            self.assertEqual(prep_comm_rcv_time_list, gen_comm_rcv_time_list)
+            self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
+
+    def test_lbs_vt_data_reader_read_iteration_key_error(self):
+        with self.assertRaises(KeyError) as err:
+            rank_list = self.lr.read_iteration(n_p=4, phase_id=5)
+            print(err.exception.args[0])
+        self.assertEqual(err.exception.args[0], "Could not retrieve information for rank 0 at time_step 5. KeyError 5")
 
 
 if __name__ == '__main__':

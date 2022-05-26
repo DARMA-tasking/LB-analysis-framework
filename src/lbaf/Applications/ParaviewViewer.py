@@ -36,7 +36,7 @@ if __name__ == '__main__':
     lgr.info("Parsing command line arguments")
     params = ViewerParameters()
     if params.parse_command_line():
-        sys.exit(1)
+        raise SystemExit(1)
     viewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "")
 
     # Create view from PNGViewer instance

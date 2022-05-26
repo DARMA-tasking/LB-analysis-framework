@@ -5,7 +5,7 @@ try:
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
+    raise SystemExit(1)
 
 import logging
 import unittest
@@ -138,6 +138,39 @@ class TestConfig(unittest.TestCase):
             Object(i=1, t=5.5, p=1, c=True)
         self.assertEqual(err.exception.args[0],
                          f"c: True is type of <class 'bool'>! Must be <class 'ObjectCommunicator'>!")
+
+    def test_object_user_defined_error(self):
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined=[])
+        self.assertEqual(err.exception.args[0],
+                         f"user_defined: [] is type of <class 'list'>! Must be <class 'dict'>!")
+
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined='a')
+        self.assertEqual(err.exception.args[0], f"user_defined: a is type of <class 'str'>! Must be <class 'dict'>!")
+
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined=1)
+        self.assertEqual(err.exception.args[0], f"user_defined: 1 is type of <class 'int'>! Must be <class 'dict'>!")
+
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined=1.0)
+        self.assertEqual(err.exception.args[0],
+                         f"user_defined: 1.0 is type of <class 'float'>! Must be <class 'dict'>!")
+
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined=set())
+        self.assertEqual(err.exception.args[0],
+                         f"user_defined: set() is type of <class 'set'>! Must be <class 'dict'>!")
+
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined=())
+        self.assertEqual(err.exception.args[0], f"user_defined: () is type of <class 'tuple'>! Must be <class 'dict'>!")
+
+        with self.assertRaises(TypeError) as err:
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined=True)
+        self.assertEqual(err.exception.args[0],
+                         f"user_defined: True is type of <class 'bool'>! Must be <class 'dict'>!")
 
     def test_object_has_communicator(self):
         self.assertTrue(self.simple_obj_003.has_communicator())

@@ -22,7 +22,7 @@ class CriterionBase:
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
             LGR.error("Could not create a criterion without a work model")
-            sys.exit(1)
+            raise SystemExit(1)
         self.work_model = work_model
 
         # Criterion keeps internal references to ranks and edges
@@ -45,7 +45,7 @@ class CriterionBase:
         except:
             # Otherwise, error out
             LGR.error(f"Could not create a criterion with name {criterion_name}")
-            sys.exit(1)
+            raise SystemExit(1)
 
     @abc.abstractmethod
     def compute(self, objects, rank_src, rank_dst):

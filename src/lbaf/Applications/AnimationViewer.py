@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     params = ViewerParameters()
     if params.parse_command_line():
-        sys.exit(1)
+        raise SystemExit(1)
 
     # Check if arguments were correctly parsed
     animationViewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "Animation")

@@ -38,13 +38,13 @@ class MeshWriter:
         # Ensure that provided phase has correct type
         if not isinstance(p, Phase):
             self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__phase = p
 
         # Ensure that specified grid resolution is correct
         if not isinstance(r, numbers.Number) or r <= 0.:
             self.__logger.error("Grid resolution must be a positive number")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__grid_resolution = float(r)
 
         # Keep track of mesh properties
@@ -169,7 +169,7 @@ class MeshWriter:
         # Write to ExodusII file when possible
         if streamer.Error:
             self.__logger.error(f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
-            sys.exit(1)
+            raise SystemExit(1)
         else:
             self.__logger.info(f"Writing ExodusII file: {self.__rank_file_name}")
             writer = vtk.vtkExodusIIWriter()

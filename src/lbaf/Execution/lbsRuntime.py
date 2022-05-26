@@ -38,9 +38,6 @@ class Runtime:
             work_model.get("name"),
             work_model.get("parameters", {}),
             self.__logger)
-        if not self.__work_model:
-            self.__logger.error(f"Could not instantiate a work model of type {self.__work_model}")
-            sys.exit(1)
 
         # Instantiate balancing algorithm
         self.__algorithm = AlgorithmBase.factory(
@@ -50,7 +47,7 @@ class Runtime:
             lgr=self.__logger)
         if not self.__algorithm:
             self.__logger.error(f"Could not instantiate an algorithm of type {self.__algorithm}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Initialize run distributions and statistics
         self.distributions = {}

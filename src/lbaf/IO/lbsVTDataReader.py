@@ -84,9 +84,10 @@ class LoadReader:
             # Try to retrieve rank information at given time-step
             try:
                 rank_list[p] = rank_iter_map[phase_id]
-            except KeyError:
-                self.__logger.error(f"Could not retrieve information for rank {p} at time_step {phase_id}")
-                sys.exit(1)
+            except KeyError as e:
+                msg_err = f"Could not retrieve information for rank {p} at time_step {phase_id}. KeyError {e}"
+                self.__logger.error(msg_err)
+                raise KeyError(msg_err)
 
             # Merge rank communication with existing ones
             if rank_comm.get(phase_id) is not None:

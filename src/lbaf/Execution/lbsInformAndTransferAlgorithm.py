@@ -33,16 +33,16 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
             self.__logger.error(
                 f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
             self.__logger.error(
                 f"Incorrect provided number of information rounds: {self.__n_rounds}")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__logger.info(
             f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
@@ -59,7 +59,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if o_s not in self.__strategy_mapped:
             self.__logger.error(f"{o_s} does not exist in known ordering strategies: "
                                 f"{[x for x in self.__strategy_mapped.keys()]}")
-            sys.exit(1)
+            raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self.__logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
@@ -70,7 +70,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             lgr=self.__logger)
         if not self.__transfer_criterion:
             self.__logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # Assign optional parameters
         self.__deterministic_transfer = parameters.get("deterministic_transfer", False)
@@ -118,8 +118,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 # Check whether rank must relay previously received message
                 if p_snd.round_last_received + 1 == information_round:
                     # Collect message when destination list is not empty
-                    dst, msg = p_snd.forward_message(
-                        information_round, rank_set, self.__fanout)
+                    dst, msg = p_snd.forward_message(information_round, rank_set, self.__fanout)
                     for p_rcv in dst:
                         messages.setdefault(p_rcv, []).append(msg)
 
@@ -265,7 +264,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 # Sanity check before transfer
                 if p_dst not in p_src.get_known_loads():
                     self.__logger.error(f"Destination rank {p_dst.get_id()} not in known ranks")
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 # Transfer objects
                 if len(object_list) > max_obj_transfers:
@@ -291,7 +290,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Ensure that a phase was properly passed
         if not isinstance(phase, Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
-            sys.exit(1)
+            raise SystemExit(1)
         self.phase = phase
 
         # Initialize run distributions and statistics

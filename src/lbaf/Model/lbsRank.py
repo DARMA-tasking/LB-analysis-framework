@@ -3,6 +3,7 @@ import random as rnd
 import math
 
 from .lbsMessage import Message
+from .lbsObject import Object
 
 
 class Rank:
@@ -46,7 +47,7 @@ class Rank:
         """
         return self.__migratable_objects.union(self.__sentinel_objects)
 
-    def add_migratable_object(self, o) -> None:
+    def add_migratable_object(self, o: Object) -> None:
         """ Add object to migratable objects
         """
         return self.__migratable_objects.add(o)
@@ -56,7 +57,7 @@ class Rank:
         """
         return self.__migratable_objects
 
-    def add_sentinel_object(self, o) -> None:
+    def add_sentinel_object(self, o: Object) -> None:
         """ Add object to sentinel objects
         """
         return self.__sentinel_objects.add(o)
@@ -91,7 +92,7 @@ class Rank:
         """
         return self.__viewers
 
-    def remove_migratable_object(self, o, p_dst):
+    def remove_migratable_object(self, o: Object, p_dst: 'Rank'):
         """ Remove migratable able object from self object sent to peer
         """
         # Remove object from those assigned to self
@@ -166,7 +167,7 @@ class Rank:
         # Reset information about overloaded viewer peers
         self.__viewers = set()
 
-    def initialize_message(self, loads, f):
+    def initialize_message(self, loads: set, f: int):
         """ Initialize message to be sent to selected peers
         """
         # Retrieve current load on this rank
@@ -184,21 +185,21 @@ class Rank:
     def forward_message(self, r, s, f):
         """ Forward information message to sample of selected peers
         """
+        # TODO: s which is set of Ranks is not used, should it be removed?
         # Create load message tagged at current round
         msg = Message(r, self.__known_loads)
 
         # Compute complement of set of known peers
-        complement = set(
-            self.__known_loads).difference([self])
+        complement = set(self.__known_loads).difference([self])
 
         # Forward message to pseudo-random sample of ranks
-        return rnd.sample(
-            complement, min(f, len(complement))), msg
+        return rnd.sample(complement, min(f, len(complement))), msg
 
     def process_message(self, msg):
         """ Update internals when message is received
         """
         # Assert that message has the expected type
+        # TODO: Better message checking needed
         if not isinstance(msg, Message):
             self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
 
@@ -208,7 +209,7 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_transfer_cmf(self, transfer_criterion, o, targets, strict=False):
+    def compute_transfer_cmf(self, transfer_criterion, o: Object, targets: dict, strict=False):
         """ Compute CMF for the sampling of transfer targets
         """
         # Initialize criterion values
