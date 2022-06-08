@@ -3,12 +3,12 @@
 # work_model                   work model to be used
 #    name [str]                in LoadOnly, AffineCombination
 #    parameters: [dict]        optional parameters specific to each work model
-# algorithm                    balancing algorithm to be used
+# algorithm                    algorithm to be used
 #    name [str]                in InformAndTransfer, BruteForce
 #    parameters: [dict]        parameters specitic to each algorithm:
 #      InformAndtransfer:
 #        criterion [str]       in Tempered (default), StrictLocalizer
-#        n_iterations [int]    number of load-balancing iterations
+#        n_iterations [int]    number of balancing iterations
 #        deterministic_transfer [bool] (default: False) for deterministic transfer
 #        n_rounds [int]        number of information rounds
 #        fanout [int]          information fanout index
@@ -53,7 +53,7 @@ work_model:
     beta: 1.0e-8
     gamma: 0.
 
-# Specify balancing algorithm
+# Specify algorithm
 algorithm:
   name: InformAndTransfer
   parameters:
