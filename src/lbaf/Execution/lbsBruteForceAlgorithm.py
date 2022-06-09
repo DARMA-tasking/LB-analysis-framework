@@ -63,12 +63,13 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Return arrangement works
         return works
 
-    def execute(self, phase: Phase, distributions: dict, statistics: dict, _):
+    def execute(self, phases: list, distributions: dict, statistics: dict, _):
         """ Execute brute force optimization algorithm on Phase instance
         """
 
-        # Ensure that a phase was properly passed
-        if not isinstance(phase, Phase):
+        # Ensure that a list with at least one phase was provided
+        if not phases or not isinstance(phases, list) or not isinstance(
+            (phase := phases[0]), Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             raise SystemExit(1)
         self.phase = phase

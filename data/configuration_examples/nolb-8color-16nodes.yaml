@@ -18,12 +18,13 @@
 #                              fewest_migrations, small_objects
 #      BruteForce: 
 #        skip_transfer [bool]  (default: False) skip transfer phase
+#      PhaseStepper 
 # logging_level [str]          set to `info`, `debug`, `warning` or `error`
 # x_procs [int]                number of procs in x direction for rank visualization
 # y_procs [int]                number of procs in y direction for rank visualization
 # z_procs [int]                number of procs in z direction for rank visualization
 # data_stem [str]              base file name of VT load logs
-# phase_id [int]               id of phase to be read in VT load logs
+# phase_ids [list]             list of ids of phase to be read in VT load logs
 # map_file [str]               base file name for VT object/proc mapping
 # file_suffix [str]            file suffix of VT data files (default: "json")
 # output_dir [str]             output directory (default: '.')
@@ -43,7 +44,8 @@
 # Specify input
 from_data:
   data_stem: "../data/nolb-8color-16nodes-data/data"
-  phase_id: 501
+  phase_ids:
+    - 501
 
 # Specify work model
 work_model:

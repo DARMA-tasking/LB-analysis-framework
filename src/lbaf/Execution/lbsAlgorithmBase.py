@@ -39,6 +39,7 @@ class AlgorithmBase:
         # Load up available algorithms
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
+        from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
 
         # Ensure that algorithm name is valid
         try:
@@ -108,9 +109,9 @@ class AlgorithmBase:
                             logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
     @abc.abstractmethod
-    def execute(self, phase, distributions, statistics, a_min_max):
+    def execute(self, phases, distributions, statistics, a_min_max):
         """ Excecute balancing algorithm on Phase instance
-            phase: Phase instance
+            phases: list of Phase instances
             distributions: dictionary of time-varying variables
             statistics: dictionary of  statistics
             a_min_max: possibly empty list of optimal arrangements"""

@@ -14,7 +14,10 @@ ALLOWED_STRATEGIES = (
     "fewest_migrations",
     "small_objects")
 ALLOWED_WORK_MODELS = ("LoadOnly", "AffineCombination")
-ALLOWED_ALGORITHMS = ("InformAndTransfer", "BruteForce")
+ALLOWED_ALGORITHMS = (
+    "InformAndTransfer",
+    "BruteForce",
+    "PhaseStepper")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizer")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_TIME_VOLUME_SAMPLER = ("uniform", "lognormal")
@@ -83,8 +86,8 @@ class ConfigurationValidator:
         })
         self.__from_data = Schema(
             {"data_stem": str,
-             "phase_id": And(int, lambda x: x >= 0,
-                             error="Should be of type 'int' and >= 0")})
+             "phase_ids": And(list, lambda x: len(x) > 0,
+                             error="Should be of type 'list' and not empty")})
         self.__from_samplers = Schema({
             "n_objects": And(int, lambda x: x > 0,
                              error="Should be of type 'int' and > 0"),
@@ -132,8 +135,9 @@ class ConfigurationValidator:
                      "deterministic_transfer": bool}}),
             "BruteForce": Schema(
                 {"name": "BruteForce",
-                 Optional("parameters"): {"skip_transfer": bool}})
-        }
+                 Optional("parameters"): {"skip_transfer": bool}}),
+            "PhaseStepper": Schema(
+                {"name": "PhaseStepper"})}
         self.__logger = logger
 
     @staticmethod

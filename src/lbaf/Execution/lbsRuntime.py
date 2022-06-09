@@ -11,9 +11,9 @@ class Runtime:
     """ A class to handle the execution of the LBS
     """
 
-    def __init__(self, phase: Phase, work_model: dict, algorithm: dict, arrangements: list, logger: Logger):
+    def __init__(self, phases: list, work_model: dict, algorithm: dict, arrangements: list, logger: Logger):
         """ Class constructor:
-            phase: phase instance
+            phases: list of Phase instances
             work_model: dictionary with work model name and optional parameters
             algorithm: dictionary with algorithm name and parameters
             a: arrangements that minimize maximum work
@@ -27,11 +27,10 @@ class Runtime:
         self.__logger = logger
 
         # If no LBS phase was provided, do not do anything
-        if not isinstance(phase, Phase):
-            self.__logger.warning("Could not create a LBS runtime without a phase")
-            return
-        else:
-            self.__phase = phase
+        if not phases or not isinstance(phases, list):
+            self.__logger.error("Could not create a LBS runtime without a list of phases")
+            raise SystemExit(1)
+        self.__phases = phases
 
         # Instantiate work model
         self.__work_model = WorkModelBase.factory(
@@ -50,9 +49,10 @@ class Runtime:
             raise SystemExit(1)
 
         # Initialize run distributions and statistics
+        phase_0 = self.__phases[0]
         self.distributions = {}
         _, _, l_ave, _, _, _, _, _ = compute_function_statistics(
-            self.__phase.get_ranks(),
+            phase_0.get_ranks(),
             lambda x: x.get_load())
         self.statistics = {"average load": l_ave}
 
@@ -60,13 +60,13 @@ class Runtime:
         self.__logger.info(f"Instantiated with {len(arrangements)} optimal arrangements for Hamming distance "
                            f"comparison")
         print_function_statistics(
-            self.__phase.get_ranks(),
+            phase_0.get_ranks(),
             lambda x: self.__work_model.compute(x),
             "initial rank works",
             self.__logger)
 
         # Compute initial arrangement
-        arrangement = tuple(v for _, v in sorted({o.get_id(): p.get_id() for p in self.__phase.get_ranks()
+        arrangement = tuple(v for _, v in sorted({o.get_id(): p.get_id() for p in phase_0.get_ranks()
                                                   for o in p.get_objects()}.items()))
         self.__logger.debug(f"Iteration 0 arrangement: {arrangement}")
 
@@ -82,7 +82,7 @@ class Runtime:
         # Execute balancing algorithm
         self.__logger.info(f"Executing {type(self.__algorithm).__name__}")
         self.__algorithm.execute(
-            self.__phase,
+            self.__phases,
             self.distributions,
             self.statistics,
             self.__a_min_max)
