@@ -1,0 +1,79 @@
+# Docs
+# param_name_in_conf [type]    Description
+# work_model                   work model to be used
+#    name [str]                in LoadOnly, AffineCombination
+#    parameters: [dict]        optional parameters specific to each work model
+# algorithm                    balancing algorithm to be used
+#    name [str]                in InformAndTransfer, BruteForce
+#    parameters: [dict]        parameters specitic to each algorithm:
+#      InformAndtransfer:
+#        criterion [str]       in Tempered (default), StrictLocalizer
+#        n_iterations [int]    number of load-balancing iterations
+#        deterministic_transfer [bool] (default: False) for deterministic transfer
+#        n_rounds [int]        number of information rounds
+#        fanout [int]          information fanout index
+#        order_strategy [str]  ordering of objects for transfer
+#    	                       in arbitrary (default), element_id, increasing_times,
+#                              decreasing_times, increasing_connectivity,
+#                              fewest_migrations, small_objects
+#      BruteForce: 
+#        skip_transfer [bool]  (default: False) skip transfer phase
+#      PhaseStepper 
+# logging_level [str]          set to `info`, `debug`, `warning` or `error`
+# x_procs [int]                number of procs in x direction for rank visualization
+# y_procs [int]                number of procs in y direction for rank visualization
+# z_procs [int]                number of procs in z direction for rank visualization
+# data_stem [str]              base file name of VT load logs
+# phase_ids [list]             list of ids of phase to be read in VT load logs
+# map_file [str]               base file name for VT object/proc mapping
+# file_suffix [str]            file suffix of VT data files (default: "json")
+# output_dir [str]             output directory (default: '.')
+# terminal_background [str]    background color for terminal output
+# generate_meshes [bool]       generate mesh outputs (default: False)
+# generate_multimedia [bool]   generate multimedia visualization (default: False)
+# n_objects [int]              number of objects
+# n_mapped_ranks [int]         number of initially mapped processors
+# communication_degree [int]   object communication degree (no communication if 0)
+# time_sampler                 description of object times sampler: 
+#    name [str]                in uniform, lognormal
+#    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
+# volume_sampler               description of object communication volumes sampler: 
+#    name [str]                in uniform, lognormal
+#    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
+
+# Specify input
+from_data:
+  data_stem: "../data/synthetic_lb_data/data"
+  phase_ids:
+    - 0
+    - 0
+    - 0
+    - 0
+ # data_stem: "../data/nolb-8color-16nodes-data/data"
+ # phase_ids 501
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.
+    beta: 1.0e-8
+    gamma: 0.
+
+# Specify algorithm
+algorithm:
+  name: PhaseStepper
+
+# Specify output
+#logging_level: debug
+terminal_background: light
+generate_multimedia: False
+output_dir: ../../../output
+output_file_stem: output_file
+#n_ranks: 32
+n_ranks: 4
+generate_meshes:
+  x_ranks: 8
+  y_ranks: 4
+  z_ranks: 1
+  object_jitter: 0.5
