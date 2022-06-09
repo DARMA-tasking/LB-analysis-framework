@@ -161,13 +161,13 @@ class ConfigurationValidator:
 
         # Validate from_data/from_samplers
         if (from_data := self.__config_to_validate.get("from_data")) is not None:
-            self.__logger.info("Reading from data was chosen.")
+            self.__logger.info("Reading from data was chosen")
             if self.is_valid(valid_schema=self.__from_data, schema_to_validate=from_data):
                 self.__logger.info("from_data schema is valid")
             else:
                 self.validate(valid_schema=self.__from_data, schema_to_validate=from_data)
         elif (from_samplers := self.__config_to_validate.get("from_samplers")) is not None:
-            self.__logger.info("Simulate from samplers was chosen.")
+            self.__logger.info("Simulate from samplers was chosen")
             if self.is_valid(valid_schema=self.__from_samplers, schema_to_validate=from_samplers):
                 self.__logger.info("from_samplers schema is valid")
             else:

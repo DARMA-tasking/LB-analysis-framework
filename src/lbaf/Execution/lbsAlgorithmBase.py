@@ -117,4 +117,3 @@ class AlgorithmBase:
             a_min_max: possibly empty list of optimal arrangements"""
 
         # Must be implemented by concrete subclass
-        pass

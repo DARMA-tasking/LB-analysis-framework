@@ -53,8 +53,7 @@ class internalParameters:
             "output_dir",
             "output_file_stem",
             "terminal_background",
-            "work_model"
-        )
+            "work_model")
 
         # Read configuration values from file
         self.configuration_file_found = False
