@@ -1,7 +1,8 @@
 # Specify input
 from_data:
   data_stem: "../data/synthetic_lb_data/data"
-  phase_ids: 0
+  phase_ids:
+    - 0
 
 # Specify work model
 work_model:
