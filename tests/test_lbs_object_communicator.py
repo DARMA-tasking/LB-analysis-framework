@@ -47,11 +47,18 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.oc.get_sent_to_object(sent_obj), self.sent_object.get(sent_obj))
 
     def test_object_communicator_summarize_001(self):
-        sent_objects = {Object(i=0, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
-                        Object(i=3, t=0.5): 1.5}
-        received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
-                            Object(i=8, t=1.5): 0.5}
-        oc_sum = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
+        sent_objects = {
+            Object(i=0, t=1.0): 2.0,
+            Object(i=1, t=0.5): 1.0,
+            Object(i=4, t=0.5): 2.0,
+            Object(i=3, t=0.5): 1.5}
+        received_objects = {
+            Object(i=5, t=2.0): 2.0,
+            Object(i=6, t=0.5): 1.0,
+            Object(i=2, t=0.5): 1.0,
+            Object(i=8, t=1.5): 0.5}
+        oc_sum = ObjectCommunicator(
+            i=154, r=received_objects, s=sent_objects, logger=self.logger)
         w_sent, w_recv = oc_sum.summarize()
         self.assertEqual(w_sent, [2.0, 1.0, 2.0, 1.5])
         self.assertEqual(w_recv, [2.0, 1.0, 1.0, 0.5])
@@ -66,11 +73,18 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(isinstance(w_recv, list))
 
     def test_object_communicator_summarize_exception_003(self):
-        sent_objects = {Object(i=154, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
-                        Object(i=3, t=0.5): 1.5}
-        received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
-                            Object(i=8, t=1.5): 0.5}
-        oc_sum = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
+        sent_objects = {
+            Object(i=154, t=1.0): 2.0,
+            Object(i=1, t=0.5): 1.0,
+            Object(i=4, t=0.5): 2.0,
+            Object(i=3, t=0.5): 1.5}
+        received_objects = {
+            Object(i=5, t=2.0): 2.0,
+            Object(i=6, t=0.5): 1.0,
+            Object(i=2, t=0.5): 1.0,
+            Object(i=8, t=1.5): 0.5}
+        oc_sum = ObjectCommunicator(
+            i=154, r=received_objects, s=sent_objects, logger=self.logger)
         with self.assertRaises(IndexError) as err:
             w_sent, w_recv = oc_sum.summarize()
         self.assertEqual(
