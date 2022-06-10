@@ -36,7 +36,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
     def test_lbs_rank_repr(self):
-        self.assertEqual(self.rank.__repr__(), '<Rank index: 0>')
+        self.assertEqual(self.rank.__repr__(), "<Rank index: 0>")
 
     def test_lbs_rank_get_id(self):
         self.assertEqual(self.rank.get_id(), 0)
@@ -126,7 +126,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_viewers(), set())
         self.assertEqual(self.rank.get_known_loads(), {})
 
-    @patch.object(random, 'sample')
+    @patch.object(random, "sample")
     def test_lbs_rank_initialize_message(self, random_mock):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
         temp_rank_1 = Rank(i=1, logger=self.logger)
@@ -141,7 +141,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[1].get_content(),
                          Message(1, self.rank._Rank__known_loads).get_content())
 
-    @patch.object(random, 'sample')
+    @patch.object(random, "sample")
     def test_lbs_rank_forward_message(self, random_mock):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
         temp_rank_1 = Rank(i=1, logger=self.logger)
@@ -182,5 +182,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(list_of_values_2, [0.5, 0.5])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
