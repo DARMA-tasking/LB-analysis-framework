@@ -86,8 +86,8 @@ class ConfigurationValidator:
         })
         self.__from_data = Schema(
             {"data_stem": str,
-             "phase_ids": And(list, lambda x: len(x) > 0,
-                             error="Should be of type 'list' and not empty")})
+             "phase_ids": And(list, lambda x: all([isinstance(y, int) for y in x]),
+                              error="Should be of type 'list' of 'int' types")})
         self.__from_samplers = Schema({
             "n_objects": And(int, lambda x: x > 0,
                              error="Should be of type 'int' and > 0"),
