@@ -78,7 +78,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "Should be of type 'int' and >= 0")
+        self.assertEqual(err.exception.args[0], "Should be of type 'list' of 'int' types")
 
     def test_config_validator_wrong_from_data_phase_name(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_from_data_phase_name.yml'), 'rt') as config_file:
