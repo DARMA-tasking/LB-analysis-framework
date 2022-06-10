@@ -73,8 +73,9 @@ class TestConfig(unittest.TestCase):
         oc_sum = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
         with self.assertRaises(IndexError) as err:
             w_sent, w_recv = oc_sum.summarize()
-        self.assertEqual(err.exception.args[0], 'object 154 cannot send communication to itself.')
+        self.assertEqual(
+            err.exception.args[0], "object 154 cannot send communication to itself.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
