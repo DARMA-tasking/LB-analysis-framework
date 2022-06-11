@@ -83,94 +83,94 @@ class TestConfig(unittest.TestCase):
     def test_object_id_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i="25", t=2.5)
-        self.assertEqual(err.exception.args[0], f"i: 25 is type of <class "str">! Must be <class "int">!")
+        self.assertEqual(err.exception.args[0], f"i: 25 is type of <class 'str'>! Must be <class 'int'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2.5, t=2.5)
-        self.assertEqual(err.exception.args[0], f"i: 2.5 is type of <class "float">! Must be <class "int">!")
+        self.assertEqual(err.exception.args[0], f"i: 2.5 is type of <class 'float'>! Must be <class 'int'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=True, t=2.5)
-        self.assertEqual(err.exception.args[0], f"i: True is type of <class "bool">! Must be <class "int">!")
+        self.assertEqual(err.exception.args[0], f"i: True is type of <class 'bool'>! Must be <class 'int'>!")
 
     def test_object_time_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=1, t="2.5")
-        self.assertEqual(err.exception.args[0], f"t: 2.5 is type of <class "str">! Must be <class "float">!")
+        self.assertEqual(err.exception.args[0], f"t: 2.5 is type of <class 'str'>! Must be <class 'float'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, t=3)
-        self.assertEqual(err.exception.args[0], f"t: 3 is type of <class "int">! Must be <class "float">!")
+        self.assertEqual(err.exception.args[0], f"t: 3 is type of <class 'int'>! Must be <class 'float'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=3, t=True)
-        self.assertEqual(err.exception.args[0], f"t: True is type of <class "bool">! Must be <class "float">!")
+        self.assertEqual(err.exception.args[0], f"t: True is type of <class 'bool'>! Must be <class 'float'>!")
 
     def test_object_rank_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p="4")
-        self.assertEqual(err.exception.args[0], f"p: 4 is type of <class "str">! Must be <class "int">!")
+        self.assertEqual(err.exception.args[0], f"p: 4 is type of <class 'str'>! Must be <class 'int'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, t=5.5, p=4.0)
-        self.assertEqual(err.exception.args[0], f"p: 4.0 is type of <class "float">! Must be <class "int">!")
+        self.assertEqual(err.exception.args[0], f"p: 4.0 is type of <class 'float'>! Must be <class 'int'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, t=5.5, p=True)
-        self.assertEqual(err.exception.args[0], f"p: True is type of <class "bool">! Must be <class "int">!")
+        self.assertEqual(err.exception.args[0], f"p: True is type of <class 'bool'>! Must be <class 'int'>!")
 
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c="communicator")
         self.assertEqual(err.exception.args[0],
-                         f"c: communicator is type of <class "str">! Must be <class "ObjectCommunicator">!")
+                         f"c: communicator is type of <class 'str'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, t=5.5, p=1, c=4)
-        self.assertEqual(err.exception.args[0], f"c: 4 is type of <class "int">! Must be <class "ObjectCommunicator">!")
+        self.assertEqual(err.exception.args[0], f"c: 4 is type of <class 'int'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, t=4.5, p=2, c=4.0)
         self.assertEqual(err.exception.args[0],
-                         f"c: 4.0 is type of <class "float">! Must be <class "ObjectCommunicator">!")
+                         f"c: 4.0 is type of <class 'float'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, t=5.5, p=1, c=True)
         self.assertEqual(err.exception.args[0],
-                         f"c: True is type of <class "bool">! Must be <class "ObjectCommunicator">!")
+                         f"c: True is type of <class 'bool'>! Must be <class 'ObjectCommunicator'>!")
 
     def test_object_user_defined_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined=[])
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: [] is type of <class "list">! Must be <class "dict">!")
+                         f"user_defined: [] is type of <class 'list'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined="a")
-        self.assertEqual(err.exception.args[0], f"user_defined: a is type of <class "str">! Must be <class "dict">!")
+        self.assertEqual(err.exception.args[0], f"user_defined: a is type of <class 'str'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined=1)
-        self.assertEqual(err.exception.args[0], f"user_defined: 1 is type of <class "int">! Must be <class "dict">!")
+        self.assertEqual(err.exception.args[0], f"user_defined: 1 is type of <class 'int'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined=1.0)
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: 1.0 is type of <class "float">! Must be <class "dict">!")
+                         f"user_defined: 1.0 is type of <class 'float'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined=set())
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: set() is type of <class "set">! Must be <class "dict">!")
+                         f"user_defined: set() is type of <class 'set'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined=())
-        self.assertEqual(err.exception.args[0], f"user_defined: () is type of <class "tuple">! Must be <class "dict">!")
+        self.assertEqual(err.exception.args[0], f"user_defined: () is type of <class 'tuple'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, t=2.5, p=0, c=self.oc, user_defined=True)
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: True is type of <class "bool">! Must be <class "dict">!")
+                         f"user_defined: True is type of <class 'bool'>! Must be <class 'dict'>!")
 
     def test_object_has_communicator(self):
         self.assertTrue(self.simple_obj_003.has_communicator())
