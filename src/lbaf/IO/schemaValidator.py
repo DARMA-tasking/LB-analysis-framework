@@ -1,4 +1,5 @@
 from collections import Iterable
+import sys
 
 from schema import And, Optional, Schema
 
@@ -264,5 +265,11 @@ class SchemaValidator:
         return is_valid
 
     def validate(self, schema_to_validate: dict):
-        """ Returns validated schema. """
+        """ Return validated schema. """
+
+        def exception_handler(exception_type, exception, traceback):
+            """ Exception handler for hiding traceback. """
+            self.__logger.error(f"{exception_type.__name__} {exception}")
+
+        sys.excepthook = exception_handler
         return self.valid_schema.validate(schema_to_validate)
