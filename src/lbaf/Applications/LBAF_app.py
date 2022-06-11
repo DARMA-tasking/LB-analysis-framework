@@ -160,8 +160,17 @@ class LBAFApp:
         self.logger = self.params.logger
 
         # Traceback setup
-        if self.params.show_traceback:
-            self.logger.info(f"Showing Traceback")
+        if "show_traceback" in self.params.__dict__:
+            if self.params.show_traceback:
+                self.logger.info(f"Showing Traceback")
+            else:
+                self.logger.info(f"Hiding Traceback")
+
+                def exception_handler(exception_type, exception, traceback):
+                    """ Exception handler for hiding traceback. """
+                    self.logger.error(f"{exception_type.__name__} {exception}")
+
+                sys.excepthook = exception_handler
         else:
             self.logger.info(f"Hiding Traceback")
             def exception_handler(exception_type, exception, traceback):
