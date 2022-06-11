@@ -69,6 +69,7 @@ class ConfigurationValidator:
                     error="Should be of type 'float' and magnitude < 1")
                 },
             Optional("brute_force_optimization"): bool,
+            Optional("show_traceback"): bool,
             Optional("logging_level"): And(
                 str, Use(str.lower),
                 lambda f: f in ALLOWED_LOGGING_LEVELS,
