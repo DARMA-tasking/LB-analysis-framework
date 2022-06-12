@@ -297,17 +297,15 @@ class LBAFApp:
                 reader = viewer.createViews()
             viewer.saveView(reader)
 
-        # Create file to store imbalance statistics
-        imb_file = "imbalance.txt" if self.params.output_dir is None else os.path.join(self.params.output_dir,
-                                                                                       "imbalance.txt")
-
         # Compute and print final rank load and edge volume statistics
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
             phase_0.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
             self.logger,
-            file=imb_file)
+            file_name=("imbalance.txt"
+                       if self.params.output_dir is None
+                       else os.path.join(self.params.output_dir, "imbalance.txt")))
         lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,
