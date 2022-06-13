@@ -63,7 +63,7 @@ algorithm:
     n_iterations: 8
     n_rounds: 4
     fanout: 4
-    order_strategy: arbitrary
+    order_strategy: element_id
     criterion: Tempered
     max_objects_per_transfer: 8
     deterministic_transfer: True
@@ -72,7 +72,7 @@ algorithm:
 #logging_level: debug
 terminal_background: light
 generate_multimedia: False
-output_dir: ../../../output
+output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
 output_file_stem: output_file
 n_ranks: 4
 generate_meshes:
