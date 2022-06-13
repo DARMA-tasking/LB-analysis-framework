@@ -1,4 +1,3 @@
-import sys
 import math
 from logging import Logger
 
