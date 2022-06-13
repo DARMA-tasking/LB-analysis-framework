@@ -55,26 +55,24 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
-#brute_force_optimization: True
+brute_force_optimization: True
 algorithm:
-#  name: BruteForce
   name: InformAndTransfer
   parameters:
     n_iterations: 8
     n_rounds: 4
     fanout: 4
-    order_strategy: arbitrary
+    order_strategy: element_id
     criterion: Tempered
     max_objects_per_transfer: 8
     deterministic_transfer: True
 
 # Specify output
-#logging_level: debug
-terminal_background: light
-generate_multimedia: False
-output_dir: ../../../output
-output_file_stem: output_file
 n_ranks: 4
+logging_level: info
+terminal_background: light
+output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
+output_file_stem: output_file
 generate_meshes:
   x_ranks: 2
   y_ranks: 2
