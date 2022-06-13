@@ -1,4 +1,3 @@
-import math
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
