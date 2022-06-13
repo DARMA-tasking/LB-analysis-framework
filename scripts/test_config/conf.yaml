@@ -55,7 +55,7 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
-#brute_force_optimization: True
+brute_force_optimization: True
 algorithm:
 #  name: BruteForce
   name: InformAndTransfer
@@ -69,12 +69,11 @@ algorithm:
     deterministic_transfer: True
 
 # Specify output
-#logging_level: debug
+n_ranks: 4
+logging_level: info
 terminal_background: light
-generate_multimedia: False
 output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
 output_file_stem: output_file
-n_ranks: 4
 generate_meshes:
   x_ranks: 2
   y_ranks: 2
