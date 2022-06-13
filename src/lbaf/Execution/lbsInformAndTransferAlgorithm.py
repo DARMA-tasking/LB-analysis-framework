@@ -285,10 +285,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
 
-    def execute(self, phase: Phase, distributions: dict, statistics: dict, a_min_max):
+    def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
-        # Ensure that a phase was properly passed
-        if not isinstance(phase, Phase):
+        # Ensure that a list with at least one phase was provided
+        if not phases or not isinstance(phases, list) or not isinstance(
+            (phase := phases[0]), Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             raise SystemExit(1)
         self.phase = phase

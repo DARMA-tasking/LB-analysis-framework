@@ -55,11 +55,13 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.phase._Phase__cached_edges, False)
 
     def test_lbs_phase_populate_from_samplers(self):
-        t_sampler = {'name': 'lognormal', 'parameters': [1.0, 10.0]}
-        v_sampler = {'name': 'lognormal', 'parameters': [1.0, 10.0]}
+        t_sampler = {"name": "lognormal", "parameters": [1.0, 10.0]}
+        v_sampler = {"name": "lognormal", "parameters": [1.0, 10.0]}
 
-        self.phase.populate_from_samplers(n_ranks=4, n_objects=200, t_sampler=t_sampler, v_sampler=v_sampler,
-                                          c_degree=20, n_r_mapped=4)
+        self.phase.populate_from_samplers(
+            n_ranks=4, n_objects=200,
+            t_sampler=t_sampler, v_sampler=v_sampler,
+            c_degree=20, n_r_mapped=4)
         for rank in self.phase.get_ranks():
             self.assertTrue(rank.get_migratable_objects())
         self.assertEqual(self.phase._Phase__edges, {})
@@ -71,5 +73,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.phase._Phase__cached_edges, True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

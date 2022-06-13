@@ -3,12 +3,12 @@
 # work_model                   work model to be used
 #    name [str]                in LoadOnly, AffineCombination
 #    parameters: [dict]        optional parameters specific to each work model
-# algorithm                    algorithm to be used
+# algorithm                    balancing algorithm to be used
 #    name [str]                in InformAndTransfer, BruteForce
 #    parameters: [dict]        parameters specitic to each algorithm:
 #      InformAndtransfer:
 #        criterion [str]       in Tempered (default), StrictLocalizer
-#        n_iterations [int]    number of balancing iterations
+#        n_iterations [int]    number of load-balancing iterations
 #        deterministic_transfer [bool] (default: False) for deterministic transfer
 #        n_rounds [int]        number of information rounds
 #        fanout [int]          information fanout index
@@ -43,9 +43,14 @@
 
 # Specify input
 from_data:
-  data_stem: "../data/nolb-8color-16nodes-data/data"
+  data_stem: "../data/synthetic_lb_data/data"
   phase_ids:
-    - 501
+    - 0
+    - 0
+    - 0
+    - 0
+ # data_stem: "../data/nolb-8color-16nodes-data/data"
+ # phase_ids 501
 
 # Specify work model
 work_model:
@@ -57,15 +62,7 @@ work_model:
 
 # Specify algorithm
 algorithm:
-  name: InformAndTransfer
-  parameters:
-    n_iterations: 8
-    n_rounds: 4
-    fanout: 4
-    order_strategy: arbitrary
-    criterion: Tempered
-    max_objects_per_transfer: 480
-    deterministic_transfer: True
+  name: PhaseStepper
 
 # Specify output
 #logging_level: debug
@@ -73,7 +70,8 @@ terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output
 output_file_stem: output_file
-n_ranks: 32
+#n_ranks: 32
+n_ranks: 4
 generate_meshes:
   x_ranks: 8
   y_ranks: 4

@@ -36,7 +36,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
     def test_lbs_rank_repr(self):
-        self.assertEqual(self.rank.__repr__(), '<Rank index: 0>')
+        self.assertEqual(self.rank.__repr__(), "<Rank index: 0>")
 
     def test_lbs_rank_get_id(self):
         self.assertEqual(self.rank.get_id(), 0)
@@ -126,7 +126,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_viewers(), set())
         self.assertEqual(self.rank.get_known_loads(), {})
 
-    @patch.object(random, 'sample')
+    @patch.object(random, "sample")
     def test_lbs_rank_initialize_message(self, random_mock):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
         temp_rank_1 = Rank(i=1, logger=self.logger)
@@ -141,7 +141,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[1].get_content(),
                          Message(1, self.rank._Rank__known_loads).get_content())
 
-    @patch.object(random, 'sample')
+    @patch.object(random, "sample")
     def test_lbs_rank_forward_message(self, random_mock):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
         temp_rank_1 = Rank(i=1, logger=self.logger)
@@ -166,12 +166,18 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.round_last_received, 1)
 
     def test_lbs_rank_compute_transfer_cmf(self):
-        work_model = WorkModelBase.factory("AffineCombination", {"alpha": 1.0, "beta": 0.0, "gamma": 0.0},
-                                           lgr=self.logger)
-        transfer_criterion = CriterionBase.factory("Tempered", work_model, lgr=self.logger)
-        targets = {Rank(i=1, logger=self.logger): 1.0, Rank(i=2, logger=self.logger): 1.5}
-        result_1, result_2 = self.rank.compute_transfer_cmf(transfer_criterion=transfer_criterion, o=Object(i=2, t=0.5),
-                                                            targets=targets)
+        work_model = WorkModelBase.factory(
+            "AffineCombination", {
+                "alpha": 1.0, "beta": 0.0, "gamma": 0.0},
+            lgr=self.logger)
+        transfer_criterion = CriterionBase.factory(
+            "Tempered", work_model, lgr=self.logger)
+        targets = {
+            Rank(i=1, logger=self.logger): 1.0,
+            Rank(i=2, logger=self.logger): 1.5}
+        result_1, result_2 = self.rank.compute_transfer_cmf(
+            transfer_criterion=transfer_criterion, o=Object(i=2, t=0.5),
+            targets=targets)
         list_of_keys_1 = sorted([k.get_id() for k, v in result_1.items()])
         list_of_values_1 = sorted([v for k, v in result_1.items()])
         list_of_keys_2 = sorted([k.get_id() for k, v in result_2.items()])
@@ -182,5 +188,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(list_of_values_2, [0.5, 0.5])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

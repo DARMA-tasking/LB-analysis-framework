@@ -108,7 +108,7 @@ class internalParameters:
         # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
             self.data_stem = self.configuration.get("from_data").get("data_stem")
-            self.phase_id = self.configuration.get("from_data").get("phase_id")
+            self.phase_ids = self.configuration.get("from_data").get("phase_ids")
 
         # Parse sampling parameters if present
         if self.configuration.get("from_samplers") is not None:
@@ -196,19 +196,24 @@ class LBAFApp:
         # Initialize random number generator
         lbstats.initialize()
 
-        # Create a phase and populate it
-        if "file_suffix" in self.params.__dict__:
-            phase = Phase(self.logger, 0, self.params.file_suffix)
-        else:
-            phase = Phase(self.logger, 0)
+        # Create list of phase instances
+        phases = []
         if "data_stem" in self.params.__dict__:
-            # Try to populate phase from log files and store number of objects
-            phase.populate_from_log(
-                self.params.n_ranks,
-                self.params.phase_id,
-                self.params.data_stem)
+            # Populate phase from log files and store number of objects
+            for phase_id in self.params.phase_ids:
+                # Create a phase and populate it
+                if "file_suffix" in self.params.__dict__:
+                    phase = Phase(self.logger, 0, self.params.file_suffix)
+                else:
+                    phase = Phase(self.logger, 0)
+                phase.populate_from_log(
+                    self.params.n_ranks,
+                    phase_id,
+                    self.params.data_stem)
+                phases.append(phase)
         else:
-            # Try to populate phase pseudo-randomly
+            # Populate phase pseudo-randomly
+            phase = Phase(self.logger, 0)
             phase.populate_from_samplers(
                 self.params.n_ranks,
                 self.params.n_objects,
@@ -216,15 +221,17 @@ class LBAFApp:
                 self.params.volume_sampler,
                 self.params.communication_degree,
                 self.params.n_mapped_ranks)
+            phases.append(phase)
 
         # Compute and print initial rank load and edge volume statistics
+        phase_0 = phases[0]
         lbstats.print_function_statistics(
-            phase.get_ranks(),
+            phase_0.get_ranks(),
             lambda x: x.get_load(),
             "initial rank loads",
             self.logger)
         lbstats.print_function_statistics(
-            phase.get_edges().values(),
+            phase_0.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
             self.logger)
@@ -236,7 +243,7 @@ class LBAFApp:
             objects = []
 
             # Iterate over ranks
-            for rank in phase.get_ranks():
+            for rank in phase_0.get_ranks():
                 for o in rank.get_objects():
                     entry = {
                         "id": o.get_id(),
@@ -268,7 +275,7 @@ class LBAFApp:
 
         # Instantiate and execute runtime
         rt = Runtime(
-            phase,
+            phases,
             self.params.work_model,
             self.params.algorithm,
             a_min_max,
@@ -278,7 +285,7 @@ class LBAFApp:
         # Instantiate phase to VT file writer if started from a log file
         if "data_stem" in self.params.__dict__:
             vt_writer = VTDataWriter(
-                phase,
+                phase_0,
                 self.logger,
                 self.params.output_file_stem,
                 output_dir=self.params.output_dir)
@@ -288,7 +295,7 @@ class LBAFApp:
         if "generate_meshes" in self.params.__dict__:
             # Instantiate phase to mesh writer if requested
             ex_writer = MeshWriter(
-                phase,
+                phase_0,
                 self.params.grid_size,
                 self.params.object_jitter,
                 self.logger,
@@ -312,25 +319,23 @@ class LBAFApp:
                 reader = viewer.createViews()
             viewer.saveView(reader)
 
-        # Create file to store imbalance statistics
-        imb_file = "imbalance.txt" if self.params.output_dir is None else os.path.join(self.params.output_dir,
-                                                                                       "imbalance.txt")
-
         # Compute and print final rank load and edge volume statistics
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
-            phase.get_ranks(),
+            phase_0.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
             self.logger,
-            file=imb_file)
+            file_name=("imbalance.txt"
+                       if self.params.output_dir is None
+                       else os.path.join(self.params.output_dir, "imbalance.txt")))
         lbstats.print_function_statistics(
-            phase.get_edges().values(),
+            phase_0.get_edges().values(),
             lambda x: x,
             "final sent volumes",
             self.logger)
 
         # Report on theoretically optimal statistics
-        n_o = phase.get_number_of_objects()
+        n_o = phase_0.get_number_of_objects()
         q, r = divmod(n_o, self.params.n_ranks)
         ell = self.params.n_ranks * l_ave / n_o
         self.logger.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")

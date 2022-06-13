@@ -45,9 +45,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
 
     def test_object_repr(self):
-        self.assertEqual(str(self.simple_obj_001), 'Object id: 1, time: 2.5')
-        self.assertEqual(str(self.simple_obj_002), 'Object id: 2, time: 4.5')
-        self.assertEqual(str(self.simple_obj_003), 'Object id: 3, time: 3.5')
+        self.assertEqual(str(self.simple_obj_001), "Object id: 1, time: 2.5")
+        self.assertEqual(str(self.simple_obj_002), "Object id: 2, time: 4.5")
+        self.assertEqual(str(self.simple_obj_003), "Object id: 3, time: 3.5")
 
     def test_object_get_id(self):
         self.assertEqual(self.simple_obj_001.get_id(), 1)
@@ -82,7 +82,7 @@ class TestConfig(unittest.TestCase):
 
     def test_object_id_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i='25', t=2.5)
+            Object(i="25", t=2.5)
         self.assertEqual(err.exception.args[0], f"i: 25 is type of <class 'str'>! Must be <class 'int'>!")
 
         with self.assertRaises(TypeError) as err:
@@ -95,7 +95,7 @@ class TestConfig(unittest.TestCase):
 
     def test_object_time_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=1, t='2.5')
+            Object(i=1, t="2.5")
         self.assertEqual(err.exception.args[0], f"t: 2.5 is type of <class 'str'>! Must be <class 'float'>!")
 
         with self.assertRaises(TypeError) as err:
@@ -108,7 +108,7 @@ class TestConfig(unittest.TestCase):
 
     def test_object_rank_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, t=2.5, p='4')
+            Object(i=0, t=2.5, p="4")
         self.assertEqual(err.exception.args[0], f"p: 4 is type of <class 'str'>! Must be <class 'int'>!")
 
         with self.assertRaises(TypeError) as err:
@@ -121,7 +121,7 @@ class TestConfig(unittest.TestCase):
 
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, t=2.5, p=0, c='communicator')
+            Object(i=0, t=2.5, p=0, c="communicator")
         self.assertEqual(err.exception.args[0],
                          f"c: communicator is type of <class 'str'>! Must be <class 'ObjectCommunicator'>!")
 
@@ -146,7 +146,7 @@ class TestConfig(unittest.TestCase):
                          f"user_defined: [] is type of <class 'list'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, t=2.5, p=0, c=self.oc, user_defined='a')
+            Object(i=0, t=2.5, p=0, c=self.oc, user_defined="a")
         self.assertEqual(err.exception.args[0], f"user_defined: a is type of <class 'str'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
@@ -249,5 +249,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(obj_with_comm.get_received_volume(), 4.5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

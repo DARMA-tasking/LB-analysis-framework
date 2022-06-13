@@ -63,12 +63,12 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Return arrangement works
         return works
 
-    def execute(self, phase: Phase, distributions: dict, statistics: dict, _):
+    def execute(self, phases: list, distributions: dict, statistics: dict, _):
         """ Execute brute force optimization algorithm on Phase instance
         """
-
-        # Ensure that a phase was properly passed
-        if not isinstance(phase, Phase):
+        # Ensure that a list with at least one phase was provided
+        if not phases or not isinstance(phases, list) or not isinstance(
+                (phase := phases[0]), Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             raise SystemExit(1)
         self.phase = phase
@@ -167,52 +167,3 @@ class BruteForceAlgorithm(AlgorithmBase):
 
         # Report final mapping in debug mode
         self.report_final_mapping(self.__logger)
-
-    @staticmethod
-    def arbitrary(objects: set, _):
-        """ Default: objects are passed as they are stored
-        """
-        return objects
-
-    @staticmethod
-    def element_id(objects: set, _):
-        """ Order objects by ID
-        """
-        return sorted(objects, key=lambda x: x.get_id())
-
-    @staticmethod
-    def decreasing_times(objects: set, _):
-        """ Order objects by decreasing object times
-        """
-        return sorted(objects, key=lambda x: -x.get_time())
-
-    @staticmethod
-    def increasing_times(objects: set, _):
-        """ Order objects by increasing object times
-        """
-        return sorted(objects, key=lambda x: x.get_time())
-
-    @staticmethod
-    def increasing_connectivity(objects: set, src_id):
-        """ Order objects by increasing local communication volume
-        """
-        # Initialize list with all objects without a communicator
-        no_comm = [o for o in objects if not isinstance(o.get_communicator(), ObjectCommunicator)]
-
-        # Order objects with a communicator
-        with_comm = {}
-        for o in objects:
-            # Skip objects without a communicator
-            comm = o.get_communicator()
-            if not isinstance(o.get_communicator(), ObjectCommunicator):
-                continue
-            
-            # Update dict of objects with maximum local communication
-            with_comm[o] = max(
-                sum([v for k, v in comm.get_received().items()
-                     if k.get_rank_id() == src_id]),
-                sum([v for k, v in comm.get_sent().items()
-                     if k.get_rank_id() == src_id]))
-
-        # Return list of objects order by increased local connectivity
-        return no_comm + sorted(with_comm, key=with_comm.get)

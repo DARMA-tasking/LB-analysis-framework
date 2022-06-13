@@ -15,7 +15,10 @@ ALLOWED_STRATEGIES = (
     "fewest_migrations",
     "small_objects")
 ALLOWED_WORK_MODELS = ("LoadOnly", "AffineCombination")
-ALLOWED_ALGORITHMS = ("InformAndTransfer", "BruteForce")
+ALLOWED_ALGORITHMS = (
+    "InformAndTransfer",
+    "BruteForce",
+    "PhaseStepper")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizer")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_TIME_VOLUME_SAMPLER = ("uniform", "lognormal")
@@ -85,8 +88,8 @@ class ConfigurationValidator:
         })
         self.__from_data = Schema(
             {"data_stem": str,
-             "phase_id": And(int, lambda x: x >= 0,
-                             error="Should be of type 'int' and >= 0")})
+             "phase_ids": And(list, lambda x: all([isinstance(y, int) for y in x]),
+                              error="Should be of type 'list' of 'int' types")})
         self.__from_samplers = Schema({
             "n_objects": And(int, lambda x: x > 0,
                              error="Should be of type 'int' and > 0"),
@@ -134,8 +137,9 @@ class ConfigurationValidator:
                      "deterministic_transfer": bool}}),
             "BruteForce": Schema(
                 {"name": "BruteForce",
-                 Optional("parameters"): {"skip_transfer": bool}})
-        }
+                 Optional("parameters"): {"skip_transfer": bool}}),
+            "PhaseStepper": Schema(
+                {"name": "PhaseStepper"})}
         self.__logger = logger
 
     @staticmethod
@@ -164,13 +168,13 @@ class ConfigurationValidator:
 
         # Validate from_data/from_samplers
         if (from_data := self.__config_to_validate.get("from_data")) is not None:
-            self.__logger.info("Reading from data was chosen.")
+            self.__logger.info("Reading from data was chosen")
             if self.is_valid(valid_schema=self.__from_data, schema_to_validate=from_data):
                 self.__logger.info("from_data schema is valid")
             else:
                 self.validate(valid_schema=self.__from_data, schema_to_validate=from_data)
         elif (from_samplers := self.__config_to_validate.get("from_samplers")) is not None:
-            self.__logger.info("Simulate from samplers was chosen.")
+            self.__logger.info("Simulate from samplers was chosen")
             if self.is_valid(valid_schema=self.__from_samplers, schema_to_validate=from_samplers):
                 self.__logger.info("from_samplers schema is valid")
             else:
