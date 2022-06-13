@@ -68,7 +68,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         """
         # Ensure that a list with at least one phase was provided
         if not phases or not isinstance(phases, list) or not isinstance(
-            (phase := phases[0]), Phase):
+                (phase := phases[0]), Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             raise SystemExit(1)
         self.phase = phase

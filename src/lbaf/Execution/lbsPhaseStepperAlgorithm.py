@@ -25,7 +25,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         """
         # Ensure that a list with at least one phase was provided
         if not phases or not isinstance(phases, list) or not all(
-            [isinstance(p, Phase) for p in phases]):
+                [isinstance(p, Phase) for p in phases]):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
             raise SystemExit(1)
 
