@@ -4,7 +4,6 @@ import itertools
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics
 
