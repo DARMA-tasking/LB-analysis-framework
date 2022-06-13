@@ -1,6 +1,5 @@
 import sys
 import math
-import itertools
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
