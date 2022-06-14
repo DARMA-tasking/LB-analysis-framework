@@ -43,14 +43,18 @@
 
 # Specify input
 from_data:
-  data_stem: "../data/synthetic_lb_data/data"
+  data_stem: "../data/nolb-8color-16nodes-data/data"
   phase_ids:
-    - 0
-    - 0
-    - 0
-    - 0
- # data_stem: "../data/nolb-8color-16nodes-data/data"
- # phase_ids 501
+    - 1
+    - 101
+    - 201
+    - 301
+    - 401
+    - 501
+    - 601
+    - 701
+    - 801
+    - 901
 
 # Specify work model
 work_model:
@@ -70,8 +74,7 @@ terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output
 output_file_stem: output_file
-#n_ranks: 32
-n_ranks: 4
+n_ranks: 32
 generate_meshes:
   x_ranks: 8
   y_ranks: 4
