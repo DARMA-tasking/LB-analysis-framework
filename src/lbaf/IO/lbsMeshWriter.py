@@ -181,7 +181,6 @@ class MeshWriter:
     def write_object_view_file(self, distributions: dict):
         """ Map objects to grid and write ExodusII file
         """
-
         # Retrieve number of mesh points and bail out early if empty set
         n_o = self.__phase.get_number_of_objects()
         if not n_o:

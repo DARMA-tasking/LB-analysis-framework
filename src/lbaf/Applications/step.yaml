@@ -43,18 +43,19 @@
 
 # Specify input
 from_data:
-  data_stem: "../data/nolb-8color-16nodes-data/data"
+  data_stem: "../data/nolb-8color-16nodes-11firstphases/stats"
   phase_ids:
+    - 0
     - 1
-    - 101
-    - 201
-    - 301
-    - 401
-    - 501
-    - 601
-    - 701
-    - 801
-    - 901
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
 
 # Specify work model
 work_model:
