@@ -75,7 +75,13 @@ class Rank:
 
     def is_migratable(self, o) -> list:
         """ Return whether object is migratable or not (sentinel)."""
-        return True if o in self.__migratable_objects else False
+        if o in self.__migratable_objects:
+            return True
+        elif o in self.__sentinel_objects:
+            return False
+        else:
+            print("error object", o, "does not belong to", self)
+            sys.exit(1)
 
     def get_known_loads(self) -> dict:
         """ Return loads of peers know to self."""
@@ -85,7 +91,7 @@ class Rank:
         """ Return peers knowing about self."""
         return self.__viewers
 
-    def remove_migratable_object(self, o: Object, p_dst: 'Rank'):
+    def remove_migratable_object(self, o: Object, p_dst: "Rank"):
         """ Remove migratable able object from self object sent to peer."""
         # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
