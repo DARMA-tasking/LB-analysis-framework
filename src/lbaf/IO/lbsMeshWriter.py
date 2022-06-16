@@ -48,7 +48,7 @@ class MeshWriter:
         self.__grid_resolution = float(r)
 
         # Keep track of mesh properties
-        self.__n_p =  len(self.__phase.get_ranks())
+        self.__n_p =  self.__phase.get_number_of_ranks()
         self.__grid_size = grid_size
         self.__object_jitter = object_jitter
 
@@ -117,12 +117,12 @@ class MeshWriter:
         # Iterate over ranks and create mesh points
         points = vtk.vtkPoints()
         points.SetNumberOfPoints(self.__n_p)
-        for i, p in enumerate(self.__phase.get_ranks()):
+        for i, r in enumerate(self.__phase.get_ranks()):
             # Insert point based on Cartesian coordinates
             points.SetPoint(i, [
                 self.__grid_resolution * c
                 for c in self.global_id_to_cartesian(
-                    p.get_id(), self.__grid_size)])
+                    r.get_id(), self.__grid_size)])
             for l, (l_arr, w_arr) in enumerate(zip(loads, works)):
                 l_arr.SetTuple1(i, distributions["load"][l][i])
                 w_arr.SetTuple1(i, distributions["work"][l][i])
@@ -209,13 +209,18 @@ class MeshWriter:
             t_arr.SetName("Time")
             t_arr.SetNumberOfTuples(n_o)
 
-            # Iterate over ranks and objects to create mesh points
+            # Create bit array for object migratability
+            b_arr = vtk.vtkBitArray()
+            b_arr.SetName("Migratable")
+            b_arr.SetNumberOfTuples(n_o)
+
+            # Create and size point set
             points = vtk.vtkPoints()
             points.SetNumberOfPoints(n_o)
-            point_to_index = {}
-            index_to_point = []
-            point_index = 0
-            sent_volumes = []
+
+            # Iterate over ranks and objects to create mesh points
+            ranks = self.__phase.get_ranks()
+            point_index, point_to_index, sent_volumes = 0, {}, []
             for rank_id, objects in enumerate(object_mapping):
                 # Determine rank offsets
                 offsets = [
@@ -230,7 +235,9 @@ class MeshWriter:
                 rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
                 centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
                              if d in rank_dims else 0.0 for d in range(3)]
-                    
+
+                # Retrieve Rank and iterate over objects
+                r = ranks[rank_id]
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
                     points.SetPoint(point_index, [
@@ -239,6 +246,8 @@ class MeshWriter:
                         for d, c in enumerate(self.global_id_to_cartesian(
                             i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
+                    b_arr.SetTuple1(
+                        point_index, 1 if r.is_migratable(o) else 0)
 
                     # Update sent volumes
                     for k, v in o.get_sent().items():
@@ -246,7 +255,6 @@ class MeshWriter:
 
                     # Update maps and counters
                     point_to_index[o] = point_index
-                    index_to_point.append(o)
                     point_index += 1
 
             # Summarize edges
@@ -285,6 +293,7 @@ class MeshWriter:
             pd_mesh = vtk.vtkPolyData()
             pd_mesh.SetPoints(points)
             pd_mesh.GetPointData().SetScalars(t_arr)
+            pd_mesh.GetPointData().AddArray(b_arr)
             pd_mesh.SetLines(lines)
             pd_mesh.GetCellData().SetScalars(v_arr)
 

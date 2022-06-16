@@ -34,6 +34,10 @@ class Phase:
         # Data files suffix(reading from data)
         self.__file_suffix = file_suffix
 
+    def get_number_of_ranks(self):
+        """ Retrieve number of ranks belonging to phase."""
+        return len(self.__ranks)
+
     def get_ranks(self):
         """ Retrieve ranks belonging to phase."""
         return self.__ranks
