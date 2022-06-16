@@ -118,12 +118,12 @@ class VTDataExtractor:
 
         return extracted_phases
 
-    def save_extracted_phases(self, extracted_phases: dict, file_path: str, compressed: bool = True) -> None:
+    def save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
         """ Saves extracted data with or without compression. """
         if extracted_phases.get("type") is None:
             extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))
-        if compressed:
+        if self.compressed:
             saved_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
         else:
             saved_str = json_str
@@ -139,8 +139,7 @@ class VTDataExtractor:
             file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
             data = self.get_data_from_file(file_path=file)
             extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
-            self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path,
-                                       compressed=self.compressed)
+            self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
         print("=====> DONE <=====")
 
 
@@ -151,7 +150,7 @@ if __name__ == '__main__':
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
     phases = [1, 101, 201, 301, 401, 501, 601, 701, 801, 901]
     vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-data",
-                           output_data_dir="output",
+                           output_data_dir="../output",
                            phases_to_extract=phases,
                            file_prefix="stats",
                            file_suffix="json",
