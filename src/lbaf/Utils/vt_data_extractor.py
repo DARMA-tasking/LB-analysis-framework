@@ -3,6 +3,7 @@ import sys
 
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    print(f"Started in directory: {project_path}")
     sys.path.append(project_path)
 except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
@@ -11,24 +12,30 @@ except Exception as e:
 import brotli
 import json
 
-from ..IO.schemaValidator import SchemaValidator
+from lbaf.IO.schemaValidator import SchemaValidator
 
 
 class VTDataExtractor:
     """ Reads VT data and saves chosen phases from it. """
-    def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "data",
-                 file_suffix: str = "json", compressed: bool = True):
+    def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
+                 file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
+                 check_schema: bool = False):
         self.input_data_dir = input_data_dir
         self.output_data_dir = os.path.join(project_path, output_data_dir)
         self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
         self.file_prefix = file_prefix
         self.file_suffix = file_suffix
         self.compressed = compressed
+        self.schema_type = schema_type
+        self.check_schema = check_schema
         self._initial_checks()
         self._get_files_list()
 
     def _initial_checks(self):
         """ Checks if data and directories exists. """
+        print(f"Looking for files with prefix: {self.file_prefix}")
+        print(f"Looking for files with suffix: {self.file_suffix}")
+        print(f"Phases to extract: {self.phases_to_extract}")
         # Input data
         if os.path.isdir(os.path.abspath(self.input_data_dir)):
             self.input_data_dir = os.path.abspath(self.input_data_dir)
@@ -68,6 +75,8 @@ class VTDataExtractor:
         """ Returns list of files to iterate over and read data from them. """
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
+        if not files:
+            print("No files were found")
         try:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
@@ -75,8 +84,7 @@ class VTDataExtractor:
 
         return files
 
-    @staticmethod
-    def get_data_from_file(file_path: str) -> dict:
+    def get_data_from_file(self, file_path: str) -> dict:
         """ Returns data from given file_path. """
         with open(file_path, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
@@ -86,13 +94,17 @@ class VTDataExtractor:
             except brotli.error:
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
-        # Validate schema
-        if SchemaValidator().is_valid(schema_to_validate=decompressed_dict):
-            print(f"Valid JSON schema in {file_path}")
-        else:
-            print(f"Invalid JSON schema in {file_path}")
-            SchemaValidator().validate(schema_to_validate=decompressed_dict)
-            raise SystemExit(1)
+        if decompressed_dict.get("type") is None:
+            decompressed_dict["type"] = self.schema_type
+
+        if self.check_schema:
+            # Validate schema
+            if SchemaValidator(schema_type=self.schema_type).is_valid(schema_to_validate=decompressed_dict):
+                print(f"Valid JSON schema in {file_path}")
+            else:
+                print(f"Invalid JSON schema in {file_path}")
+                SchemaValidator(schema_type=self.schema_type).validate(schema_to_validate=decompressed_dict)
+                raise SystemExit(1)
 
         return decompressed_dict
 
@@ -106,11 +118,12 @@ class VTDataExtractor:
 
         return extracted_phases
 
-    @staticmethod
-    def save_extracted_phases(extracted_phases: dict, file_path: str, compressed: bool = True) -> None:
+    def save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
         """ Saves extracted data with or without compression. """
+        if extracted_phases.get("type") is None:
+            extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))
-        if compressed:
+        if self.compressed:
             saved_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
         else:
             saved_str = json_str
@@ -126,8 +139,7 @@ class VTDataExtractor:
             file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
             data = self.get_data_from_file(file_path=file)
             extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
-            self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path,
-                                       compressed=self.compressed)
+            self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
         print("=====> DONE <=====")
 
 
@@ -136,7 +148,13 @@ if __name__ == '__main__':
     # It should be declared as list of [int or str]
     # Int is just a phase number/id
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
-    phases = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, "9-11"]
-    vtde = VTDataExtractor(input_data_dir="data/nolb-8color-16nodes-data", output_data_dir="output",
-                           phases_to_extract=phases)
+    phases = [1, 101, 201, 301, 401, 501, 601, 701, 801, 901]
+    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-data",
+                           output_data_dir="../output",
+                           phases_to_extract=phases,
+                           file_prefix="stats",
+                           file_suffix="json",
+                           compressed=True,
+                           schema_type="LBDatafile",
+                           check_schema=False)
     vtde.main()
