@@ -180,9 +180,18 @@ class MeshWriter:
                 if d in rank_dims else 0.0 for d in range(3)]
             for i in phases[0].get_object_ids()}
 
+        # Detemine whether phase must be updated
+        update_phase = (
+            True if len(phases) == len(distributions["objects"])
+            else False)
+
         # Iterate over all object distributions
-        for iteration, (phase, object_mapping) in enumerate(
-            zip(phases, distributions["objects"])):
+        phase = phases[0]
+        for iteration, object_mapping in enumerate(distributions["objects"]):
+            # Update phase when required
+            if update_phase:
+                phase = phases[iteration]
+
             # Retrieve number of mesh points and bail out early if empty set
             n_o = phase.get_number_of_objects()
             if not n_o:
@@ -227,7 +236,7 @@ class MeshWriter:
                 centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
                              if d in rank_dims else 0.0 for d in range(3)]
 
-                # Retrieve Rank and iterate over objects
+                # Retrieve current rank and iterate over its objects
                 r = ranks[rank_id]
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
@@ -238,7 +247,7 @@ class MeshWriter:
                             i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
                     b_arr.SetTuple1(
-                        point_index, 1 if r.is_migratable(o) else 0)
+                        point_index, 0 if r.is_sentinel(o) else 1)
 
                     # Update sent volumes
                     for k, v in o.get_sent().items():
