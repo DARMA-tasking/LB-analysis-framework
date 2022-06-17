@@ -148,8 +148,8 @@ if __name__ == '__main__':
     # It should be declared as list of [int or str]
     # Int is just a phase number/id
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
-    phases = [1, 101, 201, 301, 401, 501, 601, 701, 801, 901]
-    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-data",
+    phases = [0,1,2,3,4,5,6,7,8,9,10]
+    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-stats",
                            output_data_dir="../output",
                            phases_to_extract=phases,
                            file_prefix="stats",

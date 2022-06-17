@@ -11,12 +11,11 @@ from ..Model.lbsPhase import Phase
 
 
 class MeshWriter:
-    """A class to write LBAF results to mesh files via VTK layer
-    """
+    """A class to write LBAF results to mesh files via VTK layer."""
 
     def __init__(
         self,
-        p: Phase,
+        n_r: int,
         grid_size,
         object_jitter: float,
         logger: Logger,
@@ -25,7 +24,7 @@ class MeshWriter:
         output_dir=None
     ):
         """ Class constructor:
-            p: Phase instance
+            n_r: number of ranks
             grid_size: iterable containing grid sizes in each dimension
             object_jitter: coefficient of random jitter with magnitude < 1
             f: file name stem
@@ -35,12 +34,6 @@ class MeshWriter:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Ensure that provided phase has correct type
-        if not isinstance(p, Phase):
-            self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
-            raise SystemExit(1)
-        self.__phase = p
-
         # Ensure that specified grid resolution is correct
         if not isinstance(r, numbers.Number) or r <= 0.:
             self.__logger.error("Grid resolution must be a positive number")
@@ -48,7 +41,7 @@ class MeshWriter:
         self.__grid_resolution = float(r)
 
         # Keep track of mesh properties
-        self.__n_p =  len(self.__phase.get_ranks())
+        self.__n_p =  n_r
         self.__grid_size = grid_size
         self.__object_jitter = object_jitter
 
@@ -66,8 +59,7 @@ class MeshWriter:
 
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
-        """ Map global index to its Cartesian grid coordinates
-        """
+        """ Map global index to its Cartesian grid coordinates."""
         # Sanity check
         n01 = grid_sizes[0] * grid_sizes[1]
         if flat_id < 0 or flat_id >= n01 * grid_sizes[2]:
@@ -80,9 +72,8 @@ class MeshWriter:
         # Return Cartesian coordinates
         return i, j, k
 
-    def write_rank_view_file(self, distributions: dict, statistics: dict):
-        """ Map ranks to grid and write ExodusII file
-        """
+    def write_rank_view_file(self, ranks: list, distributions: dict, statistics: dict):
+        """ Map ranks to grid and write ExodusII file."""
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(self.__n_p * (self.__n_p - 1) / 2)
         self.__logger.info(f"Creating rank view mesh with {self.__n_p} points and {n_e} edges")
@@ -117,12 +108,12 @@ class MeshWriter:
         # Iterate over ranks and create mesh points
         points = vtk.vtkPoints()
         points.SetNumberOfPoints(self.__n_p)
-        for i, p in enumerate(self.__phase.get_ranks()):
+        for i, r in enumerate(ranks):
             # Insert point based on Cartesian coordinates
             points.SetPoint(i, [
                 self.__grid_resolution * c
                 for c in self.global_id_to_cartesian(
-                    p.get_id(), self.__grid_size)])
+                    r.get_id(), self.__grid_size)])
             for l, (l_arr, w_arr) in enumerate(zip(loads, works)):
                 l_arr.SetTuple1(i, distributions["load"][l][i])
                 w_arr.SetTuple1(i, distributions["work"][l][i])
@@ -178,22 +169,8 @@ class MeshWriter:
             writer.WriteAllTimeStepsOn()
             writer.Update()
 
-    def write_object_view_file(self, distributions: dict):
-        """ Map objects to grid and write ExodusII file
-        """
-
-        # Retrieve number of mesh points and bail out early if empty set
-        n_o = self.__phase.get_number_of_objects()
-        if not n_o:
-            self.__logger.error("Empty list of objects, cannot write a mesh file")
-            return
-
-        # Number of edges is fixed due to vtkExodusIIWriter limitation
-        n_e = int(n_o * (n_o - 1) / 2)
-        self.__logger.info(
-            f"Creating object view mesh with {n_o} points, " +
-            f"{n_e} edges, and jitter factor: {self.__object_jitter}")
-
+    def write_object_view_file(self, phases: list, distributions: dict):
+        """ Map objects to grid and write ExodusII file."""
         # Determine available dimensions for object placement in ranks
         rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
 
@@ -201,22 +178,49 @@ class MeshWriter:
         jitter_dims = {
             i: [(random.random() - 0.5) * self.__object_jitter
                 if d in rank_dims else 0.0 for d in range(3)]
-            for i in self.__phase.get_object_ids()}
+            for i in phases[0].get_object_ids()}
+
+        # Determine whether phase must be updated
+        update_phase = (
+            True if len(phases) == len(distributions["objects"])
+            else False)
 
         # Iterate over all object distributions
+        phase = phases[0]
         for iteration, object_mapping in enumerate(distributions["objects"]):
+            # Update phase when required
+            if update_phase:
+                phase = phases[iteration]
+
+            # Retrieve number of mesh points and bail out early if empty set
+            n_o = phase.get_number_of_objects()
+            if not n_o:
+                self.__logger.warning("Empty list of objects, cannot write a mesh file")
+                return
+
+            # Compute number of communication edges
+            n_e = int(n_o * (n_o - 1) / 2)
+            self.__logger.info(
+                f"Creating object view mesh with {n_o} points, " +
+                f"{n_e} edges, and jitter factor: {self.__object_jitter}")
+
             # Create point array for object times
             t_arr = vtk.vtkDoubleArray()
             t_arr.SetName("Time")
             t_arr.SetNumberOfTuples(n_o)
 
-            # Iterate over ranks and objects to create mesh points
+            # Create bit array for object migratability
+            b_arr = vtk.vtkBitArray()
+            b_arr.SetName("Migratable")
+            b_arr.SetNumberOfTuples(n_o)
+
+            # Create and size point set
             points = vtk.vtkPoints()
             points.SetNumberOfPoints(n_o)
-            point_to_index = {}
-            index_to_point = []
-            point_index = 0
-            sent_volumes = []
+
+            # Iterate over ranks and objects to create mesh points
+            ranks = phase.get_ranks()
+            point_index, point_to_index, sent_volumes = 0, {}, []
             for rank_id, objects in enumerate(object_mapping):
                 # Determine rank offsets
                 offsets = [
@@ -231,7 +235,9 @@ class MeshWriter:
                 rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
                 centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
                              if d in rank_dims else 0.0 for d in range(3)]
-                    
+
+                # Retrieve current rank and iterate over its objects
+                r = ranks[rank_id]
                 for i, o in enumerate(objects):
                     # Insert point using offset and rank coordinates
                     points.SetPoint(point_index, [
@@ -240,6 +246,8 @@ class MeshWriter:
                         for d, c in enumerate(self.global_id_to_cartesian(
                             i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
+                    b_arr.SetTuple1(
+                        point_index, 0 if r.is_sentinel(o) else 1)
 
                     # Update sent volumes
                     for k, v in o.get_sent().items():
@@ -247,7 +255,6 @@ class MeshWriter:
 
                     # Update maps and counters
                     point_to_index[o] = point_index
-                    index_to_point.append(o)
                     point_index += 1
 
             # Summarize edges
@@ -286,6 +293,7 @@ class MeshWriter:
             pd_mesh = vtk.vtkPolyData()
             pd_mesh.SetPoints(points)
             pd_mesh.GetPointData().SetScalars(t_arr)
+            pd_mesh.GetPointData().AddArray(b_arr)
             pd_mesh.SetLines(lines)
             pd_mesh.GetCellData().SetScalars(v_arr)
 
@@ -297,11 +305,18 @@ class MeshWriter:
             writer.SetInputData(pd_mesh)
             writer.Update()
 
-    def write(self, distributions: dict, statistics: dict):
-        """ Write rank and object ExodusII files
-        """
+    def write(self, phases: list, distributions: dict, statistics: dict):
+        """ Write rank and object ExodusII files."""
+
+        # Make sure that Phase instances were passed
+        if not all([isinstance(p, Phase) for p in phases]):
+            self.__logger.error(
+                "Mesh writer expects a list of Phase instances as input")
+            raise SystemExit(1)
+
         # Write rank view file with global per-rank statistics
-        self.write_rank_view_file(distributions, statistics)
+        self.write_rank_view_file(
+            phases[0].get_ranks(), distributions, statistics)
 
         # Write object view file
-        self.write_object_view_file(distributions)
+        self.write_object_view_file(phases, distributions)
