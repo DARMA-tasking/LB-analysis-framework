@@ -181,10 +181,9 @@ class MeshWriter:
             for i in phases[0].get_object_ids()}
 
         # Determine whether phase must be updated
-        update_phase = (
-            True if len(phases) == len(distributions["objects"])
-            else False)
-
+        update_phase = True if len(distributions["objects"]
+            ) == len(phases) else False
+        
         # Iterate over all object distributions
         phase = phases[0]
         for iteration, object_mapping in enumerate(distributions["objects"]):
@@ -203,7 +202,7 @@ class MeshWriter:
             self.__logger.info(
                 f"Creating object view mesh with {n_o} points, " +
                 f"{n_e} edges, and jitter factor: {self.__object_jitter}")
-
+            
             # Create point array for object times
             t_arr = vtk.vtkDoubleArray()
             t_arr.SetName("Time")
@@ -217,7 +216,7 @@ class MeshWriter:
             # Create and size point set
             points = vtk.vtkPoints()
             points.SetNumberOfPoints(n_o)
-
+            
             # Iterate over ranks and objects to create mesh points
             ranks = phase.get_ranks()
             point_index, point_to_index, sent_volumes = 0, {}, []
@@ -236,9 +235,16 @@ class MeshWriter:
                 centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
                              if d in rank_dims else 0.0 for d in range(3)]
 
-                # Retrieve current rank and iterate over its objects
+                # Order objects of current rank
                 r = ranks[rank_id]
-                for i, o in enumerate(objects):
+                objects_list = sorted(objects, key=lambda x: x.get_id())
+                ordered_objects = {o: 0 for o in objects_list if r.is_sentinel(o)}
+                for o in objects_list:
+                    if not r.is_sentinel(o):
+                        ordered_objects[o] = 1
+
+                # Add rank objects to points set
+                for i, (o, m) in enumerate(ordered_objects.items()):
                     # Insert point using offset and rank coordinates
                     points.SetPoint(point_index, [
                         offsets[d] - centering[d] + (
@@ -246,8 +252,7 @@ class MeshWriter:
                         for d, c in enumerate(self.global_id_to_cartesian(
                             i, rank_size))])
                     t_arr.SetTuple1(point_index, o.get_time())
-                    b_arr.SetTuple1(
-                        point_index, 0 if r.is_sentinel(o) else 1)
+                    b_arr.SetTuple1(point_index, m)
 
                     # Update sent volumes
                     for k, v in o.get_sent().items():
