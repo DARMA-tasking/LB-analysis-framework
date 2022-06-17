@@ -180,7 +180,7 @@ class MeshWriter:
                 if d in rank_dims else 0.0 for d in range(3)]
             for i in phases[0].get_object_ids()}
 
-        # Detemine whether phase must be updated
+        # Determine whether phase must be updated
         update_phase = (
             True if len(phases) == len(distributions["objects"])
             else False)
