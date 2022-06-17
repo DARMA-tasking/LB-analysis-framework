@@ -73,15 +73,15 @@ class Rank:
         """ Return IDs of sentinel objects assigned to rank."""
         return [o.get_id() for o in self.__sentinel_objects]
 
-    def is_migratable(self, o) -> list:
+    def is_migratable(self, o: Object) -> list:
         """ Return whether object is migratable or not (sentinel)."""
         if o in self.__migratable_objects:
             return True
         elif o in self.__sentinel_objects:
             return False
         else:
-            print("error object", o, "does not belong to", self)
-            sys.exit(1)
+            self.__logger.error(f"Object {o} does not belong to rank {self}")
+            raise SystemExit(1)
 
     def get_known_loads(self) -> dict:
         """ Return loads of peers know to self."""
