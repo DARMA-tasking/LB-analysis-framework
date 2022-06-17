@@ -61,6 +61,10 @@ class Rank:
         """ Return sentinel objects assigned to rank."""
         return self.__sentinel_objects
 
+    def get_number_of_sentinel_objects(self) -> int:
+        """ Return number of sentinel objects assigned to rank."""
+        return len(self.__sentinel_objects)
+
     def get_object_ids(self) -> list:
         """ Return IDs of all objects assigned to rank."""
         return [o.get_id() for o in self.__migratable_objects.union(self.__sentinel_objects)]
