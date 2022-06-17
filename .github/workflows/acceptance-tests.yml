@@ -69,7 +69,7 @@ jobs:
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
       stepper_config: /__w/LB-analysis-framework/LB-analysis-framework/scripts/test_config/step.yaml
-      log_output: /__w/LB-analysis-framework/LB-analysis-framework/output/log.txt
+      log_output: /__w/LB-analysis-framework/LB-analysis-framework/log.txt
 
     steps:
       - uses: actions/checkout@v2
