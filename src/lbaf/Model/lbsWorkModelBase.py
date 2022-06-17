@@ -5,7 +5,7 @@ import sys
 from ..Utils.logger import logger
 
 
-LGR = logger()
+LGR = logger
 
 
 class WorkModelBase:
@@ -18,7 +18,7 @@ class WorkModelBase:
             parameters: optional parameters dictionary
         """
         # Work keeps internal references to ranks and edges
-        LGR.debug("Created base work model")
+        LGR().debug("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters, lgr: Logger):
@@ -35,7 +35,7 @@ class WorkModelBase:
             return work(parameters, lgr=lgr)
         except:
             # Otherwise, error out
-            LGR.error(f"Could not create a work with name: {work_name}")
+            LGR().error(f"Could not create a work with name: {work_name}")
             raise NameError(f"Could not create a work with name: {work_name}")
 
     @abc.abstractmethod

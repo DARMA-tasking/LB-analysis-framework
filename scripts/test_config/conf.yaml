@@ -20,6 +20,7 @@
 #        skip_transfer [bool]  (default: False) skip transfer phase
 #      PhaseStepper
 # logging_level [str]          set to `info`, `debug`, `warning` or `error`
+# log_to_file [str]            filepath to save the log file (optional)
 # x_procs [int]                number of procs in x direction for rank visualization
 # y_procs [int]                number of procs in y direction for rank visualization
 # z_procs [int]                number of procs in z direction for rank visualization

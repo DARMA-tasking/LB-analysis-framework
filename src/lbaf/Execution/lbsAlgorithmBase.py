@@ -7,7 +7,7 @@ from ..Utils.logger import logger
 from ..IO.lbsStatistics import compute_function_statistics
 
 
-LGR = logger()
+LGR = logger
 
 
 class AlgorithmBase:
@@ -22,12 +22,12 @@ class AlgorithmBase:
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            LGR.error("Could not create an algorithm without a work model")
+            LGR().error("Could not create an algorithm without a work model")
             raise SystemExit(1)
         self.work_model = work_model
 
         # Algorithm keeps internal references to ranks and edges
-        LGR.debug(f"Created base balancing algorithm")
+        LGR().debug(f"Created base balancing algorithm")
 
         # Initially no phase is associated to algorithm
         self.phase = None
@@ -48,7 +48,7 @@ class AlgorithmBase:
             return algorithm(work_model, parameters, lgr=lgr)
         except:
             # Otherwise, error out
-            LGR.error(f"Could not create an algorithm with name {algorithm_name}")
+            LGR().error(f"Could not create an algorithm with name {algorithm_name}")
             raise SystemExit(1)
 
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
