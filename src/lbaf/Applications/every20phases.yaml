@@ -46,25 +46,25 @@ from_data:
   data_stem: "../../../data/nolb-8color-16nodes-every50phases/stats"
   phase_ids:
     - 2
-    - 52
-    - 102
-    - 152
-    - 202
-    - 252
-    - 302
-    - 352
-    - 402
-    - 452
-    - 502
-    - 552
-    - 602
-    - 652
-    - 702
-    - 752
-    - 802
-    - 852
-    - 902
-    - 952
+#    - 52
+#    - 102
+#    - 152
+#    - 202
+#    - 252
+#    - 302
+#    - 352
+#    - 402
+#    - 452
+#    - 502
+#    - 552
+#    - 602
+#    - 652
+#    - 702
+#    - 752
+#    - 802
+#    - 852
+#    - 902
+#    - 952
 
 # Specify work model
 work_model:
@@ -90,3 +90,4 @@ generate_meshes:
   y_ranks: 4
   z_ranks: 1
   object_jitter: 0.5
+generate_multimedia: True

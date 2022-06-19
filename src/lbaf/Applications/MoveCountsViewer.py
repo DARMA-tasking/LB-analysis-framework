@@ -13,9 +13,48 @@ import sys
 
 import vtk
 
-from lbaf.Applications.MoveCountsViewerParameters import MoveCountsViewerParameters
 from lbaf.Utils.logger import logger
 
+class MoveCountsViewerParameters:
+    """ A class to describe MoveCountsViewer parameters
+    """
+
+    def __init__(self, viewer):
+
+        # Set parameters based on viewer's attribute values
+
+        # Set renderer parameters
+        self.renderer_background = [1, 1, 1]
+
+        # Set actor_vertices parameters
+        self.actor_vertices_screen_size = 50 if viewer.interactive else 5000
+        self.actor_vertices_color = [0, 0, 0]
+        self.actor_vertices_opacity = .3 if viewer.interactive else .5
+
+        # Set actor_labels parameters
+        self.actor_labels_color = [0, 0, 0]
+        self.actor_labels_font_size = 16 if viewer.interactive else 150
+        self.actor_edges_opacity = .5 if viewer.interactive else 1
+        self.actor_edges_line_width = 2 if viewer.interactive else 15
+
+        # Set actor_arrows parameters
+        self.actor_arrows_edge_glyph_position = .5
+        self.actor_arrows_source_scale = .075
+
+        # Set actor_bar parameters
+        self.actor_bar_number_of_labels = 2
+        self.actor_bar_width = .2
+        self.actor_bar_heigth = .08
+        self.actor_bar_position = [.4, .91]
+        self.actor_bar_title_color = [0, 0, 0]
+        self.actor_bar_label_color = [0, 0, 0]
+
+        # Set window parameters
+        self.window_size_x = 600
+        self.window_size_y = 600
+
+        # Set wti (WindowToImageFilter) parameters
+        self.wti_scale = 10
 
 class MoveCountsViewer:
     """ A class to describe MoveCountsViewer attributes
@@ -52,8 +91,7 @@ class MoveCountsViewer:
         """ Provide online help
         """
 
-        print("Usage:")
-
+        print("# Usage:")
         print("\t [-p <np>]   number of processors")
         print("\t [-f <fn>]   input file name")
         print("\t [-s]        input file format suffix")
@@ -159,7 +197,6 @@ class MoveCountsViewer:
                     if src_id != i:
                         directed_moves[(src_id, i)] = directed_moves.get(
                             (src_id, i), 0) + 1
-
         # Compute undirected move counts
         undirected_moves = {
             (i, j): directed_moves.get((i, j), 0) + directed_moves.get(
@@ -308,6 +345,7 @@ class MoveCountsViewer:
         actor_edges.GetProperty().SetLineWidth(
             viewerParams.actor_edges_line_width)
         renderer.AddViewProp(actor_edges)
+
         # Reset camera to set it up based on edge actor
         renderer.ResetCamera()
 
@@ -359,17 +397,23 @@ class MoveCountsViewer:
             # Write PNG image
             writer = vtk.vtkPNGWriter()
             writer.SetInputConnection(wti.GetOutputPort())
-            writer.SetFileName(f"{self.output_file_name}.{self.output_file_suffix}")
+            writer.SetFileName(
+                f"{self.output_file_name}.{self.output_file_suffix}")
             writer.Write()
 
 
 if __name__ == "__main__":
+    # Default settings
     n_processors = 8
-    input_file_name = "data/data/lb_iter"
-    input_file_suffix = "out"
+    input_file_name = "../data/lb50-data/data"
+    input_file_suffix = "vom"
     output_file_name = "move_counts"
-    params = MoveCountsViewer(n_processors=n_processors, input_file_name=input_file_name,
-                              input_file_suffix=input_file_suffix, output_file_name=output_file_name, interactive=False)
+    params = MoveCountsViewer(
+        n_processors=n_processors,
+        input_file_name=input_file_name,
+        input_file_suffix=input_file_suffix,
+        output_file_name=output_file_name,
+        interactive=False)
 
     # Assign logger to variable
     lgr = params.logger
@@ -379,9 +423,9 @@ if __name__ == "__main__":
     lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
 
     # Instantiate parameters and set values from command line arguments
-    lgr.info("Parsing command line arguments")
-
+    lgr.info("# Parsing command line arguments")
     if params.parse_command_line():
         raise SystemExit(1)
 
+    # Execute viewer
     params.computeMoveCountsViewer()
