@@ -295,14 +295,14 @@ class LBAFApp:
         if "generate_meshes" in self.params.__dict__:
             # Instantiate phase to mesh writer if requested
             ex_writer = MeshWriter(
-                phase_0.get_number_of_ranks(),
+                self.logger,
+                phases,
                 self.params.grid_size,
                 self.params.object_jitter,
-                self.logger,
+                self.params.output_dir,
                 self.params.output_file_stem,
-                output_dir=self.params.output_dir,
-                )
-            ex_writer.write(phases, rt.distributions, rt.statistics)
+                rt.statistics)
+            ex_writer.write(rt.distributions)
 
         # Create a viewer if paraview is available
         file_name = self.params.output_file_stem
