@@ -306,18 +306,8 @@ class LBAFApp:
 
         # Create a viewer if paraview is available
         file_name = self.params.output_file_stem
-        if self.params.__dict__.get("generate_multimedia") is not None \
-                and self.params.__dict__.get("generate_multimedia"):
-            from ParaviewViewerBase import ParaviewViewerBase
-            if self.params.output_dir is not None:
-                file_name = os.path.join(self.params.output_dir, file_name)
-                output_file_stem = file_name
-                viewer = ParaviewViewerBase.factory(
-                    exodus=output_file_stem,
-                    file_name=file_name,
-                    viewer_type='')
-                reader = viewer.createViews()
-            viewer.saveView(reader)
+        if self.params.__dict__.get("generate_multimedia"):
+            self.logger.warning("Multimedia generation currently not available")
 
         # Compute and print final rank load and edge volume statistics
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
