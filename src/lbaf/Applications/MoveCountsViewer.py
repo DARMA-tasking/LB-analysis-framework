@@ -20,9 +20,6 @@ class MoveCountsViewerParameters:
     """
 
     def __init__(self, viewer):
-
-        # Set parameters based on viewer's attribute values
-
         # Set renderer parameters
         self.renderer_background = [1, 1, 1]
 

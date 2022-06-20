@@ -81,13 +81,15 @@ class MeshBasedVisualizer:
                 self.__object_file_name)
 
         # Retrieve and verify rank attribute distributions
-        dis_l = distributions.get("load", {})
-        dis_w = distributions.get("work", {})
+        dis_l = distributions.get("load", [])
+        dis_w = distributions.get("work", [])
         if not (n_dis := len(dis_l)) == len(dis_w):
             self.__logger.error(
                 f"Both load and work distributions must have {n_dis} entries")
             raise SystemExit(1)
         self.__distributions = distributions
+        self.__work_range = (
+            min(min(dis_w, key=min)), max(max(dis_w, key=max)))
 
         # Create attribute data arrays for rank loads and works
         self.__loads, self.__works = [], []
@@ -335,27 +337,93 @@ class MeshBasedVisualizer:
                 writer.WriteAllTimeStepsOn()
                 writer.Update()
 
-        # Write object view file when requested
-        if gen_meshes:
-            # Determine whether phase must be updated
-            update_phase = True if len(
-                objects := self.__distributions.get("objects", set())
-                ) == len(self.__phases) else False
+        # Determine whether phase must be updated
+        update_phase = True if len(
+            objects := self.__distributions.get("objects", set())
+            ) == len(self.__phases) else False
 
-            # Iterate over all object distributions
-            phase = self.__phases[0]
-            for iteration, object_mapping in enumerate(objects):
-                # Update phase when required
-                if update_phase:
-                    phase = self.__phases[iteration]
+        # Iterate over all object distributions
+        phase = self.__phases[0]
+        for iteration, object_mapping in enumerate(objects):
+            # Update phase when required
+            if update_phase:
+                phase = self.__phases[iteration]
 
-                # Create object mesh
-                pd_mesh = self.create_object_mesh(phase, object_mapping)
+            # Create object mesh
+            object_mesh = self.create_object_mesh(phase, object_mapping)
 
-                # Write to VTP file
+            # Write to VTP file when requested
+            if gen_meshes:
                 file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
                 self.__logger.info(f"Writing VTP file: {file_name}")
                 writer = vtk.vtkXMLPolyDataWriter()
                 writer.SetFileName(file_name)
-                writer.SetInputData(pd_mesh)
+                writer.SetInputData(object_mesh)
                 writer.Update()
+
+            # Generate visualizations when requested
+            if gen_mulmed:
+                self.__logger.info("Generating visualizations")
+                # Create rank mesh for current phase
+                rank_mesh = vtk.vtkPolyData()
+                rank_mesh.SetPoints(self.__rank_points)
+                rank_mesh.SetLines(self.__rank_lines)
+                rank_mesh.GetPointData().SetScalars(self.__works[iteration])
+
+                # Create square glyphs at ranks
+                square_glyph = vtk.vtkGlyphSource2D()
+                square_glyph.SetGlyphTypeToSquare()
+                square_glyph.SetScale(.95)
+                square_glyph.FilledOn()
+                square_glyph.CrossOff()
+                rank_glypher = vtk.vtkGlyph2D()
+                rank_glypher.SetSourceConnection(square_glyph.GetOutputPort())
+                rank_glypher.SetInputData(rank_mesh)
+                rank_glypher.SetScaleModeToDataScalingOff()
+
+                # Create mapper and actor for rank mesh
+                rank_mapper = vtk.vtkPolyDataMapper()
+                rank_mapper.SetInputConnection(rank_glypher.GetOutputPort())
+                rank_mapper.SetScalarRange(self.__work_range)
+                rank_actor = vtk.vtkActor()
+                rank_actor.SetMapper(rank_mapper)
+                rank_actor.GetProperty().SetOpacity(0.6)
+
+                # Create color scheme and scalar bar for rank glyphs
+                rank_bar = vtk.vtkScalarBarActor()
+                rank_bar.SetLookupTable(rank_mapper.GetLookupTable())
+                rank_bar.SetTitle("Rank Work")
+                rank_bar.SetOrientationToHorizontal()
+                rank_bar.SetNumberOfLabels(2)
+                rank_bar.SetWidth(0.6)
+                rank_bar.SetHeight(0.08)
+                rank_bar.SetLabelFormat("%.3E")
+                rank_bar.SetBarRatio(0.3)
+                rank_bar.DrawTickLabelsOn()
+                position = rank_bar.GetPositionCoordinate()
+                position.SetCoordinateSystemToNormalizedViewport()
+                position.SetValue(0.2, 0.9)
+                for text_prop in (
+                    rank_bar.GetTitleTextProperty(),
+                    rank_bar.GetLabelTextProperty()):
+                    text_prop.SetColor(0.0, 0.0, 0.0)
+                    text_prop.ItalicOff()
+                    text_prop.BoldOff()
+                    text_prop.SetFontFamilyToArial()
+
+                # Visualize
+                renderer = vtk.vtkRenderer()
+                renderer.SetBackground(1.0, 1.0, 1.0)
+                renderer.AddActor(rank_actor)
+                renderer.AddActor2D(rank_bar)
+                render_window = vtk.vtkRenderWindow()
+                render_window.SetWindowName("LBAF")
+                render_window.AddRenderer(renderer)
+                render_window.Render()
+                w2if = vtk.vtkWindowToImageFilter()
+                w2if.SetInput(render_window)
+                w2if.SetScale(2)
+                writer = vtk.vtkPNGWriter()
+                writer.SetFileName(f"LBAF-{iteration}.png")
+                writer.SetInputConnection(w2if.GetOutputPort())
+                writer.Write()
