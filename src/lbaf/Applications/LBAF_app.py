@@ -21,7 +21,7 @@ from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangement
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.configurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.IO.lbsMeshWriter import MeshWriter
+from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Utils.logger import logger
@@ -295,8 +295,8 @@ class LBAFApp:
         gen_meshes = self.params.__dict__.get("generate_meshes")
         gen_mulmed = self.params.__dict__.get("generate_multimedia")
         if gen_meshes or gen_mulmed:
-            # Instantiate phase to mesh writer if requested
-            ex_writer = MeshWriter(
+            # Instantiate mesh based visualizer and execute as requested
+            ex_writer = MeshBasedVisualizer(
                 self.logger,
                 phases,
                 self.params.grid_size,

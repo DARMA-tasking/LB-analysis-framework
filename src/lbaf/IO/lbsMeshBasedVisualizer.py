@@ -9,8 +9,8 @@ import vtk
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
 
-class MeshWriter:
-    """A class to write LBAF results to mesh files via VTK layer."""
+class MeshBasedVisualizer:
+    """A class to visualize LBAF results via mesh files and VTK views."""
 
     def __init__(
         self,
