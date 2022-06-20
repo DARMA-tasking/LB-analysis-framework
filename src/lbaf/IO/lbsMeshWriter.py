@@ -44,7 +44,7 @@ class MeshWriter:
 
         # Ensure that all phases have the same number of ranks
         n_r = phases[0].get_number_of_ranks()
-        if not all([p.get_number_of_ranks == n_r for p in phases[1:]]):
+        if not all([p.get_number_of_ranks() == n_r for p in phases[1:]]):
             self.__logger.error(
                 f"All phases must have {n_r} ranks as the first one")
             raise SystemExit(1)
@@ -56,9 +56,17 @@ class MeshWriter:
             raise SystemExit(1)
         self.__grid_resolution = float(resolution)
 
-        # Keep track of mesh properties
+        # Determine available dimensions for object placement in ranks
         self.__grid_size = grid_size
-        self.__object_jitter = object_jitter
+        self.__rank_dims = [
+            d for d in range(3) if self.__grid_size[d] > 1]
+
+        # Compute constant per object jitter
+        self.__jitter_dims = {
+            i: [(random.random() - 0.5) * object_jitter
+                if d in self.__rank_dims
+                else 0.0 for d in range(3)]
+            for i in self.__phases[0].get_object_ids()}
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -182,147 +190,124 @@ class MeshWriter:
         # Return Cartesian coordinates
         return i, j, k
 
-    def write_object_VTP_meshes(self):
-        """ Map objects to grid and write VTP files."""
-        # Determine available dimensions for object placement in ranks
-        rank_dims = [d for d in range(3) if self.__grid_size[d] > 1]
+    def create_object_mesh(self, phase: Phase, object_mapping: set):
+        """ Map objects to polygonal mesh."""
+        # Retrieve number of mesh points and bail out early if empty set
+        n_o = phase.get_number_of_objects()
+        if not n_o:
+            self.__logger.warning("Empty list of objects, cannot write a mesh file")
+            return
 
-        # Compute constant per object jitter
-        jitter_dims = {
-            i: [(random.random() - 0.5) * self.__object_jitter
-                if d in rank_dims else 0.0 for d in range(3)]
-            for i in self.__phases[0].get_object_ids()}
+        # Compute number of communication edges
+        n_e = int(n_o * (n_o - 1) / 2)
+        self.__logger.info(
+            f"Creating object mesh with {n_o} points and {n_e} edges")
 
-        # Determine whether phase must be updated
-        update_phase = True if len(self.__distributions["objects"]
-            ) == len(self.__phases) else False
-        
-        # Iterate over all object distributions
-        phase = self.__phases[0]
-        for iteration, object_mapping in enumerate(self.__distributions["objects"]):
-            # Update phase when required
-            if update_phase:
-                phase = self.__phases[iteration]
+        # Create point array for object times
+        t_arr = vtk.vtkDoubleArray()
+        t_arr.SetName("Time")
+        t_arr.SetNumberOfTuples(n_o)
 
-            # Retrieve number of mesh points and bail out early if empty set
-            n_o = phase.get_number_of_objects()
-            if not n_o:
-                self.__logger.warning("Empty list of objects, cannot write a mesh file")
-                return
+        # Create bit array for object migratability
+        b_arr = vtk.vtkBitArray()
+        b_arr.SetName("Migratable")
+        b_arr.SetNumberOfTuples(n_o)
 
-            # Compute number of communication edges
-            n_e = int(n_o * (n_o - 1) / 2)
-            self.__logger.info(
-                f"Creating object mesh with {n_o} points, " +
-                f"{n_e} edges, and jitter factor: {self.__object_jitter}")
+        # Create and size point set
+        points = vtk.vtkPoints()
+        points.SetNumberOfPoints(n_o)
+
+        # Iterate over ranks and objects to create mesh points
+        ranks = phase.get_ranks()
+        point_index, point_to_index, sent_volumes = 0, {}, []
+        for rank_id, objects in enumerate(object_mapping):
+            # Determine rank offsets
+            offsets = [
+                self.__grid_resolution * c
+                for c in self.global_id_to_cartesian(rank_id, self.__grid_size)]
+
+            # Iterate over objects and create point coordinates
+            n_o_rank = len(objects)
+            n_o_per_dim = math.ceil(n_o_rank ** (
+                1. / len(self.__rank_dims)))
+            self.__logger.debug(
+                f"Arranging a maximum of {n_o_per_dim} objects per dimension in {self.__rank_dims}")
+            o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
+            rank_size = [n_o_per_dim
+                         if d in self.__rank_dims
+                         else 1 for d in range(3)]
+            centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
+                         if d in self.__rank_dims
+                         else 0.0 for d in range(3)]
+
+            # Order objects of current rank
+            r = ranks[rank_id]
+            objects_list = sorted(objects, key=lambda x: x.get_id())
+            ordered_objects = {o: 0 for o in objects_list if r.is_sentinel(o)}
+            for o in objects_list:
+                if not r.is_sentinel(o):
+                    ordered_objects[o] = 1
+
+            # Add rank objects to points set
+            for i, (o, m) in enumerate(ordered_objects.items()):
+                # Insert point using offset and rank coordinates
+                points.SetPoint(point_index, [
+                    offsets[d] - centering[d] + (
+                        self.__jitter_dims[o.get_id()][d] + c) * o_resolution
+                    for d, c in enumerate(self.global_id_to_cartesian(
+                        i, rank_size))])
+                t_arr.SetTuple1(point_index, o.get_time())
+                b_arr.SetTuple1(point_index, m)
+
+                # Update sent volumes
+                for k, v in o.get_sent().items():
+                    sent_volumes.append((point_index, k, v))
+
+                # Update maps and counters
+                point_to_index[o] = point_index
+                point_index += 1
+
+        # Summarize edges
+        edges = {
+            (tr[0], point_to_index[tr[1]]): tr[2]
+            for tr in sent_volumes}
+
+        # Iterate over all possible links and create edges
+        lines = vtk.vtkCellArray()
+        index_to_edge = {}
+        edge_index = 0
+        for i in range(n_o):
+            for j in range(i + 1, n_o):
+                # Insert new link based on endpoint indices
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, i)
+                line.GetPointIds().SetId(1, j)
+                lines.InsertNextCell(line)
+
+                # Update flat index map
+                index_to_edge[edge_index] = (i, j)
+                edge_index += 1
+
+        # Create and append volume array for edges
+        v_arr = vtk.vtkDoubleArray()
+        v_arr.SetName("Volume")
+        v_arr.SetNumberOfTuples(n_e)
+
+        # Assign edge volume values
+        self.__logger.debug(f"\tedges:")
+        for e in range(n_e):
+            v_arr.SetTuple1(e, edges.get(index_to_edge[e], float("nan")))
+            self.__logger.debug(f"\t{e} {index_to_edge[e]}): {v_arr.GetTuple1(e)}")
+
+        # Create and return VTK polygonal data mesh
+        pd_mesh = vtk.vtkPolyData()
+        pd_mesh.SetPoints(points)
+        pd_mesh.GetPointData().SetScalars(t_arr)
+        pd_mesh.GetPointData().AddArray(b_arr)
+        pd_mesh.SetLines(lines)
+        pd_mesh.GetCellData().SetScalars(v_arr)
+        return pd_mesh
             
-            # Create point array for object times
-            t_arr = vtk.vtkDoubleArray()
-            t_arr.SetName("Time")
-            t_arr.SetNumberOfTuples(n_o)
-
-            # Create bit array for object migratability
-            b_arr = vtk.vtkBitArray()
-            b_arr.SetName("Migratable")
-            b_arr.SetNumberOfTuples(n_o)
-
-            # Create and size point set
-            points = vtk.vtkPoints()
-            points.SetNumberOfPoints(n_o)
-            
-            # Iterate over ranks and objects to create mesh points
-            ranks = phase.get_ranks()
-            point_index, point_to_index, sent_volumes = 0, {}, []
-            for rank_id, objects in enumerate(object_mapping):
-                # Determine rank offsets
-                offsets = [
-                    self.__grid_resolution * c
-                    for c in self.global_id_to_cartesian(rank_id, self.__grid_size)]
-
-                # Iterate over objects and create point coordinates
-                n_o_rank = len(objects)
-                n_o_per_dim = math.ceil(n_o_rank ** (1. / len(rank_dims)))
-                self.__logger.debug(f"Arranging a maximum of {n_o_per_dim} objects per dimension in {rank_dims}")
-                o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
-                rank_size = [n_o_per_dim if d in rank_dims else 1 for d in range(3)]
-                centering = [0.5 * o_resolution * (n_o_per_dim - 1.)
-                             if d in rank_dims else 0.0 for d in range(3)]
-
-                # Order objects of current rank
-                r = ranks[rank_id]
-                objects_list = sorted(objects, key=lambda x: x.get_id())
-                ordered_objects = {o: 0 for o in objects_list if r.is_sentinel(o)}
-                for o in objects_list:
-                    if not r.is_sentinel(o):
-                        ordered_objects[o] = 1
-
-                # Add rank objects to points set
-                for i, (o, m) in enumerate(ordered_objects.items()):
-                    # Insert point using offset and rank coordinates
-                    points.SetPoint(point_index, [
-                        offsets[d] - centering[d] + (
-                            jitter_dims[o.get_id()][d] + c) * o_resolution
-                        for d, c in enumerate(self.global_id_to_cartesian(
-                            i, rank_size))])
-                    t_arr.SetTuple1(point_index, o.get_time())
-                    b_arr.SetTuple1(point_index, m)
-
-                    # Update sent volumes
-                    for k, v in o.get_sent().items():
-                        sent_volumes.append((point_index, k, v))
-
-                    # Update maps and counters
-                    point_to_index[o] = point_index
-                    point_index += 1
-
-            # Summarize edges
-            edges = {
-                (tr[0], point_to_index[tr[1]]): tr[2]
-                for tr in sent_volumes}
-
-            # Iterate over all possible links and create edges
-            lines = vtk.vtkCellArray()
-            index_to_edge = {}
-            edge_index = 0
-            for i in range(n_o):
-                for j in range(i + 1, n_o):
-                    # Insert new link based on endpoint indices
-                    line = vtk.vtkLine()
-                    line.GetPointIds().SetId(0, i)
-                    line.GetPointIds().SetId(1, j)
-                    lines.InsertNextCell(line)
-
-                    # Update flat index map
-                    index_to_edge[edge_index] = (i, j)
-                    edge_index += 1
-
-            # Create and append volume array for edges
-            v_arr = vtk.vtkDoubleArray()
-            v_arr.SetName("Volume")
-            v_arr.SetNumberOfTuples(n_e)
-
-            # Assign edge volume values
-            self.__logger.debug(f"\titeration {iteration} edges:")
-            for e in range(n_e):
-                v_arr.SetTuple1(e, edges.get(index_to_edge[e], float("nan")))
-                self.__logger.debug(f"\t {e} {index_to_edge[e]}): {v_arr.GetTuple1(e)}")
-
-            # Create VTK polygonal data mesh
-            pd_mesh = vtk.vtkPolyData()
-            pd_mesh.SetPoints(points)
-            pd_mesh.GetPointData().SetScalars(t_arr)
-            pd_mesh.GetPointData().AddArray(b_arr)
-            pd_mesh.SetLines(lines)
-            pd_mesh.GetCellData().SetScalars(v_arr)
-
-            # Write to VTP file
-            file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
-            self.__logger.info(f"Writing VTP file: {file_name}")
-            writer = vtk.vtkXMLPolyDataWriter()
-            writer.SetFileName(file_name)
-            writer.SetInputData(pd_mesh)
-            writer.Update()
-
     def generate(self, gen_meshes, gen_mulmed):
         """ Generate mesh and multimedia outputs."""
 
@@ -352,4 +337,25 @@ class MeshWriter:
 
         # Write object view file when requested
         if gen_meshes:
-            self.write_object_VTP_meshes()
+            # Determine whether phase must be updated
+            update_phase = True if len(
+                objects := self.__distributions.get("objects", set())
+                ) == len(self.__phases) else False
+
+            # Iterate over all object distributions
+            phase = self.__phases[0]
+            for iteration, object_mapping in enumerate(objects):
+                # Update phase when required
+                if update_phase:
+                    phase = self.__phases[iteration]
+
+                # Create object mesh
+                pd_mesh = self.create_object_mesh(phase, object_mapping)
+
+                # Write to VTP file
+                file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
+                self.__logger.info(f"Writing VTP file: {file_name}")
+                writer = vtk.vtkXMLPolyDataWriter()
+                writer.SetFileName(file_name)
+                writer.SetInputData(pd_mesh)
+                writer.Update()
