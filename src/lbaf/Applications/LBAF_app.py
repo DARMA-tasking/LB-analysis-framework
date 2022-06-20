@@ -291,8 +291,10 @@ class LBAFApp:
                 output_dir=self.params.output_dir)
             vt_writer.write()
 
-        # If prefix parsed from command line
-        if "generate_meshes" in self.params.__dict__:
+        # Generate meshes and multimedia when requested
+        gen_meshes = self.params.__dict__.get("generate_meshes")
+        gen_mulmed = self.params.__dict__.get("generate_multimedia")
+        if gen_meshes or gen_mulmed:
             # Instantiate phase to mesh writer if requested
             ex_writer = MeshWriter(
                 self.logger,
@@ -301,13 +303,9 @@ class LBAFApp:
                 self.params.object_jitter,
                 self.params.output_dir,
                 self.params.output_file_stem,
+                rt.distributions,
                 rt.statistics)
-            ex_writer.write(rt.distributions)
-
-        # Create a viewer if paraview is available
-        file_name = self.params.output_file_stem
-        if self.params.__dict__.get("generate_multimedia"):
-            self.logger.warning("Multimedia generation currently not available")
+            ex_writer.generate(gen_meshes, gen_mulmed)
 
         # Compute and print final rank load and edge volume statistics
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
