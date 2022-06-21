@@ -310,7 +310,24 @@ class MeshBasedVisualizer:
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
-    def create_scalar_bar_actor(self, mapper, title, width, coordinates):
+    def create_color_transfer_function(self, attribute_range, attribute):
+        """ Create a color transfer function on scalar attribute."""
+
+        # Create color transfer function
+        ctf = vtk.vtkColorTransferFunction()
+        ctf.SetColorSpaceToDiverging()
+        ctf.SetNanColor(1., 1., 0.)
+
+        # Set color transfer function
+        mid_point = (attribute_range[0] + attribute_range[1]) * .5
+        ctf.AddRGBPoint(attribute_range[0], .231, .298, .753)
+        ctf.AddRGBPoint(mid_point, .865, .865, .865)
+        ctf.AddRGBPoint(attribute_range[1], .706, .016, .149)
+
+        # Return color transfer function
+        return ctf
+
+    def create_scalar_bar_actor(self, mapper, title, width, x, y):
         """ Create scalar bar with default and custome parameters."""
 
         # Instantiate scalar bar linked to given mapper
@@ -337,7 +354,7 @@ class MeshBasedVisualizer:
         scalar_bar_actor.SetWidth(width)
         position = scalar_bar_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
-        position.SetValue(coordinates)
+        position.SetValue(x, y, 0.0)
 
         # Return created scalar bar actor
         return scalar_bar_actor
@@ -413,30 +430,41 @@ class MeshBasedVisualizer:
                 rank_glypher.SetInputData(rank_mesh)
                 rank_glypher.SetScaleModeToDataScalingOff()
 
+                # Create color scheme and scalar bar for rank glyphs
+                work_ctf = self.create_color_transfer_function(
+                    self.__work_range, self.__works[iteration])
+
                 # Create mapper and actor for rank mesh
                 rank_mapper = vtk.vtkPolyDataMapper()
                 rank_mapper.SetInputConnection(rank_glypher.GetOutputPort())
+                rank_mapper.SetLookupTable(work_ctf)
                 rank_mapper.SetScalarRange(self.__work_range)
+
+                # Create rank work and scalar bar actors
                 rank_actor = vtk.vtkActor()
                 rank_actor.SetMapper(rank_mapper)
                 rank_actor.GetProperty().SetOpacity(0.6)
+                work_actor = self.create_scalar_bar_actor(
+                    rank_mapper, "Rank Work", 0.6, 0.2, 0.9)
 
-                # Create color scheme and scalar bar for rank glyphs
-                rank_scalar_bar_actor = self.create_scalar_bar_actor(
-                    rank_mapper, "Rank Work", 0.6, (0.2, 0.9))
-
-                # Visualize
+                # Create renderer
                 renderer = vtk.vtkRenderer()
                 renderer.SetBackground(1.0, 1.0, 1.0)
                 renderer.AddActor(rank_actor)
-                renderer.AddActor2D(rank_scalar_bar_actor)
+                renderer.AddActor2D(work_actor)
+
+                # Create render window
                 render_window = vtk.vtkRenderWindow()
                 render_window.SetWindowName("LBAF")
                 render_window.AddRenderer(renderer)
                 render_window.Render()
+
+                # Convert window to image
                 w2if = vtk.vtkWindowToImageFilter()
                 w2if.SetInput(render_window)
                 w2if.SetScale(2)
+
+                # Output PNG file
                 writer = vtk.vtkPNGWriter()
                 writer.SetFileName(f"LBAF-{iteration}.png")
                 writer.SetInputConnection(w2if.GetOutputPort())
