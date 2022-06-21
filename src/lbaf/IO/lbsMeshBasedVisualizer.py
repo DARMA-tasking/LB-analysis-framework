@@ -309,7 +309,39 @@ class MeshBasedVisualizer:
         pd_mesh.SetLines(lines)
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
-            
+
+    def create_scalar_bar_actor(self, mapper, title, width, coordinates):
+        """ Create scalar bar with default and custome parameters."""
+
+        # Instantiate scalar bar linked to given mapper
+        scalar_bar_actor = vtk.vtkScalarBarActor()
+        scalar_bar_actor.SetLookupTable(mapper.GetLookupTable())
+
+        # Set default parameters
+        scalar_bar_actor.SetOrientationToHorizontal()
+        scalar_bar_actor.SetNumberOfLabels(2)
+        scalar_bar_actor.SetHeight(0.08)
+        scalar_bar_actor.SetLabelFormat("%.3E")
+        scalar_bar_actor.SetBarRatio(0.3)
+        scalar_bar_actor.DrawTickLabelsOn()
+        for text_prop in (
+            scalar_bar_actor.GetTitleTextProperty(),
+            scalar_bar_actor.GetLabelTextProperty()):
+            text_prop.SetColor(0.0, 0.0, 0.0)
+            text_prop.ItalicOff()
+            text_prop.BoldOff()
+            text_prop.SetFontFamilyToArial()
+
+        # Set custom parameters
+        scalar_bar_actor.SetTitle(title)
+        scalar_bar_actor.SetWidth(width)
+        position = scalar_bar_actor.GetPositionCoordinate()
+        position.SetCoordinateSystemToNormalizedViewport()
+        position.SetValue(coordinates)
+
+        # Return created scalar bar actor
+        return scalar_bar_actor
+
     def generate(self, gen_meshes, gen_mulmed):
         """ Generate mesh and multimedia outputs."""
 
@@ -390,32 +422,14 @@ class MeshBasedVisualizer:
                 rank_actor.GetProperty().SetOpacity(0.6)
 
                 # Create color scheme and scalar bar for rank glyphs
-                rank_bar = vtk.vtkScalarBarActor()
-                rank_bar.SetLookupTable(rank_mapper.GetLookupTable())
-                rank_bar.SetTitle("Rank Work")
-                rank_bar.SetOrientationToHorizontal()
-                rank_bar.SetNumberOfLabels(2)
-                rank_bar.SetWidth(0.6)
-                rank_bar.SetHeight(0.08)
-                rank_bar.SetLabelFormat("%.3E")
-                rank_bar.SetBarRatio(0.3)
-                rank_bar.DrawTickLabelsOn()
-                position = rank_bar.GetPositionCoordinate()
-                position.SetCoordinateSystemToNormalizedViewport()
-                position.SetValue(0.2, 0.9)
-                for text_prop in (
-                    rank_bar.GetTitleTextProperty(),
-                    rank_bar.GetLabelTextProperty()):
-                    text_prop.SetColor(0.0, 0.0, 0.0)
-                    text_prop.ItalicOff()
-                    text_prop.BoldOff()
-                    text_prop.SetFontFamilyToArial()
+                rank_scalar_bar_actor = self.create_scalar_bar_actor(
+                    rank_mapper, "Rank Work", 0.6, (0.2, 0.9))
 
                 # Visualize
                 renderer = vtk.vtkRenderer()
                 renderer.SetBackground(1.0, 1.0, 1.0)
                 renderer.AddActor(rank_actor)
-                renderer.AddActor2D(rank_bar)
+                renderer.AddActor2D(rank_scalar_bar_actor)
                 render_window = vtk.vtkRenderWindow()
                 render_window.SetWindowName("LBAF")
                 render_window.AddRenderer(renderer)
