@@ -310,12 +310,12 @@ class MeshBasedVisualizer:
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
-    def create_color_transfer_function(self, attribute_range, attribute, scheme=None):
-        """ Create a color transfer function on scalar attribute."""
+    def create_color_transfer_function(self, attribute_range, scheme=None):
+        """ Create a color transfer function given attribute range."""
 
         # Create color transfer function
         ctf = vtk.vtkColorTransferFunction()
-        ctf.SetNanColor(1., 1., 0.)
+        ctf.SetNanColorRGBA(1., 1., 1., 0.)
 
         # Set color transfer function depending on chosem scheme
         if scheme == "blue_to_red":
@@ -439,28 +439,52 @@ class MeshBasedVisualizer:
                 rank_glypher.SetInputData(rank_mesh)
                 rank_glypher.SetScaleModeToDataScalingOff()
 
-                # Create color scheme and scalar bar for rank glyphs
-                work_ctf = self.create_color_transfer_function(
-                    self.__work_range, self.__works[iteration], "blue_to_red")
-
-                # Create mapper and actor for rank mesh
+                # Create mapper for rank glyphs
                 rank_mapper = vtk.vtkPolyDataMapper()
                 rank_mapper.SetInputConnection(rank_glypher.GetOutputPort())
-                rank_mapper.SetLookupTable(work_ctf)
+                rank_mapper.SetLookupTable(
+                    self.create_color_transfer_function(self.__work_range))
                 rank_mapper.SetScalarRange(self.__work_range)
 
-                # Create rank work and scalar bar actors
+                # Create rank work and its scalar bar actors
                 rank_actor = vtk.vtkActor()
                 rank_actor.SetMapper(rank_mapper)
                 rank_actor.GetProperty().SetOpacity(0.6)
                 work_actor = self.create_scalar_bar_actor(
                     rank_mapper, "Rank Work", 0.6, 0.2, 0.9)
 
+                # Create white to black look-up table
+                volume_range = (0.0, object_mesh.GetCellData().GetScalars().GetRange()[1])
+                bw_lut = vtk.vtkLookupTable()
+                bw_lut.SetTableRange(volume_range)
+                bw_lut.SetSaturationRange(0, 0)
+                bw_lut.SetHueRange(0, 0)
+                bw_lut.SetValueRange(1, 0)
+                bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
+                bw_lut.Build()
+
+                # Create mapper for inter-object edges
+                edge_mapper = vtk.vtkPolyDataMapper()
+                edge_mapper.SetInputData(object_mesh)
+                edge_mapper.SetScalarModeToUseCellData()
+                edge_mapper.SetScalarRange(volume_range)
+                edge_mapper.SetLookupTable(bw_lut)
+
+                # Create communication volume and its scalar bar actors
+                edge_actor = vtk.vtkActor()
+                edge_actor.SetMapper(edge_mapper)
+                edge_actor.GetProperty().SetLineWidth(3)
+                edge_actor.GetProperty().SetOpacity(1.0)
+                volume_actor = self.create_scalar_bar_actor(
+                    edge_mapper, "Inter-Object Volume", 0.4, 0.05, 0.05)
+
                 # Create renderer
                 renderer = vtk.vtkRenderer()
                 renderer.SetBackground(1.0, 1.0, 1.0)
                 renderer.AddActor(rank_actor)
                 renderer.AddActor2D(work_actor)
+                renderer.AddActor(edge_actor)
+                renderer.AddActor2D(volume_actor)
 
                 # Create render window
                 render_window = vtk.vtkRenderWindow()
@@ -475,6 +499,7 @@ class MeshBasedVisualizer:
 
                 # Output PNG file
                 writer = vtk.vtkPNGWriter()
-                writer.SetFileName(f"LBAF-{iteration}.png")
                 writer.SetInputConnection(w2if.GetOutputPort())
+                writer.SetFileName(f"LBAF-{iteration}.png")
+                writer.SetCompressionLevel(2)
                 writer.Write()
