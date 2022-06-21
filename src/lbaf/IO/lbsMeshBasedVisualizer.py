@@ -480,7 +480,26 @@ class MeshBasedVisualizer:
                 volume_actor = self.create_scalar_bar_actor(
                     edge_mapper, "Inter-Object Volume", 0.4, 0.05, 0.05)
 
-                # Create renderer
+                # Compute square root of object times
+                sqrtT = vtk.vtkArrayCalculator()
+                sqrtT.SetInputData(object_mesh)
+                sqrtT.AddScalarArrayName("Time")
+                sqrtT_str = "sqrt(Time)"
+                sqrtT.SetFunction(sqrtT_str)
+                sqrtT.SetResultArrayName(sqrtT_str)
+                sqrtT.Update()
+
+                # Threshold sentinel and migratable objects
+                sqrtT_out = sqrtT.GetOutput()
+                sqrtT_out.GetPointData().SetActiveScalars("Migratable")
+                thresholds = []
+                for value in (0.0, 1.0):
+                    t = vtk.vtkThreshold()
+                    t.SetInputData(sqrtT_out)
+                    t.ThresholdBetween(value, value)
+                    thresholds.append(t)
+
+                # Create and populate renderer
                 renderer = vtk.vtkRenderer()
                 renderer.SetBackground(1.0, 1.0, 1.0)
                 renderer.AddActor(rank_actor)
