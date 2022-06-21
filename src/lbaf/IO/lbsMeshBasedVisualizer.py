@@ -310,19 +310,28 @@ class MeshBasedVisualizer:
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
-    def create_color_transfer_function(self, attribute_range, attribute):
+    def create_color_transfer_function(self, attribute_range, attribute, scheme=None):
         """ Create a color transfer function on scalar attribute."""
 
         # Create color transfer function
         ctf = vtk.vtkColorTransferFunction()
-        ctf.SetColorSpaceToDiverging()
         ctf.SetNanColor(1., 1., 0.)
 
-        # Set color transfer function
-        mid_point = (attribute_range[0] + attribute_range[1]) * .5
-        ctf.AddRGBPoint(attribute_range[0], .231, .298, .753)
-        ctf.AddRGBPoint(mid_point, .865, .865, .865)
-        ctf.AddRGBPoint(attribute_range[1], .706, .016, .149)
+        # Set color transfer function depending on chosem scheme
+        if scheme == "blue_to_red":
+            ctf.SetColorSpaceToDiverging()
+            mid_point = (attribute_range[0] + attribute_range[1]) * .5
+            ctf.AddRGBPoint(attribute_range[0], .231, .298, .753)
+            ctf.AddRGBPoint(mid_point, .865, .865, .865)
+            ctf.AddRGBPoint(attribute_range[1], .906, .016, .109)
+        elif scheme == "white_to_black":
+            ctf.AddRGBPoint(attribute_range[0], 1.0, 1.0, 1.0)
+            ctf.AddRGBPoint(attribute_range[1], 0.0, 0.0, 0.0)
+        else:
+            mid_point = (attribute_range[0] + attribute_range[1]) * .5
+            ctf.AddRGBPoint(attribute_range[0], .431, .761, .161)
+            ctf.AddRGBPoint(mid_point, .98, .992, .059)
+            ctf.AddRGBPoint(attribute_range[1], 1.0, .647, 0.0)
 
         # Return color transfer function
         return ctf
@@ -432,7 +441,7 @@ class MeshBasedVisualizer:
 
                 # Create color scheme and scalar bar for rank glyphs
                 work_ctf = self.create_color_transfer_function(
-                    self.__work_range, self.__works[iteration])
+                    self.__work_range, self.__works[iteration], "blue_to_red")
 
                 # Create mapper and actor for rank mesh
                 rank_mapper = vtk.vtkPolyDataMapper()
