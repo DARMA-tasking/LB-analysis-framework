@@ -454,7 +454,9 @@ class MeshBasedVisualizer:
                     rank_mapper, "Rank Work", 0.6, 0.2, 0.9)
 
                 # Create white to black look-up table
-                volume_range = (0.0, object_mesh.GetCellData().GetScalars().GetRange()[1])
+                volume_range = (
+                    0.0,
+                    object_mesh.GetCellData().GetScalars().GetRange()[1])
                 bw_lut = vtk.vtkLookupTable()
                 bw_lut.SetTableRange(volume_range)
                 bw_lut.SetSaturationRange(0, 0)
@@ -473,7 +475,7 @@ class MeshBasedVisualizer:
                 # Create communication volume and its scalar bar actors
                 edge_actor = vtk.vtkActor()
                 edge_actor.SetMapper(edge_mapper)
-                edge_actor.GetProperty().SetLineWidth(3)
+                edge_actor.GetProperty().SetLineWidth(8)
                 edge_actor.GetProperty().SetOpacity(1.0)
                 volume_actor = self.create_scalar_bar_actor(
                     edge_mapper, "Inter-Object Volume", 0.4, 0.05, 0.05)
@@ -488,8 +490,9 @@ class MeshBasedVisualizer:
 
                 # Create render window
                 render_window = vtk.vtkRenderWindow()
-                render_window.SetWindowName("LBAF")
                 render_window.AddRenderer(renderer)
+                render_window.SetWindowName("LBAF")
+                render_window.SetSize(800, 800)
                 render_window.Render()
 
                 # Convert window to image
