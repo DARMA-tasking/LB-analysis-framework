@@ -78,11 +78,11 @@ class MeshBasedVisualizer:
         self.__output_dir = output_dir
         if self.__output_dir is not None:
             self.__rank_file_name = os.path.join(
-                self.__output_dir,
-                self.__rank_file_name)
+                self.__output_dir, self.__rank_file_name)
             self.__object_file_name = os.path.join(
-                self.__output_dir,
-                self.__object_file_name)
+                self.__output_dir, self.__object_file_name)
+            self.__visualization_file_name = os.path.join(
+                self.__output_dir, output_file_stem)
 
         # Retrieve and verify rank attribute distributions
         dis_l = distributions.get("load", [])
@@ -434,7 +434,9 @@ class MeshBasedVisualizer:
 
             # Generate visualizations when requested
             if gen_mulmed:
-                self.__logger.info("Generating visualizations")
+                self.__logger.info(
+                    "Generating visualization for iteration {iteration}")
+
                 # Create rank mesh for current phase
                 rank_mesh = vtk.vtkPolyData()
                 rank_mesh.SetPoints(self.__rank_points)
@@ -576,8 +578,10 @@ class MeshBasedVisualizer:
                 #w2i.SetInputBufferTypeToRGBA()
 
                 # Output PNG file
+                file_name = f"{self.__visualization_file_name}_{iteration:02d}.png"
+                self.__logger.info(f"Writing PNG file: {file_name}")
                 writer = vtk.vtkPNGWriter()
                 writer.SetInputConnection(w2i.GetOutputPort())
-                writer.SetFileName(f"LBAF-{iteration}.png")
+                writer.SetFileName(file_name)
                 writer.SetCompressionLevel(2)
                 writer.Write()
