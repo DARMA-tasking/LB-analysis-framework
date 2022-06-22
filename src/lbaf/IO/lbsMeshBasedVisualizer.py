@@ -520,7 +520,10 @@ class MeshBasedVisualizer:
                     thresh.SetInputData(sqrtT_out)
                     thresh.ThresholdBetween(k, k)
                     thresh.Update()
-                    thresh.GetOutput().GetPointData().SetActiveScalars(
+                    thresh_out = thresh.GetOutput()
+                    if not thresh_out.GetNumberOfPoints():
+                        continue
+                    thresh_out.GetPointData().SetActiveScalars(
                         sqrtT_str)
 
                     # Glyph by square root of object times
@@ -530,10 +533,9 @@ class MeshBasedVisualizer:
                     glyph.SetScale(1.0)
                     glyph.FilledOn()
                     glyph.CrossOff()
-
                     glypher = vtk.vtkGlyph3D()
                     glypher.SetSourceConnection(glyph.GetOutputPort())
-                    glypher.SetInputData(thresh.GetOutput())
+                    glypher.SetInputData(thresh_out)
                     glypher.SetScaleModeToScaleByScalar()
                     glypher.SetScaleFactor(2.0)
                     glypher.Update()
