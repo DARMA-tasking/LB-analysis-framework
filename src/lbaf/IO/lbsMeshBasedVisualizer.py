@@ -349,7 +349,7 @@ class MeshBasedVisualizer:
         # Return color transfer function
         return ctf
 
-    def create_scalar_bar_actor(self, mapper, title, width, x, y):
+    def create_scalar_bar_actor(self, mapper, title, x, y):
         """ Create scalar bar with default and custome parameters."""
 
         # Instantiate scalar bar linked to given mapper
@@ -360,6 +360,7 @@ class MeshBasedVisualizer:
         scalar_bar_actor.SetOrientationToHorizontal()
         scalar_bar_actor.SetNumberOfLabels(2)
         scalar_bar_actor.SetHeight(0.08)
+        scalar_bar_actor.SetWidth(0.4)
         scalar_bar_actor.SetLabelFormat("%.3E")
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
@@ -373,7 +374,6 @@ class MeshBasedVisualizer:
 
         # Set custom parameters
         scalar_bar_actor.SetTitle(title)
-        scalar_bar_actor.SetWidth(width)
         position = scalar_bar_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
         position.SetValue(x, y, 0.0)
@@ -471,7 +471,7 @@ class MeshBasedVisualizer:
                 rank_actor.SetMapper(rank_mapper)
                 rank_actor.GetProperty().SetOpacity(0.6)
                 work_actor = self.create_scalar_bar_actor(
-                    rank_mapper, "Rank Work", 0.6, 0.2, 0.9)
+                    rank_mapper, "Rank Work", 0.55, 0.9)
                 renderer.AddActor(rank_actor)
                 renderer.AddActor2D(work_actor)
 
@@ -497,7 +497,7 @@ class MeshBasedVisualizer:
                 edge_actor.GetProperty().SetLineWidth(10)
                 edge_actor.GetProperty().SetOpacity(1.0)
                 volume_actor = self.create_scalar_bar_actor(
-                    edge_mapper, "Inter-Object Volume", 0.4, 0.05, 0.05)
+                    edge_mapper, "Inter-Object Volume", 0.05, 0.05)
                 renderer.AddActor(edge_actor)
                 renderer.AddActor2D(volume_actor)
 
@@ -562,7 +562,7 @@ class MeshBasedVisualizer:
 
                 # Create and add unique scalar bar for object time
                 time_actor = self.create_scalar_bar_actor(
-                    glyph_mapper, "Object Time", 0.4, 0.55, 0.05)
+                    glyph_mapper, "Object Time", 0.55, 0.05)
                 renderer.AddActor2D(time_actor)
 
                 # Create render window
