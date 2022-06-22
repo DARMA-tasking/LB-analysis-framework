@@ -68,8 +68,9 @@ class MeshBasedVisualizer:
                 else 0.0 for d in range(3)]
             for i in self.__phases[0].get_object_ids()}
 
-        # Initialize object time range
+        # Initialize object time and edge volume ranges
         self.__time_range = [math.inf, 0.0]
+        self.__max_volume = 0.0
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -162,6 +163,8 @@ class MeshBasedVisualizer:
             for e, edge in index_to_edge.items():
                 v = u_edges.get(edge, float("nan"))
                 v_arr.SetTuple1(e, v)
+                if v > self.__max_volume:
+                    self.__max_volume = v
                 self.__logger.debug(f"\t{e} {edge}): {v}")
 
         # Create and populate field arrays for statistics
@@ -471,11 +474,8 @@ class MeshBasedVisualizer:
                 renderer.AddActor2D(work_actor)
 
                 # Create white to black look-up table
-                volume_range = (
-                    0.0,
-                    object_mesh.GetCellData().GetScalars().GetRange()[1])
                 bw_lut = vtk.vtkLookupTable()
-                bw_lut.SetTableRange(volume_range)
+                bw_lut.SetTableRange((0.0, self.__max_volume))
                 bw_lut.SetSaturationRange(0, 0)
                 bw_lut.SetHueRange(0, 0)
                 bw_lut.SetValueRange(1, 0)
@@ -486,7 +486,7 @@ class MeshBasedVisualizer:
                 edge_mapper = vtk.vtkPolyDataMapper()
                 edge_mapper.SetInputData(object_mesh)
                 edge_mapper.SetScalarModeToUseCellData()
-                edge_mapper.SetScalarRange(volume_range)
+                edge_mapper.SetScalarRange((0.0, self.__max_volume))
                 edge_mapper.SetLookupTable(bw_lut)
 
                 # Create communication volume and its scalar bar actors
