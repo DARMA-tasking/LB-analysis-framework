@@ -492,7 +492,7 @@ class MeshBasedVisualizer:
                 # Create communication volume and its scalar bar actors
                 edge_actor = vtk.vtkActor()
                 edge_actor.SetMapper(edge_mapper)
-                edge_actor.GetProperty().SetLineWidth(8)
+                edge_actor.GetProperty().SetLineWidth(10)
                 edge_actor.GetProperty().SetOpacity(1.0)
                 volume_actor = self.create_scalar_bar_actor(
                     edge_mapper, "Inter-Object Volume", 0.4, 0.05, 0.05)
@@ -538,9 +538,16 @@ class MeshBasedVisualizer:
                     glypher.GetOutput().GetPointData().SetActiveScalars(
                         "Time")
 
+                    # Raise glyphs slightly for visibility
+                    z_raise = vtk.vtkTransform()
+                    z_raise.Translate(0.0, 0.0, 0.01)
+                    trans = vtk.vtkTransformPolyDataFilter()
+                    trans.SetTransform(z_raise)
+                    trans.SetInputData(glypher.GetOutput())
+
                     # Create mapper and actor for glyphs
                     glyph_mapper = vtk.vtkPolyDataMapper()
-                    glyph_mapper.SetInputData(glypher.GetOutput())
+                    glyph_mapper.SetInputConnection(trans.GetOutputPort())
                     glyph_mapper.SetLookupTable(
                         self.create_color_transfer_function(
                             self.__time_range, "blue_to_red"))
