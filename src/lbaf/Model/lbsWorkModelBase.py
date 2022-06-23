@@ -6,7 +6,7 @@ from ..Utils.exception_handler import exc_handler
 from ..Utils.logger import logger
 
 
-LGR = logger()
+LGR = logger
 
 
 class WorkModelBase:
@@ -19,7 +19,7 @@ class WorkModelBase:
             parameters: optional parameters dictionary
         """
         # Work keeps internal references to ranks and edges
-        LGR.debug("Created base work model")
+        LGR().debug("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters, lgr: Logger):
@@ -36,7 +36,7 @@ class WorkModelBase:
             return work(parameters, lgr=lgr)
         except:
             # Otherwise, error out
-            LGR.error(f"Could not create a work with name: {work_name}")
+            LGR().error(f"Could not create a work with name: {work_name}")
             sys.excepthook = exc_handler
             raise NameError(f"Could not create a work with name: {work_name}")
 

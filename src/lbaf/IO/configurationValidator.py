@@ -73,6 +73,7 @@ class ConfigurationValidator:
                 },
             Optional("brute_force_optimization"): bool,
             Optional("show_traceback"): bool,
+            Optional("log_to_file"): str,
             Optional("logging_level"): And(
                 str, Use(str.lower),
                 lambda f: f in ALLOWED_LOGGING_LEVELS,
