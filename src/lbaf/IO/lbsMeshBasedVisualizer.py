@@ -619,4 +619,3 @@ class MeshBasedVisualizer:
                 writer.SetFileName(file_name)
                 writer.SetCompressionLevel(2)
                 writer.Write()
-                sys.exit(1)
