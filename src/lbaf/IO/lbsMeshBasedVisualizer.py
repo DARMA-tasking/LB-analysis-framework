@@ -573,8 +573,13 @@ class MeshBasedVisualizer:
 
             # Generate visualizations when requested
             if gen_mulmed:
+                if len (self.__rank_dims) > 2:
+                    self.__logger.warning(
+                        "Visualization generation not yet implemented in 3-D")
+                    continue
+
                 self.__logger.info(
-                    "Generating visualization for iteration {iteration}")
+                    f"Generating 2-D visualization for iteration {iteration}")
                 render_window = self.create_rendering_pipeline(
                     iteration, object_mesh)
                 render_window.Render()
