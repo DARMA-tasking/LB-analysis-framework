@@ -60,6 +60,7 @@ class MeshBasedVisualizer:
         self.__grid_size = grid_size
         self.__rank_dims = [
             d for d in range(3) if self.__grid_size[d] > 1]
+        self.__max_o_per_dim = 0
 
         # Compute constant per object jitter
         self.__jitter_dims = {
@@ -232,15 +233,21 @@ class MeshBasedVisualizer:
             # Determine rank offsets
             offsets = [
                 self.__grid_resolution * c
-                for c in self.global_id_to_cartesian(rank_id, self.__grid_size)]
+                for c in self.global_id_to_cartesian(
+                    rank_id, self.__grid_size)]
 
-            # Iterate over objects and create point coordinates
+            # Compute local object block parameters
             n_o_rank = len(objects)
             n_o_per_dim = math.ceil(n_o_rank ** (
                 1. / len(self.__rank_dims)))
+            if n_o_per_dim > self.__max_o_per_dim:
+                self.__max_o_per_dim = n_o_per_dim
+            o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
+
+
+            # Iterate over objects and create point coordinates
             self.__logger.debug(
                 f"Arranging a maximum of {n_o_per_dim} objects per dimension in {self.__rank_dims}")
-            o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
             rank_size = [n_o_per_dim
                          if d in self.__rank_dims
                          else 1 for d in range(3)]
@@ -381,7 +388,7 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(self, iteration: int, object_mesh):
+    def create_rendering_pipeline(self, iteration: int, glyph_factor: float, object_mesh):
         """ Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
@@ -484,7 +491,7 @@ class MeshBasedVisualizer:
             glypher.SetSourceConnection(glyph.GetOutputPort())
             glypher.SetInputData(thresh_out)
             glypher.SetScaleModeToScaleByScalar()
-            glypher.SetScaleFactor(2.0)
+            glypher.SetScaleFactor(glyph_factor)
             glypher.Update()
             glypher.GetOutput().GetPointData().SetActiveScalars(
                 "Time")
@@ -579,9 +586,14 @@ class MeshBasedVisualizer:
                     continue
 
                 self.__logger.info(
-                    f"Generating 2-D visualization for iteration {iteration}")
+                    f"Generating 2-D visualization for iteration {iteration}:")
+                glyph_factor = self.__grid_resolution / (
+                    (self.__max_o_per_dim + 1)
+                    * math.sqrt(self.__time_range[1]))
+                self.__logger.info(
+                    f"\tobject glyphs scaling: {glyph_factor:.2g}")
                 render_window = self.create_rendering_pipeline(
-                    iteration, object_mesh)
+                    iteration, glyph_factor, object_mesh)
                 render_window.Render()
 
                 # Convert window to image
@@ -598,3 +610,4 @@ class MeshBasedVisualizer:
                 writer.SetFileName(file_name)
                 writer.SetCompressionLevel(2)
                 writer.Write()
+                sys.exit(1)
