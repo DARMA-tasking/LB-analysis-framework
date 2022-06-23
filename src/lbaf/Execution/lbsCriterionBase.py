@@ -3,10 +3,11 @@ from logging import Logger
 import sys
 
 from ..Model.lbsWorkModelBase import WorkModelBase
+from ..Utils.exception_handler import exc_handler
 from ..Utils.logger import logger
 
 
-LGR = logger()
+LGR = logger
 
 
 class CriterionBase:
@@ -21,12 +22,13 @@ class CriterionBase:
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            LGR.error("Could not create a criterion without a work model")
+            LGR().error("Could not create a criterion without a work model")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.work_model = work_model
 
         # Criterion keeps internal references to ranks and edges
-        LGR.debug(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
+        LGR().debug(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
 
     @staticmethod
     def factory(criterion_name, work_model, lgr: Logger):
@@ -44,7 +46,8 @@ class CriterionBase:
             return criterion(work_model, lgr=lgr)
         except:
             # Otherwise, error out
-            LGR.error(f"Could not create a criterion with name {criterion_name}")
+            LGR().error(f"Could not create a criterion with name {criterion_name}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     @abc.abstractmethod

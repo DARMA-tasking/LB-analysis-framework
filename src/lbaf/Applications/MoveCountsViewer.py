@@ -14,6 +14,7 @@ import sys
 import vtk
 
 from lbaf.Applications.MoveCountsViewerParameters import MoveCountsViewerParameters
+from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 
@@ -382,6 +383,7 @@ if __name__ == "__main__":
     lgr.info("Parsing command line arguments")
 
     if params.parse_command_line():
+        sys.excepthook = exc_handler
         raise SystemExit(1)
 
     params.computeMoveCountsViewer()

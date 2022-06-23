@@ -12,6 +12,7 @@ from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, \
     min_Hamming_distance
+from ..Utils.exception_handler import exc_handler
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -33,15 +34,18 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
             self.__logger.error(
                 f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
             self.__logger.error(
                 f"Incorrect provided number of information rounds: {self.__n_rounds}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self.__logger.error(f"Incorrect provided information fanout {self.__fanout}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__logger.info(
             f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
@@ -59,6 +63,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         if o_s not in self.__strategy_mapped:
             self.__logger.error(f"{o_s} does not exist in known ordering strategies: "
                                 f"{[x for x in self.__strategy_mapped.keys()]}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self.__logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
@@ -70,6 +75,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             lgr=self.__logger)
         if not self.__transfer_criterion:
             self.__logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Assign optional parameters
@@ -264,6 +270,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 # Sanity check before transfer
                 if p_dst not in p_src.get_known_loads():
                     self.__logger.error(f"Destination rank {p_dst.get_id()} not in known ranks")
+                    sys.excepthook = exc_handler
                     raise SystemExit(1)
 
                 # Transfer objects
@@ -288,9 +295,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
         # Ensure that a list with at least one phase was provided
-        if not phases or not isinstance(phases, list) or not isinstance(
-            (phase := phases[0]), Phase):
+        if not phases or not isinstance(phases, list) or not isinstance((phase := phases[0]), Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.phase = phase
 

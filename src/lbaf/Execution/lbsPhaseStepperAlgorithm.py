@@ -1,8 +1,10 @@
 from logging import Logger
+import sys
 
 from .lbsAlgorithmBase import AlgorithmBase
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics
+from ..Utils.exception_handler import exc_handler
 
 
 class PhaseStepperAlgorithm(AlgorithmBase):
@@ -27,6 +29,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         if not phases or not isinstance(phases, list) or not all(
                 [isinstance(p, Phase) for p in phases]):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Iterate over all phases

@@ -8,6 +8,7 @@ import vtk
 
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
+from ..Utils.exception_handler import exc_handler
 
 
 class MeshWriter:
@@ -37,6 +38,7 @@ class MeshWriter:
         # Ensure that specified grid resolution is correct
         if not isinstance(r, numbers.Number) or r <= 0.:
             self.__logger.error("Grid resolution must be a positive number")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__grid_resolution = float(r)
 
@@ -160,6 +162,7 @@ class MeshWriter:
         # Write to ExodusII file when possible
         if streamer.Error:
             self.__logger.error(f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         else:
             self.__logger.info(f"Writing ExodusII file: {self.__rank_file_name}")
@@ -317,6 +320,7 @@ class MeshWriter:
         if not all([isinstance(p, Phase) for p in phases]):
             self.__logger.error(
                 "Mesh writer expects a list of Phase instances as input")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Write rank view file with global per-rank statistics

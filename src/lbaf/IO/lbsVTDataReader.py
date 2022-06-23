@@ -9,6 +9,7 @@ from .schemaValidator import SchemaValidator
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
+from ..Utils.exception_handler import exc_handler
 
 
 class LoadReader:
@@ -51,6 +52,7 @@ class LoadReader:
         file_name = self.get_node_trace_file_name(node_id)
         self.__logger.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
+            sys.excepthook = exc_handler
             raise FileNotFoundError(f"File {file_name} not found!")
 
         # Retrieve communications from JSON reader
@@ -87,6 +89,7 @@ class LoadReader:
             except KeyError as e:
                 msg_err = f"Could not retrieve information for rank {p} at time_step {phase_id}. KeyError {e}"
                 self.__logger.error(msg_err)
+                sys.excepthook = exc_handler
                 raise KeyError(msg_err)
 
             # Merge rank communication with existing ones
@@ -136,6 +139,7 @@ class LoadReader:
         # Extracting type from JSON data
         schema_type = decompressed_dict.get("type")
         if schema_type is None:
+            sys.excepthook = exc_handler
             raise TypeError("JSON data is missing 'type' key")
 
         # Validate schema

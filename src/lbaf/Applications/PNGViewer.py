@@ -4,6 +4,7 @@ import paraview.simple as pv
 
 from lbaf.Applications.ParaviewViewer import ParaviewViewer
 from lbaf.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 
@@ -49,6 +50,7 @@ if __name__ == '__main__':
 
     params = ViewerParameters()
     if params.parse_command_line():
+        sys.excepthook = exc_handler
         raise SystemExit(1)
     pngViewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "PNG")
 

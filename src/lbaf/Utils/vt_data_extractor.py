@@ -13,6 +13,7 @@ import brotli
 import json
 
 from lbaf.IO.schemaValidator import SchemaValidator
+from lbaf.Utils.exception_handler import exc_handler
 
 
 class VTDataExtractor:
@@ -45,6 +46,7 @@ class VTDataExtractor:
             print(f"Input data directory: {self.input_data_dir}")
         else:
             print("Input data directory NOT FOUND!")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         # Output data
         if not os.path.exists(self.output_data_dir):
@@ -62,6 +64,7 @@ class VTDataExtractor:
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
                     print('Phase range wrongly declared!')
+                    sys.excepthook = exc_handler
                     raise SystemExit(1)
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
@@ -104,6 +107,7 @@ class VTDataExtractor:
             else:
                 print(f"Invalid JSON schema in {file_path}")
                 SchemaValidator(schema_type=self.schema_type).validate(schema_to_validate=decompressed_dict)
+                sys.excepthook = exc_handler
                 raise SystemExit(1)
 
         return decompressed_dict
@@ -148,7 +152,7 @@ if __name__ == '__main__':
     # It should be declared as list of [int or str]
     # Int is just a phase number/id
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
-    phases = [0,1,2,3,4,5,6,7,8,9,10]
+    phases = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-stats",
                            output_data_dir="../output",
                            phases_to_extract=phases,

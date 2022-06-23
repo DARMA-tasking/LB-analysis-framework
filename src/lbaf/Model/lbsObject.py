@@ -1,4 +1,7 @@
+import sys
+
 from .lbsObjectCommunicator import ObjectCommunicator
+from ..Utils.exception_handler import exc_handler
 
 
 class Object:
@@ -7,12 +10,14 @@ class Object:
     def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None):
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
+            sys.excepthook = exc_handler
             raise TypeError(f"i: {i} is type of {type(i)}! Must be <class 'int'>!")
         else:
             self.__index = i
 
         # Time required to perform the work of this object
         if not isinstance(t, float):
+            sys.excepthook = exc_handler
             raise TypeError(f"t: {t} is type of {type(t)}! Must be <class 'float'>!")
         else:
             self.__time = t
@@ -21,18 +26,21 @@ class Object:
         if bool(isinstance(p, int) or p is None) and not isinstance(p, bool):
             self.__rank_id = p
         else:
+            sys.excepthook = exc_handler
             raise TypeError(f"p: {p} is type of {type(p)}! Must be <class 'int'>!")
 
         # Communication graph of this object if defined
         if isinstance(c, ObjectCommunicator) or c is None:
             self.__communicator = c
         else:
+            sys.excepthook = exc_handler
             raise TypeError(f"c: {c} is type of {type(c)}! Must be <class 'ObjectCommunicator'>!")
 
         # User defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
         else:
+            sys.excepthook = exc_handler
             raise TypeError(f"user_defined: {user_defined} is type of {type(user_defined)}! Must be <class 'dict'>!")
 
     def __repr__(self):

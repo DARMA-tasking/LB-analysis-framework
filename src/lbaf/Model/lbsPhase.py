@@ -8,6 +8,7 @@ from .lbsObjectCommunicator import ObjectCommunicator
 
 from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
+from ..Utils.exception_handler import exc_handler
 
 
 class Phase:
@@ -197,6 +198,7 @@ class Phase:
         # Perform sanity checks
         if len(v_recv) != len(v_sent):
             self.__logger.error(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Compute and report communication volume statistics

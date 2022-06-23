@@ -14,6 +14,8 @@ import json
 
 import brotli
 
+from lbaf.Utils.exception_handler import exc_handler
+
 
 class Csv2JsonConverter:
     """ A class to convert from previous log structure (CSV) to a current log structure (JSON)
@@ -51,6 +53,7 @@ class Csv2JsonConverter:
             return os.path.join(project_path, dir_path)
         else:
             print(f"Can not find dir {dir_path}!")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def _get_files_for_conversion(self) -> list:

@@ -1,6 +1,7 @@
 import sys
 
 from lbaf.Applications.ParaviewViewerBase import ViewerParameters, ParaviewViewerBase
+from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 
@@ -36,6 +37,7 @@ if __name__ == '__main__':
     lgr.info("Parsing command line arguments")
     params = ViewerParameters()
     if params.parse_command_line():
+        sys.excepthook = exc_handler
         raise SystemExit(1)
     viewer = ParaviewViewerBase.factory(params.exodus, params.file_name, "")
 

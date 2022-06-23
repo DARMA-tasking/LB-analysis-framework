@@ -4,8 +4,8 @@ import itertools
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
+from ..Utils.exception_handler import exc_handler
 
 
 class BruteForceAlgorithm(AlgorithmBase):
@@ -70,6 +70,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         if not phases or not isinstance(phases, list) or not isinstance(
                 (phase := phases[0]), Phase):
             self.__logger.error(f"Algorithm execution requires a Phase instance")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.phase = phase
 
@@ -124,9 +125,11 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Sanity checks
         if not len(a_min_max):
             self.__logger.error("No optimal arrangements were found")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         if n_arrangements != n_ranks ** len(objects):
             self.__logger.error("Incorrect number of possible arrangements with repetition")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_arrangements}")
 

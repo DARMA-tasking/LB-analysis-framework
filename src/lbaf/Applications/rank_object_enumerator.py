@@ -14,6 +14,7 @@ except Exception as e:
     raise SystemExit(1)
 
 from lbaf.IO.lbsVTDataReader import LoadReader
+from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 
@@ -114,9 +115,11 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
     # Sanity checks regarding rank IDs
     if from_id >= n_ranks:
         LGR.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
+        sys.excepthook = exc_handler
         raise SystemExit(1)
     if to_id >= n_ranks:
         LGR.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
+        sys.excepthook = exc_handler
         raise SystemExit(1)
 
     # Provide upper bounder on transfer size when none provided
@@ -210,6 +213,7 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
     w_a = visited.get(arrangement, -1.)
     if w_a < 0.:
         LGR.error(f"Arrangement {arrangement} not found in visited map")
+        sys.excepthook = exc_handler
         raise SystemExit(1)
 
     # Append current arrangement to trajectory stack
@@ -289,6 +293,7 @@ if __name__ == '__main__':
                                                                   n_ranks=N_RANKS)
     if n_a != N_RANKS ** len(objects):
         LGR.error("Incorrect number of possible arrangements with repetition")
+        sys.excepthook = exc_handler
         raise SystemExit(1)
     LGR.info(f"Number of generated arrangements with repetition: {n_a}")
     LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")

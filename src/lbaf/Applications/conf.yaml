@@ -71,7 +71,7 @@ algorithm:
 
 # Specify output
 #logging_level: debug
-show_traceback: False
+show_traceback: True
 terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output

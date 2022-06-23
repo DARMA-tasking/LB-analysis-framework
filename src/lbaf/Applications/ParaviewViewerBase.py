@@ -5,6 +5,7 @@ import sys
 import paraview.simple as pv
 
 from lbaf.Utils.logger import logger
+from lbaf.Utils.exception_handler import exc_handler
 
 # Assign logger to variable
 LGR = logger()
@@ -94,6 +95,7 @@ class ParaviewViewerBase(object):
         # Unspecified ExodusII file name
         if not exodus:
             LGR.error("An ExodusII file name needs to be provided. Exiting.")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Unspecified visualization file name
@@ -116,16 +118,19 @@ class ParaviewViewerBase(object):
         # Unspecified viewer type
         elif viewer_type == None:
             LGR.error("A viewer type needs to be provided. Exiting.")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Unsupported viewer type
         else:
             LGR.error(f"{viewer_type} type viewer unsupported. Exiting.")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Report not instantiated
         if not ret_object:
             LGR.error(f"{viewer_type} viewer not instantiated. Exiting.")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Return instantiated object
