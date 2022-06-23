@@ -14,15 +14,15 @@ class Phase:
     """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, logger: Logger, t: int = 0, file_suffix="json"):
+    def __init__(self, logger: Logger, pid: int = 0, file_suffix="json"):
         # Initialize empty list of ranks
         self.__ranks = []
 
         # Initialize null number of objects
         self.__n_objects = 0
 
-        # Default time-step/phase of this phase
-        self.__phase_id = t
+        # Index of this phase
+        self.__phase_id = pid
 
         # Assign logger to instance variable
         self.__logger = logger
@@ -33,6 +33,10 @@ class Phase:
 
         # Data files suffix(reading from data)
         self.__file_suffix = file_suffix
+
+    def get_id(self):
+        """ Retrieve index of this phase."""
+        return self.__phase_id
 
     def get_number_of_ranks(self):
         """ Retrieve number of ranks belonging to phase."""
@@ -45,10 +49,6 @@ class Phase:
     def get_rank_ids(self):
         """ Retrieve IDs of ranks belonging to phase."""
         return [p.get_id() for p in self.__ranks]
-
-    def get_phase_id(self):
-        """ Retrieve the time-step/phase for this phase."""
-        return self.__phase_id
 
     def get_number_of_objects(self):
         """ Return number of objects."""

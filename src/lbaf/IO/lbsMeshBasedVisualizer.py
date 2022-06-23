@@ -388,7 +388,7 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(self, iteration: int, edge_width: int, glyph_factor: float, win_size: int, object_mesh):
+    def create_rendering_pipeline(self, iteration: int, pid: int, edge_width: int, glyph_factor: float, win_size: int, object_mesh):
         """ Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
@@ -519,6 +519,20 @@ class MeshBasedVisualizer:
             glyph_mapper, "Object Time", 0.55, 0.05)
         renderer.AddActor2D(time_actor)
 
+        # Create text actor to indicate iteration
+        text_actor = vtk.vtkTextActor()
+        text_actor.SetInput(f"Phase ID: {pid}\nIteration: {iteration}")
+        text_prop = text_actor.GetTextProperty()
+        text_prop.SetColor(0.0, 0.0, 0.0)
+        text_prop.ItalicOff()
+        text_prop.BoldOff()
+        text_prop.SetFontFamilyToArial()
+        text_prop.SetFontSize(72)
+        position = text_actor.GetPositionCoordinate()
+        position.SetCoordinateSystemToNormalizedViewport()
+        position.SetValue(0.1, 0.9, 0.0)
+        renderer.AddActor(text_actor)
+
         # Create and return render window
         renderer.ResetCamera()
         render_window = vtk.vtkRenderWindow()
@@ -602,7 +616,12 @@ class MeshBasedVisualizer:
 
                 # Run visualization pipeline
                 render_window = self.create_rendering_pipeline(
-                    iteration, edge_width, glyph_factor, win_size, object_mesh)
+                    iteration,
+                    phase.get_id(),
+                    edge_width,
+                    glyph_factor,
+                    win_size,
+                    object_mesh)
                 render_window.Render()
 
                 # Convert window to image
