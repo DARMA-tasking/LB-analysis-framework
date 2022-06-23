@@ -69,9 +69,20 @@ class MeshBasedVisualizer:
                 else 0.0 for d in range(3)]
             for i in self.__phases[0].get_object_ids()}
 
-        # Initialize object time and edge volume ranges
-        self.__time_range = [math.inf, 0.0]
+        # Initialize maximum edge volume
         self.__max_volume = 0.0
+
+        # Compute object time range
+        self.__time_range = [math.inf, 0.0]
+        for p in self.__phases:
+            for r in p.get_ranks():
+                for o in r.get_objects():
+                    # Update time range when necessary
+                    time = o.get_time()
+                    if time >  self.__time_range[1]:
+                        self.__time_range[1] = time
+                    if time <  self.__time_range[0]:
+                        self.__time_range[0] = time
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -274,12 +285,6 @@ class MeshBasedVisualizer:
                 time = o.get_time()
                 t_arr.SetTuple1(point_index, time)
                 b_arr.SetTuple1(point_index, m)
-
-                # Update time range when necessary
-                if time >  self.__time_range[1]:
-                    self.__time_range[1] = time
-                if time <  self.__time_range[0]:
-                    self.__time_range[0] = time
 
                 # Update sent volumes
                 for k, v in o.get_sent().items():
@@ -493,8 +498,7 @@ class MeshBasedVisualizer:
             glypher.SetScaleModeToScaleByScalar()
             glypher.SetScaleFactor(glyph_factor)
             glypher.Update()
-            glypher.GetOutput().GetPointData().SetActiveScalars(
-                "Time")
+            glypher.GetOutput().GetPointData().SetActiveScalars("Time")
 
             # Raise glyphs slightly for visibility
             z_raise = vtk.vtkTransform()
