@@ -24,16 +24,19 @@ class CustomFormatter(Formatter):
         return formatter.format(record)
 
 
-def logger(name: str = "root"):
+def logger(name: str = "root", conf: str = None):
     """ Return logger with config from logger.ini
     """
-
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), "rt") as conf_file:
-        conf = yaml.safe_load(conf_file)
+    if conf is not None:
+        with open(conf, "rt") as conf_file:
+            config = yaml.safe_load(conf_file)
+    else:
+        config = {}
 
     # Assign formatting properties
-    clr_fnc = black if conf.get("terminal_background") == "light" else light_white
+    clr_fnc = black if config.get("terminal_background") == "light" else light_white
+    logger_output = config.get("log_to_file") if \
+        bool(isinstance(config.get("log_to_file"), str) and config.get("log_to_file") is not None) else None
     formater_extended = {
         logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
         logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
@@ -47,10 +50,13 @@ def logger(name: str = "root"):
 
     # Set logger properties in INFO mode by default
     lgr = logging.getLogger(name)
-    ll = conf.get("logging_level", "INFO").upper()
+    ll = config.get("logging_level", "INFO").upper()
     lgr.setLevel(LOGGING_LEVEL.get(ll))
     if not lgr.hasHandlers():
-        ch = logging.StreamHandler()
+        if logger_output is not None:
+            ch = logging.FileHandler(filename=logger_output)
+        else:
+            ch = logging.StreamHandler()
         ch.setLevel(LOGGING_LEVEL.get(ll))
         ch.setFormatter(CustomFormatter(frmttr=formater_PPP))
         lgr.addHandler(ch)
