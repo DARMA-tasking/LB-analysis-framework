@@ -381,6 +381,145 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
+    def create_rendering_pipeline(self, iteration: int, object_mesh):
+        """ Create VTK-based pipeline all the way to render window."""
+
+        # Create rank mesh for current phase
+        rank_mesh = vtk.vtkPolyData()
+        rank_mesh.SetPoints(self.__rank_points)
+        rank_mesh.SetLines(self.__rank_lines)
+        rank_mesh.GetPointData().SetScalars(self.__works[iteration])
+
+        # Create renderer with parallel projection
+        renderer = vtk.vtkRenderer()
+        renderer.SetBackground(1.0, 1.0, 1.0)
+        renderer.GetActiveCamera().ParallelProjectionOn()
+
+        # Create square glyphs at ranks
+        rank_glyph = vtk.vtkGlyphSource2D()
+        rank_glyph.SetGlyphTypeToSquare()
+        rank_glyph.SetScale(.95)
+        rank_glyph.FilledOn()
+        rank_glyph.CrossOff()
+        rank_glypher = vtk.vtkGlyph2D()
+        rank_glypher.SetSourceConnection(rank_glyph.GetOutputPort())
+        rank_glypher.SetInputData(rank_mesh)
+        rank_glypher.SetScaleModeToDataScalingOff()
+
+        # Create mapper for rank glyphs
+        rank_mapper = vtk.vtkPolyDataMapper()
+        rank_mapper.SetInputConnection(rank_glypher.GetOutputPort())
+        rank_mapper.SetLookupTable(
+            self.create_color_transfer_function(self.__work_range))
+        rank_mapper.SetScalarRange(self.__work_range)
+
+        # Create rank work and its scalar bar actors
+        rank_actor = vtk.vtkActor()
+        rank_actor.SetMapper(rank_mapper)
+        rank_actor.GetProperty().SetOpacity(0.6)
+        work_actor = self.create_scalar_bar_actor(
+            rank_mapper, "Rank Work", 0.55, 0.9)
+        renderer.AddActor(rank_actor)
+        renderer.AddActor2D(work_actor)
+
+        # Create white to black look-up table
+        bw_lut = vtk.vtkLookupTable()
+        bw_lut.SetTableRange((0.0, self.__max_volume))
+        bw_lut.SetSaturationRange(0, 0)
+        bw_lut.SetHueRange(0, 0)
+        bw_lut.SetValueRange(1, 0)
+        bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
+        bw_lut.Build()
+
+        # Create mapper for inter-object edges
+        edge_mapper = vtk.vtkPolyDataMapper()
+        edge_mapper.SetInputData(object_mesh)
+        edge_mapper.SetScalarModeToUseCellData()
+        edge_mapper.SetScalarRange((0.0, self.__max_volume))
+        edge_mapper.SetLookupTable(bw_lut)
+
+        # Create communication volume and its scalar bar actors
+        edge_actor = vtk.vtkActor()
+        edge_actor.SetMapper(edge_mapper)
+        edge_actor.GetProperty().SetLineWidth(10)
+        edge_actor.GetProperty().SetOpacity(1.0)
+        volume_actor = self.create_scalar_bar_actor(
+            edge_mapper, "Inter-Object Volume", 0.05, 0.05)
+        renderer.AddActor(edge_actor)
+        renderer.AddActor2D(volume_actor)
+
+        # Compute square root of object times
+        sqrtT = vtk.vtkArrayCalculator()
+        sqrtT.SetInputData(object_mesh)
+        sqrtT.AddScalarArrayName("Time")
+        sqrtT_str = "sqrt(Time)"
+        sqrtT.SetFunction(sqrtT_str)
+        sqrtT.SetResultArrayName(sqrtT_str)
+        sqrtT.Update()
+        sqrtT_out = sqrtT.GetOutput()
+        sqrtT_out.GetPointData().SetActiveScalars("Migratable")
+
+        # Glyph sentinel and migratable objects separately
+        glyph_actors = []
+        for k, v in {0.0: "Square", 1.0: "Circle"}.items():
+            # Threshold by Migratable status
+            thresh = vtk.vtkThreshold()
+            thresh.SetInputData(sqrtT_out)
+            thresh.ThresholdBetween(k, k)
+            thresh.Update()
+            thresh_out = thresh.GetOutput()
+            if not thresh_out.GetNumberOfPoints():
+                continue
+            thresh_out.GetPointData().SetActiveScalars(
+                sqrtT_str)
+
+            # Glyph by square root of object times
+            glyph = vtk.vtkGlyphSource2D()
+            getattr(glyph, f"SetGlyphTypeTo{v}")()
+            glyph.SetResolution(32)
+            glyph.SetScale(1.0)
+            glyph.FilledOn()
+            glyph.CrossOff()
+            glypher = vtk.vtkGlyph3D()
+            glypher.SetSourceConnection(glyph.GetOutputPort())
+            glypher.SetInputData(thresh_out)
+            glypher.SetScaleModeToScaleByScalar()
+            glypher.SetScaleFactor(2.0)
+            glypher.Update()
+            glypher.GetOutput().GetPointData().SetActiveScalars(
+                "Time")
+
+            # Raise glyphs slightly for visibility
+            z_raise = vtk.vtkTransform()
+            z_raise.Translate(0.0, 0.0, 0.01)
+            trans = vtk.vtkTransformPolyDataFilter()
+            trans.SetTransform(z_raise)
+            trans.SetInputData(glypher.GetOutput())
+
+            # Create mapper and actor for glyphs
+            glyph_mapper = vtk.vtkPolyDataMapper()
+            glyph_mapper.SetInputConnection(trans.GetOutputPort())
+            glyph_mapper.SetLookupTable(
+                self.create_color_transfer_function(
+                    self.__time_range, "blue_to_red"))
+            glyph_mapper.SetScalarRange(self.__time_range)
+            glyph_actor = vtk.vtkActor()
+            glyph_actor.SetMapper(glyph_mapper)
+            renderer.AddActor(glyph_actor)
+
+        # Create and add unique scalar bar for object time
+        time_actor = self.create_scalar_bar_actor(
+            glyph_mapper, "Object Time", 0.55, 0.05)
+        renderer.AddActor2D(time_actor)
+
+        # Create and return render window
+        renderer.ResetCamera()
+        render_window = vtk.vtkRenderWindow()
+        render_window.AddRenderer(renderer)
+        render_window.SetWindowName("LBAF")
+        render_window.SetSize(800, 800)
+        return render_window
+
     def generate(self, gen_meshes, gen_mulmed):
         """ Generate mesh and multimedia outputs."""
 
@@ -436,141 +575,8 @@ class MeshBasedVisualizer:
             if gen_mulmed:
                 self.__logger.info(
                     "Generating visualization for iteration {iteration}")
-
-                # Create rank mesh for current phase
-                rank_mesh = vtk.vtkPolyData()
-                rank_mesh.SetPoints(self.__rank_points)
-                rank_mesh.SetLines(self.__rank_lines)
-                rank_mesh.GetPointData().SetScalars(self.__works[iteration])
-
-                # Create renderer with parallel projection
-                renderer = vtk.vtkRenderer()
-                renderer.SetBackground(1.0, 1.0, 1.0)
-                renderer.GetActiveCamera().ParallelProjectionOn()
-
-                # Create square glyphs at ranks
-                rank_glyph = vtk.vtkGlyphSource2D()
-                rank_glyph.SetGlyphTypeToSquare()
-                rank_glyph.SetScale(.95)
-                rank_glyph.FilledOn()
-                rank_glyph.CrossOff()
-                rank_glypher = vtk.vtkGlyph2D()
-                rank_glypher.SetSourceConnection(rank_glyph.GetOutputPort())
-                rank_glypher.SetInputData(rank_mesh)
-                rank_glypher.SetScaleModeToDataScalingOff()
-
-                # Create mapper for rank glyphs
-                rank_mapper = vtk.vtkPolyDataMapper()
-                rank_mapper.SetInputConnection(rank_glypher.GetOutputPort())
-                rank_mapper.SetLookupTable(
-                    self.create_color_transfer_function(self.__work_range))
-                rank_mapper.SetScalarRange(self.__work_range)
-
-                # Create rank work and its scalar bar actors
-                rank_actor = vtk.vtkActor()
-                rank_actor.SetMapper(rank_mapper)
-                rank_actor.GetProperty().SetOpacity(0.6)
-                work_actor = self.create_scalar_bar_actor(
-                    rank_mapper, "Rank Work", 0.55, 0.9)
-                renderer.AddActor(rank_actor)
-                renderer.AddActor2D(work_actor)
-
-                # Create white to black look-up table
-                bw_lut = vtk.vtkLookupTable()
-                bw_lut.SetTableRange((0.0, self.__max_volume))
-                bw_lut.SetSaturationRange(0, 0)
-                bw_lut.SetHueRange(0, 0)
-                bw_lut.SetValueRange(1, 0)
-                bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
-                bw_lut.Build()
-
-                # Create mapper for inter-object edges
-                edge_mapper = vtk.vtkPolyDataMapper()
-                edge_mapper.SetInputData(object_mesh)
-                edge_mapper.SetScalarModeToUseCellData()
-                edge_mapper.SetScalarRange((0.0, self.__max_volume))
-                edge_mapper.SetLookupTable(bw_lut)
-
-                # Create communication volume and its scalar bar actors
-                edge_actor = vtk.vtkActor()
-                edge_actor.SetMapper(edge_mapper)
-                edge_actor.GetProperty().SetLineWidth(10)
-                edge_actor.GetProperty().SetOpacity(1.0)
-                volume_actor = self.create_scalar_bar_actor(
-                    edge_mapper, "Inter-Object Volume", 0.05, 0.05)
-                renderer.AddActor(edge_actor)
-                renderer.AddActor2D(volume_actor)
-
-                # Compute square root of object times
-                sqrtT = vtk.vtkArrayCalculator()
-                sqrtT.SetInputData(object_mesh)
-                sqrtT.AddScalarArrayName("Time")
-                sqrtT_str = "sqrt(Time)"
-                sqrtT.SetFunction(sqrtT_str)
-                sqrtT.SetResultArrayName(sqrtT_str)
-                sqrtT.Update()
-                sqrtT_out = sqrtT.GetOutput()
-                sqrtT_out.GetPointData().SetActiveScalars("Migratable")
-
-                # Glyph sentinel and migratable objects separately
-                glyph_actors = []
-                for k, v in {0.0: "Square", 1.0: "Circle"}.items():
-                    # Threshold by Migratable status
-                    thresh = vtk.vtkThreshold()
-                    thresh.SetInputData(sqrtT_out)
-                    thresh.ThresholdBetween(k, k)
-                    thresh.Update()
-                    thresh_out = thresh.GetOutput()
-                    if not thresh_out.GetNumberOfPoints():
-                        continue
-                    thresh_out.GetPointData().SetActiveScalars(
-                        sqrtT_str)
-
-                    # Glyph by square root of object times
-                    glyph = vtk.vtkGlyphSource2D()
-                    getattr(glyph, f"SetGlyphTypeTo{v}")()
-                    glyph.SetResolution(32)
-                    glyph.SetScale(1.0)
-                    glyph.FilledOn()
-                    glyph.CrossOff()
-                    glypher = vtk.vtkGlyph3D()
-                    glypher.SetSourceConnection(glyph.GetOutputPort())
-                    glypher.SetInputData(thresh_out)
-                    glypher.SetScaleModeToScaleByScalar()
-                    glypher.SetScaleFactor(2.0)
-                    glypher.Update()
-                    glypher.GetOutput().GetPointData().SetActiveScalars(
-                        "Time")
-
-                    # Raise glyphs slightly for visibility
-                    z_raise = vtk.vtkTransform()
-                    z_raise.Translate(0.0, 0.0, 0.01)
-                    trans = vtk.vtkTransformPolyDataFilter()
-                    trans.SetTransform(z_raise)
-                    trans.SetInputData(glypher.GetOutput())
-
-                    # Create mapper and actor for glyphs
-                    glyph_mapper = vtk.vtkPolyDataMapper()
-                    glyph_mapper.SetInputConnection(trans.GetOutputPort())
-                    glyph_mapper.SetLookupTable(
-                        self.create_color_transfer_function(
-                            self.__time_range, "blue_to_red"))
-                    glyph_mapper.SetScalarRange(self.__time_range)
-                    glyph_actor = vtk.vtkActor()
-                    glyph_actor.SetMapper(glyph_mapper)
-                    renderer.AddActor(glyph_actor)
-
-                # Create and add unique scalar bar for object time
-                time_actor = self.create_scalar_bar_actor(
-                    glyph_mapper, "Object Time", 0.55, 0.05)
-                renderer.AddActor2D(time_actor)
-
-                # Create render window
-                renderer.ResetCamera()
-                render_window = vtk.vtkRenderWindow()
-                render_window.AddRenderer(renderer)
-                render_window.SetWindowName("LBAF")
-                render_window.SetSize(800, 800)
+                render_window = self.create_rendering_pipeline(
+                    iteration, object_mesh)
                 render_window.Render()
 
                 # Convert window to image
