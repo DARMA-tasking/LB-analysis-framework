@@ -388,7 +388,7 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(self, iteration: int, glyph_factor: float, object_mesh):
+    def create_rendering_pipeline(self, iteration: int, edge_width: int, glyph_factor: float, win_size: int, object_mesh):
         """ Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
@@ -448,7 +448,7 @@ class MeshBasedVisualizer:
         # Create communication volume and its scalar bar actors
         edge_actor = vtk.vtkActor()
         edge_actor.SetMapper(edge_mapper)
-        edge_actor.GetProperty().SetLineWidth(10)
+        edge_actor.GetProperty().SetLineWidth(edge_width)
         edge_actor.GetProperty().SetOpacity(1.0)
         volume_actor = self.create_scalar_bar_actor(
             edge_mapper, "Inter-Object Volume", 0.05, 0.05)
@@ -524,7 +524,7 @@ class MeshBasedVisualizer:
         render_window = vtk.vtkRenderWindow()
         render_window.AddRenderer(renderer)
         render_window.SetWindowName("LBAF")
-        render_window.SetSize(800, 800)
+        render_window.SetSize(win_size, win_size)
         return render_window
 
     def generate(self, gen_meshes, gen_mulmed):
@@ -585,15 +585,24 @@ class MeshBasedVisualizer:
                         "Visualization generation not yet implemented in 3-D")
                     continue
 
+                # Compute visualization parameters
                 self.__logger.info(
                     f"Generating 2-D visualization for iteration {iteration}:")
+                win_size = 800
+                self.__logger.info(
+                    f"\tnumber of pixels: {win_size}x{win_size}")
+                edge_width = 0.1 * win_size / max(self.__grid_size)
+                self.__logger.info(
+                    f"\tcommunication edges width: {edge_width:.2g}")
                 glyph_factor = self.__grid_resolution / (
                     (self.__max_o_per_dim + 1)
                     * math.sqrt(self.__time_range[1]))
                 self.__logger.info(
                     f"\tobject glyphs scaling: {glyph_factor:.2g}")
+
+                # Run visualization pipeline
                 render_window = self.create_rendering_pipeline(
-                    iteration, glyph_factor, object_mesh)
+                    iteration, edge_width, glyph_factor, win_size, object_mesh)
                 render_window.Render()
 
                 # Convert window to image
