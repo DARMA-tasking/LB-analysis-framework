@@ -236,7 +236,8 @@ class Phase:
     def populate_from_log(self, n_ranks, t_s, basename):
         """ Populate this phase by reading in a load profile from log files."""
         # Instantiate VT load reader
-        reader = LoadReader(basename, self.__logger, file_suffix=self.__file_suffix)
+        reader = LoadReader(
+            basename, self.__logger, file_suffix=self.__file_suffix)
 
         # Populate phase with reader output
         self.__ranks = reader.read_iteration(n_ranks, t_s)

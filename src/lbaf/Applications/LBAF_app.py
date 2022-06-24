@@ -203,9 +203,9 @@ class LBAFApp:
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
                 if "file_suffix" in self.params.__dict__:
-                    phase = Phase(self.logger, 0, self.params.file_suffix)
+                    phase = Phase(self.logger, phase_id, self.params.file_suffix)
                 else:
-                    phase = Phase(self.logger, 0)
+                    phase = Phase(self.logger, phase_id)
                 phase.populate_from_log(
                     self.params.n_ranks,
                     phase_id,
