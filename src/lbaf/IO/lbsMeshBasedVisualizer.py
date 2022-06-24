@@ -418,9 +418,16 @@ class MeshBasedVisualizer:
         rank_glypher.SetInputData(rank_mesh)
         rank_glypher.SetScaleModeToDataScalingOff()
 
+        # Lower glyphs slightly for visibility
+        z_lower = vtk.vtkTransform()
+        z_lower.Translate(0.0, 0.0, -0.01)
+        trans = vtk.vtkTransformPolyDataFilter()
+        trans.SetTransform(z_lower)
+        trans.SetInputConnection(rank_glypher.GetOutputPort())
+
         # Create mapper for rank glyphs
         rank_mapper = vtk.vtkPolyDataMapper()
-        rank_mapper.SetInputConnection(rank_glypher.GetOutputPort())
+        rank_mapper.SetInputConnection(trans.GetOutputPort())
         rank_mapper.SetLookupTable(
             self.create_color_transfer_function(self.__work_range))
         rank_mapper.SetScalarRange(self.__work_range)
@@ -428,7 +435,6 @@ class MeshBasedVisualizer:
         # Create rank work and its scalar bar actors
         rank_actor = vtk.vtkActor()
         rank_actor.SetMapper(rank_mapper)
-        rank_actor.GetProperty().SetOpacity(0.6)
         work_actor = self.create_scalar_bar_actor(
             rank_mapper, "Rank Work", 0.55, 0.9)
         renderer.AddActor(rank_actor)
@@ -454,7 +460,7 @@ class MeshBasedVisualizer:
         edge_actor = vtk.vtkActor()
         edge_actor.SetMapper(edge_mapper)
         edge_actor.GetProperty().SetLineWidth(edge_width)
-        edge_actor.GetProperty().SetOpacity(1.0)
+        #edge_actor.GetProperty().SetOpacity(1.0)
         volume_actor = self.create_scalar_bar_actor(
             edge_mapper, "Inter-Object Volume", 0.05, 0.05)
         renderer.AddActor(edge_actor)
