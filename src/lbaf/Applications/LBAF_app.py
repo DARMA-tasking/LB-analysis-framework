@@ -202,8 +202,8 @@ class LBAFApp:
             # Populate phase from log files and store number of objects
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
-                if "file_suffix" in self.params.__dict__:
-                    phase = Phase(self.logger, phase_id, self.params.file_suffix)
+                if (suffix := self.params.__dict__.get("file_suffix")):
+                    phase = Phase(self.logger, phase_id, suffix)
                 else:
                     phase = Phase(self.logger, phase_id)
                 phase.populate_from_log(
@@ -212,7 +212,7 @@ class LBAFApp:
                     self.params.data_stem)
                 phases.append(phase)
         else:
-            # Populate phase pseudo-randomly
+            # Populate phase pseudo-randomly a phase 0
             phase = Phase(self.logger, 0)
             phase.populate_from_samplers(
                 self.params.n_ranks,
