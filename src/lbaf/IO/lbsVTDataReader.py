@@ -53,7 +53,7 @@ class LoadReader:
         self.__logger.info(f"Reading {file_name} VT object map")
         if not os.path.isfile(file_name):
             sys.excepthook = exc_handler
-            raise FileNotFoundError(f"File {file_name} not found!")
+            raise FileNotFoundError(f"File {file_name} not found")
 
         # Retrieve communications from JSON reader
         iter_map = {}

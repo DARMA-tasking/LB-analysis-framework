@@ -126,10 +126,10 @@ class DataStatFilesUpdater:
                     self.__add_type_to_file(file_path=file)
             else:
                 sys.excepthook = exc_handler
-                raise FileNotFoundError(f"Directory: {self.__dir_path} does NOT exist!")
+                raise FileNotFoundError(f"Directory: {self.__dir_path} does NOT exist")
         else:
             sys.excepthook = exc_handler
-            raise Exception("FILE path or DIRECTORY path has to be given!")
+            raise Exception("FILE path or DIRECTORY path has to be given")
 
 
 if __name__ == "__main__":

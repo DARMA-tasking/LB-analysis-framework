@@ -52,7 +52,7 @@ class Csv2JsonConverter:
         elif os.path.isdir(os.path.join(project_path, dir_path)):
             return os.path.join(project_path, dir_path)
         else:
-            print(f"Can not find dir {dir_path}!")
+            print(f"Can not find dir {dir_path}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
