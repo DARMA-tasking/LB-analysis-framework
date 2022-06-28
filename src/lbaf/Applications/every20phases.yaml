@@ -81,7 +81,7 @@ algorithm:
 # Specify output
 #logging_level: debug
 terminal_background: light
-generate_multimedia: False
+generate_multimedia: True
 output_dir: ../../../output
 output_file_stem: output_file
 n_ranks: 32
@@ -90,4 +90,3 @@ generate_meshes:
   y_ranks: 4
   z_ranks: 1
   object_jitter: 0.5
-generate_multimedia: True

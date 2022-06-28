@@ -15,6 +15,7 @@ import vtk
 
 from lbaf.Utils.logger import logger
 
+
 class MoveCountsViewerParameters:
     """ A class to describe MoveCountsViewer parameters
     """
@@ -53,6 +54,7 @@ class MoveCountsViewerParameters:
         # Set wti (WindowToImageFilter) parameters
         self.wti_scale = 10
 
+
 class MoveCountsViewer:
     """ A class to describe MoveCountsViewer attributes
     """
@@ -84,10 +86,10 @@ class MoveCountsViewer:
         self.logger = logger()
         self.logging_level = "info"
 
-    def usage(self):
+    @staticmethod
+    def usage():
         """ Provide online help
         """
-
         print("# Usage:")
         print("\t [-p <np>]   number of processors")
         print("\t [-f <fn>]   input file name")
@@ -101,7 +103,6 @@ class MoveCountsViewer:
     def parse_command_line(self):
         """ Parse command line
         """
-
         # Try to hash command line with respect to allowable flags
         try:
             opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")

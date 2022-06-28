@@ -202,8 +202,8 @@ class LBAFApp:
             # Populate phase from log files and store number of objects
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
-                if (suffix := self.params.__dict__.get("file_suffix")):
-                    phase = Phase(self.logger, phase_id, suffix)
+                if "file_suffix" in self.params.__dict__:
+                    phase = Phase(self.logger, phase_id, self.params.file_suffix)
                 else:
                     phase = Phase(self.logger, phase_id)
                 phase.populate_from_log(

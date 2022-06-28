@@ -1,6 +1,5 @@
 from logging import Logger
 import os
-import sys
 import math
 import numbers
 import random
@@ -9,21 +8,12 @@ import vtk
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
 
+
 class MeshBasedVisualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
 
-    def __init__(
-        self,
-        logger: Logger,
-        phases: list,
-        grid_size: list,
-        object_jitter=0.0,
-        output_dir='.',
-        output_file_stem="LBAF_out",
-        distributions={},
-        statistics ={},
-        resolution=1.,
-    ):
+    def __init__(self, logger: Logger, phases: list, grid_size: list, object_jitter=0.0, output_dir='.',
+                 output_file_stem="LBAF_out", distributions=None, statistics=None, resolution=1.):
         """ Class constructor:
             phases: list of Phase instances
             grid_size: iterable containing grid sizes in each dimension
@@ -34,6 +24,11 @@ class MeshBasedVisualizer:
         """
         # Assign logger to instance variable
         self.__logger = logger
+
+        if distributions is None:
+            distributions = {}
+        if statistics is None:
+            statistics = {}
 
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
@@ -79,9 +74,9 @@ class MeshBasedVisualizer:
                 for o in r.get_objects():
                     # Update time range when necessary
                     time = o.get_time()
-                    if time >  self.__time_range[1]:
+                    if time > self.__time_range[1]:
                         self.__time_range[1] = time
-                    if time <  self.__time_range[0]:
+                    if time < self.__time_range[0]:
                         self.__time_range[0] = time
 
         # Assemble file and path names from constructor parameters
@@ -130,8 +125,7 @@ class MeshBasedVisualizer:
                     i, self.__grid_size)])
 
             # Set point attributes from distribution values
-            for l, (l_arr, w_arr) in enumerate(
-                zip(self.__loads, self.__works)):
+            for l, (l_arr, w_arr) in enumerate(zip(self.__loads, self.__works)):
                 l_arr.SetTuple1(i, dis_l[l][i])
                 w_arr.SetTuple1(i, dis_w[l][i])
 
@@ -161,8 +155,7 @@ class MeshBasedVisualizer:
             # Reduce directed edges into undirected ones
             u_edges = {}
             for k, v in sent.items():
-                u_edges[frozenset(k)] = u_edges.setdefault(
-                    frozenset(k), 0.) + v
+                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
 
             # Create and append new volume array for edges
             v_arr = vtk.vtkDoubleArray()
@@ -193,7 +186,6 @@ class MeshBasedVisualizer:
                 s_arr.SetTuple1(0, v)
                 s_arr.SetName(stat_name)
                 self.__field_data.setdefault(stat_name, []).append(s_arr)
-
 
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
@@ -254,7 +246,6 @@ class MeshBasedVisualizer:
             if n_o_per_dim > self.__max_o_per_dim:
                 self.__max_o_per_dim = n_o_per_dim
             o_resolution = self.__grid_resolution / (n_o_per_dim + 1.)
-
 
             # Iterate over objects and create point coordinates
             self.__logger.debug(
@@ -335,14 +326,15 @@ class MeshBasedVisualizer:
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
-    def create_color_transfer_function(self, attribute_range, scheme=None):
+    @staticmethod
+    def create_color_transfer_function(attribute_range, scheme=None):
         """ Create a color transfer function given attribute range."""
 
         # Create color transfer function
         ctf = vtk.vtkColorTransferFunction()
         ctf.SetNanColorRGBA(1., 1., 1., 0.)
 
-        # Set color transfer function depending on chosem scheme
+        # Set color transfer function depending on chosen scheme
         if scheme == "blue_to_red":
             ctf.SetColorSpaceToDiverging()
             mid_point = (attribute_range[0] + attribute_range[1]) * .5
@@ -361,8 +353,9 @@ class MeshBasedVisualizer:
         # Return color transfer function
         return ctf
 
-    def create_scalar_bar_actor(self, mapper, title, x, y):
-        """ Create scalar bar with default and custome parameters."""
+    @staticmethod
+    def create_scalar_bar_actor(mapper, title, x, y):
+        """ Create scalar bar with default and custom parameters."""
 
         # Instantiate scalar bar linked to given mapper
         scalar_bar_actor = vtk.vtkScalarBarActor()
@@ -393,9 +386,9 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(self, iteration: int, pid: int, edge_width: int, glyph_factor: float, win_size: int, object_mesh):
+    def create_rendering_pipeline(self, iteration: int, pid: int, edge_width: int, glyph_factor: float, win_size: int,
+                                  object_mesh):
         """ Create VTK-based pipeline all the way to render window."""
-
         # Create rank mesh for current phase
         rank_mesh = vtk.vtkPolyData()
         rank_mesh.SetPoints(self.__rank_points)
@@ -460,7 +453,7 @@ class MeshBasedVisualizer:
         edge_actor = vtk.vtkActor()
         edge_actor.SetMapper(edge_mapper)
         edge_actor.GetProperty().SetLineWidth(edge_width)
-        #edge_actor.GetProperty().SetOpacity(1.0)
+        # edge_actor.GetProperty().SetOpacity(1.0)
         volume_actor = self.create_scalar_bar_actor(
             edge_mapper, "Inter-Object Volume", 0.05, 0.05)
         renderer.AddActor(edge_actor)
@@ -638,7 +631,7 @@ class MeshBasedVisualizer:
                 w2i = vtk.vtkWindowToImageFilter()
                 w2i.SetInput(render_window)
                 w2i.SetScale(3)
-                #w2i.SetInputBufferTypeToRGBA()
+                # w2i.SetInputBufferTypeToRGBA()
 
                 # Output PNG file
                 file_name = f"{self.__visualization_file_name}_{iteration:02d}.png"
