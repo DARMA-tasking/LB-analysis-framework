@@ -21,7 +21,7 @@ from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangement
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.configurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.IO.lbsMeshWriter import MeshWriter
+from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Utils.exception_handler import exc_handler
@@ -208,16 +208,16 @@ class LBAFApp:
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
                 if "file_suffix" in self.params.__dict__:
-                    phase = Phase(self.logger, 0, self.params.file_suffix)
+                    phase = Phase(self.logger, phase_id, self.params.file_suffix)
                 else:
-                    phase = Phase(self.logger, 0)
+                    phase = Phase(self.logger, phase_id)
                 phase.populate_from_log(
                     self.params.n_ranks,
                     phase_id,
                     self.params.data_stem)
                 phases.append(phase)
         else:
-            # Populate phase pseudo-randomly
+            # Populate phase pseudo-randomly a phase 0
             phase = Phase(self.logger, 0)
             phase.populate_from_samplers(
                 self.params.n_ranks,
@@ -297,33 +297,21 @@ class LBAFApp:
                 output_dir=self.params.output_dir)
             vt_writer.write()
 
-        # If prefix parsed from command line
-        if "generate_meshes" in self.params.__dict__:
-            # Instantiate phase to mesh writer if requested
-            ex_writer = MeshWriter(
-                phase_0.get_number_of_ranks(),
+        # Generate meshes and multimedia when requested
+        gen_meshes = self.params.__dict__.get("generate_meshes")
+        gen_mulmed = self.params.__dict__.get("generate_multimedia")
+        if gen_meshes or gen_mulmed:
+            # Instantiate mesh based visualizer and execute as requested
+            ex_writer = MeshBasedVisualizer(
+                self.logger,
+                phases,
                 self.params.grid_size,
                 self.params.object_jitter,
-                self.logger,
+                self.params.output_dir,
                 self.params.output_file_stem,
-                output_dir=self.params.output_dir,
-                )
-            ex_writer.write(phases, rt.distributions, rt.statistics)
-
-        # Create a viewer if paraview is available
-        file_name = self.params.output_file_stem
-        if self.params.__dict__.get("generate_multimedia") is not None \
-                and self.params.__dict__.get("generate_multimedia"):
-            from ParaviewViewerBase import ParaviewViewerBase
-            if self.params.output_dir is not None:
-                file_name = os.path.join(self.params.output_dir, file_name)
-                output_file_stem = file_name
-                viewer = ParaviewViewerBase.factory(
-                    exodus=output_file_stem,
-                    file_name=file_name,
-                    viewer_type='')
-                reader = viewer.createViews()
-            viewer.saveView(reader)
+                rt.distributions,
+                rt.statistics)
+            ex_writer.generate(gen_meshes, gen_mulmed)
 
         # Compute and print final rank load and edge volume statistics
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(

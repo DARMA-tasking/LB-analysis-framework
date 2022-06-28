@@ -41,7 +41,7 @@ class TestConfig(unittest.TestCase):
         ranks = sorted([rank.get_id() for rank in self.phase.get_ranks()])
         self.assertEqual(ranks, [0, 1, 2, 3])
         self.assertEqual(sorted(self.phase.get_rank_ids()), [0, 1, 2, 3])
-        self.assertEqual(self.phase.get_phase_id(), 0)
+        self.assertEqual(self.phase.get_id(), 0)
 
     def test_lbs_phase_edges(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
