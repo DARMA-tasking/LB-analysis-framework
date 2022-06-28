@@ -1,10 +1,10 @@
 import sys
 from logging import Logger
 
-from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
 from ..IO.lbsStatistics import print_function_statistics, compute_function_statistics, min_Hamming_distance
+from ..Utils.exception_handler import exc_handler
 
 
 class Runtime:
@@ -29,6 +29,7 @@ class Runtime:
         # If no LBS phase was provided, do not do anything
         if not phases or not isinstance(phases, list):
             self.__logger.error("Could not create a LBS runtime without a list of phases")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__phases = phases
 
@@ -46,6 +47,7 @@ class Runtime:
             lgr=self.__logger)
         if not self.__algorithm:
             self.__logger.error(f"Could not instantiate an algorithm of type {self.__algorithm}")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Initialize run distributions and statistics

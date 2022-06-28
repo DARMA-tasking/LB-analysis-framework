@@ -137,7 +137,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_vt_data_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
             LoadReader(file_prefix=f"{self.file_prefix}xd", logger=self.logger, file_suffix='json').read(0, 0)
-        self.assertEqual(err.exception.args[0], f"File {self.file_prefix}xd.0.json not found!")
+        self.assertEqual(err.exception.args[0], f"File {self.file_prefix}xd.0.json not found")
 
     def test_lbs_vt_data_reader_read_wrong_schema(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'data')

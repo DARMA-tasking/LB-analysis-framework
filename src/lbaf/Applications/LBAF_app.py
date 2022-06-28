@@ -24,6 +24,7 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
+from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 
@@ -79,9 +80,11 @@ class internalParameters:
             except yaml.MarkedYAMLError as err:
                 self.logger.error(f"Invalid YAML file {conf_file} in line {err.problem_mark.line} ({err.problem,} "
                                   f"{err.context})")
+                sys.excepthook = exc_handler
                 raise SystemExit(1)
         else:
             self.logger.error(f"Configuration file in {conf_file} not found")
+            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def configuration_validation(self):
@@ -103,6 +106,7 @@ class internalParameters:
                 self.grid_size.append(gm.get(key))
             if math.prod(self.grid_size) < self.n_ranks:
                 self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")
+                sys.excepthook = exc_handler
                 raise SystemExit(1)
             self.object_jitter = gm.get("object_jitter")
 
@@ -268,6 +272,7 @@ class LBAFApp:
                 objects, alpha, beta, gamma, self.params.n_ranks)
             if n_a != self.params.n_ranks ** len(objects):
                 self.logger.error("Incorrect number of possible arrangements with repetition")
+                sys.excepthook = exc_handler
                 raise SystemExit(1)
             self.logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
         else:

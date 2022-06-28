@@ -2,6 +2,7 @@ from collections import Iterable
 import sys
 
 from schema import And, Optional, Schema
+from ..Utils.exception_handler import exc_handler
 
 
 class SchemaValidator:
@@ -257,6 +258,7 @@ class SchemaValidator:
         elif self.schema_type == "LBStatsfile":
             return valid_schema_stats
 
+        sys.excepthook = exc_handler
         raise TypeError(f"Unsupported schema type: {self.schema_type} was given")
 
     def is_valid(self, schema_to_validate: dict) -> bool:

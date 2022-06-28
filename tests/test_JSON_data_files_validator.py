@@ -159,7 +159,7 @@ class TestConfig(unittest.TestCase):
                                                                              file_suffix=None)
         with self.assertRaises(FileNotFoundError) as err:
             JSONDataFilesValidator().main()
-        self.assertEqual(err.exception.args[0], f"File: {self.wrong_file_path} NOT found!")
+        self.assertEqual(err.exception.args[0], f"File: {self.wrong_file_path} NOT found")
 
     def test_json_data_files_validator_dir_not_found(self):
         argparse.ArgumentParser.parse_args = Mock()
@@ -169,7 +169,7 @@ class TestConfig(unittest.TestCase):
                                                                              file_suffix=None)
         with self.assertRaises(FileNotFoundError) as err:
             JSONDataFilesValidator().main()
-        self.assertEqual(err.exception.args[0], f"Directory: {self.wrong_dir_path} does NOT exist!")
+        self.assertEqual(err.exception.args[0], f"Directory: {self.wrong_dir_path} does NOT exist")
 
     def test_json_data_files_validator_no_args(self):
         argparse.ArgumentParser.parse_args = Mock()
@@ -179,7 +179,7 @@ class TestConfig(unittest.TestCase):
                                                                              file_suffix=None)
         with self.assertRaises(Exception) as err:
             JSONDataFilesValidator().main()
-        self.assertEqual(err.exception.args[0], "FILE path or DIRECTORY path has to be given!")
+        self.assertEqual(err.exception.args[0], "FILE path or DIRECTORY path has to be given")
 
     def test_json_data_files_validator_wrong_file_schema(self):
         argparse.ArgumentParser.parse_args = Mock()

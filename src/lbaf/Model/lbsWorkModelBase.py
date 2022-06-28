@@ -2,6 +2,7 @@ import abc
 from logging import Logger
 import sys
 
+from ..Utils.exception_handler import exc_handler
 from ..Utils.logger import logger
 
 
@@ -36,6 +37,7 @@ class WorkModelBase:
         except:
             # Otherwise, error out
             LGR().error(f"Could not create a work with name: {work_name}")
+            sys.excepthook = exc_handler
             raise NameError(f"Could not create a work with name: {work_name}")
 
     @abc.abstractmethod

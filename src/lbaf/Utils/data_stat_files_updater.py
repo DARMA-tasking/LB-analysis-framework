@@ -14,6 +14,8 @@ import json
 
 import brotli
 
+from lbaf.Utils.exception_handler import exc_handler
+
 
 class DataStatFilesUpdater:
     """ Class validating VT data files according do defined schema. """
@@ -63,6 +65,7 @@ class DataStatFilesUpdater:
         list_of_files = os.listdir(dir_path)
 
         if not list_of_files:
+            sys.excepthook = exc_handler
             raise FileNotFoundError(f"Directory: {dir_path} is EMPTY!")
 
         if file_prefix is None and file_suffix is None:
@@ -112,6 +115,7 @@ class DataStatFilesUpdater:
             if self.__check_if_file_exists(file_path=self.__file_path):
                 self.__add_type_to_file(file_path=self.__file_path)
             else:
+                sys.excepthook = exc_handler
                 raise FileNotFoundError(f"File: {self.__file_path} NOT found!")
         elif self.__dir_path is not None:
             if self.__check_if_dir_exists(dir_path=self.__dir_path):
@@ -121,9 +125,11 @@ class DataStatFilesUpdater:
                 for file in list_of_files_for_validation:
                     self.__add_type_to_file(file_path=file)
             else:
-                raise FileNotFoundError(f"Directory: {self.__dir_path} does NOT exist!")
+                sys.excepthook = exc_handler
+                raise FileNotFoundError(f"Directory: {self.__dir_path} does NOT exist")
         else:
-            raise Exception("FILE path or DIRECTORY path has to be given!")
+            sys.excepthook = exc_handler
+            raise Exception("FILE path or DIRECTORY path has to be given")
 
 
 if __name__ == "__main__":
