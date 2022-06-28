@@ -72,9 +72,10 @@ algorithm:
 
 # Specify output
 #logging_level: debug
+log_to_file: /__w/LB-analysis-framework/LB-analysis-framework/log.txt
 terminal_background: light
 generate_multimedia: False
-output_dir: ../../../output
+output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
 output_file_stem: output_file
 n_ranks: 32
 generate_meshes:

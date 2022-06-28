@@ -33,7 +33,7 @@ class internalParameters:
 
     def __init__(self, config_file: str):
         # Starting logger
-        self.logger = logger()
+        self.logger = logger(conf=config_file)
 
         # Print startup information
         self.logger.info(f"Executing LBAF version {__version__}")
@@ -49,6 +49,7 @@ class internalParameters:
             "from_samplers",
             "generate_multimedia",
             "logging_level",
+            "log_to_file",
             "n_ranks",
             "output_dir",
             "output_file_stem",
