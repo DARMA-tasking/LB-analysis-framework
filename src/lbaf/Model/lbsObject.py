@@ -7,7 +7,8 @@ from ..Utils.exception_handler import exc_handler
 class Object:
     """ A class representing an object with time and communicator
     """
-    def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None):
+    def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None,
+                 subphases: list = None):
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
             sys.excepthook = exc_handler
@@ -42,6 +43,13 @@ class Object:
         else:
             sys.excepthook = exc_handler
             raise TypeError(f"user_defined: {user_defined} is type of {type(user_defined)}! Must be <class 'dict'>!")
+
+        # Sub-phases
+        if isinstance(subphases, list) or subphases is None:
+            self.__subphases = subphases
+        else:
+            sys.excepthook = exc_handler
+            raise TypeError(f"subphases: {subphases} is type of {type(subphases)}! Must be <class 'list'>!")
 
     def __repr__(self):
         return f"Object id: {self.__index}, time: {self.__time}"
@@ -102,3 +110,8 @@ class Object:
         # Perform sanity check prior to assignment
         if isinstance(c, ObjectCommunicator):
             self.__communicator = c
+
+    def get_subphases(self) -> list:
+        """ Return subphases of this object
+        """
+        return self.__subphases
