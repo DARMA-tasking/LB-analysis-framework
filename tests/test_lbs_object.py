@@ -17,7 +17,15 @@ from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger()
-        self.simple_obj_001 = Object(i=1, t=2.5)
+        self.subphases = [
+            {'id': 0, 'time': 1.3960000018187202e-06}, {'id': 1, 'time': 3.2324999992283665e-05},
+            {'id': 2, 'time': 7.802999995476512e-06}, {'id': 3, 'time': 0.00017973499998902298},
+            {'id': 4, 'time': 4.138999999980797e-05}, {'id': 5, 'time': 0.0002490769999923259},
+            {'id': 6, 'time': 1.6039999977124353e-06}, {'id': 7, 'time': 3.9705999995476304e-05},
+            {'id': 8, 'time': 1.5450000034888944e-06}, {'id': 9, 'time': 5.735999998535135e-06},
+            {'id': 10, 'time': 0.00021168499999646428}, {'id': 11, 'time': 0.0007852130000003399},
+            {'id': 12, 'time': 1.642999997386596e-06}, {'id': 13, 'time': 3.634999998780586e-06}]
+        self.simple_obj_001 = Object(i=1, t=2.5, subphases=self.subphases)
         self.simple_obj_002 = Object(i=2, t=4.5, p=0)
         self.oc = ObjectCommunicator(i=3, logger=self.logger)
         self.simple_obj_003 = Object(i=3, t=3.5, p=2, c=self.oc)
@@ -247,6 +255,10 @@ class TestConfig(unittest.TestCase):
         oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
         obj_with_comm = Object(i=23, t=3.5, p=2, c=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 4.5)
+
+    def test_object_get_subphases(self):
+        self.assertEqual(self.simple_obj_001.get_subphases(), self.subphases)
+        self.assertEqual(self.simple_obj_002.get_subphases(), None)
 
 
 if __name__ == "__main__":
