@@ -3,6 +3,7 @@ from logging import Logger
 import sys
 
 from schema import And, Optional, Or, Schema, Use
+from ..Utils.exception_handler import exc_handler
 
 
 # Allowed configuration values
@@ -72,7 +73,6 @@ class ConfigurationValidator:
                     error="Should be of type 'float' and magnitude < 1")
                 },
             Optional("brute_force_optimization"): bool,
-            Optional("show_traceback"): bool,
             Optional("log_to_file"): str,
             Optional("logging_level"): And(
                 str, Use(str.lower),
@@ -149,14 +149,10 @@ class ConfigurationValidator:
         is_valid = valid_schema.is_valid(schema_to_validate)
         return is_valid
 
-    def validate(self, valid_schema: Schema, schema_to_validate: dict):
+    @staticmethod
+    def validate(valid_schema: Schema, schema_to_validate: dict):
         """ Return validated schema. """
-
-        def exception_handler(exception_type, exception, traceback):
-            """ Exception handler for hiding traceback. """
-            self.__logger.error(f"{exception_type.__name__} {exception}")
-
-        sys.excepthook = exception_handler
+        sys.excepthook = exc_handler
         return valid_schema.validate(schema_to_validate)
 
     def main(self):
