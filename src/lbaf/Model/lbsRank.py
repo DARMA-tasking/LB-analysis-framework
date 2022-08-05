@@ -77,7 +77,7 @@ class Rank:
         """ Return IDs of sentinel objects assigned to rank."""
         return [o.get_id() for o in self.__sentinel_objects]
 
-    def is_sentinel(self, o: Object) -> list:
+    def is_sentinel(self, o: Object) -> bool:
         """ Return whether object is a sentinel or not."""
         if o in self.__sentinel_objects:
             return True
@@ -111,13 +111,25 @@ class Rank:
         """ Return total load on rank."""
         return sum([o.get_time() for o in self.__migratable_objects.union(self.__sentinel_objects)])
 
+    def get_load_subphases(self) -> float:
+        """ Return total load on rank from sub-phases."""
+        return sum([o.get_subphases_time() for o in self.__migratable_objects.union(self.__sentinel_objects)])
+
     def get_migratable_load(self) -> float:
         """ Return migratable load on rank."""
         return sum([o.get_time() for o in self.__migratable_objects])
 
+    def get_migratable_load_subphases(self) -> float:
+        """ Return migratable load on rank from sub-phases."""
+        return sum([o.get_subphases_time() for o in self.__migratable_objects])
+
     def get_sentinel_load(self) -> float:
         """ Return sentinel load oon rank."""
         return sum([o.get_time() for o in self.__sentinel_objects])
+
+    def get_sentinel_load_subphases(self) -> float:
+        """ Return sentinel load oon rank from sub-phases."""
+        return sum([o.get_subphases_time() for o in self.__sentinel_objects])
 
     def get_received_volume(self):
         """ Return volume received by objects assigned to rank from other ranks."""

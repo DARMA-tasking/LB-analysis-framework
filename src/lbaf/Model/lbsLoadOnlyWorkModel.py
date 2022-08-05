@@ -26,6 +26,12 @@ class LoadOnlyWorkModel(WorkModelBase):
         # Return total load on this rank
         return rank.get_load()
 
+    def compute_subphases(self, rank: Rank):
+        """ A work model summing all object times from sub-phases on given rank
+        """
+        # Return total load on this rank
+        return rank.get_load_subphases()
+
     def aggregate(self, values: dict):
         """ A work model only using load information
         """

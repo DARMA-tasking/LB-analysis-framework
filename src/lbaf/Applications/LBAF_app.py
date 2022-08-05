@@ -215,6 +215,11 @@ class LBAFApp:
             "initial rank loads",
             self.logger)
         lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_load_subphases(),
+            "initial rank loads from sub-phases",
+            self.logger)
+        lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
@@ -301,6 +306,11 @@ class LBAFApp:
             file_name=("imbalance.txt"
                        if self.params.output_dir is None
                        else os.path.join(self.params.output_dir, "imbalance.txt")))
+        _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_load(),
+            "final rank loads from sub-phases",
+            self.logger)
         lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,

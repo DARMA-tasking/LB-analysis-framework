@@ -335,6 +335,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 lambda x: self.work_model.compute(x),
                 f"iteration {i + 1} rank works",
                 self.__logger)
+            n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
+                self.phase.get_ranks(),
+                lambda x: self.work_model.compute_subphases(x),
+                f"iteration {i + 1} rank works from sub-phases",
+                self.__logger)
 
             # Update run distributions and statistics
             self.update_distributions_and_statistics(distributions, statistics)

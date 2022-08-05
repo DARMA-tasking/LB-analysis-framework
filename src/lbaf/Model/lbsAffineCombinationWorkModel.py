@@ -34,6 +34,15 @@ class AffineCombinationWorkModel(WorkModelBase):
             rank.get_received_volume(),
             rank.get_sent_volume()) + self.__gamma
 
+    def compute_subphases(self, rank: Rank):
+        """ A work model with affine combination of load from sub-phases and communication
+            alpha * load from sub-phases + beta * max(sent, received) + gamma
+        """
+        # Compute affine combination of load and volumes
+        return self.__alpha * rank.get_load_subphases() + self.__beta * max(
+            rank.get_received_volume(),
+            rank.get_sent_volume()) + self.__gamma
+
     def aggregate(self, values: dict):
         """ A work model with affine combination of load and communication
             alpha * load + beta * max(sent, received) + gamma

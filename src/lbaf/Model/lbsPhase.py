@@ -248,6 +248,7 @@ class Phase:
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
         print_function_statistics(objects, lambda x: x.get_time(), "object times", self.__logger)
+        print_function_statistics(objects, lambda x: x.get_subphases_time(), "object's sub-phases times", self.__logger)
 
         # Set number of read objects
         self.__n_objects = len(objects)

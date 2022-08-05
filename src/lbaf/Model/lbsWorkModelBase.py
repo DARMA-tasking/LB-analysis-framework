@@ -47,6 +47,12 @@ class WorkModelBase:
         # Must be implemented by concrete subclass
 
     @abc.abstractmethod
+    def compute_subphases(self, rank):
+        """ Return value of work for given rank
+        """
+        # Must be implemented by concrete subclass
+
+    @abc.abstractmethod
     def aggregate(self, values: dict):
         """ Return value of work given relevant dictionary of values
         """

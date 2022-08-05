@@ -115,3 +115,10 @@ class Object:
         """ Return subphases of this object
         """
         return self.__subphases
+
+    def get_subphases_time(self) -> float:
+        """ Return sub-phases time
+        """
+        if self.__subphases is None:
+            return 0.0
+        return sum([subphase.get('time') for subphase in self.__subphases])
