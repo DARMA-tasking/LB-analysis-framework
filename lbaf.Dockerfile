@@ -27,9 +27,6 @@ ENV DISPLAY :99.0
 COPY src /lbaf/src
 COPY data /lbaf/data
 COPY scripts/entrypoint.sh /lbaf/entrypoint.sh
-COPY scripts/test_lbaf.py /lbaf/tests/test_lbaf.py
-COPY scripts/run_tests.sh /lbaf/tests/run_tests.sh
-COPY scripts/test_config/conf.yaml /lbaf/src/Applications/conf.yaml
 
 WORKDIR /lbaf
 RUN mkdir /lbaf/in /lbaf/out

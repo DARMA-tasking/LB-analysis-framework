@@ -129,40 +129,51 @@ python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node
 python JSON_data_files_validator.py --dir_path=../../data/8color-4node --file_prefix=data --file_suffix=json
 ```
 
-[//]: # (## Getting Started with Docker)
+## Getting Started with Docker
 
-[//]: # (### Example use:)
+### Example use:
 
-[//]: # ()
-[//]: # (Replace `<in_dir>` with path to existing directory which will be mapped with `/lbaf/in` in container)
+Replace `<in_dir>` with path to existing directory which will be mapped with `/lbaf/in` in container
 
-[//]: # ()
-[//]: # (Replace `<out_dir>` with path to existing directory which will be mapped with `/lbaf/out` in container)
+Replace `<out_dir>` with path to existing directory which will be mapped with `/lbaf/out` in container
 
-[//]: # (```shell)
+Put `conf.yaml` inside mapped `<in_dir>` and set `output_dir` in `conf.yaml` to `/lbaf/out`
 
-[//]: # (docker run -it -v "<out_dir>:/lbaf/out" -v "<in_dir>:/lbaf/in" nganalytics/lbaf "python src/Applications/NodeGossiper.py -l /lbaf/data/vt_example_lb_stats/stats -x 4 -y 2 -z 1 -s 0 -f 4 -k 4 -i 4 -c 1 -e" "/bin/bash")
+When using sample data from repository set `data_stem` in `conf.yaml` to e.g. `/lbaf/data/synthetic_lb_data/data`
 
-[//]: # (```)
+When using other data put the data inside mapped `<in_dir>` and set `data_stem` in `conf.yaml` to e.g. `/lbaf/in/<your_data_dir>/<data_name_prefix>`
 
-[//]: # (### Example use explained:)
+#### Building locally (otherwise docker image will be pulled from dockerhub):
+```shell
+cd <main_repository_directory>
+docker build -t nganalytics/lbaf:latest . -f lbaf.Dockerfile
+```
 
-[//]: # (- container starts with interactive mode &#40;stdout visible&#41;)
+#### Running:
+```shell
+docker run -it -v "<out_dir>:/lbaf/out" -v "<in_dir>:/lbaf/in" nganalytics/lbaf "python /lbaf/src/lbaf/Applications/LBAF_app.py --config=/lbaf/in/conf.yaml" "/bin/bash"
+# in order to exit container
+exit
+```
 
-[//]: # (- two volumes are mounted&#40;data exchange between host and container possible&#41;:)
+### Example use explained:
 
-[//]: # (  - directory `<in_dir>` on the host and `/lbaf/in` is mount inside container)
+- container starts with interactive mode (stdout visible)
 
-[//]: # (  - directory `<out_dir>` on the host and `/lbaf/out` is mount inside container)
+- two volumes are mounted(data exchange between host and container possible):
 
-[//]: # (- docker image `nganalytics/lbaf`)
+  - directory `<in_dir>` on the host and `/lbaf/in` is mount inside container
 
-[//]: # (- commands executed inside container:)
+  - directory `<out_dir>` on the host and `/lbaf/out` is mount inside container
 
-[//]: # (  - sample LBAF usage:)
+- docker image `nganalytics/lbaf`
 
-[//]: # (    ```"python src/Applications/NodeGossiper.py -l /lbaf/data/vt_example_lb_stats/stats -x 4 -y 2 -z 1 -s 0 -f 4 -k 4 -i 4 -c 1 -e"```)
+- commands executed inside container:
 
-[//]: # (  - command to stay inside container, after above command is completed:)
+  - sample LBAF usage:
 
-[//]: # (    ```"/bin/bash"```)
+    ```"python /lbaf/src/lbaf/Applications/LBAF_app.py --config=/lbaf/in/conf.yaml"```
+
+  - command to stay inside container, after above command is completed:
+
+    ```"/bin/bash"```
