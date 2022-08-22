@@ -112,7 +112,10 @@ class internalParameters:
         # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
             self.data_stem = self.configuration.get("from_data").get("data_stem")
-            self.phase_ids = self.configuration.get("from_data").get("phase_ids")
+            if isinstance(self.configuration.get("from_data").get("phase_ids"), str):
+                self.phase_ids = list(map(int, self.configuration.get("from_data").get("phase_ids").split('-')))
+            else:
+                self.phase_ids = self.configuration.get("from_data").get("phase_ids")
 
         # Parse sampling parameters if present
         if self.configuration.get("from_samplers") is not None:
