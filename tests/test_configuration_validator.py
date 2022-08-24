@@ -78,7 +78,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "Should be of type 'list' of 'int' types")
+        self.assertEqual(err.exception.args[0], "Should be of type 'list' of 'int' types\nShould be of type 'str' like '0-100'")
 
     def test_config_validator_wrong_from_data_phase_name(self):
         with open(os.path.join(self.config_dir, 'conf_wrong_from_data_phase_name.yml'), 'rt') as config_file:
@@ -202,6 +202,20 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
         self.assertEqual(err.exception.args[0], "Key 'parameters' error:\nMissing key: 'fanout'")
+
+    def test_config_validator_correct_phase_ids_str_001(self):
+        with open(os.path.join(self.config_dir, 'conf_correct_phase_ids_str_001.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+
+    def test_config_validator_wrong_phase_ids_str_001(self):
+        with open(os.path.join(self.config_dir, 'conf_wrong_phase_ids_str_001.yml'), 'rt') as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'list' of 'int' types\nShould be of type 'str' like '0-100'")
 
 
 if __name__ == '__main__':

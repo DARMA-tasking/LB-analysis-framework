@@ -2,7 +2,7 @@ from collections import Iterable
 from logging import Logger
 import sys
 
-from schema import And, Optional, Or, Schema, Use
+from schema import And, Optional, Or, Regex, Schema, Use
 from ..Utils.exception_handler import exc_handler
 
 
@@ -89,8 +89,11 @@ class ConfigurationValidator:
         })
         self.__from_data = Schema(
             {"data_stem": str,
-             "phase_ids": And(list, lambda x: all([isinstance(y, int) for y in x]),
-                              error="Should be of type 'list' of 'int' types")})
+             "phase_ids": Or(
+                 And(list, lambda x: all([isinstance(y, int) for y in x]),
+                     error="Should be of type 'list' of 'int' types"),
+                 Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'"))
+             })
         self.__from_samplers = Schema({
             "n_objects": And(int, lambda x: x > 0,
                              error="Should be of type 'int' and > 0"),
