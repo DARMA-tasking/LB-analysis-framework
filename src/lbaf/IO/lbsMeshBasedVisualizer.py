@@ -217,7 +217,7 @@ class MeshBasedVisualizer:
 
         # Create point array for object times
         t_arr = vtk.vtkDoubleArray()
-        t_arr.SetName("Time")
+        t_arr.SetName("Load")
         t_arr.SetNumberOfTuples(n_o)
 
         # Create bit array for object migratability
@@ -464,8 +464,8 @@ class MeshBasedVisualizer:
         # Compute square root of object times
         sqrtT = vtk.vtkArrayCalculator()
         sqrtT.SetInputData(object_mesh)
-        sqrtT.AddScalarArrayName("Time")
-        sqrtT_str = "sqrt(Time)"
+        sqrtT.AddScalarArrayName("Load")
+        sqrtT_str = "sqrt(Load)"
         sqrtT.SetFunction(sqrtT_str)
         sqrtT.SetResultArrayName(sqrtT_str)
         sqrtT.Update()
@@ -499,7 +499,7 @@ class MeshBasedVisualizer:
             glypher.SetScaleModeToScaleByScalar()
             glypher.SetScaleFactor(glyph_factor)
             glypher.Update()
-            glypher.GetOutput().GetPointData().SetActiveScalars("Time")
+            glypher.GetOutput().GetPointData().SetActiveScalars("Load")
 
             # Raise glyphs slightly for visibility
             z_raise = vtk.vtkTransform()
@@ -521,7 +521,7 @@ class MeshBasedVisualizer:
 
         # Create and add unique scalar bar for object time
         time_actor = self.create_scalar_bar_actor(
-            glyph_mapper, "Object Time", 0.55, 0.05)
+            glyph_mapper, "Object Load", 0.55, 0.05)
         renderer.AddActor2D(time_actor)
 
         # Create text actor to indicate iteration
