@@ -5,64 +5,64 @@ from ..Utils.exception_handler import exc_handler
 
 
 class Object:
-    """ A class representing an object with time and communicator
+    """ A class representing an object with load and communicator
     """
-    def __init__(self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None,
-                 subphases: list = None):
+    def __init__(
+        self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None, subphases: list = None):
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
             sys.excepthook = exc_handler
-            raise TypeError(f"i: {i} is type of {type(i)}! Must be <class 'int'>!")
+            raise TypeError(f"i: {i} is of type {type(i)} but must be <class 'int'>")
         else:
             self.__index = i
 
-        # Time required to perform the work of this object
+        # Load required to perform the work of this object
         if not isinstance(t, float):
             sys.excepthook = exc_handler
-            raise TypeError(f"t: {t} is type of {type(t)}! Must be <class 'float'>!")
+            raise TypeError(f"t: {t} is of type {type(t)} but must be <class 'float'>")
         else:
-            self.__time = t
+            self.__load = t
 
         # Rank to which object is currently assigned if defined
         if bool(isinstance(p, int) or p is None) and not isinstance(p, bool):
             self.__rank_id = p
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"p: {p} is type of {type(p)}! Must be <class 'int'>!")
+            raise TypeError(f"p: {p} is of type {type(p)} Must be <class 'int'>")
 
         # Communication graph of this object if defined
         if isinstance(c, ObjectCommunicator) or c is None:
             self.__communicator = c
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"c: {c} is type of {type(c)}! Must be <class 'ObjectCommunicator'>!")
+            raise TypeError(f"c: {c} is of type {type(c)} Must be <class 'ObjectCommunicator'>")
 
         # User defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"user_defined: {user_defined} is type of {type(user_defined)}! Must be <class 'dict'>!")
+            raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)} but must be <class 'dict'>")
 
         # Sub-phases
         if isinstance(subphases, list) or subphases is None:
             self.__subphases = subphases
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"subphases: {subphases} is type of {type(subphases)}! Must be <class 'list'>!")
+            raise TypeError(f"subphases: {subphases} is of type {type(subphases)} but must be <class 'list'>")
 
     def __repr__(self):
-        return f"Object id: {self.__index}, time: {self.__time}"
+        return f"Object id: {self.__index}, load: {self.__load}"
 
     def get_id(self) -> int:
         """ Return object ID
         """
         return self.__index
 
-    def get_time(self) -> float:
-        """ Return object time
+    def get_load(self) -> float:
+        """ Return object load
         """
-        return self.__time
+        return self.__load
 
     def get_sent(self) -> dict:
         """ Return communications sent by object to other objects

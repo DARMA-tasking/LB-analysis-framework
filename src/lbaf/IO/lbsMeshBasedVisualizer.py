@@ -67,17 +67,17 @@ class MeshBasedVisualizer:
         # Initialize maximum edge volume
         self.__max_volume = 0.0
 
-        # Compute object time range
-        self.__time_range = [math.inf, 0.0]
+        # Compute object load range
+        self.__load_range = [math.inf, 0.0]
         for p in self.__phases:
             for r in p.get_ranks():
                 for o in r.get_objects():
-                    # Update time range when necessary
-                    time = o.get_time()
-                    if time > self.__time_range[1]:
-                        self.__time_range[1] = time
-                    if time < self.__time_range[0]:
-                        self.__time_range[0] = time
+                    # Update load range when necessary
+                    load = o.get_load()
+                    if load > self.__load_range[1]:
+                        self.__load_range[1] = load
+                    if load < self.__load_range[0]:
+                        self.__load_range[0] = load
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -215,7 +215,7 @@ class MeshBasedVisualizer:
         self.__logger.info(
             f"Creating object mesh with {n_o} points and {n_e} edges")
 
-        # Create point array for object times
+        # Create point array for object loads
         t_arr = vtk.vtkDoubleArray()
         t_arr.SetName("Load")
         t_arr.SetNumberOfTuples(n_o)
@@ -275,8 +275,8 @@ class MeshBasedVisualizer:
                             (0.0, 0.0, 0.0))[d] + c) * o_resolution
                     for d, c in enumerate(self.global_id_to_cartesian(
                         i, rank_size))])
-                time = o.get_time()
-                t_arr.SetTuple1(point_index, time)
+                load = o.get_load()
+                t_arr.SetTuple1(point_index, load)
                 b_arr.SetTuple1(point_index, m)
 
                 # Update sent volumes
@@ -461,7 +461,7 @@ class MeshBasedVisualizer:
         renderer.AddActor(edge_actor)
         renderer.AddActor2D(volume_actor)
 
-        # Compute square root of object times
+        # Compute square root of object loads
         sqrtT = vtk.vtkArrayCalculator()
         sqrtT.SetInputData(object_mesh)
         sqrtT.AddScalarArrayName("Load")
@@ -486,7 +486,7 @@ class MeshBasedVisualizer:
             thresh_out.GetPointData().SetActiveScalars(
                 sqrtT_str)
 
-            # Glyph by square root of object times
+            # Glyph by square root of object loads
             glyph = vtk.vtkGlyphSource2D()
             getattr(glyph, f"SetGlyphTypeTo{v}")()
             glyph.SetResolution(32)
@@ -513,16 +513,16 @@ class MeshBasedVisualizer:
             glyph_mapper.SetInputConnection(trans.GetOutputPort())
             glyph_mapper.SetLookupTable(
                 self.create_color_transfer_function(
-                    self.__time_range, "blue_to_red"))
-            glyph_mapper.SetScalarRange(self.__time_range)
+                    self.__load_range, "blue_to_red"))
+            glyph_mapper.SetScalarRange(self.__load_range)
             glyph_actor = vtk.vtkActor()
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)
 
-        # Create and add unique scalar bar for object time
-        time_actor = self.create_scalar_bar_actor(
+        # Create and add unique scalar bar for object load
+        load_actor = self.create_scalar_bar_actor(
             glyph_mapper, "Object Load", 0.55, 0.05)
-        renderer.AddActor2D(time_actor)
+        renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration
         text_actor = vtk.vtkTextActor()
@@ -615,7 +615,7 @@ class MeshBasedVisualizer:
                     f"\tcommunication edges width: {edge_width:.2g}")
                 glyph_factor = self.__grid_resolution / (
                     (self.__max_o_per_dim + 1)
-                    * math.sqrt(self.__time_range[1]))
+                    * math.sqrt(self.__load_range[1]))
                 self.__logger.info(
                     f"\tobject glyphs scaling: {glyph_factor:.2g}")
 

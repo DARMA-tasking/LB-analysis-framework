@@ -57,21 +57,21 @@ class VTDataWriter:
         for o in rank.get_objects():
             # Write object to file and increment count
             try:
-                # writer.writerow([o.get_rank_id(), o.get_id(), o.get_time()])
+                # writer.writerow([o.get_rank_id(), o.get_id(), o.get_load()])
                 rank_id = o.get_rank_id()
                 obj_id = o.get_id()
-                obj_time = o.get_time()
+                obj_load = o.get_load()
                 if isinstance(temp_dict.get(rank_id, None), list):
                     temp_dict[rank_id].append({
                         "rank_id": rank_id,
                         "obj_id": obj_id,
-                        "obj_time": obj_time})
+                        "obj_load": obj_load})
                 else:
                     temp_dict[rank_id] = list()
                     temp_dict[rank_id].append({
                         "rank_id": rank_id,
                         "obj_id": obj_id,
-                        "obj_time": obj_time})
+                        "obj_load": obj_load})
             except:
                 n_u += 1
 

@@ -99,7 +99,7 @@ class Rank:
 
         # Update known loads when these exist
         if self.__known_loads:
-            self.__known_loads[p_dst] += o.get_time()
+            self.__known_loads[p_dst] += o.get_load()
         
     def add_as_viewer(self, ranks):
         """ Add self as viewer to known peers."""
@@ -109,15 +109,15 @@ class Rank:
 
     def get_load(self) -> float:
         """ Return total load on rank."""
-        return sum([o.get_time() for o in self.__migratable_objects.union(self.__sentinel_objects)])
+        return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
 
     def get_migratable_load(self) -> float:
         """ Return migratable load on rank."""
-        return sum([o.get_time() for o in self.__migratable_objects])
+        return sum([o.get_load() for o in self.__migratable_objects])
 
     def get_sentinel_load(self) -> float:
         """ Return sentinel load oon rank."""
-        return sum([o.get_time() for o in self.__sentinel_objects])
+        return sum([o.get_load() for o in self.__sentinel_objects])
 
     def get_received_volume(self):
         """ Return volume received by objects assigned to rank from other ranks."""

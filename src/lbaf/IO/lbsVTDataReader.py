@@ -237,8 +237,8 @@ class LoadReader:
                 phase_rank := Rank(node_id, logger=self.__logger))
 
             # Iterate over tasks
-            for task in p["tasks"]:
-                task_time = task.get("time")
+            for task in phase["tasks"]:
+                task_load = task.get("time")
                 entity = task.get("entity")
                 task_object_id = entity.get("id")
                 task_used_defined = task.get("user_defined")
