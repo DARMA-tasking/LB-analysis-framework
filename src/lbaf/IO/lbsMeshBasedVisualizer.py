@@ -107,7 +107,7 @@ class MeshBasedVisualizer:
         for _ in range(n_dis):
             # Create and append new load and work point arrays
             l_arr, w_arr = vtk.vtkDoubleArray(), vtk.vtkDoubleArray()
-            l_arr.SetName("Load")
+            l_arr.SetName("Rank Load")
             w_arr.SetName("Work")
             l_arr.SetNumberOfTuples(self.__n_ranks)
             w_arr.SetNumberOfTuples(self.__n_ranks)
