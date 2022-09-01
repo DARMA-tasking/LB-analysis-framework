@@ -9,6 +9,9 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     raise SystemExit(1)
 
+from multiprocessing import Pool
+import time
+
 import brotli
 import json
 
@@ -21,6 +24,7 @@ class VTDataExtractor:
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
                  file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
                  check_schema: bool = False):
+        self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
         self.output_data_dir = os.path.join(project_path, output_data_dir)
         self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
@@ -132,25 +136,36 @@ class VTDataExtractor:
         else:
             saved_str = json_str
 
-        print(f"Saving file: {file_path}")
+        print(f"==> Saving file: {file_path}")
         with open(file_path, "wb") as compr_json_file:
             compr_json_file.write(saved_str)
 
+    def extraction(self, file: str) -> tuple:
+        start_t = time.perf_counter()
+        print(f"=> Processing file: {file}")
+        file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
+        data = self.get_data_from_file(file_path=file)
+        extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
+        self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
+        end_t = time.perf_counter()
+        return file, end_t - start_t
+
     def main(self):
         files = self._get_files_list()
-        for file in files:
-            print(f"Processing file: {file}")
-            file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
-            data = self.get_data_from_file(file_path=file)
-            extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
-            self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
-        print("=====> DONE <=====")
+        with Pool() as pool:
+            results = pool.imap_unordered(self.extraction, files)
+            for filename, duration in results:
+                print(f"===> File: {filename} completed in {duration:.2f}s")
+
+        end_t = time.perf_counter()
+        total_duration = end_t - self.start_t
+        print(f"=====> DONE in {total_duration:.2f} <=====")
 
 
 if __name__ == '__main__':
     # Here phases are declared
     # It should be declared as list of [int or str]
-    # Int is just a phase number/id
+    # Int is just a phase number/id e.g. [1, 2, 3, 4]
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
     phases = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-stats",
