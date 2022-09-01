@@ -93,6 +93,34 @@ python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node
 python JSON_data_files_validator.py --dir_path=../../data/8color-4node --file_prefix=data --file_suffix=json
 ```
 
+### VT data Extractor
+
+VT data Extractor extracts phases from VT stats files.
+
+#### Location
+
+VT data Extractor is located in:
+```shell
+<project-path>/src/lbaf/Utils/vt_data_extractor.py
+```
+
+#### Input arguments (defined at the bottom of a file)
+
+* `input_data_dir`: str - path to dir with files to extract e.g. `"../data/<dir-with-files>"`
+* `output_data_dir`: str - path to dir where files should be saved e.g. `"../output"` (will be created when doesn't exist)
+* `phases_to_extract`: list - list of phases `[int or str]` e.g. `[0, 1, "2-4"]` will extract phases `[0, 1, 2, 3, 4]`
+* `file_prefix`: str - data file prefix e.g. if filename is `stats.0.json`, then prefix should be set to "stats" 
+* `file_suffix`: str - data file suffix e.g. if filename is `stats.0.json`, then suffix should be set to "json" 
+* `compressed`: bool - when True, brotli must be imported and then output data will be compressed
+* `schema_type`: str - should be `"LBDatafile"` or `"LBStatsfile"` depends on input data. Only `"LBStatsfile"` is supported
+* `check_schema`: bool - when True, validates schema (more time-consuming)
+
+#### Known issues
+
+As requested script is working without `brotli` import for uncompressed data. 
+
+When trying to read compressed data without `brotli` imported `=> Processing file: <file-path>` is printed out and nothing is happening.
+
 [//]: # (## Getting Started with Docker)
 
 [//]: # (### Example use:)

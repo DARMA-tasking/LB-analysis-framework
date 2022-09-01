@@ -12,17 +12,23 @@ except Exception as e:
 from multiprocessing import Pool
 import time
 
-import brotli
 import json
 
 from lbaf.IO.schemaValidator import SchemaValidator
 from lbaf.Utils.exception_handler import exc_handler
 
+try:
+    import brotli
+    BROTLI_NOT_IMPORTED = False
+except ImportError as e:
+    print(f'Brotli was not imported: {e}')
+    BROTLI_NOT_IMPORTED = True
+
 
 class VTDataExtractor:
     """ Reads VT data and saves chosen phases from it. """
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
-                 file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
+                 file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBStatsfile",
                  check_schema: bool = False):
         self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
@@ -91,18 +97,25 @@ class VTDataExtractor:
 
         return files
 
-    def get_data_from_file(self, file_path: str) -> dict:
+    def _get_data_from_file(self, file_path: str) -> dict:
         """ Returns data from given file_path. """
-        with open(file_path, "rb") as compr_json_file:
-            compr_bytes = compr_json_file.read()
-            try:
-                decompr_bytes = brotli.decompress(compr_bytes)
-                decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
-            except brotli.error:
-                decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
+        if not BROTLI_NOT_IMPORTED:
+            with open(file_path, "rb") as compr_json_file:
+                compr_bytes = compr_json_file.read()
+                try:
+                    decompr_bytes = brotli.decompress(compr_bytes)
+                    decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
+                except brotli.error:
+                    decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
+        else:
+            with open(file_path, "rt") as uncompr_json_file:
+                uncompr_str = uncompr_json_file.read()
+                decompressed_dict = json.loads(uncompr_str)
 
-        if decompressed_dict.get("type") is None:
+        if decompressed_dict.get("type") not in ("LBDatafile", "LBStatsfile"):
             decompressed_dict["type"] = self.schema_type
+        else:
+            self.schema_type = decompressed_dict.get("type")
 
         if self.check_schema:
             # Validate schema
@@ -117,7 +130,7 @@ class VTDataExtractor:
         return decompressed_dict
 
     @staticmethod
-    def get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
+    def _get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
         """ Returns just wanted phases from given data and list of phases to extract. """
         extracted_phases = {"phases": []}
         for phase_number, phase in enumerate(data["phases"]):
@@ -126,34 +139,35 @@ class VTDataExtractor:
 
         return extracted_phases
 
-    def save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
+    def _save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
         """ Saves extracted data with or without compression. """
         if extracted_phases.get("type") is None:
             extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))
-        if self.compressed:
+        if self.compressed and not BROTLI_NOT_IMPORTED:
             saved_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
+            print(f"==> Saving file: {file_path}")
+            with open(file_path, "wb") as compr_json_file:
+                compr_json_file.write(saved_str)
         else:
             saved_str = json_str
+            with open(file_path, "wt") as compr_json_file:
+                compr_json_file.write(saved_str)
 
-        print(f"==> Saving file: {file_path}")
-        with open(file_path, "wb") as compr_json_file:
-            compr_json_file.write(saved_str)
-
-    def extraction(self, file: str) -> tuple:
+    def _extraction(self, file: str) -> tuple:
         start_t = time.perf_counter()
         print(f"=> Processing file: {file}")
         file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
-        data = self.get_data_from_file(file_path=file)
-        extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
-        self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
+        data = self._get_data_from_file(file_path=file)
+        extracted_phases = self._get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
+        self._save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
         end_t = time.perf_counter()
         return file, end_t - start_t
 
     def main(self):
         files = self._get_files_list()
         with Pool() as pool:
-            results = pool.imap_unordered(self.extraction, files)
+            results = pool.imap_unordered(self._extraction, files)
             for filename, duration in results:
                 print(f"===> File: {filename} completed in {duration:.2f}s")
 
@@ -167,13 +181,13 @@ if __name__ == '__main__':
     # It should be declared as list of [int or str]
     # Int is just a phase number/id e.g. [1, 2, 3, 4]
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
-    phases = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    phases = [0, 1, 2, 3, "4-9"]
     vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-stats",
                            output_data_dir="../output",
                            phases_to_extract=phases,
                            file_prefix="stats",
                            file_suffix="json",
-                           compressed=True,
-                           schema_type="LBDatafile",
+                           compressed=False,
+                           schema_type="LBStatsfile",
                            check_schema=False)
     vtde.main()
