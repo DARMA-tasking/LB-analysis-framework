@@ -115,11 +115,6 @@ VT data Extractor is located in:
 * `schema_type`: str - should be `"LBDatafile"` or `"LBStatsfile"` depends on input data. Only `"LBStatsfile"` is supported
 * `check_schema`: bool - when True, validates schema (more time-consuming)
 
-#### Known issues
-
-As requested script is working without `brotli` import for uncompressed data. 
-
-When trying to read compressed data without `brotli` imported `=> Processing file: <file-path>` is printed out and nothing is happening.
 
 [//]: # (## Getting Started with Docker)
 
