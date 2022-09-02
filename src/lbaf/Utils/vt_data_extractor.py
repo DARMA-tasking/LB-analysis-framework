@@ -14,7 +14,6 @@ import time
 
 import json
 
-from lbaf.IO.schemaValidator import SchemaValidator
 from lbaf.Utils.exception_handler import exc_handler
 
 try:
@@ -28,7 +27,7 @@ except ImportError as e:
 class VTDataExtractor:
     """ Reads VT data and saves chosen phases from it. """
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
-                 file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBStatsfile",
+                 file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
                  check_schema: bool = False):
         self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
@@ -108,9 +107,15 @@ class VTDataExtractor:
                 except brotli.error:
                     decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
         else:
-            with open(file_path, "rt") as uncompr_json_file:
-                uncompr_str = uncompr_json_file.read()
-                decompressed_dict = json.loads(uncompr_str)
+            try:
+                with open(file_path, "rt") as uncompr_json_file:
+                    uncompr_str = uncompr_json_file.read()
+                    decompressed_dict = json.loads(uncompr_str)
+            except UnicodeDecodeError as err:
+                sys.excepthook = exc_handler
+                raise Exception("\n============================================================\n"
+                                "\t\tCan not read compressed data without Brotli."
+                                "\n============================================================")
 
         if decompressed_dict.get("type") not in ("LBDatafile", "LBStatsfile"):
             decompressed_dict["type"] = self.schema_type
@@ -118,6 +123,13 @@ class VTDataExtractor:
             self.schema_type = decompressed_dict.get("type")
 
         if self.check_schema:
+            try:
+                from lbaf.IO.schemaValidator import SchemaValidator
+            except ModuleNotFoundError as err:
+                sys.excepthook = exc_handler
+                raise ModuleNotFoundError("\n====================================================================\n"
+                                          "\t\tCan not check schema without schema module imported."
+                                          "\n====================================================================")
             # Validate schema
             if SchemaValidator(schema_type=self.schema_type).is_valid(schema_to_validate=decompressed_dict):
                 print(f"Valid JSON schema in {file_path}")
@@ -182,12 +194,12 @@ if __name__ == '__main__':
     # Int is just a phase number/id e.g. [1, 2, 3, 4]
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
     phases = [0, 1, 2, 3, "4-9"]
-    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-stats",
+    vtde = VTDataExtractor(input_data_dir="../data/test_data",
                            output_data_dir="../output",
                            phases_to_extract=phases,
                            file_prefix="stats",
                            file_suffix="json",
                            compressed=False,
-                           schema_type="LBStatsfile",
+                           schema_type="LBDatafile",
                            check_schema=False)
     vtde.main()
