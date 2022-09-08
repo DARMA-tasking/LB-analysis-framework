@@ -3,6 +3,9 @@ import os
 import sys
 import logging
 import math
+from urllib.request import urlretrieve
+from urllib.error import HTTPError, URLError
+
 import yaml
 
 try:
@@ -16,6 +19,38 @@ try:
 except:
     pass
 
+from lbaf.Utils.exception_handler import exc_handler
+
+
+def check_and_get_schema_validator():
+    """ Makes sure that SchemaValidator can be imported, and it's the latest version available.
+    """
+    def save_schema_validator_and_init_file(import_dir: str):
+        with open(os.path.join(import_dir, "__init__.py"), 'wt') as init_file:
+            init_file.write('\n')
+        try:
+            script_url = "https://raw.githubusercontent.com/DARMA-tasking/vt/" \
+                         "1726-run-json-schema-validator-on-lb-data-output/scripts/JSON_data_files_validator.py"
+            filename, http_msg = urlretrieve(script_url, os.path.join(import_dir, "JSON_data_files_validator.py"))
+            print(f"Saved SchemaValidator to: {filename}")
+        except HTTPError as err:
+            sys.excepthook = exc_handler
+            raise ConnectionError(f"Can not download file: {err.filename} \n"
+                                  f"Server responded with code: {err.fp.code} and message: {err.fp.msg}")
+        except URLError as err:
+            sys.excepthook = exc_handler
+            raise ConnectionError("Probably there is no internet connection")
+
+    import_dir = os.path.join(project_path, "lbaf", "imported")
+    if not os.path.exists(import_dir):
+        os.makedirs(import_dir)
+        save_schema_validator_and_init_file(import_dir=import_dir)
+    else:
+        save_schema_validator_and_init_file(import_dir=import_dir)
+
+
+check_and_get_schema_validator()
+
 from lbaf import __version__
 from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Execution.lbsRuntime import Runtime
@@ -24,7 +59,6 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
-from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 

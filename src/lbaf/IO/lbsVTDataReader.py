@@ -5,7 +5,7 @@ import sys
 
 import brotli
 
-from .schemaValidator import SchemaValidator
+from ..imported.JSON_data_files_validator import SchemaValidator
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank

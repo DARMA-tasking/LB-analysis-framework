@@ -12,7 +12,7 @@ except Exception as e:
 import brotli
 import json
 
-from lbaf.IO.schemaValidator import SchemaValidator
+from lbaf.imported.JSON_data_files_validator import SchemaValidator
 from lbaf.Utils.exception_handler import exc_handler
 
 

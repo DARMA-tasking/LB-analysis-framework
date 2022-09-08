@@ -14,7 +14,9 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from src.lbaf.Utils.JSON_data_files_validator import JSONDataFilesValidator
+from src.lbaf.Applications.LBAF_app import check_and_get_schema_validator
+
+from src.lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 
 class TestConfig(unittest.TestCase):
