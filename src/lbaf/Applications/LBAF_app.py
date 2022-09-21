@@ -20,19 +20,22 @@ except:
     pass
 
 from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.colors import green
 
 
 def check_and_get_schema_validator():
     """ Makes sure that SchemaValidator can be imported, and it's the latest version available.
     """
+
     def save_schema_validator_and_init_file(import_dir: str):
+        module_name = green(f"[{os.path.splitext(os.path.split(__file__)[-1])[0]}]")
         with open(os.path.join(import_dir, "__init__.py"), 'wt') as init_file:
             init_file.write('\n')
         try:
-            script_url = "https://raw.githubusercontent.com/DARMA-tasking/vt/" \
-                         "1726-run-json-schema-validator-on-lb-data-output/scripts/JSON_data_files_validator.py"
-            filename, http_msg = urlretrieve(script_url, os.path.join(import_dir, "JSON_data_files_validator.py"))
-            print(f"Saved SchemaValidator to: {filename}")
+            script_name = "JSON_data_files_validator.py"
+            script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
+            filename, http_msg = urlretrieve(script_url, os.path.join(import_dir, script_name))
+            print(f"{module_name} Saved SchemaValidator to: {filename}")
         except HTTPError as err:
             sys.excepthook = exc_handler
             raise ConnectionError(f"Can not download file: {err.filename} \n"
