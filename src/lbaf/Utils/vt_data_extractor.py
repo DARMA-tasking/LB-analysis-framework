@@ -54,9 +54,8 @@ class VTDataExtractor:
             self.input_data_dir = os.path.join(project_path, self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
-            print("Input data directory NOT FOUND!")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise SystemExit("Input data directory NOT FOUND!")
         # Output data
         if not os.path.exists(self.output_data_dir):
             print("Output data directory not found, CREATING ...")
@@ -72,9 +71,9 @@ class VTDataExtractor:
             elif isinstance(phase, str):
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
-                    print('Phase range wrongly declared!')
+                    print("Phase range wrongly declared!")
                     sys.excepthook = exc_handler
-                    raise SystemExit(1)
+                    raise SystemExit("Phase range wrongly declared!")
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
         processed_set = set(processed_list)
@@ -88,11 +87,14 @@ class VTDataExtractor:
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
-            print("No files were found")
+            sys.excepthook = exc_handler
+            raise SystemExit("No files were found")
         try:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
-            print(f"Values in filenames can not be converted to `int`!\nPhases are not sorted.\nERROR: {err}")
+            sys.excepthook = exc_handler
+            raise ValueError(f"Values in filenames can not be converted to `int`!\nPhases are not sorted.\n"
+                             f"ERROR: {err}")
 
         return files
 

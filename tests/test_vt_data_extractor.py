@@ -31,7 +31,8 @@ class TestVTDataExtractor(unittest.TestCase):
         self.expected_data_dir = os.path.join(self.data_dir, "expected")
 
     def tearDown(self):
-        shutil.rmtree(self.output_data_dir)
+        if os.path.isdir(self.output_data_dir):
+            shutil.rmtree(self.output_data_dir)
 
     def test_vt_data_extractor_001(self):
         phases = [0, 1]
@@ -227,6 +228,87 @@ class TestVTDataExtractor(unittest.TestCase):
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
+
+    def test_vt_data_extractor_012(self):
+        phases = ["6-5"]
+        dir_name = "test_vt_data_extractor_012"
+        output_data_dir = os.path.join(self.output_data_dir, dir_name)
+        with self.assertRaises(SystemExit) as err:
+            VTDataExtractor(input_data_dir=self.compr_data_dir, output_data_dir=output_data_dir,
+                            phases_to_extract=phases,
+                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                            check_schema=False).main()
+        self.assertEqual(err.exception.args[0], "Phase range wrongly declared!")
+
+    def test_vt_data_extractor_013(self):
+        phases = [2, 3]
+        dir_name = "test_vt_data_extractor_013"
+        output_data_dir = os.path.join(self.output_data_dir, dir_name)
+        input_dir = os.path.join(self.data_dir, "empty_input_dir")
+        with self.assertRaises(SystemExit) as err:
+            VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                            check_schema=False).main()
+        self.assertEqual(err.exception.args[0], "No files were found")
+
+    def test_vt_data_extractor_014(self):
+        phases = [2, 3]
+        dir_name = "test_vt_data_extractor_014"
+        output_data_dir = os.path.join(self.output_data_dir, dir_name)
+        input_dir = os.path.join(self.data_dir, "wrong_input_files")
+        with self.assertRaises(ValueError) as err:
+            VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                            check_schema=False).main()
+        self.assertEqual(err.exception.args[0], f"Values in filenames can not be converted to `int`!\nPhases are not "
+                                                f"sorted.\nERROR: invalid literal for int() with base 10: 'other'")
+
+    def test_vt_data_extractor_015(self):
+        phases = [0, 1]
+        dir_name = "test_vt_data_extractor_015"
+        output_data_dir = os.path.join(self.output_data_dir, dir_name)
+        input_dir = "../tests/data/VTDataExtractor/uncompressed_data_to_extract"
+        expected_data_dir = os.path.join(self.expected_data_dir, dir_name)
+        VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                        file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                        check_schema=False).main()
+        for file in os.listdir(output_data_dir):
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
+                output_file_str = output_file.read()
+                output_file_json = json.loads(output_file_str)
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
+                expected_file_str = expected_file.read()
+                expected_file_json = json.loads(expected_file_str)
+            self.assertEqual(output_file_json, expected_file_json)
+
+    def test_vt_data_extractor_016(self):
+        phases = [0, 1]
+        dir_name = "test_vt_data_extractor_016"
+        output_data_dir = os.path.join(self.output_data_dir, dir_name)
+        input_dir = "../tests/data/VTDataExtractor/compressed_data_to_extract"
+        expected_data_dir = os.path.join(self.expected_data_dir, dir_name)
+        VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                        file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                        check_schema=False).main()
+        for file in os.listdir(output_data_dir):
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
+                output_file_str = output_file.read()
+                output_file_json = json.loads(output_file_str)
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
+                expected_file_str = expected_file.read()
+                expected_file_json = json.loads(expected_file_str)
+            self.assertEqual(output_file_json, expected_file_json)
+
+    def test_vt_data_extractor_017(self):
+        phases = [2, 3]
+        dir_name = "test_vt_data_extractor_017"
+        output_data_dir = os.path.join(self.output_data_dir, dir_name)
+        input_dir = "input_dir_does_not_exists"
+        with self.assertRaises(SystemExit) as err:
+            VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                            check_schema=False).main()
+        self.assertEqual(err.exception.args[0], "Input data directory NOT FOUND!")
 
 
 if __name__ == '__main__':
