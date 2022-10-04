@@ -29,6 +29,7 @@
 # map_file [str]               base file name for VT object/proc mapping
 # file_suffix [str]            file suffix of VT data files (default: "json")
 # output_dir [str]             output directory (default: '.')
+# overwrite_validator [bool]   download and overwrite JSON_data_files_validator from VT (default: True)
 # terminal_background [str]    background color for terminal output
 # generate_meshes [bool]       generate mesh outputs (default: False)
 # generate_multimedia [bool]   generate multimedia visualization (default: False)
@@ -71,6 +72,7 @@ algorithm:
 
 # Specify output
 #logging_level: debug
+#overwrite_validator: False
 terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output
