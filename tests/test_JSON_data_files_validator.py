@@ -14,12 +14,13 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from src.lbaf.Applications.LBAF_app import check_and_get_schema_validator
+from .utils.schema_validator_helper import check_and_get_schema_validator
+check_and_get_schema_validator()
 
 from src.lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 
-class TestConfig(unittest.TestCase):
+class TestJSONDataFilesValidator(unittest.TestCase):
     def setUp(self):
         try:
             self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), 'data')
