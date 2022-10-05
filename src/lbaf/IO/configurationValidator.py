@@ -73,6 +73,7 @@ class ConfigurationValidator:
                     error="Should be of type 'float' and magnitude < 1")
                 },
             Optional("brute_force_optimization"): bool,
+            Optional("overwrite_validator"): bool,
             Optional("log_to_file"): str,
             Optional("logging_level"): And(
                 str, Use(str.lower),
