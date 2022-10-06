@@ -3,6 +3,9 @@ import os
 import sys
 import logging
 import math
+from urllib.request import urlretrieve
+from urllib.error import HTTPError, URLError
+
 import yaml
 
 try:
@@ -16,6 +19,62 @@ try:
 except:
     pass
 
+from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.colors import green
+
+
+def get_config_file() -> str:
+    """ Parses command line argument and returns config file path. """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", help="Path to the config file.")
+    args = parser.parse_args()
+    if args.config:
+        config_file = os.path.abspath(args.config)
+    else:
+        config_file = os.path.join(project_path, "lbaf", "Applications", "conf.yaml")
+
+    return config_file
+
+
+def check_and_get_schema_validator():
+    """ Makes sure that SchemaValidator can be imported, and it's the latest version available.
+    """
+    module_name = green(f"[{os.path.splitext(os.path.split(__file__)[-1])[0]}]")
+
+    def save_schema_validator_and_init_file(import_dir: str):
+        with open(os.path.join(import_dir, "__init__.py"), 'wt') as init_file:
+            init_file.write('\n')
+        try:
+            script_name = "JSON_data_files_validator.py"
+            script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
+            filename, http_msg = urlretrieve(script_url, os.path.join(import_dir, script_name))
+            print(f"{module_name} Saved SchemaValidator to: {filename}")
+        except HTTPError as err:
+            sys.excepthook = exc_handler
+            raise ConnectionError(f"Can not download file: {err.filename} \n"
+                                  f"Server responded with code: {err.fp.code} and message: {err.fp.msg}")
+        except URLError as err:
+            sys.excepthook = exc_handler
+            raise ConnectionError("Probably there is no internet connection")
+
+    config_file = get_config_file()
+    with open(config_file, "rt") as config:
+        conf = yaml.safe_load(config)
+    overwrite_validator = conf.get("overwrite_validator", True)
+    if overwrite_validator:
+        import_dir = os.path.join(project_path, "lbaf", "imported")
+        if not os.path.exists(import_dir):
+            os.makedirs(import_dir)
+            save_schema_validator_and_init_file(import_dir=import_dir)
+        else:
+            save_schema_validator_and_init_file(import_dir=import_dir)
+    else:
+        print(f"{module_name} Option 'overwrite_validator' in configuration file: {config_file} is set to False\n"
+              f"{module_name} In case of `ModuleNotFoundError: No module named 'lbaf.imported'` set it to True.")
+
+
+check_and_get_schema_validator()
+
 from lbaf import __version__
 from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Execution.lbsRuntime import Runtime
@@ -24,7 +83,6 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
-from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 
 
@@ -54,6 +112,7 @@ class internalParameters:
             "n_ranks",
             "output_dir",
             "output_file_stem",
+            "overwrite_validator",
             "terminal_background",
             "work_model"
         )
@@ -159,26 +218,13 @@ class internalParameters:
 
 class LBAFApp:
     def __init__(self):
-        self.config_file = self.__get_config_file()
+        self.config_file = get_config_file()
 
         # Instantiate parameters
         self.params = internalParameters(config_file=self.config_file)
 
         # Assign logger to variable
         self.logger = self.params.logger
-
-    @staticmethod
-    def __get_config_file() -> str:
-        """ Parses command line argument and returns config file path. """
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--config", help="Path to the config file.")
-        args = parser.parse_args()
-        if args.config:
-            config_file = os.path.abspath(args.config)
-        else:
-            config_file = os.path.join(project_path, "lbaf", "Applications", "conf.yaml")
-
-        return config_file
 
     def main(self):
         # Initialize random number generator

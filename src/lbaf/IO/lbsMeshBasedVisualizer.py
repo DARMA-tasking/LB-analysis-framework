@@ -270,7 +270,9 @@ class MeshBasedVisualizer:
                 # Insert point using offset and rank coordinates
                 points.SetPoint(point_index, [
                     offsets[d] - centering[d] + (
-                        self.__jitter_dims[o.get_id()][d] + c) * o_resolution
+                        self.__jitter_dims.get(
+                            o.get_id(),
+                            (0.0, 0.0, 0.0))[d] + c) * o_resolution
                     for d, c in enumerate(self.global_id_to_cartesian(
                         i, rank_size))])
                 time = o.get_time()

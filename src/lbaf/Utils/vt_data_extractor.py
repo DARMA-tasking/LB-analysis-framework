@@ -126,7 +126,7 @@ class VTDataExtractor:
 
         if self.check_schema:
             try:
-                from lbaf.IO.schemaValidator import SchemaValidator
+                from lbaf.imported.JSON_data_files_validator import SchemaValidator
             except ModuleNotFoundError as err:
                 sys.excepthook = exc_handler
                 raise ModuleNotFoundError("\n====================================================================\n"
@@ -196,10 +196,10 @@ if __name__ == '__main__':
     # Int is just a phase number/id e.g. [1, 2, 3, 4]
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
     phases = [0, 1, 2, 3, "4-9"]
-    vtde = VTDataExtractor(input_data_dir="../data/test_data",
+    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-11firstphases",
                            output_data_dir="../output",
                            phases_to_extract=phases,
-                           file_prefix="stats",
+                           file_prefix="data",
                            file_suffix="json",
                            compressed=False,
                            schema_type="LBDatafile",
