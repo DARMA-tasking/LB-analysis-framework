@@ -15,7 +15,7 @@ class Phase:
     """ A class representing the state of collection of ranks with objects at a given round
     """
 
-    def __init__(self, logger: Logger, pid: int = 0, file_suffix="json"):
+    def __init__(self, logger: Logger, pid: int = 0, file_suffix="json", reader: LoadReader = None):
         # Initialize empty list of ranks
         self.__ranks = []
 
@@ -34,6 +34,9 @@ class Phase:
 
         # Data files suffix(reading from data)
         self.__file_suffix = file_suffix
+
+        # VT Data Reader
+        self.__reader = reader
 
     def get_id(self):
         """ Retrieve index of this phase."""
@@ -235,13 +238,10 @@ class Phase:
         for p in self.__ranks:
             self.__logger.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
-    def populate_from_log(self, n_ranks, t_s, basename):
+    def populate_from_log(self, t_s, basename):
         """ Populate this phase by reading in a load profile from log files."""
-        # Instantiate VT load reader
-        reader = LoadReader(basename, self.__logger, file_suffix=self.__file_suffix)
-
         # Populate phase with reader output
-        self.__ranks = reader.read_iteration(n_ranks, t_s)
+        self.__ranks = self.__reader.read_iteration(t_s)
 
         # Compute and report object statistics
         objects = set()
