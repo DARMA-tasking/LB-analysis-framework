@@ -55,10 +55,10 @@ class VTDataExtractor:
             print(f"Input data directory: {self.input_data_dir}")
         else:
             sys.excepthook = exc_handler
-            raise SystemExit("Input data directory NOT FOUND!")
+            raise SystemExit("Input data directory not found.")
         # Output data
         if not os.path.exists(self.output_data_dir):
-            print("Output data directory not found, CREATING ...")
+            print("Output data directory not found, creating ...")
             os.makedirs(self.output_data_dir)
 
     @staticmethod
@@ -71,9 +71,9 @@ class VTDataExtractor:
             elif isinstance(phase, str):
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
-                    print("Phase range wrongly declared!")
+                    print("Phase range wrongly declared.")
                     sys.excepthook = exc_handler
-                    raise SystemExit("Phase range wrongly declared!")
+                    raise SystemExit("Phase range wrongly declared.")
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
         processed_set = set(processed_list)
@@ -93,7 +93,7 @@ class VTDataExtractor:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
             sys.excepthook = exc_handler
-            raise ValueError(f"Values in filenames can not be converted to `int`!\nPhases are not sorted.\n"
+            raise ValueError(f"Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
                              f"ERROR: {err}")
 
         return files

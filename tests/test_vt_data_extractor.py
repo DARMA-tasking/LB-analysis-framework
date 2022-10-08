@@ -238,7 +238,7 @@ class TestVTDataExtractor(unittest.TestCase):
                             phases_to_extract=phases,
                             file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                             check_schema=False).main()
-        self.assertEqual(err.exception.args[0], "Phase range wrongly declared!")
+        self.assertEqual(err.exception.args[0], "Phase range wrongly declared.")
 
     def test_vt_data_extractor_013(self):
         phases = [2, 3]
@@ -260,7 +260,7 @@ class TestVTDataExtractor(unittest.TestCase):
             VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
                             file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                             check_schema=False).main()
-        self.assertEqual(err.exception.args[0], f"Values in filenames can not be converted to `int`!\nPhases are not "
+        self.assertEqual(err.exception.args[0], f"Values in filenames can not be converted to `int`.\nPhases are not "
                                                 f"sorted.\nERROR: invalid literal for int() with base 10: 'other'")
 
     def test_vt_data_extractor_015(self):
@@ -308,7 +308,7 @@ class TestVTDataExtractor(unittest.TestCase):
             VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
                             file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                             check_schema=False).main()
-        self.assertEqual(err.exception.args[0], "Input data directory NOT FOUND!")
+        self.assertEqual(err.exception.args[0], "Input data directory not found.")
 
 
 if __name__ == '__main__':
