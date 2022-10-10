@@ -14,7 +14,7 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from .utils.schema_validator_helper import check_and_get_schema_validator
+from tests.utils.schema_validator_helper import check_and_get_schema_validator
 check_and_get_schema_validator()
 
 from src.lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator

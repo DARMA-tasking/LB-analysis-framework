@@ -79,6 +79,7 @@ from lbaf import __version__
 from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.configurationValidator import ConfigurationValidator
+from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
 import lbaf.IO.lbsStatistics as lbstats
@@ -233,17 +234,22 @@ class LBAFApp:
         # Create list of phase instances
         phases = []
         if "data_stem" in self.params.__dict__:
+            file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
+            # Initializing reader
+            if file_suffix is not None:
+                reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger,
+                                    file_suffix=file_suffix)
+            else:
+                reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger)
+
             # Populate phase from log files and store number of objects
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
-                if "file_suffix" in self.params.__dict__:
-                    phase = Phase(self.logger, phase_id, self.params.file_suffix)
+                if file_suffix is not None:
+                    phase = Phase(self.logger, phase_id, file_suffix, reader=reader)
                 else:
-                    phase = Phase(self.logger, phase_id)
-                phase.populate_from_log(
-                    self.params.n_ranks,
-                    phase_id,
-                    self.params.data_stem)
+                    phase = Phase(self.logger, phase_id, reader=reader)
+                phase.populate_from_log(phase_id, self.params.data_stem)
                 phases.append(phase)
         else:
             # Populate phase pseudo-randomly a phase 0

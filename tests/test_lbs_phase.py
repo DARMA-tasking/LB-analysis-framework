@@ -10,6 +10,7 @@ except Exception as e:
 import logging
 import unittest
 
+from src.lbaf.IO.lbsVTDataReader import LoadReader
 from src.lbaf.Model.lbsPhase import Phase
 
 
@@ -22,7 +23,9 @@ class TestConfig(unittest.TestCase):
             print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
             raise SystemExit(1)
         self.logger = logging.getLogger()
-        self.phase = Phase(self.logger, 0)
+        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
+        self.reader = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        self.phase = Phase(self.logger, 0, reader=self.reader)
 
     def test_lbs_phase_initialization(self):
         self.assertEqual(self.phase._Phase__ranks, [])
@@ -32,12 +35,12 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_phase_populate_from_log(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
-        self.phase.populate_from_log(n_ranks=4, t_s=0, basename=file_prefix)
+        self.phase.populate_from_log(t_s=0, basename=file_prefix)
         self.assertEqual(len(self.phase.get_object_ids()), 9)
 
     def test_lbs_phase_getters(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
-        self.phase.populate_from_log(n_ranks=4, t_s=0, basename=file_prefix)
+        self.phase.populate_from_log(t_s=0, basename=file_prefix)
         ranks = sorted([rank.get_id() for rank in self.phase.get_ranks()])
         self.assertEqual(ranks, [0, 1, 2, 3])
         self.assertEqual(sorted(self.phase.get_rank_ids()), [0, 1, 2, 3])
@@ -45,7 +48,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_phase_edges(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
-        self.phase.populate_from_log(n_ranks=4, t_s=0, basename=file_prefix)
+        self.phase.populate_from_log(t_s=0, basename=file_prefix)
         self.assertEqual(self.phase._Phase__edges, {})
         self.assertEqual(self.phase._Phase__cached_edges, False)
         edges = {frozenset({0, 1}): 3.0, frozenset({0, 2}): 0.5, frozenset({1, 2}): 2.0}
