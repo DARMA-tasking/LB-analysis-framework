@@ -2,7 +2,7 @@ import os
 import json
 import brotli
 from logging import Logger
-
+from multiprocessing import Pool
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
@@ -35,23 +35,21 @@ class VTDataWriter:
         self.__output_dir = output_dir
 
     def write(self):
-        """Write one JSON file per rank with the following format:
+        """ Write one JSON file per rank with the following format:
             <phase-id>, <object-id>, <time>
         """
-        # Iterate over ranks
-        for p in self.__phase.get_ranks():
-            # Create file name for current rank
-            file_name = f"{self.__file_stem}.{p.get_id()}.{self.__suffix}"
+        with Pool() as pool:
+            results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
+            for file_name in results:
+                self.__logger.info(f"Saved {file_name}")
 
-            if self.__output_dir is not None:
-                file_name = os.path.join(self.__output_dir, file_name)
-
-            # Count number of unsaved objects for sanity
-            n_u = 0
-
-            self.json_writer(file_name=file_name, n_u=n_u, rank=p)
-
-    def json_writer(self, file_name: str, n_u: int, rank: Rank):
+    def json_writer(self, rank: Rank) -> str:
+        # Create file name for current rank
+        file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__suffix}"
+        if self.__output_dir is not None:
+            file_name = os.path.join(self.__output_dir, file_name)
+        # Count number of unsaved objects for sanity
+        n_u = 0
         temp_dict = {}
         # Iterate over objects
         for o in rank.get_objects():
@@ -98,3 +96,5 @@ class VTDataWriter:
             self.__logger.error(f"{n_u} objects could not be written to JSON file {file_name}")
         else:
             self.__logger.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")
+
+        return file_name
