@@ -9,11 +9,19 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     raise SystemExit(1)
 
-import brotli
+from multiprocessing import Pool
+import time
+
 import json
 
-from lbaf.imported.JSON_data_files_validator import SchemaValidator
 from lbaf.Utils.exception_handler import exc_handler
+
+try:
+    import brotli
+    BROTLI_NOT_IMPORTED = False
+except ImportError as e:
+    print(f'Brotli was not imported: {e}')
+    BROTLI_NOT_IMPORTED = True
 
 
 class VTDataExtractor:
@@ -21,6 +29,7 @@ class VTDataExtractor:
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
                  file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
                  check_schema: bool = False):
+        self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
         self.output_data_dir = os.path.join(project_path, output_data_dir)
         self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
@@ -45,12 +54,11 @@ class VTDataExtractor:
             self.input_data_dir = os.path.join(project_path, self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
-            print("Input data directory NOT FOUND!")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise SystemExit("Input data directory not found.")
         # Output data
         if not os.path.exists(self.output_data_dir):
-            print("Output data directory not found, CREATING ...")
+            print("Output data directory not found, creating ...")
             os.makedirs(self.output_data_dir)
 
     @staticmethod
@@ -63,9 +71,9 @@ class VTDataExtractor:
             elif isinstance(phase, str):
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
-                    print('Phase range wrongly declared!')
+                    print("Phase range wrongly declared.")
                     sys.excepthook = exc_handler
-                    raise SystemExit(1)
+                    raise SystemExit("Phase range wrongly declared.")
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
         processed_set = set(processed_list)
@@ -79,28 +87,51 @@ class VTDataExtractor:
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
-            print("No files were found")
+            sys.excepthook = exc_handler
+            raise SystemExit("No files were found")
         try:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
-            print(f"Values in filenames can not be converted to `int`!\nPhases are not sorted.\nERROR: {err}")
+            sys.excepthook = exc_handler
+            raise ValueError(f"Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
+                             f"ERROR: {err}")
 
         return files
 
-    def get_data_from_file(self, file_path: str) -> dict:
+    def _get_data_from_file(self, file_path: str) -> dict:
         """ Returns data from given file_path. """
-        with open(file_path, "rb") as compr_json_file:
-            compr_bytes = compr_json_file.read()
+        if not BROTLI_NOT_IMPORTED:
+            with open(file_path, "rb") as compr_json_file:
+                compr_bytes = compr_json_file.read()
+                try:
+                    decompr_bytes = brotli.decompress(compr_bytes)
+                    decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
+                except brotli.error:
+                    decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
+        else:
             try:
-                decompr_bytes = brotli.decompress(compr_bytes)
-                decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
-            except brotli.error:
-                decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
+                with open(file_path, "rt") as uncompr_json_file:
+                    uncompr_str = uncompr_json_file.read()
+                    decompressed_dict = json.loads(uncompr_str)
+            except UnicodeDecodeError as err:
+                sys.excepthook = exc_handler
+                raise Exception("\n============================================================\n"
+                                "\t\tCan not read compressed data without Brotli."
+                                "\n============================================================")
 
-        if decompressed_dict.get("type") is None:
+        if decompressed_dict.get("type") not in ("LBDatafile", "LBStatsfile"):
             decompressed_dict["type"] = self.schema_type
+        else:
+            self.schema_type = decompressed_dict.get("type")
 
         if self.check_schema:
+            try:
+                from lbaf.imported.JSON_data_files_validator import SchemaValidator
+            except ModuleNotFoundError as err:
+                sys.excepthook = exc_handler
+                raise ModuleNotFoundError("\n====================================================================\n"
+                                          "\t\tCan not check schema without schema module imported."
+                                          "\n====================================================================")
             # Validate schema
             if SchemaValidator(schema_type=self.schema_type).is_valid(schema_to_validate=decompressed_dict):
                 print(f"Valid JSON schema in {file_path}")
@@ -113,7 +144,7 @@ class VTDataExtractor:
         return decompressed_dict
 
     @staticmethod
-    def get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
+    def _get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
         """ Returns just wanted phases from given data and list of phases to extract. """
         extracted_phases = {"phases": []}
         for phase_number, phase in enumerate(data["phases"]):
@@ -122,43 +153,55 @@ class VTDataExtractor:
 
         return extracted_phases
 
-    def save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
+    def _save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
         """ Saves extracted data with or without compression. """
         if extracted_phases.get("type") is None:
             extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))
-        if self.compressed:
+        if self.compressed and not BROTLI_NOT_IMPORTED:
             saved_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
+            print(f"==> Saving file: {file_path}")
+            with open(file_path, "wb") as compr_json_file:
+                compr_json_file.write(saved_str)
         else:
             saved_str = json_str
+            with open(file_path, "wt") as compr_json_file:
+                compr_json_file.write(saved_str)
 
-        print(f"Saving file: {file_path}")
-        with open(file_path, "wb") as compr_json_file:
-            compr_json_file.write(saved_str)
+    def _extraction(self, file: str) -> tuple:
+        start_t = time.perf_counter()
+        print(f"=> Processing file: {file}")
+        file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
+        data = self._get_data_from_file(file_path=file)
+        extracted_phases = self._get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
+        self._save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
+        end_t = time.perf_counter()
+        return file, end_t - start_t
 
     def main(self):
         files = self._get_files_list()
-        for file in files:
-            print(f"Processing file: {file}")
-            file_path = os.path.join(self.output_data_dir, file.split(os.sep)[-1])
-            data = self.get_data_from_file(file_path=file)
-            extracted_phases = self.get_extracted_phases(data=data, phases_to_extract=self.phases_to_extract)
-            self.save_extracted_phases(extracted_phases=extracted_phases, file_path=file_path)
-        print("=====> DONE <=====")
+        with Pool() as pool:
+            results = pool.imap_unordered(self._extraction, files)
+            for filename, duration in results:
+                print(f"===> File: {filename} completed in {duration:.2f}s")
+
+        end_t = time.perf_counter()
+        total_duration = end_t - self.start_t
+        print(f"=====> DONE in {total_duration:.2f} <=====")
 
 
 if __name__ == '__main__':
     # Here phases are declared
     # It should be declared as list of [int or str]
-    # Int is just a phase number/id
+    # Int is just a phase number/id e.g. [1, 2, 3, 4]
     # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
-    phases = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-stats",
+    phases = [0, 1, 2, 3, "4-9"]
+    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-11firstphases",
                            output_data_dir="../output",
                            phases_to_extract=phases,
-                           file_prefix="stats",
+                           file_prefix="data",
                            file_suffix="json",
-                           compressed=True,
+                           compressed=False,
                            schema_type="LBDatafile",
                            check_schema=False)
     vtde.main()
