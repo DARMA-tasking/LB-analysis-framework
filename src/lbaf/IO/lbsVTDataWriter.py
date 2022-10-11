@@ -1,5 +1,7 @@
-import os
 import json
+import os
+import sys
+
 import brotli
 from logging import Logger
 from multiprocessing import Pool
@@ -38,6 +40,7 @@ class VTDataWriter:
         """ Write one JSON file per rank with the following format:
             <phase-id>, <object-id>, <time>
         """
+        sys.setrecursionlimit(25000)
         with Pool() as pool:
             results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
             for file_name in results:
