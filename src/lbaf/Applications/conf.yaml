@@ -73,6 +73,7 @@ algorithm:
 # Specify output
 #logging_level: debug
 #overwrite_validator: False
+check_schema: False
 terminal_background: light
 generate_multimedia: False
 output_dir: ../../../output

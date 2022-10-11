@@ -29,7 +29,7 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix: str, n_ranks: int, logger: Logger, file_suffix: str = "json"):
+    def __init__(self, file_prefix: str, n_ranks: int, logger: Logger, file_suffix: str = "json", check_schema=True):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -41,6 +41,9 @@ class LoadReader:
 
         # Assign logger to instance variable
         self.__logger = logger
+
+        # Check schema
+        self.__check_schema = check_schema
 
         self.vt_files = self._load_vt_files()
 
@@ -63,13 +66,14 @@ class LoadReader:
         if schema_type is None:
             sys.excepthook = exc_handler
             raise TypeError("JSON data is missing 'type' key")
-        # TODO: make dependant on parameter from configuration
-        # Validate schema
-        if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
-            self.__logger.info(f"Valid JSON schema in {file_name}")
-        else:
-            self.__logger.error(f"Invalid JSON schema in {file_name}")
-            SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
+        # Checking Schema from configuration
+        if self.__check_schema:
+            # Validate schema
+            if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
+                self.__logger.info(f"Valid JSON schema in {file_name}")
+            else:
+                self.__logger.error(f"Invalid JSON schema in {file_name}")
+                SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
         # Print more information when requested
         self.__logger.debug(f"Finished reading file: {file_name}")
 

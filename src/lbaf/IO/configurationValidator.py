@@ -74,6 +74,7 @@ class ConfigurationValidator:
                 },
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
+            Optional("check_schema"): bool,
             Optional("log_to_file"): str,
             Optional("logging_level"): And(
                 str, Use(str.lower),

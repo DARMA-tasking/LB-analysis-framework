@@ -103,6 +103,7 @@ class internalParameters:
         self.__allowed_config_keys = (
             "algorithm",
             "brute_force_optimization",
+            "check_schema",
             "generate_meshes",
             "file_suffix",
             "from_data",
@@ -233,14 +234,16 @@ class LBAFApp:
 
         # Create list of phase instances
         phases = []
+        check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
         if "data_stem" in self.params.__dict__:
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
             # Initializing reader
             if file_suffix is not None:
                 reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger,
-                                    file_suffix=file_suffix)
+                                    file_suffix=file_suffix, check_schema=check_schema)
             else:
-                reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger)
+                reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger,
+                                    check_schema=check_schema)
 
             # Populate phase from log files and store number of objects
             for phase_id in self.params.phase_ids:
