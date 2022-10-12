@@ -18,17 +18,19 @@
 #                              fewest_migrations, small_objects
 #      BruteForce: 
 #        skip_transfer [bool]  (default: False) skip transfer phase
-#      PhaseStepper 
+#      PhaseStepper
 # logging_level [str]          set to `info`, `debug`, `warning` or `error`
 # log_to_file [str]            filepath to save the log file (optional)
 # x_procs [int]                number of procs in x direction for rank visualization
 # y_procs [int]                number of procs in y direction for rank visualization
 # z_procs [int]                number of procs in z direction for rank visualization
 # data_stem [str]              base file name of VT load logs
-# phase_ids [list]             list of ids of phase to be read in VT load logs
+# phase_ids [list or str]      list of ids of phase to be read in VT load logs e.g. [1, 2, 3] or "1-3"
 # map_file [str]               base file name for VT object/proc mapping
 # file_suffix [str]            file suffix of VT data files (default: "json")
 # output_dir [str]             output directory (default: '.')
+# overwrite_validator [bool]   download and overwrite JSON_data_files_validator from VT (default: True)
+# check_schema [bool]          checking schema in VT input files (optional, default: True)
 # terminal_background [str]    background color for terminal output
 # generate_meshes [bool]       generate mesh outputs (default: False)
 # generate_multimedia [bool]   generate multimedia visualization (default: False)
@@ -72,6 +74,8 @@ algorithm:
 
 # Specify output
 #logging_level: debug
+#overwrite_validator: False
+#check_schema: False
 log_to_file: /__w/LB-analysis-framework/LB-analysis-framework/log.txt
 terminal_background: light
 generate_multimedia: False
