@@ -74,6 +74,8 @@ algorithm:
 
 # Specify output
 #logging_level: debug
+#overwrite_validator: False
+#check_schema: False
 log_to_file: /__w/LB-analysis-framework/LB-analysis-framework/log.txt
 terminal_background: light
 generate_multimedia: False

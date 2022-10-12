@@ -71,6 +71,9 @@ algorithm:
     deterministic_transfer: True
 
 # Specify output
+#logging_level: debug
+#overwrite_validator: False
+#check_schema: False
 n_ranks: 4
 logging_level: info
 terminal_background: light
