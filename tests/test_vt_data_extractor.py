@@ -260,8 +260,11 @@ class TestVTDataExtractor(unittest.TestCase):
             VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
                             file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                             check_schema=False).main()
-        self.assertEqual(err.exception.args[0], f"Values in filenames can not be converted to `int`.\nPhases are not "
-                                                f"sorted.\nERROR: invalid literal for int() with base 10: 'other'")
+        expected = ["Values in filenames can not be converted to `int`.\nPhases are not sorted.\nERROR: invalid litera"
+                    "l for int() with base 10: 'other'",
+                    "Values in filenames can not be converted to `int`.\nPhases are not sorted.\nERROR: invalid litera"
+                    "l for int() with base 10: 'sm'"]
+        self.assertIn(err.exception.args[0], expected)
 
     def test_vt_data_extractor_015(self):
         phases = [0, 1]
