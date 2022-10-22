@@ -37,9 +37,7 @@ class VTDataWriter:
         self.__output_dir = output_dir
 
     def write(self):
-        """ Write one JSON file per rank with the following format:
-            <phase-id>, <object-id>, <time>
-        """
+        """ Write one JSON file per rank. """
         sys.setrecursionlimit(25000)
         with Pool() as pool:
             results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
@@ -82,7 +80,7 @@ class VTDataWriter:
             phase_dict = {"tasks": list(), "id": rank_id}
             for task in others_list:
                 task_dict = {
-                    "time": task["obj_time"],
+                    "load": task["obj_time"],
                     "resource": "cpu",
                     "object": task["obj_id"]}
                 phase_dict["tasks"].append(task_dict)
