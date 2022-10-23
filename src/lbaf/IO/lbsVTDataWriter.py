@@ -81,7 +81,7 @@ class VTDataWriter:
             phase_dict = {"tasks": list(), "id": rank_id}
             for task in others_list:
                 task_dict = {
-                    "load": task["obj_time"],
+                    "load": task["obj_load"],
                     "resource": "cpu",
                     "object": task["obj_id"]}
                 phase_dict["tasks"].append(task_dict)
