@@ -291,7 +291,7 @@ class LBAFApp:
                 for o in rank.get_objects():
                     entry = {
                         "id": o.get_id(),
-                        "time": o.get_time(),
+                        "load": o.get_load(),
                         "to": {},
                         "from": {}}
                     comm = o.get_communicator()

@@ -34,7 +34,7 @@ def get_objects(n_ranks: int, lgr: Logger, file_prefix: str, file_suffix: str) -
         iter_map, comm = lr.read(node_id=rank)
         for rnk in iter_map.values():
             for obj in rnk.get_migratable_objects():
-                objects.append({"id": obj.get_id(), "time": obj.get_time()})
+                objects.append({"id": obj.get_id(), "load": obj.get_load()})
         for obj_idx, obj_comm in comm.items():
             if obj_idx not in communication.keys():
                 communication[obj_idx] = {"from": {}, "to": {}}
@@ -59,10 +59,10 @@ def get_objects(n_ranks: int, lgr: Logger, file_prefix: str, file_suffix: str) -
 
 
 def compute_load(objects: tuple, rank_object_ids: list) -> float:
-    """ Return a load as a sum of all object times
+    """ Return a load as a sum of all object loads
     """
 
-    return sum([objects[i].get("time") for i in rank_object_ids])
+    return sum([objects[i].get("load") for i in rank_object_ids])
 
 
 def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
