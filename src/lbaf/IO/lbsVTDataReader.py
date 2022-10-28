@@ -247,8 +247,8 @@ class LoadReader:
                 # Instantiate object with retrieved parameters
                 obj = Object(
                     task_object_id,
-                    task_time,
-                    node_id,
+                    r_id=node_id,
+                    load=task_load,
                     user_defined=task_used_defined,
                     subphases=subphases)
 

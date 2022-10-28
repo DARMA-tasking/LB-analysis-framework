@@ -8,34 +8,53 @@ class Object:
     """ A class representing an object with load and communicator
     """
     def __init__(
-        self, i: int, t: float, p: int = None, c: ObjectCommunicator = None, user_defined: dict = None, subphases: list = None):
+        self,
+        i: int,
+        r_id: int=None,
+        load: float=0.0,
+        size: float=0.0,
+        comm: ObjectCommunicator=None,
+        user_defined: dict=None,
+        subphases: list=None):
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
             sys.excepthook = exc_handler
-            raise TypeError(f"i: {i} is of type {type(i)} but must be <class 'int'>")
+            raise TypeError(
+                f"i: incorrect type {type(i)}")
         else:
             self.__index = i
 
-        # Load required to perform the work of this object
-        if not isinstance(t, float):
+        # Nonnegative load required to perform the work of this object
+        if not isinstance(load, float) or load < 0.0:
             sys.excepthook = exc_handler
-            raise TypeError(f"t: {t} is of type {type(t)} but must be <class 'float'>")
+            raise TypeError(
+                f"load: incorrect type {type(load)} or value: {load}")
         else:
-            self.__load = t
+            self.__load = load
+
+        # Nonnegative size required to store this object
+        if not isinstance(size, float) or size < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"size: incorrect type {type(size)} or value: {size}")
+        else:
+            self.__load = load
 
         # Rank to which object is currently assigned if defined
-        if bool(isinstance(p, int) or p is None) and not isinstance(p, bool):
-            self.__rank_id = p
+        if bool(isinstance(r_id, int) or r_id is None) and not isinstance(r_id, bool):
+            self.__rank_id = r_id
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"p: {p} is of type {type(p)} Must be <class 'int'>")
+            raise TypeError(
+                f"r_id: incorrect type {type(r_id)}")
 
         # Communication graph of this object if defined
-        if isinstance(c, ObjectCommunicator) or c is None:
-            self.__communicator = c
+        if isinstance(comm, ObjectCommunicator) or comm is None:
+            self.__communicator = comm
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"c: {c} is of type {type(c)} Must be <class 'ObjectCommunicator'>")
+            raise TypeError(
+                f"c: {comm} is of type {type(comm)} Must be <class 'ObjectCommunicator'>")
 
         # User defined fields
         if isinstance(user_defined, dict) or user_defined is None:

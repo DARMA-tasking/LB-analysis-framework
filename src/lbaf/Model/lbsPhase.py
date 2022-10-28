@@ -145,9 +145,12 @@ class Phase:
         load_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
 
         # Create n_objects objects with uniformly distributed loads in given range
-        self.__logger.info(f"Creating {n_objects} objects with loads sampled from {sampler_name}")
+        self.__logger.info(
+            f"Creating {n_objects} objects with loads sampled from {sampler_name}")
         self.__number_of_objects = n_objects
-        objects = set([Object(i, load_sampler()) for i in range(n_objects)])
+        objects = set([
+            Object(i, load=load_sampler())
+            for i in range(n_objects)])
 
         # Compute and report object load statistics
         print_function_statistics(objects, lambda x: x.get_load(), "object loads", self.__logger)
@@ -156,7 +159,8 @@ class Phase:
         if c_degree > 0:
             # Instantiate communication samplers with requested properties
             volume_sampler, volume_sampler_name = sampler(
-                v_sampler.get("name"), v_sampler.get("parameters"), self.__logger)
+                v_sampler.get("name"),
+                v_sampler.get("parameters"), self.__logger)
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
