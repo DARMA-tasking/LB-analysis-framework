@@ -20,12 +20,13 @@ from lbaf.Utils.exception_handler import exc_handler
 class DataStatFilesUpdater:
     """ Class validating VT data files according do defined schema. """
     def __init__(self, file_path: str = None, dir_path: str = None, file_prefix: str = None, file_suffix: str = None,
-                 schema_type: str = "LBDatafile"):
+                 schema_type: str = "LBDatafile", compress_data: bool = None):
         self.__file_path = file_path
         self.__dir_path = dir_path
         self.__file_prefix = file_prefix
         self.__file_suffix = file_suffix
         self.__schema_type = schema_type
+        self.__compress_data = compress_data
         self.__cli()
 
     def __cli(self):
@@ -37,6 +38,7 @@ class DataStatFilesUpdater:
         parser.add_argument("--file_prefix", help="File prefix. Optional. Pass only when --dir_path is provided.")
         parser.add_argument("--file_suffix", help="File suffix. Optional. Pass only when --dir_path is provided.")
         parser.add_argument("--schema_type", help="Schema type. Must be `LBDatafile` or `LBStatsfile`")
+        parser.add_argument("--compress_data", help="If output data should be compressed. Default as input data.")
         args = parser.parse_args()
         if args.file_path:
             self.__file_path = os.path.abspath(args.file_path)
@@ -47,7 +49,14 @@ class DataStatFilesUpdater:
         if args.file_suffix:
             self.__file_suffix = args.file_suffix
         if args.schema_type:
-            self.__schema_type = args.schema_type
+            if args.schema_type in ["LBDatafile", "LBStatsfile"]:
+                self.__schema_type = args.schema_type
+            else:
+                sys.excepthook = exc_handler
+                raise TypeError("Schema_type must be: LBDatafile or LBStatsfile")
+        if args.compress_data:
+            self.__compress_data = args.compress_data
+
 
     @staticmethod
     def __check_if_file_exists(file_path: str) -> bool:
@@ -87,27 +96,36 @@ class DataStatFilesUpdater:
     def __add_type_to_file(self, file_path):
         """ Add given type to the file. """
         print(f"Adding schema to file: {file_path}")
-        file_uncompressed = 0
+        file_uncompressed = None
+        if self.__compress_data is None:
+            file_uncompressed = 0
+        elif self.__compress_data is not None:
+            if self.__compress_data:
+                file_uncompressed = 0
+            else:
+                file_uncompressed = 1
+
         with open(file_path, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
             try:
                 decompr_bytes = brotli.decompress(compr_bytes)
                 decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
             except brotli.error:
-                file_uncompressed = 1
+                if self.__compress_data is None:
+                    file_uncompressed = 1
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
         # Adding schema type to file
         decompressed_dict["type"] = self.__schema_type
 
         json_str = json.dumps(decompressed_dict, separators=(',', ':'))
-        compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
 
         if file_uncompressed:
             with open(file_path, "wt") as uncompr_json_file:
                 uncompr_json_file.write(json_str)
         else:
             with open(file_path, "wb") as compr_json_file:
+                compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
                 compr_json_file.write(compressed_str)
 
     def main(self):
