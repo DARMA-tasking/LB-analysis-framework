@@ -241,7 +241,7 @@ class LoadReader:
                 task_load = task.get("time")
                 entity = task.get("entity")
                 task_object_id = entity.get("id")
-                task_used_defined = task.get("user_defined")
+                task_user_defined = task.get("user_defined")
                 subphases = task.get("subphases")
 
                 # Instantiate object with retrieved parameters
