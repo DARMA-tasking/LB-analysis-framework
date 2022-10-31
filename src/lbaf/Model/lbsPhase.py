@@ -252,6 +252,7 @@ class Phase:
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
         print_function_statistics(objects, lambda x: x.get_load(), "object loads", self.__logger)
+        print_function_statistics(objects, lambda x: x.get_size(), "object sizes", self.__logger)
 
         # Set number of read objects
         self.__n_objects = len(objects)

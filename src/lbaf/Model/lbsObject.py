@@ -38,7 +38,7 @@ class Object:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         else:
-            self.__load = load
+            self.__size = size
 
         # Rank to which object is currently assigned if defined
         if bool(isinstance(r_id, int) or r_id is None) and not isinstance(r_id, bool):
@@ -82,6 +82,11 @@ class Object:
         """ Return object load
         """
         return self.__load
+
+    def get_size(self) -> float:
+        """ Return object size
+        """
+        return self.__size
 
     def get_sent(self) -> dict:
         """ Return communications sent by object to other objects
