@@ -57,10 +57,12 @@ def check_and_get_schema_validator():
             sys.excepthook = exc_handler
             raise ConnectionError("Probably there is no internet connection")
 
-    config_file = get_config_file()
-    with open(config_file, "rt") as config:
-        conf = yaml.safe_load(config)
-    overwrite_validator = conf.get("overwrite_validator", True)
+    overwrite_validator = True
+    if __name__ == "__main__":
+        config_file = get_config_file()
+        with open(config_file, "rt") as config:
+            conf = yaml.safe_load(config)
+        overwrite_validator = conf.get("overwrite_validator", True)
     if overwrite_validator:
         import_dir = os.path.join(project_path, "lbaf", "imported")
         if not os.path.exists(import_dir):
