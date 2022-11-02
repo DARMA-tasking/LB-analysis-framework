@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>src.lbaf.Utils.csv_2_json_data_converter.Csv2JsonConverter | LBAF (Load Balancing Analysis Framework)</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
+  <link rel="stylesheet" href="m-dark.compiled.css" />
+  <link rel="stylesheet" href="m-dark.documentation.compiled.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">LBAF (Load Balancing Analysis Framework)</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-12 m-col-m-none">
+            <li><a href="modules.html">Modules</a></li>
+            <li><a href="classes.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="3">
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="src.lbaf.Utils.csv_2_json_data_converter.html">src.lbaf.Utils.csv_2_json_data_converter</a>.<wbr/></span>Csv2JsonConverter <span class="m-thin">class</span>
+        </h1>
+        <p>A class to convert from previous log structure (CSV) to a current log structure (JSON)
+with/without Brotli compression.
+Files for conversion should be named as follows &#x27;prefix.rank/node.extension&#x27; e.g. &#x27;data.0.vom&#x27;, &#x27;data.1.vom&#x27;
+Changes input CSV files e.g. &lt;time_step/phase&gt;, &lt;object-id&gt;, &lt;time&gt; to JSON:
+{&quot;phases&quot;:[
+    {&quot;tasks&quot;:[
+        {&quot;time&quot;:0.036448,&quot;resource&quot;:&quot;cpu&quot;,&quot;object&quot;:51539607559,&quot;node&quot;:7},
+        {&quot;time&quot;:0.0298901,&quot;resource&quot;:&quot;cpu&quot;,&quot;object&quot;:47244640263,&quot;node&quot;:7}
+        ],
+    &quot;id&quot;:0}]}
+:param dir_path: Absolute dir path or relative(from project path) dir path
+:param compressed: If output file should be compressed, default = True
+:param in_file_name_prefix: Input file name prefix e.g. &#x27;data&#x27;
+:param in_file_extension: Input file extension, e.g. &#x27;.vom&#x27;
+:param out_dir_path: Output dir, relative to project path.</p>
+        <nav class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#staticmethods">Static methods</a></li>
+                <li><a href="#methods">Methods</a></li>
+                <li><a href="#dunder-methods">Special methods</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+        <section id="staticmethods">
+          <h2><a href="#staticmethods">Static methods</a></h2>
+          <dl class="m-doc">
+            <dt id="_get_data_dir">
+              <span class="m-doc-wrap-bumper">def <a href="#_get_data_dir" class="m-doc-self">_get_data_dir</a>(</span><span class="m-doc-wrap">dir_path: str) -&gt; str</span>
+            </dt>
+            <dd>Return a path to data directory.</dd>
+            <dt id="_get_data_phase_sorted">
+              <span class="m-doc-wrap-bumper">def <a href="#_get_data_phase_sorted" class="m-doc-self">_get_data_phase_sorted</a>(</span><span class="m-doc-wrap">data: list) -&gt; dict</span>
+            </dt>
+            <dd>Sort data with respect to the phase. Return dict with phases as keys.</dd>
+            <dt id="_read_csv">
+              <span class="m-doc-wrap-bumper">def <a href="#_read_csv" class="m-doc-self">_read_csv</a>(</span><span class="m-doc-wrap">file_to_read: str) -&gt; list</span>
+            </dt>
+            <dd>Read CSV and returns a list of dicts (phase, object_id, time) ready to save into JSON.</dd>
+          </dl>
+        </section>
+        <section id="methods">
+          <h2><a href="#methods">Methods</a></h2>
+          <dl class="m-doc">
+            <dt id="_convert_file">
+              <span class="m-doc-wrap-bumper">def <a href="#_convert_file" class="m-doc-self">_convert_file</a>(</span><span class="m-doc-wrap">self,
+              file_path: tuple) -&gt; None</span>
+            </dt>
+            <dd>Convert a file and saves converted file to given path.</dd>
+            <dt id="_get_files_for_conversion">
+              <span class="m-doc-wrap-bumper">def <a href="#_get_files_for_conversion" class="m-doc-self">_get_files_for_conversion</a>(</span><span class="m-doc-wrap">self) -&gt; list</span>
+            </dt>
+            <dd>Return list of tuples as follows (file_to_convert_path, converted_file_path).</dd>
+            <dt id="_write_json">
+              <span class="m-doc-wrap-bumper">def <a href="#_write_json" class="m-doc-self">_write_json</a>(</span><span class="m-doc-wrap">self,
+              output_path: str,
+              data_to_convert: dict,
+              node: int) -&gt; None</span>
+            </dt>
+            <dd>Convert data to JSON and saves to output path.</dd>
+            <dt id="main">
+              <span class="m-doc-wrap-bumper">def <a href="#main" class="m-doc-self">main</a>(</span><span class="m-doc-wrap">self)</span>
+            </dt>
+            <dd>Get lists of files to convert. Iterate over it and converts each file.</dd>
+          </dl>
+        </section>
+        <section id="dunder-methods">
+          <h2><a href="#dunder-methods">Special methods</a></h2>
+          <dl class="m-doc">
+            <dt id="__init__">
+              <span class="m-doc-wrap-bumper">def <a href="#__init__" class="m-doc-self">__init__</a>(</span><span class="m-doc-wrap">self,
+              dir_path: str,
+              compressed: bool = True,
+              in_file_name_prefix: typing.Optional[str] = None,
+              in_file_extension: typing.Optional[str] = None,
+              out_dir_path: str = &#x27;converted_data&#x27;)</span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for modules, classes, functions and other
+            symbols. You can omit any prefix from the symbol path; adding a <code>.</code>
+            suffix lists all members of given symbol.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v2.js"></script>
+<script src="searchdata-v2.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>LBAF (Load Balancing Analysis Framework). Created with <a href="https://mcss.mosra.cz/documentation/python/">m.css Python doc generator</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>
