@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>src.lbaf.Model.lbsWorkModelBase.WorkModelBase | LBAF (Load Balancing Analysis Framework)</title>
+  <title>Usage | LBAF (Load Balancing Analysis Framework)</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark.compiled.css" />
   <link rel="stylesheet" href="m-dark.documentation.compiled.css" />
@@ -54,65 +54,11 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="src.lbaf.Model.lbsWorkModelBase.html">src.lbaf.Model.lbsWorkModelBase</a>.<wbr/></span>WorkModelBase <span class="m-thin">class</span>
+          Usage
         </h1>
-        <nav class="m-block m-default">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#classes">Classes</a></li>
-                <li><a href="#staticmethods">Static methods</a></li>
-                <li><a href="#methods">Methods</a></li>
-                <li><a href="#dunder-methods">Special methods</a></li>
-              </ul>
-            </li>
-          </ul>
-        </nav>
-        <section id="classes">
-          <h2><a href="#classes">Classes</a></h2>
-          <dl class="m-doc">
-            <dt>class <a href="src.lbaf.Model.lbsAffineCombinationWorkModel.AffineCombinationWorkModel.__metaclass__.html" class="m-doc">__metaclass__</a></dt>
-            <dd>Metaclass for defining Abstract Base Classes (ABCs).</dd>
-          </dl>
-        </section>
-        <section id="staticmethods">
-          <h2><a href="#staticmethods">Static methods</a></h2>
-          <dl class="m-doc">
-            <dt id="factory">
-              <span class="m-doc-wrap-bumper">def <a href="#factory" class="m-doc-self">factory</a>(</span><span class="m-doc-wrap">work_name,
-              parameters,
-              lgr: logging.Logger)</span>
-            </dt>
-            <dd>Produce the necessary concrete work model</dd>
-          </dl>
-        </section>
-        <section id="methods">
-          <h2><a href="#methods">Methods</a></h2>
-          <dl class="m-doc">
-            <dt id="aggregate">
-              <span class="m-doc-wrap-bumper">def <a href="#aggregate" class="m-doc-self">aggregate</a>(</span><span class="m-doc-wrap">self,
-              values: dict)</span>
-            </dt>
-            <dd>Return value of work given relevant dictionary of values</dd>
-            <dt id="compute">
-              <span class="m-doc-wrap-bumper">def <a href="#compute" class="m-doc-self">compute</a>(</span><span class="m-doc-wrap">self, rank)</span>
-            </dt>
-            <dd>Return value of work for given rank</dd>
-          </dl>
-        </section>
-        <section id="dunder-methods">
-          <h2><a href="#dunder-methods">Special methods</a></h2>
-          <dl class="m-doc">
-            <dt id="__init__">
-              <span class="m-doc-wrap-bumper">def <a href="#__init__" class="m-doc-self">__init__</a>(</span><span class="m-doc-wrap">self,
-              parameters = None)</span>
-            </dt>
-            <dd>Class constructor:
-parameters: optional parameters dictionary</dd>
-          </dl>
-        </section>
+<p>In order to run LBAF from main project directory</p>
+<pre class="m-code"><span class="nb">cd</span> &lt;project-path&gt;
+python3 src/lbaf/Applications/LBAF_app.py --config<span class="o">=</span>src/lbaf/Applications/conf.yaml</pre>
       </div>
     </div>
   </div>
