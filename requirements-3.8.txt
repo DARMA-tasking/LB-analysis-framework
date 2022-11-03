@@ -14,5 +14,10 @@ pylint==2.12.2
 pytest==7.1.1
 anybadge==1.9.0
 
-# LBAP building package
+# LBAF documentation
+Jinja2==3.1.2
+Pygments==2.13.0
+docutils==0.19
+
+# LBAF building package
 build==0.7.0
