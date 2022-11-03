@@ -54,6 +54,7 @@ STYLESHEETS = [
 THEME_COLOR = '#22272e'
 
 LINKS_NAVBAR1 = [
+    ('LBAF', 'pages', [('Configuration', 'configuration')]),
     ('Modules', 'modules', []),
     ('Classes', 'classes', [])]
 
@@ -65,4 +66,4 @@ INPUT_MODULES = [AffineCombinationWorkModel, LoadOnlyWorkModel, Object, Message,
                  ConfigurationValidator, GridStreamer, MeshBasedVisualizer, lbsStatistics, LoadReader, VTDataWriter,
                  Csv2JsonConverter, DataStatFilesUpdater, exc_handler, logger, VTDataExtractor]
 
-INPUT_PAGES = ['../../docs/pages/index.rst']
+INPUT_PAGES = ['../../docs/pages/index.rst', '../../docs/pages/configuration.rst']
