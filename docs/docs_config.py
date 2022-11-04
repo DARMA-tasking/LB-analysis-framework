@@ -56,10 +56,11 @@ THEME_COLOR = '#22272e'
 LINKS_NAVBAR1 = [
     ('LBAF', 'pages', [('Before starting', 'before_starting'),
                        ('Configuration file', 'configuration'),
+                       ('Input data', 'input_data'),
                        ('Usage', 'usage'),
                        ('Testing', 'testing'),
-                       ('JSON data files Validator', 'json_data_files_validator'),
-                       ('VT data Extractor', 'vt_data_extractor'),
+                       ('Utils', 'utils'),
+                       ('Dependencies', 'dependencies'),
                        ]),
     ('Modules', 'modules', []),
     ('Classes', 'classes', [])]
@@ -73,5 +74,5 @@ INPUT_MODULES = [AffineCombinationWorkModel, LoadOnlyWorkModel, Object, Message,
                  Csv2JsonConverter, DataStatFilesUpdater, exc_handler, logger, VTDataExtractor]
 
 INPUT_PAGES = ['../../docs/pages/index.rst', '../../docs/pages/configuration.rst', '../../docs/pages/usage.rst',
-               '../../docs/pages/before_starting.rst', '../../docs/pages/testing.rst',
-               '../../docs/pages/vt_data_extractor.rst', '../../docs/pages/json_data_files_validator.rst', ]
+               '../../docs/pages/before_starting.rst', '../../docs/pages/testing.rst', '../../docs/pages/utils.rst',
+               '../../docs/pages/dependencies.rst', '../../docs/pages/input_data.rst']
