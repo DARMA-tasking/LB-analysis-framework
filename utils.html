@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>VT data Extractor | LBAF (Load Balancing Analysis Framework)</title>
+  <title>Utils | LBAF (Load Balancing Analysis Framework)</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark.compiled.css" />
   <link rel="stylesheet" href="m-dark.documentation.compiled.css" />
@@ -30,10 +30,11 @@
               <ol>
                 <li><a href="before_starting.html">Before starting</a></li>
                 <li><a href="configuration.html">Configuration file</a></li>
+                <li><a href="input_data.html">Input data</a></li>
                 <li><a href="usage.html">Usage</a></li>
                 <li><a href="testing.html">Testing</a></li>
-                <li><a href="json_data_files_validator.html">JSON data files Validator</a></li>
-                <li><a href="vt_data_extractor.html">VT data Extractor</a></li>
+                <li><a href="utils.html">Utils</a></li>
+                <li><a href="dependencies.html">Dependencies</a></li>
               </ol>
             </li>
             <li><a href="modules.html">Modules</a></li>
@@ -54,9 +55,59 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          VT data Extractor
+          Utils
         </h1>
+<p>Utils available in LBAF repository</p>
+<section id="json-data-files-validator">
+<h2>JSON data files Validator</h2>
+<p>JSON data files Validator validates VT data files against defined schema.</p>
+<p>Schema is defined <a href="https://github.com/DARMA-tasking/vt/blob/develop/scripts/JSON_data_files_validator.py">HERE</a></p>
+<p>After use of <cite>LBAF_app.py</cite>, <cite>JSON_data_files_validator.py</cite> appears in:</p>
+<ul>
+<li>&lt;project-path&gt;/src/lbaf/imported/JSON_data_files_validator.py.</li>
+</ul>
+<p><strong>Usage for single file:</strong></p>
+<pre class="m-code"><span class="c1"># With relative path</span>
+python JSON_data_files_validator.py --file_path<span class="o">=</span>../../../data/8color-4node/data.0.json
+
+<span class="c1"># With absolute path</span>
+python JSON_data_files_validator.py --file_path<span class="o">=</span>&lt;project-path&gt;/data/8color-4node/data.0.json</pre>
+<p><strong>Usage for many files in the same directory:</strong></p>
+<pre class="m-code"><span class="c1"># With relative path</span>
+python JSON_data_files_validator.py --dir_path<span class="o">=</span>../../../data/8color-4node
+
+<span class="c1"># With absolute path</span>
+python JSON_data_files_validator.py --dir_path<span class="o">=</span>&lt;project-path&gt;/data/8color-4node
+
+<span class="c1"># Optionally one could pass --file_prefix and/or --file_suffix</span>
+<span class="c1"># When one passes files with given prefix/suffix or both will be validated</span>
+<span class="c1"># When no prefix and suffix will be given validator will find most common prefix and suffix in the directory</span>
+<span class="c1"># and will use them for validation process</span>
+python JSON_data_files_validator.py --dir_path<span class="o">=</span>../../data/8color-4node --file_prefix<span class="o">=</span>data --file_suffix<span class="o">=</span>json</pre>
+</section>
+<section id="vt-data-extractor">
+<h2>VT data Extractor</h2>
 <p>VT data Extractor extracts phases from VT stats files.</p>
+<section id="location">
+<h3>Location</h3>
+<p><strong>VT data Extractor is located in:</strong></p>
+<pre class="m-code">&lt;project-path&gt;/src/lbaf/Utils/vt_data_extractor.py</pre>
+</section>
+<section id="input-explanation">
+<h3>Input explanation</h3>
+<p><strong>Input arguments (defined at the bottom of a file):</strong></p>
+<ul>
+<li><strong>input_data_dir: [str]</strong> - path to dir with files to extract e.g. &quot;../data/&lt;dir-with-files&gt;&quot;</li>
+<li><strong>output_data_dir: [str]</strong> - path to dir where files should be saved e.g. &quot;../output&quot; (will be created when doesn't exist)</li>
+<li><strong>phases_to_extract: [list]</strong> - list of phases [int or str] e.g. [0, 1, &quot;2-4&quot;] will extract phases [0, 1, 2, 3, 4]</li>
+<li><strong>file_prefix: [str]</strong> - data file prefix e.g. if filename is stats.0.json, then prefix should be set to &quot;stats&quot;</li>
+<li><strong>file_suffix: [str]</strong> - data file suffix e.g. if filename is stats.0.json, then suffix should be set to &quot;json&quot;</li>
+<li><strong>compressed: [bool]</strong> - when True, brotli must be imported and then output data will be compressed</li>
+<li><strong>schema_type: [str]</strong> - should be &quot;LBDatafile&quot; or &quot;LBStatsfile&quot; depends on input data. Only &quot;LBStatsfile&quot; is supported</li>
+<li><strong>check_schema: [bool]</strong> - when True, validates schema (more time-consuming)</li>
+</ul>
+</section>
+</section>
       </div>
     </div>
   </div>

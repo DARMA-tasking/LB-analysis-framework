@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>JSON data files Validator | LBAF (Load Balancing Analysis Framework)</title>
+  <title>LBAF Dependencies | LBAF (Load Balancing Analysis Framework)</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark.compiled.css" />
   <link rel="stylesheet" href="m-dark.documentation.compiled.css" />
@@ -30,10 +30,11 @@
               <ol>
                 <li><a href="before_starting.html">Before starting</a></li>
                 <li><a href="configuration.html">Configuration file</a></li>
+                <li><a href="input_data.html">Input data</a></li>
                 <li><a href="usage.html">Usage</a></li>
                 <li><a href="testing.html">Testing</a></li>
-                <li><a href="json_data_files_validator.html">JSON data files Validator</a></li>
-                <li><a href="vt_data_extractor.html">VT data Extractor</a></li>
+                <li><a href="utils.html">Utils</a></li>
+                <li><a href="dependencies.html">Dependencies</a></li>
               </ol>
             </li>
             <li><a href="modules.html">Modules</a></li>
@@ -54,9 +55,106 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          JSON data files Validator
+          LBAF Dependencies
         </h1>
-<p>JSON data files Validator validates VT data files against defined schema.</p>
+<p>Load-Balancing-Analysis-Framework needs external Python packages in order to work.</p>
+<p>A file which contains all requirements can be found under <cite>&lt;project-path&gt;/requirements-3.&lt;x&gt;.txt</cite>, where <cite>&lt;x&gt;</cite> stands for python version.</p>
+<section id="application-dependencies">
+<h2>Application dependencies</h2>
+<table>
+<thead>
+<tr><th>Package</th>
+<th>License and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><a href="https://pypi.org/project/vtk/">VTK</a></td>
+<td>BSD License (BSD) VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/numpy/">NumPy</a></td>
+<td>BSD License (BSD) NumPy is the fundamental package for array computing with Python</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/PyYAML/">PyYAML</a></td>
+<td>MIT License (MIT) YAML parser and emitter for Python</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/Brotli/">Brotli</a></td>
+<td>MIT License (MIT) Python bindings for the Brotli compression library</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/schema/">schema</a></td>
+<td>MIT License (MIT) Simple data validation library</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/scikit-learn/">scikit-learn</a></td>
+<td>OSI Approved (new BSD) A set of python modules for machine learning and data mining</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/colorama/">colorama</a></td>
+<td>BSD License (BSD) Cross-platform colored terminal text</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="testing-dependencies">
+<h2>Testing dependencies</h2>
+<table>
+<thead>
+<tr><th>Package</th>
+<th>License and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><a href="https://pypi.org/project/tox/">tox</a></td>
+<td>BSD License (BSD) VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/coverage/">coverage</a></td>
+<td>BSD License (BSD) NumPy is the fundamental package for array computing with Python</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/pylint/">pylint</a></td>
+<td>MIT License (MIT) YAML parser and emitter for Python</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/pytest/">pytest</a></td>
+<td>MIT License (MIT) Python bindings for the Brotli compression library</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/anybadge/">anybadge</a></td>
+<td>MIT License (MIT) Simple data validation library</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="documentation-dependencies">
+<h2>Documentation dependencies</h2>
+<table>
+<thead>
+<tr><th>Package</th>
+<th>License and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><a href="https://pypi.org/project/Jinja2/">Jinja2</a></td>
+<td>BSD License (BSD) VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/Pygments/">Pygments</a></td>
+<td>BSD License (BSD) Pygments is a syntax highlighting package written in Python</td>
+</tr>
+<tr><td><a href="https://pypi.org/project/docutils/">docutils</a></td>
+<td>BSD License (BSD), GNU General Public License (GPL), Python Software Foundation License, Public Domain (public domain, Python, 2-Clause BSD, GPL 3) Docutils is a modular system for processing documentation into useful formats</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="building-package-dependencies">
+<h2>Building package dependencies</h2>
+<table>
+<thead>
+<tr><th>Package</th>
+<th>License and Description</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><a href="https://pypi.org/project/build/">build</a></td>
+<td>MIT License (MIT) A simple, correct PEP517 package builder</td>
+</tr>
+</tbody>
+</table>
+</section>
       </div>
     </div>
   </div>
