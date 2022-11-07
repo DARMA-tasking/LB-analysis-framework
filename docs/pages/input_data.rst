@@ -10,7 +10,7 @@ LB data
 
   Schema(
             {
-                'type': And(str, lambda a: a in allowed_types,
+                'type': And(str, lambda a: a in ("LBDatafile", "LBStatsfile"),
                             error=f"{self.get_error_message(allowed_types)} must be chosen"),
                 'phases': [
                     {
@@ -75,7 +75,7 @@ LB stats
 
   Schema(
             {
-                'type': And(str, lambda a: a in allowed_types,
+                'type': And(str, lambda a: a in ("LBDatafile", "LBStatsfile"),
                             error=f"{self.get_error_message(allowed_types)} must be chosen"),
                 'phases': [
                     {
