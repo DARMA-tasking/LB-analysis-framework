@@ -47,7 +47,7 @@ jobs:
           cat ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py
+          python src/lbaf/Applications/LBAF_app.py --config=conf.yaml
 
       - name: Check output
         run: |
