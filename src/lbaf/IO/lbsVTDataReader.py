@@ -238,10 +238,10 @@ class LoadReader:
 
             # Iterate over tasks
             for task in phase["tasks"]:
+                # Retrieve required values
                 task_load = task.get("time")
                 entity = task.get("entity")
                 task_object_id = entity.get("id")
-                task_user_defined = task.get("user_defined")
                 subphases = task.get("subphases")
 
                 # Instantiate object with retrieved parameters

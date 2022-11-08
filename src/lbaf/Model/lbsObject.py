@@ -56,13 +56,22 @@ class Object:
             raise TypeError(
                 f"c: {comm} is of type {type(comm)} Must be <class 'ObjectCommunicator'>")
 
-        # User defined fields
+        # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
         else:
             sys.excepthook = exc_handler
             raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)} but must be <class 'dict'>")
-
+        if user_defined:
+            # Object size is by definition its memory footprint
+            if not isinstance((
+                size := user_defined.get("task_footprint_bytes")), float) or size < 0.0:
+                sys.excepthook = exc_handler
+                raise TypeError(
+                    f"size: incorrect type {type(size)} or value: {size}")
+            else:
+                self.__size = size
+        
         # Sub-phases
         if isinstance(subphases, list) or subphases is None:
             self.__subphases = subphases

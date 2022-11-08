@@ -46,7 +46,7 @@
 
 # Specify input
 from_data:
-  data_stem: "../data/fake-4x-block-overdecomp-3-uncompressed/fake-4x-block-overdecomp-3"
+  data_stem: "../data/user-defined-memory-exemplar/fake_mem_usage"
   phase_ids:
     - 0
 # Specify work model
@@ -69,9 +69,9 @@ terminal_background: light
 generate_multimedia: True
 output_dir: ../../../output
 output_file_stem: output_file
-n_ranks: 12
+n_ranks: 4
 generate_meshes:
-  x_ranks: 4
-  y_ranks: 3
+  x_ranks: 2
+  y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
