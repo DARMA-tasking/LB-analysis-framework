@@ -146,10 +146,28 @@ class Rank:
                 continue
 
             # Add total volume sent to non-local objects
-            volume += sum([v for k, v in o.get_communicator().get_sent().items() if k not in obj_set])
+            volume += sum([
+                v for k, v in o.get_communicator().get_sent().items()
+                if k not in obj_set])
 
         # Return computed volume
         return volume    
+
+    def get_max_object_level_memory(self) -> float:
+        """ Return maximum object-level memory on rank."""
+        
+        # Iterate over all objects assigned to rank
+        total_size, max_overhead = 0.0, 0.0
+        for o in self.__migratable_objects.union(self.__sentinel_objects):
+            # Update maximum runtime overhead as needed
+            if (x := o.get_overhead()) > max_overhead:
+                max_overhead = x
+
+            # Tally current obect size in total size
+            total_size += o.get_size()
+
+        # Return maximum object-level memory for this rank
+        return total_size + max_overhead
 
     def reset_all_load_information(self):
         """ Reset all load information known to self."""

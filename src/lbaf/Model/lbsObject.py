@@ -16,6 +16,7 @@ class Object:
         comm: ObjectCommunicator=None,
         user_defined: dict=None,
         subphases: list=None):
+
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
             sys.excepthook = exc_handler
@@ -71,7 +72,16 @@ class Object:
                     f"size: incorrect type {type(size)} or value: {size}")
             else:
                 self.__size = size
-        
+                
+            # Object overhead is by definition its additional working memory
+            if not isinstance((
+                overhead := user_defined.get("task_working_bytes")), float) or overhead < 0.0:
+                sys.excepthook = exc_handler
+                raise TypeError(
+                    f"overhead: incorrect type {type(overhead)} or value: {overhead}")
+            else:
+                self.__overhead = overhead
+
         # Sub-phases
         if isinstance(subphases, list) or subphases is None:
             self.__subphases = subphases
@@ -96,6 +106,11 @@ class Object:
         """ Return object size
         """
         return self.__size
+
+    def get_overhead(self) -> float:
+        """ Return additional runtime memory of object
+        """
+        return self.__overhead
 
     def get_sent(self) -> dict:
         """ Return communications sent by object to other objects

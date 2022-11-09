@@ -275,6 +275,11 @@ class LBAFApp:
             "initial rank loads",
             self.logger)
         lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            "initial rank object-level memory",
+            self.logger)
+        lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
@@ -361,6 +366,11 @@ class LBAFApp:
             file_name=("imbalance.txt"
                        if self.params.output_dir is None
                        else os.path.join(self.params.output_dir, "imbalance.txt")))
+        lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            "final rank object-level memory",
+            self.logger)
         lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,
