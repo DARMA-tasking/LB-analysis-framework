@@ -31,7 +31,8 @@ def get_config_file() -> str:
     if args.config:
         config_file = os.path.abspath(args.config)
     else:
-        config_file = os.path.join(project_path, "lbaf", "Applications", "conf.yaml")
+        sys.excepthook = exc_handler
+        raise FileNotFoundError("Please provide path to the config file with '--config' argument.")
 
     return config_file
 
