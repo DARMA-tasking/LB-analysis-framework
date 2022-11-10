@@ -33,7 +33,7 @@ class Object:
         else:
             self.__load = load
 
-        # Nonnegative size required to store this object
+        # Nonnegative size required to for memory footprint of this object
         if not isinstance(size, float) or size < 0.0:
             sys.excepthook = exc_handler
             raise TypeError(

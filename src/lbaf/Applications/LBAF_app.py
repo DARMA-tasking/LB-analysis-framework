@@ -280,6 +280,16 @@ class LBAFApp:
             "initial rank object-level memory",
             self.logger)
         lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_size(),
+            "initial rank working memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_shared(),
+            "initial rank shared memory",
+            self.logger)
+        lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
@@ -370,6 +380,11 @@ class LBAFApp:
             phase_0.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
             "final rank object-level memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_size(),
+            "final rank working memory",
             self.logger)
         lbstats.print_function_statistics(
             phase_0.get_edges().values(),

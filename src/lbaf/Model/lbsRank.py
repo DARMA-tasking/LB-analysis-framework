@@ -10,7 +10,15 @@ class Rank:
     """ A class representing a rank to which objects are assigned
     """
 
-    def __init__(self, i: int, logger: Logger, mo: set = None, so: set = None):
+    def __init__(
+        self,
+        i: int,
+        logger: Logger,
+        mo: set = None,
+        so: set = None,
+        size: float=0.0,
+        shared: float=0.0):
+
         # Assign logger to instance variable
         self.__logger = logger
 
@@ -24,6 +32,22 @@ class Rank:
         if so is not None:
             for o in so:
                 self.__sentinel_objects.add(o)
+
+        # Nonnegative size required to for memory footprint of this rank
+        if not isinstance(size, float) or size < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"size: incorrect type {type(size)} or value: {size}")
+        else:
+            self.__size = size
+
+        # Nonnegative size required to for shared memory of this rank
+        if not isinstance(shared, float) or shared < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared: incorrect type {type(shared)} or value: {shared}")
+        else:
+            self.__shared = shared
 
         # No information about peers is known initially
         self.__known_loads = {}
@@ -40,6 +64,16 @@ class Rank:
     def get_id(self) -> int:
         """ Return rank ID."""
         return self.__index
+
+    def get_size(self) -> float:
+        """ Return object size
+        """
+        return self.__size
+
+    def get_shared(self) -> float:
+        """ Return object shared memory
+        """
+        return self.__shared
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank."""
