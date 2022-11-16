@@ -4,7 +4,8 @@ import sys
 
 import brotli
 from logging import Logger
-from multiprocessing import Pool
+from multiprocessing.pool import Pool
+from multiprocessing import get_context
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
@@ -39,7 +40,7 @@ class VTDataWriter:
     def write(self):
         """ Write one JSON file per rank. """
         sys.setrecursionlimit(25000)
-        with Pool() as pool:
+        with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
             for file_name in results:
                 self.__logger.info(f"Saved {file_name}")
