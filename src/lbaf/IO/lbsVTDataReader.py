@@ -220,6 +220,10 @@ class LoadReader:
                             for k, v in comm.items():
                                 self.__logger.debug(f"{k}: {v}")
 
+            # Instantiante and store rank for current phase
+            returned_dict[curr_phase_id] = (
+                phase_rank := Rank(node_id, logger=self.__logger))
+
             # Iterate over tasks
             for task in p["tasks"]:
                 task_time = task.get("time")
@@ -238,19 +242,15 @@ class LoadReader:
                         user_defined=task_used_defined,
                         subphases=subphases)
 
-                    # If this iteration was never encountered initialize rank object
-                    returned_dict.setdefault(
-                        curr_phase_id,
-                        Rank(node_id, logger=self.__logger))
-
                     # Add object to rank given its type
                     if entity.get("migratable"):
-                        returned_dict[curr_phase_id].add_migratable_object(obj)
+                        phase_rank.add_migratable_object(obj)
                     else:
-                        returned_dict[curr_phase_id].add_sentinel_object(obj)
+                        phase_rank.add_sentinel_object(obj)
 
                     # Print debug information when requested
                     self.__logger.debug(
                         f"Added object {task_object_id}, time = {task_time} to phase {curr_phase_id}")
 
+        # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict
