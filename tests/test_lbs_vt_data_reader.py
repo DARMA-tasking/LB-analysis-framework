@@ -164,7 +164,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_vt_data_reader_json_reader(self):
         for phase in range(4):
             file_name = self.lr._get_node_trace_file_name(phase)
-            rank_iter_map, rank_comm = self.lr.json_reader(returned_dict={}, phase_ids=0, node_id=phase)
+            rank_iter_map, rank_comm = self.lr.json_reader(returned_dict={}, phase_id=0, node_id=phase)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
             prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
                                    key=lambda x: x.get_id())
