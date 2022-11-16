@@ -228,7 +228,8 @@ class LoadReader:
                     obj = Object(task_object_id, task_time, node_id, user_defined=task_used_defined,
                                  subphases=subphases)
                     # If this iteration was never encountered initialize rank object
-                    returned_dict.setdefault(phase_id, Rank(node_id, logger=self.__logger))
+                    if returned_dict.get(phase_id) is None:
+                        returned_dict[phase_id] = Rank(node_id, logger=self.__logger)
                     # Add object to rank given its type
                     if entity.get("migratable"):
                         returned_dict[phase_id].add_migratable_object(obj)
