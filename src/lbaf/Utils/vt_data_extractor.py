@@ -9,7 +9,8 @@ except Exception as e:
     print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
     raise SystemExit(1)
 
-from multiprocessing import Pool
+from multiprocessing.pool import Pool
+from multiprocessing import get_context
 import time
 
 import json
@@ -180,7 +181,7 @@ class VTDataExtractor:
 
     def main(self):
         files = self._get_files_list()
-        with Pool() as pool:
+        with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(self._extraction, files)
             for filename, duration in results:
                 print(f"===> File: {filename} completed in {duration:.2f}s")

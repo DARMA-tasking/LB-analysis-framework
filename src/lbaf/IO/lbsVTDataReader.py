@@ -1,6 +1,7 @@
 import json
 from logging import Logger
-from multiprocessing import Pool
+from multiprocessing.pool import Pool
+from multiprocessing import get_context
 import os
 import sys
 
@@ -82,7 +83,7 @@ class LoadReader:
     def _load_vt_files(self) -> dict:
         """ Load VT files into dict. """
         vt_files = {}
-        with Pool() as pool:
+        with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(self._load_vt_file, range(self.__n_ranks))
             for rank, decompressed_dict in results:
                 vt_files[rank] = decompressed_dict
