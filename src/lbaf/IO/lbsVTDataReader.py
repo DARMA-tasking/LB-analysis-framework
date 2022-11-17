@@ -156,11 +156,17 @@ class LoadReader:
                 # Check if there is any communication for the object
                 obj_comm = communications.get(obj_id)
                 if obj_comm:
-                    sent = {rank_objects_dict.get(c.get("to")): c.get("bytes") for c in obj_comm.get("sent")
-                            if rank_objects_dict.get(c.get("to"))}
-                    received = {rank_objects_dict.get(c.get("from")): c.get("bytes") for c in obj_comm.get("received")
-                                if rank_objects_dict.get(c.get("from"))}
-                    rank_obj.set_communicator(ObjectCommunicator(i=obj_id, logger=self.__logger, r=received, s=sent))
+                    sent = {
+                        rank_objects_dict.get(c.get("to")): c.get("bytes")
+                        for c in obj_comm.get("sent")
+                        if rank_objects_dict.get(c.get("to"))}
+                    received = {
+                        rank_objects_dict.get(c.get("from")): c.get("bytes")
+                        for c in obj_comm.get("received")
+                        if rank_objects_dict.get(c.get("from"))}
+                    rank_obj.set_communicator(
+                        ObjectCommunicator(
+                            i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
         return rank_list
@@ -173,7 +179,7 @@ class LoadReader:
         phases = self.vt_files.get(node_id).get("phases")
         comm_dict = {}
 
-        # Handle empty Rank case
+        # Handle case of empty rank file
         if not phases:
             returned_dict.setdefault(0, Rank(node_id, self.__logger))
 
@@ -181,6 +187,12 @@ class LoadReader:
         for p in phases:
             # Retrieve phase ID
             curr_phase_id = p["id"]
+
+            # Ignore phases that are not of interest
+            if not phase_id in (curr_phase_id, -1):
+                self.__logger.debug(
+                    f"Ignored phase {curr_phase_id}")
+                continue
 
             # Create communicator dictionary
             comm_dict[curr_phase_id] = {}
@@ -212,7 +224,7 @@ class LoadReader:
                             # Create communication edges
                             comm_dict[curr_phase_id][receiver_obj_id]["received"].append(
                                 {"from": c_from.get("id"),
-                                                                                     "bytes": c_bytes})
+                                 "bytes": c_bytes})
                             comm_dict[curr_phase_id][sender_obj_id]["sent"].append(
                                 {"to": c_to.get("id"), "bytes": c_bytes})
                             self.__logger.debug(
@@ -232,25 +244,23 @@ class LoadReader:
                 task_used_defined = task.get("user_defined")
                 subphases = task.get("subphases")
 
-                # Update rank if iteration was requested
-                if phase_id in (curr_phase_id, -1):
-                    # Instantiate object with retrieved parameters
-                    obj = Object(
-                        task_object_id,
-                        task_time,
-                        node_id,
-                        user_defined=task_used_defined,
-                        subphases=subphases)
+                # Instantiate object with retrieved parameters
+                obj = Object(
+                    task_object_id,
+                    task_time,
+                    node_id,
+                    user_defined=task_used_defined,
+                    subphases=subphases)
 
-                    # Add object to rank given its type
-                    if entity.get("migratable"):
-                        phase_rank.add_migratable_object(obj)
-                    else:
-                        phase_rank.add_sentinel_object(obj)
+                # Add object to rank given its type
+                if entity.get("migratable"):
+                    phase_rank.add_migratable_object(obj)
+                else:
+                    phase_rank.add_sentinel_object(obj)
 
-                    # Print debug information when requested
-                    self.__logger.debug(
-                        f"Added object {task_object_id}, time = {task_time} to phase {curr_phase_id}")
+                # Print debug information when requested
+                self.__logger.debug(
+                    f"Added object {task_object_id}, time = {task_time} to phase {curr_phase_id}")
 
         # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict
