@@ -290,6 +290,11 @@ class LBAFApp:
             "initial rank shared memory",
             self.logger)
         lbstats.print_function_statistics(
+            phase_0.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            "initial maximum memory usage",
+            self.logger)
+        lbstats.print_function_statistics(
             phase_0.get_edges().values(),
             lambda x: x,
             "initial sent volumes",

@@ -15,9 +15,7 @@ class Rank:
         i: int,
         logger: Logger,
         mo: set = None,
-        so: set = None,
-        size: float=0.0,
-        shared: float=0.0):
+        so: set = None):
 
         # Assign logger to instance variable
         self.__logger = logger
@@ -33,21 +31,9 @@ class Rank:
             for o in so:
                 self.__sentinel_objects.add(o)
 
-        # Nonnegative size required to for memory footprint of this rank
-        if not isinstance(size, float) or size < 0.0:
-            sys.excepthook = exc_handler
-            raise TypeError(
-                f"size: incorrect type {type(size)} or value: {size}")
-        else:
-            self.__size = size
-
-        # Nonnegative size required to for shared memory of this rank
-        if not isinstance(shared, float) or shared < 0.0:
-            sys.excepthook = exc_handler
-            raise TypeError(
-                f"shared: incorrect type {type(shared)} or value: {shared}")
-        else:
-            self.__shared = shared
+        # Initialize other instance variables
+        self.__size = 0.0
+        self.__shared = 0.0
 
         # No information about peers is known initially
         self.__known_loads = {}
@@ -66,14 +52,34 @@ class Rank:
         return self.__index
 
     def get_size(self) -> float:
-        """ Return object size
-        """
+        """ Return object size."""
         return self.__size
 
-    def get_shared(self) -> float:
-        """ Return object shared memory
+    def set_size(self, size: float) -> float:
+        """ Set rank working memory, called size
         """
+        # Nonnegative size required to for memory footprint of this rank
+        if not isinstance(size, float) or size < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"size: incorrect type {type(size)} or value: {size}")
+        else:
+            self.__size = size
+
+    def get_shared(self) -> float:
+        """ Return object shared memory."""
         return self.__shared
+
+    def set_shared(self, shared: float) -> float:
+        """ Set object shared memory
+        """
+        # Nonnegative size required to for shared memory of this rank
+        if not isinstance(shared, float) or shared < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared: incorrect type {type(shared)} or value: {shared}")
+        else:
+            self.__shared = shared
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank."""
@@ -202,6 +208,10 @@ class Rank:
 
         # Return maximum object-level memory for this rank
         return total_size + max_overhead
+
+    def get_max_memory_usage(self) -> float:
+        """ Return maximum memory usage on rank."""
+        return self.__size + self.__shared + self.get_max_object_level_memory()
 
     def reset_all_load_information(self):
         """ Reset all load information known to self."""

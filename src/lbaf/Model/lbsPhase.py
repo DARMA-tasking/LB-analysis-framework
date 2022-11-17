@@ -122,9 +122,17 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.__ranks)
         n_edges = len(self.__edges)
-        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                self.__logger)
-        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, self.__logger)
+        print_subset_statistics(
+            "Inter-rank communication edges",
+            n_edges,
+            "possible ones",
+            n_ranks * (n_ranks - 1) / 2,
+            self.__logger)
+        print_subset_statistics(
+            "Rank-local communication volume",
+            v_local,
+            "total volume",
+            v_total, self.__logger)
 
     def get_edges(self):
         """ Retrieve edges belonging to phase. """
@@ -153,7 +161,8 @@ class Phase:
             for i in range(n_objects)])
 
         # Compute and report object load statistics
-        print_function_statistics(objects, lambda x: x.get_load(), "object loads", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_load(), "object loads", self.__logger)
 
         # Decide whether communications must be created
         if c_degree > 0:
@@ -251,8 +260,12 @@ class Phase:
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_load(), "object loads", self.__logger)
-        print_function_statistics(objects, lambda x: x.get_size(), "object sizes", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_load(), "object loads", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_size(), "object sizes", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
         # Set number of read objects
         self.__n_objects = len(objects)

@@ -236,19 +236,19 @@ class LoadReader:
             returned_dict[curr_phase_id] = (
                 phase_rank := Rank(
                     node_id,
-                    logger=self.__logger,
-                    size=task_user_defined.get("rank_working_bytes")))
+                    logger=self.__logger))
 
             # Initialize storage for shared blocks information
             shared_blocks = {}
 
             # Iterate over tasks
-            for task in phase["tasks"]:
+            for task in p["tasks"]:
                 # Retrieve required values
                 task_load = task.get("time")
                 task_entity = task.get("entity")
                 task_id = task_entity.get("id")
-                task_user_defined = task.get("user_defined")
+                task_user_defined = task.get("user_defined", {})
+                subphases = task.get("subphases")
 
                 # Update share block information as needed
                 if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
@@ -257,22 +257,25 @@ class LoadReader:
 
                 # Instantiate object with retrieved parameters
                 obj = Object(
-                    task_object_id,
+                    task_id,
                     r_id=node_id,
                     load=task_load,
-                    user_defined=task_used_defined,
+                    user_defined=task_user_defined,
                     subphases=subphases)
 
                 # Add object to rank given its type
-                if entity.get("migratable"):
+                if task_entity.get("migratable"):
                     phase_rank.add_migratable_object(obj)
                 else:
                     phase_rank.add_sentinel_object(obj)
 
                 # Print debug information when requested
                 self.__logger.debug(
-                    f"Added object {task_object_id}, time = {task_time} to phase {curr_phase_id}")
+                    f"Added object {task_id}, time = {task_load} to phase {curr_phase_id}")
 
-                print(phase_id, node_id, task_user_defined.get("rank_working_bytes"), sum(shared_blocks.values()))
+            # Set rank-level quantities of interest
+            phase_rank.set_size(task_user_defined.get("rank_working_bytes"))
+            phase_rank.set_shared(sum(shared_blocks.values()))
+
         # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict
