@@ -179,7 +179,7 @@ class LoadReader:
         phases = self.vt_files.get(node_id).get("phases")
         comm_dict = {}
 
-        # Handle empty Rank case
+        # Handle case of empty rank file
         if not phases:
             returned_dict.setdefault(0, Rank(node_id, self.__logger))
 
