@@ -57,6 +57,9 @@ class Object:
             raise TypeError(
                 f"c: {comm} is of type {type(comm)} Must be <class 'ObjectCommunicator'>")
 
+        # Initialize other instance variables
+        self.__overhead = 0.0
+
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined

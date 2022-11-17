@@ -274,8 +274,10 @@ class LoadReader:
                     f"Added object {task_id}, time = {task_load} to phase {curr_phase_id}")
 
             # Set rank-level quantities of interest
-            phase_rank.set_size(task_user_defined.get("rank_working_bytes"))
-            phase_rank.set_shared(sum(shared_blocks.values()))
+            phase_rank.set_size(
+                task_user_defined.get("rank_working_bytes", 0.0))
+            phase_rank.set_shared(
+                float(sum(shared_blocks.values())))
 
         # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict

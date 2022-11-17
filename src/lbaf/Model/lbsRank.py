@@ -1,9 +1,11 @@
-from logging import Logger
-import random as rnd
+import sys
 import math
+import random as rnd
+from logging import Logger
 
 from .lbsMessage import Message
 from .lbsObject import Object
+from ..Utils.exception_handler import exc_handler
 
 
 class Rank:
