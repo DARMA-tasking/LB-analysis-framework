@@ -103,7 +103,7 @@ class LoadReader:
         iter_map = {}
         iter_map, comm = self.json_reader(
             returned_dict=iter_map,
-            phase_ids=phase_id,
+            phase_id=phase_id,
             node_id=node_id)
 
         # Return map of populated ranks per iteration
@@ -165,7 +165,7 @@ class LoadReader:
         # Return populated list of ranks
         return rank_list
 
-    def json_reader(self, returned_dict: dict, phase_ids, node_id: int) -> tuple:
+    def json_reader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
         """ Reader compatible with current VT Object Map files (json)
         """
 
@@ -178,15 +178,15 @@ class LoadReader:
             returned_dict.setdefault(0, Rank(node_id, self.__logger))
 
         # Iterate over phases
-        for phase in phases:
+        for p in phases:
             # Retrieve phase ID
-            phase_id = phase["id"]
+            curr_phase_id = p["id"]
 
             # Create communicator dictionary
-            comm_dict[phase_id] = {}
+            comm_dict[curr_phase_id] = {}
 
             # Add communications to the object
-            communications = phase.get("communications")
+            communications = p.get("communications")
             if communications:
                 for num, comm in enumerate(communications):
                     # Retrieve communication attributes
@@ -201,22 +201,31 @@ class LoadReader:
                         if c_to.get("type") == "object" and c_from.get("type") == "object":
                             # Create receiver if it does not exist
                             receiver_obj_id = c_to.get("id")
-                            comm_dict[phase_id].setdefault(receiver_obj_id, {"sent": [], "received": []})
+                            comm_dict[curr_phase_id].setdefault(
+                                receiver_obj_id, {"sent": [], "received": []})
 
                             # Create sender if it does not exist
                             sender_obj_id = c_from.get("id")
-                            comm_dict[phase_id].setdefault(sender_obj_id, {"sent": [], "received": []})
+                            comm_dict[curr_phase_id].setdefault(
+                                sender_obj_id, {"sent": [], "received": []})
 
                             # Create communication edges
-                            comm_dict[phase_id][receiver_obj_id]["received"].append({"from": c_from.get("id"),
+                            comm_dict[curr_phase_id][receiver_obj_id]["received"].append(
+                                {"from": c_from.get("id"),
                                                                                      "bytes": c_bytes})
-                            comm_dict[phase_id][sender_obj_id]["sent"].append({"to": c_to.get("id"), "bytes": c_bytes})
-                            self.__logger.debug(f"Added communication {num} to phase {phase_id}")
+                            comm_dict[curr_phase_id][sender_obj_id]["sent"].append(
+                                {"to": c_to.get("id"), "bytes": c_bytes})
+                            self.__logger.debug(
+                                f"Added communication {num} to phase {curr_phase_id}")
                             for k, v in comm.items():
                                 self.__logger.debug(f"{k}: {v}")
 
+            # Instantiante and store rank for current phase
+            returned_dict[curr_phase_id] = (
+                phase_rank := Rank(node_id, logger=self.__logger))
+
             # Iterate over tasks
-            for task in phase["tasks"]:
+            for task in p["tasks"]:
                 task_time = task.get("time")
                 entity = task.get("entity")
                 task_object_id = entity.get("id")
@@ -224,19 +233,24 @@ class LoadReader:
                 subphases = task.get("subphases")
 
                 # Update rank if iteration was requested
-                if phase_ids in (phase_id, -1):
+                if phase_id in (curr_phase_id, -1):
                     # Instantiate object with retrieved parameters
-                    obj = Object(task_object_id, task_time, node_id, user_defined=task_used_defined,
-                                 subphases=subphases)
-                    # If this iteration was never encountered initialize rank object
-                    returned_dict.setdefault(phase_id, Rank(node_id, logger=self.__logger))
+                    obj = Object(
+                        task_object_id,
+                        task_time,
+                        node_id,
+                        user_defined=task_used_defined,
+                        subphases=subphases)
+
                     # Add object to rank given its type
                     if entity.get("migratable"):
-                        returned_dict[phase_id].add_migratable_object(obj)
+                        phase_rank.add_migratable_object(obj)
                     else:
-                        returned_dict[phase_id].add_sentinel_object(obj)
+                        phase_rank.add_sentinel_object(obj)
 
                     # Print debug information when requested
-                    self.__logger.debug(f"Added object {task_object_id}, time = {task_time} to phase {phase_id}")
+                    self.__logger.debug(
+                        f"Added object {task_object_id}, time = {task_time} to phase {curr_phase_id}")
 
+        # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict
