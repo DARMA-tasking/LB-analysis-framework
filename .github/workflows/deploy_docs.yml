@@ -1,0 +1,48 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [ '297-add-automated-generated-documentation-from-LBAF' ]
+
+jobs:
+  build-and-deploy-docs:
+    runs-on: ubuntu-latest
+    env:
+      project-directory: /home/runner/work/LB-analysis-framework/LB-analysis-framework
+      docs-directory: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs
+      docs-output: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs/output
+      docs-generator: /home/runner/work/LB-analysis-framework/LB-analysis-framework/m.css/documentation
+      python-version: '3.8'
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ env.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
+          architecture: 'x64'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-${{ env.python-version }}.txt
+          pip3 install docutils jinja2 pygments
+      - name: Clone documentation generator
+        working-directory: ${{ env.project-directory }}
+        run: |
+          git clone https://github.com/mosra/m.css.git
+      - name: Build documentation
+        working-directory: ${{ env.docs-generator }}
+        run: |
+          python python.py ${{ env.docs-directory }}/docs_config.py
+      # .nojekyll file is needed for GitHub Pages to know it's getting a ready webpage
+      # and there is no need to generate anything
+      - name: Generate nojekyll file
+        working-directory: ${{ env.docs-output }}
+        run: touch .nojekyll
+      # This action moves the content of `generated_docs` to the `deploy-doc-site` branch
+      - name: Deploy docs
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: deploy-doc-site
+          folder: ${{ env.docs-output }}
+          clean: true
