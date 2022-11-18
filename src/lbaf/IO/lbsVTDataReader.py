@@ -100,14 +100,14 @@ class LoadReader:
         """
 
         # Retrieve communications from JSON reader
-        iter_map = {}
-        iter_map, comm = self.json_reader(
-            returned_dict=iter_map,
+        iter_dict = {}
+        iter_dict, comm = self.json_reader(
+            returned_dict=iter_dict,
             phase_id=phase_id,
             node_id=node_id)
 
         # Return map of populated ranks per iteration
-        return iter_map, comm
+        return iter_dict, comm
 
     def read_iteration(self, phase_id: int) -> list:
         """ Read all the data in the range of ranks [0..n_p] for a given iteration `phase_id`.
@@ -234,33 +234,50 @@ class LoadReader:
 
             # Instantiante and store rank for current phase
             returned_dict[curr_phase_id] = (
-                phase_rank := Rank(node_id, logger=self.__logger))
+                phase_rank := Rank(
+                    node_id,
+                    logger=self.__logger))
+
+            # Initialize storage for shared blocks information
+            shared_blocks = {}
 
             # Iterate over tasks
             for task in p["tasks"]:
-                task_time = task.get("time")
-                entity = task.get("entity")
-                task_object_id = entity.get("id")
-                task_used_defined = task.get("user_defined")
+                # Retrieve required values
+                task_load = task.get("time")
+                task_entity = task.get("entity")
+                task_id = task_entity.get("id")
+                task_user_defined = task.get("user_defined", {})
                 subphases = task.get("subphases")
+
+                # Update share block information as needed
+                if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
+                    shared_blocks[
+                        shared_id] = task_user_defined.get("shared_bytes", 0.0)
 
                 # Instantiate object with retrieved parameters
                 obj = Object(
-                    task_object_id,
-                    task_time,
-                    node_id,
-                    user_defined=task_used_defined,
+                    task_id,
+                    r_id=node_id,
+                    load=task_load,
+                    user_defined=task_user_defined,
                     subphases=subphases)
 
                 # Add object to rank given its type
-                if entity.get("migratable"):
+                if task_entity.get("migratable"):
                     phase_rank.add_migratable_object(obj)
                 else:
                     phase_rank.add_sentinel_object(obj)
 
                 # Print debug information when requested
                 self.__logger.debug(
-                    f"Added object {task_object_id}, time = {task_time} to phase {curr_phase_id}")
+                    f"Added object {task_id}, time = {task_load} to phase {curr_phase_id}")
+
+            # Set rank-level quantities of interest
+            phase_rank.set_size(
+                task_user_defined.get("rank_working_bytes", 0.0))
+            phase_rank.set_shared(
+                float(sum(shared_blocks.values())))
 
         # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict

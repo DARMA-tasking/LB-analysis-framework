@@ -54,8 +54,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__strategy_mapped = {
             "arbitrary": self.arbitrary,
             "element_id": self.element_id,
-            "decreasing_times": self.decreasing_times,
-            "increasing_times": self.increasing_times,
+            "decreasing_loads": self.decreasing_loads,
+            "increasing_loads": self.increasing_loads,
             "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
@@ -280,7 +280,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self.__logger.debug(f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.__logger.debug(
-                        f"transferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()} "
+                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()} "
                         f"(criterion: {c_dst})")
                     p_src.remove_migratable_object(o, p_dst)
                     p_dst.add_migratable_object(o)
@@ -367,14 +367,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return sorted(objects, key=lambda x: x.get_id())
 
     @staticmethod
-    def decreasing_times(objects: set, _):
-        """ Order objects by decreasing object times."""
-        return sorted(objects, key=lambda x: -x.get_time())
+    def decreasing_loads(objects: set, _):
+        """ Order objects by decreasing object loads."""
+        return sorted(objects, key=lambda x: -x.get_load())
 
     @staticmethod
-    def increasing_times(objects: set, _):
-        """ Order objects by increasing object times."""
-        return sorted(objects, key=lambda x: x.get_time())
+    def increasing_loads(objects: set, _):
+        """ Order objects by increasing object loads."""
+        return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
     def increasing_connectivity(objects: set, src_id):
@@ -399,14 +399,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     @staticmethod
     def sorted_ascending(objects: Union[set, list]):
-        return sorted(objects, key=lambda x: x.get_time())
+        return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
     def sorted_descending(objects: Union[set, list]):
-        return sorted(objects, key=lambda x: -x.get_time())
+        return sorted(objects, key=lambda x: -x.get_load())
 
     def load_excess(self, objects: set):
-        rank_load = sum([obj.get_time() for obj in objects])
+        rank_load = sum([obj.get_load() for obj in objects])
         return rank_load - self.__average_load
 
     def fewest_migrations(self, objects: set, _):
@@ -415,8 +415,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             Sort largest to the smallest if <= load_excess
             Sort smallest to the largest if > load_excess"""
         load_excess = self.load_excess(objects)
-        lt_load_excess = [obj for obj in objects if obj.get_time() <= load_excess]
-        get_load_excess = [obj for obj in objects if obj.get_time() > load_excess]
+        lt_load_excess = [obj for obj in objects if obj.get_load() <= load_excess]
+        get_load_excess = [obj for obj in objects if obj.get_load() > load_excess]
         return self.sorted_descending(lt_load_excess) + self.sorted_ascending(get_load_excess)
 
     def small_objects(self, objects: set, _):
@@ -426,6 +426,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             Sort smallest to the largest if > load_excess"""
         load_excess = self.load_excess(objects)
         sorted_objects = self.sorted_ascending(objects)
-        accumulated_times = list(accumulate(obj.get_time() for obj in sorted_objects))
-        idx = bisect(accumulated_times, load_excess) + 1
+        accumulated_loads = list(accumulate(obj.get_load() for obj in sorted_objects))
+        idx = bisect(accumulated_loads, load_excess) + 1
         return self.sorted_descending(sorted_objects[:idx]) + self.sorted_ascending(sorted_objects[idx:])

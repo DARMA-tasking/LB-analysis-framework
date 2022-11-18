@@ -115,7 +115,7 @@ class AlgorithmBase:
     def execute(self, phases, distributions, statistics, a_min_max):
         """ Excecute balancing algorithm on Phase instance
             phases: list of Phase instances
-            distributions: dictionary of time-varying variables
+            distributions: dictionary of load-varying variables
             statistics: dictionary of  statistics
             a_min_max: possibly empty list of optimal arrangements"""
 

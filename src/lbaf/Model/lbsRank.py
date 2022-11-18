@@ -1,16 +1,24 @@
-from logging import Logger
-import random as rnd
+import sys
 import math
+import random as rnd
+from logging import Logger
 
 from .lbsMessage import Message
 from .lbsObject import Object
+from ..Utils.exception_handler import exc_handler
 
 
 class Rank:
     """ A class representing a rank to which objects are assigned
     """
 
-    def __init__(self, i: int, logger: Logger, mo: set = None, so: set = None):
+    def __init__(
+        self,
+        i: int,
+        logger: Logger,
+        mo: set = None,
+        so: set = None):
+
         # Assign logger to instance variable
         self.__logger = logger
 
@@ -24,6 +32,10 @@ class Rank:
         if so is not None:
             for o in so:
                 self.__sentinel_objects.add(o)
+
+        # Initialize other instance variables
+        self.__size = 0.0
+        self.__shared = 0.0
 
         # No information about peers is known initially
         self.__known_loads = {}
@@ -40,6 +52,36 @@ class Rank:
     def get_id(self) -> int:
         """ Return rank ID."""
         return self.__index
+
+    def get_size(self) -> float:
+        """ Return object size."""
+        return self.__size
+
+    def set_size(self, size: float) -> float:
+        """ Set rank working memory, called size
+        """
+        # Nonnegative size required to for memory footprint of this rank
+        if not isinstance(size, float) or size < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"size: incorrect type {type(size)} or value: {size}")
+        else:
+            self.__size = size
+
+    def get_shared(self) -> float:
+        """ Return object shared memory."""
+        return self.__shared
+
+    def set_shared(self, shared: float) -> float:
+        """ Set object shared memory
+        """
+        # Nonnegative size required to for shared memory of this rank
+        if not isinstance(shared, float) or shared < 0.0:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared: incorrect type {type(shared)} or value: {shared}")
+        else:
+            self.__shared = shared
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank."""
@@ -99,7 +141,7 @@ class Rank:
 
         # Update known loads when these exist
         if self.__known_loads:
-            self.__known_loads[p_dst] += o.get_time()
+            self.__known_loads[p_dst] += o.get_load()
         
     def add_as_viewer(self, ranks):
         """ Add self as viewer to known peers."""
@@ -109,15 +151,15 @@ class Rank:
 
     def get_load(self) -> float:
         """ Return total load on rank."""
-        return sum([o.get_time() for o in self.__migratable_objects.union(self.__sentinel_objects)])
+        return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
 
     def get_migratable_load(self) -> float:
         """ Return migratable load on rank."""
-        return sum([o.get_time() for o in self.__migratable_objects])
+        return sum([o.get_load() for o in self.__migratable_objects])
 
     def get_sentinel_load(self) -> float:
         """ Return sentinel load oon rank."""
-        return sum([o.get_time() for o in self.__sentinel_objects])
+        return sum([o.get_load() for o in self.__sentinel_objects])
 
     def get_received_volume(self):
         """ Return volume received by objects assigned to rank from other ranks."""
@@ -146,10 +188,32 @@ class Rank:
                 continue
 
             # Add total volume sent to non-local objects
-            volume += sum([v for k, v in o.get_communicator().get_sent().items() if k not in obj_set])
+            volume += sum([
+                v for k, v in o.get_communicator().get_sent().items()
+                if k not in obj_set])
 
         # Return computed volume
         return volume    
+
+    def get_max_object_level_memory(self) -> float:
+        """ Return maximum object-level memory on rank."""
+        
+        # Iterate over all objects assigned to rank
+        total_size, max_overhead = 0.0, 0.0
+        for o in self.__migratable_objects.union(self.__sentinel_objects):
+            # Update maximum runtime overhead as needed
+            if (x := o.get_overhead()) > max_overhead:
+                max_overhead = x
+
+            # Tally current obect size in total size
+            total_size += o.get_size()
+
+        # Return maximum object-level memory for this rank
+        return total_size + max_overhead
+
+    def get_max_memory_usage(self) -> float:
+        """ Return maximum memory usage on rank."""
+        return self.__size + self.__shared + self.get_max_object_level_memory()
 
     def reset_all_load_information(self):
         """ Reset all load information known to self."""

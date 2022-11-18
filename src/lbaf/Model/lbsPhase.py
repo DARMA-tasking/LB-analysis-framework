@@ -122,9 +122,17 @@ class Phase:
         # Report on computed edges
         n_ranks = len(self.__ranks)
         n_edges = len(self.__edges)
-        print_subset_statistics("Inter-rank communication edges", n_edges, "possible ones", n_ranks * (n_ranks - 1) / 2,
-                                self.__logger)
-        print_subset_statistics("Rank-local communication volume", v_local, "total volume", v_total, self.__logger)
+        print_subset_statistics(
+            "Inter-rank communication edges",
+            n_edges,
+            "possible ones",
+            n_ranks * (n_ranks - 1) / 2,
+            self.__logger)
+        print_subset_statistics(
+            "Rank-local communication volume",
+            v_local,
+            "total volume",
+            v_total, self.__logger)
 
     def get_edges(self):
         """ Retrieve edges belonging to phase. """
@@ -141,22 +149,27 @@ class Phase:
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
-        # Retrieve desired time sampler with its theoretical average
-        time_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
+        # Retrieve desired load sampler with its theoretical average
+        load_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
 
-        # Create n_objects objects with uniformly distributed times in given range
-        self.__logger.info(f"Creating {n_objects} objects with times sampled from {sampler_name}")
+        # Create n_objects objects with uniformly distributed loads in given range
+        self.__logger.info(
+            f"Creating {n_objects} objects with loads sampled from {sampler_name}")
         self.__number_of_objects = n_objects
-        objects = set([Object(i, time_sampler()) for i in range(n_objects)])
+        objects = set([
+            Object(i, load=load_sampler())
+            for i in range(n_objects)])
 
-        # Compute and report object time statistics
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.__logger)
+        # Compute and report object load statistics
+        print_function_statistics(
+            objects, lambda x: x.get_load(), "object loads", self.__logger)
 
         # Decide whether communications must be created
         if c_degree > 0:
             # Instantiate communication samplers with requested properties
             volume_sampler, volume_sampler_name = sampler(
-                v_sampler.get("name"), v_sampler.get("parameters"), self.__logger)
+                v_sampler.get("name"),
+                v_sampler.get("parameters"), self.__logger)
 
             # Create symmetric binomial sampler capped by number of objects for degree
             p_b = .5
@@ -247,8 +260,13 @@ class Phase:
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        print_function_statistics(objects, lambda x: x.get_time(), "object times", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_load(), "object loads", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_size(), "object sizes", self.__logger)
+        print_function_statistics(
+            objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
         # Set number of read objects
         self.__n_objects = len(objects)
-        self.__logger.info(f"Read {self.__n_objects} objects from time-step {t_s} of data files with prefix {basename}")
+        self.__logger.info(f"Read {self.__n_objects} objects from load-step {t_s} of data files with prefix {basename}")

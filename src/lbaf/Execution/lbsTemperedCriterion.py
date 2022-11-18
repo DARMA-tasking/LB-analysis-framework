@@ -38,7 +38,7 @@ class TemperedCriterion(CriterionBase):
         w_max_0 = max(w_src_0, w_dst_0)
 
         # Update loads in proposed new arrangement
-        object_loads = sum([o.get_time() for o in objects])
+        object_loads = sum([o.get_load() for o in objects])
         values_src["load"] -= object_loads
         values_dst["load"] += object_loads
 

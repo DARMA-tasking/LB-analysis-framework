@@ -268,14 +268,34 @@ class LBAFApp:
             phases.append(phase)
 
         # Compute and print initial rank load and edge volume statistics
-        phase_0 = phases[0]
+        curr_phase = phases[0]
         lbstats.print_function_statistics(
-            phase_0.get_ranks(),
+            curr_phase.get_ranks(),
             lambda x: x.get_load(),
             "initial rank loads",
             self.logger)
         lbstats.print_function_statistics(
-            phase_0.get_edges().values(),
+            curr_phase.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            "initial rank object-level memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_size(),
+            "initial rank working memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_shared(),
+            "initial rank shared memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            "initial maximum memory usage",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_edges().values(),
             lambda x: x,
             "initial sent volumes",
             self.logger)
@@ -287,11 +307,11 @@ class LBAFApp:
             objects = []
 
             # Iterate over ranks
-            for rank in phase_0.get_ranks():
+            for rank in curr_phase.get_ranks():
                 for o in rank.get_objects():
                     entry = {
                         "id": o.get_id(),
-                        "time": o.get_time(),
+                        "load": o.get_load(),
                         "to": {},
                         "from": {}}
                     comm = o.get_communicator()
@@ -330,7 +350,7 @@ class LBAFApp:
         # Instantiate phase to VT file writer if started from a log file
         if "data_stem" in self.params.__dict__:
             vt_writer = VTDataWriter(
-                phase_0,
+                curr_phase,
                 self.logger,
                 self.params.output_file_stem,
                 output_dir=self.params.output_dir)
@@ -353,8 +373,9 @@ class LBAFApp:
             ex_writer.generate(gen_meshes, gen_mulmed)
 
         # Compute and print final rank load and edge volume statistics
+        curr_phase = phases[-1]
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
-            phase_0.get_ranks(),
+            curr_phase.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
             self.logger,
@@ -362,13 +383,38 @@ class LBAFApp:
                        if self.params.output_dir is None
                        else os.path.join(self.params.output_dir, "imbalance.txt")))
         lbstats.print_function_statistics(
-            phase_0.get_edges().values(),
+            curr_phase.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            "final rank object-level memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_size(),
+            "final rank working memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_size(),
+            "final rank working memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_shared(),
+            "final rank shared memory",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            "final maximum memory usage",
+            self.logger)
+        lbstats.print_function_statistics(
+            curr_phase.get_edges().values(),
             lambda x: x,
             "final sent volumes",
             self.logger)
 
         # Report on theoretically optimal statistics
-        n_o = phase_0.get_number_of_objects()
+        n_o = curr_phase.get_number_of_objects()
         q, r = divmod(n_o, self.params.n_ranks)
         ell = self.params.n_ranks * l_ave / n_o
         self.logger.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")

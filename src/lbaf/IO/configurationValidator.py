@@ -10,8 +10,8 @@ from ..Utils.exception_handler import exc_handler
 ALLOWED_STRATEGIES = (
     "arbitrary",
     "element_id",
-    "increasing_times",
-    "decreasing_times",
+    "increasing_loads",
+    "decreasing_loads",
     "increasing_connectivity",
     "fewest_migrations",
     "small_objects")
@@ -22,7 +22,7 @@ ALLOWED_ALGORITHMS = (
     "PhaseStepper")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizer")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
-ALLOWED_TIME_VOLUME_SAMPLER = ("uniform", "lognormal")
+ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
 ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
@@ -102,12 +102,12 @@ class ConfigurationValidator:
             "n_mapped_ranks": And(int, lambda x: x >= 0,
                                   error="Should be of type 'int' and >= 0"),
             "communication_degree": int,
-            "time_sampler": {
+            "load_sampler": {
                 "name": And(
                     str,
                     Use(str.lower),
-                    lambda a: a in ALLOWED_TIME_VOLUME_SAMPLER,
-                    error=f"{get_error_message(ALLOWED_TIME_VOLUME_SAMPLER)} must be chosen"),
+                    lambda a: a in ALLOWED_LOAD_VOLUME_SAMPLER,
+                    error=f"{get_error_message(ALLOWED_LOAD_VOLUME_SAMPLER)} must be chosen"),
                 "parameters": And(
                     [float],
                     lambda s: len(s) == 2,
@@ -116,8 +116,8 @@ class ConfigurationValidator:
                 "name": And(
                     str,
                     Use(str.lower),
-                    lambda b: b in ALLOWED_TIME_VOLUME_SAMPLER,
-                    error=f"{get_error_message(ALLOWED_TIME_VOLUME_SAMPLER)} must be chosen"),
+                    lambda b: b in ALLOWED_LOAD_VOLUME_SAMPLER,
+                    error=f"{get_error_message(ALLOWED_LOAD_VOLUME_SAMPLER)} must be chosen"),
                 "parameters": And(
                     [float],
                     lambda s: len(s) == 2,

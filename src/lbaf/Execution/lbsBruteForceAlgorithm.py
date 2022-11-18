@@ -43,7 +43,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         for rank, rank_object_ids in ranks.items():
             # Compute load component for current rank
             values = {
-                "load": sum([objects[i].get("time") for i in rank_object_ids])}
+                "load": sum([objects[i].get("load") for i in rank_object_ids])}
             
             # Compute received communication volume
             v = 0.0
@@ -88,7 +88,7 @@ class BruteForceAlgorithm(AlgorithmBase):
                 entry = {
                     "id": o.get_id(),
                     "rank": rank,
-                    "time": o.get_time(),
+                    "load": o.get_load(),
                     "to": {},
                     "from": {}}
                 comm = o.get_communicator()
@@ -153,7 +153,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             object_id = objects[i]["id"]
             for o in p_src.get_objects():
                 if o.get_id() == object_id:
-                    self.__logger.debug(f"transferring object {o.get_id()} ({o.get_time()}) to rank {p_dst.get_id()}")
+                    self.__logger.debug(f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()}")
                     p_src.remove_migratable_object(o, p_dst)
                     p_dst.add_migratable_object(o)
                     o.set_rank_id(p_dst.get_id())

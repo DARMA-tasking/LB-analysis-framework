@@ -21,7 +21,7 @@ class LoadOnlyWorkModel(WorkModelBase):
         self.__logger.info("Instantiated concrete work model")
 
     def compute(self, rank: Rank):
-        """ A work model summing all object times on given rank
+        """ A work model summing all object loads on given rank
         """
         # Return total load on this rank
         return rank.get_load()
