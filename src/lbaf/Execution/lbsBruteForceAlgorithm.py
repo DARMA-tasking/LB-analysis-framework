@@ -155,12 +155,17 @@ class BruteForceAlgorithm(AlgorithmBase):
             object_id = objects[i]["id"]
             for o in p_src.get_objects():
                 if o.get_id() == object_id:
+                    # Perform transfer
                     self.__logger.debug(
                         f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()}")
                     p_src.remove_migratable_object(o, p_dst)
                     p_dst.add_migratable_object(o)
                     o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
+
+            # Invalidate shared memory caches
+            p_src.invalidate_shared_cache()
+            p_dst.invalidate_shared_cache()
 
         # Report on object transfers
         self.__logger.info(f"{n_transfers} transfers occurred")

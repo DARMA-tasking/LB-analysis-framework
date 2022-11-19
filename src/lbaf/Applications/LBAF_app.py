@@ -242,19 +242,28 @@ class LBAFApp:
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
             # Initializing reader
             if file_suffix is not None:
-                reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger,
-                                    file_suffix=file_suffix, check_schema=check_schema)
+                reader = LoadReader(
+                    file_prefix=self.params.data_stem,
+                    n_ranks=self.params.n_ranks,
+                    logger=self.logger,
+                    file_suffix=file_suffix,
+                    check_schema=check_schema)
             else:
-                reader = LoadReader(file_prefix=self.params.data_stem, n_ranks=self.params.n_ranks, logger=self.logger,
-                                    check_schema=check_schema)
+                reader = LoadReader(
+                    file_prefix=self.params.data_stem,
+                    n_ranks=self.params.n_ranks,
+                    logger=self.logger,
+                    check_schema=check_schema)
 
             # Populate phase from log files and store number of objects
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
                 if file_suffix is not None:
-                    phase = Phase(self.logger, phase_id, file_suffix, reader=reader)
+                    phase = Phase(
+                        self.logger, phase_id, file_suffix, reader=reader)
                 else:
-                    phase = Phase(self.logger, phase_id, reader=reader)
+                    phase = Phase(
+                        self.logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id, self.params.data_stem)
                 phases.append(phase)
         else:
@@ -288,7 +297,7 @@ class LBAFApp:
             self.logger)
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
-            lambda x: x.get_shared(),
+            lambda x: x.get_shared_memory(),
             "initial rank shared memory",
             self.logger)
         lbstats.print_function_statistics(
@@ -401,7 +410,7 @@ class LBAFApp:
             self.logger)
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
-            lambda x: x.get_shared(),
+            lambda x: x.get_shared_memory(),
             "final rank shared memory",
             self.logger)
         lbstats.print_function_statistics(

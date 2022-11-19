@@ -144,29 +144,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             if not p.get_load():
                 continue
 
-            # Update viewers on loaded ranks known to this one
-            p.add_as_viewer(p.get_known_loads().keys())
-
-        # Report on viewers of loaded ranks
-        viewers_counts = {}
-        for p in rank_set:
-            # Skip non loaded ranks
-            if not p.get_load():
-                continue
-
-            # Retrieve cardinality of viewers
-            viewers = p.get_viewers()
-            viewers_counts[p] = len(viewers)
-
-            # Report on viewers of loaded rank when requested
-            self.__logger.debug(f"viewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}")
-
-        # Report viewers counts to loaded ranks
-        self.__logger.info(f"Completed {self.__n_rounds} information rounds")
-        n_v, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
-        self.__logger.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} "
-                           f"loaded ranks")
-
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """ Recursively extend search to other objects."""
         # Fail when no more objects available or maximum depth is reached
@@ -289,6 +266,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     p_dst.add_migratable_object(o)
                     o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
+
+                # Invalidate shared memory caches
+                p_src.invalidate_shared_cache()
+                p_dst.invalidate_shared_cache()
 
         self.__logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")

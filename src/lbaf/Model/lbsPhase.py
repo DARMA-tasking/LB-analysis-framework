@@ -135,7 +135,7 @@ class Phase:
             v_total, self.__logger)
 
     def get_edges(self):
-        """ Retrieve edges belonging to phase. """
+        """ Retrieve communication edges of phase. """
         # Force recompute if edges cache is not current
         if not self.__cached_edges:
             self.compute_edges()
