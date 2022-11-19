@@ -59,8 +59,17 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
+#brute_force_optimization: True
 algorithm:
-  name: PhaseStepper
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 4
+    n_rounds: 4
+    fanout: 4
+    order_strategy: arbitrary
+    criterion: Tempered
+    max_objects_per_transfer: 71
+    deterministic_transfer: True
 
 # Specify output
 #logging_level: debug
