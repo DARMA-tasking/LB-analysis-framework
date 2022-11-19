@@ -101,12 +101,14 @@ class AlgorithmBase:
                     if recv:
                         logger.debug("received from:")
                         for k, v in recv:
-                            logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+                            logger.debug(
+                                f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
                     sent = comm.get_sent().items()
                     if sent:
                         logger.debug("sent to:")
                         for k, v in sent:
-                            logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+                            logger.debug(
+                                f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
     @abc.abstractmethod
     def execute(self, phases, distributions, statistics, a_min_max):
