@@ -182,7 +182,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Decide whether criterion allows for transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
-            return self.recursive_extended_search(pick_list, object_list, c_fct, n_o, max_n_o)
+            return self.recursive_extended_search(
+                pick_list, object_list, c_fct, n_o, max_n_o)
         else:
             # Succeed when criterion is satisfied
             return True
@@ -269,7 +270,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     
                 # Sanity check before transfer
                 if p_dst not in p_src.get_known_loads():
-                    self.__logger.error(f"Destination rank {p_dst.get_id()} not in known ranks")
+                    self.__logger.error(
+                        f"Destination rank {p_dst.get_id()} not in known ranks")
                     sys.excepthook = exc_handler
                     raise SystemExit(1)
 
@@ -277,7 +279,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 if len(object_list) > max_obj_transfers:
                     max_obj_transfers = len(object_list)
 
-                self.__logger.debug(f"Transferring {len(object_list)} object(s) at once")
+                self.__logger.debug(
+                    f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.__logger.debug(
                         f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()} "
@@ -287,7 +290,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     o.set_rank_id(p_dst.get_id())
                     n_transfers += 1
 
-        self.__logger.info(f"Maximum number of objects transferred at once: {max_obj_transfers}")
+        self.__logger.info(
+            f"Maximum number of objects transferred at once: {max_obj_transfers}")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
@@ -318,8 +322,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             n_ignored, n_transfers, n_rejects = self.transfer_stage()
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                self.__logger.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
-                                   f"({100. * n_rejects / n_proposed:.4}%)")
+                self.__logger.info(
+                    f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                    f"({100. * n_rejects / n_proposed:.4}%)")
             else:
                 self.__logger.info("No transfers were proposed")
 
@@ -350,7 +355,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:
                 hd_min = min_Hamming_distance(arrangement, a_min_max)
-                self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
+                self.__logger.info(
+                    f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
 
         # Report final mapping in debug mode
@@ -380,7 +386,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def increasing_connectivity(objects: set, src_id):
         """ Order objects by increasing local communication volume."""
         # Initialize list with all objects without a communicator
-        no_comm = [o for o in objects if not isinstance(o.get_communicator(), ObjectCommunicator)]
+        no_comm = [
+            o for o in objects
+            if not isinstance(o.get_communicator(), ObjectCommunicator)]
 
         # Order objects with a communicator
         with_comm = {}
@@ -391,8 +399,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 continue
             
             # Update dict of objects with maximum local communication
-            with_comm[o] = max(sum([v for k, v in comm.get_received().items() if k.get_rank_id() == src_id]),
-                               sum([v for k, v in comm.get_sent().items() if k.get_rank_id() == src_id]))
+            with_comm[o] = max(
+                sum([v for k, v in comm.get_received().items()
+                     if k.get_rank_id() == src_id]),
+                sum([v for k, v in comm.get_sent().items()
+                     if k.get_rank_id() == src_id]))
 
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)
