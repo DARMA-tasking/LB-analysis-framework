@@ -28,7 +28,7 @@ class TestConfig(unittest.TestCase):
         self.simple_obj_001 = Object(i=1, load=2.5, subphases=self.subphases)
         self.simple_obj_002 = Object(i=2, load=4.5, r_id=0)
         self.oc = ObjectCommunicator(i=3, logger=self.logger)
-        self.simple_obj_003 = Object(i=3, load=3.5, r_id=2, c=self.oc)
+        self.simple_obj_003 = Object(i=3, load=3.5, r_id=2, comm=self.oc)
         self.sent_objects = {Object(i=0, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
                              Object(i=3, load=0.5): 1.5}
         self.received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
@@ -129,54 +129,54 @@ class TestConfig(unittest.TestCase):
 
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c="communicator")
+            Object(i=0, load=2.5, r_id=0, comm="communicator")
         self.assertEqual(err.exception.args[0],
                          f"c: communicator is type of <class 'str'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load=5.5, r_id=1, c=4)
+            Object(i=1, load=5.5, r_id=1, comm=4)
         self.assertEqual(err.exception.args[0], f"c: 4 is type of <class 'int'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=2, load=4.5, r_id=2, c=4.0)
+            Object(i=2, load=4.5, r_id=2, comm=4.0)
         self.assertEqual(err.exception.args[0],
                          f"c: 4.0 is type of <class 'float'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load=5.5, r_id=1, c=True)
+            Object(i=1, load=5.5, r_id=1, comm=True)
         self.assertEqual(err.exception.args[0],
                          f"c: True is type of <class 'bool'>! Must be <class 'ObjectCommunicator'>!")
 
     def test_object_user_defined_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined=[])
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=[])
         self.assertEqual(err.exception.args[0],
                          f"user_defined: [] is type of <class 'list'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined="a")
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined="a")
         self.assertEqual(err.exception.args[0], f"user_defined: a is type of <class 'str'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined=1)
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=1)
         self.assertEqual(err.exception.args[0], f"user_defined: 1 is type of <class 'int'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined=1.0)
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=1.0)
         self.assertEqual(err.exception.args[0],
                          f"user_defined: 1.0 is type of <class 'float'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined=set())
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=set())
         self.assertEqual(err.exception.args[0],
                          f"user_defined: set() is type of <class 'set'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined=())
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=())
         self.assertEqual(err.exception.args[0], f"user_defined: () is type of <class 'tuple'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, c=self.oc, user_defined=True)
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=True)
         self.assertEqual(err.exception.args[0],
                          f"user_defined: True is type of <class 'bool'>! Must be <class 'dict'>!")
 
@@ -203,12 +203,12 @@ class TestConfig(unittest.TestCase):
     def test_object_get_sent_002(self):
         sent_object = {Object(i=0, load=1.0): 6.0}
         oc = ObjectCommunicator(i=3, s=sent_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent(), sent_object)
 
     def test_object_get_sent_003(self):
         oc = ObjectCommunicator(i=23, s=self.sent_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent(), self.sent_objects)
 
     def test_object_get_received_001(self):
@@ -218,12 +218,12 @@ class TestConfig(unittest.TestCase):
     def test_object_get_received_002(self):
         received_object = {Object(i=1, load=2.5): 5.0}
         oc = ObjectCommunicator(i=1, r=received_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received(), received_object)
 
     def test_object_get_received_003(self):
         oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received(), self.received_objects)
 
     def test_object_get_sent_volume_001(self):
@@ -233,12 +233,12 @@ class TestConfig(unittest.TestCase):
     def test_object_get_sent_volume_002(self):
         sent_object = {Object(i=0, load=1.0): 6.0}
         oc = ObjectCommunicator(i=3, s=sent_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent_volume(), 6.0)
 
     def test_object_get_sent_volume_003(self):
         oc = ObjectCommunicator(i=23, s=self.sent_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent_volume(), 6.5)
 
     def test_object_get_received_volume_001(self):
@@ -248,12 +248,12 @@ class TestConfig(unittest.TestCase):
     def test_object_get_received_volume_002(self):
         received_object = {Object(i=5, load=2.5): 7.0}
         oc = ObjectCommunicator(i=3, r=received_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 7.0)
 
     def test_object_get_received_volume_003(self):
         oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, c=oc)
+        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 4.5)
 
     def test_object_get_subphases(self):
