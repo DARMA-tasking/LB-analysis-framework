@@ -37,7 +37,7 @@
 # n_objects [int]              number of objects
 # n_mapped_ranks [int]         number of initially mapped processors
 # communication_degree [int]   object communication degree (no communication if 0)
-# time_sampler                 description of object times sampler: 
+# load_sampler                 description of object times sampler: 
 #    name [str]                in uniform, lognormal
 #    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
 # volume_sampler               description of object communication volumes sampler: 

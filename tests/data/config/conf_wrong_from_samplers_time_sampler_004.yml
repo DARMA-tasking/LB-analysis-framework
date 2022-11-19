@@ -35,7 +35,7 @@ from_samplers:
   n_objects: 200
   n_mapped_ranks: 2
   communication_degree: 20
-  time_sampler:
+  load_sampler:
     name: lognorma
     parameters:
       - 1.0

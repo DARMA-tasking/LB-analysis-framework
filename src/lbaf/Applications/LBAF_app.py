@@ -187,7 +187,7 @@ class internalParameters:
             self.n_objects = self.configuration.get("from_samplers").get("n_objects")
             self.n_mapped_ranks = self.configuration.get("from_samplers").get("n_mapped_ranks")
             self.communication_degree = self.configuration.get("from_samplers").get("communication_degree")
-            self.time_sampler = self.configuration.get("from_samplers").get("time_sampler")
+            self.load_sampler = self.configuration.get("from_samplers").get("load_sampler")
             self.volume_sampler = self.configuration.get("from_samplers").get("volume_sampler")
 
         # Parsing and setting up logging level
@@ -272,7 +272,7 @@ class LBAFApp:
             phase.populate_from_samplers(
                 self.params.n_ranks,
                 self.params.n_objects,
-                self.params.time_sampler,
+                self.params.load_sampler,
                 self.params.volume_sampler,
                 self.params.communication_degree,
                 self.params.n_mapped_ranks)
