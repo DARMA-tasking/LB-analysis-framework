@@ -130,28 +130,24 @@ class TestConfig(unittest.TestCase):
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm="communicator")
-        self.assertEqual(err.exception.args[0],
-                         f"c: communicator is type of <class 'str'>! Must be <class 'ObjectCommunicator'>!")
+        self.assertEqual(err.exception.args[0], f"comm: communicator is type of <class 'str'>! Must be <class 'ObjectCommunicator'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=1, comm=4)
-        self.assertEqual(err.exception.args[0], f"c: 4 is type of <class 'int'>! Must be <class 'ObjectCommunicator'>!")
+        self.assertEqual(err.exception.args[0], f"comm: 4 is type of <class 'int'> Must be <class 'ObjectCommunicator'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, load=4.5, r_id=2, comm=4.0)
-        self.assertEqual(err.exception.args[0],
-                         f"c: 4.0 is type of <class 'float'>! Must be <class 'ObjectCommunicator'>!")
+        self.assertEqual(err.exception.args[0],f"comm: 4.0 is type of <class 'float'> Must be <class 'ObjectCommunicator'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=1, comm=True)
-        self.assertEqual(err.exception.args[0],
-                         f"c: True is type of <class 'bool'>! Must be <class 'ObjectCommunicator'>!")
+        self.assertEqual(err.exception.args[0],f"comm: True is type of <class 'bool'> Must be <class 'ObjectCommunicator'>")
 
     def test_object_user_defined_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=[])
-        self.assertEqual(err.exception.args[0],
-                         f"user_defined: [] is type of <class 'list'>! Must be <class 'dict'>!")
+        self.assertEqual(err.exception.args[0],f"user_defined: [] is type of <class 'list'>! Must be <class 'dict'>!")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined="a")
