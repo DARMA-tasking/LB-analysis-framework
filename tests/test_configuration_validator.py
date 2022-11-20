@@ -50,7 +50,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaOnlyOneAllowedError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0],"There are multiple keys present from the Or(.from_data., .from_samplers.) condition")
+        self.assertEqual(err.exception.args[0],"There are multiple keys present from the Or('from_data', 'from_samplers') condition")
 
     def test_config_validator_wrong_no_data_and_sampling(self):
         with open(os.path.join(self.config_dir, "conf_wrong_no_data_and_sampling.yml"), "rt") as config_file:
