@@ -112,7 +112,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError) as err:
             Object(i=3, load=True)
-        self.assertEqual(err.exception.args[0], f"load: True is of type <class 'bool'>. Must be <class 'float'>.")
+        self.assertEqual(err.exception.args[0], f"load: incorrect type <class 'bool'> or value: True")
 
     def test_object_rank_error(self):
         with self.assertRaises(TypeError) as err:
@@ -125,7 +125,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=True)
-        self.assertEqual(err.exception.args[0], f"r_id: True is of type <class 'bool'>. Must be <class 'int'>.")
+        self.assertEqual(err.exception.args[0], f"r_id: incorrect type <class 'bool'>")
 
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
