@@ -43,7 +43,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
 
             # Invalidate all rank shared caches
             for r in p.get_ranks():
-                p.invalidate_shared_cache()
+                r.invalidate_shared_cache()
 
             # Compute and report iteration work statistics
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
