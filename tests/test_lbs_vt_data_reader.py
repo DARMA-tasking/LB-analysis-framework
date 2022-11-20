@@ -21,69 +21,69 @@ from src.lbaf.Model.lbsRank import Rank
 class TestConfig(unittest.TestCase):
     def setUp(self):
         try:
-            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), 'data')
+            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "data")
             sys.path.append(self.data_dir)
         except Exception as e:
-            print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
+            print(f"Can not add data path to system path. Exiting.\nERROR: {e}")
             raise SystemExit(1)
-        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', 'data')
+        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', "data")
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
         self.ranks_comm = [
             {0: {
-                5: {'sent': [], 'received': [{'from': 0, 'bytes': 2.0}]},
-                0: {'sent': [{'to': 5, 'bytes': 2.0}], 'received': []},
-                4: {'sent': [], 'received': [{'from': 1, 'bytes': 1.0}]},
-                1: {'sent': [{'to': 4, 'bytes': 1.0}], 'received': []},
-                2: {'sent': [], 'received': [{'from': 3, 'bytes': 1.0}]},
-                3: {'sent': [{'to': 2, 'bytes': 1.0}, {'to': 8, 'bytes': 0.5}], 'received': []},
-                8: {'sent': [], 'received': [{'from': 3, 'bytes': 0.5}]}}},
+                5: {"sent": [], "received": [{'from': 0, "bytes": 2.0}]},
+                0: {"sent": [{'to': 5, "bytes": 2.0}], "received": []},
+                4: {"sent": [], "received": [{'from': 1, "bytes": 1.0}]},
+                1: {"sent": [{'to': 4, "bytes": 1.0}], "received": []},
+                2: {"sent": [], "received": [{'from': 3, "bytes": 1.0}]},
+                3: {"sent": [{'to': 2, "bytes": 1.0}, {'to': 8, "bytes": 0.5}], "received": []},
+                8: {"sent": [], "received": [{'from': 3, "bytes": 0.5}]}}},
             {0: {
-                1: {'sent': [], 'received': [{'from': 4, 'bytes': 2.0}]},
-                4: {'sent': [{'to': 1, 'bytes': 2.0}], 'received': []},
-                8: {'sent': [], 'received': [{'from': 5, 'bytes': 2.0}]},
-                5: {'sent': [{'to': 8, 'bytes': 2.0}], 'received': []},
-                6: {'sent': [], 'received': [{'from': 7, 'bytes': 1.0}]},
-                7: {'sent': [{'to': 6, 'bytes': 1.0}], 'received': []}}},
+                1: {"sent": [], "received": [{'from': 4, "bytes": 2.0}]},
+                4: {"sent": [{'to': 1, "bytes": 2.0}], "received": []},
+                8: {"sent": [], "received": [{'from': 5, "bytes": 2.0}]},
+                5: {"sent": [{'to': 8, "bytes": 2.0}], "received": []},
+                6: {"sent": [], "received": [{'from': 7, "bytes": 1.0}]},
+                7: {"sent": [{'to': 6, "bytes": 1.0}], "received": []}}},
             {0: {
-                6: {'sent': [], 'received': [{'from': 8, 'bytes': 1.5}]},
-                8: {'sent': [{'to': 6, 'bytes': 1.5}], 'received': []}}},
+                6: {"sent": [], "received": [{'from': 8, "bytes": 1.5}]},
+                8: {"sent": [{'to': 6, "bytes": 1.5}], "received": []}}},
             {}
         ]
-        self.ranks_iter_map = [{0: Rank(i=0, mo={Object(i=3, t=0.5), Object(i=2, t=0.5), Object(i=0, t=1.0),
-                                                 Object(i=1, t=0.5)}, logger=self.logger)},
-                               {0: Rank(i=1, mo={Object(i=5, t=2.0), Object(i=7, t=0.5), Object(i=6, t=1.0),
-                                                 Object(i=4, t=0.5)}, logger=self.logger)},
-                               {0: Rank(i=2, mo={Object(i=8, t=1.5)}, logger=self.logger)},
+        self.ranks_iter_map = [{0: Rank(i=0, mo={Object(i=3, load=0.5), Object(i=2, load=0.5), Object(i=0, load=1.0),
+                                                 Object(i=1, load=0.5)}, logger=self.logger)},
+                               {0: Rank(i=1, mo={Object(i=5, load=2.0), Object(i=7, load=0.5), Object(i=6, load=1.0),
+                                                 Object(i=4, load=0.5)}, logger=self.logger)},
+                               {0: Rank(i=2, mo={Object(i=8, load=1.5)}, logger=self.logger)},
                                {0: Rank(i=3, logger=self.logger)}]
 
-        self.rank_list = [Rank(i=0, mo={Object(i=3, t=0.5, p=0, c=ObjectCommunicator(i=3, logger=self.logger,
-                                                                                     s={Object(i=2, t=0.5): 1.0,
-                                                                                        Object(i=8, t=1.5): 0.5})),
-                                        Object(i=2, t=0.5, p=0, c=ObjectCommunicator(i=2, logger=self.logger,
-                                                                                     r={Object(i=3, t=0.5): 1.0})),
-                                        Object(i=0, t=1.0, p=0, c=ObjectCommunicator(i=0, logger=self.logger,
-                                                                                     s={Object(i=5, t=2.0): 2.0})),
-                                        Object(i=1, t=0.5, p=0, c=ObjectCommunicator(i=1, logger=self.logger,
-                                                                                     r={Object(i=4, t=0.5): 2.0},
-                                                                                     s={Object(i=4, t=0.5): 1.0}))},
+        self.rank_list = [Rank(i=0, mo={Object(i=3, load=0.5, p=0, c=ObjectCommunicator(i=3, logger=self.logger,
+                                                                                     s={Object(i=2, load=0.5): 1.0,
+                                                                                        Object(i=8, load=1.5): 0.5})),
+                                        Object(i=2, load=0.5, p=0, c=ObjectCommunicator(i=2, logger=self.logger,
+                                                                                     r={Object(i=3, load=0.5): 1.0})),
+                                        Object(i=0, load=1.0, p=0, c=ObjectCommunicator(i=0, logger=self.logger,
+                                                                                     s={Object(i=5, load=2.0): 2.0})),
+                                        Object(i=1, load=0.5, p=0, c=ObjectCommunicator(i=1, logger=self.logger,
+                                                                                     r={Object(i=4, load=0.5): 2.0},
+                                                                                     s={Object(i=4, load=0.5): 1.0}))},
                                logger=self.logger),
-                          Rank(i=1, mo={Object(i=5, t=2.0, p=1, c=ObjectCommunicator(i=5, logger=self.logger,
-                                                                                     r={Object(i=0, t=1.0): 2.0},
-                                                                                     s={Object(i=8, t=1.5): 2.0})),
-                                        Object(i=7, t=0.5, p=1, c=ObjectCommunicator(i=7, logger=self.logger,
-                                                                                     s={Object(i=6, t=1.0): 1.0})),
-                                        Object(i=6, t=1.0, p=1, c=ObjectCommunicator(i=6, logger=self.logger,
-                                                                                     r={Object(i=7, t=0.5): 1.0,
-                                                                                        Object(i=8, t=1.5): 1.5})),
-                                        Object(i=4, t=0.5, p=1, c=ObjectCommunicator(i=4, logger=self.logger,
-                                                                                     r={Object(i=1, t=0.5): 1.0},
-                                                                                     s={Object(i=1, t=0.5): 2.0}))},
+                          Rank(i=1, mo={Object(i=5, load=2.0, p=1, c=ObjectCommunicator(i=5, logger=self.logger,
+                                                                                     r={Object(i=0, load=1.0): 2.0},
+                                                                                     s={Object(i=8, load=1.5): 2.0})),
+                                        Object(i=7, load=0.5, p=1, c=ObjectCommunicator(i=7, logger=self.logger,
+                                                                                     s={Object(i=6, load=1.0): 1.0})),
+                                        Object(i=6, load=1.0, p=1, c=ObjectCommunicator(i=6, logger=self.logger,
+                                                                                     r={Object(i=7, load=0.5): 1.0,
+                                                                                        Object(i=8, load=1.5): 1.5})),
+                                        Object(i=4, load=0.5, p=1, c=ObjectCommunicator(i=4, logger=self.logger,
+                                                                                     r={Object(i=1, load=0.5): 1.0},
+                                                                                     s={Object(i=1, load=0.5): 2.0}))},
                                logger=self.logger),
-                          Rank(i=2, mo={Object(i=8, t=1.5, p=2, c=ObjectCommunicator(i=8, logger=self.logger,
-                                                                                     r={Object(i=3, t=0.5): 0.5,
-                                                                                        Object(i=5, t=2.0): 2.0},
-                                                                                     s={Object(i=6, t=1.0): 1.5}))},
+                          Rank(i=2, mo={Object(i=8, load=1.5, p=2, c=ObjectCommunicator(i=8, logger=self.logger,
+                                                                                     r={Object(i=3, load=0.5): 0.5,
+                                                                                        Object(i=5, load=2.0): 2.0},
+                                                                                     s={Object(i=6, load=1.0): 1.5}))},
                                logger=self.logger),
                           Rank(i=3, logger=self.logger)]
 
@@ -119,7 +119,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
+        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', "data")
         lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
@@ -143,20 +143,20 @@ class TestConfig(unittest.TestCase):
         ])
 
     def test_lbs_vt_data_reader_read_wrong_schema(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'data')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", "data")
         with self.assertRaises(SchemaError) as err:
             LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json').read(0, 0)
         list_of_err_msg = []
-        with open(os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'schema_error_0.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_0.txt'), 'rt') as se:
             err_msg_0 = se.read()
         list_of_err_msg.append(err_msg_0)
-        with open(os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'schema_error_1.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_1.txt'), 'rt') as se:
             err_msg_1 = se.read()
         list_of_err_msg.append(err_msg_1)
-        with open(os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'schema_error_2.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_2.txt'), 'rt') as se:
             err_msg_2 = se.read()
         list_of_err_msg.append(err_msg_2)
-        with open(os.path.join(self.data_dir, 'synthetic_lb_stats_wrong_schema', 'schema_error_3.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_3.txt'), 'rt') as se:
             err_msg_3 = se.read()
         list_of_err_msg.append(err_msg_3)
         self.assertIn(err.exception.args[0], list_of_err_msg)
