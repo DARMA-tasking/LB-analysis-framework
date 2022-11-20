@@ -91,7 +91,7 @@ class TestConfig(unittest.TestCase):
     def test_object_id_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i="25", load=2.5)
-        self.assertEqual(err.exception.args[0], f"i: 25 is of type <class 'str'>. Must be <class 'int'>.")
+        self.assertEqual(err.exception.args[0], f"i: incorrect type <class 'str'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2.5, load=2.5)
