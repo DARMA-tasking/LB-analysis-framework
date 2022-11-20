@@ -36,36 +36,36 @@ class TestConfig(unittest.TestCase):
 
     def test_object_initialization_001(self):
         self.assertEqual(self.simple_obj_001._Object__index, 1)
-        self.assertEqual(self.simple_obj_001._Object__time, 2.5)
+        self.assertEqual(self.simple_obj_001._Object__load, 2.5)
         self.assertEqual(self.simple_obj_001._Object__rank_id, None)
         self.assertEqual(self.simple_obj_001._Object__communicator, None)
 
     def test_object_initialization_002(self):
         self.assertEqual(self.simple_obj_002._Object__index, 2)
-        self.assertEqual(self.simple_obj_002._Object__time, 4.5)
+        self.assertEqual(self.simple_obj_002._Object__load, 4.5)
         self.assertEqual(self.simple_obj_002._Object__rank_id, 0)
         self.assertEqual(self.simple_obj_002._Object__communicator, None)
 
     def test_object_initialization_003(self):
         self.assertEqual(self.simple_obj_003._Object__index, 3)
-        self.assertEqual(self.simple_obj_003._Object__time, 3.5)
+        self.assertEqual(self.simple_obj_003._Object__load, 3.5)
         self.assertEqual(self.simple_obj_003._Object__rank_id, 2)
         self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
 
     def test_object_repr(self):
-        self.assertEqual(str(self.simple_obj_001), "Object id: 1, time: 2.5")
-        self.assertEqual(str(self.simple_obj_002), "Object id: 2, time: 4.5")
-        self.assertEqual(str(self.simple_obj_003), "Object id: 3, time: 3.5")
+        self.assertEqual(str(self.simple_obj_001), "Object id: 1, load: 2.5")
+        self.assertEqual(str(self.simple_obj_002), "Object id: 2, load: 4.5")
+        self.assertEqual(str(self.simple_obj_003), "Object id: 3, load: 3.5")
 
     def test_object_get_id(self):
         self.assertEqual(self.simple_obj_001.get_id(), 1)
         self.assertEqual(self.simple_obj_002.get_id(), 2)
         self.assertEqual(self.simple_obj_003.get_id(), 3)
 
-    def test_object_get_time(self):
-        self.assertEqual(self.simple_obj_001.get_time(), 2.5)
-        self.assertEqual(self.simple_obj_002.get_time(), 4.5)
-        self.assertEqual(self.simple_obj_003.get_time(), 3.5)
+    def test_object_get_load(self):
+        self.assertEqual(self.simple_obj_001.get_load(), 2.5)
+        self.assertEqual(self.simple_obj_002.get_load(), 4.5)
+        self.assertEqual(self.simple_obj_003.get_load(), 3.5)
 
     def test_object_set_rank_id(self):
         self.simple_obj_001.set_rank_id(15)
@@ -101,7 +101,7 @@ class TestConfig(unittest.TestCase):
             Object(i=True, load=2.5)
         self.assertEqual(err.exception.args[0], f"i: True is type of <class 'bool'>! Must be <class 'int'>!")
 
-    def test_object_time_error(self):
+    def test_object_load_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=1, load="2.5")
         self.assertEqual(err.exception.args[0], f"t: 2.5 is type of <class 'str'>! Must be <class 'float'>!")
