@@ -55,7 +55,7 @@ class Object:
         else:
             sys.excepthook = exc_handler
             raise TypeError(
-                f"c: {comm} is of type {type(comm)} Must be <class 'ObjectCommunicator'>")
+                f"comm: {comm} is of type {type(comm)}. Must be <class 'ObjectCommunicator'>.")
 
         # Initialize other instance variables
         self.__overhead = 0.0
