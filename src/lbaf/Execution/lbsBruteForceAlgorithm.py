@@ -146,26 +146,24 @@ class BruteForceAlgorithm(AlgorithmBase):
         self.__logger.debug(f"Reassigning objects with arrangement {arrangement}")
         for i, a in enumerate(arrangement):
             # Skip objects that do not need transfer
-            p_src = objects[i]["rank"]
-            p_dst = phase_ranks[a]
-            if p_src == p_dst:
+            r_src = objects[i]["rank"]
+            r_dst = phase_ranks[a]
+            if r_src == r_dst:
                 continue
 
             # Otherwise locate object on source and transfer to destination
             object_id = objects[i]["id"]
-            for o in p_src.get_objects():
+            for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer
                     self.__logger.debug(
-                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()}")
-                    p_src.remove_migratable_object(o, p_dst)
-                    p_dst.add_migratable_object(o)
-                    o.set_rank_id(p_dst.get_id())
+                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {r_dst.get_id()}")
+                    self.phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
             # Invalidate shared memory caches
-            p_src.invalidate_shared_cache()
-            p_dst.invalidate_shared_cache()
+            r_src.invalidate_shared_cache()
+            r_dst.invalidate_shared_cache()
 
         # Report on object transfers
         self.__logger.info(f"{n_transfers} transfers occurred")

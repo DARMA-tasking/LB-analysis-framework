@@ -270,3 +270,16 @@ class Phase:
         # Set number of read objects
         self.__n_objects = len(objects)
         self.__logger.info(f"Read {self.__n_objects} objects from load-step {t_s} of data files with prefix {basename}")
+
+    def transfer_object(self, o: Object, r_src: Rank, r_dst: Rank):
+        """ Transfer object from source to destination rank."""
+
+        # Remove object from migratable ones on source
+        r_src.remove_migratable_object(o, r_dst)
+
+        # Add object to migratable ones on destination
+        r_dst.add_migratable_object(o)
+
+        # Reset current rank of object
+        o.set_rank_id(r_dst.get_id())
+        

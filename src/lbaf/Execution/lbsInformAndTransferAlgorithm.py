@@ -175,22 +175,22 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         max_obj_transfers = 0
 
         # Iterate over ranks
-        for p_src in self.phase.get_ranks():
+        for r_src in self.phase.get_ranks():
             # Skip workless ranks
-            if not self.work_model.compute(p_src) > 0.:
+            if not self.work_model.compute(r_src) > 0.:
                 continue
 
             # Skip ranks unaware of peers
-            targets = p_src.get_known_loads()
-            del targets[p_src]
+            targets = r_src.get_known_loads()
+            del targets[r_src]
             if not targets:
                 n_ignored += 1
                 continue
-            self.__logger.debug(f"Trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
+            self.__logger.debug(f"Trying to offload from rank {r_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
             srt_rank_obj = list(self.__order_strategy(
-                p_src.get_migratable_objects(), p_src.get_id()))
+                r_src.get_migratable_objects(), r_src.get_id()))
             while srt_rank_obj:
                 # Pick next object in ordered list
                 o = srt_rank_obj.pop()
@@ -198,20 +198,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self.__logger.debug(f"* object {o.get_id()}:")
 
                 # Initialize destination information
-                p_dst = None
+                r_dst = None
                 c_dst = -math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self.__deterministic_transfer:
                     # Select best destination with respect to criterion
                     for p in targets.keys():
-                        c = self.__transfer_criterion.compute([o], p_src, p)
+                        c = self.__transfer_criterion.compute([o], r_src, p)
                         if c > c_dst:
                             c_dst = c
-                            p_dst = p
+                            r_dst = p
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf, c_values = p_src.compute_transfer_cmf(
+                    p_cmf, c_values = r_src.compute_transfer_cmf(
                         self.__transfer_criterion, o, targets, False)
                     self.__logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
@@ -219,8 +219,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         continue
 
                     # Pseudo-randomly select destination proc
-                    p_dst = inverse_transform_sample(p_cmf)
-                    c_dst = c_values[p_dst]
+                    r_dst = inverse_transform_sample(p_cmf)
+                    c_dst = c_values[r_dst]
 
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.:
@@ -234,7 +234,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     success = self.recursive_extended_search(
                         pick_list,
                         object_list,
-                        lambda x: self.__transfer_criterion.compute(x, p_src, p_dst),
+                        lambda x: self.__transfer_criterion.compute(x, r_src, r_dst),
                         1,
                         self.__max_objects_per_transfer)
                     if success:
@@ -246,9 +246,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         continue
                     
                 # Sanity check before transfer
-                if p_dst not in p_src.get_known_loads():
+                if r_dst not in r_src.get_known_loads():
                     self.__logger.error(
-                        f"Destination rank {p_dst.get_id()} not in known ranks")
+                        f"Destination rank {r_dst.get_id()} not in known ranks")
                     sys.excepthook = exc_handler
                     raise SystemExit(1)
 
@@ -260,16 +260,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
                     self.__logger.debug(
-                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()} "
-                        f"(criterion: {c_dst})")
-                    p_src.remove_migratable_object(o, p_dst)
-                    p_dst.add_migratable_object(o)
-                    o.set_rank_id(p_dst.get_id())
+                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {r_dst.get_id()} (criterion: {c_dst})")
+
+                    self.phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
                 # Invalidate shared memory caches
-                p_src.invalidate_shared_cache()
-                p_dst.invalidate_shared_cache()
+                r_src.invalidate_shared_cache()
+                r_dst.invalidate_shared_cache()
 
         self.__logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
