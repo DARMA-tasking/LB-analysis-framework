@@ -134,15 +134,15 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=1, comm=4)
-        self.assertEqual(err.exception.args[0], f"comm: 4 is of type <class 'int'> Must be <class 'ObjectCommunicator'>")
+        self.assertEqual(err.exception.args[0], f"comm: 4 is of type <class 'int'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, load=4.5, r_id=2, comm=4.0)
-        self.assertEqual(err.exception.args[0],f"comm: 4.0 is of type <class 'float'> Must be <class 'ObjectCommunicator'>")
+        self.assertEqual(err.exception.args[0],f"comm: 4.0 is of type <class 'float'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=1, comm=True)
-        self.assertEqual(err.exception.args[0],f"comm: True is of type <class 'bool'> Must be <class 'ObjectCommunicator'>")
+        self.assertEqual(err.exception.args[0],f"comm: True is of type <class 'bool'>. Must be <class 'ObjectCommunicator'>.")
 
     def test_object_user_defined_error(self):
         with self.assertRaises(TypeError) as err:
