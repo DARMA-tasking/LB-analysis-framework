@@ -99,7 +99,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError) as err:
             Object(i=True, load=2.5)
-        self.assertEqual(err.exception.args[0], f"i: True is of type <class 'bool'>. Must be <class 'int'>.")
+        self.assertEqual(err.exception.args[0], f"i: incorrect type <class 'bool'>")
 
     def test_object_load_error(self):
         with self.assertRaises(TypeError) as err:
@@ -108,7 +108,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, load=3)
-        self.assertEqual(err.exception.args[0], f"load: 3 is of type <class 'int'>. Must be <class 'float'>.")
+        self.assertEqual(err.exception.args[0], f"load: incorrect type <class 'int'> or value: 3")
 
         with self.assertRaises(TypeError) as err:
             Object(i=3, load=True)
@@ -121,7 +121,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=4.0)
-        self.assertEqual(err.exception.args[0], f"r_id: 4.0 is of type <class 'float'>. Must be <class 'int'>.")
+        self.assertEqual(err.exception.args[0], f"r_id: incorrect type <class 'float'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=True)

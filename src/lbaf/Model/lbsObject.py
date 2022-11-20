@@ -65,7 +65,7 @@ class Object:
             self.__user_defined = user_defined
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)} but must be <class 'dict'>")
+            raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)}. Must be <class 'dict'>.")
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
