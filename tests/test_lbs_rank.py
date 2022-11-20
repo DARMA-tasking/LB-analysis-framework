@@ -82,7 +82,7 @@ class TestConfig(unittest.TestCase):
         received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
                             Object(i=8, load=1.5): 0.5}
         oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
-        temp_mig_object = Object(i=123, load=1.0, c=oc)
+        temp_mig_object = Object(i=123, load=1.0, comm=oc)
         self.rank.add_migratable_object(temp_mig_object)
         self.assertEqual(self.rank.get_received_volume(), 4.5)
 
@@ -92,7 +92,7 @@ class TestConfig(unittest.TestCase):
         received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
                             Object(i=8, load=1.5): 0.5}
         oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
-        temp_mig_object = Object(i=123, load=1.0, c=oc)
+        temp_mig_object = Object(i=123, load=1.0, comm=oc)
         self.rank.add_migratable_object(temp_mig_object)
         self.assertEqual(self.rank.get_sent_volume(), 6.5)
 

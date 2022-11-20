@@ -68,7 +68,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaMissingKeyError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "Missing key: "phase_ids"")
+        self.assertEqual(err.exception.args[0], "Missing key: 'phase_ids'")
 
     def test_config_validator_wrong_from_data_phase_type(self):
         with open(os.path.join(self.config_dir, "conf_wrong_from_data_phase_type.yml"), "rt") as config_file:
