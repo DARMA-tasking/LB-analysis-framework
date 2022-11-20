@@ -31,7 +31,6 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank._Rank__index, 0)
         self.assertEqual(self.rank._Rank__migratable_objects, self.migratable_objects)
         self.assertEqual(self.rank._Rank__known_loads, {})
-        self.assertEqual(self.rank._Rank__viewers, set())
         self.assertEqual(self.rank.round_last_received, 0)
         self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
@@ -67,9 +66,6 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_rank_get_known_loads(self):
         self.assertEqual(self.rank.get_known_loads(), {})
-
-    def test_lbs_rank_get_viewers(self):
-        self.assertEqual(self.rank.get_viewers(), set())
 
     def test_lbs_rank_get_load(self):
         self.assertEqual(self.rank.get_load(), 9.5)
@@ -111,19 +107,11 @@ class TestConfig(unittest.TestCase):
         self.migratable_objects.remove(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
 
-    def test_lbs_rank_add_as_viewer(self):
-        temp_rank_list = [Rank(i=1, logger=self.logger)]
-        self.rank.add_as_viewer(temp_rank_list)
-        self.assertEqual(temp_rank_list[0].get_viewers(), {self.rank})
-
     def test_lbs_rank_reset_all_load_information(self):
         temp_rank = Rank(i=1, logger=self.logger)
-        temp_rank.add_as_viewer([self.rank])
-        self.assertEqual(self.rank.get_viewers(), {temp_rank})
         self.rank._Rank__known_loads[temp_rank] = 4.0
         self.assertEqual(self.rank.get_known_loads(), {temp_rank: 4.0})
         self.rank.reset_all_load_information()
-        self.assertEqual(self.rank.get_viewers(), set())
         self.assertEqual(self.rank.get_known_loads(), {})
 
     @patch.object(random, "sample")

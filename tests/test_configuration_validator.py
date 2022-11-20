@@ -59,7 +59,7 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(SchemaMissingKeyError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=logger()).main()
-        self.assertEqual(err.exception.args[0], "Missing key: Or("from_data", "from_samplers")")
+        self.assertEqual(err.exception.args[0], "Missing key: Or('from_data', 'from_samplers')")
 
     def test_config_validator_wrong_missing_from_data_phase(self):
         with open(os.path.join(self.config_dir, "conf_wrong_missing_from_data_param.yml"), "rt") as config_file:
