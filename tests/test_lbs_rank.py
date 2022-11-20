@@ -23,8 +23,8 @@ from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger()
-        self.migratable_objects = {Object(i=0, t=1.0), Object(i=1, t=0.5), Object(i=2, t=0.5), Object(i=3, t=0.5)}
-        self.sentinel_objects = {Object(i=15, t=4.5), Object(i=18, t=2.5)}
+        self.migratable_objects = {Object(i=0, load=1.0), Object(i=1, load=0.5), Object(i=2, load=0.5), Object(i=3, load=0.5)}
+        self.sentinel_objects = {Object(i=15, load=4.5), Object(i=18, load=2.5)}
         self.rank = Rank(i=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
 
     def test_lbs_rank_initialization(self):
@@ -45,7 +45,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_objects(), self.migratable_objects.union(self.sentinel_objects))
 
     def test_lbs_rank_add_migratable_object(self):
-        temp_object = Object(i=7, t=1.5)
+        temp_object = Object(i=7, load=1.5)
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
@@ -81,28 +81,28 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_sentinel_load(), 7.0)
 
     def test_lbs_rank_get_received_volume_001(self):
-        sent_objects = {Object(i=123, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
-                        Object(i=3, t=0.5): 1.5}
-        received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
-                            Object(i=8, t=1.5): 0.5}
+        sent_objects = {Object(i=123, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
+                        Object(i=3, load=0.5): 1.5}
+        received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
+                            Object(i=8, load=1.5): 0.5}
         oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
-        temp_mig_object = Object(i=123, t=1.0, c=oc)
+        temp_mig_object = Object(i=123, load=1.0, c=oc)
         self.rank.add_migratable_object(temp_mig_object)
         self.assertEqual(self.rank.get_received_volume(), 4.5)
 
     def test_lbs_rank_get_sent_volume_001(self):
-        sent_objects = {Object(i=123, t=1.0): 2.0, Object(i=1, t=0.5): 1.0, Object(i=4, t=0.5): 2.0,
-                        Object(i=3, t=0.5): 1.5}
-        received_objects = {Object(i=5, t=2.0): 2.0, Object(i=6, t=0.5): 1.0, Object(i=2, t=0.5): 1.0,
-                            Object(i=8, t=1.5): 0.5}
+        sent_objects = {Object(i=123, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
+                        Object(i=3, load=0.5): 1.5}
+        received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
+                            Object(i=8, load=1.5): 0.5}
         oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
-        temp_mig_object = Object(i=123, t=1.0, c=oc)
+        temp_mig_object = Object(i=123, load=1.0, c=oc)
         self.rank.add_migratable_object(temp_mig_object)
         self.assertEqual(self.rank.get_sent_volume(), 6.5)
 
     def test_lbs_rank_remove_migratable_object(self):
         temp_rank = Rank(i=1, logger=self.logger)
-        temp_object = Object(i=7, t=1.5)
+        temp_object = Object(i=7, load=1.5)
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
@@ -176,7 +176,7 @@ class TestConfig(unittest.TestCase):
             Rank(i=1, logger=self.logger): 1.0,
             Rank(i=2, logger=self.logger): 1.5}
         result_1, result_2 = self.rank.compute_transfer_cmf(
-            transfer_criterion=transfer_criterion, o=Object(i=2, t=0.5),
+            transfer_criterion=transfer_criterion, o=Object(i=2, load=0.5),
             targets=targets)
         list_of_keys_1 = sorted([k.get_id() for k, v in result_1.items()])
         list_of_values_1 = sorted([v for k, v in result_1.items()])
