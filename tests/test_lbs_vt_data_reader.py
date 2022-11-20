@@ -111,11 +111,11 @@ class TestConfig(unittest.TestCase):
             prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
                                    key=lambda x: x.get_id())
             generated_list = sorted(list(rank_iter_map.get(0).get_migratable_objects()), key=lambda x: x.get_id())
-            prep_time_list = [obj.get_time() for obj in prepared_list]
-            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_load_list = [obj.get_load() for obj in prepared_list]
+            gen_load_list = [obj.get_load() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
             gen_id_list = [obj.get_id() for obj in generated_list]
-            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_load_list, gen_load_list)
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
@@ -127,11 +127,11 @@ class TestConfig(unittest.TestCase):
             prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
                                    key=lambda x: x.get_id())
             generated_list = sorted(list(rank_iter_map.get(0).get_migratable_objects()), key=lambda x: x.get_id())
-            prep_time_list = [obj.get_time() for obj in prepared_list]
-            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_load_list = [obj.get_load() for obj in prepared_list]
+            gen_load_list = [obj.get_load() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
             gen_id_list = [obj.get_id() for obj in generated_list]
-            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_load_list, gen_load_list)
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_file_not_found(self):
@@ -169,11 +169,11 @@ class TestConfig(unittest.TestCase):
             prepared_list = sorted(list(self.ranks_iter_map[phase].get(0).get_migratable_objects()),
                                    key=lambda x: x.get_id())
             generated_list = sorted(list(rank_iter_map.get(0).get_migratable_objects()), key=lambda x: x.get_id())
-            prep_time_list = [obj.get_time() for obj in prepared_list]
-            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_load_list = [obj.get_load() for obj in prepared_list]
+            gen_load_list = [obj.get_load() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
             gen_id_list = [obj.get_id() for obj in generated_list]
-            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_load_list, gen_load_list)
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_iteration(self):
@@ -181,8 +181,8 @@ class TestConfig(unittest.TestCase):
         for rank_real, rank_mock in zip(rank_list, self.rank_list):
             generated_list = sorted(list(rank_real.get_migratable_objects()), key=lambda x: x.get_id())
             prepared_list = sorted(list(rank_mock.get_migratable_objects()), key=lambda x: x.get_id())
-            prep_time_list = [obj.get_time() for obj in prepared_list]
-            gen_time_list = [obj.get_time() for obj in generated_list]
+            prep_load_list = [obj.get_load() for obj in prepared_list]
+            gen_load_list = [obj.get_load() for obj in generated_list]
             prep_id_list = [obj.get_id() for obj in prepared_list]
             gen_id_list = [obj.get_id() for obj in generated_list]
             prep_rank_list = [obj.get_rank_id() for obj in prepared_list]
@@ -192,30 +192,30 @@ class TestConfig(unittest.TestCase):
             gen_comm_idx_list = [obj.get_communicator()._ObjectCommunicator__object_index for obj in generated_list]
 
             prep_comm_rcv_list = []
-            prep_comm_rcv_time_list = []
+            prep_comm_rcv_load_list = []
             prep_comm_rcv_id_list = []
             gen_comm_rcv_list = []
-            gen_comm_rcv_time_list = []
+            gen_comm_rcv_load_list = []
             gen_comm_rcv_id_list = []
 
             for obj in prepared_list:
                 for key, val in obj.get_communicator().get_received().items():
                     prep_comm_rcv_list.append(val)
-                    prep_comm_rcv_time_list.append(key.get_time())
+                    prep_comm_rcv_load_list.append(key.get_load())
                     prep_comm_rcv_id_list.append(key.get_id())
 
             for obj in generated_list:
                 for key, val in obj.get_communicator().get_received().items():
                     gen_comm_rcv_list.append(val)
-                    gen_comm_rcv_time_list.append(key.get_time())
+                    gen_comm_rcv_load_list.append(key.get_load())
                     gen_comm_rcv_id_list.append(key.get_id())
 
-            self.assertEqual(prep_time_list, gen_time_list)
+            self.assertEqual(prep_load_list, gen_load_list)
             self.assertEqual(prep_id_list, gen_id_list)
             self.assertEqual(prep_rank_list, gen_rank_list)
             self.assertEqual(prep_comm_idx_list, gen_comm_idx_list)
             self.assertEqual(prep_comm_rcv_list, gen_comm_rcv_list)
-            self.assertEqual(prep_comm_rcv_time_list, gen_comm_rcv_time_list)
+            self.assertEqual(prep_comm_rcv_load_list, gen_comm_rcv_load_list)
             self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
 
     def test_lbs_vt_data_reader_read_iteration_key_error(self):
