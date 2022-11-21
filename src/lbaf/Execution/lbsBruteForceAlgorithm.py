@@ -156,14 +156,8 @@ class BruteForceAlgorithm(AlgorithmBase):
             for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer
-                    self.__logger.debug(
-                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {r_dst.get_id()}")
                     self.phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
-
-            # Invalidate shared memory caches
-            r_src.invalidate_shared_cache()
-            r_dst.invalidate_shared_cache()
 
         # Report on object transfers
         self.__logger.info(f"{n_transfers} transfers occurred")

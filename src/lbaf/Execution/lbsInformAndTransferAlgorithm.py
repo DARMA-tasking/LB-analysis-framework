@@ -259,15 +259,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self.__logger.debug(
                     f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
-                    self.__logger.debug(
-                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {r_dst.get_id()} (criterion: {c_dst})")
-
                     self.phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
-
-                # Invalidate shared memory caches
-                r_src.invalidate_shared_cache()
-                r_dst.invalidate_shared_cache()
 
         self.__logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")

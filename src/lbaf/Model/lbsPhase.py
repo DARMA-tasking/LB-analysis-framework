@@ -274,6 +274,13 @@ class Phase:
     def transfer_object(self, o: Object, r_src: Rank, r_dst: Rank):
         """ Transfer object from source to destination rank."""
 
+        # Keep track of object ID for convenience
+        o_id = o.get_id()
+
+        # Log info in debug mode
+        self.__logger.info(
+            f"Transferring object {o_id} from rank {r_src.get_id()} to {r_dst.get_id()}")
+
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
 
@@ -282,4 +289,29 @@ class Phase:
 
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
-        
+
+        # Update shared blocks when needed
+        if (b_id := o.get_shared_block_id()) is not None:
+            # Retrieve block size for later use
+            b_sz = r_src.get_shared_block_memory(b_id)
+
+            # Update on source rank
+            self.__logger.info(
+                f"Removing object {o_id} attachment to block {b_id} on rank {r_src.get_id()}")
+            src_b_objs = r_src.get_shared_blocks().get(b_id)[1]
+            src_b_objs.remove(o_id)
+
+            # Delete shared block if no tied object left on rank
+            if not src_b_objs:
+                r_src.delete_shared_block(b_id)
+
+            # Update on destination rank
+            if not (dst_b := r_dst.get_shared_blocks().get(b_id)):
+                self.__logger.info(
+                    f"Replicating block {b_id} (size: {b_sz}) onto rank {r_dst.get_id()}")
+                r_dst.add_shared_block(b_id, b_sz, o_id)
+            else:
+                self.__logger.info(
+                    f"Block {b_id} alsready present on rank {r_dst.get_id()}")
+                dst_b[1].add(o_id)
+                

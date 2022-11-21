@@ -36,10 +36,8 @@ class Rank:
         # Initialize other instance variables
         self.__size = 0.0
 
-        # Start with empty edges cache
-        self.__shared_blocks_objects = {}
-        self.__shared_blocks_memory = {}
-        self.__cached_shared = False
+        # Start with empty shared blokck information
+        self.__shared_blocks = {}
 
         # No information about peers is known initially
         self.__known_loads = {}
@@ -67,60 +65,59 @@ class Rank:
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
 
-    def set_shared_blocks(self, sbo: dict, sbm: dict):
+    def set_shared_blocks(self, sb: dict):
         """ Set rank shared memory blocks."""
-        # Dictionaries required to for shared memory elements
-        if not isinstance(sbo, dict):
+        # A dictionary is required to for shared memory blocks
+        if not isinstance(sb, dict):
             sys.excepthook = exc_handler
             raise TypeError(
-                f"shared blocks objects: incorrect type {type(sbo)}")
-        if not isinstance(sbm, dict):
-            sys.excepthook = exc_handler
-            raise TypeError(
-                f"shared blocks memory: incorrect type {type(sbm)}")
+                f"shared blocks: incorrect type {type(sb)}")
 
-        # Sanity check on dictionary sizes
-        if len(sbo) != len (sbm):
+        # Assign shared blocks
+        self.__shared_blocks = sb
+
+    def add_shared_block(self, b_id: int, b_sz: float, o_id: int):
+        """ Add rank shared memory block."""
+        # A (float, int) pair is required to add shared memory block
+        if not isinstance(b_id, int):
             sys.excepthook = exc_handler
             raise TypeError(
-                f"shared blocks objects and memory dictionaries differ in length {len(sbo)} <> {len(sbm)}")
+                f"shared block ID: incorrect type {type(b_id)}")
+        if not isinstance(b_sz, float):
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block memory: incorrect type {type(b_sz)}")
+        if not isinstance(o_id, int):
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block object ID: incorrect type {type(o_id)}")
 
-        # Assign instance variables
-        self.__shared_blocks_objects = sbo
-        self.__shared_blocks_memory = sbm
-        self.__cached_shared = True
+        # Update instance variables; no checks are performed
+        self.__shared_blocks[b_id] = (b_sz, set([o_id]))
+
+    def delete_shared_block(self, b_id: int):
+        """ Delete shared memory block."""
+        if b_id not in self.__shared_blocks:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block ID: {b_id} not present on rank {self.get_id()}")
+
+        # Delete shared block
+        del self.__shared_blocks[b_id]
+
+    def get_shared_blocks(self) -> dict:
+        """ Return shared memory blocks."""
+
+        return self.__shared_blocks
+
+    def get_shared_block_memory(self, block_id: int) -> float:
+        """ Return shared memory block size."""
+
+        return self.__shared_blocks[block_id][0]
 
     def get_shared_memory(self):
-        """ Retrieve total shared memory of rank. """
-
-        # Force recompute if shared cache is not current
-        if True or not self.__cached_shared:
-            # Retrieve list of rank object IDs
-            object_IDs = set([
-                o.get_id() for o in self.get_objects()])
-            
-            # Iterate over shared memory block object IDs
-            for k in list(self.__shared_blocks_objects.keys()):
-                # Check whether object ownership is up-to-date
-                v = self.__shared_blocks_objects[k]
-                own_objects = object_IDs.intersection(v)
-                if not own_objects:
-                    # Drop no longer owned blocks
-                    del self.__shared_blocks_objects[k]
-                    del self.__shared_blocks_memory[k]
-                elif own_objects != v:
-                    # Update list of owning objects when needed
-                    self.__shared_blocks_objects[k] = own_objects
-
-            # Shared cache is now current
-            self.__cached_shared = True
-
-        # Return sum of cached blocks memory
-        return float(sum(self.__shared_blocks_memory.values()))
-
-    def invalidate_shared_cache(self):
-        """ Mark cached shared properties as no longer current."""
-        self.__cached_shared = False
+        """ Return total shared memory on rank."""
+        return float(sum([x[0] for x in self.__shared_blocks.values()]))
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank."""
