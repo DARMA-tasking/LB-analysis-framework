@@ -59,6 +59,7 @@ class Object:
 
         # Initialize other instance variables
         self.__overhead = 0.0
+        self.__shared_memory_id = None
 
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
@@ -135,7 +136,7 @@ class Object:
         """
         return sum([v for v in self.__communicator.get_sent().values()]) if self.__communicator else 0
 
-    def set_rank_id(self, p_id) -> None:
+    def set_rank_id(self, p_id: int) -> None:
         """ Assign object to rank ID
         """
         self.__rank_id = p_id
@@ -144,6 +145,21 @@ class Object:
         """ Return ID of rank to which object is currently assigned
         """
         return self.__rank_id
+
+    def set_shared_memory_id(self, sm_id: int) -> None:
+        """ Assign shared memory block ID when necessary
+        """
+
+        if self.__shared_memory_id is None:
+            self.__shared_memory_id = sm_id
+        else:
+            sys.excepthook = exc_handler
+            raise TypeError(f"shared_memory_id: already assigned ({self.__shared_memory_id}) for object {self.__index}")
+
+    def get_shared_memory_id(self) -> int:
+        """ Return shared memory block ID assigned to object
+        """
+        return self.__shared_memory_id
 
     def has_communicator(self) -> bool:
         """ Return whether the object has communication graph data

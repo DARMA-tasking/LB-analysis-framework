@@ -251,13 +251,6 @@ class LoadReader:
                 task_user_defined = task.get("user_defined", {})
                 subphases = task.get("subphases")
 
-                # Update share block information as needed
-                if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
-                    shared_blocks_objects.setdefault(
-                        shared_id, set([])).add(task_id)
-                    shared_blocks_memory[
-                        shared_id] = task_user_defined.get("shared_bytes", 0.0)
-
                 # Instantiate object with retrieved parameters
                 obj = Object(
                     task_id,
@@ -265,6 +258,14 @@ class LoadReader:
                     load=task_load,
                     user_defined=task_user_defined,
                     subphases=subphases)
+
+                # Update shared block information as needed
+                if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
+                    obj.set_shared_memory_id(shared_id)
+                    shared_blocks_objects.setdefault(
+                        shared_id, set([])).add(task_id)
+                    shared_blocks_memory[
+                        shared_id] = task_user_defined.get("shared_bytes", 0.0)
 
                 # Add object to rank given its type
                 if task_entity.get("migratable"):
