@@ -21,32 +21,26 @@ class TemperedCriterion(CriterionBase):
         self.__logger = lgr
         self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-    def compute(self, objects: list, p_src: Rank, p_dst: Rank) -> float:
+    def compute(self, objects: list, r_src: Rank, r_dst: Rank) -> float:
         """ Tempered work criterion based on L1 norm of works
         """
-        # Compute original arrangement works
-        values_src = {
-            "load": p_src.get_load(),
-            "received volume": p_src.get_received_volume(),
-            "sent volume": p_src.get_sent_volume()}
-        w_src_0 = self.work_model.aggregate(values_src)
-        values_dst = {
-            "load": p_dst.get_load(),
-            "received volume": p_dst.get_received_volume(),
-            "sent volume": p_dst.get_sent_volume()}
-        w_dst_0 = self.work_model.aggregate(values_dst)
-        w_max_0 = max(w_src_0, w_dst_0)
+        # Compute original maximum arrangement work
+        w_max_0 = max(
+            self.work_model.compute(r_src),
+            self.work_model.compute(r_dst))
 
-        # Update loads in proposed new arrangement
+        # Compute loads in proposed new arrangement
         object_loads = sum([o.get_load() for o in objects])
-        values_src["load"] -= object_loads
-        values_dst["load"] += object_loads
+        values_src = {
+            "load": r_src.get_load() - object_loads}
+        values_dst = {
+            "load": r_dst.get_load() + object_loads}
 
         # Retrieve IDs of source and destination ranks
-        src_id = p_src.get_id()
-        dst_id = p_dst.get_id()
+        src_id = r_src.get_id()
+        dst_id = r_dst.get_id()
 
-        # Update communication volumes
+        # Compute communication volumes in proposed new arrangements
         v_src_to_src = 0.
         v_src_to_dst = 0.
         v_src_to_oth = 0.
@@ -83,6 +77,12 @@ class TemperedCriterion(CriterionBase):
                 else:
                     v_src_from_oth += v
 
+        # Initialize volumes with pre-transfercommunications
+        values_src["sent volume"] = r_src.get_sent_volume()
+        values_dst["sent volume"] = r_dst.get_sent_volume()
+        values_src["received volume"] = r_src.get_received_volume()
+        values_dst["received volume"] = r_dst.get_received_volume()
+
         # Update volumes by transferring non-local communications
         values_src["sent volume"] -= v_src_to_dst + v_src_to_oth
         values_dst["sent volume"] += v_src_to_src + v_src_to_oth
@@ -96,9 +96,9 @@ class TemperedCriterion(CriterionBase):
         values_dst["received volume"] -= v_src_to_dst
 
         # Compute proposed new arrangement works
-        w_src_new = self.work_model.aggregate(values_src)
-        w_dst_new = self.work_model.aggregate(values_dst)
-        w_max_new = max(w_src_new, w_dst_new)
+        w_max_new = max(
+            self.work_model.aggregate(values_src),
+            self.work_model.aggregate(values_dst))
 
         # Return criterion value
         return w_max_0 - w_max_new

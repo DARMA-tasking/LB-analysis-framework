@@ -1,3 +1,4 @@
+import math
 from logging import Logger
 
 from .lbsWorkModelBase import WorkModelBase
@@ -30,16 +31,25 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def compute(self, rank: Rank):
         """ A work model with affine combination of load and communication
-            alpha * load + beta * max(sent, received) + gamma."""
-        # Compute affine combination of load and volumes
+            alpha * load + beta * max(sent, received) + gamma,
+            under optional strict upper bounds."""
+        # Check whether strict bounds are satisfied
+        for k, v in self.__upper_bounds.items():
+            if getattr(rank, f"get_{k}")() > v:
+                return math.infty
+
+        # Return combination of load and volumes
         return self.__alpha * rank.get_load() + self.__beta * max(
             rank.get_received_volume(),
             rank.get_sent_volume()) + self.__gamma
 
     def aggregate(self, values: dict):
         """ A work model with affine combination of load and communication
-            alpha * load + beta * max(sent, received) + gamma."""
+            alpha * load + beta * max(sent, received) + gamma
+            under optional strict upper bounds."""
+
         # Return work using provided values
         return self.__alpha * values.get("load", 0.0) + self.__beta * max(
             values.get("received volume", 0.0),
             values.get("sent volume", 0.0)) + self.__gamma
+
