@@ -36,7 +36,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         # Check whether strict bounds are satisfied
         for k, v in self.__upper_bounds.items():
             if getattr(rank, f"get_{k}")() > v:
-                return math.infty
+                return math.inf
 
         # Return combination of load and volumes
         return self.__alpha * rank.get_load() + self.__beta * max(
