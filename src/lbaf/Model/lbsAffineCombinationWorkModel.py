@@ -10,8 +10,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def __init__(self, parameters, lgr: Logger):
         """ Class constructor:
-            parameters: dictionary with alpha, beta, and gamma values
-        """
+            parameters: dictionary with alpha, beta, and gamma values."""
         # Assign logger to instance variable
         self.__logger = lgr
 
@@ -27,13 +26,11 @@ class AffineCombinationWorkModel(WorkModelBase):
             f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
         for k, v in self.__upper_bounds.items():
             self.__logger.info(
-                f"Upper bound for {k}: {v}")
-            
+                f"Upper bound for rank {k}: {v}")
 
     def compute(self, rank: Rank):
         """ A work model with affine combination of load and communication
-            alpha * load + beta * max(sent, received) + gamma
-        """
+            alpha * load + beta * max(sent, received) + gamma."""
         # Compute affine combination of load and volumes
         return self.__alpha * rank.get_load() + self.__beta * max(
             rank.get_received_volume(),
@@ -41,8 +38,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def aggregate(self, values: dict):
         """ A work model with affine combination of load and communication
-            alpha * load + beta * max(sent, received) + gamma
-        """
+            alpha * load + beta * max(sent, received) + gamma."""
         # Return work using provided values
         return self.__alpha * values.get("load", 0.0) + self.__beta * max(
             values.get("received volume", 0.0),
