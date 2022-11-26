@@ -48,13 +48,17 @@ class BruteForceAlgorithm(AlgorithmBase):
             # Compute received communication volume
             v = 0.0
             for i in rank_object_ids:
-                v += sum([v for k, v in objects[i].get("from", 0.).items() if k not in rank_object_ids])
+                v += sum([
+                    v for k, v in objects[i].get("from", 0.).items()
+                    if k not in rank_object_ids])
             values["received volume"] = v
 
             # Compute sent communication volume
             v = 0.0
             for i in rank_object_ids:
-                v += sum([v for k, v in objects[i].get("to", 0.).items() if k not in rank_object_ids])
+                v += sum([
+                    v for k, v in objects[i].get("to", 0.).items()
+                    if k not in rank_object_ids])
             values["sent volume"] = v
 
             # Aggregate and store work for this rank
