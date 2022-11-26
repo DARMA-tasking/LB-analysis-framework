@@ -29,6 +29,11 @@ class AffineCombinationWorkModel(WorkModelBase):
             self.__logger.info(
                 f"Upper bound for rank {k}: {v}")
 
+    def affine_combination(self, l, v1, v2):
+        """ Compute affine combination of load and maximum volume."""
+
+        return self.__alpha * l + self.__beta * max(v1, v2) + self.__gamma
+
     def compute(self, rank: Rank):
         """ A work model with affine combination of load and communication
             alpha * load + beta * max(sent, received) + gamma,
@@ -39,17 +44,18 @@ class AffineCombinationWorkModel(WorkModelBase):
                 return math.inf
 
         # Return combination of load and volumes
-        return self.__alpha * rank.get_load() + self.__beta * max(
+        return self.affine_combination(
+            rank.get_load(),
             rank.get_received_volume(),
-            rank.get_sent_volume()) + self.__gamma
+            rank.get_sent_volume())
 
     def aggregate(self, values: dict):
         """ A work model with affine combination of load and communication
             alpha * load + beta * max(sent, received) + gamma
             under optional strict upper bounds."""
 
-        # Return work using provided values
-        return self.__alpha * values.get("load", 0.0) + self.__beta * max(
+        # Return combination of load and volumes
+        return self.affine_combination(
+            values.get("load", 0.0),
             values.get("received volume", 0.0),
-            values.get("sent volume", 0.0)) + self.__gamma
-
+            values.get("sent volume", 0.0))
