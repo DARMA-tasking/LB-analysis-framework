@@ -40,27 +40,28 @@ class TemperedCriterion(CriterionBase):
         src_id = r_src.get_id()
         dst_id = r_dst.get_id()
 
-        # Compute communication volumes in proposed new arrangements
+        # Initialize volume changes for proposed new arrangements
         v_src_to_src = 0.
         v_src_to_dst = 0.
         v_src_to_oth = 0.
         v_src_from_src = 0.
         v_src_from_dst = 0.
         v_src_from_oth = 0.
+
+        # Iterate over objects to be transferred
         for o in objects:
             # Skip objects without a communicator
             comm = o.get_communicator()
             if not isinstance(comm, ObjectCommunicator):
                 continue
 
-            # Retrieve items not sent nor received from object list
-            recv = {(k, v) for k, v in comm.get_received().items()
-                    if k not in objects}
-            sent = {(k, v) for k, v in comm.get_sent().items()
-                    if k not in objects}
-
             # Tally sent communication volumes by destination
-            for k, v in sent:
+            for k, v in comm.get_sent().items():
+                # Skip items sent to object list
+                if k in objects:
+                    continue
+
+                # Categorize sent volume
                 if k.get_rank_id() == src_id:
                     v_src_to_src += v
                 elif k.get_rank_id() == dst_id:
@@ -69,7 +70,12 @@ class TemperedCriterion(CriterionBase):
                     v_src_to_oth += v
 
             # Tally received communication volumes by source
-            for k, v in recv:
+            for k, v in comm.get_received().items():
+                # Skip items received from object list
+                if k in objects:
+                    continue
+
+                # Categorize received volume
                 if k.get_rank_id() == src_id:
                     v_src_from_src += v
                 elif k.get_rank_id() == dst_id:

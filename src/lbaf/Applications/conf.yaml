@@ -62,7 +62,16 @@ work_model:
 # Specify balancing algorithm
 #brute_force_optimization: True
 algorithm:
-  name: BruteForce
+#  name: BruteForce
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 8
+    n_rounds: 4
+    fanout: 4
+    order_strategy: arbitrary
+    criterion: Tempered
+    max_objects_per_transfer: 8
+    deterministic_transfer: True
 
 # Specify output
 #logging_level: debug
