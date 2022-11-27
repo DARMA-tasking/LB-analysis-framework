@@ -12,23 +12,27 @@ from ..Model.lbsPhase import Phase
 class MeshBasedVisualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
 
-    def __init__(self, logger: Logger, phases: list, grid_size: list, object_jitter=0.0, output_dir='.',
-                 output_file_stem="LBAF_out", distributions=None, statistics=None, resolution=1.):
+    def __init__(
+        self,
+        logger: Logger,
+        phases: list,
+        grid_size: list,
+        object_jitter=0.0,
+        output_dir='.',
+        output_file_stem="LBAF_out",
+        distributions={},
+        statistics={},
+        resolution=1.):
         """ Class constructor:
             phases: list of Phase instances
             grid_size: iterable containing grid sizes in each dimension
             object_jitter: coefficient of random jitter with magnitude < 1
-            f: file name stem
-            r: grid_resolution value
             output_dir: output directory
+            output_file_stem: file name stem
+            resolution: grid_resolution value
         """
         # Assign logger to instance variable
         self.__logger = logger
-
-        if distributions is None:
-            distributions = {}
-        if statistics is None:
-            statistics = {}
 
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
@@ -147,7 +151,8 @@ class MeshBasedVisualizer:
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
-        self.__logger.info(f"Creating rank mesh with {self.__n_ranks} points and {n_e} edges")
+        self.__logger.info(
+            f"Creating rank mesh with {self.__n_ranks} points and {n_e} edges")
 
         # Create attribute data arrays for edge sent volumes
         self.__volumes = []
@@ -316,8 +321,9 @@ class MeshBasedVisualizer:
         # Assign edge volume values
         self.__logger.debug(f"\tedges:")
         for e in range(n_e):
-            v_arr.SetTuple1(e, edges.get(index_to_edge[e], float("nan")))
-            self.__logger.debug(f"\t{e} {index_to_edge[e]}): {v_arr.GetTuple1(e)}")
+            i2e =index_to_edge[e]
+            v_arr.SetTuple1(e, edges.get(i2e, float("nan")))
+            self.__logger.debug(f"\t{e} {i2e}): {v_arr.GetTuple1(e)}")
 
         # Create and return VTK polygonal data mesh
         pd_mesh = vtk.vtkPolyData()
