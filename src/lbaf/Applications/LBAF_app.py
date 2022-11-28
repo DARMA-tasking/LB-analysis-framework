@@ -240,6 +240,7 @@ class LBAFApp:
         check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
         if "data_stem" in self.params.__dict__:
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
+            
             # Initializing reader
             if file_suffix is not None:
                 reader = LoadReader(
@@ -356,6 +357,11 @@ class LBAFApp:
             self.params.algorithm,
             a_min_max,
             self.logger)
+        _, _, _, w_max, _, _, _, _ = lbstats.print_function_statistics(
+            curr_phase.get_ranks(),
+            lambda x: rt.get_work_model().compute(x),
+            "initial rank works",
+            self.logger)
         rt.execute()
 
         # Instantiate phase to VT file writer if started from a log file
@@ -380,7 +386,8 @@ class LBAFApp:
                 self.params.output_dir,
                 self.params.output_file_stem,
                 rt.distributions,
-                rt.statistics)
+                rt.statistics,
+                ub=w_max)
             ex_writer.generate(gen_meshes, gen_mulmed)
 
         # Compute and print final rank load and edge volume statistics

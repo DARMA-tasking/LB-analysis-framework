@@ -3,7 +3,7 @@ from logging import Logger
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
-from ..IO.lbsStatistics import print_function_statistics, compute_function_statistics, min_Hamming_distance
+from ..IO.lbsStatistics import compute_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
@@ -20,11 +20,13 @@ class Runtime:
             logger: logger for output messages
         """
 
-        # Keep track of possibly empty list of arrangements with minimax work
-        self.__a_min_max = arrangements
-
         # Assign logger to instance variable
         self.__logger = logger
+
+        # Keep track of possibly empty list of arrangements with minimax work
+        self.__logger.info(
+            f"Instantiating runtime with {len(arrangements)} optimal arrangements for Hamming distance comparison")
+        self.__a_min_max = arrangements
 
         # If no LBS phase was provided, do not do anything
         if not phases or not isinstance(phases, list):
@@ -46,7 +48,8 @@ class Runtime:
             self.__work_model,
             lgr=self.__logger)
         if not self.__algorithm:
-            self.__logger.error(f"Could not instantiate an algorithm of type {self.__algorithm}")
+            self.__logger.error(
+                f"Could not instantiate an algorithm of type {self.__algorithm}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
@@ -58,18 +61,12 @@ class Runtime:
             lambda x: x.get_load())
         self.statistics = {"average load": l_ave}
 
-        # Compute load, volume and work statistics
-        self.__logger.info(f"Instantiated with {len(arrangements)} optimal arrangements for Hamming distance "
-                           f"comparison")
-        print_function_statistics(
-            phase_0.get_ranks(),
-            lambda x: self.__work_model.compute(x),
-            "initial rank works",
-            self.__logger)
-
         # Compute initial arrangement
-        arrangement = tuple(v for _, v in sorted({o.get_id(): p.get_id() for p in phase_0.get_ranks()
-                                                  for o in p.get_objects()}.items()))
+        arrangement = tuple(
+            v for _, v in sorted({
+                o.get_id(): p.get_id()
+                for p in phase_0.get_ranks()
+                for o in p.get_objects()}.items()))
         self.__logger.debug(f"Iteration 0 arrangement: {arrangement}")
 
         # Report minimum Hamming distance when minimax optimum is available
@@ -78,9 +75,14 @@ class Runtime:
             self.statistics["minimum Hamming distance to optimum"] = [hd_min]
             self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
 
+    def get_work_model(self):
+        """ Return runtime work model."""
+
+        return self.__work_model
+
     def execute(self):
-        """ Launch runtime execution
-        """
+        """ Launch runtime execution."""
+
         # Execute balancing algorithm
         self.__logger.info(f"Executing {type(self.__algorithm).__name__}")
         self.__algorithm.execute(

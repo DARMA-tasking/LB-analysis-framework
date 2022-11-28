@@ -22,7 +22,8 @@ class MeshBasedVisualizer:
         output_file_stem="LBAF_out",
         distributions={},
         statistics={},
-        resolution=1.):
+        resolution=1.,
+        ub=None):
         """ Class constructor:
             phases: list of Phase instances
             grid_size: iterable containing grid sizes in each dimension
@@ -30,6 +31,7 @@ class MeshBasedVisualizer:
             output_dir: output directory
             output_file_stem: file name stem
             resolution: grid_resolution value
+            ub: optionally prescribed upper bound for work
         """
         # Assign logger to instance variable
         self.__logger = logger
@@ -105,6 +107,7 @@ class MeshBasedVisualizer:
         self.__distributions = distributions
         self.__work_range = (
             min(min(dis_w, key=min)), max(max(dis_w, key=max)))
+        self.__upper_bound = self.__work_range[1] if ub is None else ub
 
         # Create attribute data arrays for rank loads and works
         self.__loads, self.__works = [], []
@@ -341,6 +344,7 @@ class MeshBasedVisualizer:
         # Create color transfer function
         ctf = vtk.vtkColorTransferFunction()
         ctf.SetNanColorRGBA(1., 1., 1., 0.)
+        ctf.UseAboveRangeColorOn()
 
         # Set color transfer function depending on chosen scheme
         if scheme == "blue_to_red":
@@ -349,14 +353,18 @@ class MeshBasedVisualizer:
             ctf.AddRGBPoint(attribute_range[0], .231, .298, .753)
             ctf.AddRGBPoint(mid_point, .865, .865, .865)
             ctf.AddRGBPoint(attribute_range[1], .906, .016, .109)
+            ctf.SetAboveRangeColor(0., 1., 0.)
         elif scheme == "white_to_black":
             ctf.AddRGBPoint(attribute_range[0], 1.0, 1.0, 1.0)
             ctf.AddRGBPoint(attribute_range[1], 0.0, 0.0, 0.0)
+            ctf.SetAboveRangeColor(1., 0., 0.)
         else:
+            # Default color spectrum from green to orange via yellow
             mid_point = (attribute_range[0] + attribute_range[1]) * .5
             ctf.AddRGBPoint(attribute_range[0], .431, .761, .161)
             ctf.AddRGBPoint(mid_point, .98, .992, .059)
             ctf.AddRGBPoint(attribute_range[1], 1.0, .647, 0.0)
+            ctf.SetAboveRangeColor(0., 0., 1.)
 
         # Return color transfer function
         return ctf
@@ -371,19 +379,22 @@ class MeshBasedVisualizer:
 
         # Set default parameters
         scalar_bar_actor.SetOrientationToHorizontal()
+        scalar_bar_actor.UnconstrainedFontSizeOn()
         scalar_bar_actor.SetNumberOfLabels(2)
         scalar_bar_actor.SetHeight(0.08)
         scalar_bar_actor.SetWidth(0.4)
-        scalar_bar_actor.SetLabelFormat("%.3E")
+        scalar_bar_actor.SetLabelFormat("%.2G")
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
         for text_prop in (
             scalar_bar_actor.GetTitleTextProperty(),
-            scalar_bar_actor.GetLabelTextProperty()):
+            scalar_bar_actor.GetLabelTextProperty(),
+            scalar_bar_actor.GetAnnotationTextProperty()):
             text_prop.SetColor(0.0, 0.0, 0.0)
             text_prop.ItalicOff()
             text_prop.BoldOff()
             text_prop.SetFontFamilyToArial()
+            text_prop.SetFontSize(72)
 
         # Set custom parameters
         scalar_bar_actor.SetTitle(title)
@@ -394,9 +405,16 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(self, iteration: int, pid: int, edge_width: int, glyph_factor: float, win_size: int,
-                                  object_mesh):
+    def create_rendering_pipeline(
+        self,
+        iteration: int,
+        pid: int,
+        edge_width: int,
+        glyph_factor: float,
+        win_size: int,
+        object_mesh):
         """ Create VTK-based pipeline all the way to render window."""
+
         # Create rank mesh for current phase
         rank_mesh = vtk.vtkPolyData()
         rank_mesh.SetPoints(self.__rank_points)
@@ -430,14 +448,17 @@ class MeshBasedVisualizer:
         rank_mapper = vtk.vtkPolyDataMapper()
         rank_mapper.SetInputConnection(trans.GetOutputPort())
         rank_mapper.SetLookupTable(
-            self.create_color_transfer_function(self.__work_range))
+            self.create_color_transfer_function((
+                self.__work_range[0], self.__upper_bound)))
         rank_mapper.SetScalarRange(self.__work_range)
 
         # Create rank work and its scalar bar actors
         rank_actor = vtk.vtkActor()
         rank_actor.SetMapper(rank_mapper)
         work_actor = self.create_scalar_bar_actor(
-            rank_mapper, "Rank Work", 0.55, 0.9)
+            rank_mapper, "Rank Work", 0.5, 0.9)
+        work_actor.DrawAboveRangeSwatchOn()
+        work_actor.SetAboveRangeAnnotation('>')
         renderer.AddActor(rank_actor)
         renderer.AddActor2D(work_actor)
 
@@ -461,7 +482,6 @@ class MeshBasedVisualizer:
         edge_actor = vtk.vtkActor()
         edge_actor.SetMapper(edge_mapper)
         edge_actor.GetProperty().SetLineWidth(edge_width)
-        # edge_actor.GetProperty().SetOpacity(1.0)
         volume_actor = self.create_scalar_bar_actor(
             edge_mapper, "Inter-Object Volume", 0.05, 0.05)
         renderer.AddActor(edge_actor)
