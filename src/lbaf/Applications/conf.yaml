@@ -56,8 +56,6 @@ work_model:
     alpha: 1.
     beta: 0.
     gamma: 0.
-    upper_bounds:
-      load: 4.
 
 # Specify balancing algorithm
 #brute_force_optimization: True
