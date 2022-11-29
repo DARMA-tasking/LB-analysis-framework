@@ -35,13 +35,12 @@ class Rank:
 
         # Initialize other instance variables
         self.__size = 0.0
-        self.__shared = 0.0
+
+        # Start with empty shared blokck information
+        self.__shared_blocks = {}
 
         # No information about peers is known initially
         self.__known_loads = {}
-
-        # No viewers exist initially
-        self.__viewers = set()
 
         # No message was received initially
         self.round_last_received = 0
@@ -57,31 +56,68 @@ class Rank:
         """ Return object size."""
         return self.__size
 
-    def set_size(self, size: float) -> float:
-        """ Set rank working memory, called size
-        """
+    def set_size(self, size: float):
+        """ Set rank working memory, called size."""
         # Nonnegative size required to for memory footprint of this rank
         if not isinstance(size, float) or size < 0.0:
             sys.excepthook = exc_handler
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
-        else:
-            self.__size = size
+        self.__size = size
 
-    def get_shared(self) -> float:
-        """ Return object shared memory."""
-        return self.__shared
-
-    def set_shared(self, shared: float) -> float:
-        """ Set object shared memory
-        """
-        # Nonnegative size required to for shared memory of this rank
-        if not isinstance(shared, float) or shared < 0.0:
+    def set_shared_blocks(self, sb: dict):
+        """ Set rank shared memory blocks."""
+        # A dictionary is required to for shared memory blocks
+        if not isinstance(sb, dict):
             sys.excepthook = exc_handler
             raise TypeError(
-                f"shared: incorrect type {type(shared)} or value: {shared}")
-        else:
-            self.__shared = shared
+                f"shared blocks: incorrect type {type(sb)}")
+
+        # Assign shared blocks
+        self.__shared_blocks = sb
+
+    def add_shared_block(self, b_id: int, b_sz: float, o_id: int):
+        """ Add rank shared memory block."""
+        # A (float, int) pair is required to add shared memory block
+        if not isinstance(b_id, int):
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block ID: incorrect type {type(b_id)}")
+        if not isinstance(b_sz, float):
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block memory: incorrect type {type(b_sz)}")
+        if not isinstance(o_id, int):
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block object ID: incorrect type {type(o_id)}")
+
+        # Update instance variables; no checks are performed
+        self.__shared_blocks[b_id] = (b_sz, set([o_id]))
+
+    def delete_shared_block(self, b_id: int):
+        """ Delete shared memory block."""
+        if b_id not in self.__shared_blocks:
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"shared block ID: {b_id} not present on rank {self.get_id()}")
+
+        # Delete shared block
+        del self.__shared_blocks[b_id]
+
+    def get_shared_blocks(self) -> dict:
+        """ Return shared memory blocks."""
+
+        return self.__shared_blocks
+
+    def get_shared_block_memory(self, block_id: int) -> float:
+        """ Return shared memory block size."""
+
+        return self.__shared_blocks[block_id][0]
+
+    def get_shared_memory(self):
+        """ Return total shared memory on rank."""
+        return float(sum([x[0] for x in self.__shared_blocks.values()]))
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank."""
@@ -130,10 +166,6 @@ class Rank:
         """ Return loads of peers know to self."""
         return self.__known_loads
 
-    def get_viewers(self) -> set:
-        """ Return peers knowing about self."""
-        return self.__viewers
-
     def remove_migratable_object(self, o: Object, p_dst: "Rank"):
         """ Remove migratable able object from self object sent to peer."""
         # Remove object from those assigned to self
@@ -143,12 +175,6 @@ class Rank:
         if self.__known_loads:
             self.__known_loads[p_dst] += o.get_load()
         
-    def add_as_viewer(self, ranks):
-        """ Add self as viewer to known peers."""
-        # Add self as viewer of each of provided ranks
-        for p in ranks:
-            p.__viewers.add(self)
-
     def get_load(self) -> float:
         """ Return total load on rank."""
         return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
@@ -213,15 +239,12 @@ class Rank:
 
     def get_max_memory_usage(self) -> float:
         """ Return maximum memory usage on rank."""
-        return self.__size + self.__shared + self.get_max_object_level_memory()
+        return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
     def reset_all_load_information(self):
         """ Reset all load information known to self."""
         # Reset information about known peers
         self.__known_loads = {}
-
-        # Reset information about overloaded viewer peers
-        self.__viewers = set()
 
     def initialize_message(self, loads: set, f: int):
         """ Initialize message to be sent to selected peers."""

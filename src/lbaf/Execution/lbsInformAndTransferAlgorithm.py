@@ -144,29 +144,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             if not p.get_load():
                 continue
 
-            # Update viewers on loaded ranks known to this one
-            p.add_as_viewer(p.get_known_loads().keys())
-
-        # Report on viewers of loaded ranks
-        viewers_counts = {}
-        for p in rank_set:
-            # Skip non loaded ranks
-            if not p.get_load():
-                continue
-
-            # Retrieve cardinality of viewers
-            viewers = p.get_viewers()
-            viewers_counts[p] = len(viewers)
-
-            # Report on viewers of loaded rank when requested
-            self.__logger.debug(f"viewers of rank {p.get_id()}: {[p_o.get_id() for p_o in viewers]}")
-
-        # Report viewers counts to loaded ranks
-        self.__logger.info(f"Completed {self.__n_rounds} information rounds")
-        n_v, v_min, v_ave, v_max, _, _, _, _ = compute_function_statistics(viewers_counts.values(), lambda x: x)
-        self.__logger.info(f"Reporting viewers counts (min:{v_min}, mean: {v_ave:.3g} max: {v_max}) to {n_v} "
-                           f"loaded ranks")
-
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """ Recursively extend search to other objects."""
         # Fail when no more objects available or maximum depth is reached
@@ -182,7 +159,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Decide whether criterion allows for transfer
         if c_fct(object_list) < 0.:
             # Transfer is not possible, recurse further
-            return self.recursive_extended_search(pick_list, object_list, c_fct, n_o, max_n_o)
+            return self.recursive_extended_search(
+                pick_list, object_list, c_fct, n_o, max_n_o)
         else:
             # Succeed when criterion is satisfied
             return True
@@ -197,22 +175,22 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         max_obj_transfers = 0
 
         # Iterate over ranks
-        for p_src in self.phase.get_ranks():
+        for r_src in self.phase.get_ranks():
             # Skip workless ranks
-            if not self.work_model.compute(p_src) > 0.:
+            if not self.work_model.compute(r_src) > 0.:
                 continue
 
             # Skip ranks unaware of peers
-            targets = p_src.get_known_loads()
-            del targets[p_src]
+            targets = r_src.get_known_loads()
+            del targets[r_src]
             if not targets:
                 n_ignored += 1
                 continue
-            self.__logger.debug(f"Trying to offload from rank {p_src.get_id()} to {[p.get_id() for p in targets]}:")
+            self.__logger.debug(f"Trying to offload from rank {r_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Offload objects for as long as necessary and possible
             srt_rank_obj = list(self.__order_strategy(
-                p_src.get_migratable_objects(), p_src.get_id()))
+                r_src.get_migratable_objects(), r_src.get_id()))
             while srt_rank_obj:
                 # Pick next object in ordered list
                 o = srt_rank_obj.pop()
@@ -220,20 +198,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self.__logger.debug(f"* object {o.get_id()}:")
 
                 # Initialize destination information
-                p_dst = None
+                r_dst = None
                 c_dst = -math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self.__deterministic_transfer:
                     # Select best destination with respect to criterion
                     for p in targets.keys():
-                        c = self.__transfer_criterion.compute([o], p_src, p)
+                        c = self.__transfer_criterion.compute([o], r_src, p)
                         if c > c_dst:
                             c_dst = c
-                            p_dst = p
+                            r_dst = p
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf, c_values = p_src.compute_transfer_cmf(
+                    p_cmf, c_values = r_src.compute_transfer_cmf(
                         self.__transfer_criterion, o, targets, False)
                     self.__logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
@@ -241,8 +219,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         continue
 
                     # Pseudo-randomly select destination proc
-                    p_dst = inverse_transform_sample(p_cmf)
-                    c_dst = c_values[p_dst]
+                    r_dst = inverse_transform_sample(p_cmf)
+                    c_dst = c_values[r_dst]
 
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.:
@@ -256,7 +234,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     success = self.recursive_extended_search(
                         pick_list,
                         object_list,
-                        lambda x: self.__transfer_criterion.compute(x, p_src, p_dst),
+                        lambda x: self.__transfer_criterion.compute(x, r_src, r_dst),
                         1,
                         self.__max_objects_per_transfer)
                     if success:
@@ -268,8 +246,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         continue
                     
                 # Sanity check before transfer
-                if p_dst not in p_src.get_known_loads():
-                    self.__logger.error(f"Destination rank {p_dst.get_id()} not in known ranks")
+                if r_dst not in r_src.get_known_loads():
+                    self.__logger.error(
+                        f"Destination rank {r_dst.get_id()} not in known ranks")
                     sys.excepthook = exc_handler
                     raise SystemExit(1)
 
@@ -277,17 +256,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 if len(object_list) > max_obj_transfers:
                     max_obj_transfers = len(object_list)
 
-                self.__logger.debug(f"Transferring {len(object_list)} object(s) at once")
+                self.__logger.debug(
+                    f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
-                    self.__logger.debug(
-                        f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()} "
-                        f"(criterion: {c_dst})")
-                    p_src.remove_migratable_object(o, p_dst)
-                    p_dst.add_migratable_object(o)
-                    o.set_rank_id(p_dst.get_id())
+                    self.phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
-        self.__logger.info(f"Maximum number of objects transferred at once: {max_obj_transfers}")
+        self.__logger.info(
+            f"Maximum number of objects transferred at once: {max_obj_transfers}")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
@@ -318,8 +294,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             n_ignored, n_transfers, n_rejects = self.transfer_stage()
             n_proposed = n_transfers + n_rejects
             if n_proposed:
-                self.__logger.info(f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
-                                   f"({100. * n_rejects / n_proposed:.4}%)")
+                self.__logger.info(
+                    f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                    f"({100. * n_rejects / n_proposed:.4}%)")
             else:
                 self.__logger.info("No transfers were proposed")
 
@@ -350,7 +327,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:
                 hd_min = min_Hamming_distance(arrangement, a_min_max)
-                self.__logger.info(f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
+                self.__logger.info(
+                    f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
 
         # Report final mapping in debug mode
@@ -380,7 +358,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def increasing_connectivity(objects: set, src_id):
         """ Order objects by increasing local communication volume."""
         # Initialize list with all objects without a communicator
-        no_comm = [o for o in objects if not isinstance(o.get_communicator(), ObjectCommunicator)]
+        no_comm = [
+            o for o in objects
+            if not isinstance(o.get_communicator(), ObjectCommunicator)]
 
         # Order objects with a communicator
         with_comm = {}
@@ -391,8 +371,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 continue
             
             # Update dict of objects with maximum local communication
-            with_comm[o] = max(sum([v for k, v in comm.get_received().items() if k.get_rank_id() == src_id]),
-                               sum([v for k, v in comm.get_sent().items() if k.get_rank_id() == src_id]))
+            with_comm[o] = max(
+                sum([v for k, v in comm.get_received().items()
+                     if k.get_rank_id() == src_id]),
+                sum([v for k, v in comm.get_sent().items()
+                     if k.get_rank_id() == src_id]))
 
         # Return list of objects order by increased local connectivity
         return no_comm + sorted(with_comm, key=with_comm.get)

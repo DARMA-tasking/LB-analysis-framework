@@ -37,7 +37,7 @@
 # n_objects [int]              number of objects
 # n_mapped_ranks [int]         number of initially mapped processors
 # communication_degree [int]   object communication degree (no communication if 0)
-# time_sampler                 description of object times sampler: 
+# load_sampler                 description of object times sampler: 
 #    name [str]                in uniform, lognormal
 #    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
 # volume_sampler               description of object communication volumes sampler: 
@@ -59,8 +59,17 @@ work_model:
     gamma: 0.
 
 # Specify balancing algorithm
+#brute_force_optimization: True
 algorithm:
-  name: PhaseStepper
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 4
+    n_rounds: 4
+    fanout: 4
+    order_strategy: arbitrary
+    criterion: Tempered
+    max_objects_per_transfer: 71
+    deterministic_transfer: True
 
 # Specify output
 #logging_level: debug

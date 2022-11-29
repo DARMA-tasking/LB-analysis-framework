@@ -128,10 +128,12 @@ class BruteForceAlgorithm(AlgorithmBase):
             sys.excepthook = exc_handler
             raise SystemExit(1)
         if n_arrangements != n_ranks ** len(objects):
-            self.__logger.error("Incorrect number of possible arrangements with repetition")
+            self.__logger.error(
+                "Incorrect number of possible arrangements with repetition")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.__logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_arrangements}")
+        self.__logger.info(
+            f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_arrangements}")
 
         # Skip object transfers when requested
         if self.__skip_transfer:
@@ -144,19 +146,17 @@ class BruteForceAlgorithm(AlgorithmBase):
         self.__logger.debug(f"Reassigning objects with arrangement {arrangement}")
         for i, a in enumerate(arrangement):
             # Skip objects that do not need transfer
-            p_src = objects[i]["rank"]
-            p_dst = phase_ranks[a]
-            if p_src == p_dst:
+            r_src = objects[i]["rank"]
+            r_dst = phase_ranks[a]
+            if r_src == r_dst:
                 continue
 
             # Otherwise locate object on source and transfer to destination
             object_id = objects[i]["id"]
-            for o in p_src.get_objects():
+            for o in r_src.get_objects():
                 if o.get_id() == object_id:
-                    self.__logger.debug(f"transferring object {o.get_id()} ({o.get_load()}) to rank {p_dst.get_id()}")
-                    p_src.remove_migratable_object(o, p_dst)
-                    p_dst.add_migratable_object(o)
-                    o.set_rank_id(p_dst.get_id())
+                    # Perform transfer
+                    self.phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
         # Report on object transfers

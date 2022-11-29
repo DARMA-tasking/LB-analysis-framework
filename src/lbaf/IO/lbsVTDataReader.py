@@ -250,11 +250,6 @@ class LoadReader:
                 task_user_defined = task.get("user_defined", {})
                 subphases = task.get("subphases")
 
-                # Update share block information as needed
-                if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
-                    shared_blocks[
-                        shared_id] = task_user_defined.get("shared_bytes", 0.0)
-
                 # Instantiate object with retrieved parameters
                 obj = Object(
                     task_id,
@@ -262,6 +257,17 @@ class LoadReader:
                     load=task_load,
                     user_defined=task_user_defined,
                     subphases=subphases)
+
+                # Update shared block information as needed
+                if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
+                    # Assign shared block to object
+                    obj.set_shared_block_id(shared_id)
+
+                    # Create or update (memory, objects) for shared block
+                    shared_blocks.setdefault(
+                        shared_id,
+                        (task_user_defined.get("shared_bytes", 0.0), set([])))
+                    shared_blocks[shared_id][1].add(task_id)
 
                 # Add object to rank given its type
                 if task_entity.get("migratable"):
@@ -276,8 +282,7 @@ class LoadReader:
             # Set rank-level quantities of interest
             phase_rank.set_size(
                 task_user_defined.get("rank_working_bytes", 0.0))
-            phase_rank.set_shared(
-                float(sum(shared_blocks.values())))
+            phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned dictionaries of rank/objects and communicators per phase
         return returned_dict, comm_dict

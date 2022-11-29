@@ -8,9 +8,6 @@ from ..Utils.exception_handler import exc_handler
 from ..Utils.logger import logger
 
 
-LGR = logger
-
-
 class AlgorithmBase:
     __metaclass__ = abc.ABCMeta
     """ An abstract base class of load/work balancing algorithms
@@ -23,13 +20,13 @@ class AlgorithmBase:
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            LGR().error("Could not create an algorithm without a work model")
+            logger().error("Could not create an algorithm without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.work_model = work_model
 
         # Algorithm keeps internal references to ranks and edges
-        LGR().debug(f"Created base balancing algorithm")
+        logger().debug(f"Created base balancing algorithm")
 
         # Initially no phase is associated to algorithm
         self.phase = None
@@ -50,7 +47,7 @@ class AlgorithmBase:
             return algorithm(work_model, parameters, lgr=lgr)
         except:
             # Otherwise, error out
-            LGR().error(f"Could not create an algorithm with name {algorithm_name}")
+            logger().error(f"Could not create an algorithm with name {algorithm_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
@@ -104,12 +101,14 @@ class AlgorithmBase:
                     if recv:
                         logger.debug("received from:")
                         for k, v in recv:
-                            logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+                            logger.debug(
+                                f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
                     sent = comm.get_sent().items()
                     if sent:
                         logger.debug("sent to:")
                         for k, v in sent:
-                            logger.debug(f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+                            logger.debug(
+                                f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
     @abc.abstractmethod
     def execute(self, phases, distributions, statistics, a_min_max):

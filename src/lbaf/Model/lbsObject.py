@@ -55,17 +55,18 @@ class Object:
         else:
             sys.excepthook = exc_handler
             raise TypeError(
-                f"c: {comm} is of type {type(comm)} Must be <class 'ObjectCommunicator'>")
+                f"comm: {comm} is of type {type(comm)}. Must be <class 'ObjectCommunicator'>.")
 
         # Initialize other instance variables
         self.__overhead = 0.0
+        self.__shared_block_id = None
 
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
         else:
             sys.excepthook = exc_handler
-            raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)} but must be <class 'dict'>")
+            raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)}. Must be <class 'dict'>.")
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
@@ -135,7 +136,7 @@ class Object:
         """
         return sum([v for v in self.__communicator.get_sent().values()]) if self.__communicator else 0
 
-    def set_rank_id(self, p_id) -> None:
+    def set_rank_id(self, p_id: int) -> None:
         """ Assign object to rank ID
         """
         self.__rank_id = p_id
@@ -144,6 +145,21 @@ class Object:
         """ Return ID of rank to which object is currently assigned
         """
         return self.__rank_id
+
+    def set_shared_block_id(self, sm_id: int) -> None:
+        """ Assign shared memory block ID when necessary
+        """
+
+        if self.__shared_block_id is None:
+            self.__shared_block_id = sm_id
+        else:
+            sys.excepthook = exc_handler
+            raise TypeError(f"shared_block_id: already assigned ({self.__shared_block_id}) for object {self.__index}")
+
+    def get_shared_block_id(self) -> int:
+        """ Return shared memory block ID assigned to object
+        """
+        return self.__shared_block_id
 
     def has_communicator(self) -> bool:
         """ Return whether the object has communication graph data
