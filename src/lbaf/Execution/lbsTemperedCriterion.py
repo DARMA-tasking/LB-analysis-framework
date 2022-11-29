@@ -95,7 +95,7 @@ class TemperedCriterion(CriterionBase):
         values_src["received volume"] -= v_src_from_dst + v_src_from_oth
         values_dst["received volume"] += v_src_from_src + v_src_from_oth
 
-        # Swap sent/recieved volumes for local commmunications
+        # Swap sent/received volumes for local commmunications
         values_src["sent volume"] += v_src_from_src
         values_dst["sent volume"] -= v_src_from_dst 
         values_src["received volume"] += v_src_to_src
