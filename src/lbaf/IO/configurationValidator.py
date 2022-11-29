@@ -49,7 +49,7 @@ class ConfigurationValidator:
                     "gamma": float,
                     Optional("upper_bounds"): And(
                         dict,
-                        lambda x: all([isinstance(y, int) for y in x.values()]))}},
+                        lambda x: all([isinstance(y, float) for y in x.values()]))}},
             "algorithm": {
                 "name": And(
                     str,
