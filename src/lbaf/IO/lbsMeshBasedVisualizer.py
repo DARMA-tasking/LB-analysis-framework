@@ -611,7 +611,7 @@ class MeshBasedVisualizer:
         render_window.SetSize(win_size, win_size)
         return render_window
 
-    def generate(self, gen_meshes, gen_mulmed):
+    def generate(self, gen_meshes: bool, gen_vizqoi: bool):
         """ Generate mesh and multimedia outputs."""
 
         # Write ExodusII rank mesh when requested
@@ -663,7 +663,7 @@ class MeshBasedVisualizer:
                 writer.Update()
 
             # Generate visualizations when requested
-            if gen_mulmed:
+            if gen_vizqoi:
                 if len(self.__rank_dims) > 2:
                     self.__logger.warning(
                         "Visualization generation not yet implemented in 3-D")

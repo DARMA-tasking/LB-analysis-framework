@@ -21,7 +21,7 @@ algorithm:
 n_ranks: 4
 logging_level: debug
 terminal_background: light
-generate_multimedia: False
+visualize_qoi: None
 output_dir: ../../../output
 output_file_stem: output_file
 generate_meshes:

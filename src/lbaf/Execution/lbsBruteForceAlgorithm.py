@@ -19,10 +19,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         """
 
         # Call superclass init
-        super(BruteForceAlgorithm, self).__init__(work_model, parameters)
-
-        # Assign logger to instance variable
-        self.__logger = lgr
+        super(BruteForceAlgorithm, self).__init__(work_model, parameters, lgr)
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)

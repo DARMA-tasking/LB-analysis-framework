@@ -88,7 +88,7 @@ class ConfigurationValidator:
                 lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
                 error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
-            Optional("generate_multimedia"): bool,
+            Optional("visualize_qoi"): str,
             Optional("file_suffix"): str
         })
         self.__from_data = Schema(

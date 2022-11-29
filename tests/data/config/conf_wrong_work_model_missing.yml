@@ -19,7 +19,7 @@ algorithm:
 # Specify output
 n_ranks: 4
 terminal_background: light
-generate_multimedia: False
+visualize_qoi: None
 output_dir: ../../../output
 output_file_stem: output_file
 generate_meshes:

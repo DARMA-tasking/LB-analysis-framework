@@ -8,17 +8,16 @@ from ..Utils.exception_handler import exc_handler
 
 
 class Runtime:
-    """ A class to handle the execution of the LBS
-    """
+    """ A class to handle the execution of the LBS."""
 
-    def __init__(self, phases: list, work_model: dict, algorithm: dict, arrangements: list, logger: Logger):
+    def __init__(self, phases: list, work_model: dict, algorithm: dict, arrangements: list, logger: Logger, qoi_name: str=''):
         """ Class constructor:
             phases: list of Phase instances
             work_model: dictionary with work model name and optional parameters
             algorithm: dictionary with algorithm name and parameters
             a: arrangements that minimize maximum work
             logger: logger for output messages
-        """
+            qoi_name: optional QOI name whose distributions are to be tracked."""
 
         # Assign logger to instance variable
         self.__logger = logger
@@ -46,7 +45,8 @@ class Runtime:
             algorithm.get("name"),
             algorithm.get("parameters", {}),
             self.__work_model,
-            lgr=self.__logger)
+            self.__logger,
+            qoi_name)
         if not self.__algorithm:
             self.__logger.error(
                 f"Could not instantiate an algorithm of type {self.__algorithm}")

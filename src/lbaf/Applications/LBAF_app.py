@@ -111,7 +111,7 @@ class internalParameters:
             "file_suffix",
             "from_data",
             "from_samplers",
-            "generate_multimedia",
+            "visualize_qoi",
             "logging_level",
             "log_to_file",
             "n_ranks",
@@ -119,8 +119,7 @@ class internalParameters:
             "output_file_stem",
             "overwrite_validator",
             "terminal_background",
-            "work_model"
-        )
+            "work_model")
 
         # Read configuration values from file
         self.configuration_file_found = False
@@ -351,12 +350,14 @@ class LBAFApp:
             a_min_max = []
 
         # Instantiate and execute runtime
+        qoi_name = self.params.__dict__.get("visualize_qoi")
         rt = Runtime(
             phases,
             self.params.work_model,
             self.params.algorithm,
             a_min_max,
-            self.logger)
+            self.logger,
+            qoi_name)
         _, _, _, w_max, _, _, _, _ = lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: rt.get_work_model().compute(x),
@@ -375,12 +376,11 @@ class LBAFApp:
 
         # Generate meshes and multimedia when requested
         gen_meshes = self.params.__dict__.get("generate_meshes")
-        gen_mulmed = self.params.__dict__.get("generate_multimedia")
-        if gen_meshes or gen_mulmed:
-            # Instantiate mesh based visualizer and execute as requested
+        if gen_meshes or qoi_name:
+            # Instantiate and execute visualizer
             ex_writer = MeshBasedVisualizer(
                 self.logger,
-                ("work", (0., w_max)),
+                (qoi_name if qoi_name else "work",),
                 phases,
                 self.params.grid_size,
                 self.params.object_jitter,
@@ -388,7 +388,7 @@ class LBAFApp:
                 self.params.output_file_stem,
                 rt.distributions,
                 rt.statistics)
-            ex_writer.generate(gen_meshes, gen_mulmed)
+            ex_writer.generate(gen_meshes, qoi_name)
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]

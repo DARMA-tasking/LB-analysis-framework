@@ -33,7 +33,7 @@
 # check_schema [bool]          checking schema in VT input files (optional, default: True)
 # terminal_background [str]    background color for terminal output
 # generate_meshes [bool]       generate mesh outputs (default: False)
-# generate_multimedia [bool]   generate multimedia visualization (default: False)
+# visualize_qoi [str]          generate visualization for quantity of interest (default: None)
 # n_objects [int]              number of objects
 # n_mapped_ranks [int]         number of initially mapped processors
 # communication_degree [int]   object communication degree (no communication if 0)

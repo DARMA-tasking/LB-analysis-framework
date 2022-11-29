@@ -13,26 +13,37 @@ class AlgorithmBase:
     """ An abstract base class of load/work balancing algorithms
     """
 
-    def __init__(self, work_model, parameters: dict):
+    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str=''):
         """ Class constructor:
             work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters"""
+            parameters: a dictionary of parameters
+            qoi_name: optional additional QOI to track"""
+
+        # Assign logger to instance variable
+        self._logger = lgr
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            logger().error("Could not create an algorithm without a work model")
+            lgr.error("Could not create an algorithm without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.work_model = work_model
 
-        # Algorithm keeps internal references to ranks and edges
-        logger().debug(f"Created base balancing algorithm")
+        # Assert that optional quantity of interest name is a string
+        if not isinstance(qoi_name, str):
+            lgr.error("Could not create an algorithm without non-string QOI name")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        self.__qoi_name = qoi_name
+        lgr.info(
+            "Created base algorithm"
+            + (f" tracking rank {qoi_name}" if qoi_name else ''))
 
         # Initially no phase is associated to algorithm
         self.phase = None
 
     @staticmethod
-    def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger):
+    def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, qoi_name=''):
         """ Produce the necessary concrete algorithm."""
 
         # Load up available algorithms
@@ -41,20 +52,22 @@ class AlgorithmBase:
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
 
         # Ensure that algorithm name is valid
+        algorithm = locals()[algorithm_name + "Algorithm"]
+        return algorithm(work_model, parameters, lgr, qoi_name)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
-            return algorithm(work_model, parameters, lgr=lgr)
+            return algorithm(work_model, parameters, lgr, qoi_name)
         except:
             # Otherwise, error out
-            logger().error(f"Could not create an algorithm with name {algorithm_name}")
+            lgr.error(f"Could not create an algorithm with name {algorithm_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """ Compute and update run distributions and statistics."""
 
-        # Create or update object, load, sent, and work distributions
+        # Create or update distributions of quantities of interest
         distributions.setdefault("objects", []).append(
             [p.get_objects() for p in self.phase.get_ranks()])
         distributions.setdefault("load", []).append(
@@ -63,6 +76,8 @@ class AlgorithmBase:
             {k: v for k, v in self.phase.get_edges().items()})
         distributions.setdefault("work", []).append(
             [self.work_model.compute(p) for p in self.phase.get_ranks()])
+        distributions.setdefault(self.__qoi_name, []).append(
+            [getattr(p, f"get_{self.__qoi_name}")() for p in self.phase.get_ranks()])
         
         # Compute load, volume, and work statistics
         _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
