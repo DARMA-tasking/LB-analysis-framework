@@ -412,11 +412,6 @@ class LBAFApp:
             self.logger)
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
-            lambda x: x.get_size(),
-            "final rank working memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             "final rank shared memory",
             self.logger)
