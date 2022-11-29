@@ -336,9 +336,9 @@ class LBAFApp:
             objects.sort(key=lambda x: x.get("id"))
 
             # Execute rank order enumerator and fetch optimal arrangements
-            alpha = self.params.work_model.get("parameters").get("alpha")
-            beta = self.params.work_model.get("parameters").get("beta")
-            gamma = self.params.work_model.get("parameters").get("gamma")
+            alpha, beta, gamma = [
+                self.params.work_model.get("parameters").get(k)
+                for k in ("alpha", "beta", "gamma")]
             n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
                 objects, alpha, beta, gamma, self.params.n_ranks)
             if n_a != self.params.n_ranks ** len(objects):

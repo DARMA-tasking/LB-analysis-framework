@@ -58,7 +58,7 @@ work_model:
     beta: 0.
     gamma: 0.
     upper_bounds:
-      max_object_level_memory: 10.
+      max_object_level_memory: 6.0e+9
 
 # Specify balancing algorithm
 #brute_force_optimization: True

@@ -47,7 +47,7 @@ class ConfigurationValidator:
                     "alpha": float,
                     "beta": float,
                     "gamma": float,
-                    "upper_bounds": dict}},
+                    Optional("upper_bounds"): dict}},
             "algorithm": {
                 "name": And(
                     str,
