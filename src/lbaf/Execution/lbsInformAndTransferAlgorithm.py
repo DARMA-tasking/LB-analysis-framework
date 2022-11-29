@@ -22,10 +22,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters.
-            qoi_name: a quantity of interest"""
+            qoi_name: a quantity of interest."""
 
         # Call superclass init
-        super(InformAndTransferAlgorithm, self).__init__(work_model, parameters, lgr, qoi_name)
+        super(InformAndTransferAlgorithm, self).__init__(
+            work_model, parameters, lgr, qoi_name)
 
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
@@ -312,7 +313,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
                 self.phase.get_ranks(),
                 lambda x: self.work_model.compute(x),
-                f"iteration {i + 1} rank works",
+                f"iteration {i + 1} rank work",
                 self._logger)
 
             # Update run distributions and statistics

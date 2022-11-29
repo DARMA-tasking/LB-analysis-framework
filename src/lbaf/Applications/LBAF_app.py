@@ -358,11 +358,6 @@ class LBAFApp:
             a_min_max,
             self.logger,
             qoi_name)
-        _, _, _, w_max, _, _, _, _ = lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: rt.get_work_model().compute(x),
-            "initial rank works",
-            self.logger)
         rt.execute()
 
         # Instantiate phase to VT file writer if started from a log file

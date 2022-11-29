@@ -67,17 +67,19 @@ class AlgorithmBase:
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """ Compute and update run distributions and statistics."""
 
-        # Create or update distributions of quantities of interest
-        distributions.setdefault("objects", []).append(
-            [p.get_objects() for p in self.phase.get_ranks()])
-        distributions.setdefault("load", []).append(
-            [p.get_load() for p in self.phase.get_ranks()])
-        distributions.setdefault("sent", []).append(
-            {k: v for k, v in self.phase.get_edges().items()})
+        # Create or update distributions of rank quantities of interest
+        for rank_qoi_name in ("objects", "load", self.__qoi_name):
+            if rank_qoi_name == "work":
+                continue
+            distributions.setdefault(rank_qoi_name, []).append(
+                [getattr(p, f"get_{rank_qoi_name}")()
+                 for p in self.phase.get_ranks()])
         distributions.setdefault("work", []).append(
             [self.work_model.compute(p) for p in self.phase.get_ranks()])
-        distributions.setdefault(self.__qoi_name, []).append(
-            [getattr(p, f"get_{self.__qoi_name}")() for p in self.phase.get_ranks()])
+
+        # Create or update distributions of edge quantities of interest
+        distributions.setdefault("sent", []).append(
+            {k: v for k, v in self.phase.get_edges().items()})
         
         # Compute load, volume, and work statistics
         _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
