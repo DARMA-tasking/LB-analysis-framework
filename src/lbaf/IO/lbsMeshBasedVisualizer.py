@@ -31,8 +31,8 @@ class MeshBasedVisualizer:
             object_jitter: coefficient of random jitter with magnitude < 1
             output_dir: output directory
             output_file_stem: file name stem
-            resolution: grid_resolution value
-        """
+            resolution: grid_resolution value."""
+
         # Assign logger to instance variable
         self.__logger = logger
 

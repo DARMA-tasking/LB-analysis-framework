@@ -47,7 +47,9 @@ class ConfigurationValidator:
                     "alpha": float,
                     "beta": float,
                     "gamma": float,
-                    Optional("upper_bounds"): dict}},
+                    Optional("upper_bounds"): And(
+                        dict,
+                        lambda x: all([isinstance(y, int) for y in x.values()]))}},
             "algorithm": {
                 "name": And(
                     str,
@@ -71,8 +73,7 @@ class ConfigurationValidator:
                     error="Should be of type 'int' and > 0"),
                 "object_jitter": And(
                     float, lambda x: abs(x) < 1.0,
-                    error="Should be of type 'float' and magnitude < 1")
-                },
+                    error="Should be of type 'float' and magnitude < 1")},
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
             Optional("check_schema"): bool,
