@@ -380,14 +380,14 @@ class LBAFApp:
             # Instantiate mesh based visualizer and execute as requested
             ex_writer = MeshBasedVisualizer(
                 self.logger,
+                ("work", (0., w_max)),
                 phases,
                 self.params.grid_size,
                 self.params.object_jitter,
                 self.params.output_dir,
                 self.params.output_file_stem,
                 rt.distributions,
-                rt.statistics,
-                ub=w_max)
+                rt.statistics)
             ex_writer.generate(gen_meshes, gen_mulmed)
 
         # Compute and print final rank load and edge volume statistics

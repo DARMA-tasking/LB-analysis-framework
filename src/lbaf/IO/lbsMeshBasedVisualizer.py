@@ -15,6 +15,7 @@ class MeshBasedVisualizer:
     def __init__(
         self,
         logger: Logger,
+        qoi: tuple,
         phases: list,
         grid_size: list,
         object_jitter=0.0,
@@ -22,19 +23,41 @@ class MeshBasedVisualizer:
         output_file_stem="LBAF_out",
         distributions={},
         statistics={},
-        resolution=1.,
-        ub=None):
+        resolution=1.):
         """ Class constructor:
+            qoi: quantity of interest for ranks
             phases: list of Phase instances
             grid_size: iterable containing grid sizes in each dimension
             object_jitter: coefficient of random jitter with magnitude < 1
             output_dir: output directory
             output_file_stem: file name stem
             resolution: grid_resolution value
-            ub: optionally prescribed upper bound for work
         """
         # Assign logger to instance variable
         self.__logger = logger
+
+        # Make sure that quantity of interest name was passed
+        if not isinstance(qoi, tuple) or not len(qoi) or not (
+            qoi_name := qoi[0]) or not isinstance(qoi_name, str):
+            self.__logger.error(
+                "Mesh writer expects a quantity of interest name")
+            raise SystemExit(1)
+        qoi_msg = f"Creating visualization for rank {qoi_name}"
+        self.__qoi_name = qoi_name
+
+        # When QOI range was passed make sure it is consistent
+        if len(qoi) > 1:
+            if not (qoi_range := qoi[1]) or not isinstance(
+                qoi_range, tuple) or not len(qoi_range) == 2:
+                self.__logger.error(
+                    f"Inconsistent quantity of interest range: {qoi_range}")
+                raise SystemExit(1)
+            self.__logger.info(
+                f"{qoi_msg} in [{qoi_range[0]}; {qoi_range[1]}]")
+            self.__qoi_range = qoi_range
+        else:
+            self.__logger.info(qoi_msg)
+            self.__qoi_range = None
 
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
@@ -100,26 +123,34 @@ class MeshBasedVisualizer:
         # Retrieve and verify rank attribute distributions
         dis_l = distributions.get("load", [])
         dis_w = distributions.get("work", [])
-        if not (n_dis := len(dis_l)) == len(dis_w):
+        dis_q = distributions.get(self.__qoi_name, [])
+        if not (n_dis := len(dis_l)) == len(dis_w) == len(dis_q):
             self.__logger.error(
-                f"Both load and work distributions must have {n_dis} entries")
+                f"Load, work, and {self.__qoi_name} distributions do not have equal lengths")
             raise SystemExit(1)
         self.__distributions = distributions
-        self.__work_range = (
-            min(min(dis_w, key=min)), max(max(dis_w, key=max)))
-        self.__upper_bound = self.__work_range[1] if ub is None else ub
+
+        # Assign quantity of interest range when not specified
+        if not self.__qoi_range:
+            self.__qoi_range = (
+                min(min(dis_q, key=min)),
+                max(max(dis_q, key=max)))
+        self.__logger.info(
+            f"Space-time range of rank {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
 
         # Create attribute data arrays for rank loads and works
-        self.__loads, self.__works = [], []
+        self.__loads, self.__works, self.__qois = [[] for _ in range(3)]
         for _ in range(n_dis):
-            # Create and append new load and work point arrays
-            l_arr, w_arr = vtk.vtkDoubleArray(), vtk.vtkDoubleArray()
+            # Create and append new load, work, and qoi point arrays
+            l_arr, w_arr, q_arr = [vtk.vtkDoubleArray() for _ in range(3)]
             l_arr.SetName("Rank Load")
-            w_arr.SetName("Work")
-            l_arr.SetNumberOfTuples(self.__n_ranks)
-            w_arr.SetNumberOfTuples(self.__n_ranks)
+            w_arr.SetName("Rank Work")
+            q_arr.SetName(f"Rank {self.__qoi_name}")
+            for arr in (l_arr, w_arr, q_arr):
+                arr.SetNumberOfTuples(self.__n_ranks)
             self.__loads.append(l_arr)
             self.__works.append(w_arr)
+            self.__qois.append(q_arr)
 
         # Iterate over ranks and create rank mesh points
         self.__rank_points = vtk.vtkPoints()
@@ -132,9 +163,11 @@ class MeshBasedVisualizer:
                     i, self.__grid_size)])
 
             # Set point attributes from distribution values
-            for l, (l_arr, w_arr) in enumerate(zip(self.__loads, self.__works)):
+            for l, (l_arr, w_arr, q_arr) in enumerate(
+                zip(self.__loads, self.__works, self.__qois)):
                 l_arr.SetTuple1(i, dis_l[l][i])
                 w_arr.SetTuple1(i, dis_w[l][i])
+                q_arr.SetTuple1(i, dis_q[l][i])
 
         # Iterate over all possible rank links and create edges
         self.__rank_lines = vtk.vtkCellArray()
@@ -155,7 +188,7 @@ class MeshBasedVisualizer:
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
         self.__logger.info(
-            f"Creating rank mesh with {self.__n_ranks} points and {n_e} edges")
+            f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
 
         # Create attribute data arrays for edge sent volumes
         self.__volumes = []
@@ -221,7 +254,7 @@ class MeshBasedVisualizer:
         # Compute number of communication edges
         n_e = int(n_o * (n_o - 1) / 2)
         self.__logger.info(
-            f"Creating object mesh with {n_o} points and {n_e} edges")
+            f"Assembling object mesh with {n_o} points and {n_e} edges")
 
         # Create point array for object loads
         t_arr = vtk.vtkDoubleArray()
@@ -344,6 +377,7 @@ class MeshBasedVisualizer:
         # Create color transfer function
         ctf = vtk.vtkColorTransferFunction()
         ctf.SetNanColorRGBA(1., 1., 1., 0.)
+        ctf.UseBelowRangeColorOn()
         ctf.UseAboveRangeColorOn()
 
         # Set color transfer function depending on chosen scheme
@@ -353,10 +387,12 @@ class MeshBasedVisualizer:
             ctf.AddRGBPoint(attribute_range[0], .231, .298, .753)
             ctf.AddRGBPoint(mid_point, .865, .865, .865)
             ctf.AddRGBPoint(attribute_range[1], .906, .016, .109)
-            ctf.SetAboveRangeColor(0., 1., 0.)
+            ctf.SetBelowRangeColor(0., 1., 0.)
+            ctf.SetAboveRangeColor(1., 0., 1.)
         elif scheme == "white_to_black":
             ctf.AddRGBPoint(attribute_range[0], 1.0, 1.0, 1.0)
             ctf.AddRGBPoint(attribute_range[1], 0.0, 0.0, 0.0)
+            ctf.SetBelowRangeColor(0., 0., 1.)
             ctf.SetAboveRangeColor(1., 0., 0.)
         else:
             # Default color spectrum from green to orange via yellow
@@ -364,7 +400,8 @@ class MeshBasedVisualizer:
             ctf.AddRGBPoint(attribute_range[0], .431, .761, .161)
             ctf.AddRGBPoint(mid_point, .98, .992, .059)
             ctf.AddRGBPoint(attribute_range[1], 1.0, .647, 0.0)
-            ctf.SetAboveRangeColor(0., 0., 1.)
+            ctf.SetBelowRangeColor(0., 0., 1.)
+            ctf.SetAboveRangeColor(1., 0., 0.)
 
         # Return color transfer function
         return ctf
@@ -419,7 +456,7 @@ class MeshBasedVisualizer:
         rank_mesh = vtk.vtkPolyData()
         rank_mesh.SetPoints(self.__rank_points)
         rank_mesh.SetLines(self.__rank_lines)
-        rank_mesh.GetPointData().SetScalars(self.__works[iteration])
+        rank_mesh.GetPointData().SetScalars(self.__qois[iteration])
 
         # Create renderer with parallel projection
         renderer = vtk.vtkRenderer()
@@ -449,18 +486,20 @@ class MeshBasedVisualizer:
         rank_mapper.SetInputConnection(trans.GetOutputPort())
         rank_mapper.SetLookupTable(
             self.create_color_transfer_function((
-                self.__work_range[0], self.__upper_bound)))
-        rank_mapper.SetScalarRange(self.__work_range)
+                self.__qoi_range[0], self.__qoi_range[1])))
+        rank_mapper.SetScalarRange(self.__qoi_range)
 
-        # Create rank work and its scalar bar actors
+        # Create rank QOI and its scalar bar actors
         rank_actor = vtk.vtkActor()
         rank_actor.SetMapper(rank_mapper)
-        work_actor = self.create_scalar_bar_actor(
-            rank_mapper, "Rank Work", 0.5, 0.9)
-        work_actor.DrawAboveRangeSwatchOn()
-        work_actor.SetAboveRangeAnnotation('>')
+        qoi_actor = self.create_scalar_bar_actor(
+            rank_mapper, f"Rank {self.__qoi_name}".title(), 0.5, 0.9)
+        qoi_actor.DrawBelowRangeSwatchOn()
+        qoi_actor.SetBelowRangeAnnotation('<')
+        qoi_actor.DrawAboveRangeSwatchOn()
+        qoi_actor.SetAboveRangeAnnotation('>')
         renderer.AddActor(rank_actor)
-        renderer.AddActor2D(work_actor)
+        renderer.AddActor2D(qoi_actor)
 
         # Create white to black look-up table
         bw_lut = vtk.vtkLookupTable()
@@ -582,7 +621,7 @@ class MeshBasedVisualizer:
                 self.__rank_points,
                 self.__rank_lines,
                 self.__field_data,
-                [self.__loads, self.__works],
+                [self.__loads, self.__works, self.__qois],
                 self.__volumes,
                 lgr=self.__logger)
 
