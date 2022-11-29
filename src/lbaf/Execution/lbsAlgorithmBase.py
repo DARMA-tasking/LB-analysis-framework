@@ -30,8 +30,8 @@ class AlgorithmBase:
         self.work_model = work_model
 
         # Assert that optional quantity of interest name is a string
-        if not isinstance(qoi_name, str):
-            lgr.error("Could not create an algorithm without non-string QOI name")
+        if qoi_name and not isinstance(qoi_name, str):
+            lgr.error("Could not create an algorithm with non-string QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__qoi_name = qoi_name
@@ -69,7 +69,7 @@ class AlgorithmBase:
 
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in ("objects", "load", self.__qoi_name):
-            if rank_qoi_name == "work":
+            if not rank_qoi_name or rank_qoi_name == "work":
                 continue
             distributions.setdefault(rank_qoi_name, []).append(
                 [getattr(p, f"get_{rank_qoi_name}")()
