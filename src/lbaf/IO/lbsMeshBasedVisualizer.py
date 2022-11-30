@@ -46,18 +46,17 @@ class MeshBasedVisualizer:
         self.__qoi_name = qoi_name
 
         # When QOI range was passed make sure it is consistent
+        qoi_max = None
         if len(qoi) > 1:
-            if not (qoi_range := qoi[1]) or not isinstance(
-                qoi_range, tuple) or not len(qoi_range) == 2:
+            qoi_max = qoi[1]
+            if qoi_max is None or isinstance(qoi_max, float):
+                if qoi_max is not None:
+                    qoi_msg += f"{qoi_msg} with range upper bound: {qoi_max}"
+            else:
                 self.__logger.error(
-                    f"Inconsistent quantity of interest range: {qoi_range}")
+                    f"Inconsistent quantity of interest maximum: {qoi_max}")
                 raise SystemExit(1)
-            self.__logger.info(
-                f"{qoi_msg} in [{qoi_range[0]}; {qoi_range[1]}]")
-            self.__qoi_range = qoi_range
-        else:
-            self.__logger.info(qoi_msg)
-            self.__qoi_range = None
+        self.__logger.info(qoi_msg)
 
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
@@ -131,12 +130,15 @@ class MeshBasedVisualizer:
         self.__distributions = distributions
 
         # Assign quantity of interest range when not specified
-        if not self.__qoi_range:
-            self.__qoi_range = (
-                min(min(dis_q, key=min)),
-                max(max(dis_q, key=max)))
-        self.__logger.info(
-            f"Space-time range of rank {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
+        self.__qoi_range = [min(min(dis_q, key=min))]
+        if qoi_max is None:
+            self.__qoi_range.append(max(max(dis_q, key=max)))
+            self.__logger.info(
+                f"Using space-time range of rank {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
+        else:
+            self.__qoi_range.append(qoi_max)
+            self.__logger.info(
+                f"Using specified range of rank {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
 
         # Create attribute data arrays for rank loads and works
         self.__loads, self.__works, self.__qois = [[] for _ in range(3)]

@@ -377,14 +377,13 @@ class LBAFApp:
             if qoi_name:
                 # Look for prescribed bounds
                 qoi_request.append(qoi_name)
-                qoi_max = self.params.work_model.get(
-                    "parameters").get(
-                    "upper_bounds", {}).get(qoi_name)
-                if qoi_name is not None:
-                    qoi_request.append((0., qoi_max))
+                qoi_request.append(
+                    self.params.work_model.get(
+                        "parameters").get(
+                        "upper_bounds", {}).get(qoi_name))
             else:
-                # Fallback QOI
-                qoi_request.append("work")
+                # Fallback QOI is rank work without upper bound
+                qoi_request = ["work", None]
 
             # Instantiate and execute visualizer
             ex_writer = MeshBasedVisualizer(
