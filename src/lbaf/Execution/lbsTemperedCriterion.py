@@ -83,7 +83,7 @@ class TemperedCriterion(CriterionBase):
                 else:
                     v_src_from_oth += v
 
-        # Initialize volumes with pre-transfercommunications
+        # Initialize volumes with pre-transfer communications
         values_src["sent volume"] = r_src.get_sent_volume()
         values_dst["sent volume"] = r_dst.get_sent_volume()
         values_src["received volume"] = r_src.get_received_volume()

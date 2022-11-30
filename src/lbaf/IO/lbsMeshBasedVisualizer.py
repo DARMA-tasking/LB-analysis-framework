@@ -357,7 +357,7 @@ class MeshBasedVisualizer:
         # Assign edge volume values
         self.__logger.debug(f"\tedges:")
         for e in range(n_e):
-            i2e =index_to_edge[e]
+            i2e = index_to_edge[e]
             v_arr.SetTuple1(e, edges.get(i2e, float("nan")))
             self.__logger.debug(f"\t{e} {i2e}): {v_arr.GetTuple1(e)}")
 
