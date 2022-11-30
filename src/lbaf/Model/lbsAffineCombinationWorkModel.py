@@ -12,6 +12,7 @@ class AffineCombinationWorkModel(WorkModelBase):
     def __init__(self, parameters, lgr: Logger):
         """ Class constructor:
             parameters: dictionary with alpha, beta, and gamma values."""
+
         # Assign logger to instance variable
         self.__logger = lgr
 
@@ -38,6 +39,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         """ A work model with affine combination of load and communication
             alpha * load + beta * max(sent, received) + gamma,
             under optional strict upper bounds."""
+
         # Check whether strict bounds are satisfied
         for k, v in self.__upper_bounds.items():
             if getattr(rank, f"get_{k}")() > v:

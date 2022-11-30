@@ -283,7 +283,7 @@ class LBAFApp:
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
-            "initial rank loads",
+            "initial rank load",
             self.logger)
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
@@ -372,10 +372,24 @@ class LBAFApp:
         # Generate meshes and multimedia when requested
         gen_meshes = self.params.__dict__.get("generate_meshes")
         if gen_meshes or qoi_name:
+            # Check if a QOI of interest and bounds are available
+            qoi_request = []
+            if qoi_name:
+                # Look for prescribed bounds
+                qoi_request.append(qoi_name)
+                qoi_max = self.params.work_model.get(
+                    "parameters").get(
+                    "upper_bounds", {}).get(qoi_name)
+                if qoi_name is not None:
+                    qoi_request.append((0., qoi_max))
+            else:
+                # Fallback QOI
+                qoi_request.append("work")
+
             # Instantiate and execute visualizer
             ex_writer = MeshBasedVisualizer(
                 self.logger,
-                (qoi_name if qoi_name else "work",),
+                qoi_request,
                 phases,
                 self.params.grid_size,
                 self.params.object_jitter,
@@ -390,7 +404,7 @@ class LBAFApp:
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
-            "final rank loads",
+            "final rank load",
             self.logger,
             file_name=("imbalance.txt"
                        if self.params.output_dir is None

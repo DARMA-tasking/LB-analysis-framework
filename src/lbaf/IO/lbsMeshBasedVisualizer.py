@@ -15,7 +15,7 @@ class MeshBasedVisualizer:
     def __init__(
         self,
         logger: Logger,
-        qoi: tuple,
+        qoi: list,
         phases: list,
         grid_size: list,
         object_jitter=0.0,
@@ -37,7 +37,7 @@ class MeshBasedVisualizer:
         self.__logger = logger
 
         # Make sure that quantity of interest name was passed
-        if not isinstance(qoi, tuple) or not len(qoi) or not (
+        if not isinstance(qoi, list) or not len(qoi) or not (
             qoi_name := qoi[0]) or not isinstance(qoi_name, str):
             self.__logger.error(
                 "Mesh writer expects a quantity of interest name")
@@ -387,21 +387,21 @@ class MeshBasedVisualizer:
             ctf.AddRGBPoint(attribute_range[0], .231, .298, .753)
             ctf.AddRGBPoint(mid_point, .865, .865, .865)
             ctf.AddRGBPoint(attribute_range[1], .906, .016, .109)
-            ctf.SetBelowRangeColor(0., 1., 0.)
-            ctf.SetAboveRangeColor(1., 0., 1.)
+            ctf.SetBelowRangeColor(0.0, 1.0, 0.0)
+            ctf.SetAboveRangeColor(1.0, 0.0, 1.0)
         elif scheme == "white_to_black":
             ctf.AddRGBPoint(attribute_range[0], 1.0, 1.0, 1.0)
             ctf.AddRGBPoint(attribute_range[1], 0.0, 0.0, 0.0)
-            ctf.SetBelowRangeColor(0., 0., 1.)
-            ctf.SetAboveRangeColor(1., 0., 0.)
+            ctf.SetBelowRangeColor(0.0, 0.0, 1.0)
+            ctf.SetAboveRangeColor(1.0, 0.0, 0.0)
         else:
             # Default color spectrum from green to orange via yellow
             mid_point = (attribute_range[0] + attribute_range[1]) * .5
             ctf.AddRGBPoint(attribute_range[0], .431, .761, .161)
             ctf.AddRGBPoint(mid_point, .98, .992, .059)
             ctf.AddRGBPoint(attribute_range[1], 1.0, .647, 0.0)
-            ctf.SetBelowRangeColor(0., 0., 1.)
-            ctf.SetAboveRangeColor(1., 0., 0.)
+            ctf.SetBelowRangeColor(0.8, 0.8, .8)
+            ctf.SetAboveRangeColor(1.0, 0.0, 1.0)
 
         # Return color transfer function
         return ctf
