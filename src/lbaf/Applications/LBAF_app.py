@@ -405,9 +405,10 @@ class LBAFApp:
             lambda x: x.get_load(),
             "final rank load",
             self.logger,
-            file_name=("imbalance.txt"
-                       if self.params.output_dir is None
-                       else os.path.join(self.params.output_dir, "imbalance.txt")))
+            file_name=(
+                "imbalance.txt"
+                if self.params.output_dir is None
+                else os.path.join(self.params.output_dir, "imbalance.txt")))
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),

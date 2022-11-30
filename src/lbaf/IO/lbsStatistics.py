@@ -199,13 +199,14 @@ def compute_function_statistics(population, fct):
 def print_function_statistics(values, function, var_name, logger: Logger, file_name: str = None):
     """Compute and report descriptive statistics of function values
     """
+
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values, function)
 
     # Save imbalance for testing purposes
-    if var_name == "final rank loads" and file_name is not None:
+    if var_name == "final rank load" and file_name is not None:
         logger.info(f"Final imbalance: {f_imb} logged to {file_name}")
         with open(file_name, 'w') as imbalance_file:
             imbalance_file.write(f"{f_imb}")
