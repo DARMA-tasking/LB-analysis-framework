@@ -10,8 +10,7 @@ class LoadOnlyWorkModel(WorkModelBase):
     
     def __init__(self, _, lgr: Logger):
         """ Class constructor:
-            _: no parameters dictionary needed for this work model
-        """
+            _: no parameters dictionary needed for this work model."""
 
         # Assign logger to instance variable
         self.__logger = lgr
@@ -21,13 +20,13 @@ class LoadOnlyWorkModel(WorkModelBase):
         self.__logger.info("Instantiated concrete work model")
 
     def compute(self, rank: Rank):
-        """ A work model summing all object loads on given rank
-        """
+        """ A work model summing all object loads on given rank."""
+
         # Return total load on this rank
         return rank.get_load()
 
     def aggregate(self, values: dict):
-        """ A work model only using load information
-        """
+        """ A work model only using load information."""
+
         # Return load when provided
         return values.get("load", 0.0)

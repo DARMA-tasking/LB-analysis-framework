@@ -12,26 +12,23 @@ class BruteForceAlgorithm(AlgorithmBase):
     """ A concrete class for the brute force optimization algorithm
     """
 
-    def __init__(self, work_model, parameters, lgr: Logger):
+    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str):
         """ Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
-        """
+            qoi_name: a quantity of interest."""
 
         # Call superclass init
-        super(BruteForceAlgorithm, self).__init__(work_model, parameters)
-
-        # Assign logger to instance variable
-        self.__logger = lgr
+        super(BruteForceAlgorithm, self).__init__(
+            work_model, parameters, lgr, qoi_name)
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)
         
-        self.__logger.info(f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
+        self._logger.info(f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
 
     def compute_arrangement_works(self, objects: tuple, arrangement: tuple) -> dict:
-        """ Return a dictionary with works of rank objects
-        """
+        """ Return a dictionary with works of rank objects."""
 
         # Build object rank map from arrangement
         ranks = {}
@@ -43,18 +40,23 @@ class BruteForceAlgorithm(AlgorithmBase):
         for rank, rank_object_ids in ranks.items():
             # Compute load component for current rank
             values = {
-                "load": sum([objects[i].get("load") for i in rank_object_ids])}
+                "load":
+                sum([objects[i].get("load") for i in rank_object_ids])}
             
             # Compute received communication volume
             v = 0.0
             for i in rank_object_ids:
-                v += sum([v for k, v in objects[i].get("from", 0.).items() if k not in rank_object_ids])
+                v += sum([
+                    v for k, v in objects[i].get("from", 0.).items()
+                    if k not in rank_object_ids])
             values["received volume"] = v
 
             # Compute sent communication volume
             v = 0.0
             for i in rank_object_ids:
-                v += sum([v for k, v in objects[i].get("to", 0.).items() if k not in rank_object_ids])
+                v += sum([
+                    v for k, v in objects[i].get("to", 0.).items()
+                    if k not in rank_object_ids])
             values["sent volume"] = v
 
             # Aggregate and store work for this rank
@@ -69,7 +71,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Ensure that a list with at least one phase was provided
         if not phases or not isinstance(phases, list) or not isinstance(
                 (phase := phases[0]), Phase):
-            self.__logger.error(f"Algorithm execution requires a Phase instance")
+            self._logger.error(f"Algorithm execution requires a Phase instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.phase = phase
@@ -78,7 +80,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         self.update_distributions_and_statistics(distributions, statistics)
 
         # Prepare input data for rank order enumerator
-        self.__logger.info(f"Starting brute force optimization")
+        self._logger.info(f"Starting brute force optimization")
         objects = []
 
         # Iterate over ranks
@@ -124,26 +126,26 @@ class BruteForceAlgorithm(AlgorithmBase):
 
         # Sanity checks
         if not len(a_min_max):
-            self.__logger.error("No optimal arrangements were found")
+            self._logger.error("No optimal arrangements were found")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         if n_arrangements != n_ranks ** len(objects):
-            self.__logger.error(
+            self._logger.error(
                 "Incorrect number of possible arrangements with repetition")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.__logger.info(
+        self._logger.info(
             f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_arrangements}")
 
         # Skip object transfers when requested
         if self.__skip_transfer:
-            self.__logger.info("Skipping object transfers")
+            self._logger.info("Skipping object transfers")
             return
 
         # Pick first optimal arrangement and reassign objects accordingly
         n_transfers = 0
         arrangement = a_min_max[0]
-        self.__logger.debug(f"Reassigning objects with arrangement {arrangement}")
+        self._logger.debug(f"Reassigning objects with arrangement {arrangement}")
         for i, a in enumerate(arrangement):
             # Skip objects that do not need transfer
             r_src = objects[i]["rank"]
@@ -160,7 +162,7 @@ class BruteForceAlgorithm(AlgorithmBase):
                     n_transfers += 1
 
         # Report on object transfers
-        self.__logger.info(f"{n_transfers} transfers occurred")
+        self._logger.info(f"{n_transfers} transfers occurred")
 
         # Invalidate cache of edges
         self.phase.invalidate_edge_cache()
@@ -169,4 +171,4 @@ class BruteForceAlgorithm(AlgorithmBase):
         self.update_distributions_and_statistics(distributions, statistics)
 
         # Report final mapping in debug mode
-        self.report_final_mapping(self.__logger)
+        self.report_final_mapping(self._logger)

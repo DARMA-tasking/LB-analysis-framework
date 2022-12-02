@@ -111,7 +111,7 @@ class internalParameters:
             "file_suffix",
             "from_data",
             "from_samplers",
-            "generate_multimedia",
+            "visualize_qoi",
             "logging_level",
             "log_to_file",
             "n_ranks",
@@ -119,8 +119,7 @@ class internalParameters:
             "output_file_stem",
             "overwrite_validator",
             "terminal_background",
-            "work_model"
-        )
+            "work_model")
 
         # Read configuration values from file
         self.configuration_file_found = False
@@ -240,6 +239,7 @@ class LBAFApp:
         check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
         if "data_stem" in self.params.__dict__:
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
+            
             # Initializing reader
             if file_suffix is not None:
                 reader = LoadReader(
@@ -283,7 +283,7 @@ class LBAFApp:
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
-            "initial rank loads",
+            "initial rank load",
             self.logger)
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
@@ -335,9 +335,9 @@ class LBAFApp:
             objects.sort(key=lambda x: x.get("id"))
 
             # Execute rank order enumerator and fetch optimal arrangements
-            alpha = self.params.work_model.get("parameters").get("alpha")
-            beta = self.params.work_model.get("parameters").get("beta")
-            gamma = self.params.work_model.get("parameters").get("gamma")
+            alpha, beta, gamma = [
+                self.params.work_model.get("parameters").get(k)
+                for k in ("alpha", "beta", "gamma")]
             n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
                 objects, alpha, beta, gamma, self.params.n_ranks)
             if n_a != self.params.n_ranks ** len(objects):
@@ -350,12 +350,14 @@ class LBAFApp:
             a_min_max = []
 
         # Instantiate and execute runtime
+        qoi_name = self.params.__dict__.get("visualize_qoi")
         rt = Runtime(
             phases,
             self.params.work_model,
             self.params.algorithm,
             a_min_max,
-            self.logger)
+            self.logger,
+            qoi_name)
         rt.execute()
 
         # Instantiate phase to VT file writer if started from a log file
@@ -369,11 +371,24 @@ class LBAFApp:
 
         # Generate meshes and multimedia when requested
         gen_meshes = self.params.__dict__.get("generate_meshes")
-        gen_mulmed = self.params.__dict__.get("generate_multimedia")
-        if gen_meshes or gen_mulmed:
-            # Instantiate mesh based visualizer and execute as requested
+        if gen_meshes or qoi_name:
+            # Check if a QOI of interest and bounds are available
+            qoi_request = []
+            if qoi_name:
+                # Look for prescribed bounds
+                qoi_request.append(qoi_name)
+                qoi_request.append(
+                    self.params.work_model.get(
+                        "parameters").get(
+                        "upper_bounds", {}).get(qoi_name))
+            else:
+                # Fallback QOI is rank work without upper bound
+                qoi_request = ["work", None]
+
+            # Instantiate and execute visualizer
             ex_writer = MeshBasedVisualizer(
                 self.logger,
+                qoi_request,
                 phases,
                 self.params.grid_size,
                 self.params.object_jitter,
@@ -381,27 +396,23 @@ class LBAFApp:
                 self.params.output_file_stem,
                 rt.distributions,
                 rt.statistics)
-            ex_writer.generate(gen_meshes, gen_mulmed)
+            ex_writer.generate(gen_meshes, qoi_name)
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]
         _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
-            "final rank loads",
+            "final rank load",
             self.logger,
-            file_name=("imbalance.txt"
-                       if self.params.output_dir is None
-                       else os.path.join(self.params.output_dir, "imbalance.txt")))
+            file_name=(
+                "imbalance.txt"
+                if self.params.output_dir is None
+                else os.path.join(self.params.output_dir, "imbalance.txt")))
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
             "final rank object-level memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_size(),
-            "final rank working memory",
             self.logger)
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
