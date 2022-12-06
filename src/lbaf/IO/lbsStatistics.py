@@ -17,8 +17,7 @@ def error_out(distribution_name, parameters, logger: Logger):
 
 
 def sampler(distribution_name, parameters, logger: Logger):
-    """ Return a pseudo-random number generator based of requested type
-    """
+    """ Return a pseudo-random number generator based of requested type."""
 
     # Uniform U(a,b) distribution
     if distribution_name.lower() == "uniform":
@@ -64,8 +63,7 @@ def sampler(distribution_name, parameters, logger: Logger):
 
 
 def Hamming_distance(arrangement_1, arrangement_2):
-    """ Compute Hamming distance between two arrangements
-    """
+    """ Compute Hamming distance between two arrangements."""
 
     # Distance can only be compute between same length arrangements
     if len(arrangement_1) != len(arrangement_2):
@@ -83,8 +81,7 @@ def Hamming_distance(arrangement_1, arrangement_2):
 
 
 def min_Hamming_distance(arrangement, arrangement_list):
-    """ Compute minimum Hamming distance from arrangement to list of arrangements
-    """
+    """ Compute minimum Hamming distance from arrangement to list of arrangements."""
 
     # Minimum distance is at least equal to arrangement length
     hd_min = len(arrangement)
@@ -102,8 +99,7 @@ def min_Hamming_distance(arrangement, arrangement_list):
 
 def inverse_transform_sample(cmf):
     """ Sample from distribution defined by cumulative mass function
-    This is a.k.a. the Smirnov transform
-    """
+    This is a.k.a. the Smirnov transform."""
 
     # Generate number from pseudo-random distribution U([0;1])
     u = rnd.random()
@@ -116,8 +112,7 @@ def inverse_transform_sample(cmf):
 
 
 def compute_function_statistics(population, fct):
-    """Compute descriptive statistics of a function over a population
-    """
+    """Compute descriptive statistics of a function over a population."""
 
     # Shorthand for NaN
     nan = float("nan")
@@ -196,20 +191,13 @@ def compute_function_statistics(population, fct):
     return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
 
 
-def print_function_statistics(values, function, var_name, logger: Logger, file_name: str = None):
-    """Compute and report descriptive statistics of function values
-    """
-
+def print_function_statistics(values, function, var_name, logger: Logger):
+    """Compute and report descriptive statistics of function values."""
+    
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
     n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
         values, function)
-
-    # Save imbalance for testing purposes
-    if var_name == "final rank load" and file_name is not None:
-        logger.info(f"Final imbalance: {f_imb} logged to {file_name}")
-        with open(file_name, 'w') as imbalance_file:
-            imbalance_file.write(f"{f_imb}")
 
     # Print detailed load information if requested
     for i, v in enumerate(values):
@@ -226,8 +214,7 @@ def print_function_statistics(values, function, var_name, logger: Logger, file_n
 
 
 def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger):
-    """Compute and report descriptive statistics of subset vs. full set
-    """
+    """Compute and report descriptive statistics of subset vs. full set."""
 
     # Print summary
     ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''

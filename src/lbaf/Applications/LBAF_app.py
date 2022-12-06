@@ -400,15 +400,17 @@ class LBAFApp:
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]
-        _, _, l_ave, _, _, _, _, _ = lbstats.print_function_statistics(
+        _, _, l_ave, _, _, _, _, l_imb = lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
-            "final rank load",
-            self.logger,
-            file_name=(
-                "imbalance.txt"
-                if self.params.output_dir is None
-                else os.path.join(self.params.output_dir, "imbalance.txt")))
+            "final rank loads",
+            self.logger)
+        with open(
+            "imbalance.txt"
+            if self.params.output_dir is None
+            else os.path.join(
+                self.params.output_dir, "imbalance.txt"), 'w') as imbalance_file:
+            imbalance_file.write(f"{l_imb}")
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
