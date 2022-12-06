@@ -123,14 +123,15 @@ def compute_function_statistics(population, fct):
 
     # Initialize statistics
     n = 0
-    f_min = float('inf')
-    f_max = -float('inf')
+    f_min = float("inf")
+    f_max = -float("inf")
     f_ave = 0.
     f_ag2 = 0.
     f_ag3 = 0.
     f_ag4 = 0.
 
     # Stream population and to compute function statistics
+    has_inf_values = False
     for x in population:
         # Compute image by function
         y = fct(x)
@@ -145,6 +146,19 @@ def compute_function_statistics(population, fct):
         # Update maximum
         if y > f_max:
             f_max = y
+
+        # Handle infinite values and break out early
+        if y in (-math.inf, math.inf):
+            has_inf_values = True
+            if f_ave == -float(y):
+                f_ave = nan
+            else:
+                f_ave = math.inf
+            f_ag2, f_ag3, f_ag4 = nan, nan, nan
+
+        # Skip further calculations if infinite values encountered
+        if has_inf_values:
+            continue
 
         # Compute difference to mean and its inverse
         d = y - f_ave

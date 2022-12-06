@@ -46,7 +46,10 @@ class ConfigurationValidator:
                 "parameters": {
                     "alpha": float,
                     "beta": float,
-                    "gamma": float}},
+                    "gamma": float,
+                    Optional("upper_bounds"): And(
+                        dict,
+                        lambda x: all([isinstance(y, float) for y in x.values()]))}},
             "algorithm": {
                 "name": And(
                     str,
@@ -70,8 +73,7 @@ class ConfigurationValidator:
                     error="Should be of type 'int' and > 0"),
                 "object_jitter": And(
                     float, lambda x: abs(x) < 1.0,
-                    error="Should be of type 'float' and magnitude < 1")
-                },
+                    error="Should be of type 'float' and magnitude < 1")},
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
             Optional("check_schema"): bool,
@@ -86,7 +88,7 @@ class ConfigurationValidator:
                 lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
                 error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
-            Optional("generate_multimedia"): bool,
+            Optional("visualize_qoi"): str,
             Optional("file_suffix"): str
         })
         self.__from_data = Schema(
