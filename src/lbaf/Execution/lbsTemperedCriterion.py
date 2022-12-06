@@ -6,24 +6,18 @@ from ..Model.lbsRank import Rank
 
 
 class TemperedCriterion(CriterionBase):
-    """ A concrete class for the Grapevine criterion modified in line 6
-    """
+    """ A concrete class for the Grapevine criterion modified in line 6."""
 
-    def __init__(self, work_model, lgr: Logger):
-        """ Class constructor
-            work_model: WorkModelBase instance
-        """
+    def __init__(self, work_model, lgr):
+        """ Class constructor."""
 
         # Call superclass init
-        super().__init__(work_model)
-
-        # Assign logger to instance variable
-        self.__logger = lgr
-        self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
+        super().__init__(work_model, lgr)
+        self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
     def compute(self, objects: list, r_src: Rank, r_dst: Rank) -> float:
-        """ Tempered work criterion based on L1 norm of works
-        """
+        """ Tempered work criterion based on L1 norm of works."""
+        
         # Compute original maximum arrangement work
         w_max_0 = max(
             self.work_model.compute(r_src),

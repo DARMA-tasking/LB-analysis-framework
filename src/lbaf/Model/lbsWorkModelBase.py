@@ -40,9 +40,11 @@ class WorkModelBase:
         """ Return value of work for given rank."""
 
         # Must be implemented by concrete subclass
+        pass
 
     @abc.abstractmethod
     def aggregate(self, rankvalues: dict):
         """ Return value of work given relevant dictionary of values."""
 
         # Must be implemented by concrete subclass
+        pass

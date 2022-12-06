@@ -10,8 +10,7 @@ from ..Utils.logger import logger
 
 class AlgorithmBase:
     __metaclass__ = abc.ABCMeta
-    """ An abstract base class of load/work balancing algorithms
-    """
+    """ An abstract base class of load/work balancing algorithms."""
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str=''):
         """ Class constructor:
@@ -136,3 +135,4 @@ class AlgorithmBase:
             a_min_max: possibly empty list of optimal arrangements"""
 
         # Must be implemented by concrete subclass
+        pass
