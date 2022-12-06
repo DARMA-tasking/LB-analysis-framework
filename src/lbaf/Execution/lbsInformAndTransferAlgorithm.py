@@ -306,9 +306,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report iteration statistics
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
-            # Invalidate cache of edges
-            self.phase.invalidate_edge_cache()
-
             # Compute and report iteration work statistics
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
                 self.phase.get_ranks(),

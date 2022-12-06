@@ -40,25 +40,31 @@ class Phase:
 
     def get_id(self):
         """ Retrieve index of this phase."""
+
         return self.__phase_id
 
     def get_number_of_ranks(self):
         """ Retrieve number of ranks belonging to phase."""
+
         return len(self.__ranks)
 
     def get_ranks(self):
         """ Retrieve ranks belonging to phase."""
+
         return self.__ranks
 
     def get_rank_ids(self):
         """ Retrieve IDs of ranks belonging to phase."""
+
         return [p.get_id() for p in self.__ranks]
 
     def get_number_of_objects(self):
         """ Return number of objects."""
+
         return self.__n_objects
 
     def get_object_ids(self):
+
         """ Return IDs of ranks belonging to phase."""
         ids = []
         for p in self.__ranks:
@@ -67,8 +73,9 @@ class Phase:
 
     def compute_edges(self):
         """ Compute and return map of communication link IDs to volumes."""
+
         # Compute or re-compute edges from scratch
-        self.__logger.debug("Computing inter-rank communication edges")
+        self.__logger.info("Computing inter-rank communication edges")
         self.__edges.clear()
         directed_edges = {}
 
@@ -136,6 +143,7 @@ class Phase:
 
     def get_edges(self):
         """ Retrieve communication edges of phase. """
+
         # Force recompute if edges cache is not current
         if not self.__cached_edges:
             self.compute_edges()
@@ -145,10 +153,12 @@ class Phase:
 
     def invalidate_edge_cache(self):
         """ Mark cached edges as no longer current."""
+
         self.__cached_edges = False
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
+
         # Retrieve desired load sampler with its theoretical average
         load_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
 
@@ -253,6 +263,7 @@ class Phase:
 
     def populate_from_log(self, t_s, basename):
         """ Populate this phase by reading in a load profile from log files."""
+
         # Populate phase with reader output
         self.__ranks = self.__reader.read_iteration(t_s)
 
@@ -289,6 +300,9 @@ class Phase:
 
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
+
+        # Invalidate cache of edges
+        self.invalidate_edge_cache()
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:
