@@ -85,7 +85,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ Execute information stage."""
         
         # Build set of all ranks in the phase
-        rank_set = set(self.phase.get_ranks())
+        rank_set = set(self._phase.get_ranks())
 
         # Initialize information messages
         self._logger.info(f"Initializing information messages with fanout={self.__fanout}")
@@ -177,7 +177,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         max_obj_transfers = 0
 
         # Iterate over ranks
-        for r_src in self.phase.get_ranks():
+        for r_src in self._phase.get_ranks():
             # Skip workless ranks
             if not self.work_model.compute(r_src) > 0.:
                 continue
@@ -261,7 +261,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.debug(
                     f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
-                    self.phase.transfer_object(o, r_src, r_dst)
+                    self._phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
         self._logger.info(
@@ -278,7 +278,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.error(f"Algorithm execution requires a Phase instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.phase = phase
+        self._phase = phase
+        self.__transfer_criterion.set_phase(phase)
 
         # Initialize run distributions and statistics
         self.update_distributions_and_statistics(distributions, statistics)
@@ -308,7 +309,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Compute and report iteration work statistics
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
-                self.phase.get_ranks(),
+                self._phase.get_ranks(),
                 lambda x: self.work_model.compute(x),
                 f"iteration {i + 1} rank work",
                 self._logger)
@@ -320,7 +321,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             arrangement = tuple(
                 v for _, v in sorted(
                     {o.get_id(): p.get_id()
-                     for p in self.phase.get_ranks()
+                     for p in self._phase.get_ranks()
                      for o in p.get_objects()}.items()))
             self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 
