@@ -70,7 +70,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Try to instantiate object transfer criterion
         self.__transfer_criterion = CriterionBase.factory(
             parameters.get("criterion"),
-            self.work_model,
+            self._work_model,
             lgr=self._logger)
         if not self.__transfer_criterion:
             self._logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
@@ -179,7 +179,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Iterate over ranks
         for r_src in self._phase.get_ranks():
             # Skip workless ranks
-            if not self.work_model.compute(r_src) > 0.:
+            if not self._work_model.compute(r_src) > 0.:
                 continue
 
             # Skip ranks unaware of peers
@@ -193,6 +193,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Offload objects for as long as necessary and possible
             srt_rank_obj = list(self.__order_strategy(
                 r_src.get_migratable_objects(), r_src.get_id()))
+
             while srt_rank_obj:
                 # Pick next object in ordered list
                 o = srt_rank_obj.pop()
@@ -226,8 +227,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.:
-                    if not srt_rank_obj:
-                        # No more transferable objects are available
+                    # Give up if no objects left of no rank is feasible
+                    if not srt_rank_obj or not r_dst:
                         n_rejects += 1
                         continue
 
@@ -310,7 +311,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Compute and report iteration work statistics
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
                 self._phase.get_ranks(),
-                lambda x: self.work_model.compute(x),
+                lambda x: self._work_model.compute(x),
                 f"iteration {i + 1} rank work",
                 self._logger)
 

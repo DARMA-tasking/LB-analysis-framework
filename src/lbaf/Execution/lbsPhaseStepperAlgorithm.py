@@ -35,15 +35,15 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         for i, p in enumerate(phases):
             # Step through current phase
             self._logger.info(f"Stepping through phase {i}")
-            self.phase = p
+            self._phase = p
 
             # Invalidate cache of edges
-            self.phase.invalidate_edge_cache()
+            self._phase.invalidate_edge_cache()
 
             # Compute and report iteration work statistics
             n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
-                self.phase.get_ranks(),
-                lambda x: self.work_model.compute(x),
+                self._phase.get_ranks(),
+                lambda x: self._work_model.compute(x),
                 f"iteration {i + 1} rank works",
                 self._logger)
 

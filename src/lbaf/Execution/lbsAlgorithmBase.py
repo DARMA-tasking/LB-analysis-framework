@@ -26,7 +26,7 @@ class AlgorithmBase:
             lgr.error("Could not create an algorithm without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.work_model = work_model
+        self._work_model = work_model
 
         # Assert that optional quantity of interest name is a string
         if qoi_name and not isinstance(qoi_name, str):
@@ -74,7 +74,7 @@ class AlgorithmBase:
                 [getattr(p, f"get_{rank_qoi_name}")()
                  for p in self._phase.get_ranks()])
         distributions.setdefault("work", []).append(
-            [self.work_model.compute(p) for p in self._phase.get_ranks()])
+            [self._work_model.compute(p) for p in self._phase.get_ranks()])
 
         # Create or update distributions of edge quantities of interest
         distributions.setdefault("sent", []).append(
@@ -89,7 +89,7 @@ class AlgorithmBase:
             lambda x: x)
         n_w, w_min, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
             self._phase.get_ranks(),
-            lambda x: self.work_model.compute(x))
+            lambda x: self._work_model.compute(x))
 
         # Create or update statistics dictionary entries
         statistics.setdefault("minimum load", []).append(l_min)

@@ -326,6 +326,6 @@ class Phase:
                 r_dst.add_shared_block(b_id, b_sz, o_id)
             else:
                 self.__logger.info(
-                    f"Block {b_id} alsready present on rank {r_dst.get_id()}")
+                    f"Block {b_id} already present on rank {r_dst.get_id()}")
                 dst_b[1].add(o_id)
                 
