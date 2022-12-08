@@ -207,11 +207,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 # Use deterministic or probabilistic transfer method
                 if self.__deterministic_transfer:
                     # Select best destination with respect to criterion
-                    for p in targets.keys():
-                        c = self.__transfer_criterion.compute([o], r_src, p)
-                        if c > c_dst:
-                            c_dst = c
-                            r_dst = p
+                    for r_try in targets.keys():
+                        c_try = self.__transfer_criterion.compute(
+                            [o], r_src, r_try)
+                        if c_try > c_dst:
+                            c_dst = c_try
+                            r_dst = r_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
