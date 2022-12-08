@@ -289,7 +289,7 @@ class Phase:
         o_id = o.get_id()
 
         # Log info in debug mode
-        self.__logger.info(
+        self.__logger.debug(
             f"Transferring object {o_id} from rank {r_src.get_id()} to {r_dst.get_id()}")
 
         # Remove object from migratable ones on source
@@ -310,7 +310,7 @@ class Phase:
             b_sz = r_src.get_shared_block_memory(b_id)
 
             # Update on source rank
-            self.__logger.info(
+            self.__logger.debug(
                 f"Removing object {o_id} attachment to block {b_id} on rank {r_src.get_id()}")
             src_b_objs = r_src.get_shared_blocks().get(b_id)[1]
             src_b_objs.remove(o_id)
@@ -321,11 +321,11 @@ class Phase:
 
             # Update on destination rank
             if not (dst_b := r_dst.get_shared_blocks().get(b_id)):
-                self.__logger.info(
+                self.__logger.debug(
                     f"Replicating block {b_id} (size: {b_sz}) onto rank {r_dst.get_id()}")
                 r_dst.add_shared_block(b_id, b_sz, o_id)
             else:
-                self.__logger.info(
+                self.__logger.debug(
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
                 dst_b[1].add(o_id)
                 
