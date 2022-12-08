@@ -20,6 +20,7 @@ class CriterionBase:
 
         # Assign logger to instance variable
         self._logger = lgr
+        logger().debug(f"Creating base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
 
         # Assert that a work model instance was passed
         if not isinstance(work_model, WorkModelBase):
@@ -28,8 +29,8 @@ class CriterionBase:
             raise SystemExit(1)
         self._work_model = work_model
 
-        # Criterion keeps internal references to ranks and edges
-        logger().debug(f"Created base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
+        # No phase is initially assigned
+        self._phase = None
 
     def set_phase(self, phase: Phase):
         """ Assign phase to criterion to provide access to phase methods."""
