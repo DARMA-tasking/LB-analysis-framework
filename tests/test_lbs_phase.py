@@ -30,8 +30,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_phase_initialization(self):
         self.assertEqual(self.phase._Phase__ranks, [])
         self.assertEqual(self.phase._Phase__phase_id, 0)
-        self.assertEqual(self.phase._Phase__edges, {})
-        self.assertEqual(self.phase._Phase__cached_edges, False)
+        self.assertEqual(self.phase._Phase__edges, None)
 
     def test_lbs_phase_populate_from_log(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
@@ -49,13 +48,9 @@ class TestConfig(unittest.TestCase):
     def test_lbs_phase_edges(self):
         file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
         self.phase.populate_from_log(t_s=0, basename=file_prefix)
-        self.assertEqual(self.phase._Phase__edges, {})
-        self.assertEqual(self.phase._Phase__cached_edges, False)
+        self.assertEqual(self.phase._Phase__edges, None)
         edges = {frozenset({0, 1}): 3.0, frozenset({0, 2}): 0.5, frozenset({1, 2}): 2.0}
         self.assertEqual(self.phase.get_edges(), edges)
-        self.assertEqual(self.phase._Phase__cached_edges, True)
-        self.phase.invalidate_edge_cache()
-        self.assertEqual(self.phase._Phase__cached_edges, False)
 
     def test_lbs_phase_populate_from_samplers(self):
         t_sampler = {"name": "lognormal", "parameters": [1.0, 10.0]}
@@ -67,13 +62,11 @@ class TestConfig(unittest.TestCase):
             c_degree=20, n_r_mapped=4)
         for rank in self.phase.get_ranks():
             self.assertTrue(rank.get_migratable_objects())
-        self.assertEqual(self.phase._Phase__edges, {})
-        self.assertEqual(self.phase._Phase__cached_edges, False)
+        self.assertEqual(self.phase._Phase__edges, None)
         edges = self.phase.get_edges()
         self.assertEqual(len(edges), 6)
         expected_edges = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
         self.assertEqual(sorted([list(edge) for edge in edges]), expected_edges)
-        self.assertEqual(self.phase._Phase__cached_edges, True)
 
 
 if __name__ == "__main__":
