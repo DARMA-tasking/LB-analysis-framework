@@ -43,21 +43,10 @@ class AffineCombinationWorkModel(WorkModelBase):
         # Check whether strict bounds are satisfied
         for k, v in self.__upper_bounds.items():
             if getattr(rank, f"get_{k}")() > v:
-                return -math.inf
+                return math.inf
 
         # Return combination of load and volumes
         return self.affine_combination(
             rank.get_load(),
             rank.get_received_volume(),
             rank.get_sent_volume())
-
-    def aggregate(self, values: dict):
-        """ A work model with affine combination of load and communication
-            alpha * load + beta * max(sent, received) + gamma
-            under optional strict upper bounds."""
-
-        # Return combination of load and volumes
-        return self.affine_combination(
-            values.get("load", 0.0),
-            values.get("received volume", 0.0),
-            values.get("sent volume", 0.0))

@@ -24,9 +24,3 @@ class LoadOnlyWorkModel(WorkModelBase):
 
         # Return total load on this rank
         return rank.get_load()
-
-    def aggregate(self, values: dict):
-        """ A work model only using load information."""
-
-        # Return load when provided
-        return values.get("load", 0.0)

@@ -9,19 +9,16 @@ class StrictLocalizingCriterion(CriterionBase):
     """ A concrete class for a strictly localizing criterion
     """
     
-    def __init__(self, workmodel, lgr: Logger):
-        """ Class constructor:
-        """
-        # Call superclass init
-        super().__init__(workmodel)
+    def __init__(self, workmodel, lgr):
+        """ Class constructor."""
 
-        # Assign logger to instance variable
-        self.__logger = lgr
-        self.__logger.info(f"Instantiated {type(self).__name__} concrete criterion")
+        # Call superclass init
+        super().__init__(workmodel, lgr)
+        self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
     def compute(self, object: list, p_src: Rank, _):
-        """ A criterion enforcing strict conservation of local communications
-        """
+        """ A criterion enforcing strict conservation of local communications."""
+
         # Keep track source processor ID
         p_src_id = p_src.get_id()
 

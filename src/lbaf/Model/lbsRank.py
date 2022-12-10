@@ -171,8 +171,8 @@ class Rank:
         # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
 
-        # Update known loads when these exist
-        if self.__known_loads:
+        # Update known load when destination is already known
+        if self.__known_loads and p_dst in self.__known_loads:
             self.__known_loads[p_dst] += o.get_load()
         
     def get_load(self) -> float:

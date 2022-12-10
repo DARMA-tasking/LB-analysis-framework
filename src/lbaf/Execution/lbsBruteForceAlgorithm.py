@@ -74,7 +74,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             self._logger.error(f"Algorithm execution requires a Phase instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.phase = phase
+        self._phase = phase
 
         # Initialize run distributions and statistics
         self.update_distributions_and_statistics(distributions, statistics)
@@ -158,14 +158,14 @@ class BruteForceAlgorithm(AlgorithmBase):
             for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer
-                    self.phase.transfer_object(o, r_src, r_dst)
+                    self._phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
         # Report on object transfers
         self._logger.info(f"{n_transfers} transfers occurred")
 
         # Invalidate cache of edges
-        self.phase.invalidate_edge_cache()
+        self._phase.invalidate_edge_cache()
 
         # Update run distributions and statistics
         self.update_distributions_and_statistics(distributions, statistics)

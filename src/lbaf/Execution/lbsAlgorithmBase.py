@@ -10,8 +10,7 @@ from ..Utils.logger import logger
 
 class AlgorithmBase:
     __metaclass__ = abc.ABCMeta
-    """ An abstract base class of load/work balancing algorithms
-    """
+    """ An abstract base class of load/work balancing algorithms."""
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str=''):
         """ Class constructor:
@@ -27,7 +26,7 @@ class AlgorithmBase:
             lgr.error("Could not create an algorithm without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.work_model = work_model
+        self._work_model = work_model
 
         # Assert that optional quantity of interest name is a string
         if qoi_name and not isinstance(qoi_name, str):
@@ -40,7 +39,7 @@ class AlgorithmBase:
             + (f" tracking rank {qoi_name}" if qoi_name else ''))
 
         # Initially no phase is associated to algorithm
-        self.phase = None
+        self._phase = None
 
     @staticmethod
     def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, qoi_name=''):
@@ -73,24 +72,24 @@ class AlgorithmBase:
                 continue
             distributions.setdefault(rank_qoi_name, []).append(
                 [getattr(p, f"get_{rank_qoi_name}")()
-                 for p in self.phase.get_ranks()])
+                 for p in self._phase.get_ranks()])
         distributions.setdefault("work", []).append(
-            [self.work_model.compute(p) for p in self.phase.get_ranks()])
+            [self._work_model.compute(p) for p in self._phase.get_ranks()])
 
         # Create or update distributions of edge quantities of interest
         distributions.setdefault("sent", []).append(
-            {k: v for k, v in self.phase.get_edges().items()})
+            {k: v for k, v in self._phase.get_edges().items()})
         
         # Compute load, volume, and work statistics
         _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
-            self.phase.get_ranks(),
+            self._phase.get_ranks(),
             lambda x: x.get_load())
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-            self.phase.get_edges().values(),
+            self._phase.get_edges().values(),
             lambda x: x)
         n_w, w_min, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
-            self.phase.get_ranks(),
-            lambda x: self.work_model.compute(x))
+            self._phase.get_ranks(),
+            lambda x: self._work_model.compute(x))
 
         # Create or update statistics dictionary entries
         statistics.setdefault("minimum load", []).append(l_min)
@@ -108,7 +107,7 @@ class AlgorithmBase:
     def report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode."""
 
-        for p in self.phase.get_ranks():
+        for p in self._phase.get_ranks():
             logger.debug(f"Rank {p.get_id()}:")
             for o in p.get_objects():
                 comm = o.get_communicator()
@@ -136,3 +135,4 @@ class AlgorithmBase:
             a_min_max: possibly empty list of optimal arrangements"""
 
         # Must be implemented by concrete subclass
+        pass
