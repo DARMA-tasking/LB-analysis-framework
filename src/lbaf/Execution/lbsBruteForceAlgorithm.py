@@ -164,9 +164,6 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Report on object transfers
         self._logger.info(f"{n_transfers} transfers occurred")
 
-        # Invalidate cache of edges
-        self._phase.invalidate_edge_cache()
-
         # Update run distributions and statistics
         self.update_distributions_and_statistics(distributions, statistics)
 

@@ -1,6 +1,6 @@
 import abc
-from logging import Logger
 import sys
+from logging import Logger
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsWorkModelBase import WorkModelBase
@@ -18,7 +18,12 @@ class AlgorithmBase:
             parameters: a dictionary of parameters
             qoi_name: optional additional QOI to track"""
 
-        # Assign logger to instance variable
+        # Assert that a logger instance was passed
+        if not isinstance(lgr, Logger):
+            lgr().error(
+                f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
         self._logger = lgr
 
         # Assert that a work model base instance was passed

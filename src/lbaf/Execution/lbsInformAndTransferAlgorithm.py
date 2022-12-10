@@ -21,7 +21,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str):
         """ Class constructor
             work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters.
+            parameters: a dictionary of parameters
             qoi_name: a quantity of interest."""
 
         # Call superclass init

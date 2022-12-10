@@ -25,8 +25,8 @@ class CustomFormatter(Formatter):
 
 
 def logger(name: str = "root", conf: str = None):
-    """ Return logger with config from logger.ini
-    """
+    """ Return logger with config from logger.ini."""
+
     if conf is not None:
         with open(conf, "rt") as conf_file:
             config = yaml.safe_load(conf_file)

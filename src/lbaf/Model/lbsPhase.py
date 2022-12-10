@@ -1,6 +1,6 @@
-from logging import Logger
-import random as rnd
 import sys
+import random as rnd
+from logging import Logger
 
 from .lbsObject import Object
 from .lbsRank import Rank
@@ -9,13 +9,33 @@ from .lbsObjectCommunicator import ObjectCommunicator
 from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
 from ..Utils.exception_handler import exc_handler
+from ..Utils.logger import logger
 
 
 class Phase:
-    """ A class representing the state of collection of ranks with objects at a given round
-    """
+    """ A class representing a phase of objects distributed across ranks."""
 
-    def __init__(self, logger: Logger, pid: int = 0, file_suffix="json", reader: LoadReader = None):
+    def __init__(
+        self,
+        lgr: Logger,
+        pid: int = 0,
+        file_suffix="json",
+        reader: LoadReader = None):
+        """ Class constructor
+            logger: a Logger instance
+            pid: a phase ID
+            file_suffix: the extension for state file names
+            reader: a VT load reader instance"""
+
+        # Assert that a logger instance was passed
+        if not isinstance(lgr, Logger):
+            logger().error(
+                f"Incorrect type {type(lgr)} passed instead of Logger instance")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        self.__logger = lgr
+        self.__logger.info(f"Instantiating phase {pid}")
+
         # Initialize empty list of ranks
         self.__ranks = []
 
@@ -25,12 +45,8 @@ class Phase:
         # Index of this phase
         self.__phase_id = pid
 
-        # Assign logger to instance variable
-        self.__logger = logger
-
-        # Start with empty edges cache
-        self.__edges = {}
-        self.__cached_edges = False
+        # Start with null set of edges
+        self.__edges = None
 
         # Data files suffix(reading from data)
         self.__file_suffix = file_suffix
@@ -76,8 +92,7 @@ class Phase:
 
         # Compute or re-compute edges from scratch
         self.__logger.info("Computing inter-rank communication edges")
-        self.__edges.clear()
-        directed_edges = {}
+        self.__edges, directed_edges = {}, {}
 
         # Initialize count of loaded ranks
         n_loaded = 0
@@ -123,9 +138,6 @@ class Phase:
         for k, v in directed_edges.items():
             self.__edges[k] = max(v)
 
-        # Edges cache was fully updated
-        self.__cached_edges = True
-
         # Report on computed edges
         n_ranks = len(self.__ranks)
         n_edges = len(self.__edges)
@@ -144,17 +156,12 @@ class Phase:
     def get_edges(self):
         """ Retrieve communication edges of phase. """
 
-        # Force recompute if edges cache is not current
-        if not self.__cached_edges:
+        # Compute edges when not available
+        if self.__edges is None:
             self.compute_edges()
 
-        # Return cached edges
+        # Return edges
         return self.__edges
-
-    def invalidate_edge_cache(self):
-        """ Mark cached edges as no longer current."""
-
-        self.__cached_edges = False
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
@@ -196,7 +203,8 @@ class Phase:
                     i=obj.get_id(),
                     logger=self.__logger,
                     r={},
-                    s={o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
+                    s={o: volume_sampler() for o in rnd.sample(
+                        objects.difference([obj]), degree_sampler())},
                 ))
 
             # Create symmetric received communications
@@ -301,8 +309,8 @@ class Phase:
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
 
-        # Invalidate cache of edges
-        self.invalidate_edge_cache()
+        # Recompute edges
+        self.compute_edges()
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:
