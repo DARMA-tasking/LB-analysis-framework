@@ -184,20 +184,48 @@ class Phase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-        # Retrive indices
+        # Retrieve indices
         src_id, dst_id = r_src.get_id(), r_dst.get_id()
-        ij = frozenset([src_id, dst_id])
-        print("object", o.get_id(), "sent from", src_id, "to", dst_id)
+        e_src_dst = self.__edges.get(frozenset([src_id, dst_id]), [0., 0.])
+        c_src_to_dst = 0 if src_id < dst_id else 1
+        c_dst_to_src = 1 - c_src_to_dst
 
-        # Initialize volumes with pre-transfer communications
-        src_sent = r_src.get_sent_volume()
-        dst_sent = r_dst.get_sent_volume()
-
-        # Determine all ranks that are affect by transfer
+        # Tally sent communication volumes by destination
         for k, v in comm.get_sent().items():
-            print(k, v)
-        sys.exit(1)
-        
+            if (oth_id := k.get_rank_id()) == src_id:
+                # Local src communication becomes off-node dst to src
+                e_src_dst[c_dst_to_src] += v
+            elif oth_id == dst_id:
+                # Off-node src to dst communication becomes dst local
+                e_src_dst[c_src_to_dst] -= v
+            else:
+                # Off-node src to oth communication becomes dst to oth
+                e_src_oth = self.__edges.get(frozenset([src_id, oth_id]), [0., 0.])
+                c_src_to_oth = 0 if src_id < oth_id else 1
+                e_src_oth[c_src_to_oth] -= v
+                e_dst_oth = self.__edges.get(frozenset([dst_id, oth_id]), [0., 0.])
+                c_dst_to_oth = 0 if dst_id < oth_id else 1
+                e_dst_oth[c_dst_to_oth] += v
+
+        # Tally received communication volumes by source
+        for k, v in comm.get_received().items():
+            if (oth_id := k.get_rank_id()) == src_id:
+                # Local src communication becomes off-node dst from src
+                e_src_dst[c_src_to_dst] += v
+            elif oth_id == dst_id:
+                # Off-node src from dst communication becomes dst local
+                e_src_dst[c_dst_to_src] -= v
+            else:
+                # Off-node src from oth communication becomes dst from oth
+                e_src_oth = self.__edges.get(frozenset([src_id, oth_id]), [0., 0.])
+                c_oth_to_src = 0 if oth_id < src_id else 1
+                e_src_oth[c_oth_to_src] -= v
+                e_dst_oth = self.__edges.get(frozenset([dst_id, oth_id]), [0., 0.])
+                c_oth_to_dst = 0 if oth_id < src_id else 1
+                e_dst_oth[c_oth_to_dst] += v
+
+
+
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
 
@@ -273,7 +301,7 @@ class Phase:
         # Compute and report communication volume statistics
         print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)
 
-        # Create n_ranks ranks
+        # Create given number of ranks
         self.__ranks = [Rank(i, self.__logger) for i in range(n_ranks)]
 
         # Randomly assign objects to ranks
@@ -336,7 +364,7 @@ class Phase:
             f"Transferring object {o_id} from rank {r_src.get_id()} to {r_dst.get_id()}")
 
         # Update inter-rank edges before moving objects
-        #self.update_edges(o, r_src, r_dst)
+        self.update_edges(o, r_src, r_dst)
 
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
@@ -348,7 +376,7 @@ class Phase:
         o.set_rank_id(r_dst.get_id())
 
         # Void existing edges
-        self.__edges = None
+        #self.__edges = None
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:
