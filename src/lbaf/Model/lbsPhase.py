@@ -88,11 +88,11 @@ class Phase:
         return ids
 
     def compute_edges(self):
-        """ Compute and return map of communication link IDs to volumes."""
+        """ Compute and return dict of communication edge IDs to volumes."""
 
         # Compute or re-compute edges from scratch
         self.__logger.info("Computing inter-rank communication edges")
-        self.__edges, directed_edges = {}, {}
+        self.__edges = {}
 
         # Initialize count of loaded ranks
         n_loaded = 0
@@ -127,16 +127,12 @@ class Phase:
 
                     # Create or update an inter-rank directed edge
                     ij = frozenset([i, j])
-                    directed_edges.setdefault(ij, [0., 0.])
+                    self.__edges.setdefault(ij, [0., 0.])
                     if i < j :
-                        directed_edges[ij][0] += volume
+                        self.__edges[ij][0] += volume
                     else:
-                        directed_edges[ij][1] += volume
-                    self.__logger.debug(f"edge rank {i} --> rank {j}, volume: {directed_edges[ij]}")
-
-        # Reduce directed edges into undirected ones with maximum
-        for k, v in directed_edges.items():
-            self.__edges[k] = max(v)
+                        self.__edges[ij][1] += volume
+                    self.__logger.debug(f"edge rank {i} --> rank {j}, volume: {self.__edges[ij]}")
 
         # Report on computed edges
         n_ranks = len(self.__ranks)
@@ -163,6 +159,45 @@ class Phase:
         # Return edges
         return self.__edges
 
+    def get_edge_maxima(self):
+        """ Reduce directed edges into undirected with maximum."""
+
+        # Compute edges when not available
+        if self.__edges is None:
+            self.compute_edges()
+
+        # Return maximum values at edges
+        return {k: max(v) for k, v in self.__edges.items()}
+
+    def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
+        """ Update inter-rank communication edges before object transfer."""
+
+        # Compute edges when not available
+        if self.__edges is None:
+            self.compute_edges()
+            return
+
+        # Otherwise retrieve object communicator
+        comm = o.get_communicator()
+        if not isinstance(comm, ObjectCommunicator):
+            self._logger.error(f"Object {o.get_id()} does not have a communicator")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
+        # Retrive indices
+        src_id, dst_id = r_src.get_id(), r_dst.get_id()
+        ij = frozenset([src_id, dst_id])
+        print("object", o.get_id(), "sent from", src_id, "to", dst_id)
+
+        # Initialize volumes with pre-transfer communications
+        src_sent = r_src.get_sent_volume()
+        dst_sent = r_dst.get_sent_volume()
+
+        # Determine all ranks that are affect by transfer
+        for k, v in comm.get_sent().items():
+            print(k, v)
+        sys.exit(1)
+        
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
 
@@ -300,6 +335,9 @@ class Phase:
         self.__logger.debug(
             f"Transferring object {o_id} from rank {r_src.get_id()} to {r_dst.get_id()}")
 
+        # Update inter-rank edges before moving objects
+        #self.update_edges(o, r_src, r_dst)
+
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
 
@@ -309,8 +347,8 @@ class Phase:
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
 
-        # Recompute edges
-        self.compute_edges()
+        # Void existing edges
+        self.__edges = None
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:

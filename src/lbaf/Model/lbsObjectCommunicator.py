@@ -8,6 +8,8 @@ class ObjectCommunicator:
     """ A class holding received and sent messages for an object."""
 
     def __init__(self, i: int, logger: Logger, r: dict = None, s: dict = None):
+        """ Class constructor."""
+
         # Index of object having this communicator if defined
         self.__object_index = i
 
@@ -20,8 +22,9 @@ class ObjectCommunicator:
         # Assign logger to instance variable
         self.__logger = logger
 
-    def _summarize_unidirectional(self, direction):
+    def __summarize_unidirectional(self, direction):
         """ Summarize one-way communicator properties and check for errors."""
+
         # Initialize list of volumes
         volumes = []
 
@@ -67,10 +70,10 @@ class ObjectCommunicator:
         """ Summarize communicator properties and check for errors."""
 
         # Summarize sent communications
-        w_sent = self._summarize_unidirectional("to")
+        w_sent = self.__summarize_unidirectional("to")
 
         # Summarize received communications
-        w_recv = self._summarize_unidirectional("from")
+        w_recv = self.__summarize_unidirectional("from")
 
         # Return counters
         return w_sent, w_recv
