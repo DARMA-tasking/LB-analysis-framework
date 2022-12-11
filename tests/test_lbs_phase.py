@@ -50,7 +50,7 @@ class TestConfig(unittest.TestCase):
         self.phase.populate_from_log(t_s=0, basename=file_prefix)
         self.assertEqual(self.phase._Phase__edges, None)
         edges = {frozenset({0, 1}): 3.0, frozenset({0, 2}): 0.5, frozenset({1, 2}): 2.0}
-        self.assertEqual(self.phase.get_edges(), edges)
+        self.assertEqual(self.phase.get_edge_maxima(), edges)
 
     def test_lbs_phase_populate_from_samplers(self):
         t_sampler = {"name": "lognormal", "parameters": [1.0, 10.0]}
@@ -63,7 +63,7 @@ class TestConfig(unittest.TestCase):
         for rank in self.phase.get_ranks():
             self.assertTrue(rank.get_migratable_objects())
         self.assertEqual(self.phase._Phase__edges, None)
-        edges = self.phase.get_edges()
+        edges = self.phase.get_edge_maxima()
         self.assertEqual(len(edges), 6)
         expected_edges = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
         self.assertEqual(sorted([list(edge) for edge in edges]), expected_edges)
