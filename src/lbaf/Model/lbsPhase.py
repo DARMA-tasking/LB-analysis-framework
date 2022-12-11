@@ -184,15 +184,21 @@ class Phase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-        # Retrieve indices
+        # Keep track of indices related to src and dst
         src_id, dst_id = r_src.get_id(), r_dst.get_id()
+        self.__logger.debug(
+            f"Transferring object {o.get_id()} from {src_id} to {dst_id}")
         e_src_dst = self.__edges.get(frozenset([src_id, dst_id]), [0., 0.])
         c_src_to_dst = 0 if src_id < dst_id else 1
         c_dst_to_src = 1 - c_src_to_dst
 
         # Tally sent communication volumes by destination
         for k, v in comm.get_sent().items():
-            if (oth_id := k.get_rank_id()) == src_id:
+            # Distinguish between possible cases for other communication endpoint
+            oth_id = k.get_rank_id()
+            self.__logger.debug(
+                f"\tvolume {v} {src_id} --> {oth_id} becomes {dst_id} --> {oth_id}")
+            if oth_id  == src_id:
                 # Local src communication becomes off-node dst to src
                 e_src_dst[c_dst_to_src] += v
             elif oth_id == dst_id:
@@ -201,15 +207,17 @@ class Phase:
             else:
                 # Off-node src to oth communication becomes dst to oth
                 e_src_oth = self.__edges.get(frozenset([src_id, oth_id]), [0., 0.])
-                c_src_to_oth = 0 if src_id < oth_id else 1
-                e_src_oth[c_src_to_oth] -= v
+                e_src_oth[0 if src_id < oth_id else 1] -= v
                 e_dst_oth = self.__edges.get(frozenset([dst_id, oth_id]), [0., 0.])
-                c_dst_to_oth = 0 if dst_id < oth_id else 1
-                e_dst_oth[c_dst_to_oth] += v
+                e_dst_oth[0 if dst_id < oth_id else 1] += v
 
         # Tally received communication volumes by source
         for k, v in comm.get_received().items():
-            if (oth_id := k.get_rank_id()) == src_id:
+            # Distinguish between possible cases for other communication endpoint
+            oth_id = k.get_rank_id()
+            self.__logger.debug(
+                f"\tvolume {v} {src_id} <-- {oth_id} becomes {dst_id} <-- {oth_id}")
+            if oth_id == src_id:
                 # Local src communication becomes off-node dst from src
                 e_src_dst[c_src_to_dst] += v
             elif oth_id == dst_id:
@@ -218,13 +226,9 @@ class Phase:
             else:
                 # Off-node src from oth communication becomes dst from oth
                 e_src_oth = self.__edges.get(frozenset([src_id, oth_id]), [0., 0.])
-                c_oth_to_src = 0 if oth_id < src_id else 1
-                e_src_oth[c_oth_to_src] -= v
+                e_src_oth[0 if oth_id < src_id else 1] -= v
                 e_dst_oth = self.__edges.get(frozenset([dst_id, oth_id]), [0., 0.])
-                c_oth_to_dst = 0 if oth_id < src_id else 1
-                e_dst_oth[c_oth_to_dst] += v
-
-
+                e_dst_oth[0 if oth_id < dst_id else 1] += v
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
@@ -376,7 +380,7 @@ class Phase:
         o.set_rank_id(r_dst.get_id())
 
         # Void existing edges
-        #self.__edges = None
+        #self.compute_edges()
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:
