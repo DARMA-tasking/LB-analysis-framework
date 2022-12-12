@@ -179,14 +179,20 @@ class Phase:
         # Update or create edge
         if edge is None:
             # Edge must be created
+            self.__logger.debug(
+                f"Creating edge {from_id} --> {to_id} with volume {v}")
             self.__edges[e_id] = [0.0, 0.0]
             self.__edges[e_id][0 if from_id < to_id else 1] = v
         else:
             # Edge can be updated
+            self.__logger.debug(
+                f"Updating edge {from_id} --> {to_id} with volume {v}")
             edge[0 if from_id < to_id else 1] += v
 
         # Eliminate edge if communication vanished in both directions
-        if edge == [0.0, 0.]:
+        if edge == [0.0, 0.0]:
+            self.__logger.debug(
+                f"Eliminating {from_id}--{to_id} edge as its communications vanished both ways")
             del self.__edges[e_id]
 
     def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
