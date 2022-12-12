@@ -185,6 +185,10 @@ class Phase:
             # Edge can be updated
             edge[0 if from_id < to_id else 1] += v
 
+        # Eliminate edge if communication vanished in both directions
+        if edge == [0.0, 0.]:
+            del self.__edges[e_id]
+
     def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
         """ Update inter-rank communication edges before object transfer."""
 
