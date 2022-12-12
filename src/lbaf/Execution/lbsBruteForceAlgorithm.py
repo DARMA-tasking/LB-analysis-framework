@@ -24,7 +24,6 @@ class BruteForceAlgorithm(AlgorithmBase):
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)
-        
         self._logger.info(f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
 
     def compute_arrangement_works(self, objects: tuple, arrangement: tuple) -> dict:
