@@ -111,7 +111,6 @@ class internalParameters:
             "file_suffix",
             "from_data",
             "from_samplers",
-            "visualize_qoi",
             "logging_level",
             "log_to_file",
             "n_ranks",
@@ -161,16 +160,20 @@ class internalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
-        # Parse whether meshes must be generated
-        if (gm := self.configuration.get("generate_meshes")) is not None:
+        # Parse LBAF-Viz parameters when available
+        if (viz := self.configuration.get("LBAF-Viz")) is not None:
             self.grid_size = []
             for key in ("x_ranks", "y_ranks", "z_ranks"):
-                self.grid_size.append(gm.get(key))
+                self.grid_size.append(viz.get(key))
             if math.prod(self.grid_size) < self.n_ranks:
                 self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
-            self.object_jitter = gm.get("object_jitter")
+            self.object_jitter = viz.get("object_jitter")
+            self.rank_qoi = viz.get("rank_qoi")
+            self.save_meshes = viz.get("save_meshes")
+        else:
+            self.grid_size = None
 
         # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
@@ -350,14 +353,13 @@ class LBAFApp:
             a_min_max = []
 
         # Instantiate and execute runtime
-        qoi_name = self.params.__dict__.get("visualize_qoi")
         rt = Runtime(
             phases,
             self.params.work_model,
             self.params.algorithm,
             a_min_max,
             self.logger,
-            qoi_name)
+            self.params.rank_qoi)
         rt.execute()
 
         # Instantiate phase to VT file writer if started from a log file
@@ -370,17 +372,17 @@ class LBAFApp:
             vt_writer.write()
 
         # Generate meshes and multimedia when requested
-        gen_meshes = self.params.__dict__.get("generate_meshes")
-        if gen_meshes or qoi_name:
+        if self.params.grid_size:
             # Check if a QOI of interest and bounds are available
             qoi_request = []
-            if qoi_name:
+            if self.params.rank_qoi:
                 # Look for prescribed bounds
-                qoi_request.append(qoi_name)
+                qoi_request.append(self.params.rank_qoi)
                 qoi_request.append(
                     self.params.work_model.get(
                         "parameters").get(
-                        "upper_bounds", {}).get(qoi_name))
+                        "upper_bounds", {}).get(
+                        self.params.rank_qoi))
             else:
                 # Fallback QOI is rank work without upper bound
                 qoi_request = ["work", None]
@@ -396,7 +398,8 @@ class LBAFApp:
                 self.params.output_file_stem,
                 rt.distributions,
                 rt.statistics)
-            ex_writer.generate(gen_meshes, qoi_name)
+            ex_writer.generate(
+                self.params.save_meshes, self.params.rank_qoi)
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]
