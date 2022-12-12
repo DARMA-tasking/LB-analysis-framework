@@ -174,6 +174,7 @@ class internalParameters:
             self.save_meshes = viz.get("save_meshes")
         else:
             self.grid_size = None
+            self.rank_qoi = ''
 
         # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
