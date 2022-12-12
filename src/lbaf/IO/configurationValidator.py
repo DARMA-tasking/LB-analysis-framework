@@ -61,7 +61,7 @@ class ConfigurationValidator:
                 int,
                 lambda x: x > 0,
                 error="Should be of type 'int' and > 0"),
-            Optional("generate_meshes"): {
+            Optional("LBAF-Viz"): {
                 "x_ranks": And(
                     int, lambda x: x > 0,
                     error="Should be of type 'int' and > 0"),
@@ -73,7 +73,9 @@ class ConfigurationValidator:
                     error="Should be of type 'int' and > 0"),
                 "object_jitter": And(
                     float, lambda x: abs(x) < 1.0,
-                    error="Should be of type 'float' and magnitude < 1")},
+                    error="Should be of type 'float' and magnitude < 1"),
+                "rank_qoi": str,
+                Optional("save_meshes"): bool},
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
             Optional("check_schema"): bool,
@@ -88,7 +90,6 @@ class ConfigurationValidator:
                 lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
                 error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
-            Optional("visualize_qoi"): str,
             Optional("file_suffix"): str
         })
         self.__from_data = Schema(

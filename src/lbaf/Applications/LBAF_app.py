@@ -107,7 +107,7 @@ class internalParameters:
             "algorithm",
             "brute_force_optimization",
             "check_schema",
-            "generate_meshes",
+            "LBAF-Viz",
             "file_suffix",
             "from_data",
             "from_samplers",
