@@ -34,8 +34,3 @@ logging_level: info
 terminal_background: light
 output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
 output_file_stem: output_file
-generate_meshes:
-  x_ranks: 2
-  y_ranks: 2
-  z_ranks: 1
-  object_jitter: 0.5

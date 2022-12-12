@@ -613,11 +613,11 @@ class MeshBasedVisualizer:
         render_window.SetSize(win_size, win_size)
         return render_window
 
-    def generate(self, gen_meshes: bool, gen_vizqoi: bool):
+    def generate(self, save_meshes: bool, gen_vizqoi: bool):
         """ Generate mesh and multimedia outputs."""
 
         # Write ExodusII rank mesh when requested
-        if gen_meshes:
+        if save_meshes:
             # Create grid streamer
             streamer = GridStreamer(
                 self.__rank_points,
@@ -656,7 +656,7 @@ class MeshBasedVisualizer:
             object_mesh = self.create_object_mesh(phase, object_mapping)
 
             # Write to VTP file when requested
-            if gen_meshes:
+            if save_meshes:
                 file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
                 self.__logger.info(f"Writing VTP file: {file_name}")
                 writer = vtk.vtkXMLPolyDataWriter()

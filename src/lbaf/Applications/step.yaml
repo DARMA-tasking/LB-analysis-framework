@@ -31,12 +31,12 @@ algorithm:
 #overwrite_validator: False
 check_schema: False
 terminal_background: light
-visualize_qoi: work
 output_dir: ../../../output
 output_file_stem: output_file
 n_ranks: 32
-generate_meshes:
+LBAF_Viz:
   x_ranks: 8
   y_ranks: 4
   z_ranks: 1
   object_jitter: 0.5
+  rank_qoi: work
