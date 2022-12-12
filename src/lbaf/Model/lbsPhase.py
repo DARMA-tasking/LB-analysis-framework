@@ -169,6 +169,22 @@ class Phase:
         # Return maximum values at edges
         return {k: max(v) for k, v in self.__edges.items()}
 
+    def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
+        """ Convenience method to update or create directed edge with given volume."""
+
+        # Create undidrected edge index and try to retrieve edge
+        e_id = frozenset([from_id, to_id])
+        edge = self.__edges.get(e_id)
+
+        # Update or create edge
+        if edge is None:
+            # Edge must be created
+            self.__edges[e_id] = [0.0, 0.0]
+            self.__edges[e_id][0 if from_id < to_id else 1] = v
+        else:
+            # Edge can be updated
+            edge[0 if from_id < to_id else 1] += v
+
     def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
         """ Update inter-rank communication edges before object transfer."""
 
@@ -206,17 +222,15 @@ class Phase:
                 e_src_dst[c_src_to_dst] -= v
             else:
                 # Off-node src to oth communication becomes dst to oth
-                e_src_oth = self.__edges.get(frozenset([src_id, oth_id]), [0., 0.])
-                e_src_oth[0 if src_id < oth_id else 1] -= v
-                e_dst_oth = self.__edges.get(frozenset([dst_id, oth_id]), [0., 0.])
-                e_dst_oth[0 if dst_id < oth_id else 1] += v
+                self.__update_or_create_directed_edge(src_id, oth_id, -v)
+                self.__update_or_create_directed_edge(dst_id, oth_id, +v)
 
         # Tally received communication volumes by source
         for k, v in comm.get_received().items():
             # Distinguish between possible cases for other communication endpoint
             oth_id = k.get_rank_id()
             self.__logger.debug(
-                f"\tvolume {v} {src_id} <-- {oth_id} becomes {dst_id} <-- {oth_id}")
+                f"\tvolume {v} on {src_id} <-- {oth_id} becomes {dst_id} <-- {oth_id}")
             if oth_id == src_id:
                 # Local src communication becomes off-node dst from src
                 e_src_dst[c_src_to_dst] += v
@@ -225,10 +239,8 @@ class Phase:
                 e_src_dst[c_dst_to_src] -= v
             else:
                 # Off-node src from oth communication becomes dst from oth
-                e_src_oth = self.__edges.get(frozenset([src_id, oth_id]), [0., 0.])
-                e_src_oth[0 if oth_id < src_id else 1] -= v
-                e_dst_oth = self.__edges.get(frozenset([dst_id, oth_id]), [0., 0.])
-                e_dst_oth[0 if oth_id < dst_id else 1] += v
+                self.__update_or_create_directed_edge(oth_id, src_id, -v)
+                self.__update_or_create_directed_edge(oth_id, dst_id, +v)
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
@@ -369,18 +381,28 @@ class Phase:
 
         # Update inter-rank edges before moving objects
         self.update_edges(o, r_src, r_dst)
+        if (o.get_id() in (0, 5)):
+            print(o)
+            print("sent:", o.get_communicator().get_sent())
+            print("recv:", o.get_communicator().get_received())
 
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
+        if (o.get_id() in (0, 5)):
+            print(o)
+            print("sent:", o.get_communicator().get_sent())
+            print("recv:", o.get_communicator().get_received())
+
 
         # Add object to migratable ones on destination
         r_dst.add_migratable_object(o)
+        if (o.get_id() in (0, 5)):
+            print(o)
+            print("sent:", o.get_communicator().get_sent())
+            print("recv:", o.get_communicator().get_received())
 
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
-
-        # Void existing edges
-        #self.compute_edges()
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:
