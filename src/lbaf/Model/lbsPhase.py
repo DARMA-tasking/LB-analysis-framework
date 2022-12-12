@@ -214,9 +214,6 @@ class Phase:
         src_id, dst_id = r_src.get_id(), r_dst.get_id()
         self.__logger.debug(
             f"Transferring object {o.get_id()} from {src_id} to {dst_id}")
-        e_src_dst = self.__edges.get(frozenset([src_id, dst_id]), [0., 0.])
-        c_src_to_dst = 0 if src_id < dst_id else 1
-        c_dst_to_src = 1 - c_src_to_dst
 
         # Tally sent communication volumes by destination
         for k, v in comm.get_sent().items():
@@ -226,10 +223,10 @@ class Phase:
                 f"\tvolume {v} {src_id} --> {oth_id} becomes {dst_id} --> {oth_id}")
             if oth_id  == src_id:
                 # Local src communication becomes off-node dst to src
-                e_src_dst[c_dst_to_src] += v
+                self.__update_or_create_directed_edge(dst_id, src_id, +v)
             elif oth_id == dst_id:
                 # Off-node src to dst communication becomes dst local
-                e_src_dst[c_src_to_dst] -= v
+                self.__update_or_create_directed_edge(src_id, dst_id, -v)
             else:
                 # Off-node src to oth communication becomes dst to oth
                 self.__update_or_create_directed_edge(src_id, oth_id, -v)
@@ -243,10 +240,10 @@ class Phase:
                 f"\tvolume {v} on {src_id} <-- {oth_id} becomes {dst_id} <-- {oth_id}")
             if oth_id == src_id:
                 # Local src communication becomes off-node dst from src
-                e_src_dst[c_src_to_dst] += v
+                self.__update_or_create_directed_edge(src_id, dst_id, +v)
             elif oth_id == dst_id:
                 # Off-node src from dst communication becomes dst local
-                e_src_dst[c_dst_to_src] -= v
+                self.__update_or_create_directed_edge(dst_id, src_id, -v)
             else:
                 # Off-node src from oth communication becomes dst from oth
                 self.__update_or_create_directed_edge(oth_id, src_id, -v)
