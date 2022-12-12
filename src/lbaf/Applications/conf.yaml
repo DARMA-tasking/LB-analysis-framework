@@ -40,4 +40,4 @@ LBAF-Viz:
   z_ranks: 1
   object_jitter: 0.5
   rank_qoi: work
-  save_meshes: False
+  save_meshes: True
