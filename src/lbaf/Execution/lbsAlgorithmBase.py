@@ -21,7 +21,7 @@ class AlgorithmBase:
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
             lgr().error(
-                f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
+                f"Incorrect type {type(lgr)} passed instead of Logger instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._logger = lgr
