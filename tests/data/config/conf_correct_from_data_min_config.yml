@@ -19,7 +19,7 @@ algorithm:
 # Specify output
 n_ranks: 4
 output_file_stem: output_file
-generate_meshes:
+LBAF_Viz:
   x_ranks: 2
   y_ranks: 2
   z_ranks: 1

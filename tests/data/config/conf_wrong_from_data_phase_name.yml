@@ -25,11 +25,11 @@ algorithm:
 # Specify output
 n_ranks: 4
 terminal_background: light
-visualize_qoi: None
 output_dir: ../../../output
 output_file_stem: output_file
-generate_meshes:
+LBAF_Viz:
   x_ranks: 2
   y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
+  rank_qoi: None

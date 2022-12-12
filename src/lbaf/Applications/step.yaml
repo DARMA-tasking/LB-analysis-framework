@@ -34,7 +34,7 @@ terminal_background: light
 output_dir: ../../../output
 output_file_stem: output_file
 n_ranks: 32
-LBAF-Viz:
+LBAF_Viz:
   x_ranks: 8
   y_ranks: 4
   z_ranks: 1

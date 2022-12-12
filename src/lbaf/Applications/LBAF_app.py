@@ -107,7 +107,7 @@ class internalParameters:
             "algorithm",
             "brute_force_optimization",
             "check_schema",
-            "LBAF-Viz",
+            "LBAF_Viz",
             "file_suffix",
             "from_data",
             "from_samplers",
@@ -160,8 +160,8 @@ class internalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
-        # Parse LBAF-Viz parameters when available
-        if (viz := self.configuration.get("LBAF-Viz")) is not None:
+        # Parse LBAF_Viz parameters when available
+        if (viz := self.configuration.get("LBAF_Viz")) is not None:
             self.grid_size = []
             for key in ("x_ranks", "y_ranks", "z_ranks"):
                 self.grid_size.append(viz.get(key))

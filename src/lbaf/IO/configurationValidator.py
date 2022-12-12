@@ -61,7 +61,7 @@ class ConfigurationValidator:
                 int,
                 lambda x: x > 0,
                 error="Should be of type 'int' and > 0"),
-            Optional("LBAF-Viz"): {
+            Optional("LBAF_Viz"): {
                 "x_ranks": And(
                     int, lambda x: x > 0,
                     error="Should be of type 'int' and > 0"),
