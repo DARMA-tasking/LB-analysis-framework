@@ -218,4 +218,4 @@ def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger
 
     # Print summary
     ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''
-    logger.info(f"{subset_name}: {subset_size:.6g} amongst {set_name}: {set_size:.6g} ({ss}%)")
+    logger.info(f"{subset_name}: {subset_size:.6g} amongst {set_size:.6g} {set_name} ({ss}%)")

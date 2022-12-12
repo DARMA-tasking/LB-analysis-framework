@@ -1,6 +1,6 @@
 import abc
-from logging import Logger
 import sys
+from logging import Logger
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsWorkModelBase import WorkModelBase
@@ -18,7 +18,12 @@ class AlgorithmBase:
             parameters: a dictionary of parameters
             qoi_name: optional additional QOI to track"""
 
-        # Assign logger to instance variable
+        # Assert that a logger instance was passed
+        if not isinstance(lgr, Logger):
+            lgr().error(
+                f"Incorrect type {type(lgr)} passed instead of Logger instance")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
         self._logger = lgr
 
         # Assert that a work model base instance was passed
@@ -78,14 +83,14 @@ class AlgorithmBase:
 
         # Create or update distributions of edge quantities of interest
         distributions.setdefault("sent", []).append(
-            {k: v for k, v in self._phase.get_edges().items()})
+            {k: v for k, v in self._phase.get_edge_maxima().items()})
         
         # Compute load, volume, and work statistics
         _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
             self._phase.get_ranks(),
             lambda x: x.get_load())
         n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-            self._phase.get_edges().values(),
+            self._phase.get_edge_maxima().values(),
             lambda x: x)
         n_w, w_min, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
             self._phase.get_ranks(),

@@ -1,6 +1,6 @@
-from logging import Logger
-import random as rnd
 import sys
+import random as rnd
+from logging import Logger
 
 from .lbsObject import Object
 from .lbsRank import Rank
@@ -9,13 +9,33 @@ from .lbsObjectCommunicator import ObjectCommunicator
 from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
 from ..Utils.exception_handler import exc_handler
+from ..Utils.logger import logger
 
 
 class Phase:
-    """ A class representing the state of collection of ranks with objects at a given round
-    """
+    """ A class representing a phase of objects distributed across ranks."""
 
-    def __init__(self, logger: Logger, pid: int = 0, file_suffix="json", reader: LoadReader = None):
+    def __init__(
+        self,
+        lgr: Logger,
+        pid: int = 0,
+        file_suffix="json",
+        reader: LoadReader = None):
+        """ Class constructor
+            logger: a Logger instance
+            pid: a phase ID
+            file_suffix: the extension for state file names
+            reader: a VT load reader instance"""
+
+        # Assert that a logger instance was passed
+        if not isinstance(lgr, Logger):
+            logger().error(
+                f"Incorrect type {type(lgr)} passed instead of Logger instance")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        self.__logger = lgr
+        self.__logger.info(f"Instantiating phase {pid}")
+
         # Initialize empty list of ranks
         self.__ranks = []
 
@@ -25,12 +45,8 @@ class Phase:
         # Index of this phase
         self.__phase_id = pid
 
-        # Assign logger to instance variable
-        self.__logger = logger
-
-        # Start with empty edges cache
-        self.__edges = {}
-        self.__cached_edges = False
+        # Start with null set of edges
+        self.__edges = None
 
         # Data files suffix(reading from data)
         self.__file_suffix = file_suffix
@@ -72,12 +88,11 @@ class Phase:
         return ids
 
     def compute_edges(self):
-        """ Compute and return map of communication link IDs to volumes."""
+        """ Compute and return dict of communication edge IDs to volumes."""
 
         # Compute or re-compute edges from scratch
         self.__logger.info("Computing inter-rank communication edges")
-        self.__edges.clear()
-        directed_edges = {}
+        self.__edges = {}
 
         # Initialize count of loaded ranks
         n_loaded = 0
@@ -112,19 +127,12 @@ class Phase:
 
                     # Create or update an inter-rank directed edge
                     ij = frozenset([i, j])
-                    directed_edges.setdefault(ij, [0., 0.])
+                    self.__edges.setdefault(ij, [0., 0.])
                     if i < j :
-                        directed_edges[ij][0] += volume
+                        self.__edges[ij][0] += volume
                     else:
-                        directed_edges[ij][1] += volume
-                    self.__logger.debug(f"edge rank {i} --> rank {j}, volume: {directed_edges[ij]}")
-
-        # Reduce directed edges into undirected ones with maximum
-        for k, v in directed_edges.items():
-            self.__edges[k] = max(v)
-
-        # Edges cache was fully updated
-        self.__cached_edges = True
+                        self.__edges[ij][1] += volume
+                    self.__logger.debug(f"edge rank {i} --> rank {j}, volume: {self.__edges[ij]}")
 
         # Report on computed edges
         n_ranks = len(self.__ranks)
@@ -144,17 +152,102 @@ class Phase:
     def get_edges(self):
         """ Retrieve communication edges of phase. """
 
-        # Force recompute if edges cache is not current
-        if not self.__cached_edges:
+        # Compute edges when not available
+        if self.__edges is None:
             self.compute_edges()
 
-        # Return cached edges
+        # Return edges
         return self.__edges
 
-    def invalidate_edge_cache(self):
-        """ Mark cached edges as no longer current."""
+    def get_edge_maxima(self):
+        """ Reduce directed edges into undirected with maximum."""
 
-        self.__cached_edges = False
+        # Compute edges when not available
+        if self.__edges is None:
+            self.compute_edges()
+
+        # Return maximum values at edges
+        return {k: max(v) for k, v in self.__edges.items()}
+
+    def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
+        """ Convenience method to update or create directed edge with given volume."""
+
+        # Create undidrected edge index and try to retrieve edge
+        e_id = frozenset([from_id, to_id])
+        edge = self.__edges.get(e_id)
+
+        # Update or create edge
+        if edge is None:
+            # Edge must be created
+            self.__logger.debug(
+                f"Creating edge {from_id} --> {to_id} with volume {v}")
+            self.__edges[e_id] = [0.0, 0.0]
+            self.__edges[e_id][0 if from_id < to_id else 1] = v
+        else:
+            # Edge can be updated
+            self.__logger.debug(
+                f"Updating edge {from_id} --> {to_id} with volume {v}")
+            edge[0 if from_id < to_id else 1] += v
+
+        # Eliminate edge if communication vanished in both directions
+        if edge == [0.0, 0.0]:
+            self.__logger.debug(
+                f"Eliminating {from_id}--{to_id} edge as its communications vanished both ways")
+            del self.__edges[e_id]
+
+    def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
+        """ Update inter-rank communication edges before object transfer."""
+
+        # Compute edges when not available
+        if self.__edges is None:
+            self.compute_edges()
+            return
+
+        # Otherwise retrieve object communicator
+        comm = o.get_communicator()
+        if not isinstance(comm, ObjectCommunicator):
+            self._logger.error(f"Object {o.get_id()} does not have a communicator")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
+        # Keep track of indices related to src and dst
+        src_id, dst_id = r_src.get_id(), r_dst.get_id()
+        self.__logger.debug(
+            f"Transferring object {o.get_id()} from {src_id} to {dst_id}")
+
+        # Tally sent communication volumes by destination
+        for k, v in comm.get_sent().items():
+            # Distinguish between possible cases for other communication endpoint
+            oth_id = k.get_rank_id()
+            self.__logger.debug(
+                f"\tvolume {v} {src_id} --> {oth_id} becomes {dst_id} --> {oth_id}")
+            if oth_id  == src_id:
+                # Local src communication becomes off-node dst to src
+                self.__update_or_create_directed_edge(dst_id, src_id, +v)
+            elif oth_id == dst_id:
+                # Off-node src to dst communication becomes dst local
+                self.__update_or_create_directed_edge(src_id, dst_id, -v)
+            else:
+                # Off-node src to oth communication becomes dst to oth
+                self.__update_or_create_directed_edge(src_id, oth_id, -v)
+                self.__update_or_create_directed_edge(dst_id, oth_id, +v)
+
+        # Tally received communication volumes by source
+        for k, v in comm.get_received().items():
+            # Distinguish between possible cases for other communication endpoint
+            oth_id = k.get_rank_id()
+            self.__logger.debug(
+                f"\tvolume {v} on {src_id} <-- {oth_id} becomes {dst_id} <-- {oth_id}")
+            if oth_id == src_id:
+                # Local src communication becomes off-node dst from src
+                self.__update_or_create_directed_edge(src_id, dst_id, +v)
+            elif oth_id == dst_id:
+                # Off-node src from dst communication becomes dst local
+                self.__update_or_create_directed_edge(dst_id, src_id, -v)
+            else:
+                # Off-node src from oth communication becomes dst from oth
+                self.__update_or_create_directed_edge(oth_id, src_id, -v)
+                self.__update_or_create_directed_edge(oth_id, dst_id, +v)
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
         """ Use samplers to populate either all or n ranks in a phase."""
@@ -196,7 +289,8 @@ class Phase:
                     i=obj.get_id(),
                     logger=self.__logger,
                     r={},
-                    s={o: volume_sampler() for o in rnd.sample(objects.difference([obj]), degree_sampler())},
+                    s={o: volume_sampler() for o in rnd.sample(
+                        objects.difference([obj]), degree_sampler())},
                 ))
 
             # Create symmetric received communications
@@ -230,7 +324,7 @@ class Phase:
         # Compute and report communication volume statistics
         print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)
 
-        # Create n_ranks ranks
+        # Create given number of ranks
         self.__ranks = [Rank(i, self.__logger) for i in range(n_ranks)]
 
         # Randomly assign objects to ranks
@@ -292,17 +386,30 @@ class Phase:
         self.__logger.debug(
             f"Transferring object {o_id} from rank {r_src.get_id()} to {r_dst.get_id()}")
 
+        # Update inter-rank edges before moving objects
+        self.update_edges(o, r_src, r_dst)
+        if (o.get_id() in (0, 5)):
+            print(o)
+            print("sent:", o.get_communicator().get_sent())
+            print("recv:", o.get_communicator().get_received())
+
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
+        if (o.get_id() in (0, 5)):
+            print(o)
+            print("sent:", o.get_communicator().get_sent())
+            print("recv:", o.get_communicator().get_received())
+
 
         # Add object to migratable ones on destination
         r_dst.add_migratable_object(o)
+        if (o.get_id() in (0, 5)):
+            print(o)
+            print("sent:", o.get_communicator().get_sent())
+            print("recv:", o.get_communicator().get_received())
 
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
-
-        # Invalidate cache of edges
-        self.invalidate_edge_cache()
 
         # Update shared blocks when needed
         if (b_id := o.get_shared_block_id()) is not None:

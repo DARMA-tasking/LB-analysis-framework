@@ -310,7 +310,7 @@ class LBAFApp:
             "initial maximum memory usage",
             self.logger)
         lbstats.print_function_statistics(
-            curr_phase.get_edges().values(),
+            curr_phase.get_edge_maxima().values(),
             lambda x: x,
             "initial sent volumes",
             self.logger)
@@ -436,7 +436,7 @@ class LBAFApp:
             "final maximum memory usage",
             self.logger)
         lbstats.print_function_statistics(
-            curr_phase.get_edges().values(),
+            curr_phase.get_edge_maxima().values(),
             lambda x: x,
             "final sent volumes",
             self.logger)

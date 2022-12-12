@@ -329,10 +329,10 @@ class MeshBasedVisualizer:
                 # Update maps and counters
                 point_to_index[o] = point_index
                 point_index += 1
-
+            
         # Summarize edges
         edges = {
-            (tr[0], point_to_index[tr[1]]): tr[2]
+            tuple(sorted((tr[0], point_to_index[tr[1]]))): tr[2]
             for tr in sent_volumes}
 
         # Iterate over all possible links and create edges
