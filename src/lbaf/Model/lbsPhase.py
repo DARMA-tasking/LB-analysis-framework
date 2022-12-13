@@ -388,25 +388,12 @@ class Phase:
 
         # Update inter-rank edges before moving objects
         self.update_edges(o, r_src, r_dst)
-        if (o.get_id() in (0, 5)):
-            print(o)
-            print("sent:", o.get_communicator().get_sent())
-            print("recv:", o.get_communicator().get_received())
 
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
-        if (o.get_id() in (0, 5)):
-            print(o)
-            print("sent:", o.get_communicator().get_sent())
-            print("recv:", o.get_communicator().get_received())
-
 
         # Add object to migratable ones on destination
         r_dst.add_migratable_object(o)
-        if (o.get_id() in (0, 5)):
-            print(o)
-            print("sent:", o.get_communicator().get_sent())
-            print("recv:", o.get_communicator().get_received())
 
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())

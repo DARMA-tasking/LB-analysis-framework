@@ -189,7 +189,7 @@ class MeshBasedVisualizer:
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
-        self.__logger.info(
+        self.__logger.debug(
             f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
 
         # Create attribute data arrays for edge sent volumes
@@ -233,6 +233,7 @@ class MeshBasedVisualizer:
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
         """ Map global index to its Cartesian grid coordinates."""
+
         # Sanity check
         n01 = grid_sizes[0] * grid_sizes[1]
         if flat_id < 0 or flat_id >= n01 * grid_sizes[2]:
@@ -247,16 +248,12 @@ class MeshBasedVisualizer:
 
     def create_object_mesh(self, phase: Phase, object_mapping: set):
         """ Map objects to polygonal mesh."""
+
         # Retrieve number of mesh points and bail out early if empty set
         n_o = phase.get_number_of_objects()
         if not n_o:
             self.__logger.warning("Empty list of objects, cannot write a mesh file")
             return
-
-        # Compute number of communication edges
-        n_e = int(n_o * (n_o - 1) / 2)
-        self.__logger.info(
-            f"Assembling object mesh with {n_o} points and {n_e} edges")
 
         # Create point array for object loads
         t_arr = vtk.vtkDoubleArray()
@@ -330,39 +327,29 @@ class MeshBasedVisualizer:
                 point_to_index[o] = point_index
                 point_index += 1
             
-        # Summarize edges
-        edges = {
-            tuple(sorted((tr[0], point_to_index[tr[1]]))): tr[2]
-            for tr in sent_volumes}
-
-        # Iterate over all possible links and create edges
-        lines = vtk.vtkCellArray()
-        index_to_edge = {}
-        edge_index = 0
-        for i in range(n_o):
-            for j in range(i + 1, n_o):
-                # Insert new link based on endpoint indices
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0, i)
-                line.GetPointIds().SetId(1, j)
-                lines.InsertNextCell(line)
-
-                # Update flat index map
-                index_to_edge[edge_index] = (i, j)
-                edge_index += 1
-
-        # Create and append volume array for edges
+        # Create volume array for edges
+        n_e = len(sent_volumes)
+        self.__logger.info(
+            f"Assembling object mesh with {n_o} points and {n_e} edges")
         v_arr = vtk.vtkDoubleArray()
         v_arr.SetName("Volume")
         v_arr.SetNumberOfTuples(n_e)
 
         # Assign edge volume values
-        self.__logger.debug(f"\tedges:")
-        for e in range(n_e):
-            i2e = index_to_edge[e]
-            v_arr.SetTuple1(e, edges.get(i2e, float("nan")))
-            self.__logger.debug(f"\t{e} {i2e}): {v_arr.GetTuple1(e)}")
+        lines = vtk.vtkCellArray()
+        self.__logger.debug(f"\tcreating edges:")
+        for e, (pt_index, k, v) in enumerate(sent_volumes):
+            # Insert new edge based on endpoint indices
+            line = vtk.vtkLine()
+            i, j = sorted((pt_index, point_to_index[k]))
+            line.GetPointIds().SetId(0, i)
+            line.GetPointIds().SetId(1, j)
+            lines.InsertNextCell(line)
 
+            # Set edge attribute
+            v_arr.SetTuple1(e, v)
+            self.__logger.debug(f"\t\t{e} ({i}--{j}): {v}")
+        
         # Create and return VTK polygonal data mesh
         pd_mesh = vtk.vtkPolyData()
         pd_mesh.SetPoints(points)
