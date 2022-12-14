@@ -343,7 +343,7 @@ class MeshBasedVisualizer:
             # Update or create  edge
             if (e_ij := edge_values.get(ij)) is None:
                 # Edge must be created
-                self.__logger.info(f"\tcreating edge {n_e} ({i}--{j}): {v}")
+                self.__logger.debug(f"\tcreating edge {n_e} ({i}--{j}): {v}")
                 edge_values[ij] = [n_e, v]
                 n_e += 1
                 v_arr.InsertNextTuple1(v)
@@ -354,7 +354,7 @@ class MeshBasedVisualizer:
             else:
                 # Edge already exists and must be updated
                 e_ij[1] += v
-                self.__logger.info(f"\tupdating edge {e_ij[0]} ({i}--{j}): {e_ij[1]}")
+                self.__logger.debug(f"\tupdating edge {e_ij[0]} ({i}--{j}): {e_ij[1]}")
                 v_arr.SetTuple1(e_ij[0], e_ij[1])
         
         # Create and return VTK polygonal data mesh
