@@ -206,7 +206,7 @@ class Phase:
         # Otherwise retrieve object communicator
         comm = o.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            self._logger.error(f"Object {o.get_id()} does not have a communicator")
+            self.__logger.error(f"Object {o.get_id()} does not have a communicator")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 

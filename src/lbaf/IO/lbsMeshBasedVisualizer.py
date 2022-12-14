@@ -524,6 +524,9 @@ class MeshBasedVisualizer:
         renderer.AddActor(edge_actor)
         renderer.AddActor2D(volume_actor)
 
+        print(object_mesh)
+        1/0
+
         # Compute square root of object loads
         sqrtT = vtk.vtkArrayCalculator()
         sqrtT.SetInputData(object_mesh)
