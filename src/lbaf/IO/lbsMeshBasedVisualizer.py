@@ -355,7 +355,7 @@ class MeshBasedVisualizer:
                 # Edge already exists and must be updated
                 e_ij[1] += v
                 self.__logger.info(f"\tupdating edge {e_ij[0]} ({i}--{j}): {e_ij[1]}")
-                v_arr.SetTuple1(e_ij[0], v)
+                v_arr.SetTuple1(e_ij[0], e_ij[1])
         
         # Create and return VTK polygonal data mesh
         self.__logger.info(
