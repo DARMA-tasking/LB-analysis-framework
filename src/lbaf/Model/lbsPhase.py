@@ -203,12 +203,11 @@ class Phase:
             self.compute_edges()
             return
 
-        # Otherwise retrieve object communicator
+        # Break out early when object has no communicator
         comm = o.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            self.__logger.error(f"Object {o.get_id()} does not have a communicator")
-            sys.excepthook = exc_handler
-            raise SystemExit(1)
+            self.__logger.debug(f"Object {o.get_id()} does not have a communicator, cannot update edges")
+            return
 
         # Keep track of indices related to src and dst
         src_id, dst_id = r_src.get_id(), r_dst.get_id()

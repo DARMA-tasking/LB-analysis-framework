@@ -364,7 +364,6 @@ class MeshBasedVisualizer:
         pd_mesh.SetPoints(points)
         pd_mesh.GetPointData().SetScalars(t_arr)
         pd_mesh.GetPointData().AddArray(b_arr)
-        pd_mesh.SetLines(lines)
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
@@ -536,10 +535,10 @@ class MeshBasedVisualizer:
         sqrtT_out.GetPointData().SetActiveScalars("Migratable")
 
         # Glyph sentinel and migratable objects separately
-        glyph_actors = []
+        glyph_actors, glyph_mapper = [], None
         for k, v in {0.0: "Square", 1.0: "Circle"}.items():
-            # Threshold by Migratable status
-            thresh = vtk.vtkThreshold()
+            # Threshold by migratable status
+            thresh = vtk.vtkThresholdPoints()
             thresh.SetInputData(sqrtT_out)
             thresh.ThresholdBetween(k, k)
             thresh.Update()
@@ -581,10 +580,11 @@ class MeshBasedVisualizer:
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)
 
-        # Create and add unique scalar bar for object load
-        load_actor = self.create_scalar_bar_actor(
-            glyph_mapper, "Object Load", 0.55, 0.05)
-        renderer.AddActor2D(load_actor)
+        # Create and add unique scalar bar for object load when available
+        if glyph_mapper:
+            load_actor = self.create_scalar_bar_actor(
+                glyph_mapper, "Object Load", 0.55, 0.05)
+            renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration
         text_actor = vtk.vtkTextActor()
