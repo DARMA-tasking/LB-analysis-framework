@@ -362,6 +362,7 @@ class MeshBasedVisualizer:
             f"Assembling object mesh with {n_o} points and {n_e} edges")
         pd_mesh = vtk.vtkPolyData()
         pd_mesh.SetPoints(points)
+        pd_mesh.SetLines(lines)
         pd_mesh.GetPointData().SetScalars(t_arr)
         pd_mesh.GetPointData().AddArray(b_arr)
         pd_mesh.GetCellData().SetScalars(v_arr)
