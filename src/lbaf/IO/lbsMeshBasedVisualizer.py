@@ -93,7 +93,7 @@ class MeshBasedVisualizer:
             for i in self.__phases[0].get_object_ids()}
 
         # Initialize maximum edge volume
-        self.__max_volume = 0.0
+        self.__max_object_volume = 0.0
 
         # Compute object load range
         self.__load_range = [math.inf, 0.0]
@@ -189,7 +189,7 @@ class MeshBasedVisualizer:
 
         # Number of edges is fixed due to vtkExodusIIWriter limitation
         n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
-        self.__logger.info(
+        self.__logger.debug(
             f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
 
         # Create attribute data arrays for edge sent volumes
@@ -211,8 +211,8 @@ class MeshBasedVisualizer:
             for e, edge in index_to_edge.items():
                 v = u_edges.get(edge, float("nan"))
                 v_arr.SetTuple1(e, v)
-                if v > self.__max_volume:
-                    self.__max_volume = v
+                if v > self.__max_object_volume:
+                    self.__max_object_volume = v
                 self.__logger.debug(f"\t{e} {edge}): {v}")
 
         # Create and populate field arrays for statistics
@@ -233,6 +233,7 @@ class MeshBasedVisualizer:
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
         """ Map global index to its Cartesian grid coordinates."""
+
         # Sanity check
         n01 = grid_sizes[0] * grid_sizes[1]
         if flat_id < 0 or flat_id >= n01 * grid_sizes[2]:
@@ -247,16 +248,12 @@ class MeshBasedVisualizer:
 
     def create_object_mesh(self, phase: Phase, object_mapping: set):
         """ Map objects to polygonal mesh."""
+
         # Retrieve number of mesh points and bail out early if empty set
         n_o = phase.get_number_of_objects()
         if not n_o:
             self.__logger.warning("Empty list of objects, cannot write a mesh file")
             return
-
-        # Compute number of communication edges
-        n_e = int(n_o * (n_o - 1) / 2)
-        self.__logger.info(
-            f"Assembling object mesh with {n_o} points and {n_e} edges")
 
         # Create point array for object loads
         t_arr = vtk.vtkDoubleArray()
@@ -330,45 +327,44 @@ class MeshBasedVisualizer:
                 point_to_index[o] = point_index
                 point_index += 1
             
-        # Summarize edges
-        edges = {
-            tuple(sorted((tr[0], point_to_index[tr[1]]))): tr[2]
-            for tr in sent_volumes}
-
-        # Iterate over all possible links and create edges
+        # Initialize containers for edge lines and attribute
+        v_arr = vtk.vtkDoubleArray()
+        v_arr.SetName("Volume")
         lines = vtk.vtkCellArray()
-        index_to_edge = {}
-        edge_index = 0
-        for i in range(n_o):
-            for j in range(i + 1, n_o):
-                # Insert new link based on endpoint indices
+        n_e, edge_values = 0, {}
+
+        # Create object mesh edges and assign volume values
+        self.__logger.debug(f"\tCreating inter-object communication edges:")
+        for pt_index, k, v in sent_volumes:
+            # Retrieve undirected edge point indices
+            i, j = sorted((pt_index, point_to_index[k]))
+            ij = frozenset((i, j))
+
+            # Update or create  edge
+            if (e_ij := edge_values.get(ij)) is None:
+                # Edge must be created
+                self.__logger.debug(f"\tcreating edge {n_e} ({i}--{j}): {v}")
+                edge_values[ij] = [n_e, v]
+                n_e += 1
+                v_arr.InsertNextTuple1(v)
                 line = vtk.vtkLine()
                 line.GetPointIds().SetId(0, i)
                 line.GetPointIds().SetId(1, j)
                 lines.InsertNextCell(line)
-
-                # Update flat index map
-                index_to_edge[edge_index] = (i, j)
-                edge_index += 1
-
-        # Create and append volume array for edges
-        v_arr = vtk.vtkDoubleArray()
-        v_arr.SetName("Volume")
-        v_arr.SetNumberOfTuples(n_e)
-
-        # Assign edge volume values
-        self.__logger.debug(f"\tedges:")
-        for e in range(n_e):
-            i2e = index_to_edge[e]
-            v_arr.SetTuple1(e, edges.get(i2e, float("nan")))
-            self.__logger.debug(f"\t{e} {i2e}): {v_arr.GetTuple1(e)}")
-
+            else:
+                # Edge already exists and must be updated
+                e_ij[1] += v
+                self.__logger.debug(f"\tupdating edge {e_ij[0]} ({i}--{j}): {e_ij[1]}")
+                v_arr.SetTuple1(e_ij[0], e_ij[1])
+        
         # Create and return VTK polygonal data mesh
+        self.__logger.info(
+            f"Assembling object mesh with {n_o} points and {n_e} edges")
         pd_mesh = vtk.vtkPolyData()
         pd_mesh.SetPoints(points)
+        pd_mesh.SetLines(lines)
         pd_mesh.GetPointData().SetScalars(t_arr)
         pd_mesh.GetPointData().AddArray(b_arr)
-        pd_mesh.SetLines(lines)
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
@@ -505,7 +501,7 @@ class MeshBasedVisualizer:
 
         # Create white to black look-up table
         bw_lut = vtk.vtkLookupTable()
-        bw_lut.SetTableRange((0.0, self.__max_volume))
+        bw_lut.SetTableRange((0.0, self.__max_object_volume))
         bw_lut.SetSaturationRange(0, 0)
         bw_lut.SetHueRange(0, 0)
         bw_lut.SetValueRange(1, 0)
@@ -516,7 +512,7 @@ class MeshBasedVisualizer:
         edge_mapper = vtk.vtkPolyDataMapper()
         edge_mapper.SetInputData(object_mesh)
         edge_mapper.SetScalarModeToUseCellData()
-        edge_mapper.SetScalarRange((0.0, self.__max_volume))
+        edge_mapper.SetScalarRange((0.0, self.__max_object_volume))
         edge_mapper.SetLookupTable(bw_lut)
 
         # Create communication volume and its scalar bar actors
@@ -540,18 +536,17 @@ class MeshBasedVisualizer:
         sqrtT_out.GetPointData().SetActiveScalars("Migratable")
 
         # Glyph sentinel and migratable objects separately
-        glyph_actors = []
+        glyph_actors, glyph_mapper = [], None
         for k, v in {0.0: "Square", 1.0: "Circle"}.items():
-            # Threshold by Migratable status
-            thresh = vtk.vtkThreshold()
+            # Threshold by migratable status
+            thresh = vtk.vtkThresholdPoints()
             thresh.SetInputData(sqrtT_out)
             thresh.ThresholdBetween(k, k)
             thresh.Update()
             thresh_out = thresh.GetOutput()
             if not thresh_out.GetNumberOfPoints():
                 continue
-            thresh_out.GetPointData().SetActiveScalars(
-                sqrtT_str)
+            thresh_out.GetPointData().SetActiveScalars(sqrtT_str)
 
             # Glyph by square root of object loads
             glyph = vtk.vtkGlyphSource2D()
@@ -586,10 +581,11 @@ class MeshBasedVisualizer:
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)
 
-        # Create and add unique scalar bar for object load
-        load_actor = self.create_scalar_bar_actor(
-            glyph_mapper, "Object Load", 0.55, 0.05)
-        renderer.AddActor2D(load_actor)
+        # Create and add unique scalar bar for object load when available
+        if glyph_mapper:
+            load_actor = self.create_scalar_bar_actor(
+                glyph_mapper, "Object Load", 0.55, 0.05)
+            renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration
         text_actor = vtk.vtkTextActor()

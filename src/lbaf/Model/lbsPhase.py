@@ -203,12 +203,11 @@ class Phase:
             self.compute_edges()
             return
 
-        # Otherwise retrieve object communicator
+        # Break out early when object has no communicator
         comm = o.get_communicator()
         if not isinstance(comm, ObjectCommunicator):
-            self._logger.error(f"Object {o.get_id()} does not have a communicator")
-            sys.excepthook = exc_handler
-            raise SystemExit(1)
+            self.__logger.debug(f"Object {o.get_id()} does not have a communicator, cannot update edges")
+            return
 
         # Keep track of indices related to src and dst
         src_id, dst_id = r_src.get_id(), r_dst.get_id()
@@ -388,25 +387,12 @@ class Phase:
 
         # Update inter-rank edges before moving objects
         self.update_edges(o, r_src, r_dst)
-        if (o.get_id() in (0, 5)):
-            print(o)
-            print("sent:", o.get_communicator().get_sent())
-            print("recv:", o.get_communicator().get_received())
 
         # Remove object from migratable ones on source
         r_src.remove_migratable_object(o, r_dst)
-        if (o.get_id() in (0, 5)):
-            print(o)
-            print("sent:", o.get_communicator().get_sent())
-            print("recv:", o.get_communicator().get_received())
-
 
         # Add object to migratable ones on destination
         r_dst.add_migratable_object(o)
-        if (o.get_id() in (0, 5)):
-            print(o)
-            print("sent:", o.get_communicator().get_sent())
-            print("recv:", o.get_communicator().get_received())
 
         # Reset current rank of object
         o.set_rank_id(r_dst.get_id())
