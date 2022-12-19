@@ -484,7 +484,7 @@ class MeshBasedVisualizer:
         rank_mapper.SetInputConnection(trans.GetOutputPort())
         rank_mapper.SetLookupTable(
             self.create_color_transfer_function((
-                self.__qoi_range[0], self.__qoi_range[1])))
+                self.__qoi_range[0], self.__qoi_range[1]),"blue_to_red"))
         rank_mapper.SetScalarRange(self.__qoi_range)
 
         # Create rank QOI and its scalar bar actors
@@ -575,7 +575,7 @@ class MeshBasedVisualizer:
             glyph_mapper.SetInputConnection(trans.GetOutputPort())
             glyph_mapper.SetLookupTable(
                 self.create_color_transfer_function(
-                    self.__load_range, "blue_to_red"))
+                    self.__load_range))
             glyph_mapper.SetScalarRange(self.__load_range)
             glyph_actor = vtk.vtkActor()
             glyph_actor.SetMapper(glyph_mapper)
