@@ -12,11 +12,12 @@ class AlgorithmBase:
     __metaclass__ = abc.ABCMeta
     """ An abstract base class of load/work balancing algorithms."""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str=''):
+    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
         """ Class constructor:
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
-            qoi_name: optional additional QOI to track"""
+            rank_qoi: rank QOI to track
+            object_qoi: object QOI to track."""
 
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
@@ -33,22 +34,27 @@ class AlgorithmBase:
             raise SystemExit(1)
         self._work_model = work_model
 
-        # Assert that optional quantity of interest name is a string
-        if qoi_name and not isinstance(qoi_name, str):
+        # Assert that quantity of interest names are string
+        if rank_qoi and not isinstance(rank_qoi, str):
             lgr.error("Could not create an algorithm with non-string QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.__qoi_name = qoi_name
+        self.__rank_qoi = rank_qoi
+        if object_qoi and not isinstance(object_qoi, str):
+            lgr.error("Could not create an algorithm with non-string QOI name")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        self.__rank_qoi = rank_qoi
+        self.__object_qoi = object_qoi
         lgr.info(
-            "Created base algorithm"
-            + (f" tracking rank {qoi_name}" if qoi_name else ''))
+            f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")
 
         # Initially no phase is associated to algorithm
         self._phase = None
 
     @staticmethod
-    def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, qoi_name=''):
-        """ Produce the necessary concrete algorithm."""
+    def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, rank_qoi, object_qoi):
+        """ Instantiae the necessary concrete algorithm."""
 
         # Load up available algorithms
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
@@ -56,12 +62,10 @@ class AlgorithmBase:
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
 
         # Ensure that algorithm name is valid
-        algorithm = locals()[algorithm_name + "Algorithm"]
-        return algorithm(work_model, parameters, lgr, qoi_name)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
-            return algorithm(work_model, parameters, lgr, qoi_name)
+            return algorithm(work_model, parameters, lgr, rank_qoi, object_qoi)
         except:
             # Otherwise, error out
             lgr.error(f"Could not create an algorithm with name {algorithm_name}")
@@ -72,7 +76,7 @@ class AlgorithmBase:
         """ Compute and update run distributions and statistics."""
 
         # Create or update distributions of rank quantities of interest
-        for rank_qoi_name in ("objects", "load", self.__qoi_name):
+        for rank_qoi_name in ("objects", "load", self.__rank_qoi):
             if not rank_qoi_name or rank_qoi_name == "work":
                 continue
             distributions.setdefault(rank_qoi_name, []).append(
