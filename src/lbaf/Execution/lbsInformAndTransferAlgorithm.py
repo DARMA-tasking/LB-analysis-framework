@@ -10,23 +10,23 @@ from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, \
-    min_Hamming_distance
+from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
     """ A concrete class for the 2-phase gossip+transfer algorithm."""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
         """ Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
-            qoi_name: a quantity of interest."""
+            rank_qoi: rank QOI to track
+            object_qoi: object QOI to track."""
 
         # Call superclass init
         super(InformAndTransferAlgorithm, self).__init__(
-            work_model, parameters, lgr, qoi_name)
+            work_model, parameters, lgr, rank_qoi, object_qoi)
 
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")

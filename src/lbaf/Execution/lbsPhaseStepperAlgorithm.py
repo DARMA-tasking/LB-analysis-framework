@@ -10,15 +10,16 @@ from ..Utils.exception_handler import exc_handler
 class PhaseStepperAlgorithm(AlgorithmBase):
     """ A concrete class for the phase stepper non-optimzing algorithm."""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
         """ Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
-            qoi_name: a quantity of interest."""
+            rank_qoi: rank QOI to track
+            object_qoi: object QOI to track."""
 
         # Call superclass init
-        super(PhaseStepperAlgorithm, self).__init__(
-            work_model, parameters, lgr, qoi_name)
+        super(InformAndTransferAlgorithm, self).__init__(
+            work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, phases: list, distributions: dict, statistics: dict, _):
         """ Execute brute force optimization algorithm on Phase instance."""

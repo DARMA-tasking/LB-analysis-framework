@@ -12,15 +12,16 @@ class BruteForceAlgorithm(AlgorithmBase):
     """ A concrete class for the brute force optimization algorithm
     """
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
         """ Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
-            qoi_name: a quantity of interest."""
+            rank_qoi: rank QOI to track
+            object_qoi: object QOI to track."""
 
         # Call superclass init
         super(BruteForceAlgorithm, self).__init__(
-            work_model, parameters, lgr, qoi_name)
+            work_model, parameters, lgr, rank_qoi, object_qoi)
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)

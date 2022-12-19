@@ -44,7 +44,6 @@ class AlgorithmBase:
             lgr.error("Could not create an algorithm with non-string QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self.__rank_qoi = rank_qoi
         self.__object_qoi = object_qoi
         lgr.info(
             f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")

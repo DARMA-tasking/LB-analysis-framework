@@ -15,7 +15,7 @@ class Runtime:
             phases: list of Phase instances
             work_model: dictionary with work model name and optional parameters
             algorithm: dictionary with algorithm name and parameters
-            a: arrangements that minimize maximum work
+            arrangements: arrangements that minimize maximum work
             logger: logger for output messages
             rank_qoi: rank QOI name whose distributions are to be tracked
             object_qoi: object QOI name whose distributions are to be tracked."""

@@ -405,8 +405,7 @@ class LBAFApp:
                 rt.statistics)
             ex_writer.generate(
                 self.params.save_meshes,
-                self.params.rank_qoi,
-                self.params.object_qoi)
+                self.params.rank_qoi)
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]
