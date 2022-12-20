@@ -9,8 +9,16 @@ class GridStreamer:
     """A class containing to stream a grid with time-varying attributes
     """
 
-    def __init__(self, points: vtk.vtkPoints, lines: vtk.vtkCellArray, field_arrays: dict = {}, point_arrays: list = [], cell_arrays: list = [], lgr: Logger = None):
+    def __init__(
+        self,
+        points: vtk.vtkPoints,
+        lines: vtk.vtkCellArray,
+        field_arrays: dict = {},
+        point_arrays: list = [],
+        cell_arrays: list = [],
+        lgr: Logger = None):
         """ Class constructor. """
+
         # Assign logger to instance variable
         self.__logger = lgr
 
@@ -28,7 +36,7 @@ class GridStreamer:
             self.__logger.error("A dict of vtkDataArray instances is required as field data input")
             self.Error = True
         if not isinstance(point_arrays, list):
-            self.__logger.error("A list of vtkDataArray instances is required as point data input")
+            self.__logger.error("A list of dicts of vtkDataArray instances is required as point data input")
             self.Error = True
             return
         if not isinstance(cell_arrays, list):
@@ -37,9 +45,8 @@ class GridStreamer:
             return
 
         # Keep track of requested number of steps and check consistency
-        n_steps = len(cell_arrays)
-        if any([n_steps != len(p) for p in point_arrays]):
-            self.__logger.error(f"Number of time steps not all equal to {n_steps}")
+        if any([(n_steps := len(cell_arrays)) != len(point_arrays)]):
+            self.__logger.error(f"Number of point array dicts not all equal to {n_steps}")
             self.Error = True
             return
 

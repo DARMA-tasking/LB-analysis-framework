@@ -43,7 +43,7 @@ class MeshBasedVisualizer:
                 "Mesh writer expects a quantity of interest name")
             raise SystemExit(1)
         qoi_msg = f"Creating visualization for rank {qoi_name}"
-        self.__qoi_name = qoi_name
+        self.__qoi_name = f"rank {qoi_name}"
 
         # When QOI range was passed make sure it is consistent
         qoi_max = None
@@ -51,7 +51,7 @@ class MeshBasedVisualizer:
             qoi_max = qoi[1]
             if qoi_max is None or isinstance(qoi_max, float):
                 if qoi_max is not None:
-                    qoi_msg += f"{qoi_msg} with range upper bound: {qoi_max}"
+                    qoi_msg += f" <= {qoi_max}"
             else:
                 self.__logger.error(
                     f"Inconsistent quantity of interest maximum: {qoi_max}")
@@ -120,39 +120,41 @@ class MeshBasedVisualizer:
                 self.__output_dir, output_file_stem)
 
         # Retrieve and verify rank attribute distributions
-        dis_l = distributions.get("load", [])
-        dis_w = distributions.get("work", [])
-        dis_q = distributions.get(self.__qoi_name, [])
-        if not (n_dis := len(dis_l)) == len(dis_w) == len(dis_q):
+        rank_attributes = {
+            k: distributions.get(k, [])
+            for k in list({"rank load", "rank work", self.__qoi_name})}
+        if not all((n_dis := len(rank_attributes["rank load"])) == len(v)
+                   for v in rank_attributes.values()):
             self.__logger.error(
-                f"Load, work, and {self.__qoi_name} distributions do not have equal lengths")
+                f"Rank attribute distributions do not have equal lengths")
             raise SystemExit(1)
         self.__distributions = distributions
 
         # Assign quantity of interest range when not specified
-        self.__qoi_range = [min(min(dis_q, key=min))]
+        rank_qoi = rank_attributes[self.__qoi_name]
+        self.__qoi_range = [min(min(rank_qoi, key=min))]
         if qoi_max is None:
-            self.__qoi_range.append(max(max(dis_q, key=max)))
+            self.__qoi_range.append(max(max(rank_attributes[self.__qoi_name], key=max)))
             self.__logger.info(
-                f"Using space-time range of rank {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
+                f"Using space-time range of {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
         else:
             self.__qoi_range.append(qoi_max)
             self.__logger.info(
-                f"Using specified range of rank {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
+                f"Using [{self.__qoi_range[0]}; {self.__qoi_range[1]}] range for rank {self.__qoi_name}")
 
         # Create attribute data arrays for rank loads and works
-        self.__loads, self.__works, self.__qois = [[] for _ in range(3)]
+        self.__logger.info(
+            "Adding attributes " + ", ".join(rank_attributes))
+        self.__qoi_dicts = []
         for _ in range(n_dis):
-            # Create and append new load, work, and qoi point arrays
-            l_arr, w_arr, q_arr = [vtk.vtkDoubleArray() for _ in range(3)]
-            l_arr.SetName("Rank Load")
-            w_arr.SetName("Rank Work")
-            q_arr.SetName(f"Rank {self.__qoi_name}")
-            for arr in (l_arr, w_arr, q_arr):
-                arr.SetNumberOfTuples(self.__n_ranks)
-            self.__loads.append(l_arr)
-            self.__works.append(w_arr)
-            self.__qois.append(q_arr)
+            # Create and append new rank QOI dictionaries
+            arr_dict = {}
+            self.__qoi_dicts.append(arr_dict)
+            for k, v in rank_attributes.items():
+                qoi_arr = vtk.vtkDoubleArray()
+                qoi_arr.SetName(k)
+                qoi_arr.SetNumberOfTuples(self.__n_ranks)
+                arr_dict[k] = qoi_arr
 
         # Iterate over ranks and create rank mesh points
         self.__rank_points = vtk.vtkPoints()
@@ -165,11 +167,9 @@ class MeshBasedVisualizer:
                     i, self.__grid_size)])
 
             # Set point attributes from distribution values
-            for l, (l_arr, w_arr, q_arr) in enumerate(
-                zip(self.__loads, self.__works, self.__qois)):
-                l_arr.SetTuple1(i, dis_l[l][i])
-                w_arr.SetTuple1(i, dis_w[l][i])
-                q_arr.SetTuple1(i, dis_q[l][i])
+            for j, qoi_dict in enumerate(self.__qoi_dicts):
+                for k, v in rank_attributes.items():
+                    qoi_dict[k].SetTuple1(i, v[j][i])
 
         # Iterate over all possible rank links and create edges
         self.__rank_lines = vtk.vtkCellArray()
@@ -432,7 +432,7 @@ class MeshBasedVisualizer:
             text_prop.SetFontSize(72)
 
         # Set custom parameters
-        scalar_bar_actor.SetTitle(title)
+        scalar_bar_actor.SetTitle(title.title())
         position = scalar_bar_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
         position.SetValue(x, y, 0.0)
@@ -454,7 +454,8 @@ class MeshBasedVisualizer:
         rank_mesh = vtk.vtkPolyData()
         rank_mesh.SetPoints(self.__rank_points)
         rank_mesh.SetLines(self.__rank_lines)
-        rank_mesh.GetPointData().SetScalars(self.__qois[iteration])
+        rank_mesh.GetPointData().SetScalars(
+            self.__qoi_dicts[iteration][self.__qoi_name])
 
         # Create renderer with parallel projection
         renderer = vtk.vtkRenderer()
@@ -491,7 +492,7 @@ class MeshBasedVisualizer:
         rank_actor = vtk.vtkActor()
         rank_actor.SetMapper(rank_mapper)
         qoi_actor = self.create_scalar_bar_actor(
-            rank_mapper, f"Rank {self.__qoi_name}".title(), 0.5, 0.9)
+            rank_mapper, self.__qoi_name, 0.5, 0.9)
         qoi_actor.DrawBelowRangeSwatchOn()
         qoi_actor.SetBelowRangeAnnotation('<')
         qoi_actor.DrawAboveRangeSwatchOn()
@@ -619,7 +620,7 @@ class MeshBasedVisualizer:
                 self.__rank_points,
                 self.__rank_lines,
                 self.__field_data,
-                [self.__loads, self.__works, self.__qois],
+                self.__qoi_dicts,
                 self.__volumes,
                 lgr=self.__logger)
 
@@ -638,7 +639,7 @@ class MeshBasedVisualizer:
 
         # Determine whether phase must be updated
         update_phase = True if len(
-            objects := self.__distributions.get("objects", set())
+            objects := self.__distributions.get("rank objects", set())
             ) == len(self.__phases) else False
 
         # Iterate over all object distributions

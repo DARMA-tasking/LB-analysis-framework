@@ -75,13 +75,13 @@ class AlgorithmBase:
         """ Compute and update run distributions and statistics."""
 
         # Create or update distributions of rank quantities of interest
-        for rank_qoi_name in ("objects", "load", self.__rank_qoi):
+        for rank_qoi_name in {"objects", "load", self.__rank_qoi}:
             if not rank_qoi_name or rank_qoi_name == "work":
                 continue
-            distributions.setdefault(rank_qoi_name, []).append(
+            distributions.setdefault(f"rank {rank_qoi_name}", []).append(
                 [getattr(p, f"get_{rank_qoi_name}")()
                  for p in self._phase.get_ranks()])
-        distributions.setdefault("work", []).append(
+        distributions.setdefault("rank work", []).append(
             [self._work_model.compute(p) for p in self._phase.get_ranks()])
 
         # Create or update distributions of edge quantities of interest

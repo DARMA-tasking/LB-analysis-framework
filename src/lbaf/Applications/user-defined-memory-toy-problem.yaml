@@ -42,3 +42,4 @@ LBAF_Viz:
   object_jitter: 0.5
   rank_qoi: max_memory_usage
   object_qoi: shared_block_id
+  #save_meshes: True

@@ -117,46 +117,57 @@ class Rank:
 
     def get_shared_memory(self):
         """ Return total shared memory on rank."""
+
         return float(sum([x[0] for x in self.__shared_blocks.values()]))
 
     def get_objects(self) -> set:
         """ Return all objects assigned to rank."""
+
         return self.__migratable_objects.union(self.__sentinel_objects)
 
     def add_migratable_object(self, o: Object) -> None:
         """ Add object to migratable objects."""
+
         return self.__migratable_objects.add(o)
 
     def get_migratable_objects(self) -> set:
         """ Return migratable objects assigned to rank."""
+
         return self.__migratable_objects
 
     def add_sentinel_object(self, o: Object) -> None:
         """ Add object to sentinel objects."""
+
         return self.__sentinel_objects.add(o)
 
     def get_sentinel_objects(self) -> set:
         """ Return sentinel objects assigned to rank."""
+
         return self.__sentinel_objects
 
     def get_number_of_sentinel_objects(self) -> int:
         """ Return number of sentinel objects assigned to rank."""
+
         return len(self.__sentinel_objects)
 
     def get_object_ids(self) -> list:
         """ Return IDs of all objects assigned to rank."""
+
         return [o.get_id() for o in self.__migratable_objects.union(self.__sentinel_objects)]
 
     def get_migratable_object_ids(self) -> list:
         """ Return IDs of migratable objects assigned to rank."""
+
         return [o.get_id() for o in self.__migratable_objects]
 
     def get_sentinel_object_ids(self) -> list:
         """ Return IDs of sentinel objects assigned to rank."""
+
         return [o.get_id() for o in self.__sentinel_objects]
 
     def is_sentinel(self, o: Object) -> list:
-        """ Return whether object is a sentinel or not."""
+        """ Return whether given object is sentinel of rank."""
+
         if o in self.__sentinel_objects:
             return True
         else:
@@ -164,10 +175,12 @@ class Rank:
 
     def get_known_loads(self) -> dict:
         """ Return loads of peers know to self."""
+
         return self.__known_loads
 
     def remove_migratable_object(self, o: Object, p_dst: "Rank"):
         """ Remove migratable able object from self object sent to peer."""
+
         # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
 
@@ -177,18 +190,22 @@ class Rank:
         
     def get_load(self) -> float:
         """ Return total load on rank."""
+
         return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
 
     def get_migratable_load(self) -> float:
         """ Return migratable load on rank."""
+
         return sum([o.get_load() for o in self.__migratable_objects])
 
     def get_sentinel_load(self) -> float:
         """ Return sentinel load oon rank."""
+
         return sum([o.get_load() for o in self.__sentinel_objects])
 
     def get_received_volume(self):
         """ Return volume received by objects assigned to rank from other ranks."""
+
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.__migratable_objects.union(self.__sentinel_objects)
@@ -205,6 +222,7 @@ class Rank:
 
     def get_sent_volume(self):
         """ Return volume sent by objects assigned to rank to other ranks."""
+
         # Iterate over all objects assigned to rank
         volume = 0
         obj_set = self.__migratable_objects.union(self.__sentinel_objects)
@@ -223,6 +241,7 @@ class Rank:
 
     def get_max_object_level_memory(self) -> float:
         """ Return maximum object-level memory on rank."""
+
         
         # Iterate over all objects assigned to rank
         total_size, max_overhead = 0.0, 0.0
@@ -239,15 +258,18 @@ class Rank:
 
     def get_max_memory_usage(self) -> float:
         """ Return maximum memory usage on rank."""
+
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
     def reset_all_load_information(self):
         """ Reset all load information known to self."""
+
         # Reset information about known peers
         self.__known_loads = {}
 
     def initialize_message(self, loads: set, f: int):
         """ Initialize message to be sent to selected peers."""
+
         # Retrieve current load on this rank
         l = self.get_load()
 
@@ -262,7 +284,7 @@ class Rank:
 
     def forward_message(self, r, s, f):
         """ Forward information message to sample of selected peers."""
-        # TODO: s which is set of Ranks is not used, should it be removed?
+
         # Create load message tagged at current round
         msg = Message(r, self.__known_loads)
 
@@ -274,8 +296,8 @@ class Rank:
 
     def process_message(self, msg):
         """ Update internals when message is received."""
+
         # Assert that message has the expected type
-        # TODO: Better message checking needed
         if not isinstance(msg, Message):
             self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
 
@@ -287,6 +309,7 @@ class Rank:
 
     def compute_transfer_cmf(self, transfer_criterion, o: Object, targets: dict, strict=False):
         """ Compute CMF for the sampling of transfer targets."""
+
         # Initialize criterion values
         c_values = {}
         c_min, c_max = math.inf, -math.inf
