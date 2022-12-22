@@ -594,7 +594,7 @@ class MeshBasedVisualizer:
             # Create mapper and actor for glyphs
             glyph_mapper = vtk.vtkPolyDataMapper()
             glyph_mapper.SetInputConnection(trans.GetOutputPort())
-            glyph_range = (0, 11)
+            glyph_range = self.__load_range
             glyph_mapper.SetLookupTable(
                 self.create_color_transfer_function(
                     glyph_range))
