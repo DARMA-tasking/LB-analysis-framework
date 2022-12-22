@@ -86,15 +86,16 @@ class GridStreamer:
             i = int(t_s)
             for f_name, f_list in field_arrays.items():
                 if n_steps != len(f_list):
-                    logger().error(f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> "
-                                   f"{n_steps}")
+                    logger().error(
+                        f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> {n_steps}")
                     self.Error = True
                     return
                 output.GetFieldData().AddArray(f_list[i])
 
             # Assign data attributes to output for time step index
-            for p in point_arrays:
-                output.GetPointData().AddArray(p[i])
+            for k, v in point_arrays[i].items():
+                output.GetPointData().AddArray(v)
+                self.__logger.debug(f"Added {k} point array")
             output.GetCellData().AddArray(cell_arrays[i])
 
         # Set VTK RequestData() to programmable source
