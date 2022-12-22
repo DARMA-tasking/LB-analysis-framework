@@ -258,9 +258,17 @@ class MeshBasedVisualizer:
             return
 
         # Create point array for object quantity of interest
-        t_arr = vtk.vtkDoubleArray()
-        t_arr.SetName(self.__object_qoi)
-        t_arr.SetNumberOfTuples(n_o)
+        q_arr = vtk.vtkDoubleArray()
+        q_arr.SetName(self.__object_qoi)
+        q_arr.SetNumberOfTuples(n_o)
+
+        # Load array must be added when it is not the object QOI
+        if self.__object_qoi != "object load":
+            l_arr = vtk.vtkDoubleArray()
+            l_arr.SetName("object load")
+            l_arr.SetNumberOfTuples(n_o)
+        else:
+            l_arr =  None
 
         # Create bit array for object migratability
         b_arr = vtk.vtkBitArray()
@@ -322,9 +330,12 @@ class MeshBasedVisualizer:
                     for d, c in enumerate(self.global_id_to_cartesian(
                         i, rank_size))])
 
-                t_arr.SetTuple1(point_index, object_qoi[o.get_id()])
+                # Set object attributes
+                q_arr.SetTuple1(point_index, object_qoi[o.get_id()])
                 b_arr.SetTuple1(point_index, m)
-
+                if l_arr:
+                    l_arr.SetTuple1(point_index, o.get_load())
+                
                 # Update sent volumes
                 for k, v in o.get_sent().items():
                     sent_volumes.append((point_index, k, v))
@@ -332,7 +343,7 @@ class MeshBasedVisualizer:
                 # Update maps and counters
                 point_to_index[o] = point_index
                 point_index += 1
-            
+
         # Initialize containers for edge lines and attribute
         v_arr = vtk.vtkDoubleArray()
         v_arr.SetName("Volume")
@@ -369,8 +380,10 @@ class MeshBasedVisualizer:
         pd_mesh = vtk.vtkPolyData()
         pd_mesh.SetPoints(points)
         pd_mesh.SetLines(lines)
-        pd_mesh.GetPointData().SetScalars(t_arr)
+        pd_mesh.GetPointData().SetScalars(q_arr)
         pd_mesh.GetPointData().AddArray(b_arr)
+        if l_arr:
+            pd_mesh.GetPointData().AddArray(l_arr)
         pd_mesh.GetCellData().SetScalars(v_arr)
         return pd_mesh
 
@@ -532,28 +545,28 @@ class MeshBasedVisualizer:
         renderer.AddActor2D(volume_actor)
 
         # Compute square root of object loads
-        sqrtT = vtk.vtkArrayCalculator()
-        sqrtT.SetInputData(object_mesh)
-        sqrtT.AddScalarArrayName(self.__object_qoi)
-        sqrtT_str = f"sqrt({self.__object_qoi})"
-        sqrtT.SetFunction(sqrtT_str)
-        sqrtT.SetResultArrayName(sqrtT_str)
-        sqrtT.Update()
-        sqrtT_out = sqrtT.GetOutput()
-        sqrtT_out.GetPointData().SetActiveScalars("Migratable")
+        sqrtL = vtk.vtkArrayCalculator()
+        sqrtL.SetInputData(object_mesh)
+        sqrtL.AddScalarArrayName("object load")
+        sqrtL_str = "sqrt(object load)"
+        sqrtL.SetFunction(sqrtL_str)
+        sqrtL.SetResultArrayName(sqrtL_str)
+        sqrtL.Update()
+        sqrtL_out = sqrtL.GetOutput()
+        sqrtL_out.GetPointData().SetActiveScalars("Migratable")
 
         # Glyph sentinel and migratable objects separately
         glyph_actors, glyph_mapper = [], None
         for k, v in {0.0: "Square", 1.0: "Circle"}.items():
             # Threshold by migratable status
             thresh = vtk.vtkThresholdPoints()
-            thresh.SetInputData(sqrtT_out)
+            thresh.SetInputData(sqrtL_out)
             thresh.ThresholdBetween(k, k)
             thresh.Update()
             thresh_out = thresh.GetOutput()
             if not thresh_out.GetNumberOfPoints():
                 continue
-            thresh_out.GetPointData().SetActiveScalars(sqrtT_str)
+            thresh_out.GetPointData().SetActiveScalars(sqrtL_str)
 
             # Glyph by square root of object quantity of interest
             glyph = vtk.vtkGlyphSource2D()
@@ -581,10 +594,11 @@ class MeshBasedVisualizer:
             # Create mapper and actor for glyphs
             glyph_mapper = vtk.vtkPolyDataMapper()
             glyph_mapper.SetInputConnection(trans.GetOutputPort())
+            glyph_range = (0, 11)
             glyph_mapper.SetLookupTable(
                 self.create_color_transfer_function(
-                    self.__load_range))
-            glyph_mapper.SetScalarRange(self.__load_range)
+                    glyph_range))
+            glyph_mapper.SetScalarRange(glyph_range)
             glyph_actor = vtk.vtkActor()
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)

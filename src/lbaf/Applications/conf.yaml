@@ -8,7 +8,7 @@ from_data:
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 1.
+    alpha: 0.
     beta: 1.
     gamma: 0.
 
