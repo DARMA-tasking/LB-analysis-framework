@@ -74,6 +74,14 @@ class AlgorithmBase:
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """ Compute and update run distributions and statistics."""
 
+        # Create or update distributions of object quantities of interest
+        for object_qoi_name in {"load", self.__object_qoi}:
+            if not object_qoi_name:
+                continue
+            distributions.setdefault(f"object {object_qoi_name}", []).append(
+                {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
+                 for o in self._phase.get_objects()})
+
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in {"objects", "load", self.__rank_qoi}:
             if not rank_qoi_name or rank_qoi_name == "work":

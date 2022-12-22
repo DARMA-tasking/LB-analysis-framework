@@ -79,9 +79,19 @@ class Phase:
 
         return self.__n_objects
 
+    def get_objects(self):
+
+        """ Return all objects belonging to phase."""
+
+        objects = []
+        for p in self.__ranks:
+            objects += p.get_objects()
+        return objects
+
     def get_object_ids(self):
 
-        """ Return IDs of ranks belonging to phase."""
+        """ Return IDs of all objects belonging to phase."""
+
         ids = []
         for p in self.__ranks:
             ids += p.get_object_ids()

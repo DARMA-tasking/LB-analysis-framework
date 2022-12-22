@@ -15,7 +15,7 @@ class MeshBasedVisualizer:
     def __init__(
         self,
         logger: Logger,
-        qoi: list,
+        qoi_request: list,
         phases: list,
         grid_size: list,
         object_jitter=0.0,
@@ -25,7 +25,7 @@ class MeshBasedVisualizer:
         statistics={},
         resolution=1.):
         """ Class constructor:
-            qoi: quantity of interest for ranks
+            qoi_request: description of rank and object quantities of interest
             phases: list of Phase instances
             grid_size: iterable containing grid sizes in each dimension
             object_jitter: coefficient of random jitter with magnitude < 1
@@ -36,28 +36,30 @@ class MeshBasedVisualizer:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Make sure that quantity of interest name was passed
-        if not isinstance(qoi, list) or not len(qoi) or not (
-            qoi_name := qoi[0]) or not isinstance(qoi_name, str):
+        # Make sure that quantity of interest names were passed
+        if not isinstance(qoi_request, list) or not len(qoi_request) > 2 or not (
+            rank_qoi := qoi_request[0]) or not isinstance(
+            rank_qoi, str) or not (object_qoi := qoi_request[2]) or not isinstance(
+            object_qoi, str):
             self.__logger.error(
-                "Mesh writer expects a quantity of interest name")
+                "Mesh writer expects rank and object quantities of interest names")
             raise SystemExit(1)
-        qoi_msg = f"Creating visualization for rank {qoi_name}"
-        self.__qoi_name = f"rank {qoi_name}"
+        self.__rank_qoi = f"rank {rank_qoi}"
+        self.__object_qoi = f"object {object_qoi}"
+        self.__logger.info(
+            f"Creating visualization for {self.__object_qoi} and {self.__rank_qoi}")
 
         # When QOI range was passed make sure it is consistent
-        qoi_max = None
-        if len(qoi) > 1:
-            qoi_max = qoi[1]
-            if qoi_max is None or isinstance(qoi_max, float):
-                if qoi_max is not None:
-                    qoi_msg += f" <= {qoi_max}"
+        rank_qoi_max = qoi_request[1]
+        if rank_qoi_max is not None:
+            if isinstance(rank_qoi_max, float):
+                self.__logger.info(
+                    f"\t{self.__rank_qoi} <= {rank_qoi_max}")
             else:
                 self.__logger.error(
-                    f"Inconsistent quantity of interest maximum: {qoi_max}")
+                    f"Inconsistent quantity of interest maximum: {rank_qoi_max}")
                 raise SystemExit(1)
-        self.__logger.info(qoi_msg)
-
+        
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
             self.__logger.error(
@@ -122,7 +124,7 @@ class MeshBasedVisualizer:
         # Retrieve and verify rank attribute distributions
         rank_attributes = {
             k: distributions.get(k, [])
-            for k in list({"rank load", "rank work", self.__qoi_name})}
+            for k in list({"rank load", "rank work", self.__rank_qoi})}
         if not all((n_dis := len(rank_attributes["rank load"])) == len(v)
                    for v in rank_attributes.values()):
             self.__logger.error(
@@ -131,16 +133,16 @@ class MeshBasedVisualizer:
         self.__distributions = distributions
 
         # Assign quantity of interest range when not specified
-        rank_qoi = rank_attributes[self.__qoi_name]
+        rank_qoi = rank_attributes[self.__rank_qoi]
         self.__qoi_range = [min(min(rank_qoi, key=min))]
-        if qoi_max is None:
-            self.__qoi_range.append(max(max(rank_attributes[self.__qoi_name], key=max)))
+        if rank_qoi_max is None:
+            self.__qoi_range.append(max(max(rank_attributes[self.__rank_qoi], key=max)))
             self.__logger.info(
-                f"Using space-time range of {self.__qoi_name}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
+                f"Using space-time range of {self.__rank_qoi}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
         else:
-            self.__qoi_range.append(qoi_max)
+            self.__qoi_range.append(rank_qoi_max)
             self.__logger.info(
-                f"Using [{self.__qoi_range[0]}; {self.__qoi_range[1]}] range for rank {self.__qoi_name}")
+                f"Using [{self.__qoi_range[0]}; {self.__qoi_range[1]}] range for rank {self.__rank_qoi}")
 
         # Create attribute data arrays for rank loads and works
         self.__logger.info(
@@ -255,9 +257,9 @@ class MeshBasedVisualizer:
             self.__logger.warning("Empty list of objects, cannot write a mesh file")
             return
 
-        # Create point array for object loads
+        # Create point array for object quantity of interest
         t_arr = vtk.vtkDoubleArray()
-        t_arr.SetName("Load")
+        t_arr.SetName(self.__object_qoi)
         t_arr.SetNumberOfTuples(n_o)
 
         # Create bit array for object migratability
@@ -269,8 +271,12 @@ class MeshBasedVisualizer:
         points = vtk.vtkPoints()
         points.SetNumberOfPoints(n_o)
 
-        # Iterate over ranks and objects to create mesh points
+        # Retrieve elements constant across all ranks
+        p_id = phase.get_id()
         ranks = phase.get_ranks()
+        object_qoi = self.__distributions[self.__object_qoi][p_id]
+
+        # Iterate over ranks and objects to create mesh points
         point_index, point_to_index, sent_volumes = 0, {}, []
         for rank_id, objects in enumerate(object_mapping):
             # Determine rank offsets
@@ -315,8 +321,8 @@ class MeshBasedVisualizer:
                             (0.0, 0.0, 0.0))[d] + c) * o_resolution
                     for d, c in enumerate(self.global_id_to_cartesian(
                         i, rank_size))])
-                load = o.get_load()
-                t_arr.SetTuple1(point_index, load)
+
+                t_arr.SetTuple1(point_index, object_qoi[o.get_id()])
                 b_arr.SetTuple1(point_index, m)
 
                 # Update sent volumes
@@ -359,7 +365,7 @@ class MeshBasedVisualizer:
         
         # Create and return VTK polygonal data mesh
         self.__logger.info(
-            f"Assembling object mesh with {n_o} points and {n_e} edges")
+            f"Assembling phase {p_id} object mesh with {n_o} points and {n_e} edges")
         pd_mesh = vtk.vtkPolyData()
         pd_mesh.SetPoints(points)
         pd_mesh.SetLines(lines)
@@ -455,7 +461,7 @@ class MeshBasedVisualizer:
         rank_mesh.SetPoints(self.__rank_points)
         rank_mesh.SetLines(self.__rank_lines)
         rank_mesh.GetPointData().SetScalars(
-            self.__qoi_dicts[iteration][self.__qoi_name])
+            self.__qoi_dicts[iteration][self.__rank_qoi])
 
         # Create renderer with parallel projection
         renderer = vtk.vtkRenderer()
@@ -492,7 +498,7 @@ class MeshBasedVisualizer:
         rank_actor = vtk.vtkActor()
         rank_actor.SetMapper(rank_mapper)
         qoi_actor = self.create_scalar_bar_actor(
-            rank_mapper, self.__qoi_name, 0.5, 0.9)
+            rank_mapper, self.__rank_qoi, 0.5, 0.9)
         qoi_actor.DrawBelowRangeSwatchOn()
         qoi_actor.SetBelowRangeAnnotation('<')
         qoi_actor.DrawAboveRangeSwatchOn()
@@ -528,8 +534,8 @@ class MeshBasedVisualizer:
         # Compute square root of object loads
         sqrtT = vtk.vtkArrayCalculator()
         sqrtT.SetInputData(object_mesh)
-        sqrtT.AddScalarArrayName("Load")
-        sqrtT_str = "sqrt(Load)"
+        sqrtT.AddScalarArrayName(self.__object_qoi)
+        sqrtT_str = f"sqrt({self.__object_qoi})"
         sqrtT.SetFunction(sqrtT_str)
         sqrtT.SetResultArrayName(sqrtT_str)
         sqrtT.Update()
@@ -549,7 +555,7 @@ class MeshBasedVisualizer:
                 continue
             thresh_out.GetPointData().SetActiveScalars(sqrtT_str)
 
-            # Glyph by square root of object loads
+            # Glyph by square root of object quantity of interest
             glyph = vtk.vtkGlyphSource2D()
             getattr(glyph, f"SetGlyphTypeTo{v}")()
             glyph.SetResolution(32)
@@ -562,7 +568,8 @@ class MeshBasedVisualizer:
             glypher.SetScaleModeToScaleByScalar()
             glypher.SetScaleFactor(glyph_factor)
             glypher.Update()
-            glypher.GetOutput().GetPointData().SetActiveScalars("Load")
+            glypher.GetOutput().GetPointData().SetActiveScalars(
+                self.__object_qoi)
 
             # Raise glyphs slightly for visibility
             z_raise = vtk.vtkTransform()
@@ -582,10 +589,10 @@ class MeshBasedVisualizer:
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)
 
-        # Create and add unique scalar bar for object load when available
+        # Create and add unique scalar bar for object QOI when available
         if glyph_mapper:
             load_actor = self.create_scalar_bar_actor(
-                glyph_mapper, "Object Load", 0.55, 0.05)
+                glyph_mapper, self.__object_qoi, 0.55, 0.05)
             renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration
