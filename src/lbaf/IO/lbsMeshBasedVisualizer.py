@@ -97,7 +97,7 @@ class MeshBasedVisualizer:
         # Initialize maximum edge volume
         self.__max_object_volume = 0.0
 
-        # Compute object load range
+        # Compute object QOI range
         self.__load_range = [math.inf, 0.0]
         for p in self.__phases:
             for r in p.get_ranks():
@@ -134,15 +134,15 @@ class MeshBasedVisualizer:
 
         # Assign quantity of interest range when not specified
         rank_qoi = rank_attributes[self.__rank_qoi]
-        self.__qoi_range = [min(min(rank_qoi, key=min))]
+        self.__rank_qoi_range = [min(min(rank_qoi))]
         if rank_qoi_max is None:
-            self.__qoi_range.append(max(max(rank_attributes[self.__rank_qoi], key=max)))
+            self.__rank_qoi_range.append(max(max(rank_attributes[self.__rank_qoi])))
             self.__logger.info(
-                f"Using space-time range of {self.__rank_qoi}: [{self.__qoi_range[0]}; {self.__qoi_range[1]}]")
+                f"Using space-time range of {self.__rank_qoi}: [{self.__rank_qoi_range[0]}; {self.__rank_qoi_range[1]}]")
         else:
-            self.__qoi_range.append(rank_qoi_max)
+            self.__rank_qoi_range.append(rank_qoi_max)
             self.__logger.info(
-                f"Using [{self.__qoi_range[0]}; {self.__qoi_range[1]}] range for rank {self.__rank_qoi}")
+                f"Using [{self.__rank_qoi_range[0]}; {self.__rank_qoi_range[1]}] range for rank {self.__rank_qoi}")
 
         # Create attribute data arrays for rank loads and works
         self.__logger.info(
@@ -504,8 +504,8 @@ class MeshBasedVisualizer:
         rank_mapper.SetInputConnection(trans.GetOutputPort())
         rank_mapper.SetLookupTable(
             self.create_color_transfer_function((
-                self.__qoi_range[0], self.__qoi_range[1]),"blue_to_red"))
-        rank_mapper.SetScalarRange(self.__qoi_range)
+                self.__rank_qoi_range[0], self.__rank_qoi_range[1]),"blue_to_red"))
+        rank_mapper.SetScalarRange(self.__rank_qoi_range)
 
         # Create rank QOI and its scalar bar actors
         rank_actor = vtk.vtkActor()
