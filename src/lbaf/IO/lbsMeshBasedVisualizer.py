@@ -52,10 +52,7 @@ class MeshBasedVisualizer:
         # When QOI range was passed make sure it is consistent
         rank_qoi_max = qoi_request[1]
         if rank_qoi_max is not None:
-            if isinstance(rank_qoi_max, float):
-                self.__logger.info(
-                    f"\t{self.__rank_qoi} <= {rank_qoi_max}")
-            else:
+            if not isinstance(rank_qoi_max, float):
                 self.__logger.error(
                     f"Inconsistent quantity of interest maximum: {rank_qoi_max}")
                 raise SystemExit(1)
@@ -97,17 +94,18 @@ class MeshBasedVisualizer:
         # Initialize maximum edge volume
         self.__max_object_volume = 0.0
 
-        # Compute object QOI range
-        self.__load_range = [math.inf, 0.0]
+        # Compute space-time object QOI range
+        oq_min, oq_max = math.inf, -math.inf
         for p in self.__phases:
-            for r in p.get_ranks():
-                for o in r.get_objects():
-                    # Update load range when necessary
-                    load = o.get_load()
-                    if load > self.__load_range[1]:
-                        self.__load_range[1] = load
-                    if load < self.__load_range[0]:
-                        self.__load_range[0] = load
+            for o in p.get_objects():
+                oq = getattr(o, f"get_{object_qoi}")()
+                if oq < oq_min:
+                    oq_min = oq
+                if oq > oq_max:
+                    oq_max = oq
+        self.__object_qoi_range = (oq_min, oq_max)
+        self.__logger.info(
+            f"\t{self.__object_qoi} range: [{self.__object_qoi_range[0]:.4g}; {self.__object_qoi_range[1]:.4g}]")
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -132,17 +130,15 @@ class MeshBasedVisualizer:
             raise SystemExit(1)
         self.__distributions = distributions
 
-        # Assign quantity of interest range when not specified
+        # Assign or compute rank quantity of interest range
         rank_qoi = rank_attributes[self.__rank_qoi]
         self.__rank_qoi_range = [min(min(rank_qoi))]
         if rank_qoi_max is None:
             self.__rank_qoi_range.append(max(max(rank_attributes[self.__rank_qoi])))
-            self.__logger.info(
-                f"Using space-time range of {self.__rank_qoi}: [{self.__rank_qoi_range[0]}; {self.__rank_qoi_range[1]}]")
         else:
             self.__rank_qoi_range.append(rank_qoi_max)
-            self.__logger.info(
-                f"Using [{self.__rank_qoi_range[0]}; {self.__rank_qoi_range[1]}] range for rank {self.__rank_qoi}")
+        self.__logger.info(
+            f"\t{self.__rank_qoi} range: [{self.__rank_qoi_range[0]:.4g}; {self.__rank_qoi_range[1]:.4g}]")
 
         # Create attribute data arrays for rank loads and works
         self.__logger.info(
@@ -594,11 +590,10 @@ class MeshBasedVisualizer:
             # Create mapper and actor for glyphs
             glyph_mapper = vtk.vtkPolyDataMapper()
             glyph_mapper.SetInputConnection(trans.GetOutputPort())
-            glyph_range = self.__load_range
             glyph_mapper.SetLookupTable(
                 self.create_color_transfer_function(
-                    glyph_range))
-            glyph_mapper.SetScalarRange(glyph_range)
+                    self.__object_qoi_range))
+            glyph_mapper.SetScalarRange(self.__object_qoi_range)
             glyph_actor = vtk.vtkActor()
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)
@@ -700,7 +695,7 @@ class MeshBasedVisualizer:
                     f"\tcommunication edges width: {edge_width:.2g}")
                 glyph_factor = self.__grid_resolution / (
                     (self.__max_o_per_dim + 1)
-                    * math.sqrt(self.__load_range[1]))
+                    * math.sqrt(self.__object_qoi_range[1]))
                 self.__logger.info(
                     f"\tobject glyphs scaling: {glyph_factor:.2g}")
 
