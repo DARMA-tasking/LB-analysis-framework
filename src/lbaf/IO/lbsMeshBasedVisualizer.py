@@ -387,8 +387,8 @@ class MeshBasedVisualizer:
     def create_color_transfer_function(attribute_range, scheme=None):
         """ Create a color transfer function given attribute range."""
 
-        # Create color transfer function
-        ctf = vtk.vtkColorTransferFunction()
+        # Create dicretizable color transfer function
+        ctf = vtk.vtkDiscretizableColorTransferFunction()
         ctf.SetNanColorRGBA(1., 1., 1., 0.)
         ctf.UseBelowRangeColorOn()
         ctf.UseAboveRangeColorOn()
@@ -693,7 +693,7 @@ class MeshBasedVisualizer:
                 edge_width = 0.1 * win_size / max(self.__grid_size)
                 self.__logger.info(
                     f"\tcommunication edges width: {edge_width:.2g}")
-                glyph_factor = self.__grid_resolution / (
+                glyph_factor = 0.8 * self.__grid_resolution / (
                     (self.__max_o_per_dim + 1)
                     * math.sqrt(self.__object_qoi_range[1]))
                 self.__logger.info(
