@@ -4,6 +4,7 @@ import math
 import numbers
 import random
 import vtk
+import matplotlib.pyplot as plt
 
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
@@ -91,21 +92,42 @@ class MeshBasedVisualizer:
                 else 0.0 for d in range(3)]
             for i in self.__phases[0].get_object_ids()}
 
-        # Initialize maximum edge volume
-        self.__max_object_volume = 0.0
+        # Initialize maximum object atrribute values
+        self.__object_load_max = 0.0
+        self.__object_volume_max = 0.0
 
-        # Compute space-time object QOI range
-        oq_min, oq_max = math.inf, -math.inf
+        # Compute space-time object QOI range across all objects in phase
+        oq_min, oq_max, oq_all, store_all = math.inf, -math.inf, set(), True
         for p in self.__phases:
             for o in p.get_objects():
+                # Update maximum object load as needed
+                if (ol := o.get_load()) > self.__object_load_max:
+                    self.__object_load_max = ol
+
+                # Retain all QOI values while support remains small
                 oq = getattr(o, f"get_{object_qoi}")()
+                if store_all:
+                    oq_all.add(oq)
+                    if len(oq_all) > 20:
+                        # Do not store QOI values if support is too large
+                        oq_all = None
+                        store_all = False
+
+                # Update extrema
                 if oq < oq_min:
                     oq_min = oq
                 if oq > oq_max:
                     oq_max = oq
-        self.__object_qoi_range = (oq_min, oq_max)
-        self.__logger.info(
-            f"\t{self.__object_qoi} range: [{self.__object_qoi_range[0]:.4g}; {self.__object_qoi_range[1]:.4g}]")
+
+        # Store either range or support
+        if store_all:
+            self.__object_qoi_range = oq_all
+            self.__logger.info(
+                f"\t{self.__object_qoi} has {len(self.__object_qoi_range)} distinct values")
+        else:
+            self.__object_qoi_range = (oq_min, oq_max)
+            self.__logger.info(
+                f"\t{self.__object_qoi} range: [{self.__object_qoi_range[0]:.4g}; {self.__object_qoi_range[1]:.4g}]")
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -209,8 +231,8 @@ class MeshBasedVisualizer:
             for e, edge in index_to_edge.items():
                 v = u_edges.get(edge, float("nan"))
                 v_arr.SetTuple1(e, v)
-                if v > self.__max_object_volume:
-                    self.__max_object_volume = v
+                if v > self.__object_volume_max:
+                    self.__object_volume_max = v
                 self.__logger.debug(f"\t{e} {edge}): {v}")
 
         # Create and populate field arrays for statistics
@@ -393,7 +415,18 @@ class MeshBasedVisualizer:
         ctf.UseBelowRangeColorOn()
         ctf.UseAboveRangeColorOn()
 
-        # Set color transfer function depending on chosen scheme
+        # Make discrete when requested
+        if isinstance(attribute_range, set):
+            ctf.DiscretizeOn()
+            n_colors = len(attribute_range)
+            ctf.SetNumberOfValues(n_colors)
+            for i, v in enumerate(attribute_range):
+                rgb = plt.cm.get_cmap("tab20")(i)
+                ctf.AddRGBPoint(v, rgb[0], rgb[1], rgb[2])
+            ctf.Build()
+            return ctf
+
+        # Otherwise set color transfer function depending on chosen scheme
         if scheme == "blue_to_red":
             ctf.SetColorSpaceToDiverging()
             mid_point = (attribute_range[0] + attribute_range[1]) * .5
@@ -420,7 +453,7 @@ class MeshBasedVisualizer:
         return ctf
 
     @staticmethod
-    def create_scalar_bar_actor(mapper, title, x, y):
+    def create_scalar_bar_actor(mapper, title, x, y, values=None):
         """ Create scalar bar with default and custom parameters."""
 
         # Instantiate scalar bar linked to given mapper
@@ -430,9 +463,13 @@ class MeshBasedVisualizer:
         # Set default parameters
         scalar_bar_actor.SetOrientationToHorizontal()
         scalar_bar_actor.UnconstrainedFontSizeOn()
-        scalar_bar_actor.SetNumberOfLabels(2)
+        print(values)
+        if values:
+            scalar_bar_actor.SetNumberOfLabels(len(values))
+        else:
+            scalar_bar_actor.SetNumberOfLabels(2)
         scalar_bar_actor.SetHeight(0.08)
-        scalar_bar_actor.SetWidth(0.4)
+        scalar_bar_actor.SetWidth(0.42)
         scalar_bar_actor.SetLabelFormat("%.2G")
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
@@ -517,7 +554,7 @@ class MeshBasedVisualizer:
 
         # Create white to black look-up table
         bw_lut = vtk.vtkLookupTable()
-        bw_lut.SetTableRange((0.0, self.__max_object_volume))
+        bw_lut.SetTableRange((0.0, self.__object_volume_max))
         bw_lut.SetSaturationRange(0, 0)
         bw_lut.SetHueRange(0, 0)
         bw_lut.SetValueRange(1, 0)
@@ -528,7 +565,7 @@ class MeshBasedVisualizer:
         edge_mapper = vtk.vtkPolyDataMapper()
         edge_mapper.SetInputData(object_mesh)
         edge_mapper.SetScalarModeToUseCellData()
-        edge_mapper.SetScalarRange((0.0, self.__max_object_volume))
+        edge_mapper.SetScalarRange((0.0, self.__object_volume_max))
         edge_mapper.SetLookupTable(bw_lut)
 
         # Create communication volume and its scalar bar actors
@@ -536,7 +573,7 @@ class MeshBasedVisualizer:
         edge_actor.SetMapper(edge_mapper)
         edge_actor.GetProperty().SetLineWidth(edge_width)
         volume_actor = self.create_scalar_bar_actor(
-            edge_mapper, "Inter-Object Volume", 0.05, 0.05)
+            edge_mapper, "Inter-Object Volume", 0.04, 0.04)
         renderer.AddActor(edge_actor)
         renderer.AddActor2D(volume_actor)
 
@@ -593,7 +630,8 @@ class MeshBasedVisualizer:
             glyph_mapper.SetLookupTable(
                 self.create_color_transfer_function(
                     self.__object_qoi_range))
-            glyph_mapper.SetScalarRange(self.__object_qoi_range)
+            if (is_continuous := isinstance(self.__object_qoi_range, tuple)):
+                glyph_mapper.SetScalarRange(self.__object_qoi_range)
             glyph_actor = vtk.vtkActor()
             glyph_actor.SetMapper(glyph_mapper)
             renderer.AddActor(glyph_actor)
@@ -601,12 +639,13 @@ class MeshBasedVisualizer:
         # Create and add unique scalar bar for object QOI when available
         if glyph_mapper:
             load_actor = self.create_scalar_bar_actor(
-                glyph_mapper, self.__object_qoi, 0.55, 0.05)
+                glyph_mapper, self.__object_qoi, 0.52, 0.04,
+                None if is_continuous else self.__object_qoi_range)
             renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration
         text_actor = vtk.vtkTextActor()
-        text_actor.SetInput(f"Phase ID: {pid}\nIteration: {iteration}")
+        text_actor.SetInput(f"Phase ID: {pid};    Iteration: {iteration}")
         text_prop = text_actor.GetTextProperty()
         text_prop.SetColor(0.0, 0.0, 0.0)
         text_prop.ItalicOff()
@@ -615,7 +654,7 @@ class MeshBasedVisualizer:
         text_prop.SetFontSize(72)
         position = text_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
-        position.SetValue(0.1, 0.9, 0.0)
+        position.SetValue(0.04, 0.95, 0.0)
         renderer.AddActor(text_actor)
 
         # Create and return render window
@@ -695,7 +734,7 @@ class MeshBasedVisualizer:
                     f"\tcommunication edges width: {edge_width:.2g}")
                 glyph_factor = 0.8 * self.__grid_resolution / (
                     (self.__max_o_per_dim + 1)
-                    * math.sqrt(self.__object_qoi_range[1]))
+                    * math.sqrt(self.__object_load_max))
                 self.__logger.info(
                     f"\tobject glyphs scaling: {glyph_factor:.2g}")
 
