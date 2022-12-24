@@ -419,10 +419,11 @@ class MeshBasedVisualizer:
         if isinstance(attribute_range, set):
             ctf.DiscretizeOn()
             n_colors = len(attribute_range)
-            ctf.SetNumberOfValues(n_colors)
+            ctf.IndexedLookupOn()
+            ctf.SetNumberOfIndexedColors(n_colors)
             for i, v in enumerate(attribute_range):
-                rgb = plt.cm.get_cmap("tab20")(i)
-                ctf.AddRGBPoint(v, rgb[0], rgb[1], rgb[2])
+                ctf.SetAnnotation(v, f"{v}") 
+                ctf.SetIndexedColorRGBA(i, plt.cm.get_cmap("tab20")(i))
             ctf.Build()
             return ctf
 
@@ -463,16 +464,19 @@ class MeshBasedVisualizer:
         # Set default parameters
         scalar_bar_actor.SetOrientationToHorizontal()
         scalar_bar_actor.UnconstrainedFontSizeOn()
-        print(values)
-        if values:
-            scalar_bar_actor.SetNumberOfLabels(len(values))
-        else:
-            scalar_bar_actor.SetNumberOfLabels(2)
         scalar_bar_actor.SetHeight(0.08)
         scalar_bar_actor.SetWidth(0.42)
-        scalar_bar_actor.SetLabelFormat("%.2G")
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
+        scalar_bar_actor.UnconstrainedFontSizeOn()
+        scalar_bar_actor.SetLabelFormat("%.2G")
+        if values:
+            scalar_bar_actor.SetNumberOfLabels(len(values))
+            scalar_bar_actor.SetAnnotationLeaderPadding(8)
+            scalar_bar_actor.SetTitle(title.title() + '\n')
+        else:
+            scalar_bar_actor.SetNumberOfLabels(2)
+            scalar_bar_actor.SetTitle(title.title())
         for text_prop in (
             scalar_bar_actor.GetTitleTextProperty(),
             scalar_bar_actor.GetLabelTextProperty(),
@@ -481,10 +485,9 @@ class MeshBasedVisualizer:
             text_prop.ItalicOff()
             text_prop.BoldOff()
             text_prop.SetFontFamilyToArial()
-            text_prop.SetFontSize(72)
+            text_prop.SetFontSize(60)
 
         # Set custom parameters
-        scalar_bar_actor.SetTitle(title.title())
         position = scalar_bar_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
         position.SetValue(x, y, 0.0)
@@ -651,7 +654,7 @@ class MeshBasedVisualizer:
         text_prop.ItalicOff()
         text_prop.BoldOff()
         text_prop.SetFontFamilyToArial()
-        text_prop.SetFontSize(72)
+        text_prop.SetFontSize(60)
         position = text_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
         position.SetValue(0.04, 0.95, 0.0)
