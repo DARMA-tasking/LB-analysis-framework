@@ -18,7 +18,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
             object_qoi: object QOI to track."""
 
         # Call superclass init
-        super(InformAndTransferAlgorithm, self).__init__(
+        super(PhaseStepperAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, phases: list, distributions: dict, statistics: dict, _):

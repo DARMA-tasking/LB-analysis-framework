@@ -36,12 +36,12 @@ class AlgorithmBase:
 
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
-            lgr.error("Could not create an algorithm with non-string QOI name")
+            lgr.error("Could not create an algorithm with non-string rank QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__rank_qoi = rank_qoi
         if object_qoi and not isinstance(object_qoi, str):
-            lgr.error("Could not create an algorithm with non-string QOI name")
+            lgr.error("Could not create an algorithm with non-string object QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__object_qoi = object_qoi
