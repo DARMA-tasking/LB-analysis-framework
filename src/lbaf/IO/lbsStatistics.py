@@ -1,8 +1,21 @@
-from logging import Logger
+import enum
 import math
 import random as rnd
-
+from logging import Logger
 from numpy import random
+
+class Statistics(enum.Enum):
+    """Enumerate descriptive statistics return positions."""
+
+    N = 0
+    MIN = 1
+    AVE = 2
+    MAX = 3
+    VAR = 4
+    SKE = 5
+    KUR = 6
+    IMB = 7
+    SUM = 8
 
 
 def initialize():
@@ -187,8 +200,8 @@ def compute_function_statistics(population, fct):
     # Compute imbalance
     f_imb = f_max / f_ave - 1. if f_ave > 0. else nan
 
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance, total
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb, n * f_ave
 
 
 def print_function_statistics(values, function, var_name, logger: Logger):
@@ -196,7 +209,7 @@ def print_function_statistics(values, function, var_name, logger: Logger):
     
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
-    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
+    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb, f_sum = compute_function_statistics(
         values, function)
 
     # Print detailed load information if requested
@@ -209,8 +222,8 @@ def print_function_statistics(values, function, var_name, logger: Logger):
     logger.info(f"\tstandard deviation: {math.sqrt(f_var):.6g}  variance: {f_var:.6g}")
     logger.info(f"\tskewness: {f_g1:.6g}  kurtosis excess: {f_g2 - 3.:.6g}")
 
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
+    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, sum
+    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb, n * f_ave
 
 
 def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger):

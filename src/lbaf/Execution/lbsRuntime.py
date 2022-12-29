@@ -56,7 +56,7 @@ class Runtime:
         # Initialize run distributions and statistics
         phase_0 = self.__phases[0]
         self.distributions = {}
-        _, _, l_ave, _, _, _, _, _ = compute_function_statistics(
+        _, _, l_ave, _, _, _, _, _, _ = compute_function_statistics(
             phase_0.get_ranks(),
             lambda x: x.get_load())
         self.statistics = {"average load": l_ave}

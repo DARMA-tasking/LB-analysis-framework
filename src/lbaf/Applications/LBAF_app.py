@@ -404,7 +404,7 @@ class LBAFApp:
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]
-        _, _, l_ave, _, _, _, _, l_imb = lbstats.print_function_statistics(
+        _, _, l_ave, _, _, _, _, l_imb, _ = lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
