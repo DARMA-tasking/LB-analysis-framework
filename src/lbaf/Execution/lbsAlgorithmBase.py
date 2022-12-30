@@ -102,17 +102,6 @@ class AlgorithmBase:
         distributions.setdefault("sent", []).append(
             {k: v for k, v in self._phase.get_edge_maxima().items()})
         
-        # Compute load, volume, and work statistics
-        _, l_min, _, l_max, l_var, _, _, l_imb, _ = compute_function_statistics(
-            self._phase.get_ranks(),
-            lambda x: x.get_load())
-        n_v, _, v_ave, v_max, _, _, _, _, _ = compute_function_statistics(
-            self._phase.get_edge_maxima().values(),
-            lambda x: x)
-        n_w, w_min, w_ave, w_max, w_var, _, _, _, _ = compute_function_statistics(
-            self._phase.get_ranks(),
-            lambda x: self._work_model.compute(x))
-
         # Create or update statistics dictionary entries
         for (support, getter), stat_dict in self.__statistics.items():
             stats = compute_function_statistics(
