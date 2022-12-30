@@ -3,7 +3,7 @@ from logging import Logger
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
-from ..IO.lbsStatistics import compute_function_statistics, min_Hamming_distance
+from ..IO.lbsStatistics import Statistics, compute_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
@@ -56,10 +56,10 @@ class Runtime:
         # Initialize run distributions and statistics
         phase_0 = self.__phases[0]
         self.__distributions = {}
-        _, _, l_ave, _, _, _, _, _, _ = compute_function_statistics(
+        l_stats = compute_function_statistics(
             phase_0.get_ranks(),
             lambda x: x.get_load())
-        self.__statistics = {"average load": l_ave}
+        self.__statistics = {"average load": l_stats[Statistics.AVE.value]}
 
         # Compute initial arrangement
         arrangement = tuple(

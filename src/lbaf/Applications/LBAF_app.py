@@ -415,6 +415,8 @@ class LBAFApp:
             else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w') as imbalance_file:
             imbalance_file.write(f"{l_stats[lbstats.Statistics.IMB.value]}")
+
+
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
