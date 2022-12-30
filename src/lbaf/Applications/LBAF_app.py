@@ -410,13 +410,10 @@ class LBAFApp:
             "final rank loads",
             self.logger)
         with open(
-            "imbalance.txt"
-            if self.params.output_dir is None
-            else os.path.join(
+            "imbalance.txt" if self.params.output_dir is None else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w') as imbalance_file:
-            imbalance_file.write(f"{l_stats[lbstats.Statistics.IMB.value]}")
-
-
+            imbalance_file.write(
+                f"{l_stats[lbstats.Statistics.IMB.value]}")
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
@@ -445,14 +442,15 @@ class LBAFApp:
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
-        q, r = divmod(n_o, self.params.n_ranks)
         ell = self.params.n_ranks * l_stats[lbstats.Statistics.AVE.value] / n_o
-        self.logger.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
-        self.logger.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-        imbalance = (self.params.n_ranks - r) / float(n_o) if r else 0.
         self.logger.info(
-            f"\tstandard deviation: {ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:.6g} "
-            f"imbalance: {imbalance:.6g}")
+            f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
+        q, r = divmod(n_o, self.params.n_ranks)
+        self.logger.info(
+            f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
+        self.logger.info(
+            f"\tstandard deviation: {ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:.6g} imbalance:"
+            + f"{(self.params.n_ranks - r) / float(n_o):.6g}" if r else '0')
 
         # If this point is reached everything went fine
         self.logger.info("Process completed without errors")
