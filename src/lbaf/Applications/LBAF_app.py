@@ -449,8 +449,8 @@ class LBAFApp:
         self.logger.info(
             f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
         self.logger.info(
-            f"\tstandard deviation: {ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:.6g} imbalance:"
-            + f"{(self.params.n_ranks - r) / float(n_o):.6g}" if r else '0')
+            f"\tstandard deviation: {ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:.6g} imbalance: "
+            + (f"{(self.params.n_ranks - r) / float(n_o):.6g}" if r else '0'))
 
         # If this point is reached everything went fine
         self.logger.info("Process completed without errors")
