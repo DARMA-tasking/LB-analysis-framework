@@ -3,10 +3,10 @@ import os
 import sys
 import logging
 import math
+import yaml
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
-import yaml
 
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
@@ -404,7 +404,7 @@ class LBAFApp:
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]
-        _, _, l_ave, _, _, _, _, l_imb, _ = lbstats.print_function_statistics(
+        l_stats = lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_load(),
             "final rank loads",
@@ -414,7 +414,7 @@ class LBAFApp:
             if self.params.output_dir is None
             else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w') as imbalance_file:
-            imbalance_file.write(f"{l_imb}")
+            imbalance_file.write(f"{l_stats[lbstats.Statistics.IMB.value]}")
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
@@ -444,7 +444,7 @@ class LBAFApp:
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
         q, r = divmod(n_o, self.params.n_ranks)
-        ell = self.params.n_ranks * l_ave / n_o
+        ell = self.params.n_ranks * l_stats[lbstats.Statistics.AVE.value] / n_o
         self.logger.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
         self.logger.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
         imbalance = (self.params.n_ranks - r) / float(n_o) if r else 0.
