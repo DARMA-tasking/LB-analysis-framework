@@ -309,7 +309,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Compute and report iteration work statistics
-            n_w, w_min, w_ave, w_max, w_var, _, _, _, _ = print_function_statistics(
+            print_function_statistics(
                 self._phase.get_ranks(),
                 lambda x: self._work_model.compute(x),
                 f"iteration {i + 1} rank work",

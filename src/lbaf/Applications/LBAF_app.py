@@ -397,8 +397,8 @@ class LBAFApp:
                 self.params.object_jitter,
                 self.params.output_dir,
                 self.params.output_file_stem,
-                rt.distributions,
-                rt.statistics)
+                rt.get_distributions(),
+                rt.get_statistics())
             ex_writer.generate(
                 self.params.save_meshes, self.params.rank_qoi)
 
