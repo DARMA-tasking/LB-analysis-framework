@@ -22,7 +22,8 @@ algorithm:
     n_rounds: 4
     fanout: 4
     order_strategy: arbitrary
-    criterion: Tempered
+    #criterion: Tempered
+    criterion: StrictLocalizing
     max_objects_per_transfer: 8
     deterministic_transfer: True
 
