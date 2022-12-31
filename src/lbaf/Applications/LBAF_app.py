@@ -413,7 +413,7 @@ class LBAFApp:
             "imbalance.txt" if self.params.output_dir is None else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w') as imbalance_file:
             imbalance_file.write(
-                f"{l_stats[lbstats.Statistics.IMB.value]}")
+                f"{l_stats.imbalance}")
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
@@ -442,7 +442,7 @@ class LBAFApp:
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
-        ell = self.params.n_ranks * l_stats[lbstats.Statistics.AVE.value] / n_o
+        ell = self.params.n_ranks * l_stats.average / n_o
         self.logger.info(
             f"Optimal load statistics for {n_o} objects with iso-time: {ell:.6g}")
         q, r = divmod(n_o, self.params.n_ranks)

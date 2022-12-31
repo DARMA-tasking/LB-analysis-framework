@@ -59,7 +59,7 @@ class Runtime:
         l_stats = compute_function_statistics(
             phase_0.get_ranks(),
             lambda x: x.get_load())
-        self.__statistics = {"average load": l_stats[Statistics.AVE.value]}
+        self.__statistics = {"average load": l_stats.average}
 
         # Compute initial arrangement
         arrangement = tuple(

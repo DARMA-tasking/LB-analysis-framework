@@ -49,19 +49,19 @@ class AlgorithmBase:
         # Map global statistical QOIs to their computation methods
         self.__statistics = {
             ("ranks", lambda x: x.get_load()): {
-                "minimum load": "MIN",
-                "maximum load": "MAX",
-                "load variance": "VAR",
-                "load imbalance": "IMB"},
+                "minimum load": "minimum",
+                "maximum load": "maximum",
+                "load variance": "variance",
+                "load imbalance": "imbalance"},
             ("largest_volumes", lambda x: x): {
-                "number of communication edges": "N",
-                "maximum largest directed volume": "MAX",
-                "total largest directed volume": "SUM"},
+                "number of communication edges": "cardinality",
+                "maximum largest directed volume": "maximum",
+                "total largest directed volume": "sum"},
             ("ranks", lambda x: self._work_model.compute(x)): {
-                "minimum work": "MIN",
-                "maximum work": "MAX",
-                "total work": "SUM",
-                "work variance": "VAR"}}
+                "minimum work": "minimum",
+                "maximum work": "maximum",
+                "total work": "sum",
+                "work variance": "variance"}}
 
     @staticmethod
     def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, qoi_name=''):
@@ -103,12 +103,11 @@ class AlgorithmBase:
             {k: v for k, v in self._phase.get_edge_maxima().items()})
         
         # Create or update statistics dictionary entries
-        for (support, getter), stat_dict in self.__statistics.items():
-            stats = compute_function_statistics(
-                getattr(self._phase, f"get_{support}")(), getter)
-            for k, v in stat_dict.items():
-                statistics.setdefault(
-                    k, []).append(stats[getattr(Statistics, v).value])
+        for (support, getter), stat_names in self.__statistics.items():
+            for k, v in stat_names.items():
+                statistics.setdefault(k, []).append(
+                    getattr(compute_function_statistics(
+                        getattr(self._phase, f"get_{support}")(), getter), v))
 
     def report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode."""
