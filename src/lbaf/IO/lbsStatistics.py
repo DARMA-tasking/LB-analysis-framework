@@ -237,7 +237,7 @@ def print_function_statistics(values, function, var_name, logger: Logger):
         ("standard deviation", "variance"),
         ("skewness", "kurtosis")]:
         logger.info('\t' + ' '.join([
-            f"{k}: {stats.statistics[k]:.4g}" for k in key_tuples]))
+            f"{k}: {stats.statistics[k]:.6g}" for k in key_tuples]))
 
     # Return descriptive statistics instance
     return stats
