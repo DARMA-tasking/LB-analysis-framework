@@ -10,7 +10,7 @@ from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, min_Hamming_distance
+from ..IO.lbsStatistics import print_function_statistics, inverse_transform_sample, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
