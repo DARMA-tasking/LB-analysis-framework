@@ -38,12 +38,17 @@ class MeshBasedVisualizer:
         self.__logger = logger
 
         # Make sure that quantity of interest names were passed
-        if not isinstance(qoi_request, list) or not len(qoi_request) > 2 or not (
-            rank_qoi := qoi_request[0]) or not isinstance(
-            rank_qoi, str) or not (object_qoi := qoi_request[2]) or not isinstance(
-            object_qoi, str):
+        if not isinstance(qoi_request, list) or not len(qoi_request) == 3:
             self.__logger.error(
-                "Mesh writer expects rank and object quantities of interest names")
+                "Mesh writer expects 3 quantities of interest parameters")
+            raise SystemExit(1)
+        if not (rank_qoi := qoi_request[0]) or not isinstance(rank_qoi, str):
+            self.__logger.error(
+                "Mesh writer expects a non-empty rank quantity of interest name")
+            raise SystemExit(1)
+        if not (object_qoi := qoi_request[2]) or not isinstance(object_qoi, str):
+            self.__logger.error(
+                "Mesh writer expects a non-empty object quantity of interest name")
             raise SystemExit(1)
         self.__rank_qoi = f"rank {rank_qoi}"
         self.__object_qoi = f"object {object_qoi}"
