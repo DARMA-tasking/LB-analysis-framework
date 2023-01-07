@@ -184,7 +184,7 @@ class internalParameters:
             # Retrieve optional parameters
             self.save_meshes = viz.get("save_meshes")
         else:
-            # No visualization quantities of intered
+            # No visualization quantities of interest
             self.rank_qoi = self.object_qoi = self.grid_size = None
 
         # Parse data parameters if present
