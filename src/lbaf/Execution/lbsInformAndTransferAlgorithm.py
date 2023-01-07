@@ -10,8 +10,7 @@ from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import compute_function_statistics, print_function_statistics, inverse_transform_sample, \
-    min_Hamming_distance
+from ..IO.lbsStatistics import print_function_statistics, inverse_transform_sample, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
@@ -79,11 +78,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Assign optional parameters
         self.__deterministic_transfer = parameters.get("deterministic_transfer", False)
-        self.__max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf) 
+        self.__max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
 
     def information_stage(self):
         """ Execute information stage."""
-        
+
         # Build set of all ranks in the phase
         rank_set = set(self._phase.get_ranks())
 
@@ -146,7 +145,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
         """ Recursively extend search to other objects."""
-        
+
         # Fail when no more objects available or maximum depth is reached
         if not pick_list or n_o >= max_n_o:
             return False
@@ -168,7 +167,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def transfer_stage(self):
         """ Perform object transfer stage."""
-        
+
         # Initialize transfer stage
         self._logger.info("Executing transfer phase")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
@@ -248,7 +247,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                         # No transferable list of objects was found
                         n_rejects += 1
                         continue
-                    
+
                 # Sanity check before transfer
                 if r_dst not in r_src.get_known_loads():
                     self._logger.error(
@@ -274,7 +273,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
-        
+
         # Ensure that a list with at least one phase was provided
         if not phases or not isinstance(phases, list) or not isinstance((phase := phases[0]), Phase):
             self._logger.error(f"Algorithm execution requires a Phase instance")
@@ -310,7 +309,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Compute and report iteration work statistics
-            n_w, w_min, w_ave, w_max, w_var, _, _, _ = print_function_statistics(
+            print_function_statistics(
                 self._phase.get_ranks(),
                 lambda x: self._work_model.compute(x),
                 f"iteration {i + 1} rank work",
@@ -340,31 +339,31 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     @staticmethod
     def arbitrary(objects: set, _):
         """ Default: objects are passed as they are stored."""
-        
+
         return objects
 
     @staticmethod
     def element_id(objects: set, _):
         """ Order objects by ID."""
-        
+
         return sorted(objects, key=lambda x: x.get_id())
 
     @staticmethod
     def decreasing_loads(objects: set, _):
         """ Order objects by decreasing object loads."""
-        
+
         return sorted(objects, key=lambda x: -x.get_load())
 
     @staticmethod
     def increasing_loads(objects: set, _):
         """ Order objects by increasing object loads."""
-        
+
         return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
     def increasing_connectivity(objects: set, src_id):
         """ Order objects by increasing local communication volume."""
-        
+
         # Initialize list with all objects without a communicator
         no_comm = [
             o for o in objects
@@ -377,7 +376,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             comm = o.get_communicator()
             if not isinstance(o.get_communicator(), ObjectCommunicator):
                 continue
-            
+
             # Update dict of objects with maximum local communication
             with_comm[o] = max(
                 sum([v for k, v in comm.get_received().items()
@@ -405,7 +404,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             away, could bring this rank's load below the target load.
             Sort largest to the smallest if <= load_excess
             Sort smallest to the largest if > load_excess."""
-        
+
         load_excess = self.load_excess(objects)
         lt_load_excess = [obj for obj in objects if obj.get_load() <= load_excess]
         get_load_excess = [obj for obj in objects if obj.get_load() > load_excess]
@@ -416,7 +415,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             smaller objects, could bring this rank's load below the target load.
             Sort largest to the smallest if <= load_excess
             Sort smallest to the largest if > load_excess."""
-        
+
         load_excess = self.load_excess(objects)
         sorted_objects = self.sorted_ascending(objects)
         accumulated_loads = list(accumulate(obj.get_load() for obj in sorted_objects))

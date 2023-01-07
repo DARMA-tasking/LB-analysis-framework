@@ -41,7 +41,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             values = {
                 "load":
                 sum([objects[i].get("load") for i in rank_object_ids])}
-            
+
             # Compute received communication volume
             v = 0.0
             for i in rank_object_ids:

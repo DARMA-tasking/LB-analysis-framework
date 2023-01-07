@@ -17,7 +17,7 @@ class TemperedCriterion(CriterionBase):
 
     def compute(self, objects: list, r_src: Rank, r_dst: Rank) -> float:
         """ Tempered work criterion based on L1 norm of works."""
-        
+
         # Compute maximum work of original arrangement
         w_max_0 = max(
             self._work_model.compute(r_src),
@@ -35,7 +35,7 @@ class TemperedCriterion(CriterionBase):
         # Move objects back into original arrangement
         for o in objects:
             self._phase.transfer_object(o, r_dst, r_src)
-        
+
         # Return criterion value
         return w_max_0 - w_max_new
 

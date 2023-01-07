@@ -13,14 +13,14 @@ class WorkModelBase:
     def __init__(self, parameters=None):
         """ Class constructor:
             parameters: optional parameters dictionary."""
-        
+
         # Work keeps internal references to ranks and edges
         logger().debug("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters, lgr: Logger):
         """ Produce the necessary concrete work model."""
-        
+
         from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
         from .lbsAffineCombinationWorkModel import AffineCombinationWorkModel
 
