@@ -1,4 +1,3 @@
-import enum
 import math
 import random as rnd
 from logging import Logger
