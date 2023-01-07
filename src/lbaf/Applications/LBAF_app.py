@@ -170,8 +170,8 @@ class internalParameters:
                 self.object_jitter = viz["object_jitter"]
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz["object_qoi"]
-            except:
-                self.logger.error("Missing LBAF-Viz configuration parameter(s)")
+            except Exception as e:
+                self.logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
 
