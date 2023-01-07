@@ -243,7 +243,7 @@ class LBAFApp:
         check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
         if "data_stem" in self.params.__dict__:
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
-            
+
             # Initializing reader
             if file_suffix is not None:
                 reader = LoadReader(

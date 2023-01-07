@@ -101,7 +101,7 @@ class AlgorithmBase:
         # Create or update distributions of edge quantities of interest
         distributions.setdefault("sent", []).append(
             {k: v for k, v in self._phase.get_edge_maxima().items()})
-        
+
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
             for k, v in stat_names.items():

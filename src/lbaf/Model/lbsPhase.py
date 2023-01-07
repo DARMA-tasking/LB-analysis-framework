@@ -431,4 +431,4 @@ class Phase:
                 self.__logger.debug(
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
                 dst_b[1].add(o_id)
-                
+

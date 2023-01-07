@@ -174,7 +174,7 @@ class Rank:
         # Update known load when destination is already known
         if self.__known_loads and p_dst in self.__known_loads:
             self.__known_loads[p_dst] += o.get_load()
-        
+
     def get_load(self) -> float:
         """ Return total load on rank."""
         return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
@@ -201,7 +201,7 @@ class Rank:
             volume += sum([v for k, v in o.get_communicator().get_received().items() if k not in obj_set])
 
         # Return computed volume
-        return volume    
+        return volume
 
     def get_sent_volume(self):
         """ Return volume sent by objects assigned to rank to other ranks."""
@@ -219,11 +219,11 @@ class Rank:
                 if k not in obj_set])
 
         # Return computed volume
-        return volume    
+        return volume
 
     def get_max_object_level_memory(self) -> float:
         """ Return maximum object-level memory on rank."""
-        
+
         # Iterate over all objects assigned to rank
         total_size, max_overhead = 0.0, 0.0
         for o in self.__migratable_objects.union(self.__sentinel_objects):

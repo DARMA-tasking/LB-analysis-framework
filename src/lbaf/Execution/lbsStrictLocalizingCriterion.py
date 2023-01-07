@@ -7,7 +7,7 @@ from ..Model.lbsRank import Rank
 
 class StrictLocalizingCriterion(CriterionBase):
     """ A concrete class for a strictly localizing criterion."""
-    
+
     def __init__(self, workmodel, lgr):
         """ Class constructor."""
 

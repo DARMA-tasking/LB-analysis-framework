@@ -25,7 +25,7 @@ class Statistics:
             "imbalance":  maxi / mean - 1.0 if mean > 0.0 else math.nan,
             "standard deviation": math.sqrt(var),
             "kurtosis excess": g2 - 3.0}
-        
+
         # Merge all statistics
         self.statistics = {
             **self.primary_statistics, **self.derived_statistics}
@@ -206,7 +206,7 @@ def compute_function_statistics(population, fct) -> Statistics:
 
     # Compute variance
     f_var = f_ag2 / n
-    
+
     # Compute skewness and kurtosis depending on variance
     if f_var > 0.:
         nvar = n * f_var
@@ -220,7 +220,7 @@ def compute_function_statistics(population, fct) -> Statistics:
 
 def print_function_statistics(values, function, var_name, logger: Logger):
     """Compute and report descriptive statistics of function values."""
-    
+
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
     stats = compute_function_statistics(values, function)

@@ -72,7 +72,7 @@ class MeshBasedVisualizer:
                 f"All phases must have {n_r} ranks as the first one")
             raise SystemExit(1)
         self.__n_ranks =  n_r
-        
+
         # Ensure that specified grid resolution is correct
         if not isinstance(resolution, numbers.Number) or resolution <= 0.:
             self.__logger.error("Grid resolution must be a positive number")
@@ -205,7 +205,7 @@ class MeshBasedVisualizer:
             v_arr.SetName("Largest Directed Volume")
             v_arr.SetNumberOfTuples(n_e)
             self.__volumes.append(v_arr)
-            
+
             # Assign edge volume values
             self.__logger.debug(f"\titeration {i} edges:")
             for e, edge in index_to_edge.items():
@@ -326,7 +326,7 @@ class MeshBasedVisualizer:
                 # Update maps and counters
                 point_to_index[o] = point_index
                 point_index += 1
-            
+
         # Initialize containers for edge lines and attribute
         v_arr = vtk.vtkDoubleArray()
         v_arr.SetName("Volume")
@@ -356,7 +356,7 @@ class MeshBasedVisualizer:
                 e_ij[1] += v
                 self.__logger.debug(f"\tupdating edge {e_ij[0]} ({i}--{j}): {e_ij[1]}")
                 v_arr.SetTuple1(e_ij[0], e_ij[1])
-        
+
         # Create and return VTK polygonal data mesh
         self.__logger.info(
             f"Assembling object mesh with {n_o} points and {n_e} edges")
