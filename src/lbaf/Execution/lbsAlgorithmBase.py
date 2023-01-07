@@ -69,7 +69,13 @@ class AlgorithmBase:
                 "work variance": "variance"}}
 
     @staticmethod
-    def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, rank_qoi, object_qoi):
+    def factory(
+        algorithm_name:str,
+        parameters: dict,
+        work_model: WorkModelBase,
+        lgr: Logger,
+        rank_qoi: str,
+        object_qoi:str):
         """ Instantiate the necessary concrete algorithm."""
 
         # Load up available algorithms
