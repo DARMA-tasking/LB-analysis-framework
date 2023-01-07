@@ -6,7 +6,15 @@ from numpy import random
 class Statistics:
     """A class storing descriptive statistics."""
 
-    def __init__(self, n, mini, mean, maxi, var, g1, g2):
+    def __init__(
+        self,
+        n: int,
+        mini: float,
+        mean: float,
+        maxi: float,
+        var: float,
+        g1: float,
+        g2: float):
         """ Class constructor given descriptive statistics values."""
 
         # Store primary statistics
