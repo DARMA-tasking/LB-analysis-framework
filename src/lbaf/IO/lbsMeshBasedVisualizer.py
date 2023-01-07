@@ -101,39 +101,9 @@ class MeshBasedVisualizer:
         self.__object_load_max = 0.0
         self.__object_volume_max = 0.0
 
-        # Compute space-time object QOI range across all objects in phase
-        oq_min, oq_max, oq_all, store_all = math.inf, -math.inf, set(), True
-        for p in self.__phases:
-            for o in p.get_objects():
-                # Update maximum object load as needed
-                if (ol := o.get_load()) > self.__object_load_max:
-                    self.__object_load_max = ol
-
-                # Retain all QOI values while support remains small
-                oq = getattr(o, f"get_{object_qoi}")()
-                if store_all:
-                    oq_all.add(oq)
-                    if len(oq_all) > 20:
-                        # Do not store QOI values if support is too large
-                        oq_all = None
-                        store_all = False
-
-                # Update extrema
-                if oq < oq_min:
-                    oq_min = oq
-                if oq > oq_max:
-                    oq_max = oq
-
-        # Store either range or support
-        if store_all:
-            self.__object_qoi_range = oq_all
-            self.__logger.info(
-                f"\t{self.__object_qoi} has {len(self.__object_qoi_range)} distinct values")
-        else:
-            self.__object_qoi_range = (oq_min, oq_max)
-            self.__logger.info(
-                f"\t{self.__object_qoi} range: [{self.__object_qoi_range[0]:.4g}; {self.__object_qoi_range[1]:.4g}]")
-
+        # Compute discrete or pseudo-continuous object QOI range
+        self.__object_qoi_range = self.compute_object_qoi_range(object_qoi)
+        
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
         self.__object_file_name = f"{output_file_stem}_object_view"
@@ -270,6 +240,51 @@ class MeshBasedVisualizer:
 
         # Return Cartesian coordinates
         return i, j, k
+
+    def compute_object_qoi_range(self, object_qoi):
+        """ Decide object quantity storage type and compute it."""
+
+        # Initialize space-time object QOI range attributes
+        oq_min, oq_max, oq_all, = math.inf, -math.inf, set()
+
+        # By default use quasi-continuous storage
+        store_all = True
+
+        # Iterate over all phases
+        for phase in self.__phases:
+            # Iterate over all objects in phase
+            for o in phase.get_objects():
+                # Update maximum object load as needed
+                if (ol := o.get_load()) > self.__object_load_max:
+                    self.__object_load_max = ol
+
+                # Retain all QOI values while support remains small
+                oq = getattr(o, f"get_{object_qoi}")()
+                if store_all:
+                    oq_all.add(oq)
+                    if len(oq_all) > 20:
+                        # Do not store QOI values if support is too large
+                        oq_all = None
+                        store_all = False
+
+                # Update extrema
+                if oq < oq_min:
+                    oq_min = oq
+                if oq > oq_max:
+                    oq_max = oq
+
+        # Store either range or support
+        if store_all:
+            object_qoi_range = oq_all
+            self.__logger.info(
+                f"\t{self.__object_qoi} has {len(object_qoi_range)} distinct values")
+        else:
+            object_qoi_range = (oq_min, oq_max)
+            self.__logger.info(
+                f"\t{self.__object_qoi} range: [{object_qoi_range[0]:.4g}; {object_qoi_range[1]:.4g}]")
+
+        # Return cpmputed QOI range
+        return object_qoi_range
 
     def create_object_mesh(self, phase: Phase, object_mapping: set):
         """ Map objects to polygonal mesh."""
