@@ -1,12 +1,50 @@
-from logging import Logger
 import math
 import random as rnd
-
+from logging import Logger
 from numpy import random
 
+class Statistics:
+    """A class storing descriptive statistics."""
+
+    def __init__(
+        self,
+        n: int,
+        mini: float,
+        mean: float,
+        maxi: float,
+        var: float,
+        g1: float,
+        g2: float):
+        """ Class constructor given descriptive statistics values."""
+
+        # Store primary statistics
+        self.primary_statistics = {
+            "cardinality": n,
+            "minimum": mini,
+            "average": mean,
+            "maximum": maxi,
+            "variance": var,
+            "skewness": g1,
+            "kurtosis": g2}
+
+        # Compute and store derived statistics
+        self.derived_statistics = {
+            "sum": n * mean,
+            "imbalance":  maxi / mean - 1.0 if mean > 0.0 else math.nan,
+            "standard deviation": math.sqrt(var),
+            "kurtosis excess": g2 - 3.0}
+
+        # Merge all statistics
+        self.statistics = {
+            **self.primary_statistics, **self.derived_statistics}
+
+        # Define getter methods
+        for k in self.statistics:
+            setattr(self, f"{k.replace(' ', '_')}", self.statistics[k])
 
 def initialize():
-    # Seed pseudo-random number generators
+    """ Seed pseudo-random number generators."""
+
     rnd.seed(820)
     random.seed(820)
 
@@ -111,20 +149,20 @@ def inverse_transform_sample(cmf):
             return k
 
 
-def compute_function_statistics(population, fct):
+def compute_function_statistics(population, fct) -> Statistics:
     """Compute descriptive statistics of a function over a population."""
 
     # Shorthand for NaN
-    nan = float("nan")
+    nan = math.nan
 
     # Bail out early if population is empty
     if not len(population):
-        return 0, nan, nan, nan, nan, nan, nan, nan
+        return Statistics(0, nan, nan, nan, nan, nan, nan)
 
     # Initialize statistics
     n = 0
-    f_min = float("inf")
-    f_max = -float("inf")
+    f_min = math.inf
+    f_max = -math.inf
     f_ave = 0.
     f_ag2 = 0.
     f_ag3 = 0.
@@ -176,7 +214,7 @@ def compute_function_statistics(population, fct):
 
     # Compute variance
     f_var = f_ag2 / n
-    
+
     # Compute skewness and kurtosis depending on variance
     if f_var > 0.:
         nvar = n * f_var
@@ -184,33 +222,32 @@ def compute_function_statistics(population, fct):
     else:
         f_g1, f_g2 = nan, nan
 
-    # Compute imbalance
-    f_imb = f_max / f_ave - 1. if f_ave > 0. else nan
-
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis, imbalance
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
+    # Return descriptive statistics instance
+    return Statistics(n, f_min, f_ave, f_max, f_var, f_g1, f_g2)
 
 
 def print_function_statistics(values, function, var_name, logger: Logger):
     """Compute and report descriptive statistics of function values."""
-    
+
     # Compute statistics
     logger.info(f"Descriptive statistics of {var_name}:")
-    n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb = compute_function_statistics(
-        values, function)
+    stats = compute_function_statistics(values, function)
 
     # Print detailed load information if requested
     for i, v in enumerate(values):
         logger.debug(f"\t{i}: {function(v)}")
 
     # Print summary
-    logger.info(f"\tcardinality: {n:.6g}  sum: {n * f_ave:.6g}  imbalance: {f_imb:.6g}")
-    logger.info(f"\tminimum: {f_min:.6g}  mean: {f_ave:.6g}  maximum: {f_max:.6g}")
-    logger.info(f"\tstandard deviation: {math.sqrt(f_var):.6g}  variance: {f_var:.6g}")
-    logger.info(f"\tskewness: {f_g1:.6g}  kurtosis excess: {f_g2 - 3.:.6g}")
+    for key_tuples in [
+        ("cardinality", "sum", "imbalance"),
+        ("minimum", "average", "maximum"),
+        ("standard deviation", "variance"),
+        ("skewness", "kurtosis")]:
+        logger.info('\t' + ' '.join([
+            f"{k}: {stats.statistics[k]:.6g}" for k in key_tuples]))
 
-    # Return cardinality, minimum, mean, maximum, variance, skewness, kurtosis
-    return n, f_min, f_ave, f_max, f_var, f_g1, f_g2, f_imb
+    # Return descriptive statistics instance
+    return stats
 
 
 def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger: Logger):

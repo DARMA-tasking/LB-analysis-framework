@@ -57,11 +57,11 @@ class Runtime:
 
         # Initialize run distributions and statistics
         phase_0 = self.__phases[0]
-        self.distributions = {}
-        _, _, l_ave, _, _, _, _, _ = compute_function_statistics(
+        self.__distributions = {}
+        l_stats = compute_function_statistics(
             phase_0.get_ranks(),
             lambda x: x.get_load())
-        self.statistics = {"average load": l_ave}
+        self.__statistics = {"average load": l_stats.average}
 
         # Compute initial arrangement
         arrangement = tuple(
@@ -74,13 +74,23 @@ class Runtime:
         # Report minimum Hamming distance when minimax optimum is available
         if self.__a_min_max:
             hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
-            self.statistics["minimum Hamming distance to optimum"] = [hd_min]
+            self.__statistics["minimum Hamming distance to optimum"] = [hd_min]
             self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
 
     def get_work_model(self):
         """ Return runtime work model."""
 
         return self.__work_model
+
+    def get_distributions(self):
+        """ Return runtime distributions."""
+
+        return self.__distributions
+
+    def get_statistics(self):
+        """ Return runtime statistics."""
+
+        return self.__statistics
 
     def execute(self):
         """ Launch runtime execution."""
@@ -89,6 +99,6 @@ class Runtime:
         self.__logger.info(f"Executing {type(self.__algorithm).__name__}")
         self.__algorithm.execute(
             self.__phases,
-            self.distributions,
-            self.statistics,
+            self.__distributions,
+            self.__statistics,
             self.__a_min_max)

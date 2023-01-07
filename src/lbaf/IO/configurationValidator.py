@@ -20,7 +20,7 @@ ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
     "PhaseStepper")
-ALLOWED_CRITERIA = ("Tempered", "StrictLocalizer")
+ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
 ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")

@@ -7,7 +7,7 @@ from .lbsRank import Rank
 class LoadOnlyWorkModel(WorkModelBase):
     """ A concrete class for a load-only work model
     """
-    
+
     def __init__(self, _, lgr: Logger):
         """ Class constructor:
             _: no parameters dictionary needed for this work model."""

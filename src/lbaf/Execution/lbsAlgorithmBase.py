@@ -51,6 +51,23 @@ class AlgorithmBase:
         # Initially no phase is associated to algorithm
         self._phase = None
 
+        # Map global statistical QOIs to their computation methods
+        self.__statistics = {
+            ("ranks", lambda x: x.get_load()): {
+                "minimum load": "minimum",
+                "maximum load": "maximum",
+                "load variance": "variance",
+                "load imbalance": "imbalance"},
+            ("largest_volumes", lambda x: x): {
+                "number of communication edges": "cardinality",
+                "maximum largest directed volume": "maximum",
+                "total largest directed volume": "sum"},
+            ("ranks", lambda x: self._work_model.compute(x)): {
+                "minimum work": "minimum",
+                "maximum work": "maximum",
+                "total work": "sum",
+                "work variance": "variance"}}
+
     @staticmethod
     def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, rank_qoi, object_qoi):
         """ Instantiate the necessary concrete algorithm."""
@@ -95,30 +112,13 @@ class AlgorithmBase:
         # Create or update distributions of edge quantities of interest
         distributions.setdefault("sent", []).append(
             {k: v for k, v in self._phase.get_edge_maxima().items()})
-        
-        # Compute load, volume, and work statistics
-        _, l_min, _, l_max, l_var, _, _, l_imb = compute_function_statistics(
-            self._phase.get_ranks(),
-            lambda x: x.get_load())
-        n_v, _, v_ave, v_max, _, _, _, _ = compute_function_statistics(
-            self._phase.get_edge_maxima().values(),
-            lambda x: x)
-        n_w, w_min, w_ave, w_max, w_var, _, _, _ = compute_function_statistics(
-            self._phase.get_ranks(),
-            lambda x: self._work_model.compute(x))
 
         # Create or update statistics dictionary entries
-        statistics.setdefault("minimum load", []).append(l_min)
-        statistics.setdefault("maximum load", []).append(l_max)
-        statistics.setdefault("load variance", []).append(l_var)
-        statistics.setdefault("load imbalance", []).append(l_imb)
-        statistics.setdefault("number of communication edges", []).append(n_v)
-        statistics.setdefault("maximum largest directed volume", []).append(v_max)
-        statistics.setdefault("total largest directed volume", []).append(n_v * v_ave)
-        statistics.setdefault("minimum work", []).append(w_min)
-        statistics.setdefault("maximum work", []).append(w_max)
-        statistics.setdefault("total work", []).append(n_w * w_ave)
-        statistics.setdefault("work variance", []).append(w_var)
+        for (support, getter), stat_names in self.__statistics.items():
+            for k, v in stat_names.items():
+                statistics.setdefault(k, []).append(
+                    getattr(compute_function_statistics(
+                        getattr(self._phase, f"get_{support}")(), getter), v))
 
     def report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode."""

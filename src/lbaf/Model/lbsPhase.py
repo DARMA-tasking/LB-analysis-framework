@@ -174,8 +174,18 @@ class Phase:
         if self.__edges is None:
             self.compute_edges()
 
-        # Return maximum values at edges
+        # Return edge with maximum volume
         return {k: max(v) for k, v in self.__edges.items()}
+
+    def get_largest_volumes(self):
+        """ Return largest directed volumes from undirected ones."""
+
+        # Compute edges when not available
+        if self.__edges is None:
+            self.compute_edges()
+
+        # Return maximum values at edges
+        return [max(v) for v in self.__edges.values()]
 
     def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
         """ Convenience method to update or create directed edge with given volume."""
@@ -429,4 +439,4 @@ class Phase:
                 self.__logger.debug(
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
                 dst_b[1].add(o_id)
-                
+

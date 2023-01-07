@@ -76,7 +76,7 @@ class Object:
                     f"size: incorrect type {type(size)} or value: {size}")
             else:
                 self.__size = size
-                
+
             # Object overhead is by definition its additional working memory
             if not isinstance((
                 overhead := user_defined.get("task_working_bytes")), float) or overhead < 0.0:
