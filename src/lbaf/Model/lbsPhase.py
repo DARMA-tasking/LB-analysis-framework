@@ -83,6 +83,7 @@ class Phase:
 
         """ Return all objects belonging to phase."""
 
+        # List comprehension is not possible as we need to use set to list concatenation
         objects = []
         for r in self.__ranks:
             objects += r.get_objects()
@@ -92,6 +93,7 @@ class Phase:
 
         """ Return IDs of all objects belonging to phase."""
 
+        # List comprehension is not possible as we need to use set to list concatenation
         ids = []
         for r in self.__ranks:
             ids += r.get_object_ids()
