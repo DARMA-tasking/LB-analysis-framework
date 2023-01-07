@@ -2,7 +2,7 @@ import abc
 import sys
 from logging import Logger
 
-from ..IO.lbsStatistics import compute_function_statistics, Statistics
+from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
 from ..Utils.logger import logger
