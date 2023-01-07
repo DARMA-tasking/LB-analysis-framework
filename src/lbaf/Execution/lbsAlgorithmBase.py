@@ -53,7 +53,7 @@ class AlgorithmBase:
 
     @staticmethod
     def factory(algorithm_name:str, parameters: dict, work_model, lgr: Logger, rank_qoi, object_qoi):
-        """ Instantiae the necessary concrete algorithm."""
+        """ Instantiate the necessary concrete algorithm."""
 
         # Load up available algorithms
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
