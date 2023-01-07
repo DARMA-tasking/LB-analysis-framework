@@ -83,7 +83,9 @@ class Phase:
 
         """ Return all objects belonging to phase."""
 
-        objects = [p.get_objects() for p in self.__ranks]
+        objects = []
+        for r in self.__ranks:
+            objects += r.get_objects()
         return objects
 
     def get_object_ids(self):
@@ -91,8 +93,8 @@ class Phase:
         """ Return IDs of all objects belonging to phase."""
 
         ids = []
-        for p in self.__ranks:
-            ids += p.get_object_ids()
+        for r in self.__ranks:
+            ids += r.get_object_ids()
         return ids
 
     def compute_edges(self):

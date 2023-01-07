@@ -95,6 +95,9 @@ class AlgorithmBase:
         for object_qoi_name in {"load", self.__object_qoi}:
             if not object_qoi_name:
                 continue
+            print(self._phase.get_objects())
+            for o in self._phase.get_objects():
+                print(type(o))
             distributions.setdefault(f"object {object_qoi_name}", []).append(
                 {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
                  for o in self._phase.get_objects()})
