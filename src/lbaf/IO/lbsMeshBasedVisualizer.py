@@ -597,7 +597,7 @@ class MeshBasedVisualizer:
         sqrtL_out.GetPointData().SetActiveScalars("Migratable")
 
         # Glyph sentinel and migratable objects separately
-        glyph_actors, glyph_mapper = [], None
+        glyph_mapper = None
         for k, v in {0.0: "Square", 1.0: "Circle"}.items():
             # Threshold by migratable status
             thresh = vtk.vtkThresholdPoints()
