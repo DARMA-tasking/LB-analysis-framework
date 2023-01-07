@@ -83,9 +83,7 @@ class Phase:
 
         """ Return all objects belonging to phase."""
 
-        objects = []
-        for p in self.__ranks:
-            objects += p.get_objects()
+        objects = [p.get_objects() for p in self.__ranks]
         return objects
 
     def get_object_ids(self):
