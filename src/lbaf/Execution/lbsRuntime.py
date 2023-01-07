@@ -3,7 +3,7 @@ from logging import Logger
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
-from ..IO.lbsStatistics import Statistics, compute_function_statistics, min_Hamming_distance
+from ..IO.lbsStatistics import compute_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
