@@ -162,19 +162,30 @@ class internalParameters:
 
         # Parse LBAF_Viz parameters when available
         if (viz := self.configuration.get("LBAF_Viz")) is not None:
-            self.grid_size = []
-            for key in ("x_ranks", "y_ranks", "z_ranks"):
-                self.grid_size.append(viz.get(key))
+            # Retriveve mandatory visualization parameters
+            try:
+                self.grid_size = []
+                for key in ("x_ranks", "y_ranks", "z_ranks"):
+                    self.grid_size.append(viz[key])
+                self.object_jitter = viz["object_jitter"]
+                self.rank_qoi = viz["rank_qoi"]
+                self.object_qoi = viz["object_qoi"]
+            except Exception as e:
+                self.logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1)
+
+            # Verify grid size consistency
             if math.prod(self.grid_size) < self.n_ranks:
                 self.logger.error(f"Grid size: {self.grid_size} < {self.n_ranks}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
-            self.object_jitter = viz.get("object_jitter")
-            self.rank_qoi = viz.get("rank_qoi")
+
+            # Retrieve optional parameters
             self.save_meshes = viz.get("save_meshes")
         else:
-            self.grid_size = None
-            self.rank_qoi = ''
+            # No visualization quantities of interest
+            self.rank_qoi = self.object_qoi = self.grid_size = None
 
         # Parse data parameters if present
         if self.configuration.get("from_data") is not None:
@@ -360,7 +371,8 @@ class LBAFApp:
             self.params.algorithm,
             a_min_max,
             self.logger,
-            self.params.rank_qoi)
+            self.params.rank_qoi,
+            self.params.object_qoi)
         rt.execute()
 
         # Instantiate phase to VT file writer if started from a log file
@@ -374,19 +386,14 @@ class LBAFApp:
 
         # Generate meshes and multimedia when requested
         if self.params.grid_size:
-            # Check if a QOI of interest and bounds are available
-            qoi_request = []
-            if self.params.rank_qoi:
-                # Look for prescribed bounds
-                qoi_request.append(self.params.rank_qoi)
-                qoi_request.append(
-                    self.params.work_model.get(
-                        "parameters").get(
-                        "upper_bounds", {}).get(
-                        self.params.rank_qoi))
-            else:
-                # Fallback QOI is rank work without upper bound
-                qoi_request = ["work", None]
+            # Look for prescribed QOI bounds
+            qoi_request = [self.params.rank_qoi]
+            qoi_request.append(
+                self.params.work_model.get(
+                    "parameters").get(
+                    "upper_bounds", {}).get(
+                    self.params.rank_qoi))
+            qoi_request.append(self.params.object_qoi)
 
             # Instantiate and execute visualizer
             ex_writer = MeshBasedVisualizer(
@@ -400,7 +407,8 @@ class LBAFApp:
                 rt.get_distributions(),
                 rt.get_statistics())
             ex_writer.generate(
-                self.params.save_meshes, self.params.rank_qoi)
+                self.params.save_meshes,
+                self.params.rank_qoi)
 
         # Compute and print final rank load and edge volume statistics
         curr_phase = phases[-1]

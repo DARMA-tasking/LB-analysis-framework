@@ -35,6 +35,7 @@ LBAF_Viz:
   z_ranks: 1
   object_jitter: 0.5
   rank_qoi: None
+  object_qoi: None
 
 # Simulate from samplers (comment out if reading from log)
 from_samplers:

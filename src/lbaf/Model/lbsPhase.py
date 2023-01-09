@@ -79,12 +79,24 @@ class Phase:
 
         return self.__n_objects
 
+    def get_objects(self):
+
+        """ Return all objects belonging to phase."""
+
+        # List comprehension is not possible as we need to use set to list concatenation
+        objects = []
+        for r in self.__ranks:
+            objects += r.get_objects()
+        return objects
+
     def get_object_ids(self):
 
-        """ Return IDs of ranks belonging to phase."""
+        """ Return IDs of all objects belonging to phase."""
+
+        # List comprehension is not possible as we need to use set to list concatenation
         ids = []
-        for p in self.__ranks:
-            ids += p.get_object_ids()
+        for r in self.__ranks:
+            ids += r.get_object_ids()
         return ids
 
     def compute_edges(self):
