@@ -154,7 +154,7 @@ class AlgorithmBase:
             phases: list of Phase instances
             distributions: dictionary of load-varying variables
             statistics: dictionary of  statistics
-            a_min_max: possibly empty list of optimal arrangements"""
+            a_min_max: possibly empty list of optimal arrangements."""
 
         # Must be implemented by concrete subclass
         pass
