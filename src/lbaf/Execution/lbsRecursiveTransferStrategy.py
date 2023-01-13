@@ -1,6 +1,9 @@
 import sys
 import random
 from logging import Logger
+from typing import Union
+from itertools import accumulate
+from bisect import bisect
 
 from .lbsTransferStrategyBase import TransferStrategyBase
 from .lbsCriterionBase import CriterionBase
@@ -17,6 +20,25 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
         # Call superclass init
         super(RecursiveTransferStrategy, self).__init__(criterion, parameters, lgr)
+
+        # Select object order strategy
+        self.__strategy_mapped = {
+            "arbitrary": self.arbitrary,
+            "element_id": self.element_id,
+            "decreasing_loads": self.decreasing_loads,
+            "increasing_loads": self.increasing_loads,
+            "increasing_connectivity": self.increasing_connectivity,
+            "fewest_migrations": self.fewest_migrations,
+            "small_objects": self.small_objects}
+        o_s = parameters.get("order_strategy")
+        if o_s not in self.__strategy_mapped:
+            self._logger.error(f"{o_s} does not exist in known ordering strategies: "
+                                f"{[x for x in self.__strategy_mapped.keys()]}")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        self.__order_strategy = self.__strategy_mapped[o_s]
+        self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
+
 
     def execute(self, phase: Phase):
         """ Perform object transfer stage."""
