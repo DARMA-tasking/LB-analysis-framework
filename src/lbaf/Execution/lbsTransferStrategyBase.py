@@ -12,7 +12,7 @@ class TransferStrategyBase:
     __metaclass__ = abc.ABCMeta
     """ An abstract base class of transfer strategies for inform and transfer algorithm."""
 
-    def __init__(self, phase, criterion, parameters: dict, lgr: Logger):
+    def __init__(self, criterion, parameters: dict, lgr: Logger):
         """ Class constructor:
             criterion: a CriterionBase instance
             parameters: a dictionary of parameters
@@ -32,6 +32,8 @@ class TransferStrategyBase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._criterion = criterion
+        lgr.info(
+            f"Created base transfer strategy with {type(criterion).replace('Criterion', '')} criterion")
 
     @staticmethod
     def factory(
@@ -47,7 +49,7 @@ class TransferStrategyBase:
         # Ensure that strategy name is valid
         try:
             # Instantiate and return object
-            strategy = locals()[strategy_name + "Strategy"]
+            strategy = locals()[strategy_name + "TransferStrategy"]
             return strategy(criterion, parameters, lgr, rank_qoi, object_qoi)
         except:
             # Otherwise, error out
