@@ -7,6 +7,7 @@ from bisect import bisect
 
 from .lbsTransferStrategyBase import TransferStrategyBase
 from .lbsCriterionBase import CriterionBase
+from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
 
 

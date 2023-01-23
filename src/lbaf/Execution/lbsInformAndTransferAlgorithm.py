@@ -5,6 +5,7 @@ from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
+from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics, inverse_transform_sample, min_Hamming_distance
@@ -53,6 +54,18 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             lgr=self._logger)
         if not self.__transfer_criterion:
             self._logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
+        # Try to instantiate object transfer strategy
+        strat_name = "Recursive"
+        self.__transfer_strategy = TransferStrategyBase.factory(
+            strat_name,
+            parameters,
+            self.__transfer_criterion,
+            lgr=self._logger)
+        if not self.__transfer_strategy:
+            self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 

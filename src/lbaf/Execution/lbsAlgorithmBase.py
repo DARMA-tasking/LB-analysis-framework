@@ -84,6 +84,8 @@ class AlgorithmBase:
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
 
         # Ensure that algorithm name is valid
+        algorithm = locals()[algorithm_name + "Algorithm"]
+        return algorithm(work_model, parameters, lgr, rank_qoi, object_qoi)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]

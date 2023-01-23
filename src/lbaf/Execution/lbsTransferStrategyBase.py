@@ -47,13 +47,15 @@ class TransferStrategyBase:
         from .lbsRecursiveTransferStrategy import RecursiveTransferStrategy
 
         # Ensure that strategy name is valid
+        strategy = locals()[strategy_name + "TransferStrategy"]
+        return strategy(criterion, parameters, lgr)
         try:
             # Instantiate and return object
             strategy = locals()[strategy_name + "TransferStrategy"]
-            return strategy(criterion, parameters, lgr, rank_qoi, object_qoi)
+            return strategy(criterion, parameters, lgr)
         except:
             # Otherwise, error out
-            lgr.error(f"Could not create an strategy with name {strategy_name}")
+            lgr.error(f"Could not create a strategy with name {strategy_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
