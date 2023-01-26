@@ -1,5 +1,6 @@
 import abc
 import sys
+import math
 from logging import Logger
 
 from ..Model.lbsPhase import Phase
@@ -32,8 +33,12 @@ class TransferStrategyBase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._criterion = criterion
+
+        # Assign optional parameters
+        self._max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
+        self._deterministic_transfer = parameters.get("deterministic_transfer", False)
         lgr.info(
-            f"Created base transfer strategy with {type(criterion).__name__.replace('Criterion', '')} criterion")
+            f"Created {'' if self._deterministic_transfer else 'non'}deterministic base transfer strategy with {self._max_objects_per_transfer} objects")
 
     @staticmethod
     def factory(

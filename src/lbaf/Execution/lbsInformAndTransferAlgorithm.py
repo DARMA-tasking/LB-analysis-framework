@@ -15,7 +15,13 @@ from ..Utils.exception_handler import exc_handler
 class InformAndTransferAlgorithm(AlgorithmBase):
     """ A concrete class for the 2-phase gossip+transfer algorithm."""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
+    def __init__(
+        self,
+        work_model,
+        parameters: dict,
+        lgr: Logger,
+        rank_qoi: str,
+        object_qoi: str):
         """ Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
@@ -68,10 +74,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-
-        # Assign optional parameters
-        self.__deterministic_transfer = parameters.get("deterministic_transfer", False)
-        self.__max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
 
     def information_stage(self):
         """ Execute information stage."""
@@ -135,28 +137,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Skip non-loaded ranks
             if not p.get_load():
                 continue
-
-    def recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
-        """ Recursively extend search to other objects."""
-
-        # Fail when no more objects available or maximum depth is reached
-        if not pick_list or n_o >= max_n_o:
-            return False
-
-        # Pick one object and move it from one list to the other
-        o = random.choice(pick_list)
-        pick_list.remove(o)
-        object_list.append(o)
-        n_o += 1
-
-        # Decide whether criterion allows for transfer
-        if c_fct(object_list) < 0.:
-            # Transfer is not possible, recurse further
-            return self.recursive_extended_search(
-                pick_list, object_list, c_fct, n_o, max_n_o)
-        else:
-            # Succeed when criterion is satisfied
-            return True
 
     def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance."""

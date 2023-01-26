@@ -41,6 +41,27 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
+    def __recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
+        """ Recursively extend search to other objects."""
+
+        # Fail when no more objects available or maximum depth is reached
+        if not pick_list or n_o >= max_n_o:
+            return False
+
+        # Pick one object and move it from one list to the other
+        o = random.choice(pick_list)
+        pick_list.remove(o)
+        object_list.append(o)
+        n_o += 1
+
+        # Decide whether criterion allows for transfer
+        if c_fct(object_list) < 0.:
+            # Transfer is not possible, recurse further
+            return self.__recursive_extended_search(
+                pick_list, object_list, c_fct, n_o, max_n_o)
+        else:
+            # Succeed when criterion is satisfied
+            return True
 
     def execute(self, phase: Phase):
         """ Perform object transfer stage."""
@@ -81,10 +102,10 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 c_dst = -math.inf
 
                 # Use deterministic or probabilistic transfer method
-                if self.__deterministic_transfer:
+                if self._deterministic_transfer:
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
-                        c_try = self.__transfer_criterion.compute(
+                        c_try = self._criterion.compute(
                             [o], r_src, r_try)
                         if c_try > c_dst:
                             c_dst = c_try
@@ -92,7 +113,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self.__transfer_criterion, o, targets, False)
+                        self._criterion, o, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
@@ -111,12 +132,12 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
                     # Recursively extend search if possible
                     pick_list = srt_rank_obj[:]
-                    success = self.recursive_extended_search(
+                    success = self.__recursive_extended_search(
                         pick_list,
                         object_list,
-                        lambda x: self.__transfer_criterion.compute(x, r_src, r_dst),
+                        lambda x: self._criterion.compute(x, r_src, r_dst),
                         1,
-                        self.__max_objects_per_transfer)
+                        self._max_objects_per_transfer)
                     if success:
                         # Remove accepted objects from remaining object list
                         srt_rank_obj = pick_list
@@ -139,7 +160,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 self._logger.debug(
                     f"Transferring {len(object_list)} object(s) at once")
                 for o in object_list:
-                    self._phase.transfer_object(o, r_src, r_dst)
+                    phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
         self._logger.info(
