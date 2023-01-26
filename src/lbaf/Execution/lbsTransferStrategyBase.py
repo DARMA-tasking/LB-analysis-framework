@@ -33,7 +33,7 @@ class TransferStrategyBase:
             raise SystemExit(1)
         self._criterion = criterion
         lgr.info(
-            f"Created base transfer strategy with {type(criterion).replace('Criterion', '')} criterion")
+            f"Created base transfer strategy with {type(criterion).__name__.replace('Criterion', '')} criterion")
 
     @staticmethod
     def factory(
@@ -47,8 +47,6 @@ class TransferStrategyBase:
         from .lbsRecursiveTransferStrategy import RecursiveTransferStrategy
 
         # Ensure that strategy name is valid
-        strategy = locals()[strategy_name + "TransferStrategy"]
-        return strategy(criterion, parameters, lgr)
         try:
             # Instantiate and return object
             strategy = locals()[strategy_name + "TransferStrategy"]

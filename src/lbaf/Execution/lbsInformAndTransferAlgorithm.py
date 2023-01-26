@@ -183,7 +183,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self.information_stage()
 
             # Then execute transfer stage
-            n_ignored, n_transfers, n_rejects = self.__transfer_stage.execute(self._phase)
+            n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(self._phase)
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(

@@ -1,4 +1,5 @@
 import sys
+import math
 import random
 from logging import Logger
 from typing import Union
@@ -52,9 +53,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         max_obj_transfers = 0
 
         # Iterate over ranks
-        for r_src in self._phase.get_ranks():
+        for r_src in phase.get_ranks():
             # Skip workless ranks
-            if not self._work_model.compute(r_src) > 0.:
+            if not self._criterion._work_model.compute(r_src) > 0.:
                 continue
 
             # Skip ranks unaware of peers
