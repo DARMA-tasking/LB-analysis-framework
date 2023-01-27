@@ -77,15 +77,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 obj_clusters.setdefault(sb_id, []).append(o)
 
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()}")
-            for k, v in obj_clusters.size():
-                print(k, v)
 
-            while srt_rank_obj:
-                # Pick next object in ordered list
-                o = srt_rank_obj.pop()
-                object_list = [o]
-                self._logger.debug(f"* object {o.get_id()}:")
-
+            # Iterate over objects
+            for object_list in obj_clusters.values():
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
