@@ -156,9 +156,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 # Transfer objects
                 if len(object_list) > max_obj_transfers:
                     max_obj_transfers = len(object_list)
-
                 self._logger.debug(
-                    f"Transferring {len(object_list)} object(s) at once")
+                    f"Transferring {len(object_list)} object(s) to rank {r_dst.get_id()}")
                 for o in object_list:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1

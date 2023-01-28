@@ -117,9 +117,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Transfer objects
                 if (n_o := len(cluster)) > max_cluster_sz:
                     max_cluster_sz = n_o
-
-                self._logger.debug(
-                    f"Transferring {n_o} object(s) at once")
+                self._logger.info(
+                    f"Transferring {n_o} object(s) to rank {r_dst.get_id()}")
                 for o in cluster:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1

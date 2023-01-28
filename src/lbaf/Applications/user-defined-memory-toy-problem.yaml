@@ -19,7 +19,7 @@ work_model:
 algorithm:
   name: InformAndTransfer
   parameters:
-    n_iterations: 4
+    n_iterations: 1
     n_rounds: 4
     fanout: 4
     order_strategy: arbitrary
