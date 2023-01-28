@@ -54,19 +54,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
         # Try to instantiate object transfer criterion
+        crit_name = parameters.get("criterion")
         self.__transfer_criterion = CriterionBase.factory(
-            parameters.get("criterion"),
+            crit_name,
             self._work_model,
             lgr=self._logger)
         if not self.__transfer_criterion:
-            self._logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
+            self._logger.error(f"Could not instantiate a transfer criterion of type {crit_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Try to instantiate object transfer strategy
-        strat_name = "Recursive"
+        strat_name = parameters.get("transfer_strategy")
         self.__transfer_strategy = TransferStrategyBase.factory(
-            strat_name,
+            strat_name.title(),
             parameters,
             self.__transfer_criterion,
             lgr=self._logger)

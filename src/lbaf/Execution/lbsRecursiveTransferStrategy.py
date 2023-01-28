@@ -10,7 +10,7 @@ from .lbsTransferStrategyBase import TransferStrategyBase
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
-
+from ..IO.lbsStatistics import inverse_transform_sample
 
 class RecursiveTransferStrategy(TransferStrategyBase):
     """ A concrete class for the recursive transfer strategy."""
@@ -113,7 +113,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, o, targets, False)
+                        self._criterion, [o], targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1

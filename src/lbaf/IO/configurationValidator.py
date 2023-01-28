@@ -16,8 +16,8 @@ ALLOWED_ORDER_STRATEGIES = (
     "fewest_migrations",
     "small_objects")
 ALLOWED_TRANSFER_STRATEGIES = (
-    "recursive",
-    "clustering")
+    "Recursive",
+    "Clustering")
 ALLOWED_WORK_MODELS = (
     "LoadOnly",
     "AffineCombination")
@@ -146,7 +146,6 @@ class ConfigurationValidator:
                          error=f"{get_error_message(ALLOWED_ORDER_STRATEGIES)} must be chosen"),
                      "transfer_strategy": And(
                          str,
-                         Use(str.lower),
                          lambda e: e in ALLOWED_TRANSFER_STRATEGIES,
                          error=f"{get_error_message(ALLOWED_TRANSFER_STRATEGIES)} must be chosen"),
                      "criterion": And(

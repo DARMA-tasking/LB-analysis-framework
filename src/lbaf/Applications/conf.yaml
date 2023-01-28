@@ -22,10 +22,10 @@ algorithm:
     n_rounds: 4
     fanout: 4
     order_strategy: arbitrary
-    transfer_strategy: recursive
+    transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
-    deterministic_transfer: True
+    deterministic_transfer: False
 
 # Specify output
 #logging_level: debug

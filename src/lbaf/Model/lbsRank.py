@@ -306,7 +306,7 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_transfer_cmf(self, transfer_criterion, o: Object, targets: dict, strict=False):
+    def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: dict, strict=False):
         """ Compute CMF for the sampling of transfer targets."""
 
         # Initialize criterion values
@@ -316,7 +316,7 @@ class Rank:
         # Iterate over potential targets
         for p_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute([o], self, p_dst)
+            c = transfer_criterion.compute(objects, self, p_dst)
 
             # Do not include rejected targets for strict CMF
             if strict and c < 0.:

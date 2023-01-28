@@ -50,6 +50,7 @@ class TransferStrategyBase:
 
         # Load up available strategies
         from .lbsRecursiveTransferStrategy import RecursiveTransferStrategy
+        from .lbsClusteringTransferStrategy import ClusteringTransferStrategy
 
         # Ensure that strategy name is valid
         try:

@@ -10,6 +10,7 @@ from .lbsTransferStrategyBase import TransferStrategyBase
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
+from ..IO.lbsStatistics import inverse_transform_sample
 
 
 class ClusteringTransferStrategy(TransferStrategyBase):
@@ -79,7 +80,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()}")
 
             # Iterate over objects
-            for object_list in obj_clusters.values():
+            for cluster in obj_clusters.values():
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
@@ -89,7 +90,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
-                            [o], r_src, r_try)
+                            cluster, r_src, r_try)
                         if c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
@@ -106,7 +107,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     r_dst = inverse_transform_sample(p_cmf)
                     c_dst = c_values[r_dst]
 
-
                 # Sanity check before transfer
                 if r_dst not in r_src.get_known_loads():
                     self._logger.error(
@@ -115,17 +115,17 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     raise SystemExit(1)
 
                 # Transfer objects
-                if len(object_list) > max_cluster_szs:
-                    max_cluster_szs = len(object_list)
+                if (n_o := len(cluster)) > max_cluster_sz:
+                    max_cluster_sz = n_o
 
                 self._logger.debug(
-                    f"Transferring {len(object_list)} object(s) at once")
-                for o in object_list:
+                    f"Transferring {n_o} object(s) at once")
+                for o in cluster:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
 
         self._logger.info(
-            f"Maximum transferred object cluster size: {max_cluster_szs}")
+            f"Maximum transferred object cluster size: {max_cluster_sz}")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
