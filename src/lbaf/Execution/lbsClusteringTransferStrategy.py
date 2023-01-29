@@ -49,9 +49,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info("Executing transfer phase")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
-        # Maximum object cluster size
-        max_cluster_sz = 0
-
         # Iterate over ranks
         for r_src in phase.get_ranks():
             # Skip workless ranks
@@ -119,16 +116,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     raise SystemExit(1)
 
                 # Transfer objects
-                if (n_o := len(cluster)) > max_cluster_sz:
-                    max_cluster_sz = n_o
                 self._logger.info(
-                    f"Transferring {n_o} object(s) to rank {r_dst.get_id()}")
+                    f"Transferring {len(cluster)} object(s) to rank {r_dst.get_id()}")
                 for o in cluster:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
-
-        self._logger.info(
-            f"Maximum transferred object cluster size: {max_cluster_sz}")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
