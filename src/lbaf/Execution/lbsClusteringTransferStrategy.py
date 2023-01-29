@@ -107,6 +107,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     r_dst = inverse_transform_sample(p_cmf)
                     c_dst = c_values[r_dst]
 
+                # Do not transfer if criterion is negative
+                if c_dst < 0.0:
+                    continue
+
                 # Sanity check before transfer
                 if r_dst not in r_src.get_known_loads():
                     self._logger.error(
