@@ -76,8 +76,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()}")
 
-            # Iterate over objects
-            for cluster in obj_clusters.values():
+            # Iterate over clusters
+            remaining_clusters = []
+            for cluster_key, objects in obj_clusters.items():
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
@@ -87,14 +88,14 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
-                            cluster, r_src, r_try)
+                            objects, r_src, r_try)
                         if c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, o, targets, False)
+                        self._criterion, objects, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
@@ -104,8 +105,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     r_dst = inverse_transform_sample(p_cmf)
                     c_dst = c_values[r_dst]
 
-                # Do not transfer if criterion is negative
+                # Do not transfer whole cluster if best criterion is negative
                 if c_dst < 0.0:
+                    remaining_clusters.append(cluster_key)
                     continue
 
                 # Sanity check before transfer
@@ -117,10 +119,32 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Transfer objects
                 self._logger.info(
-                    f"Transferring {len(cluster)} object(s) to rank {r_dst.get_id()}")
-                for o in cluster:
+                    f"Transferring {len(objects)} object(s) from cluster {cluster_key} to rank {r_dst.get_id()}")
+                for o in objects:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
+
+            # Inspect remaining clusters
+            for cluster_key in remaining_clusters:
+                print("Rank", r_src, "now has load", r_src.get_load())
+                self._logger.info(
+                    f"Inspecting non-transferred cluster with key {cluster_key}")
+                for o in obj_clusters[cluster_key]:
+                    print("trying to add", o.get_id())
+                    # Select best destination with respect to criterion
+                    r_dst = None
+                    c_dst = -math.inf
+                    for r_try in targets.keys():
+                        c_try = self._criterion.compute(
+                            [o], r_src, r_try)
+                        print(f"\ttrying to send {o.get_id()} to", r_try, "with load", r_try.get_load(), "c=", c_try)
+                        if c_try > c_dst:
+                            c_dst = c_try
+                            r_dst = r_try
+                    if c_dst > 0.0:
+                        print(f"Transferring {o.get_id()} to", r_dst, c_dst)
+                        phase.transfer_object(o, r_src, r_dst)
+                        n_transfers += 1
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects

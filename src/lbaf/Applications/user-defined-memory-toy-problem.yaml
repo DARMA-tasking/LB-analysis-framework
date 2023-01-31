@@ -12,7 +12,8 @@ work_model:
     beta: 0.
     gamma: 0.
     upper_bounds:
-      max_memory_usage: 8.0e+9
+      #max_memory_usage: 8.0e+9
+      max_memory_usage: 9.1e+9
 
 # Specify balancing algorithm
 #brute_force_optimization: True
@@ -41,6 +42,7 @@ LBAF_Viz:
   y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
-  rank_qoi: max_memory_usage
+  #rank_qoi: max_memory_usage
+  rank_qoi: load
   object_qoi: shared_block_id
   save_meshes: True
