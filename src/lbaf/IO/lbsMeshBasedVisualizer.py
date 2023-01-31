@@ -128,8 +128,8 @@ class MeshBasedVisualizer:
         self.__distributions = distributions
 
         # Assign or compute rank quantity of interest range
-        rank_qoi = rank_attributes[self.__rank_qoi]
-        self.__rank_qoi_range = [min(min(rank_qoi))]
+        self.__rank_qoi_range = [
+            min(y for x in rank_attributes[self.__rank_qoi] for y in x)]
         if rank_qoi_max is None:
             self.__rank_qoi_range.append(max(max(rank_attributes[self.__rank_qoi])))
         else:
