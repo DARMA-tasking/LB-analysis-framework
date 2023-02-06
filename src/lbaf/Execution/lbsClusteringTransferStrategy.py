@@ -42,11 +42,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
-    def execute(self, phase: Phase):
+    def execute(self, phase: Phase, total_work: float):
         """ Perform object transfer stage."""
 
         # Initialize transfer stage
-        self._logger.info("Executing transfer phase")
+        self.__average_work = total_work / phase.get_number_of_ranks()
+        self._logger.info(f"Executing transfer phase with average work of {self.__average_work}")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Iterate over ranks
@@ -75,9 +76,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 obj_clusters.setdefault(sb_id, []).append(o)
 
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()}")
+            for cluster_key, objects in obj_clusters.items():
+                print(cluster_key, objects)
 
             # Iterate over clusters
             remaining_clusters = []
+            moved_one_cluster = False
             for cluster_key, objects in obj_clusters.items():
                 # Initialize destination information
                 r_dst = None
@@ -123,9 +127,16 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 for o in objects:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
+                moved_one_cluster = True
+
+            if moved_one_cluster:
+                print("at least one cluster moved; not trying to break any")
+                continue
 
             # Inspect remaining clusters
             for cluster_key in remaining_clusters:
+                if r_src.get_load() < self.__average_work:
+                    continue
                 print("Rank", r_src, "now has load", r_src.get_load())
                 self._logger.info(
                     f"Inspecting non-transferred cluster with key {cluster_key}")
@@ -210,7 +221,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
     def load_excess(self, objects: set):
         rank_load = sum([obj.get_load() for obj in objects])
-        return rank_load - self.__average_load
+        return rank_load - self.__average_work
 
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated

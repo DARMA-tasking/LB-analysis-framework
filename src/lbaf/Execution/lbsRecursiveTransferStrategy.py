@@ -63,11 +63,12 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             # Succeed when criterion is satisfied
             return True
 
-    def execute(self, phase: Phase):
+    def execute(self, phase: Phase, total_work: float):
         """ Perform object transfer stage."""
 
         # Initialize transfer stage
-        self._logger.info("Executing transfer phase")
+        self.__average_work = total_work / phase.get_number_of_ranks()
+        self._logger.info(f"Executing transfer phase with average work of {self.__average_work}")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Biggest transfer (num of object transferred at once)
@@ -229,7 +230,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def load_excess(self, objects: set):
         rank_load = sum([obj.get_load() for obj in objects])
-        return rank_load - self.__average_load
+        return rank_load - self.__average_work
 
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated

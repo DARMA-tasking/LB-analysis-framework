@@ -64,9 +64,10 @@ class TransferStrategyBase:
             raise SystemExit(1)
 
     @abc.abstractmethod
-    def execute(self, phase):
+    def execute(self, phase, total_work):
         """ Excecute transfer strategy on Phase instance
-            phase: a Phase instance."""
+            phase: a Phase instance
+            total_work: total amount of work in current phase."""
 
         # Must be implemented by concrete subclass
         pass
