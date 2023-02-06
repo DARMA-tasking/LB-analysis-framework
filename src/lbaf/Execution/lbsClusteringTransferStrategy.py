@@ -74,21 +74,24 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Add current object to its block ID cluster
                 obj_clusters.setdefault(sb_id, []).append(o)
-
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()}")
-            for cluster_key, objects in obj_clusters.items():
-                print(cluster_key, objects)
-
-            # Iterate over clusters
+            
+            # Iterate over clusters sorted by load
             remaining_clusters = []
-            moved_one_cluster = False
-            for cluster_key, objects in obj_clusters.items():
+            for cluster_key, objects in sorted(
+                obj_clusters.items(), key=lambda oc: sum([x.get_load() for x in oc[1]]), reverse=True):
+                print(cluster_key, sum([x.get_load() for x in objects]))
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
+                    # Ignore singletons
+                    if len(objects) < 2:
+                        remaining_clusters.append(cluster_key)
+                        continue
+
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
@@ -127,32 +130,36 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 for o in objects:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
-                moved_one_cluster = True
+                transfered_something = True
 
-            if moved_one_cluster:
-                print("at least one cluster moved; not trying to break any")
+            print("Rank", r_src, "now has load", r_src.get_load())
+
+            if n_transfers:
+                print("at least one cluster transfered; not trying to break any")
                 continue
 
             # Inspect remaining clusters
             for cluster_key in remaining_clusters:
                 if r_src.get_load() < self.__average_work:
                     continue
-                print("Rank", r_src, "now has load", r_src.get_load())
                 self._logger.info(
                     f"Inspecting non-transferred cluster with key {cluster_key}")
                 for o in obj_clusters[cluster_key]:
-                    print("trying to add", o.get_id())
                     # Select best destination with respect to criterion
                     r_dst = None
                     c_dst = -math.inf
+                    n_feas = 0
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
                             [o], r_src, r_try)
-                        print(f"\ttrying to send {o.get_id()} to", r_try, "with load", r_try.get_load(), "c=", c_try)
+                        if c_try >= 0.0:
+                            n_feas += 1
                         if c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
-                    if c_dst > 0.0:
+                        print(f"\t{n_feas} were feasible")
+
+                    if c_dst >= 0.0:
                         print(f"Transferring {o.get_id()} to", r_dst, c_dst)
                         phase.transfer_object(o, r_src, r_dst)
                         n_transfers += 1
