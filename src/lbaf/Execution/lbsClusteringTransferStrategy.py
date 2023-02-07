@@ -74,7 +74,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Add current object to its block ID cluster
                 obj_clusters.setdefault(sb_id, []).append(o)
-            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()}")
+            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with work of {self._criterion._work_model.compute(r_src)}")
             
             # Iterate over clusters sorted by load
             remaining_clusters = []
@@ -84,6 +84,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
+                m_dst = math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
@@ -96,9 +97,16 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
                             objects, r_src, r_try)
+                        m_try = r_try.get_max_memory_usage()
+                        print("to", r_try.get_id(), "c=", c_try, "mem=", m_try)
                         if c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
+                            m_dst = m_try
+                        elif c_try == c_dst and m_try < m_dst:
+                            r_dst = r_try
+                            m_dst = m_try
+
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
