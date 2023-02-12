@@ -13,7 +13,7 @@ work_model:
     gamma: 0.
     upper_bounds:
       max_memory_usage: 8.0e+9
-      #max_memory_usage: 9.1e+9
+      #max_memory_usage: 8.0e+11
 
 # Specify balancing algorithm
 #brute_force_optimization: True

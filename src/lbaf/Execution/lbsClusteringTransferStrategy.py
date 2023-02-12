@@ -42,12 +42,30 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
+
+    def __find_best_cluster_ID(self, clusters, rank_work, r_tol=0.05):
+        """ Find best cluster to bring rank closest and above average work."""
+
+        # Build dict of suitable clusters with their work
+        suitable_cluster_IDs = {}
+        for k, v in clusters.items():
+            # Reject clusters below work target within relative tolerance
+            d = rank_work - sum([o.get_load() for o in v])
+            if d < (1.0 - r_tol) * self.__average_work:
+                continue
+
+            # Retain suitable clusters with their work
+            suitable_cluster_IDs[k] = d
+
+        # Return cluster ID minimizing distance to average work
+        return min(suitable_cluster_IDs.items(), key=lambda x: x[1])[0]
+
     def execute(self, phase: Phase, total_work: float):
         """ Perform object transfer stage."""
 
         # Initialize transfer stage
         self.__average_work = total_work / phase.get_number_of_ranks()
-        self._logger.info(f"Executing transfer phase with average work of {self.__average_work}")
+        self._logger.info(f"Executing transfer phase with average work: {self.__average_work}")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Iterate over ranks
@@ -74,13 +92,18 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Add current object to its block ID cluster
                 obj_clusters.setdefault(sb_id, []).append(o)
-            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with work of {self._criterion._work_model.compute(r_src)}")
+
+            src_work = self._criterion._work_model.compute(r_src)
+            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with work: {src_work}")
             
-            # Iterate over clusters sorted by load
-            remaining_clusters = []
-            for cluster_key, objects in sorted(
-                obj_clusters.items(), key=lambda oc: sum([x.get_load() for x in oc[1]]), reverse=True):
-                print(cluster_key, sum([x.get_load() for x in objects]))
+            # Iterate over clusters
+            while obj_clusters:
+                print(obj_clusters)
+                cluster_ID = self.__find_best_cluster_ID(
+                    obj_clusters, self._criterion._work_model.compute(r_src))
+                objects = obj_clusters.pop(cluster_ID)
+                print(objects, sum([o.get_load() for o in objects]))
+
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
@@ -90,7 +113,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 if self._deterministic_transfer:
                     # Ignore singletons
                     if len(objects) < 2:
-                        remaining_clusters.append(cluster_key)
+                        remaining_clusters.append(cluster_ID)
                         continue
 
                     # Select best destination with respect to criterion
@@ -122,7 +145,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Do not transfer whole cluster if best criterion is negative
                 if c_dst < 0.0:
-                    remaining_clusters.append(cluster_key)
+                    remaining_clusters.append(cluster_ID)
                     continue
 
                 # Sanity check before transfer
@@ -134,7 +157,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Transfer objects
                 self._logger.info(
-                    f"Transferring {len(objects)} object(s) from cluster {cluster_key} to rank {r_dst.get_id()}")
+                    f"Transferring {len(objects)} object(s) from cluster {cluster_ID} to rank {r_dst.get_id()}")
                 for o in objects:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
@@ -147,12 +170,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 continue
 
             # Inspect remaining clusters
-            for cluster_key in remaining_clusters:
+            for cluster_ID in remaining_clusters:
                 if r_src.get_load() < self.__average_work:
                     continue
                 self._logger.info(
-                    f"Inspecting non-transferred cluster with key {cluster_key}")
-                for o in obj_clusters[cluster_key]:
+                    f"Inspecting non-transferred cluster with key {cluster_ID}")
+                for o in obj_clusters[cluster_ID]:
                     # Select best destination with respect to criterion
                     r_dst = None
                     c_dst = -math.inf
