@@ -3,7 +3,7 @@ import math
 import random
 from logging import Logger
 from typing import Union
-from itertools import accumulate
+from itertools import accumulate, chain, combinations
 from bisect import bisect
 
 from .lbsTransferStrategyBase import TransferStrategyBase
@@ -42,25 +42,41 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
+    def __cluster_objects(self, rank):
+        """ Cluster migratiable objects by shared block ID when available."""
 
-    def __find_best_cluster_ID(self, clusters, rank_load, r_tol=0.05):
-        """ Find best cluster to bring rank closest and above average load."""
-
-        # Build dict of suitable clusters with their load
-        suitable_cluster_IDs = {}
-        for k, v in clusters.items():
-            # Reject clusters below load target within relative tolerance
-            d = rank_load - sum([o.get_load() for o in v])
-            if d < (1.0 - r_tol) * self.__average_load:
+        # Iterate over all migratable objects on rank
+        obj_clusters = {}
+        for o in rank.get_migratable_objects():
+            # Retrieve shared block ID and skip object without one
+            sb_id = o.get_shared_block_id()
+            if sb_id == None:
                 continue
 
-            # Retain suitable clusters with their load
-            suitable_cluster_IDs[k] = d
+            # Add current object to its block ID cluster
+            obj_clusters.setdefault(sb_id, []).append(o)
 
-        # Return cluster ID minimizing distance to average load
-        if not suitable_cluster_IDs:
-            return None
-        return min(suitable_cluster_IDs.items(), key=lambda x: x[1])[0]
+        # Return dict of computed object clusters
+        return obj_clusters
+
+    def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
+        """ Find suitable sub-clusters to bring rank closest and above average load."""
+
+        # Build dict of suitable clusters with their load
+        suitable_subclusters, cluster_IDs = {}, {}
+        for k, v in clusters.items():
+            # Inspect all non-trivial combinations of objects in cluster
+            for c in chain.from_iterable(combinations(v, p) for p in range(1, len(v)+1)):
+                # Reject subclusters overshooting within relative tolerance
+                reach_load = rank_load - sum([o.get_load() for o in c])
+                if reach_load < (1.0 - r_tol) * self.__average_load:
+                    continue
+
+                # Retain suitable subclusters with their respective distance and cluster
+                suitable_subclusters[c] = (k, reach_load)
+
+        # Return subclusters and cluster IDs sorted by achievable loads
+        return sorted(suitable_subclusters.items(), key=lambda x: x[1][1])
 
     def execute(self, phase: Phase, ave_load: float):
         """ Perform object transfer stage."""
@@ -84,28 +100,22 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 continue
             self._logger.debug(f"Trying to offload from rank {r_src.get_id()} to {[p.get_id() for p in targets]}:")
 
-            # Cluster migratiable objects by shared block ID when available
-            obj_clusters = {}
-            for o in r_src.get_migratable_objects():
-                # Retrieve shared block ID and skip object without one
-                sb_id = o.get_shared_block_id()
-                if sb_id == None:
-                    continue
-
-                # Add current object to its block ID cluster
-                obj_clusters.setdefault(sb_id, []).append(o)
-
+            # Cluster migratiable objects on source rank
+            obj_clusters = self.__cluster_objects(r_src)
             src_load = r_src.get_load()
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {src_load}")
-            
-            # Iterate over clusters
-            while obj_clusters:
-                cluster_ID = self.__find_best_cluster_ID(
-                    obj_clusters, r_src.get_load())
-                if cluster_ID == None:
-                    print("No suitable cluster, left with", len(obj_clusters))
-                    break
-                objects = obj_clusters.pop(cluster_ID)
+
+            # Identify best possible transferrable cluster or subcluster
+            subclusters = self.__find_suitable_subclusters(
+                obj_clusters, r_src.get_load())
+            if not subclusters:
+                self._logger.info(f"No transferrable cluster or subcluster found on rank {r_src.get_id()}")
+
+                break
+
+            # Iterate over suitable subclusters
+            for objects, (cluster_ID, reach_load) in subclusters:
+                obj_clusters.pop(cluster_ID)
 
                 # Initialize destination information
                 r_dst = None
@@ -114,11 +124,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
-                    # Ignore singletons
-                    if len(objects) < 2:
-                        remaining_clusters.append(cluster_ID)
-                        continue
-
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
@@ -147,7 +152,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Do not transfer whole cluster if best criterion is negative
                 if c_dst < 0.0:
-                    remaining_clusters.append(cluster_ID)
                     continue
 
                 # Sanity check before transfer
@@ -158,45 +162,16 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     raise SystemExit(1)
 
                 # Transfer objects
-                self._logger.info(
-                    f"Transferring {len(objects)} object(s) from cluster {cluster_ID} to rank {r_dst.get_id()}")
                 for o in objects:
                     phase.transfer_object(o, r_src, r_dst)
                     n_transfers += 1
-                transfered_something = True
-
-            print("Rank", r_src, "now has load", r_src.get_load())
-
-            if n_transfers:
-                print("at least one cluster transfered; not trying to break any")
-                continue
-
-            # Inspect remaining clusters
-            remaining_clusters = []
-            for cluster_ID in remaining_clusters:
-                if r_src.get_load() < self.__average_load:
-                    continue
                 self._logger.info(
-                    f"Inspecting non-transferred cluster with key {cluster_ID}")
-                for o in obj_clusters[cluster_ID]:
-                    # Select best destination with respect to criterion
-                    r_dst = None
-                    c_dst = -math.inf
-                    n_feas = 0
-                    for r_try in targets.keys():
-                        c_try = self._criterion.compute(
-                            [o], r_src, r_try)
-                        if c_try >= 0.0:
-                            n_feas += 1
-                        if c_try > c_dst:
-                            c_dst = c_try
-                            r_dst = r_try
-                        print(f"\t{n_feas} were feasible")
-
-                    if c_dst >= 0.0:
-                        print(f"Transferring {o.get_id()} to", r_dst, c_dst)
-                        phase.transfer_object(o, r_src, r_dst)
-                        n_transfers += 1
+                    f"Transferred {len(objects)} object(s) from cluster {cluster_ID} to rank {r_dst.get_id()}:")
+                self._logger.info(
+                    f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
+                self._logger.info(
+                    f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
+                break
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
