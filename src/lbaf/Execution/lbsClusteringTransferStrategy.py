@@ -43,35 +43,37 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
 
-    def __find_best_cluster_ID(self, clusters, rank_work, r_tol=0.05):
-        """ Find best cluster to bring rank closest and above average work."""
+    def __find_best_cluster_ID(self, clusters, rank_load, r_tol=0.05):
+        """ Find best cluster to bring rank closest and above average load."""
 
-        # Build dict of suitable clusters with their work
+        # Build dict of suitable clusters with their load
         suitable_cluster_IDs = {}
         for k, v in clusters.items():
-            # Reject clusters below work target within relative tolerance
-            d = rank_work - sum([o.get_load() for o in v])
-            if d < (1.0 - r_tol) * self.__average_work:
+            # Reject clusters below load target within relative tolerance
+            d = rank_load - sum([o.get_load() for o in v])
+            if d < (1.0 - r_tol) * self.__average_load:
                 continue
 
-            # Retain suitable clusters with their work
+            # Retain suitable clusters with their load
             suitable_cluster_IDs[k] = d
 
-        # Return cluster ID minimizing distance to average work
+        # Return cluster ID minimizing distance to average load
+        if not suitable_cluster_IDs:
+            return None
         return min(suitable_cluster_IDs.items(), key=lambda x: x[1])[0]
 
-    def execute(self, phase: Phase, total_work: float):
+    def execute(self, phase: Phase, ave_load: float):
         """ Perform object transfer stage."""
 
         # Initialize transfer stage
-        self.__average_work = total_work / phase.get_number_of_ranks()
-        self._logger.info(f"Executing transfer phase with average work: {self.__average_work}")
+        self.__average_load = ave_load
+        self._logger.info(f"Executing transfer phase with average load: {self.__average_load}")
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Iterate over ranks
         for r_src in phase.get_ranks():
-            # Skip workless ranks
-            if not self._criterion._work_model.compute(r_src) > 0.:
+            # Skip loadless ranks
+            if not r_src.get_load() > 0.:
                 continue
 
             # Skip ranks unaware of peers
@@ -93,16 +95,17 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Add current object to its block ID cluster
                 obj_clusters.setdefault(sb_id, []).append(o)
 
-            src_work = self._criterion._work_model.compute(r_src)
-            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with work: {src_work}")
+            src_load = r_src.get_load()
+            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {src_load}")
             
             # Iterate over clusters
             while obj_clusters:
-                print(obj_clusters)
                 cluster_ID = self.__find_best_cluster_ID(
-                    obj_clusters, self._criterion._work_model.compute(r_src))
+                    obj_clusters, r_src.get_load())
+                if cluster_ID == None:
+                    print("No suitable cluster, left with", len(obj_clusters))
+                    break
                 objects = obj_clusters.pop(cluster_ID)
-                print(objects, sum([o.get_load() for o in objects]))
 
                 # Initialize destination information
                 r_dst = None
@@ -121,7 +124,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         c_try = self._criterion.compute(
                             objects, r_src, r_try)
                         m_try = r_try.get_max_memory_usage()
-                        print("to", r_try.get_id(), "c=", c_try, "mem=", m_try)
                         if c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
@@ -170,8 +172,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 continue
 
             # Inspect remaining clusters
+            remaining_clusters = []
             for cluster_ID in remaining_clusters:
-                if r_src.get_load() < self.__average_work:
+                if r_src.get_load() < self.__average_load:
                     continue
                 self._logger.info(
                     f"Inspecting non-transferred cluster with key {cluster_ID}")
@@ -259,7 +262,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
     def load_excess(self, objects: set):
         rank_load = sum([obj.get_load() for obj in objects])
-        return rank_load - self.__average_work
+        return rank_load - self.__average_load
 
     def fewest_migrations(self, objects: set, _):
         """ First find the load of the smallest single object that, if migrated
