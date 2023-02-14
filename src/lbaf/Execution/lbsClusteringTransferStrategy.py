@@ -47,7 +47,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Define upper bound o
 
         # Build dict of suitable clusters with their load
-        suitable_subclusters, cluster_IDs = {}, {}
+        suitable_subclusters = {}
         for k, v in clusters.items():
             # Inspect all non-trivial combinations of objects in cluster
             for c in chain.from_iterable(
