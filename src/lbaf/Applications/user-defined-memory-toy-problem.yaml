@@ -27,7 +27,7 @@ algorithm:
     transfer_strategy: Clustering
     criterion: Tempered
     max_objects_per_transfer: 32
-    deterministic_transfer: True
+    deterministic_transfer: False
 
 # Specify output
 #logging_level: debug
