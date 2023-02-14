@@ -23,7 +23,7 @@ Make sure you have all required Pyhon packages installed with:
 pip install -r requirements-3.8.txt
 ```
 
-Requirements are divided into `LBAF dependencies` and `LBAF testing`. 
+Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF dependencies` are needed in order to LBAF to work.
 
@@ -88,7 +88,7 @@ python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node
 
 # Optionally one could pass --file_prefix and/or --file_suffix
 # When one passes files with given prefix/suffix or both will be validated
-# When no prefix and suffix will be given validator will find most common prefix and suffix in the directory 
+# When no prefix and suffix will be given validator will find most common prefix and suffix in the directory
 # and will use them for validation process
 python JSON_data_files_validator.py --dir_path=../../data/8color-4node --file_prefix=data --file_suffix=json
 ```
@@ -109,8 +109,8 @@ VT data Extractor is located in:
 * `input_data_dir`: str - path to dir with files to extract e.g. `"../data/<dir-with-files>"`
 * `output_data_dir`: str - path to dir where files should be saved e.g. `"../output"` (will be created when doesn't exist)
 * `phases_to_extract`: list - list of phases `[int or str]` e.g. `[0, 1, "2-4"]` will extract phases `[0, 1, 2, 3, 4]`
-* `file_prefix`: str - data file prefix e.g. if filename is `stats.0.json`, then prefix should be set to "stats" 
-* `file_suffix`: str - data file suffix e.g. if filename is `stats.0.json`, then suffix should be set to "json" 
+* `file_prefix`: str - data file prefix e.g. if filename is `stats.0.json`, then prefix should be set to "stats"
+* `file_suffix`: str - data file suffix e.g. if filename is `stats.0.json`, then suffix should be set to "json"
 * `compressed`: bool - when True, brotli must be imported and then output data will be compressed
 * `schema_type`: str - should be `"LBDatafile"` or `"LBStatsfile"` depends on input data. Only `"LBStatsfile"` is supported
 * `check_schema`: bool - when True, validates schema (more time-consuming)
