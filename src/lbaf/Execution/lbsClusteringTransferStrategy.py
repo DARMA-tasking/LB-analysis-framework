@@ -48,11 +48,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Build dict of suitable clusters with their load
         suitable_subclusters = {}
+        n_inspect = 0
         for k, v in clusters.items():
             # Inspect all non-trivial combinations of objects in cluster
             for c in chain.from_iterable(
                 combinations(v, p)
                 for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
+                n_inspect += 1
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
@@ -62,6 +64,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 suitable_subclusters[c] = (k, reach_load)
 
         # Return subclusters and cluster IDs sorted by achievable loads
+        self._logger.info(f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
         return sorted(suitable_subclusters.items(), key=lambda x: x[1][1])
 
     def execute(self, phase: Phase, ave_load: float):
@@ -91,15 +94,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             src_load = r_src.get_load()
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {src_load}")
 
-            # Identify best possible transferrable cluster or subcluster
-            subclusters = self.__find_suitable_subclusters(
-                obj_clusters, r_src.get_load())
-            if not subclusters:
-                self._logger.info(f"No suitable cluster or subcluster found on rank {r_src.get_id()}")
-
             # Iterate over suitable subclusters
             used_clusters = set()
-            for objects, (cluster_ID, reach_load) in subclusters:
+            for objects, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
+                obj_clusters, r_src.get_load()):
                 # Skip clusters which were already used for transfers
                 # Update cluster containers
                 if cluster_ID in used_clusters:
@@ -159,9 +157,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                 self._logger.info(
                     f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
+
+                # Update cluster containers
                 obj_clusters.pop(cluster_ID)
                 used_clusters.add(cluster_ID)
-                break
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
