@@ -95,13 +95,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             subclusters = self.__find_suitable_subclusters(
                 obj_clusters, r_src.get_load())
             if not subclusters:
-                self._logger.info(f"No transferrable cluster or subcluster found on rank {r_src.get_id()}")
-
-                break
+                self._logger.info(f"No suitable cluster or subcluster found on rank {r_src.get_id()}")
 
             # Iterate over suitable subclusters
+            used_clusters = set()
             for objects, (cluster_ID, reach_load) in subclusters:
-                obj_clusters.pop(cluster_ID)
+                # Skip clusters which were already used for transfers
+                # Update cluster containers
+                if cluster_ID in used_clusters:
+                    continue
 
                 # Initialize destination information
                 r_dst = None
@@ -157,6 +159,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                 self._logger.info(
                     f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
+                obj_clusters.pop(cluster_ID)
+                used_clusters.add(cluster_ID)
                 break
 
         # Return object transfer counts
