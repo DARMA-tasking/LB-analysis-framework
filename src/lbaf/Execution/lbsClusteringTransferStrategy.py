@@ -44,11 +44,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
     def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
         """ Find suitable sub-clusters to bring rank closest and above average load."""
 
+        # Define upper bound o
+
         # Build dict of suitable clusters with their load
         suitable_subclusters, cluster_IDs = {}, {}
         for k, v in clusters.items():
             # Inspect all non-trivial combinations of objects in cluster
-            for c in chain.from_iterable(combinations(v, p) for p in range(1, len(v)+1)):
+            for c in chain.from_iterable(
+                combinations(v, p)
+                for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:

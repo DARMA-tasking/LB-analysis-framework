@@ -38,7 +38,7 @@ class TransferStrategyBase:
         self._max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
         self._deterministic_transfer = parameters.get("deterministic_transfer", False)
         lgr.info(
-            f"Created {'' if self._deterministic_transfer else 'non'}deterministic base transfer strategy for at most {self._max_objects_per_transfer} objects")
+            f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
 
     @staticmethod
     def factory(
