@@ -30,4 +30,4 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --recursive=y --rcfile=.pylintrc ./src ./tests
+          pylint --rcfile=.pylintrc ./src ./tests
