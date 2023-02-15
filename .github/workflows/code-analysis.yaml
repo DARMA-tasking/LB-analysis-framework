@@ -2,7 +2,6 @@ name: Code Analysis
 on: push
 jobs:
   pylint:
-    continue-on-error: true
     runs-on: ubuntu-latest
     env:
       home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
@@ -31,3 +30,4 @@ jobs:
         run: |
           cd ${{ env.home_dir }}
           pylint --rcfile=.pylintrc ./src ./tests
+        continue-on-error: true
