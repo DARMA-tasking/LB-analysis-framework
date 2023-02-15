@@ -203,4 +203,3 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Report final mapping in debug mode
         self.report_final_mapping(self._logger)
-

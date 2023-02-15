@@ -164,4 +164,3 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
-
