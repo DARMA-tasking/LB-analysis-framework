@@ -131,7 +131,8 @@ class MeshBasedVisualizer:
         self.__rank_qoi_range = [
             min(y for x in rank_attributes[self.__rank_qoi] for y in x)]
         if rank_qoi_max is None:
-            self.__rank_qoi_range.append(max(max(rank_attributes[self.__rank_qoi])))
+            self.__rank_qoi_range.append(
+                max(y for x in rank_attributes[self.__rank_qoi] for y in x))
         else:
             self.__rank_qoi_range.append(rank_qoi_max)
         self.__logger.info(
