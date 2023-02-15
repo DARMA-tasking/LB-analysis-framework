@@ -1,0 +1,33 @@
+name: Code Analysis
+on: push
+jobs:
+  pylint:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    env:
+      home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install packages
+        run: |
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install -y git xvfb
+
+      - name: Python Setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          cd ${{ env.home_dir }}
+          python -m pip install --upgrade pip
+          pip install -r requirements-3.8.txt
+          pip install tox-gh-actions
+
+      - name: Run pylint
+        run: |
+          cd ${{ env.home_dir }}
+          pylint --recursive=y --rcfile=.pylintrc ./src ./tests
