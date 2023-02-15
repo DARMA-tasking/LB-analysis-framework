@@ -29,5 +29,5 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc ./src ./tests
+          pylint --rcfile=.pylintrc --msg-template="::warning file={path},line={line},col={column}::{msg} ({msg_id})" ./src ./tests
         continue-on-error: true
