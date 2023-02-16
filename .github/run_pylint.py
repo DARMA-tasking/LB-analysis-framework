@@ -20,17 +20,12 @@ for i, a in enumerate(sys.argv):
         p = Path(a)
         if (not p.is_absolute()):
             a = p.resolve().as_posix()
-            # sys.stdout.write(a.as_posix() + "\n")
-            # sys.exit(0)
-            # a = ROOT_DIR + "/" + p.name
     args.append(a)
 
 def print_github_message(text :str) -> str:
     """Format a string for github if it is multiline"""
     if "\n" in text:
-        os.system("echo \"MY_STRING<<EOF\" >> $GITHUB_ENV")
-        sys.stdout.write(text + "\n")
-        os.system("echo \"EOF\" >> $GITHUB_ENV")
+        sys.stdout.write(text.replace("\n", "%0A") + "\n")
     else:
         sys.stdout.write(text + "\n")
 
