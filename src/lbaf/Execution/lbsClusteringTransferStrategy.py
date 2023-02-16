@@ -135,31 +135,32 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     r_dst = inverse_transform_sample(p_cmf)
                     c_dst = c_values[r_dst]
 
-                # Do not transfer whole cluster if best criterion is negative
-                if c_dst < 0.0:
-                    continue
+                # Transfer subcluster and break out if best criterion is positive
+                if c_dst >= 0.0:
+                    # Sanity check before transfer
+                    if r_dst not in r_src.get_known_loads():
+                        self._logger.error(
+                            f"Destination rank {r_dst.get_id()} not in known ranks")
+                        sys.excepthook = exc_handler
+                        raise SystemExit(1)
 
-                # Sanity check before transfer
-                if r_dst not in r_src.get_known_loads():
-                    self._logger.error(
-                        f"Destination rank {r_dst.get_id()} not in known ranks")
-                    sys.excepthook = exc_handler
-                    raise SystemExit(1)
+                    # Transfer objects
+                    for o in objects:
+                        phase.transfer_object(o, r_src, r_dst)
+                        n_transfers += 1
+                    self._logger.info(
+                        f"Transferred {len(objects)} object(s) from cluster {cluster_ID} to rank {r_dst.get_id()}:")
+                    self._logger.info(
+                        f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
+                    self._logger.info(
+                        f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
 
-                # Transfer objects
-                for o in objects:
-                    phase.transfer_object(o, r_src, r_dst)
-                    n_transfers += 1
-                self._logger.info(
-                    f"Transferred {len(objects)} object(s) from cluster {cluster_ID} to rank {r_dst.get_id()}:")
-                self._logger.info(
-                    f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
-                self._logger.info(
-                    f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
+                    # Update cluster containers
+                    #obj_clusters.pop(cluster_ID)
+                    #used_clusters.add(cluster_ID)
 
-                # Update cluster containers
-                obj_clusters.pop(cluster_ID)
-                used_clusters.add(cluster_ID)
-
+                    # Break out from rank
+                    break
+                
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
