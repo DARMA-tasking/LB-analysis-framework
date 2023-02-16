@@ -44,21 +44,21 @@ result = lint.Run(
 level:str = None
 for error in report.messages:
     if error.category in ["error", "fatal"]:
-        level = "error"
+        core.error(error.msg, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column, title=error.msg_id)
     else:
-        level = "warning"
-    msg = f"::{level} file={error.path}"
-    if error.line is not None:
-        msg += f",line={error.line}"
-    if error.column is not None:
-        msg += f",col={error.column}"
-    if error.end_column is not None:
-        msg += f",endColumn={error.end_column}"
-    msg += "::"
-    if error.msg:
-        msg += error.msg
-    if error.msg_id:
-        msg += f" ({error.msg_id})"
+        core.warning(error.msg, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column, title=error.msg_id)
+    # msg = f"::{level} file={error.path}"
+    # if error.line is not None:
+    #     msg += f",line={error.line}"
+    # if error.column is not None:
+    #     msg += f",col={error.column}"
+    # if error.end_column is not None:
+    #     msg += f",endColumn={error.end_column}"
+    # msg += "::"
+    # if error.msg:
+    #     msg += error.msg
+    # if error.msg_id:
+    #     msg += f" ({error.msg_id})"
 
-    core.warning(msg)
+    
     # print_github_message(msg)
