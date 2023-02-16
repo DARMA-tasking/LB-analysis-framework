@@ -30,10 +30,10 @@ jobs:
         run: |
           echo "::warning file=src/filename.py,line=234,title=Test1(url encode)::Some multiline message%0Awith url encoded eol char"
           echo "MY_STRING<<EOF" >> $GITHUB_ENV
-          printf 'Test2\nmultiline'
+          printf "Test2\nmultiline\n"
           echo "EOF" >> $GITHUB_ENV
           echo "MY_STRING<<EOF" >> $GITHUB_ENV
-          printf 'Test3\nmultiline'
+          printf "Test3\nmultiline\n"
           echo "EOF" >> $GITHUB_ENV
           echo "MY_STRING<<EOF" >> $GITHUB_ENV
           printf "::warning file=src/filename.py,line=234,title=Test1(url encode)::Some multiline message\nwith url encoded eol char\nusing gh delimiter"
@@ -42,7 +42,6 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc --msg-template="::warning file={path},line={line},col={column}::{msg} ({msg_id})" ./src  --output-format=json:output/pylint-src-report.json
+          python run_pylint.py src --rcfile=../.pylintrc
           
-
         continue-on-error: true
