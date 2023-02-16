@@ -32,6 +32,13 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc src
+          pylint --rcfile=.pylintrc src --output-format=text,json:output/pylint-report.json
         continue-on-error: true
+
+      - name: Archive pylint report
+        uses: actions/upload-artifact@v3
+        with:
+          name: pylint-report
+          path: output/pylint-report.json
+          retention-days: 1
 
