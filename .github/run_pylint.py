@@ -2,20 +2,20 @@
 is requested formats the output for Github Actions"""
 
 import sys
+from actions_toolkit import core
 from pathlib import Path
 from pylint import lint
 from pylint.reporters import CollectingReporter
-from actions_toolkit import core
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
 argv = sys.argv
 args = [ ]
 # DEBUG TEST
-# argv = [
-#     "/run_pylint.py",
-#     "/workspaces/LB-analysis-framework/src",
-#     "--rcfile=/workspaces/LB-analysis-framework/.pylintrc"
-# ]
+argv = [
+    "/run_pylint.py",
+    "/workspaces/LB-analysis-framework/src",
+    "--rcfile=/workspaces/LB-analysis-framework/.pylintrc"
+]
 for i, a in enumerate(argv):
     if i == 0:
         continue
@@ -36,7 +36,7 @@ result = lint.Run(
 
 level:str = None
 for error in report.messages:
-    msg = urlencode(error.msg)
+    msg = urlencode(error.msg, quote_via=quote)
     if error.category in ["error", "fatal"]:
         core.error(f"{msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
     else:
