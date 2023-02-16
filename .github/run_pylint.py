@@ -7,8 +7,7 @@ from pylint import lint
 from pylint.reporters import CollectingReporter
 from actions_toolkit import core
 
-argv = sys.argv[0]
-
+argv = sys.argv
 args = [ ]
 # DEBUG TEST
 # argv = [
