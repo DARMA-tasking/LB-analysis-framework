@@ -11,11 +11,11 @@ from pylint.reporters import CollectingReporter
 argv = sys.argv
 args = [ ]
 # DEBUG TEST
-argv = [
-    "/run_pylint.py",
-    "/workspaces/LB-analysis-framework/src",
-    "--rcfile=/workspaces/LB-analysis-framework/.pylintrc"
-]
+# argv = [
+#     "/run_pylint.py",
+#     "/workspaces/LB-analysis-framework/src",
+#     "--rcfile=/workspaces/LB-analysis-framework/.pylintrc"
+# ]
 for i, a in enumerate(argv):
     if i == 0:
         continue
