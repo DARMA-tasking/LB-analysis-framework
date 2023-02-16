@@ -23,6 +23,7 @@ jobs:
           cd ${{ env.home_dir }}
           python -m pip install --upgrade pip
           pip install -r requirements-3.8.txt
+          pip install anybadge
 
       - name: Register pylint problem matcher
         run: |
@@ -32,13 +33,28 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc src --output-format=text,json:output/pylint-report.json
+          pylint --rcfile=.pylintrc src --output-format=text,text:output/pylint-report.txt
+          echo $(tail -n 2 output/pylint-report.txt) >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
-      - name: Archive pylint report
+      - name: Upload pylint report
         uses: actions/upload-artifact@v3
         with:
           name: pylint-report
-          path: output/pylint-report.json
+          path: output/pylint-report.txt
           retention-days: 1
+
+      - name: Generate pylint badge
+        run: |
+          cd ${{ env.home_dir }}
+          score=$(tail -n 2 output/pylint-report.txt | sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p')
+          anybadge -l pylint -v $score -f output/pylint.svg 2=red 4=orange 8=yellow 10=green
+
+      - name: Upload pylint badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: pylint-report
+          path: output/pylint.svg
+          retention-days: 1
+          
 
