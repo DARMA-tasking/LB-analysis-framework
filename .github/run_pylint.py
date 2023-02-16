@@ -2,7 +2,7 @@
 is requested formats the output for Github Actions"""
 
 import sys
-from urllib.parse import urlencode, quote
+from urllib.parse import quote_plus
 from pathlib import Path
 from actions_toolkit import core
 from pylint import lint
@@ -36,7 +36,7 @@ result = lint.Run(
 
 level:str = None
 for error in report.messages:
-    msg = urlencode(error.msg, quote_via=quote)
+    msg = quote_plus(error.msg)
     if error.category in ["error", "fatal"]:
         core.error(f"{msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
     else:
