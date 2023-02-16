@@ -25,12 +25,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-3.8.txt
           pip install tox-gh-actions
-        
+
+      - name: Test Pylint multiline format
+        run: |
+          echo "::warning file=src/lbaf/Model/__init__.py,line=1,col=0::Module name "Model" doesn't conform to snake_case naming style (C0103)"
+
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc --msg-template="::warning file={path},line={line},col={column}::{msg} ({msg_id})" ./src
-        # python .github/run_pylint.py src --rcfile=.pylintrc Not sure why annotations are not corresponding to output messages
+        #   pylint --rcfile=.pylintrc --msg-template="::warning file={path},line={line},col={column}::{msg} ({msg_id})" ./src
+          python .github/run_pylint.py src --rcfile=.pylintrc
 
           
           

@@ -2,15 +2,20 @@
 is requested formats the output for Github Actions"""
 
 import sys
-
 from pathlib import Path
 from pylint import lint
 from pylint.reporters import CollectingReporter
 
-ROOT_DIR = Path(__file__).parent.absolute().parent.as_posix()
+argv = sys.argv[0]
 
-args = [ sys.argv[0] ]
-for i, a in enumerate(sys.argv):
+args = [ ]
+# DEBUG TEST
+# argv = [
+#     "/run_pylint.py",
+#     "/workspaces/LB-analysis-framework/src",
+#     "--rcfile=/workspaces/LB-analysis-framework/.pylintrc"
+# ]
+for i, a in enumerate(argv):
     if i == 0:
         continue
     if a.startswith("--output-format="):
@@ -21,14 +26,11 @@ for i, a in enumerate(sys.argv):
             a = p.resolve().as_posix()
     args.append(a)
 
-def print_github_message(text :str) -> str:
-    """Format a string for github if it is multiline"""
+def print_github_message(text :str):
+    """Output a string with url-encoded eol"""
     if "\n" in text:
-        sys.stdout.write(text.replace("\n", "%0A") + "\n")
-    else:
-        sys.stdout.write(text + "\n")
+        text = text.replace("\n", "%0A")
 
-ROOT_DIR = Path(__file__).parent.absolute().parent.as_posix()
 report = CollectingReporter()
 result = lint.Run(
     args,
