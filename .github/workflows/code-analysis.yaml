@@ -33,7 +33,7 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc src --output-format=text,text:output/pylint-report.txt
+          pylint --rcfile=.pylintrc --output-format=text,text:output/pylint-report.txt src
           echo $(tail -n 2 output/pylint-report.txt) >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
