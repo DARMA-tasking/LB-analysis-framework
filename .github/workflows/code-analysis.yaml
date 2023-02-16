@@ -31,9 +31,12 @@ jobs:
           echo "::add-matcher::.github/workflows/matchers/pylint-error.json"
 
       - name: Run pylint
+        permissions: read-all|write-all
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc --output-format=text,text:${{ env.home_dir }}/output/pylint-report.txt src
+          mkdir -p output
+          pylint --rcfile=.pylintrc --output-format=text,text:output/pylint-report.txt src
+          echo $(tail -n 2 output/pylint-report.txt) >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
       - name: Upload pylint report
