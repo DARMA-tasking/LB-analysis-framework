@@ -7,14 +7,14 @@ jobs:
       home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install packages
         run: |
           sudo apt-get update && sudo apt-get upgrade -y
 
       - name: Python Setup
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
