@@ -25,7 +25,7 @@ jobs:
           pip install -r requirements-3.8.txt
 
       - name: Setup Pylint annotations
-      uses: rodrigo-nogues/pylint-annotations@v1
+        uses: rodrigo-nogues/pylint-annotations@v1
 
       - name: Run pylint
         run: |
