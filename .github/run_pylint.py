@@ -20,18 +20,11 @@ for i, a in enumerate(argv):
         continue
     if a.startswith("--output-format="):
         raise Exception('--output-format option is not authorized here')
-    elif (not a.startswith('-')):
+    if not a.startswith('-'):
         p = Path(a)
-        if (not p.is_absolute()):
+        if not p.is_absolute():
             a = p.resolve().as_posix()
     args.append(a)
-
-# def print_github_message(text :str):
-#     """Output a string with url-encoded eol"""
-#     if "\n" in text:
-#         text = text.replace("\n", "%0A")
-#     print(msg)
-    
 
 report = CollectingReporter()
 result = lint.Run(
@@ -43,21 +36,6 @@ result = lint.Run(
 level:str = None
 for error in report.messages:
     if error.category in ["error", "fatal"]:
-        core.error(error.msg, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column, title=error.msg_id)
+        core.error(f"{error.msg} ({error.msg_id})", start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
     else:
-        core.warning(error.msg, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column, title=error.msg_id)
-    # msg = f"::{level} file={error.path}"
-    # if error.line is not None:
-    #     msg += f",line={error.line}"
-    # if error.column is not None:
-    #     msg += f",col={error.column}"
-    # if error.end_column is not None:
-    #     msg += f",endColumn={error.end_column}"
-    # msg += "::"
-    # if error.msg:
-    #     msg += error.msg
-    # if error.msg_id:
-    #     msg += f" ({error.msg_id})"
-
-    
-    # print_github_message(msg)
+        core.warning(f"{error.msg} ({error.msg_id})", start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
