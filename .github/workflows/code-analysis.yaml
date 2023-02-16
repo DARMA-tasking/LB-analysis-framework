@@ -54,7 +54,7 @@ jobs:
       - name: Upload pylint badge
         uses: actions/upload-artifact@v3
         with:
-          name: pylint-badge
+          name: pylint-report
           path: output/pylint.svg
           retention-days: 1
           
