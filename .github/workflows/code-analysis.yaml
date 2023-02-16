@@ -2,7 +2,7 @@ name: Code Analysis
 on: push
 jobs:
   pylint:
-    runs-on: ubuntu-latest
+    runs-on: python:3.8-slim-buster
     env:
       home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
 
@@ -12,19 +12,12 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y git xvfb
-
-      - name: Python Setup
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
 
       - name: Install dependencies
         run: |
           cd ${{ env.home_dir }}
           python -m pip install --upgrade pip
           pip install -r requirements-3.8.txt
-          pip install actions-toolkit
 
       - name: Run pylint
         run: |

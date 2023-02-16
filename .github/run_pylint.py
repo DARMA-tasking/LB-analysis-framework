@@ -2,9 +2,7 @@
 is requested formats the output for Github Actions"""
 
 import sys
-from urllib.parse import quote_plus
 from pathlib import Path
-from actions_toolkit import core
 from pylint import lint
 from pylint.reporters import CollectingReporter
 
@@ -27,6 +25,13 @@ for i, a in enumerate(argv):
             a = p.resolve().as_posix()
     args.append(a)
 
+def print_github_message(text :str):
+    """Output a string with url-encoded eol"""
+    if "\n" in text:
+        text = text.replace("\n", "%0A")
+    print(msg)
+
+
 report = CollectingReporter()
 result = lint.Run(
     args,
@@ -36,10 +41,21 @@ result = lint.Run(
 
 level:str = None
 for error in report.messages:
-    # many messages do not appear in Github Action annotations.
-    # by quoting message we try to eliminate possible invalid characters
-    msg = error.msg.replace('\"', "%22").replace("\'", "%27")
     if error.category in ["error", "fatal"]:
-        core.error(f"{msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
+        level = "error"
     else:
-        core.warning(f"{msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
+        level = "warning"
+    msg = f"::{level} file={error.path}"
+    if error.line is not None:
+        msg += f",line={error.line}"
+    if error.column is not None:
+        msg += f",col={error.column}"
+    if error.end_column is not None:
+        msg += f",endColumn={error.end_column}"
+    msg += "::"
+    if error.msg:
+        msg += error.msg
+    if error.msg_id:
+        msg += f" ({error.msg_id})"
+
+    print_github_message(msg)
