@@ -36,7 +36,9 @@ result = lint.Run(
 
 level:str = None
 for error in report.messages:
-    msg = quote_plus(error.msg)
+    # many messages do not appear in Github Action annotations.
+    # by quoting message we try to eliminate possible invalid characters
+    msg = error.msg.replace('\"', "%22").replace("\'", "%27")
     if error.category in ["error", "fatal"]:
         core.error(f"{msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
     else:
