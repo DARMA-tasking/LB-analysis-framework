@@ -2,11 +2,11 @@
 is requested formats the output for Github Actions"""
 
 import sys
-from actions_toolkit import core
+from urllib.parse import urlencode, quote
 from pathlib import Path
+from actions_toolkit import core
 from pylint import lint
 from pylint.reporters import CollectingReporter
-from urllib.parse import urlencode, quote
 
 argv = sys.argv
 args = [ ]
