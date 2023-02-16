@@ -25,20 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-3.8.txt
           pip install tox-gh-actions
-
-      - name: Test Pylint multiline format
-        run: |
-          echo "::warning file=src/filename.py,line=234,title=Test1(url encode)::Some multiline message%0Awith url encoded eol char"
-          echo "MY_STRING<<EOF" >> $GITHUB_ENV
-          printf "Test2\nmultiline\n"
-          echo "EOF" >> $GITHUB_ENV
-          echo "MY_STRING<<EOF" >> $GITHUB_ENV
-          printf "Test3\nmultiline\n"
-          echo "EOF" >> $GITHUB_ENV
-          echo "MY_STRING<<EOF" >> $GITHUB_ENV
-          printf "::warning file=src/filename.py,line=234,title=Test1(url encode)::Some multiline message\nwith url encoded eol char\nusing gh delimiter"
-          echo "EOF" >> $GITHUB_ENV
-          
+        
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}

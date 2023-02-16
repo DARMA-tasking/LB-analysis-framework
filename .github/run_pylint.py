@@ -2,7 +2,6 @@
 is requested formats the output for Github Actions"""
 
 import sys
-import os
 
 from pathlib import Path
 from pylint import lint
