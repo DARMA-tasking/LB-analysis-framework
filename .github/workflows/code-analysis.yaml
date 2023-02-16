@@ -29,7 +29,6 @@ jobs:
           echo "::add-matcher::.github/workflows/matchers/pylint-warning.json"
           echo "::add-matcher::.github/workflows/matchers/pylint-error.json"
 
-
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
