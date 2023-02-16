@@ -7,7 +7,7 @@ jobs:
       home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install packages
         run: |
