@@ -36,6 +36,6 @@ result = lint.Run(
 level:str = None
 for error in report.messages:
     if error.category in ["error", "fatal"]:
-        core.error(f"{error.msg} ({error.msg_id})", start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
+        core.error(f"{error.msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
     else:
-        core.warning(f"{error.msg} ({error.msg_id})", start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
+        core.warning(f"{error.msg} ({error.msg_id})", file=error.path, start_line=error.line, end_line=error.end_line, start_column=error.column, end_column=error.end_column)
