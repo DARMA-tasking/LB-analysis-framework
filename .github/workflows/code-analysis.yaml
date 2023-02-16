@@ -41,7 +41,7 @@ jobs:
           
       - name: Run pylint
         run: |
-          cd ${{ env.home_dir }}/.github
+          cd ${{ env.home_dir }}
           python .github/run_pylint.py .github --rcfile=.pylintrc
           
         continue-on-error: true
