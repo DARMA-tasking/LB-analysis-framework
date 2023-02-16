@@ -29,6 +29,9 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          python .github/run_pylint.py src --rcfile=.pylintrc
+          pylint --rcfile=.pylintrc --msg-template="::warning file={path},line={line},col={column}::{msg} ({msg_id})" ./src
+        # python .github/run_pylint.py src --rcfile=.pylintrc Not sure why annotations are not corresponding to output messages
+
+          
           
         continue-on-error: true
