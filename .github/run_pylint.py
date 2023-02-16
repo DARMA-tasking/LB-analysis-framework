@@ -30,6 +30,7 @@ def print_github_message(text :str):
     """Output a string with url-encoded eol"""
     if "\n" in text:
         text = text.replace("\n", "%0A")
+    print(msg)
 
 report = CollectingReporter()
 result = lint.Run(
