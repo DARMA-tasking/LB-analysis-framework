@@ -31,7 +31,6 @@ jobs:
           echo "::add-matcher::.github/workflows/matchers/pylint-error.json"
 
       - name: Run pylint
-        permissions: read-all|write-all
         run: |
           cd ${{ env.home_dir }}
           mkdir -p output
