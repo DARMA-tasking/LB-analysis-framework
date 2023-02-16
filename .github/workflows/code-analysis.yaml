@@ -33,7 +33,7 @@ jobs:
       - name: Run pylint
         run: |
           cd ${{ env.home_dir }}
-          pylint --rcfile=.pylintrc --output-format=text,text:output/pylint-report.txt src
+          pylint --rcfile=.pylintrc --output-format=text src
         continue-on-error: true
 
       - name: Upload pylint report
