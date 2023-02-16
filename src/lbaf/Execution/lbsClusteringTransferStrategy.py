@@ -99,7 +99,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             for objects, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
                 obj_clusters, r_src.get_load()):
                 # Skip clusters which were already used for transfers
-                # Update cluster containers
                 if cluster_ID in used_clusters:
                     continue
 

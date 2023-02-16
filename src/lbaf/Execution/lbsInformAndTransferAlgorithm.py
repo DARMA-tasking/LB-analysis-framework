@@ -164,7 +164,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self._phase, statistics["average load"])
-
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(
