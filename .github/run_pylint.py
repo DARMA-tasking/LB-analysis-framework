@@ -10,14 +10,19 @@ from pylint.reporters import CollectingReporter
 
 ROOT_DIR = Path(__file__).parent.absolute().parent.as_posix()
 
-args = []
-for a in sys.argv:
+args = [ sys.argv[0] ]
+for i, a in enumerate(sys.argv):
+    if i == 0:
+        continue
     if a.startswith("--output-format="):
         raise Exception('--output-format option is not authorized here')
-    if (not a.startswith('-')):
+    elif (not a.startswith('-')):
         p = Path(a)
         if (not p.is_absolute()):
-            a = ROOT_DIR + "/" + p.name
+            a = p.resolve().as_posix()
+            # sys.stdout.write(a.as_posix() + "\n")
+            # sys.exit(0)
+            # a = ROOT_DIR + "/" + p.name
     args.append(a)
 
 def print_github_message(text :str) -> str:
