@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from pylint import lint
 from pylint.reporters import CollectingReporter
+from actions_toolkit import core
 
 argv = sys.argv[0]
 
@@ -26,11 +27,12 @@ for i, a in enumerate(argv):
             a = p.resolve().as_posix()
     args.append(a)
 
-def print_github_message(text :str):
-    """Output a string with url-encoded eol"""
-    if "\n" in text:
-        text = text.replace("\n", "%0A")
-    print(msg)
+# def print_github_message(text :str):
+#     """Output a string with url-encoded eol"""
+#     if "\n" in text:
+#         text = text.replace("\n", "%0A")
+#     print(msg)
+    
 
 report = CollectingReporter()
 result = lint.Run(
@@ -58,4 +60,5 @@ for error in report.messages:
     if error.msg_id:
         msg += f" ({error.msg_id})"
 
-    print_github_message(msg)
+    core.warning(msg)
+    # print_github_message(msg)
