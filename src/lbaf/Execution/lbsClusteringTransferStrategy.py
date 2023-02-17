@@ -76,7 +76,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         n_ignored, n_transfers, n_rejects = 0, 0, 0
 
         # Iterate over ranks
-        for r_src in phase.get_ranks()
+        for r_src in phase.get_ranks():
             # Skip loadless ranks
             if not r_src.get_load() > 0.:
                 continue
