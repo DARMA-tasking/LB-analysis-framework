@@ -178,6 +178,18 @@ class Rank:
 
         return self.__known_loads
 
+    def get_targets(self) -> list:
+        """ Return list of potential targets for object transfers."""
+
+        # No potential targets for loadless ranks
+        if not self.get_load() > 0.:
+            return []
+
+        # Remove self from list of targets
+        targets = self.get_known_loads()
+        del targets[self]
+        return targets
+
     def remove_migratable_object(self, o: Object, p_dst: "Rank"):
         """ Remove migratable able object from self object sent to peer."""
 

@@ -76,13 +76,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
         # Iterate over ranks
         for r_src in phase.get_ranks():
-            # Skip loadless ranks
-            if not r_src.get_load() > 0.:
-                continue
-
-            # Skip ranks unaware of peers
-            targets = r_src.get_known_loads()
-            del targets[r_src]
+            # Retrieve potential targets
+            targets = r_src.get_targets()
             if not targets:
                 n_ignored += 1
                 continue
