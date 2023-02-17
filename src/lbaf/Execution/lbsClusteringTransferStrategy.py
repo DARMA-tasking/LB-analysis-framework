@@ -137,19 +137,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst >= 0.0:
-                    # Sanity check before transfer
-                    if r_dst not in r_src.get_known_loads():
-                        self._logger.error(
-                            f"Destination rank {r_dst.get_id()} not in known ranks")
-                        sys.excepthook = exc_handler
-                        raise SystemExit(1)
-
-                    # Transfer objects
-                    for o in objects:
-                        phase.transfer_object(o, r_src, r_dst)
-                        n_transfers += 1
-                    self._logger.info(
-                        f"Transferred {len(objects)} object(s) from cluster {cluster_ID} to rank {r_dst.get_id()}:")
+                    n_transfers += self._transfer_objects(
+                        phase, objects, r_src, r_dst)
                     self._logger.info(
                         f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                     self._logger.info(

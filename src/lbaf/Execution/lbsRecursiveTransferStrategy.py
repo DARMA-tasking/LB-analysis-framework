@@ -41,7 +41,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 
-    def __recursive_extended_search(self, pick_list, object_list, c_fct, n_o, max_n_o):
+    def __recursive_extended_search(self, pick_list, objects, c_fct, n_o, max_n_o):
         """ Recursively extend search to other objects."""
 
         # Fail when no more objects available or maximum depth is reached
@@ -51,14 +51,14 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         # Pick one object and move it from one list to the other
         o = random.choice(pick_list)
         pick_list.remove(o)
-        object_list.append(o)
+        objects.append(o)
         n_o += 1
 
         # Decide whether criterion allows for transfer
-        if c_fct(object_list) < 0.:
+        if c_fct(objects) < 0.:
             # Transfer is not possible, recurse further
             return self.__recursive_extended_search(
-                pick_list, object_list, c_fct, n_o, max_n_o)
+                pick_list, objects, c_fct, n_o, max_n_o)
         else:
             # Succeed when criterion is satisfied
             return True
@@ -95,7 +95,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             while srt_rank_obj:
                 # Pick next object in ordered list
                 o = srt_rank_obj.pop()
-                object_list = [o]
+                objects = [o]
                 self._logger.debug(f"* object {o.get_id()}:")
 
                 # Initialize destination information
@@ -135,7 +135,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     pick_list = srt_rank_obj[:]
                     success = self.__recursive_extended_search(
                         pick_list,
-                        object_list,
+                        objects,
                         lambda x: self._criterion.compute(x, r_src, r_dst),
                         1,
                         self._max_objects_per_transfer)
@@ -147,21 +147,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         n_rejects += 1
                         continue
 
-                # Sanity check before transfer
-                if r_dst not in r_src.get_known_loads():
-                    self._logger.error(
-                        f"Destination rank {r_dst.get_id()} not in known ranks")
-                    sys.excepthook = exc_handler
-                    raise SystemExit(1)
-
                 # Transfer objects
-                if len(object_list) > max_obj_transfers:
-                    max_obj_transfers = len(object_list)
-                self._logger.debug(
-                    f"Transferring {len(object_list)} object(s) to rank {r_dst.get_id()}")
-                for o in object_list:
-                    phase.transfer_object(o, r_src, r_dst)
-                    n_transfers += 1
+                n_transfers += self._transfer_objects(phase, objects, r_src, r_dst)
 
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")

@@ -71,3 +71,21 @@ class TransferStrategyBase:
 
         # Must be implemented by concrete subclass
         pass
+
+    def _transfer_objects(self, phase, objects, r_src, r_dst):
+        """ Perform sanity check and transfer list of objects."""
+
+        # Sanity check before transfer
+        if r_dst not in r_src.get_known_loads():
+            self._logger.error(
+                f"Destination rank {r_dst.get_id()} not in known ranks")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
+        # Transfer objects and return number of transferred objects
+        for o in objects:
+            phase.transfer_object(o, r_src, r_dst)
+        n_objects = len(objects)
+        self._logger.info(
+            f"Transferred {n_objects} object(s) from rank {r_src.get_id()} to {r_dst.get_id()}")
+        return n_objects
