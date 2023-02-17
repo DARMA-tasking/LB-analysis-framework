@@ -44,8 +44,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
     def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
         """ Find suitable sub-clusters to bring rank closest and above average load."""
 
-        # Define upper bound o
-
         # Build dict of suitable clusters with their load
         suitable_subclusters = {}
         n_inspect = 0
@@ -55,6 +53,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 combinations(v, p)
                 for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
                 n_inspect += 1
+
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
@@ -86,17 +85,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Cluster migratiable objects on source rank
             obj_clusters = self.__cluster_objects(r_src)
-            src_load = r_src.get_load()
-            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {src_load}")
+            print(obj_clusters.keys())
+            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Iterate over suitable subclusters
-            used_clusters = set()
+            found_cluster = False
             for objects, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
                 obj_clusters, r_src.get_load()):
-                # Skip clusters which were already used for transfers
-                if cluster_ID in used_clusters:
-                    continue
-
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf
@@ -104,8 +99,24 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
+                    # Determine destinations sharing cluster_ID
+                    dst_shared_ID = []
+                    dst_non_shared_ID = []
+
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
+                        s_try = False
+                        for o in r_try.get_objects():
+                            if o.get_shared_block_id() == cluster_ID:
+                                s_try = True
+                                dst_shared_ID.append(r_try)
+                                break
+                        if not s_try:
+                            dst_non_shared_ID.append(r_try)
+                    actual_targets = dst_shared_ID if dst_shared_ID else dst_non_shared_ID
+
+                    for r_try in targets.keys():
+                    #for r_try in actual_targets:
                         c_try = self._criterion.compute(
                             objects, r_src, r_try)
                         m_try = r_try.get_max_memory_usage()
@@ -116,7 +127,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         elif c_try == c_dst and m_try < m_dst:
                             r_dst = r_try
                             m_dst = m_try
-
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
@@ -131,19 +141,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     c_dst = c_values[r_dst]
 
                 # Transfer subcluster and break out if best criterion is positive
-                if c_dst >= 0.0:
+                if c_dst > 0.0:
                     n_transfers += self._transfer_objects(
                         phase, objects, r_src, r_dst)
                     self._logger.info(
                         f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                     self._logger.info(
                         f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
-
-                    # Update cluster containers
-                    #obj_clusters.pop(cluster_ID)
-                    #used_clusters.add(cluster_ID)
-
-                    # Break out from rank
                     break
 
         # Return object transfer counts
