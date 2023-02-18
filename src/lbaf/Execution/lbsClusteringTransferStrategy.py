@@ -85,7 +85,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Cluster migratiable objects on source rank
             obj_clusters = self.__cluster_objects(r_src)
-            print(obj_clusters.keys())
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Iterate over suitable subclusters
@@ -93,9 +92,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             for objects, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
                 obj_clusters, r_src.get_load()):
                 # Initialize destination information
+                objects_load = sum([o.get_load() for o in objects])
                 r_dst = None
                 c_dst = -math.inf
                 m_dst = math.inf
+                l_dst = math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
@@ -115,18 +116,32 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             dst_non_shared_ID.append(r_try)
                     actual_targets = dst_shared_ID if dst_shared_ID else dst_non_shared_ID
 
-                    for r_try in targets.keys():
-                    #for r_try in actual_targets:
+                    #for r_try in targets.keys():
+                    for r_try in actual_targets:
                         c_try = self._criterion.compute(
                             objects, r_src, r_try)
                         m_try = r_try.get_max_memory_usage()
-                        if c_try > c_dst:
+                        if c_try < 0.0:
+                            continue
+                        l_try = abs(r_try.get_load() + objects_load - ave_load)
+                        if l_try < l_dst:
+                            c_dst = c_try
+                            l_dst = l_try
+                            r_dst = r_try
+                            m_dst = m_try
+                        elif m_try < m_dst:
+                            l_dst = l_try
                             c_dst = c_try
                             r_dst = r_try
                             m_dst = m_try
-                        elif c_try == c_dst and m_try < m_dst:
+                        elif c_try > c_dst:
+                            l_dst = l_try
+                            c_dst = c_try
                             r_dst = r_try
                             m_dst = m_try
+#                         elif c_try == c_dst and m_try < m_dst:
+#                             r_dst = r_try
+#                             m_dst = m_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
