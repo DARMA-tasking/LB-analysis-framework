@@ -72,7 +72,7 @@ class TransferStrategyBase:
         # Must be implemented by concrete subclass
         pass
 
-    def _transfer_objects(self, phase, objects, r_src, r_dst):
+    def _transfer_objects(self, phase, objects, r_src, r_dst, verbose=False):
         """ Perform sanity check and transfer list of objects."""
 
         # Sanity check before transfer
@@ -86,6 +86,9 @@ class TransferStrategyBase:
         for o in objects:
             phase.transfer_object(o, r_src, r_dst)
         n_objects = len(objects)
-        self._logger.info(
-            f"Transferred {n_objects} object(s) from rank {r_src.get_id()} to {r_dst.get_id()}")
+        log_msg = f"Transferred {n_objects} object(s) from rank {r_src.get_id()} to {r_dst.get_id()}"
+        if verbose:
+            self._logger.info(log_msg)
+        else:
+            self._logger.debug(log_msg)
         return n_objects

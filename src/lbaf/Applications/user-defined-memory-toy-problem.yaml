@@ -41,7 +41,7 @@ LBAF_Viz:
   y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
-  rank_qoi: max_memory_usage
-  #rank_qoi: load
+  #rank_qoi: max_memory_usage
+  rank_qoi: load
   object_qoi: shared_block_id
   save_meshes: True
