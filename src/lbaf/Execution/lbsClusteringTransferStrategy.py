@@ -112,21 +112,27 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 cluster_load = sum([o.get_load() for o in objects])
                 swapped_cluster = False
                 for r_try in targets.keys():
-                    for try_cluster_ID, try_objects in self.__cluster_objects(r_try).items():
-                        try_load = cluster_load - sum([o.get_load() for o in try_objects])
-                        l_max_0 = max(r_src.get_load(), r_try.get_load())
-                        l_max_try = max(r_src.get_load() - try_load, r_try.get_load() + try_load)
-                        if l_max_0 - l_max_try > 0.0:
+                    # Compute initial load difference
+                    l_src, l_try = r_src.get_load(), r_try.get_load()
+                    l_max_0 = max(l_src, l_try)
+                    for obj_try in self.__cluster_objects(r_try).values():
+                        # Decide whether swap is beneficial
+                        l_obj_try = cluster_load - sum([o.get_load() for o in obj_try])
+                        if l_max_0 > max(
+                            l_src - l_obj_try, l_try + l_obj_try):
+                            # Perform swap
                             r_try.add_known_load(r_src)
                             n_transfers += self._transfer_objects(
                                 phase, objects, r_src, r_try)
                             n_transfers += self._transfer_objects(
-                                phase, try_objects, r_try, r_src)
+                                phase, obj_try, r_try, r_src)
                             swapped_cluster = True
                             n_swaps += 1
                             self._logger.info(
-                                f"Swapped {len(objects)} objects with {len(try_objects)} on rank {r_try.get_id()}")
+                                f"Swapped {len(objects)} objects with {len(obj_try)} on rank {r_try.get_id()}")
                             break
+
+                    # Break out from targets loop once one swap was performed
                     if swapped_cluster:
                         break
 
