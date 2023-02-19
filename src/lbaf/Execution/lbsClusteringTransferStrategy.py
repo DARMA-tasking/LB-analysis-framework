@@ -87,6 +87,30 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             obj_clusters = self.__cluster_objects(r_src)
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
+            # Identify beneficial cluster swaps
+            for obj_cluster_ID, objects in obj_clusters.items():
+                cluster_load = sum([o.get_load() for o in objects])
+                for r_try in targets.keys():
+                    found = False
+                    for try_cluster_ID, try_objects in self.__cluster_objects(r_try).items():
+                        try_load = cluster_load - sum([o.get_load() for o in try_objects])
+                        l_max_0 = max(r_src.get_load(), r_try.get_load())
+                        l_max_try = max(r_src.get_load() - try_load, r_try.get_load() + try_load)
+                        if l_max_0 - l_max_try > 0.0:
+                            n_transfers += self._transfer_objects(
+                                phase, objects, r_src, r_try)
+                            n_transfers += self._transfer_objects(
+                                phase, try_objects, r_try, r_src)
+                            found = True
+                            self._logger.info(f"Swapped cluster",
+                                  obj_cluster_ID,
+                                  "with",
+                                  try_cluster_ID, "on rank", r_try.get_id())
+                            break
+                    if found:
+                        obj_clusters = self.__cluster_objects(r_src)
+                        break
+
             # Iterate over suitable subclusters
             found_cluster = False
             for objects, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
@@ -95,32 +119,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 objects_load = sum([o.get_load() for o in objects])
                 r_dst = None
                 c_dst = -math.inf
-                m_dst = math.inf
                 l_dst = math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
-                    # Determine destinations sharing cluster_ID
-                    dst_shared_ID = []
-                    dst_non_shared_ID = []
-
-                    # Select best destination with respect to criterion
                     for r_try in targets.keys():
-                        s_try = False
-                        for o in r_try.get_objects():
-                            if o.get_shared_block_id() == cluster_ID:
-                                s_try = True
-                                dst_shared_ID.append(r_try)
-                                break
-                        if not s_try:
-                            dst_non_shared_ID.append(r_try)
-                    actual_targets = dst_shared_ID if dst_shared_ID else dst_non_shared_ID
-
-                    #for r_try in targets.keys():
-                    for r_try in actual_targets:
                         c_try = self._criterion.compute(
                             objects, r_src, r_try)
-                        m_try = r_try.get_max_memory_usage()
                         if c_try < 0.0:
                             continue
                         l_try = abs(r_try.get_load() + objects_load - ave_load)
@@ -128,20 +133,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             c_dst = c_try
                             l_dst = l_try
                             r_dst = r_try
-                            m_dst = m_try
-                        elif m_try < m_dst:
-                            l_dst = l_try
+                        elif l_try == l_dst and c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
-                            m_dst = m_try
-                        elif c_try > c_dst:
-                            l_dst = l_try
-                            c_dst = c_try
-                            r_dst = r_try
-                            m_dst = m_try
-#                         elif c_try == c_dst and m_try < m_dst:
-#                             r_dst = r_try
-#                             m_dst = m_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
