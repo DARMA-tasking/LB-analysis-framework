@@ -108,21 +108,21 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
-            for obj_cluster_ID, objects in obj_clusters.items():
-                cluster_load = sum([o.get_load() for o in objects])
+            for obj_cluster_ID, o_src in obj_clusters.items():
+                cluster_load = sum([o.get_load() for o in o_src])
                 swapped_cluster = False
                 for r_try in targets.keys():
                     # Compute initial load difference
                     l_src, l_try = r_src.get_load(), r_try.get_load()
                     l_max_0 = max(l_src, l_try)
-                    for obj_try in self.__cluster_objects(r_try).values():
+                    for o_try in self.__cluster_objects(r_try).values():
                         # Decide whether swap is beneficial
-                        l_obj_try = cluster_load - sum([o.get_load() for o in obj_try])
+                        l_o_try = cluster_load - sum([o.get_load() for o in o_try])
                         if l_max_0 > max(
-                            l_src - l_obj_try, l_try + l_obj_try):
+                            l_src - l_o_try, l_try + l_o_try):
                             # Perform swap
                             n_transfers += self._swap_objects(
-                                phase, objects, r_src, obj_try, r_try)
+                                phase, r_src, o_src, r_try, o_try)
                             self._logger.info(
                                 f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                             self._logger.info(
@@ -143,10 +143,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Iterate over suitable subclusters
             found_cluster = False
-            for objects, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
+            for o_src, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
                 obj_clusters, r_src.get_load()):
                 # Initialize destination information
-                objects_load = sum([o.get_load() for o in objects])
+                objects_load = sum([o.get_load() for o in o_src])
                 r_dst = None
                 c_dst = -math.inf
                 l_dst = math.inf
@@ -155,7 +155,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 if self._deterministic_transfer:
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
-                            objects, r_src, r_try)
+                            r_src, o_src, r_try)
                         if c_try <= 0.0:
                             continue
                         l_try = abs(r_try.get_load() + objects_load - ave_load)
@@ -169,7 +169,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, objects, targets, False)
+                        self._criterion, o_src, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
@@ -182,7 +182,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
                     n_transfers += self._transfer_objects(
-                        phase, objects, r_src, r_dst)
+                        phase, r_src, o_src, r_dst)
                     self._logger.info(
                         f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                     self._logger.info(

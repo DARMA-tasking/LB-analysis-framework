@@ -333,7 +333,7 @@ class Rank:
         # Iterate over potential targets
         for r_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute(objects, self, r_dst)
+            c = transfer_criterion.compute(self, objects, r_dst)
 
             # Do not include rejected targets for strict CMF
             if strict and c < 0.:

@@ -90,7 +90,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             while srt_rank_obj:
                 # Pick next object in ordered list
                 o = srt_rank_obj.pop()
-                objects = [o]
+                o_src = [o]
                 self._logger.debug(f"* object {o.get_id()}:")
 
                 # Initialize destination information
@@ -102,14 +102,14 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     # Select best destination with respect to criterion
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
-                            [o], r_src, r_try)
+                            r_src, o_src, r_try)
                         if c_try > c_dst:
                             c_dst = c_try
                             r_dst = r_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, [o], targets, False)
+                        self._criterion, o_src, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
@@ -130,8 +130,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     pick_list = srt_rank_obj[:]
                     success = self.__recursive_extended_search(
                         pick_list,
-                        objects,
-                        lambda x: self._criterion.compute(x, r_src, r_dst),
+                        o_src,
+                        lambda x: self._criterion.compute(r_src, x, r_dst),
                         1,
                         self._max_objects_per_transfer)
                     if success:
@@ -143,7 +143,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         continue
 
                 # Transfer objects
-                n_transfers += self._transfer_objects(phase, objects, r_src, r_dst)
+                n_transfers += self._transfer_objects(phase, r_src, o_src, r_dst)
 
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
