@@ -121,15 +121,14 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         if l_max_0 > max(
                             l_src - l_obj_try, l_try + l_obj_try):
                             # Perform swap
-                            r_try.add_known_load(r_src)
-                            n_transfers += self._transfer_objects(
-                                phase, objects, r_src, r_try)
-                            n_transfers += self._transfer_objects(
-                                phase, obj_try, r_try, r_src)
+                            n_transfers += self._swap_objects(
+                                phase, objects, r_src, obj_try, r_try)
+                            self._logger.info(
+                                f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
+                            self._logger.info(
+                                f"\trank {r_try.get_id()}, new load: {r_try.get_load()}")
                             swapped_cluster = True
                             n_swaps += 1
-                            self._logger.info(
-                                f"Swapped {len(objects)} objects with {len(obj_try)} on rank {r_try.get_id()}")
                             break
 
                     # Break out from targets loop once one swap was performed
@@ -139,6 +138,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Recompute rank cluster when swaps have occurred
             if n_swaps:
                 obj_clusters = self.__cluster_objects(r_src)
+                self._logger.info(
+                    f"Performed {n_swaps} cluster swaps from rank {r_src.get_id()}")
 
             # Iterate over suitable subclusters
             found_cluster = False
@@ -181,7 +182,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
                     n_transfers += self._transfer_objects(
-                        phase, objects, r_src, r_dst, True)
+                        phase, objects, r_src, r_dst)
                     self._logger.info(
                         f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                     self._logger.info(
