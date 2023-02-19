@@ -62,7 +62,7 @@ class MeshBasedVisualizer:
                 self.__logger.error(
                     f"Inconsistent quantity of interest maximum: {rank_qoi_max}")
                 raise SystemExit(1)
-        
+
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
             self.__logger.error(
@@ -103,7 +103,7 @@ class MeshBasedVisualizer:
 
         # Compute discrete or pseudo-continuous object QOI range
         self.__object_qoi_range = self.compute_object_qoi_range(object_qoi)
-        
+
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
         self.__object_file_name = f"{output_file_stem}_object_view"
@@ -374,7 +374,7 @@ class MeshBasedVisualizer:
                 b_arr.SetTuple1(point_index, m)
                 if l_arr:
                     l_arr.SetTuple1(point_index, o.get_load())
-                
+
                 # Update sent volumes
                 for k, v in o.get_sent().items():
                     sent_volumes.append((point_index, k, v))
@@ -443,7 +443,7 @@ class MeshBasedVisualizer:
             ctf.IndexedLookupOn()
             ctf.SetNumberOfIndexedColors(n_colors)
             for i, v in enumerate(attribute_range):
-                ctf.SetAnnotation(v, f"{v}") 
+                ctf.SetAnnotation(v, f"{v}")
                 ctf.SetIndexedColorRGBA(i, plt.cm.get_cmap("tab20")(i))
             ctf.Build()
             return ctf
@@ -629,7 +629,7 @@ class MeshBasedVisualizer:
             glyph = vtk.vtkGlyphSource2D()
             getattr(glyph, f"SetGlyphTypeTo{v}")()
             glyph.SetResolution(32)
-            glyph.SetScale(10.0)
+            glyph.SetScale(1.0)
             glyph.FilledOn()
             glyph.CrossOff()
             glypher = vtk.vtkGlyph3D()

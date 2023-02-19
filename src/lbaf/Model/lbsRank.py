@@ -181,7 +181,7 @@ class Rank:
     def add_known_load(self, rank):
         """ Make rank known to self if not already known."""
 
-        self.__known_loads.setdefault(rank, rank.get_load()) 
+        self.__known_loads.setdefault(rank, rank.get_load())
 
     def get_targets(self) -> list:
         """ Return list of potential targets for object transfers."""
