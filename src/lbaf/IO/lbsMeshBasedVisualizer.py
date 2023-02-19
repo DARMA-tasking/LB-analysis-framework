@@ -629,7 +629,7 @@ class MeshBasedVisualizer:
             glyph = vtk.vtkGlyphSource2D()
             getattr(glyph, f"SetGlyphTypeTo{v}")()
             glyph.SetResolution(32)
-            glyph.SetScale(1.0)
+            glyph.SetScale(10.0)
             glyph.FilledOn()
             glyph.CrossOff()
             glypher = vtk.vtkGlyph3D()

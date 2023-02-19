@@ -46,16 +46,22 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Build dict of suitable clusters with their load
         suitable_subclusters = {}
+        n_inspect = 0
+        breaks = [False, False]
         for k, v in clusters.items():
-            n_inspect = 0
+            n_comb = 0
             # Inspect all non-trivial combinations of objects in cluster
             for c in chain.from_iterable(
                 combinations(v, p)
                 for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
-                n_inspect += 1
-                if n_inspect > 20:
+                # Limit number of inspected combinations
+                n_comb += 1
+                if n_comb > 65535:
+                    breaks[0] = True
                     break
+
                 # Reject subclusters overshooting within relative tolerance
+                n_inspect += 1
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
                     continue
@@ -63,8 +69,20 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Retain suitable subclusters with their respective distance and cluster
                 suitable_subclusters[c] = (k, reach_load)
 
+                # Limit number of returned suitable clusters
+                if len(suitable_subclusters) > 25:
+                    breaks[1] = True
+                    break
+
+            # Break out early when one of the limiters was triggered
+            if breaks[0] or breaks[1]:
+                self._logger.info(
+                    f"Breaking out early after {n_comb} combinations inspected")
+                break
+
         # Return subclusters and cluster IDs sorted by achievable loads
-        self._logger.info(f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
+        self._logger.info(
+            f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
         return sorted(suitable_subclusters.items(), key=lambda x: x[1][1])
 
     def execute(self, phase: Phase, ave_load: float):
@@ -88,19 +106,18 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             obj_clusters = self.__cluster_objects(r_src)
             self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
-            # Identify beneficial cluster swaps
+            # Identify and perform beneficial cluster swaps
             n_swaps = 0
             for obj_cluster_ID, objects in obj_clusters.items():
                 cluster_load = sum([o.get_load() for o in objects])
                 swapped_cluster = False
                 for r_try in targets.keys():
-                    if r_src not in r_try.get_known_loads():
-                        continue
                     for try_cluster_ID, try_objects in self.__cluster_objects(r_try).items():
                         try_load = cluster_load - sum([o.get_load() for o in try_objects])
                         l_max_0 = max(r_src.get_load(), r_try.get_load())
                         l_max_try = max(r_src.get_load() - try_load, r_try.get_load() + try_load)
                         if l_max_0 - l_max_try > 0.0:
+                            r_try.add_known_load(r_src)
                             n_transfers += self._transfer_objects(
                                 phase, objects, r_src, r_try)
                             n_transfers += self._transfer_objects(

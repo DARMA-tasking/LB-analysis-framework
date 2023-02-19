@@ -178,6 +178,11 @@ class Rank:
 
         return self.__known_loads
 
+    def add_known_load(self, rank):
+        """ Make rank known to self if not already known."""
+
+        self.__known_loads.setdefault(rank, rank.get_load()) 
+
     def get_targets(self) -> list:
         """ Return list of potential targets for object transfers."""
 
@@ -190,15 +195,15 @@ class Rank:
         del targets[self]
         return targets
 
-    def remove_migratable_object(self, o: Object, p_dst: "Rank"):
+    def remove_migratable_object(self, o: Object, r_dst: "Rank"):
         """ Remove migratable able object from self object sent to peer."""
 
         # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
 
         # Update known load when destination is already known
-        if self.__known_loads and p_dst in self.__known_loads:
-            self.__known_loads[p_dst] += o.get_load()
+        if self.__known_loads and r_dst in self.__known_loads:
+            self.__known_loads[r_dst] += o.get_load()
 
     def get_load(self) -> float:
         """ Return total load on rank."""
@@ -326,16 +331,16 @@ class Rank:
         c_min, c_max = math.inf, -math.inf
 
         # Iterate over potential targets
-        for p_dst in targets.keys():
+        for r_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute(objects, self, p_dst)
+            c = transfer_criterion.compute(objects, self, r_dst)
 
             # Do not include rejected targets for strict CMF
             if strict and c < 0.:
                 continue
 
             # Update criterion values
-            c_values[p_dst] = c
+            c_values[r_dst] = c
             if c < c_min:
                 c_min = c
             if c > c_max:
