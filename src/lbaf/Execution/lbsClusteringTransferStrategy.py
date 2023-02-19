@@ -28,7 +28,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """ Cluster migratiable objects by shared block ID when available."""
 
         # Iterate over all migratable objects on rank
-        obj_clusters = {}
+        clusters = {}
         for o in rank.get_migratable_objects():
             # Retrieve shared block ID and skip object without one
             sb_id = o.get_shared_block_id()
@@ -36,10 +36,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 continue
 
             # Add current object to its block ID cluster
-            obj_clusters.setdefault(sb_id, []).append(o)
+            clusters.setdefault(sb_id, []).append(o)
 
         # Return dict of computed object clusters
-        return obj_clusters
+        return clusters
 
     def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
         """ Find suitable sub-clusters to bring rank closest and above average load."""
@@ -48,7 +48,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         suitable_subclusters = {}
         n_inspect = 0
         breaks = [False, False]
-        for k, v in clusters.items():
+        for v in clusters.values():
             n_comb = 0
             # Inspect all non-trivial combinations of objects in cluster
             for c in chain.from_iterable(
@@ -67,7 +67,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     continue
 
                 # Retain suitable subclusters with their respective distance and cluster
-                suitable_subclusters[c] = (k, reach_load)
+                suitable_subclusters[c] = reach_load
 
                 # Limit number of returned suitable clusters
                 if len(suitable_subclusters) > 25:
@@ -83,7 +83,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
             f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
-        return sorted(suitable_subclusters.items(), key=lambda x: x[1][1])
+        return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
 
     def execute(self, phase: Phase, ave_load: float):
         """ Perform object transfer stage."""
@@ -103,12 +103,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             self._logger.debug(f"Trying to offload from rank {r_src.get_id()} to {[p.get_id() for p in targets]}:")
 
             # Cluster migratiable objects on source rank
-            obj_clusters = self.__cluster_objects(r_src)
-            self._logger.info(f"Constructed {len(obj_clusters)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
+            clusters_src = self.__cluster_objects(r_src)
+            self._logger.info(f"Constructed {len(clusters_src)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
-            for obj_cluster_ID, o_src in obj_clusters.items():
+            for o_src in clusters_src.values():
                 cluster_load = sum([o.get_load() for o in o_src])
                 swapped_cluster = False
                 for r_try in targets.keys():
@@ -137,14 +137,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Recompute rank cluster when swaps have occurred
             if n_swaps:
-                obj_clusters = self.__cluster_objects(r_src)
+                clusters_src = self.__cluster_objects(r_src)
                 self._logger.info(
                     f"Performed {n_swaps} cluster swaps from rank {r_src.get_id()}")
 
             # Iterate over suitable subclusters
             found_cluster = False
-            for o_src, (cluster_ID, reach_load) in self.__find_suitable_subclusters(
-                obj_clusters, r_src.get_load()):
+            for o_src in self.__find_suitable_subclusters(clusters_src, r_src.get_load()):
                 # Initialize destination information
                 objects_load = sum([o.get_load() for o in o_src])
                 r_dst = None
