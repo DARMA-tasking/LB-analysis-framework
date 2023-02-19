@@ -46,14 +46,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Build dict of suitable clusters with their load
         suitable_subclusters = {}
-        n_inspect = 0
         for k, v in clusters.items():
+            n_inspect = 0
             # Inspect all non-trivial combinations of objects in cluster
             for c in chain.from_iterable(
                 combinations(v, p)
                 for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
                 n_inspect += 1
-
+                if n_inspect > 20:
+                    break
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
@@ -93,6 +94,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 cluster_load = sum([o.get_load() for o in objects])
                 swapped_cluster = False
                 for r_try in targets.keys():
+                    if r_src not in r_try.get_known_loads():
+                        continue
                     for try_cluster_ID, try_objects in self.__cluster_objects(r_try).items():
                         try_load = cluster_load - sum([o.get_load() for o in try_objects])
                         l_max_0 = max(r_src.get_load(), r_try.get_load())
