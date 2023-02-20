@@ -43,7 +43,7 @@ jobs:
           tox
 
       - name: Create badges
-        if: github.ref == '320-add-python-linter-to-ci-cd'
+        if: github.ref_name == '320-add-python-linter-to-ci-cd'
         run: |
           cd ${{ env.home_dir }}
           mkdir badges
@@ -54,7 +54,7 @@ jobs:
 
       - name: Deploy badges
         uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == '320-add-python-linter-to-ci-cd'
+        if: github.ref_name == '320-add-python-linter-to-ci-cd'
         with:
           commit_message: ${{steps.tag_version.outputs.tag}} ${{ github.event.head_commit.message }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
