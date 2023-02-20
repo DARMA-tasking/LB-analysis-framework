@@ -444,26 +444,23 @@ class Phase:
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
                 dst_b[1].add(o_id)
 
-    def transfer_objects(self, r_src: Rank, o_src: Object, r_dst: Rank):
-        """ Transfer list of objects from source to destination rank."""
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]):
+        """ Transfer list of objects between source and destination ranks."""
 
-        # Transfer objects and return number of transferred objects
+        # Transfer objects from source to destination
         for o in o_src:
             self.transfer_object(r_src, o, r_dst)
         n_transfers = len(o_src)
-
-        # Report and return number of transferred objects
         self.__logger.debug(
             f"Transferred {n_transfers} objects from rank {r_src.get_id()} to {r_dst.get_id()}")
+
+        # Transfer objects back from destination to source
+        for o in o_dst:
+            self.transfer_object(r_dst, o, r_src)
+        n_transfers += (n_reverse := len(o_dst))
+        if n_reverse:
+            self.__logger.debug(
+                f"Transferred back {n_transfers} objects from rank {r_dst.get_id()} to {r_src.get_id()}")
+
+        # Report and return number of transferred objects
         return n_transfers
-
-    def swap_objects(self, r_src: Rank, o_src: Object, r_dst: Rank, o_dst: Rank):
-        """ Swap list of objects between two ranks."""
-
-        # Transfer objects between ranks
-        n_transfers = self.transfer_objects(r_src, o_src, r_dst)
-        n_transfers += self.transfer_objects(r_dst, o_dst, r_src)
-
-        # Return number of transferred objects
-        return n_transfers
-

@@ -24,7 +24,7 @@ class TemperedCriterion(CriterionBase):
             self._work_model.compute(r_dst))
 
         # Move objects into proposed new arrangement
-        self._phase.transfer_objects(r_src, o_src, r_dst)
+        self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
 
         # Compute maximum work of proposed new arrangement
         w_max_new = max(
@@ -32,7 +32,7 @@ class TemperedCriterion(CriterionBase):
             self._work_model.compute(r_dst))
 
         # Move objects back into original arrangement
-        self._phase.transfer_objects(r_dst, o_src, r_src)
+        self._phase.transfer_objects(r_dst, o_src, r_src, o_dst)
 
         # Return criterion value
         return w_max_0 - w_max_new

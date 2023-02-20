@@ -121,11 +121,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         if l_max_0 > max(
                             l_src - l_o_try, l_try + l_o_try):
                             # Perform swap
-                            n_transfers += phase.swap_objects(r_src, o_src, r_try, o_try)
-                            self._logger.info(
-                                f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
-                            self._logger.info(
-                                f"\trank {r_try.get_id()}, new load: {r_try.get_load()}")
+                            n_transfers += phase.transfer_objects(r_src, o_src, r_try, o_try)
                             swapped_cluster = True
                             n_swaps += 1
                             break
@@ -138,7 +134,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             if n_swaps:
                 clusters_src = self.__cluster_objects(r_src)
                 self._logger.info(
-                    f"Performed {n_swaps} cluster swaps from rank {r_src.get_id()}")
+                    f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
 
             # Iterate over suitable subclusters
             found_cluster = False
@@ -180,11 +176,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
                     n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
-                    self._logger.info(
-                        f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
-                    self._logger.info(
-                        f"\trank {r_dst.get_id()}, new load: {r_dst.get_load()}")
                     break
+
+            self._logger.info(
+                f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_transfers} object transfers")
 
         # Return object transfer counts
         return n_ignored, n_transfers, n_rejects
