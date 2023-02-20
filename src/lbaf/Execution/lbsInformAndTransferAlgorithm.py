@@ -1,6 +1,4 @@
 import sys
-import math
-import random
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase

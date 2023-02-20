@@ -49,11 +49,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         n_inspect = 0
         breaks = [False, False]
         for v in clusters.values():
+            # Inspect all non-empty object combinations in cluster
+            n_o = len(v)
             n_comb = 0
-            # Inspect all non-trivial combinations of objects in cluster
             for c in chain.from_iterable(
                 combinations(v, p)
-                for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
+                for p in range(1, min(self._max_objects_per_transfer, n_o) + 1)):
                 # Limit number of inspected combinations
                 n_comb += 1
                 if not self._deterministic_transfer and n_comb > 65535:
