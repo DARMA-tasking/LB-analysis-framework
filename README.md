@@ -1,5 +1,7 @@
 [![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml)
 [![Acceptance Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml)
+[![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/gh-pages/badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/gh-pages/badges/pylint.svg)
+[![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/gh-pages/badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/gh-pages/badges/coverage.svg)
 
 ## This is the repository for Load-Balancing Simulation research
 ### It contains the following subdirectories:

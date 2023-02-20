@@ -92,9 +92,12 @@ jobs:
           anybadge --value=$COVERAGE_SCORE --file=badges/coverage.svg coverage
 
       - name: Deploy badges
+        # Badge will be deployed at 
+        # https://github.com/DARMA-tasking/LB-analysis-framework/blob/gh-pages/(pylint|coverage).svg
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref_name == '320-add-python-linter-to-ci-cd'
         with:
           commit_message: ${{steps.tag_version.outputs.tag}} ${{ github.event.head_commit.message }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./badges
+          destination_dir: badges
