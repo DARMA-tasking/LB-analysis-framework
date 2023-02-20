@@ -1,11 +1,11 @@
-name: Unit Tests
+name: Code Quality (Unit tests, Coverage and PyLint)
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
-  Unit-Test:
+  code-quality:
     continue-on-error: false
     strategy:
       max-parallel: 10
@@ -15,7 +15,7 @@ jobs:
         python-version: ['3.8', '3.9']
     runs-on: ${{ matrix.os }}
     env:
-      deploy_badges_from_branch: '320-add-python-linter-to-ci-cd' # develop
+      deploy_badges_from_branch: '320-add-python-linter-to-ci-cd'
 
     steps:
       - uses: actions/checkout@v2
@@ -49,7 +49,6 @@ jobs:
           echo "pylint_report_exists=$PYLINT_REPORT_EXISTS" >> $GITHUB_OUTPUT
           if [ -e "./artifacts/coverage.txt" ]; then COVERAGE_REPORT_EXISTS="true"; else COVERAGE_REPORT_EXISTS="false"; fi
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
-        continue-on-error: true # for pylint returning error
 
       - name: Upload pylint artifact
         if: |
