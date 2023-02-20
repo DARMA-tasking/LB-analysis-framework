@@ -58,7 +58,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 n_comb += 1
                 if n_comb > 65535:
                     breaks[0] = True
-                    break
+                    #break
 
                 # Reject subclusters overshooting within relative tolerance
                 n_inspect += 1
@@ -72,13 +72,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Limit number of returned suitable clusters
                 if len(suitable_subclusters) > 25:
                     breaks[1] = True
-                    break
+                    #break
 
             # Break out early when one of the limiters was triggered
             if breaks[0] or breaks[1]:
                 self._logger.info(
                     f"Breaking out early after {n_comb} combinations inspected")
-                break
+                #break
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
@@ -112,16 +112,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 cluster_load = sum([o.get_load() for o in o_src])
                 swapped_cluster = False
                 for r_try in targets.keys():
-                    # Compute initial load difference
-                    l_src, l_try = r_src.get_load(), r_try.get_load()
-                    l_max_0 = max(l_src, l_try)
+                    # Iterate over target clusters
                     for o_try in self.__cluster_objects(r_try).values():
                         # Decide whether swap is beneficial
-                        l_o_try = cluster_load - sum([o.get_load() for o in o_try])
-                        if l_max_0 > max(
-                            l_src - l_o_try, l_try + l_o_try):
+                        if self._criterion.compute(r_src, o_src, r_try, o_try) > 0.0:
                             # Perform swap
-                            n_transfers += phase.transfer_objects(r_src, o_src, r_try, o_try)
+                            n_transfers += phase.transfer_objects(
+                                r_src, o_src, r_try, o_try)
                             swapped_cluster = True
                             n_swaps += 1
                             break
