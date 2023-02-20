@@ -1,4 +1,4 @@
-name: Code Quality (Unit tests, Coverage and PyLint)
+name: Code Quality (Unit tests, Coverage, PyLint)
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
@@ -74,7 +74,7 @@ jobs:
         run: |
           mkdir -p badges
           PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./artifacts/pylint.txt)
-          anybadge --label=pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
+          anybadge --label=Pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
 
       - name: Create Coverage badge
         if: |
@@ -83,7 +83,7 @@ jobs:
         run: |
           mkdir -p badges
           COVERAGE_SCORE=$(sed -n '/TOTAL/,/%/p' artifacts/coverage.txt | rev | cut -d" " -f1 | rev | tr -d % )
-          anybadge --value=$COVERAGE_SCORE --file=badges/coverage.svg coverage
+          anybadge --label=Coverage --file=badges/coverage.svg --value=$COVERAGE_SCORE coverage
 
       - name: Deploy badges
         # Badge will be deployed at 
