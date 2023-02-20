@@ -56,9 +56,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 for p in range(1, max(self._max_objects_per_transfer, len(v)) + 1)):
                 # Limit number of inspected combinations
                 n_comb += 1
-                if n_comb > 65535:
+                if not self._deterministic_transfer and n_comb > 65535:
                     breaks[0] = True
-                    #break
+                    break
 
                 # Reject subclusters overshooting within relative tolerance
                 n_inspect += 1
@@ -70,15 +70,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 suitable_subclusters[c] = reach_load
 
                 # Limit number of returned suitable clusters
-                if len(suitable_subclusters) > 25:
+                if not self._deterministic_transfer and len(suitable_subclusters) > 25:
                     breaks[1] = True
-                    #break
+                    break
 
             # Break out early when one of the limiters was triggered
             if breaks[0] or breaks[1]:
                 self._logger.info(
                     f"Breaking out early after {n_comb} combinations inspected")
-                #break
+                break
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
