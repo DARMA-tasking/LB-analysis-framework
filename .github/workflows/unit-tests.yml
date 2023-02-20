@@ -91,9 +91,11 @@ jobs:
         # Badge will be deployed at 
         # https://github.com/DARMA-tasking/LB-analysis-framework/blob/gh-pages/(pylint|coverage).svg
         uses: peaceiris/actions-gh-pages@v3
-        if: github.ref_name == env.deploy_badges_from_branch
+        if: github.ref_name == env.deploy_badges_from_branch &&
+          (steps.run_tox.outputs.coverage_report_exists == 'true' || steps.run_tox.outputs.pylint_report_exists == 'true')
         with:
           commit_message: ${{steps.tag_version.outputs.tag}} ${{ github.event.head_commit.message }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./badges
           destination_dir: badges
+          keep_files: true
