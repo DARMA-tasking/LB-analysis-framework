@@ -15,7 +15,7 @@ jobs:
         python-version: ['3.8', '3.9']
     runs-on: ${{ matrix.os }}
     env:
-      home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
+      deploy_badges_from_branch: '320-add-python-linter-to-ci-cd' # develop
 
     steps:
       - uses: actions/checkout@v2
@@ -32,7 +32,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ${{ env.home_dir }}
           python -m pip install --upgrade pip
           pip install -r requirements-${{ matrix.python-version }}.txt
           pip install tox-gh-actions
@@ -45,7 +44,6 @@ jobs:
       - name: Running Unit-tests, Coverage, Pylint using TOX
         id: run_tox
         run: |
-          cd ${{ env.home_dir }}
           tox
           if [ -e "./artifacts/pylint.txt" ]; then PYLINT_REPORT_EXISTS="true"; else PYLINT_REPORT_EXISTS="false"; fi
           echo "pylint_report_exists=$PYLINT_REPORT_EXISTS" >> $GITHUB_OUTPUT
@@ -73,20 +71,18 @@ jobs:
 
       - name: Create Pylint badge
         if: |
-          github.ref_name == '320-add-python-linter-to-ci-cd' &&
+          github.ref_name == env.deploy_badges_from_branch &&
           steps.run_tox.outputs.pylint_report_exists == 'true'
         run: |
-          cd ${{ env.home_dir }}
           mkdir -p badges
           PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./artifacts/pylint.txt)
           anybadge --label=pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
 
       - name: Create Coverage badge
         if: |
-          github.ref_name == '320-add-python-linter-to-ci-cd' &&
+          github.ref_name == env.deploy_badges_from_branch &&
           steps.run_tox.outputs.coverage_report_exists == 'true'
         run: |
-          cd ${{ env.home_dir }}
           mkdir -p badges
           COVERAGE_SCORE=$(sed -n '/TOTAL/,/%/p' artifacts/coverage.txt | rev | cut -d" " -f1 | rev | tr -d % )
           anybadge --value=$COVERAGE_SCORE --file=badges/coverage.svg coverage
@@ -95,7 +91,7 @@ jobs:
         # Badge will be deployed at 
         # https://github.com/DARMA-tasking/LB-analysis-framework/blob/gh-pages/(pylint|coverage).svg
         uses: peaceiris/actions-gh-pages@v3
-        if: github.ref_name == '320-add-python-linter-to-ci-cd'
+        if: github.ref_name == env.deploy_badges_from_branch
         with:
           commit_message: ${{steps.tag_version.outputs.tag}} ${{ github.event.head_commit.message }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
