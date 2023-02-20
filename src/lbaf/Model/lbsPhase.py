@@ -397,7 +397,7 @@ class Phase:
         self.__n_objects = len(objects)
         self.__logger.info(f"Read {self.__n_objects} objects from load-step {t_s} of data files with prefix {basename}")
 
-    def transfer_object(self, o: Object, r_src: Rank, r_dst: Rank):
+    def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """ Transfer object from source to destination rank."""
 
         # Keep track of object ID for convenience
@@ -443,4 +443,27 @@ class Phase:
                 self.__logger.debug(
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
                 dst_b[1].add(o_id)
+
+    def transfer_objects(self, r_src: Rank, o_src: Object, r_dst: Rank):
+        """ Transfer list of objects from source to destination rank."""
+
+        # Transfer objects and return number of transferred objects
+        for o in o_src:
+            self.transfer_object(r_src, o, r_dst)
+        n_transfers = len(o_src)
+
+        # Report and return number of transferred objects
+        self.__logger.debug(
+            f"Transferred {n_transfers} objects from rank {r_src.get_id()} to {r_dst.get_id()}")
+        return n_transfers
+
+    def swap_objects(self, r_src: Rank, o_src: Object, r_dst: Rank, o_dst: Rank):
+        """ Swap list of objects between two ranks."""
+
+        # Transfer objects between ranks
+        n_transfers = self.transfer_objects(r_src, o_src, r_dst)
+        n_transfers += self.transfer_objects(r_dst, o_dst, r_src)
+
+        # Return number of transferred objects
+        return n_transfers
 

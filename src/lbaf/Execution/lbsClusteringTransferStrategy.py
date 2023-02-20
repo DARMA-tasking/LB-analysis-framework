@@ -121,8 +121,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         if l_max_0 > max(
                             l_src - l_o_try, l_try + l_o_try):
                             # Perform swap
-                            n_transfers += self._swap_objects(
-                                phase, r_src, o_src, r_try, o_try)
+                            n_transfers += phase.swap_objects(r_src, o_src, r_try, o_try)
                             self._logger.info(
                                 f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                             self._logger.info(
@@ -180,8 +179,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
-                    n_transfers += self._transfer_objects(
-                        phase, r_src, o_src, r_dst)
+                    n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
                     self._logger.info(
                         f"\trank {r_src.get_id()}, new load: {r_src.get_load()}")
                     self._logger.info(
