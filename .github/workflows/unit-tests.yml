@@ -47,11 +47,29 @@ jobs:
         run: |
           cd ${{ env.home_dir }}
           tox
-          PYLINT_REPORT_EXISTS=(ls ./artifacts/pylint.txt && echo "true") || echo "false"
+          if [ -e "./artifacts/pylint.txt" ]; then PYLINT_REPORT_EXISTS="true"; else PYLINT_REPORT_EXISTS="false"; fi
           echo "pylint_report_exists=$PYLINT_REPORT_EXISTS" >> $GITHUB_OUTPUT
-          COVERAGE_REPORT_EXISTS=(ls ./artifacts/coverage.txt && echo "true") || echo "false"
+          if [ -e "./artifacts/coverage.txt" ]; then COVERAGE_REPORT_EXISTS="true"; else COVERAGE_REPORT_EXISTS="false"; fi
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
         continue-on-error: true # for pylint returning error
+
+      - name: Upload pylint artifact
+        if: |
+          steps.run_tox.outputs.pylint_report_exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: pylint
+          path: artifacts/pylint.txt
+          retention-days: 1
+      
+      - name: Upload coverage artifact
+        if: |
+          steps.run_tox.outputs.coverage_report_exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: artifacts/coverage.txt
+          retention-days: 1
 
       - name: Create Pylint badge
         if: |
