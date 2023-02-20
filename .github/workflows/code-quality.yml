@@ -15,8 +15,7 @@ jobs:
         python-version: ['3.8', '3.9']
     runs-on: ${{ matrix.os }}
     env:
-      deploy_badges_from_branch: '320-add-python-linter-to-ci-cd'
-
+      deploy_badges_from_branch: 'develop'
     steps:
       - uses: actions/checkout@v2
 
