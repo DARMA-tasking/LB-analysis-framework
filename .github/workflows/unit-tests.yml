@@ -37,18 +37,39 @@ jobs:
           pip install -r requirements-${{ matrix.python-version }}.txt
           pip install tox-gh-actions
 
-      - name: Test with TOX
+      - name: Register Github Actions Problem matchers (pylint)
+        run: |
+          echo "::add-matcher::.github/workflows/matchers/pylint-warning.json"
+          echo "::add-matcher::.github/workflows/matchers/pylint-error.json"
+
+      - name: Running Unit-tests, Coverage, Pylint using TOX
+        id: run_tox
         run: |
           cd ${{ env.home_dir }}
           tox
+          PYLINT_REPORT_EXISTS=(ls ./artifacts/pylint.txt && echo "true") || echo "false"
+          echo "pylint_report_exists=$PYLINT_REPORT_EXISTS" >> $GITHUB_OUTPUT
+          COVERAGE_REPORT_EXISTS=(ls ./artifacts/coverage.txt && echo "true") || echo "false"
+          echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
+        continue-on-error: true # for pylint returning error
 
-      - name: Create badges
-        if: github.ref_name == '320-add-python-linter-to-ci-cd'
+      - name: Create Pylint badge
+        if: |
+          github.ref_name == '320-add-python-linter-to-ci-cd' &&
+          steps.run_tox.outputs.pylint_report_exists == 'true'
         run: |
           cd ${{ env.home_dir }}
-          mkdir badges
+          mkdir -p badges
           PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./artifacts/pylint.txt)
           anybadge --label=pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
+
+      - name: Create Coverage badge
+        if: |
+          github.ref_name == '320-add-python-linter-to-ci-cd' &&
+          steps.run_tox.outputs.coverage_report_exists == 'true'
+        run: |
+          cd ${{ env.home_dir }}
+          mkdir -p badges
           COVERAGE_SCORE=$(sed -n '/TOTAL/,/%/p' artifacts/coverage.txt | rev | cut -d" " -f1 | rev | tr -d % )
           anybadge --value=$COVERAGE_SCORE --file=badges/coverage.svg coverage
 
