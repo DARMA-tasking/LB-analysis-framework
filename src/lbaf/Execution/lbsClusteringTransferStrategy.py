@@ -1,6 +1,7 @@
 import sys
 import math
 import random
+import numpy.random as nr
 from logging import Logger
 from typing import Union
 from itertools import accumulate, chain, combinations
@@ -47,19 +48,18 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Build dict of suitable clusters with their load
         suitable_subclusters = {}
         n_inspect = 0
-        breaks = [False, False]
+        did_break = False
+        rng = nr.default_rng()
         for v in clusters.values():
-            # Inspect all non-empty object combinations in cluster
-            n_o = len(v)
-            n_comb = 0
+            # Determine maximum subcluster size
+            n_o = min(self._max_objects_per_transfer, len(v))
+
+            # Use either exhaustive testing or subsampling
             for c in chain.from_iterable(
                 combinations(v, p)
-                for p in range(1, min(self._max_objects_per_transfer, n_o) + 1)):
-                # Limit number of inspected combinations
-                n_comb += 1
-                if not self._deterministic_transfer and n_comb > 65535:
-                    breaks[0] = True
-                    break
+                for p in range(1, n_o + 1)) if self._deterministic_transfer else (
+                tuple(random.sample(v, p))
+                for p in nr.binomial(n_o, 0.5, 4096 if n_o > 12 else 2 ** n_o - 1)):
 
                 # Reject subclusters overshooting within relative tolerance
                 n_inspect += 1
@@ -72,13 +72,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Limit number of returned suitable clusters
                 if not self._deterministic_transfer and len(suitable_subclusters) > 25:
-                    breaks[1] = True
+                    did_break = True
                     break
 
-            # Break out early when one of the limiters was triggered
-            if breaks[0] or breaks[1]:
-                self._logger.info(
-                    f"Breaking out early after {n_comb} combinations inspected")
+            # Break out early when limiter was triggered
+            if did_break:
                 break
 
         # Return subclusters and cluster IDs sorted by achievable loads
