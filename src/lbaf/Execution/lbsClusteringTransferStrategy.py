@@ -46,10 +46,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """ Find suitable sub-clusters to bring rank closest and above average load."""
 
         # Build dict of suitable clusters with their load
+        print(">>>> IN")
         suitable_subclusters = {}
         n_inspect = 0
-        did_break = False
-        rng = nr.default_rng()
+        progress_step = 100.0 / len(clusters)
+        loop = 0
         for v in clusters.values():
             # Determine maximum subcluster size
             n_o = min(self._max_objects_per_transfer, len(v))
@@ -71,13 +72,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 suitable_subclusters[c] = reach_load
 
                 # Limit number of returned suitable clusters
-                if not self._deterministic_transfer and len(suitable_subclusters) > 25:
-                    did_break = True
+                if not self._deterministic_transfer and len(suitable_subclusters) > 100:
                     break
-
-            # Break out early when limiter was triggered
-            if did_break:
-                break
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
@@ -126,15 +122,16 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     if swapped_cluster:
                         break
 
-            # Recompute rank cluster when swaps have occurred
+            # Terminate for rank when swaps have occurred for non-deterministic case
             if n_swaps:
-                clusters_src = self.__cluster_objects(r_src)
                 self._logger.info(
                     f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
+                if not False and self._deterministic_transfer:
+                    continue
 
-            # Iterate over suitable subclusters
-            found_cluster = False
-            for o_src in self.__find_suitable_subclusters(clusters_src, r_src.get_load()):
+            # Iterate over suitable subclusters only when no swaps were possible
+            for o_src in self.__find_suitable_subclusters(
+                self.__cluster_objects(r_src), r_src.get_load()):
                 # Initialize destination information
                 objects_load = sum([o.get_load() for o in o_src])
                 r_dst = None
