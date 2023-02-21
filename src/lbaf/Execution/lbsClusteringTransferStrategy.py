@@ -46,24 +46,19 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """ Find suitable sub-clusters to bring rank closest and above average load."""
 
         # Build dict of suitable clusters with their load
-        print(">>>> IN")
-        suitable_subclusters = {}
         n_inspect = 0
-        progress_step = 100.0 / len(clusters)
-        loop = 0
-        for v in clusters.values():
+        suitable_subclusters = {}
+        step = 100.0 / len(clusters)
+        for i, v in enumerate(clusters.values()):
             # Determine maximum subcluster size
             n_o = min(self._max_objects_per_transfer, len(v))
-
             # Use either exhaustive testing or subsampling
-            for c in chain.from_iterable(
+            for j, c in enumerate(chain.from_iterable(
                 combinations(v, p)
                 for p in range(1, n_o + 1)) if self._deterministic_transfer else (
                 tuple(random.sample(v, p))
-                for p in nr.binomial(n_o, 0.5, 4096 if n_o > 12 else 2 ** n_o - 1)):
-
+                for p in nr.binomial(n_o, 0.5, 2048 if n_o > 12 else 2 ** (n_o - 1)))):
                 # Reject subclusters overshooting within relative tolerance
-                n_inspect += 1
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
                     continue
@@ -72,8 +67,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 suitable_subclusters[c] = reach_load
 
                 # Limit number of returned suitable clusters
-                if not self._deterministic_transfer and len(suitable_subclusters) > 100:
+                if not self._deterministic_transfer and len(suitable_subclusters) > (
+                    i + 1) * step:
                     break
+
+            # Update number of inspected combinations
+            n_inspect += j + 1
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
@@ -122,24 +121,25 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     if swapped_cluster:
                         break
 
-            # Terminate for rank when swaps have occurred for non-deterministic case
+            # Report on swaps when some occurred
             if n_swaps:
                 self._logger.info(
                     f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
-                if not False and self._deterministic_transfer:
-                    continue
 
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
                 self.__cluster_objects(r_src), r_src.get_load()):
                 # Initialize destination information
-                objects_load = sum([o.get_load() for o in o_src])
                 r_dst = None
                 c_dst = -math.inf
-                l_dst = math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
+                    # Initialize destination load information
+                    objects_load = sum([o.get_load() for o in o_src])
+                    l_dst = math.inf
+
+                    # Select best destination with respect to criterion
                     for r_try in targets.keys():
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
@@ -171,6 +171,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
                     break
 
+            # Report on new load and exit from rank
             self._logger.info(
                 f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_transfers} object transfers")
 
