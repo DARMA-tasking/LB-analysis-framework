@@ -103,7 +103,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
             for o_src in clusters_src.values():
-                cluster_load = sum([o.get_load() for o in o_src])
                 swapped_cluster = False
                 for r_try in targets.keys():
                     # Iterate over target clusters

@@ -349,14 +349,14 @@ class Rank:
         # Initialize CMF depending on singleton or non-singleton support
         if c_min == c_max:
             # Sample uniformly if all criteria have same value
-            cmf = {k: 1. / len(c_values) for k in c_values.keys()}
+            cmf = {k: 1.0 / len(c_values) for k in c_values.keys()}
         else:
             # Otherwise, use relative weights
             c_range = c_max - c_min
             cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 
         # Compute CMF
-        sum_p = 0.
+        sum_p = 0.0
         for k, v in cmf.items():
             sum_p += v
             cmf[k] = sum_p
