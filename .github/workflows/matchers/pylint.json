@@ -19,7 +19,21 @@
         "severity": "warning",
         "pattern": [
           {
-            "regexp": "^(.+):(\\d+):(\\d+):\\s([CRW]\\d{4}):\\s(.+)$",
+            "regexp": "^(.+):(\\d+):(\\d+):\\s([W]\\d{4}):\\s(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 5,
+            "code": 4
+          }
+        ]
+      },
+      {
+        "owner": "pylint-notice",
+        "severity": "notice",
+        "pattern": [
+          {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s([CR]\\d{4}):\\s(.+)$",
             "file": 1,
             "line": 2,
             "column": 3,
