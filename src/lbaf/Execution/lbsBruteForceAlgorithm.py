@@ -168,4 +168,4 @@ class BruteForceAlgorithm(AlgorithmBase):
         self.update_distributions_and_statistics(distributions, statistics)
 
         # Report final mapping in debug mode
-        self.report_final_mapping(self._logger)
+        self._report_final_mapping(self._logger)

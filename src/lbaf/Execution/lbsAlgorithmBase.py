@@ -34,6 +34,12 @@ class AlgorithmBase:
             raise SystemExit(1)
         self._work_model = work_model
 
+        # Assert that a parameters dict was passed
+        if not isinstance(parameters, dict):
+            lgr.error("Could not create an algorithm without a dictionary of parameters")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
             lgr.error("Could not create an algorithm with non-string rank QOI name")
@@ -100,7 +106,7 @@ class AlgorithmBase:
         """ Compute and update run distributions and statistics."""
 
         # Create or update distributions of object quantities of interest
-        for object_qoi_name in {"load", self.__object_qoi}:
+        for object_qoi_name in tuple({"load", self.__object_qoi}):
             if not object_qoi_name:
                 continue
             distributions.setdefault(f"object {object_qoi_name}", []).append(
@@ -108,7 +114,7 @@ class AlgorithmBase:
                  for o in self._phase.get_objects()})
 
         # Create or update distributions of rank quantities of interest
-        for rank_qoi_name in {"objects", "load", self.__rank_qoi}:
+        for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
             if not rank_qoi_name or rank_qoi_name == "work":
                 continue
             distributions.setdefault(f"rank {rank_qoi_name}", []).append(
@@ -118,8 +124,8 @@ class AlgorithmBase:
             [self._work_model.compute(p) for p in self._phase.get_ranks()])
 
         # Create or update distributions of edge quantities of interest
-        distributions.setdefault("sent", []).append(
-            {k: v for k, v in self._phase.get_edge_maxima().items()})
+        distributions.setdefault("sent", []).append(dict(
+            self._phase.get_edge_maxima().items()))
 
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
@@ -128,12 +134,12 @@ class AlgorithmBase:
                     getattr(compute_function_statistics(
                         getattr(self._phase, f"get_{support}")(), getter), v))
 
-    def report_final_mapping(self, logger):
+    def _report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode."""
 
-        for p in self._phase.get_ranks():
-            logger.debug(f"Rank {p.get_id()}:")
-            for o in p.get_objects():
+        for rank in self._phase.get_ranks():
+            logger.debug(f"Rank {rank.get_id()}:")
+            for o in rank.get_objects():
                 comm = o.get_communicator()
                 if comm:
                     logger.debug(f"Object {o.get_id()}:")

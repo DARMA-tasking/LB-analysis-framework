@@ -199,4 +199,4 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
 
         # Report final mapping in debug mode
-        self.report_final_mapping(self._logger)
+        self._report_final_mapping(self._logger)

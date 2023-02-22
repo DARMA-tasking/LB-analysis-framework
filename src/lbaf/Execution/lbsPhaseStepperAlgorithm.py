@@ -49,4 +49,4 @@ class PhaseStepperAlgorithm(AlgorithmBase):
                 distributions, statistics)
 
             # Report current mapping in debug mode
-            self.report_final_mapping(self._logger)
+            self._report_final_mapping(self._logger)
