@@ -1,5 +1,3 @@
-from logging import Logger
-
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
