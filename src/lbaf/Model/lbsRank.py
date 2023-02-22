@@ -333,18 +333,18 @@ class Rank:
         # Iterate over potential targets
         for r_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute(self, objects, r_dst)
+            c_dst = transfer_criterion.compute(self, objects, r_dst)
 
             # Do not include rejected targets for strict CMF
-            if strict and c < 0.:
+            if strict and c_dst < 0.:
                 continue
 
             # Update criterion values
-            c_values[r_dst] = c
-            if c < c_min:
-                c_min = c
-            if c > c_max:
-                c_max = c
+            c_values[r_dst] = c_dst
+            if c_dst < c_min:
+                c_min = c_dst
+            if c_dst > c_max:
+                c_max = c_dst
 
         # Initialize CMF depending on singleton or non-singleton support
         if c_min == c_max:
