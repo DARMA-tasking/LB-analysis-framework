@@ -57,7 +57,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 combinations(v, p)
                 for p in range(1, n_o + 1)) if self._deterministic_transfer else (
                 tuple(random.sample(v, p))
-                for p in nr.binomial(n_o, 0.5, 2048 if n_o > 12 else 2 ** (n_o - 1)))):
+                for p in nr.binomial(n_o, 0.5, 256 if n_o > 4 else 2 ** (n_o - 1)))):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
@@ -124,6 +124,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             if n_swaps:
                 self._logger.info(
                     f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
+                continue
 
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
