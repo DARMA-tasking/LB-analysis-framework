@@ -37,8 +37,7 @@ jobs:
 
       - name: Register Github Actions Problem matchers (pylint)
         run: |
-          echo "::add-matcher::.github/workflows/matchers/pylint-warning.json"
-          echo "::add-matcher::.github/workflows/matchers/pylint-error.json"
+          echo "::add-matcher::.github/workflows/matchers/pylint.json"
 
       - name: Running Unit-tests, Coverage, Pylint using TOX
         id: run_tox
