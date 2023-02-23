@@ -52,12 +52,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         for i, v in enumerate(clusters.values()):
             # Determine maximum subcluster size
             n_o = min(self._max_objects_per_transfer, len(v))
-            # Use either exhaustive testing or subsampling
+
+            # Use combinatorial exploration or law of large number based subsampling
             for j, c in enumerate(chain.from_iterable(
                 combinations(v, p)
                 for p in range(1, n_o + 1)) if self._deterministic_transfer else (
                 tuple(random.sample(v, p))
-                for p in nr.binomial(n_o, 0.5, 256 if n_o > 4 else 2 ** (n_o - 1)))):
+                for p in nr.binomial(n_o, 0.5, n_o))):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
