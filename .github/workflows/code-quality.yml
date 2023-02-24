@@ -21,8 +21,7 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo apt-mark hold grub-efi-amd64-bin && sudo apt-mark hold grub-efi-amd64-signed
-          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get update -y
           sudo apt-get install -y git xvfb
 
       - name: Python Setup
