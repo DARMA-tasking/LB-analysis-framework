@@ -25,7 +25,7 @@ algorithm:
     order_strategy: arbitrary
     transfer_strategy: Clustering
     criterion: Tempered
-    max_objects_per_transfer: 1000
+    max_objects_per_transfer: 500
     deterministic_transfer: False
 
 # Specify output
