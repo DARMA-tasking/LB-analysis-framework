@@ -11,7 +11,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        os: [ubuntu-23.04]
+        os: [ubuntu-latest]
         python-version: ['3.8', '3.9']
     runs-on: ${{ matrix.os }}
     env:
@@ -21,7 +21,7 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get update -y
           sudo apt-get install -y git xvfb
 
       - name: Python Setup
