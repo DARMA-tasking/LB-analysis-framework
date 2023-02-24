@@ -21,7 +21,7 @@ jobs:
 
       - name: Install packages
         run: |
-          duso apt-get install --reinstall grub-efi-amd64
+          sudo apt-get install --reinstall grub-efi-amd64
           sudo apt-get update -y && sudo apt-get upgrade -y
           sudo apt-get install -y git xvfb
 
