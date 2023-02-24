@@ -15,7 +15,8 @@ jobs:
         python-version: ['3.8', '3.9']
     runs-on: ${{ matrix.os }}
     env:
-      deploy_badges_from_branch: '320-add-python-linter-to-ci-cd'
+      deploy_badges_src_branch: '320-add-python-linter-to-ci-cd'
+      deploy_badges_dst_branch: deploy-badges
     steps:
       - uses: actions/checkout@v2
 
@@ -68,7 +69,7 @@ jobs:
 
       - name: Create Pylint badge
         if: |
-          github.ref_name == env.deploy_badges_from_branch &&
+          github.ref_name == env.deploy_badges_src_branch &&
           steps.run_tox.outputs.pylint_report_exists == 'true'
         run: |
           mkdir -p badges
@@ -77,7 +78,7 @@ jobs:
 
       - name: Create Coverage badge
         if: |
-          github.ref_name == env.deploy_badges_from_branch &&
+          github.ref_name == env.deploy_badges_src_branch &&
           steps.run_tox.outputs.coverage_report_exists == 'true'
         run: |
           mkdir -p badges
@@ -86,11 +87,10 @@ jobs:
 
       - name: Deploy badges
         uses: JamesIves/github-pages-deploy-action@v4
-        if: github.ref_name == env.deploy_badges_from_branch &&
+        if: github.ref_name == env.deploy_badges_src_branch &&
           (steps.run_tox.outputs.coverage_report_exists == 'true' || steps.run_tox.outputs.pylint_report_exists == 'true')
         with:
-          branch: deploy-doc-site
+          branch: ${{ env.deploy_badges_dst_branch }}
           folder: ./badges
-          target-folder: badges
           clean: false
           commit-message: ${{ github.event.head_commit.message }}
