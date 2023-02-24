@@ -169,7 +169,7 @@ class internalParameters:
                     self.grid_size.append(viz[key])
                 self.object_jitter = viz["object_jitter"]
                 self.rank_qoi = viz["rank_qoi"]
-                self.object_qoi = viz["object_qoi"]
+                self.object_qoi = viz.get("object_qoi")
             except Exception as e:
                 self.logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
                 sys.excepthook = exc_handler

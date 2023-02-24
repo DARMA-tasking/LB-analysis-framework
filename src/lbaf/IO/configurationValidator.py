@@ -80,7 +80,7 @@ class ConfigurationValidator:
                     float, lambda x: abs(x) < 1.0,
                     error="Should be of type 'float' and magnitude < 1"),
                 "rank_qoi": str,
-                "object_qoi": str,
+                Optional("object_qoi"): str,
                 Optional("save_meshes"): bool},
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,

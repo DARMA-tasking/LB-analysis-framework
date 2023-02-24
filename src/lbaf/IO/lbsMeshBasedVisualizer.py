@@ -38,9 +38,9 @@ class MeshBasedVisualizer:
         self.__logger = logger
 
         # Make sure that rank quantity of interest name was passed
-        if not isinstance(qoi_request, list) or (l_req := len(qoi_request)) < 2:
+        if not isinstance(qoi_request, list) or (l_req := len(qoi_request)) != 3:
             self.__logger.error(
-                "Visualizer expects at least the rank quantity of interest parameters")
+                f"Visualizer expects 3 quantity of interest parameters and not {l_req}")
             raise SystemExit(1)
         if not (rank_qoi := qoi_request[0]) or not isinstance(rank_qoi, str):
             self.__logger.error(
@@ -58,12 +58,11 @@ class MeshBasedVisualizer:
 
         # When object QOI name was passed make sure it is consistent
         req_str = f"Creating visualization for {self.__rank_qoi}"
-        if l_req == 3:
-            if not (object_qoi := qoi_request[2]
-                    ) or not isinstance(object_qoi, str):
-                self.__logger.error(
-                    "Optional object quantity of interest name must be a string")
-                raise SystemExit(1)
+        if (object_qoi := qoi_request[2]) and not isinstance(object_qoi, str):
+            self.__logger.error(
+                "Optional object quantity of interest name must be a string")
+            raise SystemExit(1)
+        if object_qoi:
             self.__object_qoi = f"object {object_qoi}"
             req_str += f" and {self.__object_qoi}"
         else:
@@ -251,6 +250,10 @@ class MeshBasedVisualizer:
 
     def compute_object_qoi_range(self, object_qoi):
         """ Decide object quantity storage type and compute it."""
+
+        # Return empty range if no object QOI was passed
+        if not object_qoi:
+            return ()
 
         # Initialize space-time object QOI range attributes
         oq_min, oq_max, oq_all, = math.inf, -math.inf, set()
@@ -527,10 +530,10 @@ class MeshBasedVisualizer:
         self,
         iteration: int,
         pid: int,
+        object_mesh,
         edge_width: int,
         glyph_factor: float,
-        win_size: int,
-        object_mesh):
+        win_size: int):
         """ Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
@@ -583,96 +586,98 @@ class MeshBasedVisualizer:
         renderer.AddActor(rank_actor)
         renderer.AddActor2D(qoi_actor)
 
-        # Create white to black look-up table
-        bw_lut = vtk.vtkLookupTable()
-        bw_lut.SetTableRange((0.0, self.__object_volume_max))
-        bw_lut.SetSaturationRange(0, 0)
-        bw_lut.SetHueRange(0, 0)
-        bw_lut.SetValueRange(1, 0)
-        bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
-        bw_lut.Build()
+        # Create object pipeline only when requested
+        if self.__object_qoi:
+            # Create white to black look-up table
+            bw_lut = vtk.vtkLookupTable()
+            bw_lut.SetTableRange((0.0, self.__object_volume_max))
+            bw_lut.SetSaturationRange(0, 0)
+            bw_lut.SetHueRange(0, 0)
+            bw_lut.SetValueRange(1, 0)
+            bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
+            bw_lut.Build()
 
-        # Create mapper for inter-object edges
-        edge_mapper = vtk.vtkPolyDataMapper()
-        edge_mapper.SetInputData(object_mesh)
-        edge_mapper.SetScalarModeToUseCellData()
-        edge_mapper.SetScalarRange((0.0, self.__object_volume_max))
-        edge_mapper.SetLookupTable(bw_lut)
+            # Create mapper for inter-object edges
+            edge_mapper = vtk.vtkPolyDataMapper()
+            edge_mapper.SetInputData(object_mesh)
+            edge_mapper.SetScalarModeToUseCellData()
+            edge_mapper.SetScalarRange((0.0, self.__object_volume_max))
+            edge_mapper.SetLookupTable(bw_lut)
 
-        # Create communication volume and its scalar bar actors
-        edge_actor = vtk.vtkActor()
-        edge_actor.SetMapper(edge_mapper)
-        edge_actor.GetProperty().SetLineWidth(edge_width)
-        volume_actor = self.create_scalar_bar_actor(
-            edge_mapper, "Inter-Object Volume", 0.04, 0.04)
-        renderer.AddActor(edge_actor)
-        renderer.AddActor2D(volume_actor)
+            # Create communication volume and its scalar bar actors
+            edge_actor = vtk.vtkActor()
+            edge_actor.SetMapper(edge_mapper)
+            edge_actor.GetProperty().SetLineWidth(edge_width)
+            volume_actor = self.create_scalar_bar_actor(
+                edge_mapper, "Inter-Object Volume", 0.04, 0.04)
+            renderer.AddActor(edge_actor)
+            renderer.AddActor2D(volume_actor)
 
-        # Compute square root of object loads
-        sqrtL = vtk.vtkArrayCalculator()
-        sqrtL.SetInputData(object_mesh)
-        sqrtL.AddScalarArrayName("object load")
-        sqrtL_str = "sqrt(object load)"
-        sqrtL.SetFunction(sqrtL_str)
-        sqrtL.SetResultArrayName(sqrtL_str)
-        sqrtL.Update()
-        sqrtL_out = sqrtL.GetOutput()
-        sqrtL_out.GetPointData().SetActiveScalars("Migratable")
+            # Compute square root of object loads
+            sqrtL = vtk.vtkArrayCalculator()
+            sqrtL.SetInputData(object_mesh)
+            sqrtL.AddScalarArrayName("object load")
+            sqrtL_str = "sqrt(object load)"
+            sqrtL.SetFunction(sqrtL_str)
+            sqrtL.SetResultArrayName(sqrtL_str)
+            sqrtL.Update()
+            sqrtL_out = sqrtL.GetOutput()
+            sqrtL_out.GetPointData().SetActiveScalars("Migratable")
 
-        # Glyph sentinel and migratable objects separately
-        glyph_mapper = None
-        for k, v in {0.0: "Square", 1.0: "Circle"}.items():
-            # Threshold by migratable status
-            thresh = vtk.vtkThresholdPoints()
-            thresh.SetInputData(sqrtL_out)
-            thresh.ThresholdBetween(k, k)
-            thresh.Update()
-            thresh_out = thresh.GetOutput()
-            if not thresh_out.GetNumberOfPoints():
-                continue
-            thresh_out.GetPointData().SetActiveScalars(sqrtL_str)
+            # Glyph sentinel and migratable objects separately
+            glyph_mapper = None
+            for k, v in {0.0: "Square", 1.0: "Circle"}.items():
+                # Threshold by migratable status
+                thresh = vtk.vtkThresholdPoints()
+                thresh.SetInputData(sqrtL_out)
+                thresh.ThresholdBetween(k, k)
+                thresh.Update()
+                thresh_out = thresh.GetOutput()
+                if not thresh_out.GetNumberOfPoints():
+                    continue
+                thresh_out.GetPointData().SetActiveScalars(sqrtL_str)
 
-            # Glyph by square root of object quantity of interest
-            glyph = vtk.vtkGlyphSource2D()
-            getattr(glyph, f"SetGlyphTypeTo{v}")()
-            glyph.SetResolution(32)
-            glyph.SetScale(1.0)
-            glyph.FilledOn()
-            glyph.CrossOff()
-            glypher = vtk.vtkGlyph3D()
-            glypher.SetSourceConnection(glyph.GetOutputPort())
-            glypher.SetInputData(thresh_out)
-            glypher.SetScaleModeToScaleByScalar()
-            glypher.SetScaleFactor(glyph_factor)
-            glypher.Update()
-            glypher.GetOutput().GetPointData().SetActiveScalars(
-                self.__object_qoi)
+                # Glyph by square root of object quantity of interest
+                glyph = vtk.vtkGlyphSource2D()
+                getattr(glyph, f"SetGlyphTypeTo{v}")()
+                glyph.SetResolution(32)
+                glyph.SetScale(1.0)
+                glyph.FilledOn()
+                glyph.CrossOff()
+                glypher = vtk.vtkGlyph3D()
+                glypher.SetSourceConnection(glyph.GetOutputPort())
+                glypher.SetInputData(thresh_out)
+                glypher.SetScaleModeToScaleByScalar()
+                glypher.SetScaleFactor(glyph_factor)
+                glypher.Update()
+                glypher.GetOutput().GetPointData().SetActiveScalars(
+                    self.__object_qoi)
 
-            # Raise glyphs slightly for visibility
-            z_raise = vtk.vtkTransform()
-            z_raise.Translate(0.0, 0.0, 0.01)
-            trans = vtk.vtkTransformPolyDataFilter()
-            trans.SetTransform(z_raise)
-            trans.SetInputData(glypher.GetOutput())
+                # Raise glyphs slightly for visibility
+                z_raise = vtk.vtkTransform()
+                z_raise.Translate(0.0, 0.0, 0.01)
+                trans = vtk.vtkTransformPolyDataFilter()
+                trans.SetTransform(z_raise)
+                trans.SetInputData(glypher.GetOutput())
 
-            # Create mapper and actor for glyphs
-            glyph_mapper = vtk.vtkPolyDataMapper()
-            glyph_mapper.SetInputConnection(trans.GetOutputPort())
-            glyph_mapper.SetLookupTable(
-                self.create_color_transfer_function(
-                    self.__object_qoi_range))
-            if (is_continuous := isinstance(self.__object_qoi_range, tuple)):
-                glyph_mapper.SetScalarRange(self.__object_qoi_range)
-            glyph_actor = vtk.vtkActor()
-            glyph_actor.SetMapper(glyph_mapper)
-            renderer.AddActor(glyph_actor)
+                # Create mapper and actor for glyphs
+                glyph_mapper = vtk.vtkPolyDataMapper()
+                glyph_mapper.SetInputConnection(trans.GetOutputPort())
+                glyph_mapper.SetLookupTable(
+                    self.create_color_transfer_function(
+                        self.__object_qoi_range))
+                if (is_continuous := isinstance(self.__object_qoi_range, tuple)):
+                    glyph_mapper.SetScalarRange(self.__object_qoi_range)
+                glyph_actor = vtk.vtkActor()
+                glyph_actor.SetMapper(glyph_mapper)
+                renderer.AddActor(glyph_actor)
 
-        # Create and add unique scalar bar for object QOI when available
-        if glyph_mapper:
-            load_actor = self.create_scalar_bar_actor(
-                glyph_mapper, self.__object_qoi, 0.52, 0.04,
-                None if is_continuous else self.__object_qoi_range)
-            renderer.AddActor2D(load_actor)
+            # Create and add unique scalar bar for object QOI when available
+            if glyph_mapper:
+                load_actor = self.create_scalar_bar_actor(
+                    glyph_mapper, self.__object_qoi, 0.52, 0.04,
+                    None if is_continuous else self.__object_qoi_range)
+                renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration
         text_actor = vtk.vtkTextActor()
@@ -735,17 +740,20 @@ class MeshBasedVisualizer:
             if update_phase:
                 phase = self.__phases[iteration]
 
-            # Create object mesh
-            object_mesh = self.create_object_mesh(phase, object_mapping)
+            # Create object mesh when requested
+            if self.__object_qoi:
+                object_mesh = self.create_object_mesh(phase, object_mapping)
 
-            # Write to VTP file when requested
-            if save_meshes:
-                file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
-                self.__logger.info(f"Writing VTP file: {file_name}")
-                writer = vtk.vtkXMLPolyDataWriter()
-                writer.SetFileName(file_name)
-                writer.SetInputData(object_mesh)
-                writer.Update()
+                # Write to VTP file when requested
+                if save_meshes:
+                    file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
+                    self.__logger.info(f"Writing VTP file: {file_name}")
+                    writer = vtk.vtkXMLPolyDataWriter()
+                    writer.SetFileName(file_name)
+                    writer.SetInputData(object_mesh)
+                    writer.Update()
+            else:
+                object_mesh = None
 
             # Generate visualizations when requested
             if gen_vizqoi:
@@ -757,26 +765,27 @@ class MeshBasedVisualizer:
                 # Compute visualization parameters
                 self.__logger.info(
                     f"Generating 2-D visualization for iteration {iteration}:")
-                win_size = 800
+                ws = 800
                 self.__logger.info(
-                    f"\tnumber of pixels: {win_size}x{win_size}")
-                edge_width = 0.1 * win_size / max(self.__grid_size)
-                self.__logger.info(
-                    f"\tcommunication edges width: {edge_width:.2g}")
-                glyph_factor = 0.8 * self.__grid_resolution / (
-                    (self.__max_o_per_dim + 1)
-                    * math.sqrt(self.__object_load_max))
-                self.__logger.info(
-                    f"\tobject glyphs scaling: {glyph_factor:.2g}")
+                    f"\tnumber of pixels: {ws}x{ws}")
+                if self.__object_qoi:
+                    ew = 0.1 * ws / max(self.__grid_size)
+                    self.__logger.info(
+                        f"\tcommunication edges width: {ew:.2g}")
+                    gf = 0.8 * self.__grid_resolution / (
+                        (self.__max_o_per_dim + 1)
+                        * math.sqrt(self.__object_load_max))
+                    self.__logger.info(
+                        f"\tobject glyphs scaling: {g_f:.2g}")
 
                 # Run visualization pipeline
                 render_window = self.create_rendering_pipeline(
                     iteration,
                     phase.get_id(),
-                    edge_width,
-                    glyph_factor,
-                    win_size,
-                    object_mesh)
+                    object_mesh,
+                    edge_width= ew if self.__object_qoi else None,
+                    glyph_factor = gf if self.__object_qoi else None,
+                    win_size = ws)
                 render_window.Render()
 
                 # Convert window to image
