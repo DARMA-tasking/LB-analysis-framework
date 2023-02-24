@@ -56,7 +56,7 @@ jobs:
           name: pylint
           path: artifacts/pylint.txt
           retention-days: 1
-      
+
       - name: Upload coverage artifact
         if: |
           steps.run_tox.outputs.coverage_report_exists == 'true'
