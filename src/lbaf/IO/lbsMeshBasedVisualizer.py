@@ -37,25 +37,18 @@ class MeshBasedVisualizer:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Make sure that quantity of interest names were passed
-        if not isinstance(qoi_request, list) or not len(qoi_request) == 3:
+        # Make sure that rank quantity of interest name was passed
+        if not isinstance(qoi_request, list) or (l_req := len(qoi_request)) < 2:
             self.__logger.error(
-                "Mesh writer expects 3 quantities of interest parameters")
+                "Visualizer expects at least the rank quantity of interest parameters")
             raise SystemExit(1)
         if not (rank_qoi := qoi_request[0]) or not isinstance(rank_qoi, str):
             self.__logger.error(
-                "Mesh writer expects a non-empty rank quantity of interest name")
-            raise SystemExit(1)
-        if not (object_qoi := qoi_request[2]) or not isinstance(object_qoi, str):
-            self.__logger.error(
-                "Mesh writer expects a non-empty object quantity of interest name")
+                "Visualizer expects a non-empty rank quantity of interest name")
             raise SystemExit(1)
         self.__rank_qoi = f"rank {rank_qoi}"
-        self.__object_qoi = f"object {object_qoi}"
-        self.__logger.info(
-            f"Creating visualization for {self.__object_qoi} and {self.__rank_qoi}")
 
-        # When QOI range was passed make sure it is consistent
+        # When rank QOI range was passed make sure it is consistent
         rank_qoi_max = qoi_request[1]
         if rank_qoi_max is not None:
             if not isinstance(rank_qoi_max, float):
@@ -63,10 +56,24 @@ class MeshBasedVisualizer:
                     f"Inconsistent quantity of interest maximum: {rank_qoi_max}")
                 raise SystemExit(1)
 
+        # When object QOI name was passed make sure it is consistent
+        req_str = f"Creating visualization for {self.__rank_qoi}"
+        if l_req == 3:
+            if not (object_qoi := qoi_request[2]
+                    ) or not isinstance(object_qoi, str):
+                self.__logger.error(
+                    "Optional object quantity of interest name must be a string")
+                raise SystemExit(1)
+            self.__object_qoi = f"object {object_qoi}"
+            req_str += f" and {self.__object_qoi}"
+        else:
+            self.__object_qoi = None
+        self.__logger.info(req_str)
+
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
             self.__logger.error(
-                "Mesh writer expects a list of Phase instances as input")
+                "Visualizer expects a list of Phase instances as input")
             raise SystemExit(1)
         self.__phases = phases
 
