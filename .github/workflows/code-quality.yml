@@ -85,7 +85,7 @@ jobs:
           anybadge --label=Coverage --file=badges/coverage.svg --value=$COVERAGE_SCORE coverage
 
       - name: Deploy badges
-        # Badge will be deployed at 
+        # Badge will be deployed at
         # https://github.com/DARMA-tasking/LB-analysis-framework/blob/gh-pages/(pylint|coverage).svg
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref_name == env.deploy_badges_from_branch &&
