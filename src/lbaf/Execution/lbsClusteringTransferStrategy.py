@@ -125,7 +125,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             if n_swaps:
                 self._logger.info(
                     f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
-                continue
+                # In non-deterministic case skip subclustering when swaps passed
+                if not self._deterministic_transfer:
+                    continue
 
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
