@@ -62,10 +62,11 @@ class CriterionBase:
             raise SystemExit(1)
 
     @abc.abstractmethod
-    def compute(self, objects, rank_src, rank_dst):
+    def compute(self, r_src, o_src, r_dst, o_dst=[]):
         """ Return value of criterion for candidate objects transfer
-            objects: iterable containing object instances
-            rank_src, rank_dst: Rank instances."""
+            o_src: iterable of objects on source
+            r_src, r_dst: Rank instances.
+            o_dst: optional iterable of objects on destination for swaps."""
 
         # Must be implemented by concrete subclass
         pass

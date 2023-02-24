@@ -178,15 +178,32 @@ class Rank:
 
         return self.__known_loads
 
-    def remove_migratable_object(self, o: Object, p_dst: "Rank"):
+    def add_known_load(self, rank):
+        """ Make rank known to self if not already known."""
+
+        self.__known_loads.setdefault(rank, rank.get_load())
+
+    def get_targets(self) -> list:
+        """ Return list of potential targets for object transfers."""
+
+        # No potential targets for loadless ranks
+        if not self.get_load() > 0.:
+            return []
+
+        # Remove self from list of targets
+        targets = self.get_known_loads()
+        del targets[self]
+        return targets
+
+    def remove_migratable_object(self, o: Object, r_dst: "Rank"):
         """ Remove migratable able object from self object sent to peer."""
 
         # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
 
         # Update known load when destination is already known
-        if self.__known_loads and p_dst in self.__known_loads:
-            self.__known_loads[p_dst] += o.get_load()
+        if self.__known_loads and r_dst in self.__known_loads:
+            self.__known_loads[r_dst] += o.get_load()
 
     def get_load(self) -> float:
         """ Return total load on rank."""
@@ -306,7 +323,7 @@ class Rank:
         # Update last received message index
         self.round_last_received = msg.get_round()
 
-    def compute_transfer_cmf(self, transfer_criterion, o: Object, targets: dict, strict=False):
+    def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: dict, strict=False):
         """ Compute CMF for the sampling of transfer targets."""
 
         # Initialize criterion values
@@ -314,32 +331,32 @@ class Rank:
         c_min, c_max = math.inf, -math.inf
 
         # Iterate over potential targets
-        for p_dst in targets.keys():
+        for r_dst in targets.keys():
             # Compute value of criterion for current target
-            c = transfer_criterion.compute([o], self, p_dst)
+            c_dst = transfer_criterion.compute(self, objects, r_dst)
 
             # Do not include rejected targets for strict CMF
-            if strict and c < 0.:
+            if strict and c_dst < 0.:
                 continue
 
             # Update criterion values
-            c_values[p_dst] = c
-            if c < c_min:
-                c_min = c
-            if c > c_max:
-                c_max = c
+            c_values[r_dst] = c_dst
+            if c_dst < c_min:
+                c_min = c_dst
+            if c_dst > c_max:
+                c_max = c_dst
 
         # Initialize CMF depending on singleton or non-singleton support
         if c_min == c_max:
             # Sample uniformly if all criteria have same value
-            cmf = {k: 1. / len(c_values) for k in c_values.keys()}
+            cmf = {k: 1.0 / len(c_values) for k in c_values.keys()}
         else:
             # Otherwise, use relative weights
             c_range = c_max - c_min
             cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 
         # Compute CMF
-        sum_p = 0.
+        sum_p = 0.0
         for k, v in cmf.items():
             sum_p += v
             cmf[k] = sum_p

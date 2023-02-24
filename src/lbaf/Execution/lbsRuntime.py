@@ -25,7 +25,7 @@ class Runtime:
 
         # Keep track of possibly empty list of arrangements with minimax work
         self.__logger.info(
-            f"Instantiating runtime with {len(arrangements)} optimal arrangements for Hamming distance comparison")
+            f"Instantiating runtime with {len(arrangements)} optimal arrangements for Hamming distance")
         self.__a_min_max = arrangements
 
         # If no LBS phase was provided, do not do anything

@@ -1,5 +1,3 @@
-from logging import Logger
-
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
@@ -15,14 +13,14 @@ class StrictLocalizingCriterion(CriterionBase):
         super().__init__(workmodel, lgr)
         self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-    def compute(self, objects: list, r_src: Rank, _) -> float:
+    def compute(self, r_src: Rank, o_src: list, *args) -> float:
         """ A criterion enforcing strict conservation of local communications."""
 
         # Keep track source processor ID
         r_src_id = r_src.get_id()
 
         # Iterate over objects proposed for transfer
-        for o in objects:
+        for o in o_src:
             # Retrieve object communications
             comm = o.get_communicator()
 

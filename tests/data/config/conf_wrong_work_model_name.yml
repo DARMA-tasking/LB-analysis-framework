@@ -20,6 +20,7 @@ algorithm:
     n_rounds: 4
     fanout: 4
     order_strategy: element_id
+    transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
     deterministic_transfer: True

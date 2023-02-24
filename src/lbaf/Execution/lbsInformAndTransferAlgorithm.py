@@ -1,6 +1,4 @@
 import sys
-import math
-import random
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
@@ -8,7 +6,7 @@ from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import print_function_statistics, inverse_transform_sample, min_Hamming_distance
+from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
@@ -54,19 +52,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
         # Try to instantiate object transfer criterion
+        crit_name = parameters.get("criterion")
         self.__transfer_criterion = CriterionBase.factory(
-            parameters.get("criterion"),
+            crit_name,
             self._work_model,
             lgr=self._logger)
         if not self.__transfer_criterion:
-            self._logger.error(f"Could not instantiate a transfer criterion of type {self.__criterion_name}")
+            self._logger.error(f"Could not instantiate a transfer criterion of type {crit_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Try to instantiate object transfer strategy
-        strat_name = "Recursive"
+        strat_name = parameters.get("transfer_strategy")
         self.__transfer_strategy = TransferStrategyBase.factory(
-            strat_name,
+            strat_name.title(),
             parameters,
             self.__transfer_criterion,
             lgr=self._logger)
@@ -151,19 +150,18 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Initialize run distributions and statistics
         self.update_distributions_and_statistics(distributions, statistics)
-
-        # Keep track of average load
-        self.__average_load = statistics.get("average load", math.nan)
+        total_work = statistics["total work"][-1]
 
         # Perform requested number of load-balancing iterations
         for i in range(self.__n_iterations):
-            self._logger.info(f"Starting iteration {i + 1}")
+            self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
 
             # Start with information stage
             self.information_stage()
 
             # Then execute transfer stage
-            n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(self._phase)
+            n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
+                self._phase, statistics["average load"])
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(
@@ -201,5 +199,4 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
 
         # Report final mapping in debug mode
-        self.report_final_mapping(self._logger)
-
+        self._report_final_mapping(self._logger)

@@ -15,7 +15,7 @@ class TemperedCriterion(CriterionBase):
         super().__init__(work_model, lgr)
         self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-    def compute(self, objects: list, r_src: Rank, r_dst: Rank) -> float:
+    def compute(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]) -> float:
         """ Tempered work criterion based on L1 norm of works."""
 
         # Compute maximum work of original arrangement
@@ -24,8 +24,7 @@ class TemperedCriterion(CriterionBase):
             self._work_model.compute(r_dst))
 
         # Move objects into proposed new arrangement
-        for o in objects:
-            self._phase.transfer_object(o, r_src, r_dst)
+        self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
 
         # Compute maximum work of proposed new arrangement
         w_max_new = max(
@@ -33,8 +32,7 @@ class TemperedCriterion(CriterionBase):
             self._work_model.compute(r_dst))
 
         # Move objects back into original arrangement
-        for o in objects:
-            self._phase.transfer_object(o, r_dst, r_src)
+        self._phase.transfer_objects(r_dst, o_src, r_src, o_dst)
 
         # Return criterion value
         return w_max_0 - w_max_new

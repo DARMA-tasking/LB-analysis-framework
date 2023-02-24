@@ -7,7 +7,7 @@ from ..Utils.exception_handler import exc_handler
 
 
 # Allowed configuration values
-ALLOWED_STRATEGIES = (
+ALLOWED_ORDER_STRATEGIES = (
     "arbitrary",
     "element_id",
     "increasing_loads",
@@ -15,7 +15,12 @@ ALLOWED_STRATEGIES = (
     "increasing_connectivity",
     "fewest_migrations",
     "small_objects")
-ALLOWED_WORK_MODELS = ("LoadOnly", "AffineCombination")
+ALLOWED_TRANSFER_STRATEGIES = (
+    "Recursive",
+    "Clustering")
+ALLOWED_WORK_MODELS = (
+    "LoadOnly",
+    "AffineCombination")
 ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
@@ -137,8 +142,12 @@ class ConfigurationValidator:
                      "order_strategy": And(
                          str,
                          Use(str.lower),
-                         lambda e: e in ALLOWED_STRATEGIES,
-                         error=f"{get_error_message(ALLOWED_STRATEGIES)} must be chosen"),
+                         lambda e: e in ALLOWED_ORDER_STRATEGIES,
+                         error=f"{get_error_message(ALLOWED_ORDER_STRATEGIES)} must be chosen"),
+                     "transfer_strategy": And(
+                         str,
+                         lambda e: e in ALLOWED_TRANSFER_STRATEGIES,
+                         error=f"{get_error_message(ALLOWED_TRANSFER_STRATEGIES)} must be chosen"),
                      "criterion": And(
                          str,
                          lambda f: f in ALLOWED_CRITERIA,

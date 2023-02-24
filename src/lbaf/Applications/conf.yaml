@@ -8,8 +8,8 @@ from_data:
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 1.
-    beta: 0.
+    alpha: 0.
+    beta: 1.
     gamma: 0.
 
 # Specify balancing algorithm
@@ -22,6 +22,7 @@ algorithm:
     n_rounds: 4
     fanout: 4
     order_strategy: arbitrary
+    transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
     deterministic_transfer: True

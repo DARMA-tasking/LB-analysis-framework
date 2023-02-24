@@ -38,7 +38,7 @@ class TransferStrategyBase:
         self._max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
         self._deterministic_transfer = parameters.get("deterministic_transfer", False)
         lgr.info(
-            f"Created {'' if self._deterministic_transfer else 'non'}deterministic base transfer strategy with {self._max_objects_per_transfer} objects")
+            f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
 
     @staticmethod
     def factory(
@@ -50,6 +50,7 @@ class TransferStrategyBase:
 
         # Load up available strategies
         from .lbsRecursiveTransferStrategy import RecursiveTransferStrategy
+        from .lbsClusteringTransferStrategy import ClusteringTransferStrategy
 
         # Ensure that strategy name is valid
         try:
@@ -63,9 +64,10 @@ class TransferStrategyBase:
             raise SystemExit(1)
 
     @abc.abstractmethod
-    def execute(self, phase):
+    def execute(self, phase, ave_load):
         """ Excecute transfer strategy on Phase instance
-            phase: a Phase instance."""
+            phase: a Phase instance
+            ave_load: average load in current phase."""
 
         # Must be implemented by concrete subclass
         pass

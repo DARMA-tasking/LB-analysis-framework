@@ -158,7 +158,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer
-                    self._phase.transfer_object(o, r_src, r_dst)
+                    self._phase.transfer_object(r_src, o, r_dst)
                     n_transfers += 1
 
         # Report on object transfers
@@ -168,4 +168,4 @@ class BruteForceAlgorithm(AlgorithmBase):
         self.update_distributions_and_statistics(distributions, statistics)
 
         # Report final mapping in debug mode
-        self.report_final_mapping(self._logger)
+        self._report_final_mapping(self._logger)
