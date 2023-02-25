@@ -32,6 +32,8 @@ class MeshBasedVisualizer:
             object_jitter: coefficient of random jitter with magnitude < 1
             output_dir: output directory
             output_file_stem: file name stem
+            distributions: a dictionary of per-phase QOI distributions
+            statistics: a dictionary of per-phase global statistics
             resolution: grid_resolution value."""
 
         # Assign logger to instance variable
@@ -123,22 +125,29 @@ class MeshBasedVisualizer:
                 self.__output_dir, output_file_stem)
 
         # Retrieve and verify rank attribute distributions
-        rank_attributes = {
+        self.__rank_attributes = {
             k: distributions.get(k, [])
             for k in list({"rank load", "rank work", self.__rank_qoi})}
-        if not all((n_dis := len(rank_attributes["rank load"])) == len(v)
-                   for v in rank_attributes.values()):
+        if not all((n_dis := len(self.__rank_attributes["rank load"])) == len(v)
+                   for v in self.__rank_attributes.values()):
             self.__logger.error(
                 f"Rank attribute distributions do not have equal lengths")
             raise SystemExit(1)
         self.__distributions = distributions
 
+        # Retrieve and verify globale statistics
+        if not isinstance(statistics, dict):
+            self.__logger.error(
+                f"Global statistics must be passed in a dictionary")
+            raise SystemExit(1)
+        self.__statistics = statistics
+
         # Assign or compute rank quantity of interest range
         self.__rank_qoi_range = [
-            min(y for x in rank_attributes[self.__rank_qoi] for y in x)]
+            min(y for x in self.__rank_attributes[self.__rank_qoi] for y in x)]
         if rank_qoi_max is None:
             self.__rank_qoi_range.append(
-                max(y for x in rank_attributes[self.__rank_qoi] for y in x))
+                max(y for x in self.__rank_attributes[self.__rank_qoi] for y in x))
         else:
             self.__rank_qoi_range.append(rank_qoi_max)
         self.__logger.info(
@@ -146,91 +155,17 @@ class MeshBasedVisualizer:
 
         # Create attribute data arrays for rank loads and works
         self.__logger.info(
-            "Adding attributes " + ", ".join(rank_attributes))
+            "Adding attributes " + ", ".join(self.__rank_attributes))
         self.__qoi_dicts = []
         for _ in range(n_dis):
             # Create and append new rank QOI dictionaries
             arr_dict = {}
             self.__qoi_dicts.append(arr_dict)
-            for k, v in rank_attributes.items():
+            for k, v in self.__rank_attributes.items():
                 qoi_arr = vtk.vtkDoubleArray()
                 qoi_arr.SetName(k)
                 qoi_arr.SetNumberOfTuples(self.__n_ranks)
                 arr_dict[k] = qoi_arr
-
-        # Iterate over ranks and create rank mesh points
-        self.__rank_points = vtk.vtkPoints()
-        self.__rank_points.SetNumberOfPoints(self.__n_ranks)
-        for i in range(self.__n_ranks):
-            # Insert point based on Cartesian coordinates
-            self.__rank_points.SetPoint(i, [
-                self.__grid_resolution * c
-                for c in self.global_id_to_cartesian(
-                    i, self.__grid_size)])
-
-            # Set point attributes from distribution values
-            for j, qoi_dict in enumerate(self.__qoi_dicts):
-                for k, v in rank_attributes.items():
-                    qoi_dict[k].SetTuple1(i, v[j][i])
-
-        # Iterate over all possible rank links and create edges
-        self.__rank_lines = vtk.vtkCellArray()
-        index_to_edge = {}
-        edge_index = 0
-        for i in range(self.__n_ranks):
-            for j in range(i + 1, self.__n_ranks):
-                # Insert new link based on endpoint indices
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0, i)
-                line.GetPointIds().SetId(1, j)
-                self.__rank_lines.InsertNextCell(line)
-
-                # Update flat index map
-                index_to_edge[edge_index] = frozenset([i, j])
-                edge_index += 1
-
-        # Number of edges is fixed due to vtkExodusIIWriter limitation
-        n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
-        self.__logger.debug(
-            f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
-
-        # Create attribute data arrays for edge sent volumes
-        self.__volumes = []
-        for i, sent in enumerate(self.__distributions["sent"]):
-            # Reduce directed edges into undirected ones
-            u_edges = {}
-            for k, v in sent.items():
-                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
-
-            # Create and append new volume array for edges
-            v_arr = vtk.vtkDoubleArray()
-            v_arr.SetName("Largest Directed Volume")
-            v_arr.SetNumberOfTuples(n_e)
-            self.__volumes.append(v_arr)
-
-            # Assign edge volume values
-            self.__logger.debug(f"\titeration {i} edges:")
-            for e, edge in index_to_edge.items():
-                v = u_edges.get(edge, float("nan"))
-                v_arr.SetTuple1(e, v)
-                if v > self.__object_volume_max:
-                    self.__object_volume_max = v
-                self.__logger.debug(f"\t{e} {edge}): {v}")
-
-        # Create and populate field arrays for statistics
-        self.__field_data = {}
-        for stat_name, stat_values in statistics.items():
-            # Skip non-list entries
-            if not isinstance(stat_values, list):
-                continue
-
-            # Create one singleton for each value of each statistic
-            for v in stat_values:
-                s_arr = vtk.vtkDoubleArray()
-                s_arr.SetNumberOfTuples(1)
-                s_arr.SetTuple1(0, v)
-                s_arr.SetName(stat_name)
-                self.__field_data.setdefault(stat_name, []).append(s_arr)
 
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
@@ -297,7 +232,18 @@ class MeshBasedVisualizer:
         # Return cpmputed QOI range
         return object_qoi_range
 
-    def create_object_mesh(self, phase: Phase, object_mapping: set):
+    def __create_rank_mesh(self, iteration: int):
+        """ Map ranks to polygonal mesh."""
+
+        # Assemble and return polygonal mesh
+        pd_mesh = vtk.vtkPolyData()
+        pd_mesh.SetPoints(self.__rank_points)
+        pd_mesh.SetLines(self.__rank_lines)
+        pd_mesh.GetPointData().SetScalars(
+            self.__qoi_dicts[iteration][self.__rank_qoi])
+        return pd_mesh
+
+    def __create_object_mesh(self, phase: Phase, object_mapping: set):
         """ Map objects to polygonal mesh."""
 
         # Retrieve number of mesh points and bail out early if empty set
@@ -526,7 +472,7 @@ class MeshBasedVisualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(
+    def __create_rendering_pipeline(
         self,
         iteration: int,
         pid: int,
@@ -537,11 +483,7 @@ class MeshBasedVisualizer:
         """ Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
-        rank_mesh = vtk.vtkPolyData()
-        rank_mesh.SetPoints(self.__rank_points)
-        rank_mesh.SetLines(self.__rank_lines)
-        rank_mesh.GetPointData().SetScalars(
-            self.__qoi_dicts[iteration][self.__rank_qoi])
+        rank_mesh = self.__create_rank_mesh(iteration)
 
         # Create renderer with parallel projection
         renderer = vtk.vtkRenderer()
@@ -704,6 +646,80 @@ class MeshBasedVisualizer:
     def generate(self, save_meshes: bool, gen_vizqoi: bool):
         """ Generate mesh and multimedia outputs."""
 
+        # Iterate over ranks and create rank mesh points
+        self.__rank_points = vtk.vtkPoints()
+        self.__rank_points.SetNumberOfPoints(self.__n_ranks)
+        for i in range(self.__n_ranks):
+            # Insert point based on Cartesian coordinates
+            self.__rank_points.SetPoint(i, [
+                self.__grid_resolution * c
+                for c in self.global_id_to_cartesian(
+                    i, self.__grid_size)])
+
+            # Set point attributes from distribution values
+            for j, qoi_dict in enumerate(self.__qoi_dicts):
+                for k, v in self.__rank_attributes.items():
+                    qoi_dict[k].SetTuple1(i, v[j][i])
+
+        # Iterate over all possible rank links and create edges
+        self.__rank_lines = vtk.vtkCellArray()
+        index_to_edge = {}
+        edge_index = 0
+        for i in range(self.__n_ranks):
+            for j in range(i + 1, self.__n_ranks):
+                # Insert new link based on endpoint indices
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, i)
+                line.GetPointIds().SetId(1, j)
+                self.__rank_lines.InsertNextCell(line)
+
+                # Update flat index map
+                index_to_edge[edge_index] = frozenset([i, j])
+                edge_index += 1
+
+        # Number of edges is fixed due to vtkExodusIIWriter limitation
+        n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
+        self.__logger.debug(
+            f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
+
+        # Create attribute data arrays for edge sent volumes
+        self.__volumes = []
+        for i, sent in enumerate(self.__distributions["sent"]):
+            # Reduce directed edges into undirected ones
+            u_edges = {}
+            for k, v in sent.items():
+                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
+
+            # Create and append new volume array for edges
+            v_arr = vtk.vtkDoubleArray()
+            v_arr.SetName("Largest Directed Volume")
+            v_arr.SetNumberOfTuples(n_e)
+            self.__volumes.append(v_arr)
+
+            # Assign edge volume values
+            self.__logger.debug(f"\titeration {i} edges:")
+            for e, edge in index_to_edge.items():
+                v = u_edges.get(edge, float("nan"))
+                v_arr.SetTuple1(e, v)
+                if v > self.__object_volume_max:
+                    self.__object_volume_max = v
+                self.__logger.debug(f"\t{e} {edge}): {v}")
+
+        # Create and populate field arrays for statistics
+        self.__field_data = {}
+        for stat_name, stat_values in self.__statistics.items():
+            # Skip non-list entries
+            if not isinstance(stat_values, list):
+                continue
+
+            # Create one singleton for each value of each statistic
+            for v in stat_values:
+                s_arr = vtk.vtkDoubleArray()
+                s_arr.SetNumberOfTuples(1)
+                s_arr.SetTuple1(0, v)
+                s_arr.SetName(stat_name)
+                self.__field_data.setdefault(stat_name, []).append(s_arr)
+
         # Write ExodusII rank mesh when requested
         if save_meshes:
             # Create grid streamer
@@ -742,7 +758,7 @@ class MeshBasedVisualizer:
 
             # Create object mesh when requested
             if self.__object_qoi:
-                object_mesh = self.create_object_mesh(phase, object_mapping)
+                object_mesh = self.__create_object_mesh(phase, object_mapping)
 
                 # Write to VTP file when requested
                 if save_meshes:
@@ -779,7 +795,7 @@ class MeshBasedVisualizer:
                         f"\tobject glyphs scaling: {g_f:.2g}")
 
                 # Run visualization pipeline
-                render_window = self.create_rendering_pipeline(
+                render_window = self.__create_rendering_pipeline(
                     iteration,
                     phase.get_id(),
                     object_mesh,
@@ -792,7 +808,6 @@ class MeshBasedVisualizer:
                 w2i = vtk.vtkWindowToImageFilter()
                 w2i.SetInput(render_window)
                 w2i.SetScale(3)
-                # w2i.SetInputBufferTypeToRGBA()
 
                 # Output PNG file
                 file_name = f"{self.__visualization_file_name}_{iteration:02d}.png"
