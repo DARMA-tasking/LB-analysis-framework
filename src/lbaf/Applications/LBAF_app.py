@@ -195,6 +195,7 @@ class internalParameters:
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
                 self.phase_ids = self.configuration.get("from_data").get("phase_ids")
+        self.write_vt = self.configuration.get("write_vt", "True")
 
         # Parse sampling parameters if present
         if self.configuration.get("from_samplers") is not None:
@@ -222,7 +223,7 @@ class internalParameters:
         """ Checks after initialization.
         """
         # Case when phases are populated from data file
-        if "data_stem" in self.__dict__:
+        if self.data_stem:
             # Checking if log dir exists, if not, checking if dir exists in project path
             if os.path.isdir(os.path.abspath(os.path.split(self.data_stem)[0])):
                 self.data_stem = os.path.abspath(self.data_stem)
@@ -252,7 +253,7 @@ class LBAFApp:
         # Create list of phase instances
         phases = []
         check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
-        if "data_stem" in self.params.__dict__:
+        if self.params.data_stem:
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
 
             # Initializing reader
@@ -375,8 +376,8 @@ class LBAFApp:
             self.params.object_qoi)
         rt.execute()
 
-        # Instantiate phase to VT file writer if started from a log file
-        if "data_stem" in self.params.__dict__:
+        # Instantiate phase to VT file writer when requested
+        if self.params.write_vt:
             vt_writer = VTDataWriter(
                 curr_phase,
                 self.logger,

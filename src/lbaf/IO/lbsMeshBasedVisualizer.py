@@ -792,7 +792,7 @@ class MeshBasedVisualizer:
                         (self.__max_o_per_dim + 1)
                         * math.sqrt(self.__object_load_max))
                     self.__logger.info(
-                        f"\tobject glyphs scaling: {g_f:.2g}")
+                        f"\tobject glyphs scaling: {gf:.2g}")
 
                 # Run visualization pipeline
                 render_window = self.__create_rendering_pipeline(

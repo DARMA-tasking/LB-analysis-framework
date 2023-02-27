@@ -41,5 +41,5 @@ LBAF_Viz:
   z_ranks: 1
   object_jitter: 0.5
   rank_qoi: work
-  #object_qoi: load
+  object_qoi: load
   save_meshes: True

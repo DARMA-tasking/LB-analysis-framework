@@ -96,6 +96,7 @@ class ConfigurationValidator:
                 lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
                 error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
+            Optional("write_vt"): bool,
             Optional("file_suffix"): str
         })
         self.__from_data = Schema(
