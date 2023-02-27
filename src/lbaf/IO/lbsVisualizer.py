@@ -10,7 +10,7 @@ from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
 
 
-class MeshBasedVisualizer:
+class Visualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
 
     def __init__(
@@ -667,18 +667,23 @@ class MeshBasedVisualizer:
                 None if is_continuous else self.__object_qoi_range)
             renderer.AddActor2D(load_actor)
 
-        # Create text actor to indicate iteration
+        # Create text actor to indicate iteration and imbalance
+        lb_data = self.__field_data["load imbalance"]
         text_actor = vtk.vtkTextActor()
-        text_actor.SetInput(f"Phase ID: {pid};    Iteration: {iteration}")
+        text_actor.SetInput(
+            f"Phase ID: {pid}"
+            f"   Iteration: {iteration}/{len(lb_data)}\n"
+            f"Load Imbalance: {lb_data[iteration].GetTuple1(0):.4g}")
         text_prop = text_actor.GetTextProperty()
         text_prop.SetColor(0.0, 0.0, 0.0)
         text_prop.ItalicOff()
         text_prop.BoldOff()
         text_prop.SetFontFamilyToArial()
         text_prop.SetFontSize(60)
+        text_prop.SetLineSpacing(1.5)
         position = text_actor.GetPositionCoordinate()
         position.SetCoordinateSystemToNormalizedViewport()
-        position.SetValue(0.04, 0.95, 0.0)
+        position.SetValue(0.04, 0.91, 0.0)
         renderer.AddActor(text_actor)
 
         # Create and return render window

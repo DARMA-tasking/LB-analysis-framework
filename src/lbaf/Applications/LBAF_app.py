@@ -84,7 +84,7 @@ from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.configurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.IO.lbsMeshBasedVisualizer import MeshBasedVisualizer
+from lbaf.IO.lbsVisualizer import Visualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Utils.logger import logger
@@ -396,7 +396,7 @@ class LBAFApp:
             qoi_request.append(self.params.object_qoi)
 
             # Instantiate and execute visualizer
-            ex_writer = MeshBasedVisualizer(
+            ex_writer = Visualizer(
                 self.logger,
                 qoi_request,
                 phases,
