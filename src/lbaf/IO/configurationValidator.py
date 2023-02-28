@@ -1,6 +1,7 @@
-from collections import Iterable
+""" LBAF Configuration validator """
 from logging import Logger
 import sys
+from typing import Union, Dict, List
 
 from schema import And, Optional, Or, Regex, Schema, Use
 from ..Utils.exception_handler import exc_handler
@@ -31,7 +32,7 @@ ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
 ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
-def get_error_message(iterable_collection: Iterable) -> str:
+def get_error_message(iterable_collection: tuple) -> str:
     """ Return error message. """
     return " or ".join(iterable_collection)
 
@@ -39,6 +40,10 @@ def get_error_message(iterable_collection: Iterable) -> str:
 class ConfigurationValidator:
     """ Validate data in an YAML configuration file.
     """
+
+    __algorithm: Dict[str, Schema]
+    __config_to_validate: Dict[str, dict]
+
     def __init__(self, config_to_validate: dict, logger: Logger):
         self.__config_to_validate = config_to_validate
         self.__skeleton = Schema({
@@ -173,6 +178,29 @@ class ConfigurationValidator:
         sys.excepthook = exc_handler
         return valid_schema.validate(schema_to_validate)
 
+    @staticmethod
+    def allowed_keys(group_by_section: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
+        """ Returns top-level allowed keys as groupes by a logical configuration part or as a flat list"""
+        sections = {
+            'input': ['from_data'],
+            'work model': ['work_model'],
+            'algorithm': ['brute_force_optimization', 'algorithm'],
+            'output': [
+                'logging_level', 'terminal_background', 'generate_multimedia', 'output_dir',
+                'output_file_stem', 'n_ranks', 'generate_meshes', 'check_schema', 'LBAF_Viz',
+                'overwrite_validator', 'check_schema'
+            ]
+        }
+
+        if not group_by_section:
+            keys_flat = []
+            for section in sections.items():
+                for key in section[1]:
+                    keys_flat.append(key)
+            return keys_flat
+        else:
+            return sections
+
     def main(self):
         """ Main routine for the config validation. """
         # Validate skeleton
@@ -196,11 +224,16 @@ class ConfigurationValidator:
                 self.validate(valid_schema=self.__from_samplers, schema_to_validate=from_samplers)
 
         # Validate algorithm
-        if (algorithm := self.__config_to_validate.get("algorithm").get("name")) is not None:
+        if (algorithm := self.__config_to_validate.get("algorithm")) is not None:
+            algorithm_name = algorithm.get("name", None)
             self.__logger.info(f"Checking algorithm schema of: {algorithm}")
-            if self.is_valid(valid_schema=self.__algorithm.get(algorithm),
-                             schema_to_validate=self.__config_to_validate.get("algorithm")):
-                self.__logger.info(f"Algorithm: {algorithm} schema is valid")
-            else:
-                self.validate(valid_schema=self.__algorithm.get(algorithm),
-                              schema_to_validate=self.__config_to_validate.get("algorithm"))
+            if algorithm_name is not None:
+                algorithm_schema = self.__algorithm.get(algorithm_name)
+                if isinstance(algorithm_schema, Schema):
+                    if self.is_valid(
+                        valid_schema=algorithm_schema,
+                                    schema_to_validate=self.__config_to_validate.get("algorithm", {})):
+                        self.__logger.info(f"Algorithm: {algorithm} schema is valid")
+                    else:
+                        self.validate(valid_schema=algorithm_schema,
+                                    schema_to_validate=self.__config_to_validate.get("algorithm", {}))
