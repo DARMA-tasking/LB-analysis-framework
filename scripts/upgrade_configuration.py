@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from pydoc import locate
 from typing import cast
+from colorama import Fore, Style
 import yaml
 
 try:
@@ -18,19 +19,38 @@ except Exception as ex:
     raise SystemExit(1) from ex
 
 # get and validate input args
+print(
+    Fore.GREEN +
+    '\n\nScript to bulk add or remove key to/from LBAF configuration files within the project' + Fore.RESET +
+    Fore.YELLOW +
+    '\nNOTICE: Remember that the keys must be defined first at the schema level defined in the ConfigurationValidator class'
+)
+print(Style.RESET_ALL)
 parser = argparse.ArgumentParser()
-parser.add_argument('-a', '--add', type=str, default=None)
-parser.add_argument('-r', '--remove', type=str, default=None)
-parser.add_argument('-v', '--value', type=str, default=None)
-parser.add_argument('-t', '--type', type=str, default='str')
+default_pattern = ['./src/lbaf/Applications/**/*[.yml][.yaml]',
+    './tests/data/config/**/*[.yml][.yaml]',
+    './data/configuration_examples/**/*[.yml][.yaml]'
+]
+parser.add_argument('-a', '--add', type=str, default=None,
+                    help='Key name (tree dot notation) to add')
+parser.add_argument('-r', '--remove', type=str, default=None,
+                    help='The key name (tree dot notation) to remove. e.g. `work_model.paramters.foo`. Required for a remove operation.')
+parser.add_argument('-v', '--value', type=str, default=None,
+                    help='The initial value for a key to add.  e.g. `42`. Required for a add operation.')
+parser.add_argument('-t', '--type', type=str, default='str',
+                    help='Optional. The type of the initial value to set for a nnew key. Ex. `int`. Default `str`')
 parser.add_argument('-p', '--pattern', nargs='+', type=str, default= [
     './src/lbaf/Applications/**/*[.yml][.yaml]',
     './tests/data/config/**/*[.yml][.yaml]',
     './data/configuration_examples/**/*[.yml][.yaml]'
-])
+], help='The list of patterns indicating which configuration files reside (path must be defined as relative to the project directory).'
+    ' Defaults `' + str.join(' ', default_pattern) + '`')
 args = parser.parse_args()
+
 if not args.add and not args.remove:
     raise ValueError('Missing either add (-a or --add xxx) or remove arg (-r or --remove xxx)')
+if args.add and args.remove:
+    raise ValueError('Cannot set both add and remove args')
 if args.add and not args.value:
     raise ValueError('Missing value (-v or --vvv xxx)')
 
