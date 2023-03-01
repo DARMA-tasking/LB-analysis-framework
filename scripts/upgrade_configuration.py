@@ -22,8 +22,9 @@ except Exception as ex:
 print(
     Fore.GREEN +
     '\n\nScript to bulk add or remove key to/from LBAF configuration files within the project' + Fore.RESET +
-    Fore.YELLOW +
-    '\nNOTICE: Remember that the keys must be defined first at the schema level defined in the ConfigurationValidator class'
+    Fore.BLUE +
+    '\nNOTICE: Remember that the keys must be defined first at the schema level defined in the ConfigurationValidator' +
+    ' class'
 )
 print(Style.RESET_ALL)
 parser = argparse.ArgumentParser()
@@ -34,7 +35,8 @@ default_pattern = ['./src/lbaf/Applications/**/*[.yml][.yaml]',
 parser.add_argument('-a', '--add', type=str, default=None,
                     help='Key name (tree dot notation) to add')
 parser.add_argument('-r', '--remove', type=str, default=None,
-                    help='The key name (tree dot notation) to remove. e.g. `work_model.paramters.foo`. Required for a remove operation.')
+                    help='The key name (tree dot notation) to remove. e.g. `work_model.paramters.foo`. ' +
+                    'Required for a remove operation.')
 parser.add_argument('-v', '--value', type=str, default=None,
                     help='The initial value for a key to add.  e.g. `42`. Required for a add operation.')
 parser.add_argument('-t', '--type', type=str, default='str',
@@ -43,8 +45,8 @@ parser.add_argument('-p', '--pattern', nargs='+', type=str, default= [
     './src/lbaf/Applications/**/*[.yml][.yaml]',
     './tests/data/config/**/*[.yml][.yaml]',
     './data/configuration_examples/**/*[.yml][.yaml]'
-], help='The list of patterns indicating which configuration files reside (path must be defined as relative to the project directory).'
-    ' Defaults `' + str.join(' ', default_pattern) + '`')
+], help='The list of patterns indicating which configuration files reside (path must be defined as relative to the ' +
+    'project directory). Defaults `' + str.join(' ', default_pattern) + '`')
 args = parser.parse_args()
 
 if not args.add and not args.remove:
@@ -57,7 +59,7 @@ if args.add and not args.value:
 
 # pylint: disable=C0413
 from src.lbaf.IO.configurationValidator import ConfigurationValidator
-sections :dict = cast(dict, ConfigurationValidator.allowed_keys(group_by_section=True))
+sections :dict = cast(dict, ConfigurationValidator.allowed_keys(group=True))
 
 def upgrade(file_path: Path) -> int:
     """
@@ -113,33 +115,61 @@ def upgrade(file_path: Path) -> int:
             else:
                 node=node[key]
 
+    def write_node(k, value, yaml_file):
+        yaml_file.write(f'{k}:')
+        if isinstance(value, list) or isinstance(value, dict):
+            yaml_file.write('\n')
+            yaml_file.write(indent_str)
+            yaml_node = yaml.safe_dump(
+                value,
+                indent=indent_size,
+                line_break='\n',
+                sort_keys=False
+            ).replace(
+                '\n',
+                '\n' + indent_str
+            )
+            if yaml_node.endswith('\n' + indent_str):
+                yaml_node = yaml_node[:-(indent_size + 1)]
+        else:
+            yaml_node = ' ' + yaml.representer.SafeRepresenter().represent_data(value).value
+        yaml_file.write(yaml_node)
+        yaml_file.write('\n')
+
     with open(file_path, 'w', encoding='utf-8') as yaml_file:
         indent_size = 2
         indent_str = ' ' * indent_size
-        current_section = None
-        for k, v in conf.items():
-            # determine config section
-            for section in sections:
-                for key in sections[section]:
-                    if k == key and current_section != section:
-                        current_section = section
-                        if yaml_file.tell() > 0:
-                            yaml_file.write('\n')
-                        yaml_file.write(f'# Specify {current_section}\n')
-
-            yaml_file.write(f'{k}:')
-            if isinstance(v, list) or isinstance(v, dict):
+        added_keys = []
+        for section in sections:
+            if yaml_file.tell() > 0:
                 yaml_file.write('\n')
-                yaml_node = '  ' + yaml.dump(v, indent=indent_size, line_break='\n').replace('\n', '\n' + indent_str)
-                if yaml_node.endswith('\n' + indent_str):
-                    yaml_node = yaml_node[:-(indent_size + 1)]
-                yaml_file.write(yaml_node)
-            else:
-                yaml_file.write(f' {v}')
+            yaml_file.write(f'# Specify {section}\n')
+            for k in sections[section]:
+                if k in conf.keys():
+                    value = conf[k]
+                    write_node(k, value, yaml_file)
+                    added_keys.append(k)
+        # process possible other nodes not defined in a specific section
+        intersect = [value for value in conf.keys() if not value in added_keys ]
+        if len(intersect) > 0:
+            keys_without_group = '`' + str.join('`, `', intersect) + '`'
+            print(Fore.YELLOW +
+                f'\nWARNING: The following keys are not in a group : {keys_without_group}\n' +
+                'It will added by default to a groupe named `# Other`' +
+                'You might add it to a group at\n' +
+                project_path + '/src/lbaf/IO/configurationValidator.py ' +
+                'in the ConfigurationValidator.allowed_keys() method\n' +
+                Fore.RESET
+            )
+            if yaml_file.tell() > 0:
+                yaml_file.write('\n')
+            yaml_file.write('# Other\n')
+            for k in intersect:
+                value = conf[k]
+                write_node(k, value, yaml_file)
+                added_keys.append(k)
 
-            #if i < len(conf.items()) - 1:
-            yaml_file.write('\n')
-
+        yaml_file.write('\n')
     return 1
 
 # browse files matching configuration file path pattern
