@@ -180,20 +180,20 @@ class ConfigurationValidator:
         return valid_schema.validate(schema_to_validate)
 
     @staticmethod
-    def allowed_keys(group_by_section: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
-        """ Returns top-level allowed keys as groupes by a logical configuration part or as a flat list"""
+    def allowed_keys(group: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
+        """ Returns allowed keys at configuration root level grouped by some group key or as a flat list"""
         sections = {
             'input': ['from_data'],
             'work model': ['work_model'],
             'algorithm': ['brute_force_optimization', 'algorithm'],
             'output': [
-                'logging_level', 'terminal_background', 'generate_multimedia', 'output_dir',
-                'output_file_stem', 'n_ranks', 'generate_meshes', 'check_schema', 'LBAF_Viz',
-                'overwrite_validator', 'check_schema'
+                'logging_level', 'overwrite_validator', 'check_schema', 'terminal_background',
+                'generate_multimedia', 'output_dir', 'output_file_stem', 'n_ranks', 'generate_meshes',
+                'LBAF_Viz'
             ]
         }
 
-        if not group_by_section:
+        if not group:
             keys_flat = []
             for section in sections.items():
                 for key in section[1]:
