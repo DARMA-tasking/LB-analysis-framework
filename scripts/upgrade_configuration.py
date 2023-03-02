@@ -19,9 +19,9 @@ except Exception as ex:
 
 # get and validate input args
 parser = argparse.ArgumentParser()
-default_pattern = ['./src/lbaf/Applications/**/*[.yml][.yaml]',
-    './tests/data/config/**/*[.yml][.yaml]',
-    './data/configuration_examples/**/*[.yml][.yaml]'
+default_pattern = [
+    './config/**/*[.yml][.yaml]',
+    './tests/config/**/*[.yml][.yaml]'
 ]
 parser.add_argument('-a', '--add', type=str, default=None,
                     help='Key name (tree dot notation) to add')

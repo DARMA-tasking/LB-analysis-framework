@@ -32,11 +32,23 @@ def get_config_file() -> str:
     parser.add_argument("--config", help="Path to the config file.", default='conf.yaml')
     args = parser.parse_args()
     if args.config:
+        # try to search the file from this place
         config_file = os.path.abspath(args.config)
+        # if not found we might search in the config directory at project root
+        # but some thing will be disturbing : in config files we have path that must be relative
+        # to the current directory but then we might prefer paty to be relative to the configuration
+        # file location
+        if not os.path.isfile(config_file):
+            config_dir = os.path.join(
+                f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]), "config"
+            )
+            config_file = config_dir + '/' + args.config
     else:
         sys.excepthook = exc_handler
         raise FileNotFoundError("Please provide path to the config file with '--config' argument.")
 
+    if not os.path.isfile(config_file):
+        raise FileNotFoundError(f"File not found at path {args.config}")
     return config_file
 
 
@@ -130,8 +142,8 @@ class InternalParameters:
         self.logger.info('Logging level: %s', lvl.lower())
 
         self.validate_configuration(config)
-        self.init_parameters(config)
-        self.check_parameters()
+        self.init_parameters(config, config_file)
+        self.check_parameters(config_file)
 
         # Print startup information
         self.logger.info('Executing LBAF version %s', __version__)
@@ -164,7 +176,7 @@ class InternalParameters:
         """ Configuration file validation. """
         ConfigurationValidator(config_to_validate=config, logger=self.logger).main()
 
-    def init_parameters(self, config: dict):
+    def init_parameters(self, config: dict, config_file: str):
         """ Execute when YAML configuration file was found and checked
         """
         # Get top-level allowed configuration keys
@@ -220,19 +232,23 @@ class InternalParameters:
             self.volume_sampler = config.get("from_samplers").get("volume_sampler")
 
         # Set output directory, local by default
-        self.output_dir = os.path.abspath(self.output_dir or ".")
+        config_file_dir = os.path.dirname(config_file)
+        self.output_dir = config.get('output_dir', '.')
+        # get path if if relative to the configuration file
+        if not os.path.isabs(self.output_dir):
+            self.output_dir = os.path.abspath(config_file_dir + '/' + self.output_dir)
         self.logger.info('Output directory: %s', self.output_dir)
 
-    def check_parameters(self):
+    def check_parameters(self, config_file):
         """ Checks after initialization.
         """
         # Case when phases are populated from data file
         if "data_stem" in self.__dict__:
-            # Checking if log dir exists, if not, checking if dir exists in project path
-            if os.path.isdir(os.path.abspath(os.path.split(self.data_stem)[0])):
-                self.data_stem = os.path.abspath(self.data_stem)
-            elif os.path.isdir(os.path.abspath(os.path.join(project_path, os.path.split(self.data_stem)[0]))):
-                self.data_stem = os.path.abspath(os.path.join(project_path, self.data_stem))
+            config_file_dir = os.path.dirname(config_file)
+            # get path if if relative to the configuration file
+            if not os.path.isabs(self.data_stem):
+                self.data_stem = os.path.abspath(config_file_dir + '/' + self.data_stem)
+
 
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
@@ -464,7 +480,7 @@ class LBAFApp:
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
         ell = self.params.n_ranks * l_stats.average / n_o #pylint: disable=E1101
-        self.logger.info('Optimal load statistics for %s objects with iso-time: %s', n_o, f'{ell::6g}')
+        self.logger.info('Optimal load statistics for %s objects with iso-time: %s', n_o, f'{ell:6g}')
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
         self.logger.info(
             '\tminimum: %s  maximum: %s',
