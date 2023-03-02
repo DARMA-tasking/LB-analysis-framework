@@ -3,7 +3,6 @@
 import argparse
 import os
 import sys
-import logging
 import math
 from typing import cast, List, Dict, Any, Union
 from urllib.request import urlretrieve
@@ -101,7 +100,6 @@ class InternalParameters:
     """
     n_ranks: int
     check_schema: bool
-    __allowed_config_keys: List[str]
     output_dir: str
     output_file_stem: str
     file_suffix: str
@@ -110,63 +108,75 @@ class InternalParameters:
     rank_qoi: Union[str,None]
     object_qoi: Union[str,None]
     grid_size: Union[list,None]
+    # from_samplers options
+    n_objects: int
+    n_mapped_ranks: int
+    communication_degree: int
+    load_sampler: dict
+    volume_sampler: dict
 
     def __init__(self, config_file: str):
-        # Starting logger
-        self.logger = logger(conf=config_file)
+        config = self.load_config(from_file=config_file)
+
+        # init lbaf logger
+        lvl = cast(str, config.get('logging_level', 'info'))
+        self.logger = logger(
+            name='lbaf',
+            level=lvl,
+            theme=config.get('terminal_background', None),
+            log_to_console=config.get('log_to_file', None) is None,
+            log_to_file=config.get('log_to_file', None)
+        )
+        self.logger.info('Logging level: %s', lvl.lower())
+
+        self.validate_configuration(config)
+        self.init_parameters(config)
+        self.check_parameters()
 
         # Print startup information
         self.logger.info('Executing LBAF version %s', __version__)
         svi = sys.version_info
         self.logger.info('Executing with Python %s.%s.%s', svi.major, svi.minor, svi.micro)
 
-        # Get top-level allowed configuration keys
-        self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
-
-        # Read configuration values from file
-        self.configuration_file_found = False
-        self.configuration = self.get_configuration_file(conf_file=config_file)
-        if self.configuration_file_found:
-            self.configuration_validation()
-            self.parse_conf_file()
-        self.checks_after_init()
-
-    def get_configuration_file(self, conf_file: str):
+    def load_config(self, from_file: str)-> dict:
         """ Check extension, read YML file and return parsed YAML configuration file
         """
-        if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
+        if os.path.splitext(from_file)[-1] in [".yml", ".yaml"] and os.path.isfile(from_file):
             # Try to open configuration file
-            self.logger.info('Found configuration file %s', conf_file)
+            logger().info('Found configuration file %s', from_file)
             try:
-                with open(conf_file, 'rt', encoding='utf-8') as config:
+                with open(from_file, 'rt', encoding='utf-8') as config:
                     self.configuration_file_found = True
                     return yaml.safe_load(config)
             except yaml.MarkedYAMLError as err:
-                self.logger.error(
+                logger().error(
                     'Invalid YAML file %s in line %s (%s) %s',
-                    conf_file, err.problem_mark.line if err.problem_mark is not None else -1, err.problem, err.context
+                    from_file, err.problem_mark.line if err.problem_mark is not None else -1, err.problem, err.context
                 )
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from err
         else:
-            self.logger.error('Configuration file in %s not found', conf_file)
+            logger().error('Configuration file in %s not found', from_file)
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-    def configuration_validation(self):
+    def validate_configuration(self, config: dict):
         """ Configuration file validation. """
-        ConfigurationValidator(config_to_validate=self.configuration, logger=self.logger).main()
+        ConfigurationValidator(config_to_validate=config, logger=self.logger).main()
 
-    def parse_conf_file(self):
+    def init_parameters(self, config: dict):
         """ Execute when YAML configuration file was found and checked
         """
+        # Get top-level allowed configuration keys
+        self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
+
         # Assign parameters found in configuration file
-        for param_key, param_val in self.configuration.items():
+        for param_key, param_val in config.items():
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
         # Parse LBAF_Viz parameters when available
-        if (viz := self.configuration.get("LBAF_Viz")) is not None:
+        if (viz := config.get("LBAF_Viz")) is not None:
             # Retriveve mandatory visualization parameters
             try:
                 self.grid_size = []
@@ -193,37 +203,27 @@ class InternalParameters:
             self.rank_qoi = self.object_qoi = self.grid_size = None
 
         # Parse data parameters if present
-        if self.configuration.get("from_data") is not None:
-            self.data_stem = self.configuration.get("from_data").get("data_stem")
-            if isinstance(self.configuration.get("from_data").get("phase_ids"), str):
-                range_list = list(map(int, self.configuration.get("from_data").get("phase_ids").split('-')))
+        if config.get("from_data") is not None:
+            self.data_stem = config.get("from_data").get("data_stem")
+            if isinstance(config.get("from_data", {}).get("phase_ids"), str):
+                range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
-                self.phase_ids = self.configuration.get("from_data").get("phase_ids")
+                self.phase_ids = config.get("from_data").get("phase_ids", {})
 
         # Parse sampling parameters if present
-        if self.configuration.get("from_samplers") is not None:
-            self.n_objects = self.configuration.get("from_samplers").get("n_objects")
-            self.n_mapped_ranks = self.configuration.get("from_samplers").get("n_mapped_ranks")
-            self.communication_degree = self.configuration.get("from_samplers").get("communication_degree")
-            self.load_sampler = self.configuration.get("from_samplers").get("load_sampler")
-            self.volume_sampler = self.configuration.get("from_samplers").get("volume_sampler")
-
-        # Parsing and setting up logging level
-        lvl = cast(str, self.configuration.get("logging_level")) or "info"
-        logging_level = {
-            "info": logging.INFO,
-            "debug": logging.DEBUG,
-            "error": logging.ERROR,
-            "warning": logging.WARNING}
-        self.logger.level = logging_level.get(lvl.lower(), logging.INFO)
-        self.logger.info('Logging level: %s', lvl.lower())
+        if config.get("from_samplers") is not None:
+            self.n_objects = config.get("from_samplers").get("n_objects", {})
+            self.n_mapped_ranks = config.get("from_samplers").get("n_mapped_ranks")
+            self.communication_degree = config.get("from_samplers").get("communication_degree")
+            self.load_sampler = config.get("from_samplers").get("load_sampler")
+            self.volume_sampler = config.get("from_samplers").get("volume_sampler")
 
         # Set output directory, local by default
         self.output_dir = os.path.abspath(self.output_dir or ".")
         self.logger.info('Output directory: %s', self.output_dir)
 
-    def checks_after_init(self):
+    def check_parameters(self):
         """ Checks after initialization.
         """
         # Case when phases are populated from data file

@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 from pydoc import locate
 from typing import cast
-from colorama import Fore, Style
 import yaml
 
 try:
@@ -19,14 +18,6 @@ except Exception as ex:
     raise SystemExit(1) from ex
 
 # get and validate input args
-print(
-    Fore.GREEN +
-    '\n\nScript to bulk add or remove key to/from LBAF configuration files within the project' + Fore.RESET +
-    Fore.BLUE +
-    '\nNOTICE: Remember that the keys must be defined first at the schema level defined in the ConfigurationValidator' +
-    ' class'
-)
-print(Style.RESET_ALL)
 parser = argparse.ArgumentParser()
 default_pattern = ['./src/lbaf/Applications/**/*[.yml][.yaml]',
     './tests/data/config/**/*[.yml][.yaml]',
@@ -60,18 +51,28 @@ if args.add and not args.value:
 # pylint: disable=C0413
 from src.lbaf.IO.configurationValidator import ConfigurationValidator
 sections :dict = cast(dict, ConfigurationValidator.allowed_keys(group=True))
+from src.lbaf.Utils.logger import logger
+# pylint: enable=C0413
+
+logger = logger('upgrade', level='debug')
+logger.info('Script to bulk add or remove key to/from LBAF configuration files within the project')
+logger.info(
+    'NOTICE: Remember that the keys must be defined first at the schema level defined in ' \
+    'the ConfigurationValidator class'
+)
 
 def upgrade(file_path: Path) -> int:
     """
     Apply an upgrade to the given configuration file
     """
-    print(f'reading file file at {file_path} (TODO)')
+    print('---')
+    logger.debug('upgrading file %s ...', file_path)
     key_path = None
     if args.add:
-        print(f'Add key named (dot path name) {args.add} with value {args.value}')
+        logger.debug('Add key `%s` with value `%s`', args.add, args.value)
         key_path = args.add.split('.')
     elif args.remove:
-        print(f'Remove key named (dot path name) {args.remove} (TODO)')
+        print(f'Remove key `{args.remove}`')
         key_path = args.remove.split('.')
 
     parsed_value = args.value
@@ -116,6 +117,7 @@ def upgrade(file_path: Path) -> int:
                 node=node[key]
 
     def write_node(k, value, yaml_file):
+        """Wirtes a single node (key/value) in the given yaml file"""
         yaml_file.write(f'{k}:')
         if isinstance(value, list) or isinstance(value, dict):
             yaml_file.write('\n')
@@ -153,13 +155,13 @@ def upgrade(file_path: Path) -> int:
         intersect = [value for value in conf.keys() if not value in added_keys ]
         if len(intersect) > 0:
             keys_without_group = '`' + str.join('`, `', intersect) + '`'
-            print(Fore.YELLOW +
-                f'\nWARNING: The following keys are not in a group : {keys_without_group}\n' +
-                'It will added by default to a groupe named `# Other`' +
-                'You might add it to a group at\n' +
-                project_path + '/src/lbaf/IO/configurationValidator.py ' +
-                'in the ConfigurationValidator.allowed_keys() method\n' +
-                Fore.RESET
+            logger.warning(
+                'The following keys are not in a group : %s\n' \
+                'It will added by default to a group named `Other`.' \
+                'To place this key in a specific group please update ConfigurationValidator.allowed_keys() at\n' \
+                '%s/src/lbaf/IO/configurationValidator.py:182',
+                keys_without_group,
+                project_path
             )
             if yaml_file.tell() > 0:
                 yaml_file.write('\n')
@@ -170,11 +172,16 @@ def upgrade(file_path: Path) -> int:
                 added_keys.append(k)
 
         yaml_file.write('\n')
+
+    logger.debug('File has been successfully upgraded')
     return 1
 
-# browse files matching configuration file path pattern
-for pattern in args.pattern:
-    files = Path(project_path).glob(pattern)
-    print(f'searching files with pattern {pattern}')
-    for file in files:
-        upgrade(file)
+def run():
+    """ Search all files matching pattern and upgrade each file"""
+    for pattern in args.pattern:
+        files = Path(project_path).glob(pattern)
+        logger.debug('searching files with pattern %s', pattern)
+        for file in files:
+            upgrade(file)
+
+run()
