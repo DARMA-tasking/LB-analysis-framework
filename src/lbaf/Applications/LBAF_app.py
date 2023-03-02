@@ -464,7 +464,7 @@ class LBAFApp:
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
         ell = self.params.n_ranks * l_stats.average / n_o #pylint: disable=E1101
-        self.logger.info('Optimal load statistics for %s objects with iso-time: %s', n_o, '{:6g}'.format(ell))
+        self.logger.info('Optimal load statistics for %s objects with iso-time: %s', n_o, f'{ell::6g}')
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
         self.logger.info(
             '\tminimum: %s  maximum: %s',
