@@ -41,4 +41,3 @@ LBAF_Viz:
   rank_qoi: load
   object_qoi: shared_block_id
   save_meshes: true
-
