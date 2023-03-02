@@ -18,6 +18,7 @@ jobs:
     container: python:${{ matrix.config.image }}-slim-buster
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
+      acceptance_config: /__w/LB-analysis-framework/LB-analysis-framework/scripts/test_config/conf.yaml
       test_output: /__w/LB-analysis-framework/LB-analysis-framework/output/imbalance.txt
 
     steps:
@@ -43,10 +44,10 @@ jobs:
           /bin/sh venv/bin/activate
           echo "\n================================================================================"
           echo "Printing used configuration:\n"
-          cat ${{ env.home_dir }}/scripts/test_config/conf.yaml
+          cat ${{ env.acceptance_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py --config=${{ env.home_dir }}/scripts/test_config/conf.yaml
+          python src/lbaf/Applications/LBAF_app.py --config=${{ env.acceptance_config }}
 
       - name: Check output
         run: |
