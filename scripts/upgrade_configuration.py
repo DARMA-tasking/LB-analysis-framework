@@ -21,7 +21,8 @@ except Exception as ex:
 parser = argparse.ArgumentParser()
 default_pattern = [
     './config/**/*[.yml][.yaml]',
-    './tests/config/**/*[.yml][.yaml]'
+    './tests/config/**/*[.yml][.yaml]',
+    './scripts/test_config/**/*[.yml][.yaml]'
 ]
 parser.add_argument('-a', '--add', type=str, default=None,
                     help='Key name (tree dot notation) to add')
