@@ -34,9 +34,9 @@ parser.add_argument('-v', '--value', type=str, default=None,
 parser.add_argument('-t', '--type', type=str, default='str',
                     help='Optional. The type of the initial value to set for a nnew key. Ex. `int`. Default `str`')
 parser.add_argument('-p', '--pattern', nargs='+', type=str, default= [
-    './src/lbaf/Applications/**/*[.yml][.yaml]',
-    './tests/data/config/**/*[.yml][.yaml]',
-    './data/configuration_examples/**/*[.yml][.yaml]'
+    './tests/config/**/*[.yml][.yaml]',
+    './config/**/*[.yml][.yaml]',
+    './scripts/test_config/**/*[.yml][.yaml]',
 ], help='The list of patterns indicating which configuration files reside (path must be defined as relative to the ' +
     'project directory). Defaults `' + str.join(' ', default_pattern) + '`')
 args = parser.parse_args()
@@ -171,8 +171,6 @@ def upgrade(file_path: Path) -> int:
                 value = conf[k]
                 write_node(k, value, yaml_file)
                 added_keys.append(k)
-
-        yaml_file.write('\n')
 
     logger.debug('File has been successfully upgraded')
     return 1

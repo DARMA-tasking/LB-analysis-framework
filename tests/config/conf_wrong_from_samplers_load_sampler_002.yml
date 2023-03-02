@@ -48,4 +48,3 @@ from_samplers:
     name: lognormal
     parameters:
     - 1.0
-
