@@ -40,14 +40,13 @@ jobs:
       - name: Run LBAF Test
         run: |
           cd ${{ env.home_dir }}
-          cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
           /bin/sh venv/bin/activate
           echo "\n================================================================================"
           echo "Printing used configuration:\n"
-          cat ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
+          cat ${{ env.home_dir }}/scripts/test_config/conf.yaml
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py --config=${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
+          python src/lbaf/Applications/LBAF_app.py --config=${{ env.home_dir }}/scripts/test_config/conf.yaml
 
       - name: Check output
         run: |
@@ -94,7 +93,7 @@ jobs:
           /bin/sh venv/bin/activate
           echo "\n================================================================================"
           echo "Printing used configuration:\n"
-          cat ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
+          cat ${{ env.stepper_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
           python src/lbaf/Applications/LBAF_app.py --config=${{ env.stepper_config }}
