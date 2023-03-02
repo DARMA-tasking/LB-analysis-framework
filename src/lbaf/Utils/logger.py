@@ -1,4 +1,4 @@
-""" logging util module """ 
+""" logging util module """
 import logging
 import logging.config
 from logging import Formatter
@@ -71,7 +71,7 @@ def logger(
         formatter_name: str = FORMATTER_BASIC,
         theme: str = THEME_DARK
 ):
-    """ Return a new or an existing logger""" 
+    """ Return a new or an existing logger"""
     lgr = logging.getLogger(name)
     if level is not None:
         lgr.setLevel(level.upper())
