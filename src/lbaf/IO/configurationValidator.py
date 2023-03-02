@@ -188,7 +188,7 @@ class ConfigurationValidator:
             'algorithm': ['brute_force_optimization', 'algorithm'],
             'output': [
                 'logging_level', 'overwrite_validator', 'check_schema', 'terminal_background',
-                'generate_multimedia', 'output_dir', 'output_file_stem', 'n_ranks', 'generate_meshes',
+                'generate_multimedia', 'output_dir', 'output_file_stem', 'n_ranks',
                 'LBAF_Viz'
             ]
         }
