@@ -215,7 +215,7 @@ class InternalParameters:
             self.rank_qoi = self.object_qoi = self.grid_size = None
 
         config_file_dir = os.path.dirname(config_file)
-
+        print('config file in dir: ' + config_file_dir)
         # Parse data parameters if present
         if config.get("from_data") is not None:
             self.data_stem = config.get("from_data").get("data_stem")
@@ -224,6 +224,7 @@ class InternalParameters:
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
             # get path if relative to the configuration file
+            print(data_dir)
             if not os.path.isabs(data_dir):
                 print('not abs')
                 data_dir = os.path.abspath(config_file_dir + '/' + data_dir)
