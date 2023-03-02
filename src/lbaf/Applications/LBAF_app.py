@@ -143,7 +143,7 @@ class InternalParameters:
 
         self.validate_configuration(config)
         self.init_parameters(config, config_file)
-        self.check_parameters(config_file)
+        self.check_parameters()
 
         # Print startup information
         self.logger.info('Executing LBAF version %s', __version__)
@@ -214,9 +214,15 @@ class InternalParameters:
             # No visualization quantities of interest
             self.rank_qoi = self.object_qoi = self.grid_size = None
 
+        config_file_dir = os.path.dirname(config_file)
+
         # Parse data parameters if present
         if config.get("from_data") is not None:
             self.data_stem = config.get("from_data").get("data_stem")
+            # get path if relative to the configuration file
+            if not os.path.isabs(self.data_stem):
+                self.data_stem = os.path.abspath(config_file_dir + '/' + self.data_stem)
+
             if isinstance(config.get("from_data", {}).get("phase_ids"), str):
                 range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
@@ -233,29 +239,19 @@ class InternalParameters:
             self.volume_sampler = config.get("from_samplers").get("volume_sampler")
 
         # Set output directory, local by default
-        config_file_dir = os.path.dirname(config_file)
         self.output_dir = config.get('output_dir', '.')
-        # get path if if relative to the configuration file
+        # get path if relative to the configuration file
         if not os.path.isabs(self.output_dir):
             self.output_dir = os.path.abspath(config_file_dir + '/' + self.output_dir)
         self.logger.info('Output directory: %s', self.output_dir)
 
-    def check_parameters(self, config_file):
+    def check_parameters(self):
         """ Checks after initialization.
         """
-        # Case when phases are populated from data file
-        if "data_stem" in self.__dict__:
-            config_file_dir = os.path.dirname(config_file)
-            # get path if if relative to the configuration file
-            if not os.path.isabs(self.data_stem):
-                self.data_stem = os.path.abspath(config_file_dir + '/' + self.data_stem)
-
-
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
-
 
 class LBAFApp:
     """LBAF application class"""
