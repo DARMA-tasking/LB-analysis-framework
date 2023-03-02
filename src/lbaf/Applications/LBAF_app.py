@@ -222,7 +222,7 @@ class InternalParameters:
             # get path if relative to the configuration file
             if not os.path.isabs(self.data_stem):
                 self.data_stem = os.path.abspath(config_file_dir + '/' + self.data_stem)
-
+            self.logger.info('Data stem: %s', self.data_stem)
             if isinstance(config.get("from_data", {}).get("phase_ids"), str):
                 range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
