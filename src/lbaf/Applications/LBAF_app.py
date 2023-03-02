@@ -219,13 +219,24 @@ class InternalParameters:
         # Parse data parameters if present
         if config.get("from_data") is not None:
             self.data_stem = config.get("from_data").get("data_stem")
-            # get data directory (because data_stem includes file prefix)
+            # # get data directory (because data_stem includes file prefix)
+            # new version not working on GH
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
             # get path if relative to the configuration file
             if not os.path.isabs(data_dir):
+                print('not abs')
                 data_dir = os.path.abspath(config_file_dir + '/' + data_dir)
                 self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
+            print(config_file_dir)
+            print(data_dir)
+            print(file_prefix)
+            # Old was
+            # if os.path.isdir(os.path.abspath(os.path.split(self.data_stem)[0])):
+            #     self.data_stem = os.path.abspath(self.data_stem)
+            # elif os.path.isdir(os.path.abspath(os.path.join(project_path, os.path.split(self.data_stem)[0]))):
+            #     self.data_stem = os.path.abspath(os.path.join(project_path, self.data_stem))
+    
             self.logger.info('Data stem: %s', self.data_stem)
             if isinstance(config.get("from_data", {}).get("phase_ids"), str):
                 range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
