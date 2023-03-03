@@ -1,6 +1,7 @@
 """ logging util module """
 import logging
 import logging.config
+import os
 from logging import Formatter
 from typing import Union, List, Dict
 from .colors import red, green, cyan, yellow, black, light_white
@@ -75,6 +76,10 @@ def logger(
     lgr = logging.getLogger(name)
     if level is not None:
         lgr.setLevel(level.upper())
+    if log_to_file is not None:
+        logs_dir = f"{os.sep}".join(log_to_file.split(os.sep)[:-1])
+        if not os.path.isdir(logs_dir):
+            os.makedirs(logs_dir)
     if not lgr.hasHandlers():
         handlers = [] #type: List[logging.Handler]
         if isinstance(log_to_file, str):
