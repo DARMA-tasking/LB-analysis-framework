@@ -11,7 +11,8 @@ from typing import cast
 import yaml
 
 try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
+    root_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
+    project_path = f"{os.sep}".join([root_path, 'src'])
     sys.path.append(project_path)
 except Exception as ex:
     print(f"Can not add project path to system path! Exiting!\nERROR: {ex}")
@@ -21,8 +22,7 @@ except Exception as ex:
 parser = argparse.ArgumentParser()
 default_pattern = [
     './config/**/*[.yml][.yaml]',
-    './tests/config/**/*[.yml][.yaml]',
-    './scripts/test_config/**/*[.yml][.yaml]'
+    './tests/config/**/*[.yml][.yaml]'
 ]
 parser.add_argument('-a', '--add', type=str, default=None,
                     help='Key name (tree dot notation) to add')
@@ -32,13 +32,11 @@ parser.add_argument('-r', '--remove', type=str, default=None,
 parser.add_argument('-v', '--value', type=str, default=None,
                     help='The initial value for a key to add.  e.g. `42`. Required for a add operation.')
 parser.add_argument('-t', '--type', type=str, default='str',
-                    help='Optional. The type of the initial value to set for a nnew key. Ex. `int`. Default `str`')
-parser.add_argument('-p', '--pattern', nargs='+', type=str, default= [
-    './tests/config/**/*[.yml][.yaml]',
-    './config/**/*[.yml][.yaml]',
-    './scripts/test_config/**/*[.yml][.yaml]',
-], help='The list of patterns indicating which configuration files reside (path must be defined as relative to the ' +
-    'project directory). Defaults `' + str.join(' ', default_pattern) + '`')
+                    help='Optional. The type of the initial value to set for a new key. Ex. `int`. Default `str`')
+parser.add_argument('-p', '--pattern', nargs='+', type=str, default=default_pattern,
+                    help='The list of patterns indicating which configuration files reside (path must be defined as' +
+                        'relative to the project directory). Defaults `' + str.join(' ', default_pattern) + '`'
+                    )
 args = parser.parse_args()
 
 if not args.add and not args.remove:
@@ -50,9 +48,9 @@ if args.add and not args.value:
 
 
 # pylint: disable=C0413
-from src.lbaf.IO.configurationValidator import ConfigurationValidator
+from lbaf.IO.configurationValidator import ConfigurationValidator
 sections :dict = cast(dict, ConfigurationValidator.allowed_keys(group=True))
-from src.lbaf.Utils.logger import logger
+from lbaf.Utils.logger import logger
 # pylint: enable=C0413
 
 logger = logger('upgrade', level='debug')
@@ -178,7 +176,7 @@ def upgrade(file_path: Path) -> int:
 def run():
     """ Search all files matching pattern and upgrade each file"""
     for pattern in args.pattern:
-        files = Path(project_path).glob(pattern)
+        files = Path(root_path).glob(pattern)
         logger.debug('searching files with pattern %s', pattern)
         for file in files:
             upgrade(file)
