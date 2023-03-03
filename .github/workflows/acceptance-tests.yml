@@ -18,7 +18,7 @@ jobs:
     container: python:${{ matrix.config.image }}-slim-buster
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
-      acceptance_config: /__w/LB-analysis-framework/LB-analysis-framework/scripts/test_config/conf.yaml
+      acceptance_config: /__w/LB-analysis-framework/LB-analysis-framework/config/acceptance_tests/conf.yaml
       test_output: /__w/LB-analysis-framework/LB-analysis-framework/output/imbalance.txt
 
     steps:
@@ -68,8 +68,8 @@ jobs:
     container: python:${{ matrix.config.image }}-slim-buster
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
-      stepper_config: /__w/LB-analysis-framework/LB-analysis-framework/scripts/test_config/step.yaml
-      log_output: /__w/LB-analysis-framework/LB-analysis-framework/log.txt
+      stepper_config: /__w/LB-analysis-framework/LB-analysis-framework/config/acceptance_tests/step.yaml
+      log_output: /__w/LB-analysis-framework/LB-analysis-framework/output/log.txt
 
     steps:
       - uses: actions/checkout@v2
