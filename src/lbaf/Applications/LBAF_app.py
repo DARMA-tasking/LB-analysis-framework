@@ -83,7 +83,7 @@ def check_and_get_schema_validator():
         overwrite_validator = conf.get("overwrite_validator", True)
     if overwrite_validator:
         import_dir = os.path.join(project_path, "lbaf", "imported")
-        if not os.path.exists(import_dir):
+        if not os.path.isdir(import_dir):
             os.makedirs(import_dir)
             save_schema_validator_and_init_file(import_dir=import_dir)
         else:
@@ -248,7 +248,7 @@ class InternalParameters:
         """
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
-            if not os.path.exists(self.output_dir):
+            if not os.path.isdir(self.output_dir):
                 os.makedirs(self.output_dir)
 
 class LBAFApp:
