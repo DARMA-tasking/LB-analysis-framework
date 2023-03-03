@@ -71,8 +71,6 @@ def check_and_get_schema_validator():
             sys.excepthook = exc_handler
             raise ConnectionError("Probably there is no internet connection") from err
 
-        exit(-1)
-
     overwrite_validator = True
     config_file = None
     if __name__ == "__main__":
