@@ -23,6 +23,7 @@ except: #pylint: disable=W0718,W0702
 # pylint: disable=C0413
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.colors import green
+from lbaf.Utils.functions import abspath_from
 # pylint: enable=C0413
 
 def get_config_file() -> str:
@@ -129,6 +130,7 @@ class InternalParameters:
 
     def __init__(self, config_file: str):
         config = self.load_config(from_file=config_file)
+        config_dir = os.path.dirname(config_file)
 
         # init lbaf logger
         lvl = cast(str, config.get('logging_level', 'info'))
@@ -137,12 +139,12 @@ class InternalParameters:
             level=lvl,
             theme=config.get('terminal_background', None),
             log_to_console=config.get('log_to_file', None) is None,
-            log_to_file=config.get('log_to_file', None)
+            log_to_file=abspath_from(config.get('log_to_file', None), config_dir)
         )
         self.logger.info('Logging level: %s', lvl.lower())
 
         self.validate_configuration(config)
-        self.init_parameters(config, config_file)
+        self.init_parameters(config, config_dir)
         self.check_parameters()
 
         # Print startup information
@@ -176,7 +178,7 @@ class InternalParameters:
         """ Configuration file validation. """
         ConfigurationValidator(config_to_validate=config, logger=self.logger).main()
 
-    def init_parameters(self, config: dict, config_file: str):
+    def init_parameters(self, config: dict, config_dir: str):
         """ Execute when YAML configuration file was found and checked
         """
         # Get top-level allowed configuration keys
@@ -214,19 +216,14 @@ class InternalParameters:
             # No visualization quantities of interest
             self.rank_qoi = self.object_qoi = self.grid_size = None
 
-        config_file_dir = os.path.dirname(config_file)
         # Parse data parameters if present
         if config.get("from_data") is not None:
             self.data_stem = config.get("from_data").get("data_stem")
             # # get data directory (because data_stem includes file prefix)
-            # new version not working on GH
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
-            # get path if relative to the configuration file
-            if not os.path.isabs(data_dir):
-                print('not abs')
-                data_dir = os.path.abspath(config_file_dir + '/' + data_dir)
-                self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
+            data_dir = abspath_from(data_dir, config_dir)
+            self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
             self.logger.info('Data stem: %s', self.data_stem)
             if isinstance(config.get("from_data", {}).get("phase_ids"), str):
                 range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
@@ -243,11 +240,7 @@ class InternalParameters:
             self.volume_sampler = config.get("from_samplers").get("volume_sampler")
 
         # Set output directory, local by default
-        self.output_dir = config.get('output_dir', '.')
-        # get path if relative to the configuration file
-        if not os.path.isabs(self.output_dir):
-            self.output_dir = os.path.abspath(config_file_dir + '/' + self.output_dir)
-        self.logger.info('Output directory: %s', self.output_dir)
+        self.output_dir = abspath_from(config.get('output_dir', '.'), config_dir)
 
     def check_parameters(self):
         """ Checks after initialization.
