@@ -71,6 +71,8 @@ def check_and_get_schema_validator():
             sys.excepthook = exc_handler
             raise ConnectionError("Probably there is no internet connection") from err
 
+        exit(-1)
+
     overwrite_validator = True
     config_file = None
     if __name__ == "__main__":
@@ -89,10 +91,9 @@ def check_and_get_schema_validator():
         print(f"{module_name} Option \'overwrite_validator\' in configuration file: {config_file} is set to False\n"
               f"{module_name} In case of `ModuleNotFoundError: No module named \'lbaf.imported\'` set it to True.")
 
-
-check_and_get_schema_validator()
-
 # pylint: disable=C0413
+from lbaf.Utils.logger import logger
+check_and_get_schema_validator()
 from lbaf import __version__
 from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Execution.lbsRuntime import Runtime
@@ -102,7 +103,6 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsVisualizer import Visualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
-from lbaf.Utils.logger import logger
 # pylint: enable=C0413
 
 class InternalParameters:
