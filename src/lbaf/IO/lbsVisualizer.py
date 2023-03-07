@@ -32,30 +32,25 @@ class Visualizer:
             object_jitter: coefficient of random jitter with magnitude < 1
             output_dir: output directory
             output_file_stem: file name stem
+            distributions: a dictionary of per-phase QOI distributions
+            statistics: a dictionary of per-phase global statistics
             resolution: grid_resolution value."""
 
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Make sure that quantity of interest names were passed
-        if not isinstance(qoi_request, list) or not len(qoi_request) == 3:
+        # Make sure that rank quantity of interest name was passed
+        if not isinstance(qoi_request, list) or (l_req := len(qoi_request)) != 3:
             self.__logger.error(
-                "Mesh writer expects 3 quantities of interest parameters")
+                f"Visualizer expects 3 quantity of interest parameters and not {l_req}")
             raise SystemExit(1)
         if not (rank_qoi := qoi_request[0]) or not isinstance(rank_qoi, str):
             self.__logger.error(
-                "Mesh writer expects a non-empty rank quantity of interest name")
-            raise SystemExit(1)
-        if not (object_qoi := qoi_request[2]) or not isinstance(object_qoi, str):
-            self.__logger.error(
-                "Mesh writer expects a non-empty object quantity of interest name")
+                "Visualizer expects a non-empty rank quantity of interest name")
             raise SystemExit(1)
         self.__rank_qoi = f"rank {rank_qoi}"
-        self.__object_qoi = f"object {object_qoi}"
-        self.__logger.info(
-            f"Creating visualization for {self.__object_qoi} and {self.__rank_qoi}")
 
-        # When QOI range was passed make sure it is consistent
+        # When rank QOI range was passed make sure it is consistent
         rank_qoi_max = qoi_request[1]
         if rank_qoi_max is not None:
             if not isinstance(rank_qoi_max, float):
@@ -63,10 +58,23 @@ class Visualizer:
                     f"Inconsistent quantity of interest maximum: {rank_qoi_max}")
                 raise SystemExit(1)
 
+        # When object QOI name was passed make sure it is consistent
+        req_str = f"Creating visualization for {self.__rank_qoi}"
+        if (object_qoi := qoi_request[2]) and not isinstance(object_qoi, str):
+            self.__logger.error(
+                "Optional object quantity of interest name must be a string")
+            raise SystemExit(1)
+        if object_qoi:
+            self.__object_qoi = f"object {object_qoi}"
+            req_str += f" and {self.__object_qoi}"
+        else:
+            self.__object_qoi = None
+        self.__logger.info(req_str)
+
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases]):
             self.__logger.error(
-                "Mesh writer expects a list of Phase instances as input")
+                "Visualizer expects a list of Phase instances as input")
             raise SystemExit(1)
         self.__phases = phases
 
@@ -117,22 +125,29 @@ class Visualizer:
                 self.__output_dir, output_file_stem)
 
         # Retrieve and verify rank attribute distributions
-        rank_attributes = {
+        self.__rank_attributes = {
             k: distributions.get(k, [])
             for k in list({"rank load", "rank work", self.__rank_qoi})}
-        if not all((n_dis := len(rank_attributes["rank load"])) == len(v)
-                   for v in rank_attributes.values()):
+        if not all((n_dis := len(self.__rank_attributes["rank load"])) == len(v)
+                   for v in self.__rank_attributes.values()):
             self.__logger.error(
                 f"Rank attribute distributions do not have equal lengths")
             raise SystemExit(1)
         self.__distributions = distributions
 
+        # Retrieve and verify globale statistics
+        if not isinstance(statistics, dict):
+            self.__logger.error(
+                f"Global statistics must be passed in a dictionary")
+            raise SystemExit(1)
+        self.__statistics = statistics
+
         # Assign or compute rank quantity of interest range
         self.__rank_qoi_range = [
-            min(y for x in rank_attributes[self.__rank_qoi] for y in x)]
+            min(y for x in self.__rank_attributes[self.__rank_qoi] for y in x)]
         if rank_qoi_max is None:
             self.__rank_qoi_range.append(
-                max(y for x in rank_attributes[self.__rank_qoi] for y in x))
+                max(y for x in self.__rank_attributes[self.__rank_qoi] for y in x))
         else:
             self.__rank_qoi_range.append(rank_qoi_max)
         self.__logger.info(
@@ -140,91 +155,17 @@ class Visualizer:
 
         # Create attribute data arrays for rank loads and works
         self.__logger.info(
-            "Adding attributes " + ", ".join(rank_attributes))
+            "Adding attributes " + ", ".join(self.__rank_attributes))
         self.__qoi_dicts = []
         for _ in range(n_dis):
             # Create and append new rank QOI dictionaries
             arr_dict = {}
             self.__qoi_dicts.append(arr_dict)
-            for k, v in rank_attributes.items():
+            for k, v in self.__rank_attributes.items():
                 qoi_arr = vtk.vtkDoubleArray()
                 qoi_arr.SetName(k)
                 qoi_arr.SetNumberOfTuples(self.__n_ranks)
                 arr_dict[k] = qoi_arr
-
-        # Iterate over ranks and create rank mesh points
-        self.__rank_points = vtk.vtkPoints()
-        self.__rank_points.SetNumberOfPoints(self.__n_ranks)
-        for i in range(self.__n_ranks):
-            # Insert point based on Cartesian coordinates
-            self.__rank_points.SetPoint(i, [
-                self.__grid_resolution * c
-                for c in self.global_id_to_cartesian(
-                    i, self.__grid_size)])
-
-            # Set point attributes from distribution values
-            for j, qoi_dict in enumerate(self.__qoi_dicts):
-                for k, v in rank_attributes.items():
-                    qoi_dict[k].SetTuple1(i, v[j][i])
-
-        # Iterate over all possible rank links and create edges
-        self.__rank_lines = vtk.vtkCellArray()
-        index_to_edge = {}
-        edge_index = 0
-        for i in range(self.__n_ranks):
-            for j in range(i + 1, self.__n_ranks):
-                # Insert new link based on endpoint indices
-                line = vtk.vtkLine()
-                line.GetPointIds().SetId(0, i)
-                line.GetPointIds().SetId(1, j)
-                self.__rank_lines.InsertNextCell(line)
-
-                # Update flat index map
-                index_to_edge[edge_index] = frozenset([i, j])
-                edge_index += 1
-
-        # Number of edges is fixed due to vtkExodusIIWriter limitation
-        n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
-        self.__logger.debug(
-            f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
-
-        # Create attribute data arrays for edge sent volumes
-        self.__volumes = []
-        for i, sent in enumerate(self.__distributions["sent"]):
-            # Reduce directed edges into undirected ones
-            u_edges = {}
-            for k, v in sent.items():
-                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
-
-            # Create and append new volume array for edges
-            v_arr = vtk.vtkDoubleArray()
-            v_arr.SetName("Largest Directed Volume")
-            v_arr.SetNumberOfTuples(n_e)
-            self.__volumes.append(v_arr)
-
-            # Assign edge volume values
-            self.__logger.debug(f"\titeration {i} edges:")
-            for e, edge in index_to_edge.items():
-                v = u_edges.get(edge, float("nan"))
-                v_arr.SetTuple1(e, v)
-                if v > self.__object_volume_max:
-                    self.__object_volume_max = v
-                self.__logger.debug(f"\t{e} {edge}): {v}")
-
-        # Create and populate field arrays for statistics
-        self.__field_data = {}
-        for stat_name, stat_values in statistics.items():
-            # Skip non-list entries
-            if not isinstance(stat_values, list):
-                continue
-
-            # Create one singleton for each value of each statistic
-            for v in stat_values:
-                s_arr = vtk.vtkDoubleArray()
-                s_arr.SetNumberOfTuples(1)
-                s_arr.SetTuple1(0, v)
-                s_arr.SetName(stat_name)
-                self.__field_data.setdefault(stat_name, []).append(s_arr)
 
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
@@ -244,6 +185,10 @@ class Visualizer:
 
     def compute_object_qoi_range(self, object_qoi):
         """ Decide object quantity storage type and compute it."""
+
+        # Return empty range if no object QOI was passed
+        if not object_qoi:
+            return ()
 
         # Initialize space-time object QOI range attributes
         oq_min, oq_max, oq_all, = math.inf, -math.inf, set()
@@ -287,7 +232,18 @@ class Visualizer:
         # Return cpmputed QOI range
         return object_qoi_range
 
-    def create_object_mesh(self, phase: Phase, object_mapping: set):
+    def __create_rank_mesh(self, iteration: int):
+        """ Map ranks to polygonal mesh."""
+
+        # Assemble and return polygonal mesh
+        pd_mesh = vtk.vtkPolyData()
+        pd_mesh.SetPoints(self.__rank_points)
+        pd_mesh.SetLines(self.__rank_lines)
+        pd_mesh.GetPointData().SetScalars(
+            self.__qoi_dicts[iteration][self.__rank_qoi])
+        return pd_mesh
+
+    def __create_object_mesh(self, phase: Phase, object_mapping: set):
         """ Map objects to polygonal mesh."""
 
         # Retrieve number of mesh points and bail out early if empty set
@@ -516,22 +472,18 @@ class Visualizer:
         # Return created scalar bar actor
         return scalar_bar_actor
 
-    def create_rendering_pipeline(
+    def __create_rendering_pipeline(
         self,
         iteration: int,
         pid: int,
+        object_mesh,
         edge_width: int,
         glyph_factor: float,
-        win_size: int,
-        object_mesh):
+        win_size: int):
         """ Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
-        rank_mesh = vtk.vtkPolyData()
-        rank_mesh.SetPoints(self.__rank_points)
-        rank_mesh.SetLines(self.__rank_lines)
-        rank_mesh.GetPointData().SetScalars(
-            self.__qoi_dicts[iteration][self.__rank_qoi])
+        rank_mesh = self.__create_rank_mesh(iteration)
 
         # Create renderer with parallel projection
         renderer = vtk.vtkRenderer()
@@ -576,96 +528,98 @@ class Visualizer:
         renderer.AddActor(rank_actor)
         renderer.AddActor2D(qoi_actor)
 
-        # Create white to black look-up table
-        bw_lut = vtk.vtkLookupTable()
-        bw_lut.SetTableRange((0.0, self.__object_volume_max))
-        bw_lut.SetSaturationRange(0, 0)
-        bw_lut.SetHueRange(0, 0)
-        bw_lut.SetValueRange(1, 0)
-        bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
-        bw_lut.Build()
+        # Create object pipeline only when requested
+        if self.__object_qoi:
+            # Create white to black look-up table
+            bw_lut = vtk.vtkLookupTable()
+            bw_lut.SetTableRange((0.0, self.__object_volume_max))
+            bw_lut.SetSaturationRange(0, 0)
+            bw_lut.SetHueRange(0, 0)
+            bw_lut.SetValueRange(1, 0)
+            bw_lut.SetNanColor(1.0, 1.0, 1.0, 0.0)
+            bw_lut.Build()
 
-        # Create mapper for inter-object edges
-        edge_mapper = vtk.vtkPolyDataMapper()
-        edge_mapper.SetInputData(object_mesh)
-        edge_mapper.SetScalarModeToUseCellData()
-        edge_mapper.SetScalarRange((0.0, self.__object_volume_max))
-        edge_mapper.SetLookupTable(bw_lut)
+            # Create mapper for inter-object edges
+            edge_mapper = vtk.vtkPolyDataMapper()
+            edge_mapper.SetInputData(object_mesh)
+            edge_mapper.SetScalarModeToUseCellData()
+            edge_mapper.SetScalarRange((0.0, self.__object_volume_max))
+            edge_mapper.SetLookupTable(bw_lut)
 
-        # Create communication volume and its scalar bar actors
-        edge_actor = vtk.vtkActor()
-        edge_actor.SetMapper(edge_mapper)
-        edge_actor.GetProperty().SetLineWidth(edge_width)
-        volume_actor = self.create_scalar_bar_actor(
-            edge_mapper, "Inter-Object Volume", 0.04, 0.04)
-        renderer.AddActor(edge_actor)
-        renderer.AddActor2D(volume_actor)
+            # Create communication volume and its scalar bar actors
+            edge_actor = vtk.vtkActor()
+            edge_actor.SetMapper(edge_mapper)
+            edge_actor.GetProperty().SetLineWidth(edge_width)
+            volume_actor = self.create_scalar_bar_actor(
+                edge_mapper, "Inter-Object Volume", 0.04, 0.04)
+            renderer.AddActor(edge_actor)
+            renderer.AddActor2D(volume_actor)
 
-        # Compute square root of object loads
-        sqrtL = vtk.vtkArrayCalculator()
-        sqrtL.SetInputData(object_mesh)
-        sqrtL.AddScalarArrayName("object load")
-        sqrtL_str = "sqrt(object load)"
-        sqrtL.SetFunction(sqrtL_str)
-        sqrtL.SetResultArrayName(sqrtL_str)
-        sqrtL.Update()
-        sqrtL_out = sqrtL.GetOutput()
-        sqrtL_out.GetPointData().SetActiveScalars("Migratable")
+            # Compute square root of object loads
+            sqrtL = vtk.vtkArrayCalculator()
+            sqrtL.SetInputData(object_mesh)
+            sqrtL.AddScalarArrayName("object load")
+            sqrtL_str = "sqrt(object load)"
+            sqrtL.SetFunction(sqrtL_str)
+            sqrtL.SetResultArrayName(sqrtL_str)
+            sqrtL.Update()
+            sqrtL_out = sqrtL.GetOutput()
+            sqrtL_out.GetPointData().SetActiveScalars("Migratable")
 
-        # Glyph sentinel and migratable objects separately
-        glyph_mapper = None
-        for k, v in {0.0: "Square", 1.0: "Circle"}.items():
-            # Threshold by migratable status
-            thresh = vtk.vtkThresholdPoints()
-            thresh.SetInputData(sqrtL_out)
-            thresh.ThresholdBetween(k, k)
-            thresh.Update()
-            thresh_out = thresh.GetOutput()
-            if not thresh_out.GetNumberOfPoints():
-                continue
-            thresh_out.GetPointData().SetActiveScalars(sqrtL_str)
+            # Glyph sentinel and migratable objects separately
+            glyph_mapper = None
+            for k, v in {0.0: "Square", 1.0: "Circle"}.items():
+                # Threshold by migratable status
+                thresh = vtk.vtkThresholdPoints()
+                thresh.SetInputData(sqrtL_out)
+                thresh.ThresholdBetween(k, k)
+                thresh.Update()
+                thresh_out = thresh.GetOutput()
+                if not thresh_out.GetNumberOfPoints():
+                    continue
+                thresh_out.GetPointData().SetActiveScalars(sqrtL_str)
 
-            # Glyph by square root of object quantity of interest
-            glyph = vtk.vtkGlyphSource2D()
-            getattr(glyph, f"SetGlyphTypeTo{v}")()
-            glyph.SetResolution(32)
-            glyph.SetScale(1.0)
-            glyph.FilledOn()
-            glyph.CrossOff()
-            glypher = vtk.vtkGlyph3D()
-            glypher.SetSourceConnection(glyph.GetOutputPort())
-            glypher.SetInputData(thresh_out)
-            glypher.SetScaleModeToScaleByScalar()
-            glypher.SetScaleFactor(glyph_factor)
-            glypher.Update()
-            glypher.GetOutput().GetPointData().SetActiveScalars(
-                self.__object_qoi)
+                # Glyph by square root of object quantity of interest
+                glyph = vtk.vtkGlyphSource2D()
+                getattr(glyph, f"SetGlyphTypeTo{v}")()
+                glyph.SetResolution(32)
+                glyph.SetScale(1.0)
+                glyph.FilledOn()
+                glyph.CrossOff()
+                glypher = vtk.vtkGlyph3D()
+                glypher.SetSourceConnection(glyph.GetOutputPort())
+                glypher.SetInputData(thresh_out)
+                glypher.SetScaleModeToScaleByScalar()
+                glypher.SetScaleFactor(glyph_factor)
+                glypher.Update()
+                glypher.GetOutput().GetPointData().SetActiveScalars(
+                    self.__object_qoi)
 
-            # Raise glyphs slightly for visibility
-            z_raise = vtk.vtkTransform()
-            z_raise.Translate(0.0, 0.0, 0.01)
-            trans = vtk.vtkTransformPolyDataFilter()
-            trans.SetTransform(z_raise)
-            trans.SetInputData(glypher.GetOutput())
+                # Raise glyphs slightly for visibility
+                z_raise = vtk.vtkTransform()
+                z_raise.Translate(0.0, 0.0, 0.01)
+                trans = vtk.vtkTransformPolyDataFilter()
+                trans.SetTransform(z_raise)
+                trans.SetInputData(glypher.GetOutput())
 
-            # Create mapper and actor for glyphs
-            glyph_mapper = vtk.vtkPolyDataMapper()
-            glyph_mapper.SetInputConnection(trans.GetOutputPort())
-            glyph_mapper.SetLookupTable(
-                self.create_color_transfer_function(
-                    self.__object_qoi_range))
-            if (is_continuous := isinstance(self.__object_qoi_range, tuple)):
-                glyph_mapper.SetScalarRange(self.__object_qoi_range)
-            glyph_actor = vtk.vtkActor()
-            glyph_actor.SetMapper(glyph_mapper)
-            renderer.AddActor(glyph_actor)
+                # Create mapper and actor for glyphs
+                glyph_mapper = vtk.vtkPolyDataMapper()
+                glyph_mapper.SetInputConnection(trans.GetOutputPort())
+                glyph_mapper.SetLookupTable(
+                    self.create_color_transfer_function(
+                        self.__object_qoi_range))
+                if (is_continuous := isinstance(self.__object_qoi_range, tuple)):
+                    glyph_mapper.SetScalarRange(self.__object_qoi_range)
+                glyph_actor = vtk.vtkActor()
+                glyph_actor.SetMapper(glyph_mapper)
+                renderer.AddActor(glyph_actor)
 
-        # Create and add unique scalar bar for object QOI when available
-        if glyph_mapper:
-            load_actor = self.create_scalar_bar_actor(
-                glyph_mapper, self.__object_qoi, 0.52, 0.04,
-                None if is_continuous else self.__object_qoi_range)
-            renderer.AddActor2D(load_actor)
+            # Create and add unique scalar bar for object QOI when available
+            if glyph_mapper:
+                load_actor = self.create_scalar_bar_actor(
+                    glyph_mapper, self.__object_qoi, 0.52, 0.04,
+                    None if is_continuous else self.__object_qoi_range)
+                renderer.AddActor2D(load_actor)
 
         # Create text actor to indicate iteration and imbalance
         lb_data = self.__field_data["load imbalance"]
@@ -696,6 +650,80 @@ class Visualizer:
 
     def generate(self, save_meshes: bool, gen_vizqoi: bool):
         """ Generate mesh and multimedia outputs."""
+
+        # Iterate over ranks and create rank mesh points
+        self.__rank_points = vtk.vtkPoints()
+        self.__rank_points.SetNumberOfPoints(self.__n_ranks)
+        for i in range(self.__n_ranks):
+            # Insert point based on Cartesian coordinates
+            self.__rank_points.SetPoint(i, [
+                self.__grid_resolution * c
+                for c in self.global_id_to_cartesian(
+                    i, self.__grid_size)])
+
+            # Set point attributes from distribution values
+            for j, qoi_dict in enumerate(self.__qoi_dicts):
+                for k, v in self.__rank_attributes.items():
+                    qoi_dict[k].SetTuple1(i, v[j][i])
+
+        # Iterate over all possible rank links and create edges
+        self.__rank_lines = vtk.vtkCellArray()
+        index_to_edge = {}
+        edge_index = 0
+        for i in range(self.__n_ranks):
+            for j in range(i + 1, self.__n_ranks):
+                # Insert new link based on endpoint indices
+                line = vtk.vtkLine()
+                line.GetPointIds().SetId(0, i)
+                line.GetPointIds().SetId(1, j)
+                self.__rank_lines.InsertNextCell(line)
+
+                # Update flat index map
+                index_to_edge[edge_index] = frozenset([i, j])
+                edge_index += 1
+
+        # Number of edges is fixed due to vtkExodusIIWriter limitation
+        n_e = int(self.__n_ranks * (self.__n_ranks - 1) / 2)
+        self.__logger.debug(
+            f"Assembling rank mesh with {self.__n_ranks} points and {n_e} edges")
+
+        # Create attribute data arrays for edge sent volumes
+        self.__volumes = []
+        for i, sent in enumerate(self.__distributions["sent"]):
+            # Reduce directed edges into undirected ones
+            u_edges = {}
+            for k, v in sent.items():
+                u_edges[frozenset(k)] = u_edges.setdefault(frozenset(k), 0.) + v
+
+            # Create and append new volume array for edges
+            v_arr = vtk.vtkDoubleArray()
+            v_arr.SetName("Largest Directed Volume")
+            v_arr.SetNumberOfTuples(n_e)
+            self.__volumes.append(v_arr)
+
+            # Assign edge volume values
+            self.__logger.debug(f"\titeration {i} edges:")
+            for e, edge in index_to_edge.items():
+                v = u_edges.get(edge, float("nan"))
+                v_arr.SetTuple1(e, v)
+                if v > self.__object_volume_max:
+                    self.__object_volume_max = v
+                self.__logger.debug(f"\t{e} {edge}): {v}")
+
+        # Create and populate field arrays for statistics
+        self.__field_data = {}
+        for stat_name, stat_values in self.__statistics.items():
+            # Skip non-list entries
+            if not isinstance(stat_values, list):
+                continue
+
+            # Create one singleton for each value of each statistic
+            for v in stat_values:
+                s_arr = vtk.vtkDoubleArray()
+                s_arr.SetNumberOfTuples(1)
+                s_arr.SetTuple1(0, v)
+                s_arr.SetName(stat_name)
+                self.__field_data.setdefault(stat_name, []).append(s_arr)
 
         # Write ExodusII rank mesh when requested
         if save_meshes:
@@ -733,17 +761,20 @@ class Visualizer:
             if update_phase:
                 phase = self.__phases[iteration]
 
-            # Create object mesh
-            object_mesh = self.create_object_mesh(phase, object_mapping)
+            # Create object mesh when requested
+            if self.__object_qoi:
+                object_mesh = self.__create_object_mesh(phase, object_mapping)
 
-            # Write to VTP file when requested
-            if save_meshes:
-                file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
-                self.__logger.info(f"Writing VTP file: {file_name}")
-                writer = vtk.vtkXMLPolyDataWriter()
-                writer.SetFileName(file_name)
-                writer.SetInputData(object_mesh)
-                writer.Update()
+                # Write to VTP file when requested
+                if save_meshes:
+                    file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
+                    self.__logger.info(f"Writing VTP file: {file_name}")
+                    writer = vtk.vtkXMLPolyDataWriter()
+                    writer.SetFileName(file_name)
+                    writer.SetInputData(object_mesh)
+                    writer.Update()
+            else:
+                object_mesh = None
 
             # Generate visualizations when requested
             if gen_vizqoi:
@@ -755,33 +786,33 @@ class Visualizer:
                 # Compute visualization parameters
                 self.__logger.info(
                     f"Generating 2-D visualization for iteration {iteration}:")
-                win_size = 800
+                ws = 800
                 self.__logger.info(
-                    f"\tnumber of pixels: {win_size}x{win_size}")
-                edge_width = 0.1 * win_size / max(self.__grid_size)
-                self.__logger.info(
-                    f"\tcommunication edges width: {edge_width:.2g}")
-                glyph_factor = 0.8 * self.__grid_resolution / (
-                    (self.__max_o_per_dim + 1)
-                    * math.sqrt(self.__object_load_max))
-                self.__logger.info(
-                    f"\tobject glyphs scaling: {glyph_factor:.2g}")
+                    f"\tnumber of pixels: {ws}x{ws}")
+                if self.__object_qoi:
+                    ew = 0.1 * ws / max(self.__grid_size)
+                    self.__logger.info(
+                        f"\tcommunication edges width: {ew:.2g}")
+                    gf = 0.8 * self.__grid_resolution / (
+                        (self.__max_o_per_dim + 1)
+                        * math.sqrt(self.__object_load_max))
+                    self.__logger.info(
+                        f"\tobject glyphs scaling: {gf:.2g}")
 
                 # Run visualization pipeline
-                render_window = self.create_rendering_pipeline(
+                render_window = self.__create_rendering_pipeline(
                     iteration,
                     phase.get_id(),
-                    edge_width,
-                    glyph_factor,
-                    win_size,
-                    object_mesh)
+                    object_mesh,
+                    edge_width= ew if self.__object_qoi else None,
+                    glyph_factor = gf if self.__object_qoi else None,
+                    win_size = ws)
                 render_window.Render()
 
                 # Convert window to image
                 w2i = vtk.vtkWindowToImageFilter()
                 w2i.SetInput(render_window)
                 w2i.SetScale(3)
-                # w2i.SetInputBufferTypeToRGBA()
 
                 # Output PNG file
                 file_name = f"{self.__visualization_file_name}_{iteration:02d}.png"
