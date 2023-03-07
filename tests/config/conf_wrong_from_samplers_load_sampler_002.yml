@@ -42,9 +42,9 @@ from_samplers:
   load_sampler:
     name: lognormal
     parameters:
-    - 1.0
-    - 10.0
+      - 1.0
+      - 10.0
   volume_sampler:
     name: lognormal
     parameters:
-    - 1.0
+      - 1.0
