@@ -1,4 +1,4 @@
-""" LBAF Configuration validator """
+"""LBAF Configuration validator"""
 from logging import Logger
 import sys
 from typing import Union, Dict, List
@@ -33,13 +33,12 @@ ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
 def get_error_message(iterable_collection: tuple) -> str:
-    """ Return error message. """
+    """Return error message."""
     return " or ".join(iterable_collection)
 
 
 class ConfigurationValidator:
-    """ Validate data in an YAML configuration file.
-    """
+    """Validate data in an YAML configuration file."""
 
     __algorithm: Dict[str, Schema]
     __config_to_validate: Dict[str, dict]
@@ -169,19 +168,19 @@ class ConfigurationValidator:
 
     @staticmethod
     def is_valid(valid_schema: Schema, schema_to_validate: dict) -> bool:
-        """ Return True if schema_to_validate is valid with valid_schema else False. """
+        """Return True if schema_to_validate is valid with valid_schema else False."""
         is_valid = valid_schema.is_valid(schema_to_validate)
         return is_valid
 
     @staticmethod
     def validate(valid_schema: Schema, schema_to_validate: dict):
-        """ Return validated schema. """
+        """Return validated schema."""
         sys.excepthook = exc_handler
         return valid_schema.validate(schema_to_validate)
 
     @staticmethod
     def allowed_keys(group: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
-        """ Returns allowed keys at configuration root level grouped by some group key or as a flat list"""
+        """Returns allowed keys at configuration root level grouped by some group key or as a flat list"""
         sections = {
             'input': ['from_data'],
             'work model': ['work_model'],
@@ -203,7 +202,7 @@ class ConfigurationValidator:
             return sections
 
     def main(self):
-        """ Main routine for the config validation. """
+        """Main routine for the config validation."""
         # Validate skeleton
         if self.is_valid(valid_schema=self.__skeleton, schema_to_validate=self.__config_to_validate):
             self.__logger.info("Skeleton schema is valid")

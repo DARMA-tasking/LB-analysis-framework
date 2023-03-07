@@ -1,5 +1,4 @@
-""" LBAF application module
-"""
+"""LBAF application module"""
 import argparse
 import os
 import sys
@@ -27,8 +26,7 @@ from lbaf.Utils.functions import abspath_from
 # pylint: enable=C0413
 
 def get_config_file() -> str:
-    """ Parses command line argument and returns config file path.
-    """
+    """Parses command line argument and returns config file path."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Path to the config file.", default='conf.yaml')
     args = parser.parse_args()
@@ -54,8 +52,7 @@ def get_config_file() -> str:
 
 
 def check_and_get_schema_validator():
-    """ Makes sure that SchemaValidator can be imported, and it's the latest version available.
-    """
+    """Makes sure that SchemaValidator can be imported, and it's the latest version available."""
     module_name = green(f"[{os.path.splitext(os.path.split(__file__)[-1])[0]}]")
 
     def save_schema_validator_and_init_file(import_dir: str):
@@ -109,8 +106,7 @@ from lbaf.Utils.logger import logger
 # pylint: enable=C0413
 
 class InternalParameters:
-    """Represent LBAF application parameters
-    """
+    """Represent LBAF application parameters"""
     n_ranks: int
     check_schema: bool
     output_dir: str
@@ -153,8 +149,7 @@ class InternalParameters:
         self.logger.info('Executing with Python %s.%s.%s', svi.major, svi.minor, svi.micro)
 
     def load_config(self, from_file: str)-> dict:
-        """ Check extension, read YML file and return parsed YAML configuration file
-        """
+        """Check extension, read YML file and return parsed YAML configuration file"""
         if os.path.splitext(from_file)[-1] in [".yml", ".yaml"] and os.path.isfile(from_file):
             # Try to open configuration file
             logger().info('Found configuration file %s', from_file)
@@ -175,12 +170,11 @@ class InternalParameters:
             raise SystemExit(1)
 
     def validate_configuration(self, config: dict):
-        """ Configuration file validation. """
+        """Configuration file validation."""
         ConfigurationValidator(config_to_validate=config, logger=self.logger).main()
 
     def init_parameters(self, config: dict, config_dir: str):
-        """ Execute when YAML configuration file was found and checked
-        """
+        """Execute when YAML configuration file was found and checked"""
         # Get top-level allowed configuration keys
         self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
 
@@ -244,8 +238,7 @@ class InternalParameters:
         self.output_dir = abspath_from(config.get('output_dir', '.'), config_dir)
 
     def check_parameters(self):
-        """ Checks after initialization.
-        """
+        """Checks after initialization."""
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
             if not os.path.isdir(self.output_dir):
