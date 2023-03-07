@@ -2,7 +2,7 @@
 from_data:
   data_stem: ../data/nolb-8color-16nodes-data/data
   phase_ids:
-  - 501
+    - 501
 
 # Specify work model
 work_model:
