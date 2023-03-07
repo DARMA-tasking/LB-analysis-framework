@@ -1,5 +1,7 @@
 [![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml)
 [![Acceptance Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml)
+[![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
+[![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)
 
 ## This is the repository for Load-Balancing Simulation research
 ### It contains the following subdirectories:
@@ -58,7 +60,7 @@ tox
 In order to run LBAF from main project directory:
 ```shell
 cd <project-path>
-python src/lbaf/Applications/LBAF.py
+python src/lbaf/Applications/LBAF_app.py
 ```
 
 ### JSON data files Validator
