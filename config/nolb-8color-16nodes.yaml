@@ -1,0 +1,39 @@
+# Specify input
+from_data:
+  data_stem: ../data/nolb-8color-16nodes-data/data
+  phase_ids:
+    - 501
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.0
+    beta: 1.0e-08
+    gamma: 0.0
+
+# Specify algorithm
+algorithm:
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 8
+    n_rounds: 4
+    fanout: 4
+    order_strategy: arbitrary
+    criterion: Tempered
+    max_objects_per_transfer: 480
+    deterministic_transfer: true
+
+# Specify output
+terminal_background: light
+generate_multimedia: false
+output_dir: ../output
+output_file_stem: output_file
+n_ranks: 32
+
+# Other
+generate_meshes:
+  x_ranks: 8
+  y_ranks: 4
+  z_ranks: 1
+  object_jitter: 0.5

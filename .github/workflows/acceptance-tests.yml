@@ -18,6 +18,7 @@ jobs:
     container: python:${{ matrix.config.image }}-slim-buster
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
+      acceptance_config: /__w/LB-analysis-framework/LB-analysis-framework/config/acceptance_tests/conf.yaml
       test_output: /__w/LB-analysis-framework/LB-analysis-framework/output/imbalance.txt
 
     steps:
@@ -40,14 +41,13 @@ jobs:
       - name: Run LBAF Test
         run: |
           cd ${{ env.home_dir }}
-          cp ${{ env.home_dir }}/scripts/test_config/conf.yaml ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
           /bin/sh venv/bin/activate
           echo "\n================================================================================"
           echo "Printing used configuration:\n"
-          cat ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
+          cat ${{ env.acceptance_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py --config=${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
+          python src/lbaf/Applications/LBAF_app.py --config=${{ env.acceptance_config }}
 
       - name: Check output
         run: |
@@ -68,8 +68,8 @@ jobs:
     container: python:${{ matrix.config.image }}-slim-buster
     env:
       home_dir: /__w/LB-analysis-framework/LB-analysis-framework
-      stepper_config: /__w/LB-analysis-framework/LB-analysis-framework/scripts/test_config/step.yaml
-      log_output: /__w/LB-analysis-framework/LB-analysis-framework/log.txt
+      stepper_config: /__w/LB-analysis-framework/LB-analysis-framework/config/acceptance_tests/step.yaml
+      log_output: /__w/LB-analysis-framework/LB-analysis-framework/output/log.txt
 
     steps:
       - uses: actions/checkout@v2
@@ -94,7 +94,7 @@ jobs:
           /bin/sh venv/bin/activate
           echo "\n================================================================================"
           echo "Printing used configuration:\n"
-          cat ${{ env.home_dir }}/src/lbaf/Applications/conf.yaml
+          cat ${{ env.stepper_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
           python src/lbaf/Applications/LBAF_app.py --config=${{ env.stepper_config }}

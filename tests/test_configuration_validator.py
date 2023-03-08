@@ -19,7 +19,7 @@ class TestConfig(unittest.TestCase):
     def setUp(self):
         try:
             self.config_dir = os.path.join(
-                f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "data", "config")
+                f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "config")
             sys.path.append(self.config_dir)
         except Exception as e:
             print(f"Can not add config path to system path! Exiting!\nERROR: {e}")

@@ -1,11 +1,12 @@
+"""Configuration to generate the documentation"""
 import os
 import sys
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
     sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path. Exiting. \nERROR: {e}")
-    raise SystemExit(1)
+except Exception as path_ex:
+    print(f"Can not add project path to system path. Exiting. \nERROR: {path_ex}")
+    raise SystemExit(1) from path_ex
 
 # Applications
 import src.lbaf.Applications.LBAF_app as LBAF
@@ -35,6 +36,7 @@ import src.lbaf.imported.JSON_data_files_validator as JSONDataFilesValidator
 
 # IO
 import src.lbaf.IO.configurationValidator as ConfigurationValidator
+import src.lbaf.IO.configurationUpgrader as configurationUpgrader
 import src.lbaf.IO.lbsGridStreamer as GridStreamer
 import src.lbaf.IO.lbsMeshBasedVisualizer as MeshBasedVisualizer
 import src.lbaf.IO.lbsStatistics as lbsStatistics
@@ -103,7 +105,8 @@ INPUT_MODULES = [
     DataStatFilesUpdater,
     exc_handler,
     logger,
-    VTDataExtractor]
+    VTDataExtractor,
+    configurationUpgrader]
 
 INPUT_PAGES = [
     "../../docs/pages/index.rst",

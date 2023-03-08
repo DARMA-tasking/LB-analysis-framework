@@ -1,6 +1,7 @@
-from collections import Iterable
+"""LBAF Configuration validator"""
 from logging import Logger
 import sys
+from typing import Union, Dict, List
 
 from schema import And, Optional, Or, Regex, Schema, Use
 from ..Utils.exception_handler import exc_handler
@@ -31,14 +32,17 @@ ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
 ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
-def get_error_message(iterable_collection: Iterable) -> str:
-    """ Return error message. """
+def get_error_message(iterable_collection: tuple) -> str:
+    """Return error message."""
     return " or ".join(iterable_collection)
 
 
 class ConfigurationValidator:
-    """ Validate data in an YAML configuration file.
-    """
+    """Validate data in an YAML configuration file."""
+
+    __algorithm: Dict[str, Schema]
+    __config_to_validate: Dict[str, dict]
+
     def __init__(self, config_to_validate: dict, logger: Logger):
         self.__config_to_validate = config_to_validate
         self.__skeleton = Schema({
@@ -164,18 +168,41 @@ class ConfigurationValidator:
 
     @staticmethod
     def is_valid(valid_schema: Schema, schema_to_validate: dict) -> bool:
-        """ Return True if schema_to_validate is valid with valid_schema else False. """
+        """Return True if schema_to_validate is valid with valid_schema else False."""
         is_valid = valid_schema.is_valid(schema_to_validate)
         return is_valid
 
     @staticmethod
     def validate(valid_schema: Schema, schema_to_validate: dict):
-        """ Return validated schema. """
+        """Return validated schema."""
         sys.excepthook = exc_handler
         return valid_schema.validate(schema_to_validate)
 
+    @staticmethod
+    def allowed_keys(group: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
+        """Returns allowed keys at configuration root level grouped by some group key or as a flat list"""
+        sections = {
+            'input': ['from_data'],
+            'work model': ['work_model'],
+            'algorithm': ['brute_force_optimization', 'algorithm'],
+            'output': [
+                'logging_level', 'log_to_file', 'overwrite_validator', 'check_schema', 'terminal_background',
+                'generate_multimedia', 'output_dir', 'output_file_stem', 'n_ranks',
+                'LBAF_Viz'
+            ]
+        }
+
+        if not group:
+            keys_flat = []
+            for section in sections.items():
+                for key in section[1]:
+                    keys_flat.append(key)
+            return keys_flat
+        else:
+            return sections
+
     def main(self):
-        """ Main routine for the config validation. """
+        """Main routine for the config validation."""
         # Validate skeleton
         if self.is_valid(valid_schema=self.__skeleton, schema_to_validate=self.__config_to_validate):
             self.__logger.info("Skeleton schema is valid")
@@ -197,11 +224,16 @@ class ConfigurationValidator:
                 self.validate(valid_schema=self.__from_samplers, schema_to_validate=from_samplers)
 
         # Validate algorithm
-        if (algorithm := self.__config_to_validate.get("algorithm").get("name")) is not None:
+        if (algorithm := self.__config_to_validate.get("algorithm")) is not None:
+            algorithm_name = algorithm.get("name", None)
             self.__logger.info(f"Checking algorithm schema of: {algorithm}")
-            if self.is_valid(valid_schema=self.__algorithm.get(algorithm),
-                             schema_to_validate=self.__config_to_validate.get("algorithm")):
-                self.__logger.info(f"Algorithm: {algorithm} schema is valid")
-            else:
-                self.validate(valid_schema=self.__algorithm.get(algorithm),
-                              schema_to_validate=self.__config_to_validate.get("algorithm"))
+            if algorithm_name is not None:
+                algorithm_schema = self.__algorithm.get(algorithm_name)
+                if isinstance(algorithm_schema, Schema):
+                    if self.is_valid(
+                        valid_schema=algorithm_schema,
+                                    schema_to_validate=self.__config_to_validate.get("algorithm", {})):
+                        self.__logger.info(f"Algorithm: {algorithm} schema is valid")
+                    else:
+                        self.validate(valid_schema=algorithm_schema,
+                                    schema_to_validate=self.__config_to_validate.get("algorithm", {}))

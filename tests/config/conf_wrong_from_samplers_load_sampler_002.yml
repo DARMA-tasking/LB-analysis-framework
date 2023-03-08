@@ -1,0 +1,50 @@
+# Specify input
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.0
+    beta: 0.0
+    gamma: 0.0
+
+# Specify algorithm
+algorithm:
+  name: InformAndTransfer
+  parameters:
+    n_iterations: 8
+    n_rounds: 4
+    fanout: 4
+    order_strategy: element_id
+    transfer_strategy: Recursive
+    criterion: Tempered
+    max_objects_per_transfer: 8
+    deterministic_transfer: true
+
+# Specify output
+terminal_background: light
+output_dir: ../../../output
+output_file_stem: output_file
+n_ranks: 4
+LBAF_Viz:
+  x_ranks: 2
+  y_ranks: 2
+  z_ranks: 1
+  object_jitter: 0.5
+  rank_qoi: None
+  object_qoi: None
+
+# Other
+from_samplers:
+  n_objects: 200
+  n_mapped_ranks: 2
+  communication_degree: 20
+  load_sampler:
+    name: lognormal
+    parameters:
+      - 1.0
+      - 10.0
+  volume_sampler:
+    name: lognormal
+    parameters:
+      - 1.0

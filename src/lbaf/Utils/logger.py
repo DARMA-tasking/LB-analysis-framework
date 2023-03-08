@@ -1,65 +1,93 @@
+""" logging util module """
 import logging
 import logging.config
-from logging import Formatter
 import os
-import yaml
-
-from .colors import red, green, blue, cyan, magenta, yellow, white, black, light_red, light_green, light_blue, light_cyan, light_magenta, light_yellow, light_white, light_black
+from logging import Formatter
+from typing import Union, List, Dict
+from .colors import red, green, cyan, yellow, black, light_white
 
 LOGGING_LEVEL = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
     "WARNING": logging.WARNING,
-    "ERROR": logging.ERROR}
+    "ERROR": logging.ERROR
+}
 
+FORMATTER_BASIC = 'basic'
+FORMATTER_EXTENDED = 'extended'
+FORMATTERS = [ FORMATTER_BASIC, FORMATTER_EXTENDED ]
+
+THEME_DARK = 'dark'
+THEME_LIGHT = 'light'
+THEMES = [ THEME_LIGHT, THEME_DARK ]
 
 class CustomFormatter(Formatter):
+    """ Custom formatter class defining a format by logging level """
+    formatters: Dict[int,Formatter] = {}
     def __init__(self, frmttr):
         super(CustomFormatter, self).__init__()
-        self.frmttr = frmttr
-
+        for level, fmt in frmttr.items():
+            self.formatters[level] = Formatter(fmt)
     def format(self, record):
-        log_fmt = self.frmttr.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        return self.formatters[record.levelno].format(record)
 
+def formatter(formatter_type: str, theme: Union[str, None] = None):
+    """Creates a formatter of the given type"""
+    if not formatter_type in FORMATTERS:
+        frmtrs = str.join(', ', FORMATTERS)
+        raise ValueError(f'Invalid formatter name. Supported are {frmtrs}')
 
-def logger(name: str = "root", conf: str = None):
-    """ Return logger with config from logger.ini."""
+    if theme is not None and not theme in THEMES:
+        themes = str.join(', ', THEMES)
+        raise ValueError(f'Invalid thee name. Supported are {themes}')
 
-    if conf is not None:
-        with open(conf, "rt") as conf_file:
-            config = yaml.safe_load(conf_file)
+    def msgcolor(msg):
+        if not theme is None:
+            return black(msg) if theme == 'light' else light_white(msg)
+        return msg
+
+    # 'extended' formatter
+    if formatter_type == 'extended':
+        frmttr = {
+            logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
+            logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
+            logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
+            logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]")
+        }
+    # 'basic' formatter
     else:
-        config = {}
+        frmttr = {
+            logging.DEBUG: yellow("[%(module)s] ") + msgcolor("%(message)s"),
+            logging.INFO: green("[%(module)s] ") + msgcolor("%(message)s"),
+            logging.WARNING: cyan("[%(module)s] ") + msgcolor("%(message)s"),
+            logging.ERROR: red("[%(module)s] ") + msgcolor("%(message)s")
+        }
+    return CustomFormatter(frmttr)
 
-    # Assign formatting properties
-    clr_fnc = black if config.get("terminal_background") == "light" else light_white
-    logger_output = config.get("log_to_file") if \
-        bool(isinstance(config.get("log_to_file"), str) and config.get("log_to_file") is not None) else None
-    formater_extended = {
-        logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-        logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-        logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]"),
-        logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] ") + clr_fnc("msg:[%(message)s]")}
-    formater_PPP = {
-        logging.DEBUG: yellow("[%(module)s] ") + clr_fnc("%(message)s"),
-        logging.INFO: green("[%(module)s] ") + clr_fnc("%(message)s"),
-        logging.WARNING: cyan("[%(module)s] ") + clr_fnc("%(message)s"),
-        logging.ERROR: red("[%(module)s] ") + clr_fnc("%(message)s")}
-
-    # Set logger properties in INFO mode by default
+def logger(
+        name: str = "root",
+        level: Union[str, None] = None,
+        log_to_console: bool= True,
+        log_to_file: Union[str, None] = None,
+        formatter_name: str = FORMATTER_BASIC,
+        theme: str = THEME_DARK
+):
+    """ Return a new or an existing logger"""
     lgr = logging.getLogger(name)
-    ll = config.get("logging_level", "INFO").upper()
-    lgr.setLevel(LOGGING_LEVEL.get(ll))
+    if level is not None:
+        lgr.setLevel(level.upper())
+    if log_to_file is not None:
+        logs_dir = f"{os.sep}".join(log_to_file.split(os.sep)[:-1])
+        if not os.path.isdir(logs_dir):
+            os.makedirs(logs_dir)
     if not lgr.hasHandlers():
-        if logger_output is not None:
-            ch = logging.FileHandler(filename=logger_output)
-        else:
-            ch = logging.StreamHandler()
-        ch.setLevel(LOGGING_LEVEL.get(ll))
-        ch.setFormatter(CustomFormatter(frmttr=formater_PPP))
-        lgr.addHandler(ch)
-
-    # Return logger
+        handlers = [] #type: List[logging.Handler]
+        if isinstance(log_to_file, str):
+            handlers.append(logging.FileHandler(filename=log_to_file))
+        if log_to_console:
+            handlers.append(logging.StreamHandler())
+        for handler in handlers:
+            handler.setLevel(lgr.level)
+            handler.setFormatter(formatter(formatter_name, theme))
+            lgr.addHandler(handler)
     return lgr
