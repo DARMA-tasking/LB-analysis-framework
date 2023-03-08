@@ -30,7 +30,11 @@ class Loader:
     def __resolve_config_file(self) -> str:
         """Parses command line argument and resove the config file path."""
         parser = argparse.ArgumentParser()
-        parser.add_argument("--config", help="Path to the config file.", default='conf.yaml')
+        parser.add_argument("--config",
+            help="Path to the config file. If path is relative it must be resolvable from either the current working "
+                "directory or the config directory",
+            default='conf.yaml'
+        )
         args = parser.parse_args()
         config_file = None
         config_file_is_abs = os.path.isabs(args.config)
