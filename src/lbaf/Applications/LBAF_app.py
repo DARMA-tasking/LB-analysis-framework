@@ -37,18 +37,17 @@ class Loader:
         )
         args = parser.parse_args()
         config_file = None
-        config_file_is_abs = os.path.isabs(args.config)
+        print(args.config)
         if args.config:
-            if not config_file_is_abs:
-                # try to search the file from this place
-                config_file = os.path.abspath(args.config)
-                if config_file is not None and not os.path.isfile(config_file):
-                    # try to search the file relative to the config folder
-                    search_dir = os.path.join(
-                        f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]),
-                        "config"
-                    )
-                    config_file = search_dir + '/' + args.config
+            # try to search the file from this place
+            config_file = os.path.abspath(args.config)
+            if config_file is not None and not os.path.isfile(config_file):
+                # try to search the file relative to the config folder
+                search_dir = os.path.join(
+                    f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]),
+                    "config"
+                )
+                config_file = search_dir + '/' + args.config
         else:
             sys.excepthook = exc_handler
             raise FileNotFoundError("Please provide path to the config file with '--config' argument.")
@@ -60,8 +59,9 @@ class Loader:
                 ' For relative paths, please make sure the file exists either in the current working directory or in'
                 'the `config` directory'
             )
+        else:
+            logger().info('Found configuration file at path %s', config_file)
 
-        logger().info('Found configuration file at path %s', config_file)
         return config_file
 
     def load_config(self)-> Tuple[dict, str]:
