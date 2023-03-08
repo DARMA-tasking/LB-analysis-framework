@@ -98,7 +98,7 @@ class Loader:
             # then download the SchemaValidator for vt files
             try:
                 script_name = "JSON_data_files_validator.py"
-                script_url = "https://www.bing.com/" # f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/script/{script_name}"
+                script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/script/{script_name}"
                 logger().info('Retrieve SchemaValidator at %s', script_url)
                 tmp_filename, http_message = urlretrieve(script_url, os.path.join(import_dir, '~' + script_name))
                 filename = os.path.join(import_dir, script_name)
