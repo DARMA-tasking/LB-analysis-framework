@@ -152,7 +152,8 @@ if __name__ == "__main__":
     # Download SchemaValidator script
     loader.check_and_get_schema_validator(cfg.get('overwrite_validator', True))
 
-# Note that some of the following imports use the SchemaValidator so it is important that SchemaValidator is loaded at that point
+# Note that some of the following imports use the SchemaValidator so it is important that SchemaValidator
+# is loaded at that point
 # pylint: disable=C0413
 from lbaf.Utils.logger import logger
 check_and_get_schema_validator()
