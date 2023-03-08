@@ -117,6 +117,8 @@ class InternalParameters:
     rank_qoi: Union[str,None]
     object_qoi: Union[str,None]
     grid_size: Union[list,None]
+    write_vt: bool
+
     # from_samplers options
     n_objects: int
     n_mapped_ranks: int
@@ -223,8 +225,8 @@ class InternalParameters:
                 range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
-                self.phase_ids = self.configuration.get("from_data").get("phase_ids")
-        self.write_vt = self.configuration.get("write_vt", "True")
+                self.phase_ids = config.get("from_data").get("phase_ids")
+        self.write_vt = config.get("write_vt", True)
 
         # Parse sampling parameters if present
         if config.get("from_samplers") is not None:
