@@ -26,7 +26,7 @@ from lbaf.Utils.functions import abspath_from
 # pylint: enable=C0413
 
 class Loader:
-    """Class to load configuration and schema_validator to call before loading and running LBAF application"""
+    """Class to load LBAF configuration file and SchemaValidator script"""
     def __resolve_config_file(self) -> str:
         """Parses command line argument and resove the config file path."""
         parser = argparse.ArgumentParser()
@@ -152,6 +152,7 @@ if __name__ == "__main__":
     # Download SchemaValidator script
     loader.check_and_get_schema_validator(cfg.get('overwrite_validator', True))
 
+# Note that some of the following imports use the SchemaValidator so it is important that SchemaValidator is loaded at that point
 # pylint: disable=C0413
 from lbaf.Utils.logger import logger
 check_and_get_schema_validator()
