@@ -42,7 +42,7 @@ class Loader:
             if not config_file_is_abs:
                 # try to search the file from this place
                 config_file = os.path.abspath(args.config)
-                if not os.path.isfile(config_file):
+                if config_file is not None and not os.path.isfile(config_file):
                     # try to search the file relative to the config folder
                     search_dir = os.path.join(
                         f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]),
@@ -102,7 +102,7 @@ class Loader:
             # then download the SchemaValidator for vt files
             try:
                 script_name = "JSON_data_files_validator.py"
-                script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/script/{script_name}"
+                script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
                 logger().info('Retrieve SchemaValidator at %s', script_url)
                 tmp_filename, http_message = urlretrieve(script_url, os.path.join(import_dir, '~' + script_name))
                 filename = os.path.join(import_dir, script_name)
