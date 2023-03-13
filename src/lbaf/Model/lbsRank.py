@@ -296,7 +296,7 @@ class Rank:
         msg = Message(1, self.__known_loads)
 
         # Broadcast message to pseudo-random sample of ranks excluding self
-        return rnd.sample(set(loads).difference([self]), min(f, len(loads) - 1)), msg
+        return rnd.sample(list(loads.difference([self])), min(f, len(loads) - 1)), msg
 
     def forward_message(self, r, s, f):
         """ Forward information message to sample of selected peers."""
@@ -308,7 +308,7 @@ class Rank:
         complement = set(self.__known_loads).difference([self])
 
         # Forward message to pseudo-random sample of ranks
-        return rnd.sample(complement, min(f, len(complement))), msg
+        return rnd.sample(list(complement), min(f, len(complement))), msg
 
     def process_message(self, msg):
         """ Update internals when message is received."""
