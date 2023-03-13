@@ -48,7 +48,7 @@ class Visualizer:
             self.__logger.error(
                 "Visualizer expects a non-empty rank quantity of interest name")
             raise SystemExit(1)
-        self.__rank_qoi = f"rank {rank_qoi}"
+        self.__rank_qoi = rank_qoi
 
         # When rank QOI range was passed make sure it is consistent
         rank_qoi_max = qoi_request[1]
@@ -59,14 +59,14 @@ class Visualizer:
                 raise SystemExit(1)
 
         # When object QOI name was passed make sure it is consistent
-        req_str = f"Creating visualization for {self.__rank_qoi}"
+        req_str = f"Creating visualization for rank {self.__rank_qoi}"
         if (object_qoi := qoi_request[2]) and not isinstance(object_qoi, str):
             self.__logger.error(
                 "Optional object quantity of interest name must be a string")
             raise SystemExit(1)
         if object_qoi:
-            self.__object_qoi = f"object {object_qoi}"
-            req_str += f" and {self.__object_qoi}"
+            self.__object_qoi = object_qoi
+            req_str += f" and object {self.__object_qoi}"
         else:
             self.__object_qoi = None
         self.__logger.info(req_str)
@@ -126,9 +126,9 @@ class Visualizer:
 
         # Retrieve and verify rank attribute distributions
         self.__rank_attributes = {
-            k: distributions.get(k, [])
-            for k in list({"rank load", "rank work", self.__rank_qoi})}
-        if not all((n_dis := len(self.__rank_attributes["rank load"])) == len(v)
+            k: distributions.get(f"rank {k}", [])
+            for k in list({"load", "work", self.__rank_qoi})}
+        if not all((n_dis := len(self.__rank_attributes["load"])) == len(v)
                    for v in self.__rank_attributes.values()):
             self.__logger.error(
                 f"Rank attribute distributions do not have equal lengths")
@@ -151,7 +151,7 @@ class Visualizer:
         else:
             self.__rank_qoi_range.append(rank_qoi_max)
         self.__logger.info(
-            f"\t{self.__rank_qoi} range: [{self.__rank_qoi_range[0]:.4g}; {self.__rank_qoi_range[1]:.4g}]")
+            f"\trank {self.__rank_qoi} range: [{self.__rank_qoi_range[0]:.4g}; {self.__rank_qoi_range[1]:.4g}]")
 
         # Create attribute data arrays for rank loads and works
         self.__logger.info(
@@ -223,11 +223,11 @@ class Visualizer:
         if store_all:
             object_qoi_range = oq_all
             self.__logger.info(
-                f"\t{self.__object_qoi} has {len(object_qoi_range)} distinct values")
+                f"\tobject {self.__object_qoi} has {len(object_qoi_range)} distinct values")
         else:
             object_qoi_range = (oq_min, oq_max)
             self.__logger.info(
-                f"\t{self.__object_qoi} range: [{object_qoi_range[0]:.4g}; {object_qoi_range[1]:.4g}]")
+                f"\tobject {self.__object_qoi} range: [{object_qoi_range[0]:.4g}; {object_qoi_range[1]:.4g}]")
 
         # Return cpmputed QOI range
         return object_qoi_range
@@ -267,7 +267,7 @@ class Visualizer:
 
         # Create bit array for object migratability
         b_arr = vtk.vtkBitArray()
-        b_arr.SetName("Migratable")
+        b_arr.SetName("migratable")
         b_arr.SetNumberOfTuples(n_o)
 
         # Create and size point set
@@ -277,7 +277,7 @@ class Visualizer:
         # Retrieve elements constant across all ranks
         p_id = phase.get_id()
         ranks = phase.get_ranks()
-        object_qoi = self.__distributions[self.__object_qoi][p_id]
+        object_qoi = self.__distributions[f"object {self.__object_qoi}"][p_id]
 
         # Iterate over ranks and objects to create mesh points
         point_index, point_to_index, sent_volumes = 0, {}, []
@@ -341,7 +341,7 @@ class Visualizer:
 
         # Initialize containers for edge lines and attribute
         v_arr = vtk.vtkDoubleArray()
-        v_arr.SetName("Volume")
+        v_arr.SetName("volume")
         lines = vtk.vtkCellArray()
         n_e, edge_values = 0, {}
 
@@ -398,7 +398,7 @@ class Visualizer:
             n_colors = len(attribute_range)
             ctf.IndexedLookupOn()
             ctf.SetNumberOfIndexedColors(n_colors)
-            for i, v in enumerate(attribute_range):
+            for i, v in enumerate(sorted(attribute_range)):
                 ctf.SetAnnotation(v, f"{v}")
                 ctf.SetIndexedColorRGBA(i, plt.cm.get_cmap("tab20")(i))
             ctf.Build()
@@ -519,7 +519,7 @@ class Visualizer:
         rank_actor = vtk.vtkActor()
         rank_actor.SetMapper(rank_mapper)
         qoi_actor = self.create_scalar_bar_actor(
-            rank_mapper, self.__rank_qoi, 0.5, 0.9)
+            rank_mapper, f"rank {self.__rank_qoi}", 0.5, 0.9)
         qoi_actor.DrawBelowRangeSwatchOn()
         qoi_actor.SetBelowRangeAnnotation('<')
         qoi_actor.DrawAboveRangeSwatchOn()
@@ -563,7 +563,7 @@ class Visualizer:
             sqrtL.SetResultArrayName(sqrtL_str)
             sqrtL.Update()
             sqrtL_out = sqrtL.GetOutput()
-            sqrtL_out.GetPointData().SetActiveScalars("Migratable")
+            sqrtL_out.GetPointData().SetActiveScalars("migratable")
 
             # Glyph sentinel and migratable objects separately
             glyph_mapper = None
@@ -616,7 +616,7 @@ class Visualizer:
             # Create and add unique scalar bar for object QOI when available
             if glyph_mapper:
                 load_actor = self.create_scalar_bar_actor(
-                    glyph_mapper, self.__object_qoi, 0.52, 0.04,
+                    glyph_mapper, f"object {self.__object_qoi}", 0.52, 0.04,
                     None if is_continuous else self.__object_qoi_range)
                 renderer.AddActor2D(load_actor)
 
@@ -696,7 +696,7 @@ class Visualizer:
 
             # Create and append new volume array for edges
             v_arr = vtk.vtkDoubleArray()
-            v_arr.SetName("Largest Directed Volume")
+            v_arr.SetName("largest directed volume")
             v_arr.SetNumberOfTuples(n_e)
             self.__volumes.append(v_arr)
 
