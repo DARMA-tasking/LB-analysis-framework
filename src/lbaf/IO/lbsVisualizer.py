@@ -258,9 +258,9 @@ class Visualizer:
         q_arr.SetNumberOfTuples(n_o)
 
         # Load array must be added when it is not the object QOI
-        if self.__object_qoi != "object load":
+        if self.__object_qoi != "load":
             l_arr = vtk.vtkDoubleArray()
-            l_arr.SetName("object load")
+            l_arr.SetName("load")
             l_arr.SetNumberOfTuples(n_o)
         else:
             l_arr =  None
@@ -557,8 +557,8 @@ class Visualizer:
             # Compute square root of object loads
             sqrtL = vtk.vtkArrayCalculator()
             sqrtL.SetInputData(object_mesh)
-            sqrtL.AddScalarArrayName("object load")
-            sqrtL_str = "sqrt(object load)"
+            sqrtL.AddScalarArrayName("load")
+            sqrtL_str = "sqrt(load)"
             sqrtL.SetFunction(sqrtL_str)
             sqrtL.SetResultArrayName(sqrtL_str)
             sqrtL.Update()
