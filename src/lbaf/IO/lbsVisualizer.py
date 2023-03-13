@@ -445,7 +445,6 @@ class Visualizer:
         scalar_bar_actor.SetWidth(0.42)
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
-        scalar_bar_actor.UnconstrainedFontSizeOn()
         scalar_bar_actor.SetLabelFormat("%.2G")
         if values:
             scalar_bar_actor.SetNumberOfLabels(len(values))
