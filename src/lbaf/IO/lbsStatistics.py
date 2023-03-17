@@ -39,14 +39,18 @@ class Statistics:
             **self.primary_statistics, **self.derived_statistics}
 
         # Define getter methods
+        def __getter_factory(k):
+            def f():
+                return self.statistics[k]
+            return f
         for k in self.statistics:
-            setattr(self, f"{k.replace(' ', '_')}", self.statistics[k])
+            setattr(self, f"get_{k.replace(' ', '_')}", __getter_factory(k))
 
 def initialize():
     """ Seed pseudo-random number generators."""
 
-    rnd.seed(820)
-    random.seed(820)
+    rnd.seed(146)
+    random.seed(146)
 
 
 def error_out(distribution_name, parameters, logger: Logger):

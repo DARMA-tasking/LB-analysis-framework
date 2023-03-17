@@ -440,7 +440,7 @@ class LBAFApp:
             "imbalance.txt" if self.params.output_dir is None else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w', encoding='utf-8') as imbalance_file:
             imbalance_file.write(
-                f"{l_stats.imbalance}") #pylint: disable=E1101
+                f"{l_stats.get_imbalance()}")
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
@@ -469,22 +469,22 @@ class LBAFApp:
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
-        ell = self.params.n_ranks * l_stats.average / n_o #pylint: disable=E1101
-        self.logger.info('Optimal load statistics for %s objects with iso-time: %s', n_o, f'{ell:6g}')
+        ell = self.params.n_ranks * l_stats.get_average() / n_o
+        self.logger.info("Optimal load statistics for %s objects with iso-time: %s", n_o, f"{ell:6g}")
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
         self.logger.info(
-            '\tminimum: %s  maximum: %s',
-            f'{q * ell:6g}',
-            f'{q + (1 if r else 0) * ell:6g}'
+            "\tminimum: %s  maximum: %s",
+            f"{q * ell:6g}",
+            f"{q + (1 if r else 0) * ell:6g}"
         )
         self.logger.info(
-            '\tstandard deviation: %s imbalance: %s',
-            f'{ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:6g}',
-            f'{(self.params.n_ranks - r) / float(n_o):6g}' if r else '0'
+            "\tstandard deviation: %s imbalance: %s",
+            f"{ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:6g}",
+            f"{(self.params.n_ranks - r) / float(n_o):6g}" if r else '0'
         )
 
         # If this point is reached everything went fine
-        self.logger.info('Process completed without errors')
+        self.logger.info("Process completed without errors")
 
 
 if __name__ == "__main__":
