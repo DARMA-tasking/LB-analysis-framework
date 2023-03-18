@@ -58,7 +58,7 @@ class Rank:
 
     def set_size(self, size: float):
         """ Set rank working memory, called size."""
-        # Nonnegative size required to for memory footprint of this rank
+        # Nonnegative size required for memory footprint of this rank
         if not isinstance(size, float) or size < 0.0:
             sys.excepthook = exc_handler
             raise TypeError(
@@ -67,7 +67,7 @@ class Rank:
 
     def set_shared_blocks(self, sb: dict):
         """ Set rank shared memory blocks."""
-        # A dictionary is required to for shared memory blocks
+        # A dictionary is required for shared memory blocks
         if not isinstance(sb, dict):
             sys.excepthook = exc_handler
             raise TypeError(

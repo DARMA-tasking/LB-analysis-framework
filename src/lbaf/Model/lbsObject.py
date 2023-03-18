@@ -136,22 +136,22 @@ class Object:
         """
         return sum([v for v in self.__communicator.get_sent().values()]) if self.__communicator else 0
 
-    def set_rank_id(self, p_id: int) -> None:
+    def set_rank_id(self, r_id: int) -> None:
         """ Assign object to rank ID
         """
-        self.__rank_id = p_id
+        self.__rank_id = r_id
 
     def get_rank_id(self) -> int:
         """ Return ID of rank to which object is currently assigned
         """
         return self.__rank_id
 
-    def set_shared_block_id(self, sm_id: int) -> None:
+    def set_shared_block_id(self, sb_id: int) -> None:
         """ Assign shared memory block ID when necessary
         """
 
         if self.__shared_block_id is None:
-            self.__shared_block_id = sm_id
+            self.__shared_block_id = sb_id
         else:
             sys.excepthook = exc_handler
             raise TypeError(f"shared_block_id: already assigned ({self.__shared_block_id}) for object {self.__index}")
