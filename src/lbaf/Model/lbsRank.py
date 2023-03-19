@@ -67,7 +67,7 @@ class Rank:
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
 
-    def get_shared_blocks(self) -> set:
+    def get_shared_block_ids(self) -> set:
         """Return IDs of shared blocks."""
         return {b.get_id() for b in self.__shared_blocks}
 

@@ -436,21 +436,21 @@ class Phase:
                 # Delete shared block if no tied object left on rank
                 r_src.delete_shared_block(block)
 
-            # Attach object to block on destination rank
+            # Replicate or update block on destination rank
             if not (b_dst := r_dst.get_shared_block_with_id(b_id)):
                 # Replicate block when not present on destination rank
                 self.__logger.debug(
                     f"Replicating block {b_id} onto rank {r_dst.get_id()}")
-                r_dst.add_shared_block(bt := Block(
+                r_dst.add_shared_block(b_dst := Block(
                     b_id, block.get_home_id(), block.get_size(), {o_id}))
-                bt.attach_object_id(o_id)
-                o.set_shared_block(bt)
             else:
                 # Update block when present on destination rank
                 self.__logger.debug(
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
-                b_dst.attach_object_id(o_id)
-                o.set_shared_block(b_dst)
+
+            # Attach object to block on destination rank
+            b_dst.attach_object_id(o_id)
+            o.set_shared_block(b_dst)
 
     def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]):
         """ Transfer list of objects between source and destination ranks."""
