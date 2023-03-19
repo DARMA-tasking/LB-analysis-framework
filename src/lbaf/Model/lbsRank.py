@@ -103,11 +103,32 @@ class Rank:
                 f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}")
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
-        """ Return shared memory blockg with given ID when it exists."""
+        """ Return shared memory block with given ID when it exists."""
         for block in self.__shared_blocks:
             if block.get_id() == b_id:
                 return block
         return None
+
+    def get_number_of_shared_blocks(self) -> float:
+        """ Return number of shared memory blocks on rank."""
+        return len(self.__shared_blocks)
+
+    def get_number_of_homed_blocks(self) -> float:
+        """ Return number of memory blocks on rank also homed there."""
+        return sum(
+            b.get_home_id() == self.get_id()
+            for b in self.__shared_blocks)
+
+    def get_number_of_uprooted_blocks(self) -> float:
+        """ Return number of uprooted memory blocks on rank."""
+        return len(self.__shared_blocks) - self.get_number_of_homed_blocks()
+
+    def get_homed_blocks_ratio(self) -> float:
+        """ Return fraction of memory blocks on rank also homed there."""
+        if len(self.__shared_blocks):
+            return self.get_number_of_homed_blocks() / len(self.__shared_blocks)
+        else:
+            return math.nan
 
     def get_shared_memory(self):
         """ Return total shared memory on rank."""
