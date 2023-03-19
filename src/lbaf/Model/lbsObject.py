@@ -1,5 +1,6 @@
 import sys
 
+from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
 from ..Utils.exception_handler import exc_handler
 
@@ -22,44 +23,39 @@ class Object:
             sys.excepthook = exc_handler
             raise TypeError(
                 f"i: incorrect type {type(i)}")
-        else:
-            self.__index = i
+        self.__index = i
 
         # Nonnegative load required to perform the work of this object
         if not isinstance(load, float) or load < 0.0:
             sys.excepthook = exc_handler
             raise TypeError(
                 f"load: incorrect type {type(load)} or value: {load}")
-        else:
-            self.__load = load
+        self.__load = load
 
         # Nonnegative size required to for memory footprint of this object
         if not isinstance(size, float) or size < 0.0:
             sys.excepthook = exc_handler
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
-        else:
-            self.__size = size
+        self.__size = size
 
         # Rank to which object is currently assigned if defined
-        if bool(isinstance(r_id, int) or r_id is None) and not isinstance(r_id, bool):
-            self.__rank_id = r_id
-        else:
+        if not isinstance(r_id, int) or isinstance(r_id, bool):
             sys.excepthook = exc_handler
             raise TypeError(
                 f"r_id: incorrect type {type(r_id)}")
+        self.__rank_id = r_id
 
         # Communication graph of this object if defined
-        if isinstance(comm, ObjectCommunicator) or comm is None:
-            self.__communicator = comm
-        else:
+        if not(isinstance(comm, ObjectCommunicator) or comm is None):
             sys.excepthook = exc_handler
             raise TypeError(
                 f"comm: {comm} is of type {type(comm)}. Must be <class 'ObjectCommunicator'>.")
+        self.__communicator = comm
 
         # Initialize other instance variables
         self.__overhead = 0.0
-        self.__shared_block_id = None
+        self.__shared_block = None
 
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
@@ -146,20 +142,23 @@ class Object:
         """
         return self.__rank_id
 
-    def set_shared_block_id(self, sb_id: int) -> None:
-        """ Assign shared memory block ID when necessary
+    def set_shared_block(self, b: Block) -> None:
+        """ Assign shared memory block when necessary
         """
-
-        if self.__shared_block_id is None:
-            self.__shared_block_id = sb_id
-        else:
+        if not isinstance(b, Block):
             sys.excepthook = exc_handler
-            raise TypeError(f"shared_block_id: already assigned ({self.__shared_block_id}) for object {self.__index}")
+            raise TypeError(f"shared block: incorrect type {type(b)}")
+        self.__shared_block = b
+
+    def get_shared_block(self) -> int:
+        """ Return shared memory block assigned to object
+        """
+        return self.__shared_block
 
     def get_shared_block_id(self) -> int:
-        """ Return shared memory block ID assigned to object
+        """ Return ID of shared memory block assigned to object
         """
-        return self.__shared_block_id
+        return self.__shared_block.get_id()
 
     def has_communicator(self) -> bool:
         """ Return whether the object has communication graph data
@@ -174,9 +173,10 @@ class Object:
     def set_communicator(self, c) -> None:
         """ Assign the communication graph for this object
         """
-        # Perform sanity check prior to assignment
-        if isinstance(c, ObjectCommunicator):
-            self.__communicator = c
+        if not isinstance(c, ObjectCommunicator):
+            sys.excepthook = exc_handler
+            raise TypeError(f"object communicator: incorrect type {type(c)}")
+        self.__communicator = c
 
     def get_subphases(self) -> list:
         """ Return subphases of this object

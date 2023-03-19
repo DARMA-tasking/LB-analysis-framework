@@ -9,11 +9,9 @@ class Block:
     def __init__(
         self,
         i: int,
-        h_id: int=None,
+        h_id: int,
         size: float=0.0,
-        comm: ObjectCommunicator=None,
-        user_defined: dict=None,
-        subphases: list=None):
+        o_ids: set=set()):
 
         # Block index
         if not isinstance(i, int) or isinstance(i, bool):
@@ -23,46 +21,56 @@ class Block:
         else:
             self.__index = i
 
+        # Rank to which block is initially assigned
+        if not isinstance(h_id, int) or isinstance(i, bool):
+            sys.excepthook = exc_handler
+            raise TypeError(
+                f"h_id: incorrect type {type(h_id)}")
+        self.__home_id = h_id
+
         # Nonnegative size required to for memory footprint of this block
         if not isinstance(size, float) or size < 0.0:
             sys.excepthook = exc_handler
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
-        else:
-            self.__size = size
+        self.__size = size
 
-        # Rank to which block is initially assigned
-        if bool(isinstance(h_id, int) or h_id is None) and not isinstance(h_id, bool):
-            self.__home_id = h_id
-        else:
+        # Possibly empty set of objects initially attached to block
+        if not isinstance(o_ids, set):
             sys.excepthook = exc_handler
             raise TypeError(
-                f"h_id: incorrect type {type(h_id)}")
+                f"o_ids: incorrect type {type(o_ids)}")
+        self.__attached_object_ids = o_ids
 
     def __repr__(self):
-        return f"Block id: {self.__index}, size: {self.__size}"
+        return f"Block id: {self.__index}, home id: {self.__home_id}, size: {self.__size}, object ids: {self.__attached_object_ids}"
 
     def get_id(self) -> int:
         """ Return block ID
         """
         return self.__index
 
-    def get_size(self) -> float:
-        """ Return block size
-        """
-        return self.__size
-
-    def get_size(self) -> float:
-        """ Return block size
-        """
-        return self.__size
-
-    def set_home_id(self, h_id: int) -> None:
-        """ Assign block to home rank ID
-        """
-        self.__home_id = h_id
-
     def get_home_id(self) -> int:
-        """ Return ID of rank to which block was initially assigned
+        """ Return block home ID
         """
         return self.__home_id
+
+    def get_size(self) -> float:
+        """ Return block size
+        """
+        return self.__size
+
+    def detach_object_id(self, o_id: int) -> int:
+        """ Try to detach object ID from block and return length
+        """
+        try:
+            self.__attached_object_ids.remove(o_id)
+        except:
+            raise TypeError(
+                f"object id {o_id} is not attached to block {self.get_id()}")
+        return len(self.__attached_object_ids)
+
+    def attach_object_id(self, o_id: int):
+        """ Attach object ID to block
+        """
+        self.__attached_object_ids.add(o_id)

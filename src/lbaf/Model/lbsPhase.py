@@ -2,6 +2,7 @@ import sys
 import random as rnd
 from logging import Logger
 
+from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsRank import Rank
 from .lbsObjectCommunicator import ObjectCommunicator
@@ -420,29 +421,36 @@ class Phase:
         o.set_rank_id(r_dst.get_id())
 
         # Update shared blocks when needed
-        if (b_id := o.get_shared_block_id()) is not None:
-            # Retrieve block size for later use
-            b_sz = r_src.get_shared_block_memory(b_id)
-
-            # Update on source rank
+        if (block := o.get_shared_block()):
+            # Detach object from block on source and clean up as needed
+            b_id = block.get_id()
             self.__logger.debug(
                 f"Removing object {o_id} attachment to block {b_id} on rank {r_src.get_id()}")
-            src_b_objs = r_src.get_shared_blocks().get(b_id)[1]
-            src_b_objs.remove(o_id)
 
-            # Delete shared block if no tied object left on rank
-            if not src_b_objs:
-                r_src.delete_shared_block(b_id)
+            # Perform sanity check
+            if b_id not in r_src.get_shared_block_ids():
+                self.__logger.error(
+                f"block {b_id} not present on in {r_src.get_shared_blocks()}")
 
-            # Update on destination rank
-            if not (dst_b := r_dst.get_shared_blocks().get(b_id)):
+            if not block.detach_object_id(o_id):
+                # Delete shared block if no tied object left on rank
+                r_src.delete_shared_block(block)
+
+            # Attach object to block on destination rank
+            if not (b_dst := r_dst.get_shared_block_with_id(b_id)):
+                # Replicate block when not present on destination rank
                 self.__logger.debug(
-                    f"Replicating block {b_id} (size: {b_sz}) onto rank {r_dst.get_id()}")
-                r_dst.add_shared_block(b_id, b_sz, o_id)
+                    f"Replicating block {b_id} onto rank {r_dst.get_id()}")
+                r_dst.add_shared_block(bt := Block(
+                    b_id, block.get_home_id(), block.get_size(), {o_id}))
+                bt.attach_object_id(o_id)
+                o.set_shared_block(bt)
             else:
+                # Update block when present on destination rank
                 self.__logger.debug(
                     f"Block {b_id} already present on rank {r_dst.get_id()}")
-                dst_b[1].add(o_id)
+                b_dst.attach_object_id(o_id)
+                o.set_shared_block(b_dst)
 
     def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]):
         """ Transfer list of objects between source and destination ranks."""
