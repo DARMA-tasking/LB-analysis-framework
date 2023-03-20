@@ -450,10 +450,10 @@ class Visualizer:
         if values:
             scalar_bar_actor.SetNumberOfLabels(len(values))
             scalar_bar_actor.SetAnnotationLeaderPadding(8)
-            scalar_bar_actor.SetTitle(title.title() + '\n')
+            scalar_bar_actor.SetTitle(title.title().replace('_', ' ') + '\n')
         else:
             scalar_bar_actor.SetNumberOfLabels(2)
-            scalar_bar_actor.SetTitle(title.title())
+            scalar_bar_actor.SetTitle(title.title().replace('_', ' '))
         for text_prop in (
             scalar_bar_actor.GetTitleTextProperty(),
             scalar_bar_actor.GetLabelTextProperty(),
@@ -626,7 +626,7 @@ class Visualizer:
         text_actor = vtk.vtkTextActor()
         text_actor.SetInput(
             f"Phase ID: {pid}"
-            f"   Iteration: {iteration}/{len(lb_data)}\n"
+            f"   Iteration: {iteration}/{len(lb_data) - 1}\n"
             f"Load Imbalance: {lb_data[iteration].GetTuple1(0):.4g}")
         text_prop = text_actor.GetTextProperty()
         text_prop.SetColor(0.0, 0.0, 0.0)
