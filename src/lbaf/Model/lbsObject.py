@@ -40,7 +40,7 @@ class Object:
         self.__size = size
 
         # Rank to which object is currently assigned if defined
-        if not isinstance(r_id, int) or isinstance(r_id, bool):
+        if not(r_id is None or isinstance(r_id, int)) or isinstance(r_id, bool):
             sys.excepthook = exc_handler
             raise TypeError(
                 f"r_id: incorrect type {type(r_id)}")
