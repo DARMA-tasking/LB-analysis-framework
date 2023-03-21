@@ -22,7 +22,7 @@ class Block:
             self.__index = i
 
         # Rank to which block is initially assigned
-        if not isinstance(h_id, int) or isinstance(i, bool):
+        if not isinstance(h_id, int) or isinstance(h_id, bool):
             sys.excepthook = exc_handler
             raise TypeError(
                 f"h_id: incorrect type {type(h_id)}")
