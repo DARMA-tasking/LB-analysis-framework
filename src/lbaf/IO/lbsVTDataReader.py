@@ -8,6 +8,7 @@ import sys
 import brotli
 
 from ..imported.JSON_data_files_validator import SchemaValidator
+from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
@@ -239,7 +240,7 @@ class LoadReader:
                     logger=self.__logger))
 
             # Initialize storage for shared blocks information
-            shared_blocks = {}
+            rank_blocks = {}
 
             # Iterate over tasks
             for task in p["tasks"]:
@@ -251,7 +252,7 @@ class LoadReader:
                 subphases = task.get("subphases")
 
                 # Instantiate object with retrieved parameters
-                obj = Object(
+                o = Object(
                     task_id,
                     r_id=node_id,
                     load=task_load,
@@ -260,28 +261,35 @@ class LoadReader:
 
                 # Update shared block information as needed
                 if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
-                    # Assign shared block to object
-                    obj.set_shared_block_id(shared_id)
-
                     # Create or update (memory, objects) for shared block
-                    shared_blocks.setdefault(
+                    rank_blocks.setdefault(
                         shared_id,
                         (task_user_defined.get("shared_bytes", 0.0), set([])))
-                    shared_blocks[shared_id][1].add(task_id)
+                    rank_blocks[shared_id][1].add(o)
 
                 # Add object to rank given its type
                 if task_entity.get("migratable"):
-                    phase_rank.add_migratable_object(obj)
+                    phase_rank.add_migratable_object(o)
                 else:
-                    phase_rank.add_sentinel_object(obj)
+                    phase_rank.add_sentinel_object(o)
 
                 # Print debug information when requested
                 self.__logger.debug(
-                    f"Added object {task_id}, time = {task_load} to phase {curr_phase_id}")
+                    f"Added object {task_id}, load: {task_load} to phase {curr_phase_id}")
 
-            # Set rank-level quantities of interest
+            # Set rank-level memory quantities of interest
             phase_rank.set_size(
                 task_user_defined.get("rank_working_bytes", 0.0))
+            shared_blocks = set()
+            for b_id, (b_size, objects) in rank_blocks.items():
+                # Create and add new block
+                shared_blocks.add(block := Block(
+                    b_id, h_id=node_id, size=b_size,
+                    o_ids={o.get_id() for o in objects}))
+
+                # Assign block to objects attached to it
+                for o in objects:
+                    o.set_shared_block(block)
             phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned dictionaries of rank/objects and communicators per phase
