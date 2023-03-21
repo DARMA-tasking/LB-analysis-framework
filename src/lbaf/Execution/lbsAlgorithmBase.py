@@ -129,10 +129,11 @@ class AlgorithmBase:
 
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
+            print(support, getter)
             for k, v in stat_names.items():
-                statistics.setdefault(k, []).append(
-                    getattr(compute_function_statistics(
-                        getattr(self._phase, f"get_{support}")(), getter), v))
+                stats = compute_function_statistics(
+                    getattr(self._phase, f"get_{support}")(), getter)
+                statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
     def _report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode."""
