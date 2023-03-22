@@ -12,7 +12,7 @@ try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     sys.path.append(project_path)
 except Exception as path_ex:
-    print(f'Can not add project path to system path! Exiting!\nERROR: {path_ex}')
+    print(f'Can not add project path to system path. Exiting.\nERROR: {path_ex}')
     raise SystemExit(1) from path_ex
 try:
     import paraview.simple #pylint: disable=E0401,W0611
@@ -340,9 +340,9 @@ class LBAFApp:
             self.logger)
 
         # Perform brute force optimization when needed
-        if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm['name'] != 'BruteForce':
+        if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm["name"] != "BruteForce":
             # Prepare input data for rank order enumerator
-            self.logger.info('Starting brute force optimization')
+            self.logger.info("Starting brute force optimization")
             objects = []
 
             # Iterate over ranks
@@ -375,9 +375,7 @@ class LBAFApp:
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
             self.logger.info(
-                'Minimax work: %s for %s optimal arrangements amongst %s',
-                f'{w_min_max:4g}', len(a_min_max), n_a
-            )
+                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
         else:
             self.logger.info("No brute force optimization performed")
             a_min_max = []
@@ -438,7 +436,7 @@ class LBAFApp:
             self.logger)
         with open(
             "imbalance.txt" if self.params.output_dir is None else os.path.join(
-                self.params.output_dir, "imbalance.txt"), 'w', encoding='utf-8') as imbalance_file:
+                self.params.output_dir, "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
             imbalance_file.write(
                 f"{l_stats.get_imbalance()}")
         lbstats.print_function_statistics(
