@@ -74,7 +74,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-    def information_stage(self):
+    def __information_stage(self):
         """ Execute information stage."""
 
         # Build set of all ranks in the phase
@@ -157,7 +157,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
 
             # Start with information stage
-            self.information_stage()
+            self.__information_stage()
 
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
