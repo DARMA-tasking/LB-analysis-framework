@@ -44,14 +44,18 @@ class LoadReader:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Check schema
+        # Assign schema checker
         self.__check_schema = check_schema
 
-        self.vt_files = self._load_vt_files()
+        # Retrieve vt files
+        self.vt_files = self.__load_vt_files()
 
-    def _load_vt_file(self, rank: int):
-        file_name = self._get_node_trace_file_name(node_id=rank)
-        self.__logger.info(f"Reading {file_name} VT object map")
+    def _load_vt_file(self, rank_id: int):
+        # Retrieve file name
+        file_name = self._get_node_trace_file_name(node_id=rank_id)
+        self.__logger.info(f"Reading {file_name}")
+
+        # Try to open, read, and decompress file
         if not os.path.isfile(file_name):
             sys.excepthook = exc_handler
             raise FileNotFoundError(f"File {file_name} not found")
@@ -63,36 +67,42 @@ class LoadReader:
             except brotli.error:
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
-        # Extracting type from JSON data
-        schema_type = decompressed_dict.get("type")
-        if schema_type is None:
-            sys.excepthook = exc_handler
-            raise TypeError("JSON data is missing 'type' key")
+        # Determine data type
+        metadata = decompressed_dict.get("metadata")
+        if not metadata or not (schema_type := metadata.get("type")):
+            if not (schema_type := decompressed_dict.get("type")):
+                sys.excepthook = exc_handler
+                raise TypeError("JSON data is missing 'type' key")
+        self.__logger.debug(f"{file_name} has type {schema_type}")
+
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
-            if SchemaValidator(schema_type=schema_type).is_valid(schema_to_validate=decompressed_dict):
+            if SchemaValidator(
+                schema_type=schema_type).is_valid(
+                schema_to_validate=decompressed_dict):
                 self.__logger.info(f"Valid JSON schema in {file_name}")
             else:
                 self.__logger.error(f"Invalid JSON schema in {file_name}")
-                SchemaValidator(schema_type=schema_type).validate(schema_to_validate=decompressed_dict)
-        # Print more information when requested
-        self.__logger.debug(f"Finished reading file: {file_name}")
+                SchemaValidator(
+                    schema_type=schema_type).validate(
+                    schema_to_validate=decompressed_dict)
 
-        return rank, decompressed_dict
+        # Return rank ID and data dictionary
+        return rank_id, decompressed_dict
 
-    def _load_vt_files(self) -> dict:
+    def __load_vt_files(self) -> dict:
         """ Load VT files into dict. """
         vt_files = {}
         with Pool(context=get_context("fork")) as pool:
-            results = pool.imap_unordered(self._load_vt_file, range(self.__n_ranks))
+            results = pool.imap_unordered(
+                self._load_vt_file, range(self.__n_ranks))
             for rank, decompressed_dict in results:
                 vt_files[rank] = decompressed_dict
         return vt_files
 
     def _get_node_trace_file_name(self, node_id):
-        """ Build the file name for a given rank/node ID
-        """
+        """ Build the file name for a given rank/node ID."""
         return f"{self.__file_prefix}.{node_id}.{self.__file_suffix}"
 
     def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> tuple:

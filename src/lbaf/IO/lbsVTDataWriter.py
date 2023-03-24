@@ -17,7 +17,7 @@ class VTDataWriter:
         of MPI ranks that VT is utilizing.
     """
 
-    def __init__(self, phase: Phase, logger: Logger, f: str = "lbs_out", s: str = "vom", output_dir=None):
+    def __init__(self, phase: Phase, logger: Logger, f: str = "lbs_out", s: str = "json", output_dir=None):
         """ Class constructor:
             phase: Phase instance
             f: file name stem
@@ -45,33 +45,45 @@ class VTDataWriter:
             for file_name in results:
                 self.__logger.info(f"Saved {file_name}")
 
+    def __create_object_entries(self, rank_id, objects):
+        """ Create per-object entries to be outputted to JSON."""
+        return [{
+            "entity": {
+                "home": rank_id,
+                "id": o.get_id(),
+                "type": "object",
+                "migratable": True},
+            "node": rank_id,
+            "resource": "cpu",
+            "time": o.get_load()}
+            for o in objects]
+        
     def json_writer(self, rank: Rank) -> str:
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__suffix}"
         if self.__output_dir is not None:
             file_name = os.path.join(self.__output_dir, file_name)
 
-        # Create list of objects descriptions
-        objects = [
-            {"obj_id": o.get_id(), "obj_load": o.get_load()}
-            for o in rank.get_objects()]
-        print("objects on rank", rank.get_id(), ":", objects)
+        # Initialize output dict
+        phase_data = {"id": self.__phase.get_id()}
+        r_id = rank.get_id()
+        output = {
+            "metadata": {
+                "type": "LBDatafile",
+                "rank": r_id},
+            "phases": [phase_data]}
 
-        dict_to_dump = {}
-        for rank_id, others_list in object_map.items():
-            phase_dict = {"tasks": list(), "id": rank_id}
-            for task in others_list:
-                task_dict = {
-                    "load": task["obj_load"],
-                    "resource": "cpu",
-                    "object": task["obj_id"]}
-                phase_dict["tasks"].append(task_dict)
-            dict_to_dump.setdefault("phases", []).append(phase_dict)
-        print(dict_to_dump)
-        json_str = json.dumps(dict_to_dump, separators=(',', ':'))
-        compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
+        # Create list of objects descriptions
+        tasks = self.__create_object_entries(
+            r_id, rank.get_migratable_objects())
+        tasks += self.__create_object_entries(
+            r_id, rank.get_sentinel_objects())
+        phase_data["tasks"] = tasks
 
         # Write file and return its name
+        json_str = json.dumps(output, separators=(',', ':'))
+        compressed_str = brotli.compress(
+            string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
         with open(file_name, "wb") as compr_json_file:
             compr_json_file.write(compressed_str)
         return file_name
