@@ -53,7 +53,6 @@ class Rank:
         """ Return rank ID."""
         return self.__index
 
-
     def get_size(self) -> float:
         """ Return object size."""
         return self.__size

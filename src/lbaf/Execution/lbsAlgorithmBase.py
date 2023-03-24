@@ -129,7 +129,6 @@ class AlgorithmBase:
 
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
-            print(support, getter)
             for k, v in stat_names.items():
                 stats = compute_function_statistics(
                     getattr(self._phase, f"get_{support}")(), getter)
