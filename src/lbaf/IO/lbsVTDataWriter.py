@@ -57,7 +57,7 @@ class VTDataWriter:
             "resource": "cpu",
             "time": o.get_load()}
             for o in objects]
-        
+
     def json_writer(self, rank: Rank) -> str:
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__suffix}"
