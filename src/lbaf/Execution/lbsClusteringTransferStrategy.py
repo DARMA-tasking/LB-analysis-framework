@@ -21,13 +21,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """ Class constructor
             criterion: a CriterionBase instance
             parameters: a dictionary of parameters."""
-
         # Call superclass init
         super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
 
     def __cluster_objects(self, rank):
         """ Cluster migratiable objects by shared block ID when available."""
-
         # Iterate over all migratable objects on rank
         clusters = {}
         for o in rank.get_migratable_objects():
@@ -44,6 +42,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
     def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
         """ Find suitable sub-clusters to bring rank closest and above average load."""
+        # Bail out early if no clusters are available
+        if not clusters:
+            self._logger.info("No migratable clusters on rank")
+            return []
 
         # Build dict of suitable clusters with their load
         n_inspect = 0
@@ -82,7 +84,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
     def execute(self, phase: Phase, ave_load: float):
         """ Perform object transfer stage."""
-
         # Initialize transfer stage
         self.__average_load = ave_load
         self._logger.info(f"Executing transfer phase with average load: {self.__average_load}")
@@ -99,7 +100,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Cluster migratiable objects on source rank
             clusters_src = self.__cluster_objects(r_src)
-            self._logger.info(f"Constructed {len(clusters_src)} object clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
+            self._logger.info(f"Constructed {len(clusters_src)} migratable clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
