@@ -64,7 +64,7 @@ def load_config(path: str)-> Tuple[dict, str]:
                 data = yaml.safe_load(file_io)
                 if not data.get('overwrite_validator', True):
                     logger().info(
-                        f"Option 'overwrite_validator' in configuration file: {path} is set to False"  
+                        f"Option 'overwrite_validator' in configuration file: {path} is set to False"
                     )
         except yaml.MarkedYAMLError as err:
             err_line = err.problem_mark.line if err.problem_mark is not None else -1
