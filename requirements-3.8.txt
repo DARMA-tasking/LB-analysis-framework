@@ -24,4 +24,4 @@ docutils==0.19
 build==0.7.0
 
 # LBAF project directory
-# -e .
+-e .
