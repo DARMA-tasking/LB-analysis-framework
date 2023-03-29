@@ -28,3 +28,4 @@ LBAF_Viz:
   object_jitter: 0.5
   rank_qoi: work
   object_qoi: work
+  force_continuous_object_qoi: true

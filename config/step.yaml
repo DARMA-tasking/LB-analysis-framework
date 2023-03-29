@@ -40,3 +40,4 @@ LBAF_Viz:
   rank_qoi: work
   object_qoi: load
   save_meshes: true
+  force_continuous_object_qoi: true

@@ -40,7 +40,6 @@ LBAF_Viz:
   z_ranks: 1
   object_jitter: 0.5
   rank_qoi: load
-  #rank_qoi: homed_blocks_ratio
   object_qoi: load
-  #object_qoi: shared_block_id
   save_meshes: true
+  force_continuous_object_qoi: true
