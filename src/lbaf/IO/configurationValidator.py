@@ -85,6 +85,7 @@ class ConfigurationValidator:
                     error="Should be of type 'float' and magnitude < 1"),
                 "rank_qoi": str,
                 Optional("object_qoi"): str,
+                Optional("force_continuous_object_qoi"): bool,
                 Optional("save_meshes"): bool},
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,

@@ -208,7 +208,8 @@ class InternalParameters:
                 raise SystemExit(1)
 
             # Retrieve optional parameters
-            self.save_meshes = viz.get("save_meshes")
+            self.save_meshes = viz.get("save_meshes", False)
+            self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
         else:
             # No visualization quantities of interest
             self.rank_qoi = self.object_qoi = self.grid_size = None
@@ -416,6 +417,7 @@ class LBAFApp:
             ex_writer = Visualizer(
                 self.logger,
                 qoi_request,
+                self.params.continuous_object_qoi,
                 phases,
                 self.params.grid_size,
                 self.params.object_jitter,

@@ -30,6 +30,8 @@ generate_multimedia: false
 output_dir: ../output
 output_file_stem: output_file
 n_ranks: 32
+LBAF_Viz:
+  force_continuous_object_qoi: true
 
 # Other
 generate_meshes:
