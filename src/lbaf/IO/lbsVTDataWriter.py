@@ -45,7 +45,7 @@ class VTDataWriter:
             for file_name in results:
                 self.__logger.info(f"Saved {file_name}")
 
-    def __create_object_entries(self, rank_id, objects):
+    def __create_tasks(self, rank_id, objects):
         """ Create per-object entries to be outputted to JSON."""
         return [{
             "entity": {
@@ -74,11 +74,9 @@ class VTDataWriter:
             "phases": [phase_data]}
 
         # Create list of objects descriptions
-        tasks = self.__create_object_entries(
-            r_id, rank.get_migratable_objects())
-        tasks += self.__create_object_entries(
+        phase_data["tasks"] = self.__create_tasks(
+            r_id, rank.get_migratable_objects()) + self.__create_tasks(
             r_id, rank.get_sentinel_objects())
-        phase_data["tasks"] = tasks
 
         # Write file and return its name
         json_str = json.dumps(output, separators=(',', ':'))
