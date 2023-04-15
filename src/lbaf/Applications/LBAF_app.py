@@ -25,8 +25,8 @@ from lbaf.Utils.colors import green
 from lbaf.Utils.functions import abspath_from
 # pylint: enable=C0413
 
-def get_config_file() -> str:
-    """Parses command line argument and returns config file path."""
+def get_config_file_path() -> str:
+    """Parse command line argument and return config file path."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Path to the config file.", default="conf.yaml")
     args = parser.parse_args()
@@ -74,7 +74,7 @@ def check_and_get_schema_validator():
     overwrite_validator = True
     config_file = None
     if __name__ == "__main__":
-        config_file = get_config_file()
+        config_file = get_config_file_path()
         with open(config_file, "rt", encoding="utf-8") as config:
             conf = yaml.safe_load(config)
         overwrite_validator = conf.get("overwrite_validator", True)
@@ -117,7 +117,7 @@ class InternalParameters:
     rank_qoi: Union[str,None]
     object_qoi: Union[str,None]
     grid_size: Union[list,None]
-    write_vt: bool
+    vt_writer: Union[VTDataWriter,None]
 
     # from_samplers options
     n_objects: int
@@ -228,7 +228,6 @@ class InternalParameters:
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
                 self.phase_ids = config.get("from_data").get("phase_ids")
-        self.write_vt = config.get("write_vt", True)
 
         # Parse sampling parameters if present
         if config.get("from_samplers") is not None:
@@ -241,6 +240,9 @@ class InternalParameters:
         # Set output directory, local by default
         self.output_dir = abspath_from(config.get("output_dir", '.'), config_dir)
 
+        # Determine whether VT JSON file outputs are requested
+        self.write_vt = config.get("write_vt", True)
+
     def check_parameters(self):
         """Checks after initialization."""
         # Checking if output dir exists, if not, creating one
@@ -251,13 +253,20 @@ class InternalParameters:
 class LBAFApp:
     """LBAF application class"""
     def __init__(self):
-        self.config_file = get_config_file()
+        # Retrieve configuration file path
+        self.config_file = get_config_file_path()
 
         # Instantiate parameters
         self.params = InternalParameters(config_file=self.config_file)
 
         # Assign logger to variable
         self.logger = self.params.logger
+
+        # Create VT writer except when explicitly turned off
+        self.vt_writer = VTDataWriter(
+            self.logger,
+            self.params.output_dir,
+            self.params.output_file_stem) if self.params.write_vt else None
 
     def main(self):
         """LBAFApp entrypoint to run"""
@@ -394,13 +403,8 @@ class LBAFApp:
         runtime.execute()
 
         # Instantiate phase to VT file writer when requested
-        if self.params.write_vt:
-            vt_writer = VTDataWriter(
-                curr_phase,
-                self.logger,
-                self.params.output_dir,
-                self.params.output_file_stem)
-            vt_writer.write()
+        if self.vt_writer:
+            self.vt_writer.write(curr_phase)
 
         # Generate meshes and multimedia when requested
         if self.params.grid_size:

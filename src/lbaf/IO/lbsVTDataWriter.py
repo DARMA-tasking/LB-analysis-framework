@@ -17,7 +17,6 @@ class VTDataWriter:
 
     def __init__(
         self,
-        phase: Phase,
         logger: Logger,
         output_dir='.',
         stem: str = "LBAF_out",
@@ -30,13 +29,7 @@ class VTDataWriter:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Ensure that provided phase has correct type
-        if not isinstance(phase, Phase):
-            self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
-            return
-
         # Assign internals
-        self.__phase = phase
         self.__file_stem = stem
         if output_dir is not None:
             self.__file_stem = os.path.join(
@@ -82,9 +75,18 @@ class VTDataWriter:
             compr_json_file.write(compressed_str)
         return file_name
 
-    def write(self):
-        """ Write one JSON per rank in data-parallel fashion."""
+    def write(self, phase: Phase):
+        """ Write one JSON per rank for given phase instance."""
+        # Ensure that provided phase has correct type
+        if not isinstance(phase, Phase):
+            self.__logger.error("Cannot write to JSON file without a Phase instance")
+            return
+        self.__phase = phase
+
+        # Prevent recursion overruns
         sys.setrecursionlimit(25000)
+
+        # Write individual rank files using data parallelism
         with mp.pool.Pool(context=mp.get_context("fork")) as pool:
             results = pool.imap_unordered(
                 self.json_writer, self.__phase.get_ranks())
