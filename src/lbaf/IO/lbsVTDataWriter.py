@@ -1,11 +1,9 @@
 import json
 import os
 import sys
-
 import brotli
+import multiprocessing as mp
 from logging import Logger
-from multiprocessing.pool import Pool
-from multiprocessing import get_context
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
@@ -45,15 +43,6 @@ class VTDataWriter:
                 output_dir, self.__file_stem)
         self.__extension = ext
 
-    def write(self):
-        """ Write one JSON file per rank."""
-        sys.setrecursionlimit(25000)
-        with Pool(context=get_context("fork")) as pool:
-            results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
-            for file_name in results:
-                self.__logger.info(
-                    f"Wrote JSON file: {file_name}")
-
     def __create_tasks(self, rank_id, objects):
         """ Create per-object entries to be outputted to JSON."""
         return [{
@@ -92,3 +81,14 @@ class VTDataWriter:
         with open(file_name, "wb") as compr_json_file:
             compr_json_file.write(compressed_str)
         return file_name
+
+    def write(self):
+        """ Write one JSON per rank in data-parallel fashion."""
+        sys.setrecursionlimit(25000)
+        with mp.pool.Pool(context=mp.get_context("fork")) as pool:
+            results = pool.imap_unordered(
+                self.json_writer, self.__phase.get_ranks())
+            for file_name in results:
+                self.__logger.info(
+                    f"Wrote JSON file: {file_name}")
+
