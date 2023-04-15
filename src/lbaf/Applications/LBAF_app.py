@@ -398,8 +398,8 @@ class LBAFApp:
             vt_writer = VTDataWriter(
                 curr_phase,
                 self.logger,
-                self.params.output_file_stem,
-                output_dir=self.params.output_dir)
+                self.params.output_dir,
+                self.params.output_file_stem)
             vt_writer.write()
 
         # Generate meshes and multimedia when requested

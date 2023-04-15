@@ -118,14 +118,13 @@ class Visualizer:
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
         self.__object_file_name = f"{output_file_stem}_object_view"
-        self.__output_dir = output_dir
-        if self.__output_dir is not None:
+        if output_dir is not None:
             self.__rank_file_name = os.path.join(
-                self.__output_dir, self.__rank_file_name)
+                output_dir, self.__rank_file_name)
             self.__object_file_name = os.path.join(
-                self.__output_dir, self.__object_file_name)
+                output_dir, self.__object_file_name)
             self.__visualization_file_name = os.path.join(
-                self.__output_dir, output_file_stem)
+                output_dir, output_file_stem)
 
         # Retrieve and verify rank attribute distributions
         self.__rank_attributes = {

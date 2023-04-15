@@ -17,11 +17,17 @@ class VTDataWriter:
         of MPI ranks that VT is utilizing.
     """
 
-    def __init__(self, phase: Phase, logger: Logger, f: str = "lbs_out", s: str = "json", output_dir=None):
+    def __init__(
+        self,
+        phase: Phase,
+        logger: Logger,
+        output_dir='.',
+        stem: str = "LBAF_out",
+        ext: str = "json"):
         """ Class constructor:
             phase: Phase instance
-            f: file name stem
-            s: suffix
+            stem: file name stem
+            ext: file name extension
         """
         # Assign logger to instance variable
         self.__logger = logger
@@ -33,8 +39,8 @@ class VTDataWriter:
 
         # Assign internals
         self.__phase = phase
-        self.__file_stem = f"{f}"
-        self.__suffix = s
+        self.__file_stem = stem
+        self.__extension = ext
         self.__output_dir = output_dir
 
     def write(self):
@@ -60,7 +66,7 @@ class VTDataWriter:
 
     def json_writer(self, rank: Rank) -> str:
         # Create file name for current rank
-        file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__suffix}"
+        file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__extension}"
         if self.__output_dir is not None:
             file_name = os.path.join(self.__output_dir, file_name)
 
