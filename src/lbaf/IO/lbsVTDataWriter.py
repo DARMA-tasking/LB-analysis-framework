@@ -40,8 +40,10 @@ class VTDataWriter:
         # Assign internals
         self.__phase = phase
         self.__file_stem = stem
+        if output_dir is not None:
+            self.__file_stem = os.path.join(
+                output_dir, self.__file_stem)
         self.__extension = ext
-        self.__output_dir = output_dir
 
     def write(self):
         """ Write one JSON file per rank."""
@@ -49,7 +51,8 @@ class VTDataWriter:
         with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
             for file_name in results:
-                self.__logger.info(f"Saved {file_name}")
+                self.__logger.info(
+                    f"Wrote JSON file: {file_name}")
 
     def __create_tasks(self, rank_id, objects):
         """ Create per-object entries to be outputted to JSON."""
@@ -67,8 +70,6 @@ class VTDataWriter:
     def json_writer(self, rank: Rank) -> str:
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__extension}"
-        if self.__output_dir is not None:
-            file_name = os.path.join(self.__output_dir, file_name)
 
         # Initialize output dict
         phase_data = {"id": self.__phase.get_id()}

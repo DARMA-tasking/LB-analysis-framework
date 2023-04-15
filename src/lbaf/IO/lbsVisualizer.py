@@ -739,13 +739,13 @@ class Visualizer:
                 self.__logger.warning(
                     f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
             else:
-                self.__logger.info(
-                    f"Writing ExodusII file: {self.__rank_file_name}")
                 writer = vtk.vtkExodusIIWriter()
                 writer.SetFileName(self.__rank_file_name)
                 writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
                 writer.WriteAllTimeStepsOn()
                 writer.Update()
+                self.__logger.info(
+                    f"Wrote ExodusII file: {self.__rank_file_name}")
 
         # Determine whether phase must be updated
         update_phase = True if len(
@@ -766,11 +766,11 @@ class Visualizer:
                 # Write to VTP file when requested
                 if save_meshes:
                     file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
-                    self.__logger.info(f"Writing VTP file: {file_name}")
                     writer = vtk.vtkXMLPolyDataWriter()
                     writer.SetFileName(file_name)
                     writer.SetInputData(object_mesh)
                     writer.Update()
+                    self.__logger.info(f"Wrote VTP file: {file_name}")
             else:
                 object_mesh = None
 
@@ -814,9 +814,9 @@ class Visualizer:
 
                 # Output PNG file
                 file_name = f"{self.__visualization_file_name}_{iteration:02d}.png"
-                self.__logger.info(f"Writing PNG file: {file_name}")
                 writer = vtk.vtkPNGWriter()
                 writer.SetInputConnection(w2i.GetOutputPort())
                 writer.SetFileName(file_name)
                 writer.SetCompressionLevel(2)
                 writer.Write()
+                self.__logger.info(f"Wrote PNG file: {file_name}")
