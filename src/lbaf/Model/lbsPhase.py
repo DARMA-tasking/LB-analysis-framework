@@ -361,25 +361,22 @@ class Phase:
         for p in self.__ranks:
             self.__logger.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
-    def populate_from_log(self, t_s, basename):
+    def populate_from_log(self, phase_id):
         """ Populate this phase by reading in a load profile from log files."""
         # Populate phase with reader output
-        self.__ranks = self.__reader.read_phase(t_s)
-
-        # Compute and report object statistics
+        self.__ranks = self.__reader.read_phase(phase_id)
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
+        self.__n_objects = len(objects)
+
+        # Compute and report object statistics
         print_function_statistics(
             objects, lambda x: x.get_load(), "object loads", self.__logger)
         print_function_statistics(
             objects, lambda x: x.get_size(), "object sizes", self.__logger)
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
-
-        # Set number of read objects
-        self.__n_objects = len(objects)
-        self.__logger.info(f"Read {self.__n_objects} objects from load-step {t_s} of data files with prefix {basename}")
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """ Transfer object from source to destination rank."""

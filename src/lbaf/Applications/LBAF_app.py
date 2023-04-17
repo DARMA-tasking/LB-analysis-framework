@@ -308,7 +308,7 @@ class LBAFApp:
                 else:
                     phase = Phase(
                         self.logger, phase_id, reader=reader)
-                phase.populate_from_log(phase_id, self.params.data_stem)
+                phase.populate_from_log(phase_id)
                 phases.append(phase)
         else:
             # Populate a phase 0 pseudo-randomly
