@@ -248,10 +248,9 @@ class LoadReader:
                 phase_rank := Rank(node_id, logger=self.__logger))
 
             # Initialize storage for shared blocks information
-            rank_blocks = {}
+            rank_blocks, task_user_defined = {}, {}
 
             # Iterate over tasks
-            task_user_defined = {}
             for task in p["tasks"]:
                 # Retrieve required values
                 task_entity = task.get("entity")
