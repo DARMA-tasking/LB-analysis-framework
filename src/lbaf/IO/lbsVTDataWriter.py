@@ -93,4 +93,3 @@ class VTDataWriter:
             for file_name in results:
                 self.__logger.info(
                     f"Wrote JSON file: {file_name}")
-
