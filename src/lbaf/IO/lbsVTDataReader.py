@@ -47,8 +47,13 @@ class LoadReader:
         # Assign schema checker
         self.__check_schema = check_schema
 
-        # Retrieve vt files
-        self.vt_files = self.__load_vt_files()
+        # Load vt files concurrently
+        self.__vt_files = {}
+        with Pool(context=get_context("fork")) as pool:
+            results = pool.imap_unordered(
+                self._load_vt_file, range(self.__n_ranks))
+            for rank, decompressed_dict in results:
+                self.__vt_files[rank] = decompressed_dict
 
     def _load_vt_file(self, rank_id: int):
         # Retrieve file name
@@ -91,16 +96,6 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def __load_vt_files(self) -> dict:
-        """ Load VT files into dict. """
-        vt_files = {}
-        with Pool(context=get_context("fork")) as pool:
-            results = pool.imap_unordered(
-                self._load_vt_file, range(self.__n_ranks))
-            for rank, decompressed_dict in results:
-                vt_files[rank] = decompressed_dict
-        return vt_files
-
     def _get_node_trace_file_name(self, node_id):
         """ Build the file name for a given rank/node ID."""
         return f"{self.__file_prefix}.{node_id}.{self.__file_suffix}"
@@ -111,7 +106,7 @@ class LoadReader:
         """
         # Retrieve communications from JSON reader
         iter_dict = {}
-        iter_dict, comm = self.json_reader(
+        iter_dict, comm = self.json_loader(
             returned_dict=iter_dict,
             phase_id=phase_id,
             node_id=node_id)
@@ -180,10 +175,10 @@ class LoadReader:
         # Return populated list of ranks
         return rank_list
 
-    def json_reader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
+    def json_loader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
         """ Reader compatible with current VT Object Map files (json)."""
         # Define phases from file
-        phases = self.vt_files.get(node_id).get("phases")
+        phases = self.__vt_files.get(node_id).get("phases")
         comm_dict = {}
 
         # Handle case of empty rank file
@@ -198,8 +193,10 @@ class LoadReader:
             # Ignore phases that are not of interest
             if not phase_id in (curr_phase_id, -1):
                 self.__logger.debug(
-                    f"Ignored phase {curr_phase_id}")
+                    f"Ignored phase {curr_phase_id} for rank {node_id}")
                 continue
+            self.__logger.debug(
+                f"Loading phase {curr_phase_id} for rank {node_id}")
 
             # Create communicator dictionary
             comm_dict[curr_phase_id] = {}
