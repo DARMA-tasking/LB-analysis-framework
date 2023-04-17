@@ -274,9 +274,14 @@ class LBAFApp:
         lbstats.initialize()
 
         # Create list of phase instances
-        phases = [] #type: List[Phase]
+        phases = []
+
+        # Check schema
         check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
+
+        # Populate phase depending on chosen mechanism
         if self.params.data_stem:
+            # Populate phase from log files and store number of objects
             file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
 
             # Initializing reader
@@ -294,7 +299,7 @@ class LBAFApp:
                     logger=self.logger,
                     check_schema=check_schema)
 
-            # Populate phase from log files and store number of objects
+            # Iterate over phase IDs
             for phase_id in self.params.phase_ids:
                 # Create a phase and populate it
                 if file_suffix is not None:
@@ -306,7 +311,7 @@ class LBAFApp:
                 phase.populate_from_log(phase_id, self.params.data_stem)
                 phases.append(phase)
         else:
-            # Populate phase pseudo-randomly a phase 0
+            # Populate a phase 0 pseudo-randomly
             phase = Phase(self.logger, 0)
             phase.populate_from_samplers(
                 self.params.n_ranks,
@@ -404,7 +409,7 @@ class LBAFApp:
 
         # Instantiate phase to VT file writer when requested
         if self.vt_writer:
-            self.vt_writer.write(curr_phase)
+            self.vt_writer.write(curr_phase, 0)
 
         # Generate meshes and multimedia when requested
         if self.params.grid_size:

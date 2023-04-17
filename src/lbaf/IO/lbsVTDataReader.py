@@ -109,7 +109,6 @@ class LoadReader:
         """ Read the file for a given node/rank. If phase_id==-1 then all
             steps are read from the file; otherwise, only `phase_id` is.
         """
-
         # Retrieve communications from JSON reader
         iter_dict = {}
         iter_dict, comm = self.json_reader(
@@ -120,11 +119,10 @@ class LoadReader:
         # Return map of populated ranks per iteration
         return iter_dict, comm
 
-    def read_iteration(self, phase_id: int) -> list:
-        """ Read all the data in the range of ranks [0..n_p] for a given iteration `phase_id`.
-            Collapse the iter_map dictionary from `read()` into a list of ranks to be returned for the given iteration.
+    def read_phase(self, phase_id: int) -> list:
+        """ Read all the data in the range of ranks [0..n_p] for a given phase ID
+            Collapse the iter_map dictionary into a list of ranks to be returned for the given iteration.
         """
-
         # Create storage for ranks
         rank_list = [None] * self.__n_ranks
         communications = {}
@@ -183,9 +181,7 @@ class LoadReader:
         return rank_list
 
     def json_reader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
-        """ Reader compatible with current VT Object Map files (json)
-        """
-
+        """ Reader compatible with current VT Object Map files (json)."""
         # Define phases from file
         phases = self.vt_files.get(node_id).get("phases")
         comm_dict = {}
@@ -301,5 +297,4 @@ class LoadReader:
             phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned dictionaries of rank/objects and communicators per phase
-        #sys.exit(1)
         return returned_dict, comm_dict

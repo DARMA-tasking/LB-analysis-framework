@@ -15,7 +15,6 @@ from ..Utils.logger import logger
 
 class Phase:
     """ A class representing a phase of objects distributed across ranks."""
-
     def __init__(
         self,
         lgr: Logger,
@@ -57,33 +56,26 @@ class Phase:
 
     def get_id(self):
         """ Retrieve index of this phase."""
-
         return self.__phase_id
 
     def get_number_of_ranks(self):
         """ Retrieve number of ranks belonging to phase."""
-
         return len(self.__ranks)
 
     def get_ranks(self):
         """ Retrieve ranks belonging to phase."""
-
         return self.__ranks
 
     def get_rank_ids(self):
         """ Retrieve IDs of ranks belonging to phase."""
-
         return [p.get_id() for p in self.__ranks]
 
     def get_number_of_objects(self):
         """ Return number of objects."""
-
         return self.__n_objects
 
     def get_objects(self):
-
         """ Return all objects belonging to phase."""
-
         # List comprehension is not possible as we need to use set to list concatenation
         objects = []
         for r in self.__ranks:
@@ -91,9 +83,7 @@ class Phase:
         return objects
 
     def get_object_ids(self):
-
         """ Return IDs of all objects belonging to phase."""
-
         # List comprehension is not possible as we need to use set to list concatenation
         ids = []
         for r in self.__ranks:
@@ -102,7 +92,6 @@ class Phase:
 
     def compute_edges(self):
         """ Compute and return dict of communication edge IDs to volumes."""
-
         # Compute or re-compute edges from scratch
         self.__logger.info("Computing inter-rank communication edges")
         self.__edges = {}
@@ -164,7 +153,6 @@ class Phase:
 
     def get_edges(self):
         """ Retrieve communication edges of phase. """
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -174,7 +162,6 @@ class Phase:
 
     def get_edge_maxima(self):
         """ Reduce directed edges into undirected with maximum."""
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -184,7 +171,6 @@ class Phase:
 
     def get_largest_volumes(self):
         """ Return largest directed volumes from undirected ones."""
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -194,7 +180,6 @@ class Phase:
 
     def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
         """ Convenience method to update or create directed edge with given volume."""
-
         # Create undidrected edge index and try to retrieve edge
         e_id = frozenset([from_id, to_id])
         edge = self.__edges.get(e_id)
@@ -220,7 +205,6 @@ class Phase:
 
     def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
         """ Update inter-rank communication edges before object transfer."""
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -379,9 +363,8 @@ class Phase:
 
     def populate_from_log(self, t_s, basename):
         """ Populate this phase by reading in a load profile from log files."""
-
         # Populate phase with reader output
-        self.__ranks = self.__reader.read_iteration(t_s)
+        self.__ranks = self.__reader.read_phase(t_s)
 
         # Compute and report object statistics
         objects = set()
@@ -400,7 +383,6 @@ class Phase:
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """ Transfer object from source to destination rank."""
-
         # Keep track of object ID for convenience
         o_id = o.get_id()
 
@@ -454,7 +436,6 @@ class Phase:
 
     def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]):
         """ Transfer list of objects between source and destination ranks."""
-
         # Transfer objects from source to destination
         for o in o_src:
             self.transfer_object(r_src, o, r_dst)

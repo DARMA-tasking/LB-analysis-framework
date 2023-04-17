@@ -54,7 +54,7 @@ class VTDataWriter:
         file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__extension}"
 
         # Initialize output dict
-        phase_data = {"id": self.__phase.get_id()}
+        phase_data = {"id": self.__phase.get_id() + self.__increment}
         r_id = rank.get_id()
         output = {
             "metadata": {
@@ -75,13 +75,16 @@ class VTDataWriter:
             compr_json_file.write(compressed_str)
         return file_name
 
-    def write(self, phase: Phase):
+    def write(self, phase: Phase, increment: int):
         """ Write one JSON per rank for given phase instance."""
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
             self.__logger.error("Cannot write to JSON file without a Phase instance")
             return
+
+        # Set member variables
         self.__phase = phase
+        self.__increment = increment
 
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
