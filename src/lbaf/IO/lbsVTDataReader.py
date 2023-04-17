@@ -245,19 +245,18 @@ class LoadReader:
 
             # Instantiante and store rank for current phase
             returned_dict[curr_phase_id] = (
-                phase_rank := Rank(
-                    node_id,
-                    logger=self.__logger))
+                phase_rank := Rank(node_id, logger=self.__logger))
 
             # Initialize storage for shared blocks information
             rank_blocks = {}
 
             # Iterate over tasks
+            task_user_defined = {}
             for task in p["tasks"]:
                 # Retrieve required values
-                task_load = task.get("time")
                 task_entity = task.get("entity")
                 task_id = task_entity.get("id")
+                task_load = task.get("time")
                 task_user_defined = task.get("user_defined", {})
                 subphases = task.get("subphases")
 
@@ -303,4 +302,5 @@ class LoadReader:
             phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned dictionaries of rank/objects and communicators per phase
+        #sys.exit(1)
         return returned_dict, comm_dict
