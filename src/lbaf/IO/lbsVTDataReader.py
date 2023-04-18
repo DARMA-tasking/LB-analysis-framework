@@ -56,8 +56,8 @@ class LoadReader:
                 self.__vt_data[rank] = decompressed_dict
 
     def _load_vt_file(self, rank_id: int):
-        # Retrieve file name
-        file_name = self._get_node_trace_file_name(node_id=rank_id)
+        # Assemble VT JSON file name
+        file_name = f"{self.__file_prefix}.{rank_id}.{self.__file_suffix}"
         self.__logger.info(f"Reading {file_name}")
 
         # Try to open, read, and decompress file
@@ -96,24 +96,6 @@ class LoadReader:
 
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
-
-    def _get_node_trace_file_name(self, node_id):
-        """ Build the file name for a given rank/node ID."""
-        return f"{self.__file_prefix}.{node_id}.{self.__file_suffix}"
-
-    def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> tuple:
-        """ Read the file for a given node/rank. If phase_id==-1 then all
-            steps are read from the file; otherwise, only `phase_id` is.
-        """
-        # Retrieve communications from JSON reader
-        iter_dict = {}
-        iter_dict, comm = self.json_loader(
-            returned_dict=iter_dict,
-            phase_id=phase_id,
-            node_id=node_id)
-
-        # Return map of populated ranks per iteration
-        return iter_dict, comm
 
     def read_phase(self, phase_id: int) -> list:
         """ Read all the data in the range of ranks [0..n_p] for a given phase ID
