@@ -55,6 +55,14 @@ class LoadReader:
             for rank, decompressed_dict in results:
                 self.__vt_data[rank] = decompressed_dict
 
+        # Perform sanity check on number of loaded phases
+        l = len(next(iter(self.__vt_data.values())).get("phases"))
+        if not (all(len(v.get("phases")) == l for v in self.__vt_data.values())):
+            self.__logger.error(
+                "Not all JSON files have the same number of phases")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
     def _load_vt_file(self, rank_id: int):
         # Assemble VT JSON file name
         file_name = f"{self.__file_prefix}.{rank_id}.{self.__file_suffix}"
@@ -80,7 +88,7 @@ class LoadReader:
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
-
+        
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
@@ -95,6 +103,7 @@ class LoadReader:
                     schema_to_validate=decompressed_dict)
 
         # Return rank ID and data dictionary
+        print(rank_id, decompressed_dict)
         return rank_id, decompressed_dict
 
     def populate_phase(self, phase_id: int) -> list:
@@ -106,15 +115,13 @@ class LoadReader:
         # Iterate over all ranks
         for rank_id in range(self.__n_ranks):
             # Read data for given phase and assign it to rank
-            rank_iter_map = {}
-            rank_iter_map, rank_comm = self.json_loader(
-                returned_dict=rank_iter_map,
+            phase_rank, rank_comm = self.parse_json(
                 phase_id=phase_id,
                 node_id=rank_id)
 
             # Try to retrieve rank information at given time-step
             try:
-                rank_list[rank_id] = rank_iter_map[phase_id]
+                rank_list[rank_id] = phase_rank
             except KeyError as e:
                 self.__logger.error(
                     f"Could not retrieve information for rank {rank_id} at time_step {phase_id}: KeyError {e}")
@@ -160,23 +167,16 @@ class LoadReader:
         # Return populated list of ranks
         return rank_list
 
-    def json_loader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
-        """ Reader compatible with current VT Object Map files (json)."""
-        # Define phases from file
-        phases = self.__vt_data.get(node_id).get("phases")
-        rank_comm = {}
-
-        # Handle case of empty rank file
-        if not phases:
-            returned_dict.setdefault(0, Rank(node_id, self.__logger))
-
+    def parse_json(self, phase_id: int, node_id: int) -> tuple:
+        """ Parse JSON content."""
         # Iterate over phases
-        for p in phases:
-            # Retrieve phase ID
-            curr_phase_id = p["id"]
-
+        rank_comm = {}
+        print("here", phase_id, node_id)
+        print(self.__vt_data.get(node_id).get("phases"))
+        for phase in self.__vt_data.get(node_id).get("phases"):
+            print("there")
             # Ignore phases that are not of interest
-            if not phase_id in (curr_phase_id, -1):
+            if (curr_phase_id := phase["id"]) != phase_id:
                 self.__logger.debug(
                     f"Ignored phase {curr_phase_id} for rank {node_id}")
                 continue
@@ -187,7 +187,7 @@ class LoadReader:
             rank_comm[curr_phase_id] = {}
 
             # Add communications to the object
-            communications = p.get("communications")
+            communications = phase.get("communications")
             if communications:
                 for num, comm in enumerate(communications):
                     # Retrieve communication attributes
@@ -221,15 +221,14 @@ class LoadReader:
                             for k, v in comm.items():
                                 self.__logger.debug(f"{k}: {v}")
 
-            # Instantiante and store rank for current phase
-            returned_dict[curr_phase_id] = (
-                phase_rank := Rank(node_id, logger=self.__logger))
+            # Instantiante rank for current phase
+            phase_rank = Rank(node_id, logger=self.__logger)
 
             # Initialize storage for shared blocks information
             rank_blocks, task_user_defined = {}, {}
 
             # Iterate over tasks
-            for task in p["tasks"]:
+            for task in phase["tasks"]:
                 # Retrieve required values
                 task_entity = task.get("entity")
                 task_id = task_entity.get("id")
@@ -278,5 +277,5 @@ class LoadReader:
                     o.set_shared_block(block)
             phase_rank.set_shared_blocks(shared_blocks)
 
-        # Returned dictionaries of rank/objects and communicators per phase
-        return returned_dict, rank_comm
+        # Returned rank and communicators per phase
+        return phase_rank, rank_comm
