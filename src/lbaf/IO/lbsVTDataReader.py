@@ -47,13 +47,13 @@ class LoadReader:
         # Assign schema checker
         self.__check_schema = check_schema
 
-        # Load vt files concurrently
-        self.__vt_files = {}
+        # Load vt data concurrently
+        self.__vt_data = {}
         with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(
                 self._load_vt_file, range(self.__n_ranks))
             for rank, decompressed_dict in results:
-                self.__vt_files[rank] = decompressed_dict
+                self.__vt_data[rank] = decompressed_dict
 
     def _load_vt_file(self, rank_id: int):
         # Retrieve file name
@@ -76,8 +76,9 @@ class LoadReader:
         metadata = decompressed_dict.get("metadata")
         if not metadata or not (schema_type := metadata.get("type")):
             if not (schema_type := decompressed_dict.get("type")):
+                self.__logger.error("JSON data is missing 'type' key")
                 sys.excepthook = exc_handler
-                raise TypeError("JSON data is missing 'type' key")
+                raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
         # Checking Schema from configuration
@@ -123,18 +124,22 @@ class LoadReader:
         communications = {}
 
         # Iterate over all ranks
-        for p in range(self.__n_ranks):
-            # Read data for given iteration and assign it to rank
-            rank_iter_map, rank_comm = self.read(p, phase_id)
+        for rank_id in range(self.__n_ranks):
+            # Read data for given phase and assign it to rank
+            rank_iter_map = {}
+            rank_iter_map, rank_comm = self.json_loader(
+                returned_dict=rank_iter_map,
+                phase_id=phase_id,
+                node_id=rank_id)
 
             # Try to retrieve rank information at given time-step
             try:
-                rank_list[p] = rank_iter_map[phase_id]
+                rank_list[rank_id] = rank_iter_map[phase_id]
             except KeyError as e:
-                msg_err = f"Could not retrieve information for rank {p} at time_step {phase_id}. KeyError {e}"
-                self.__logger.error(msg_err)
+                self.__logger.error(
+                    f"Could not retrieve information for rank {rank_id} at time_step {phase_id}: KeyError {e}")
                 sys.excepthook = exc_handler
-                raise KeyError(msg_err)
+                raise SystemExit(1)
 
             # Merge rank communication with existing ones
             if rank_comm.get(phase_id) is not None:
@@ -178,7 +183,7 @@ class LoadReader:
     def json_loader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
         """ Reader compatible with current VT Object Map files (json)."""
         # Define phases from file
-        phases = self.__vt_files.get(node_id).get("phases")
+        phases = self.__vt_data.get(node_id).get("phases")
         comm_dict = {}
 
         # Handle case of empty rank file

@@ -33,7 +33,7 @@ class WorkModelBase:
             # Otherwise, error out
             logger().error(f"Could not create a work with name: {work_name}")
             sys.excepthook = exc_handler
-            raise NameError(f"Could not create a work with name: {work_name}")
+            raise SystemExit(1)
 
     @abc.abstractmethod
     def compute(self, rank):

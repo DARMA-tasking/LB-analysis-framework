@@ -410,6 +410,8 @@ class Phase:
             if b_id not in r_src.get_shared_block_ids():
                 self.__logger.error(
                 f"block {b_id} not present on in {r_src.get_shared_blocks()}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1)
 
             if not block.detach_object_id(o_id):
                 # Delete shared block if no tied object left on rank

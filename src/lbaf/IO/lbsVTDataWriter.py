@@ -80,7 +80,8 @@ class VTDataWriter:
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
             self.__logger.error("Cannot write to JSON file without a Phase instance")
-            return
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
 
         # Set member variables
         self.__phase = phase
