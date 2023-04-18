@@ -97,10 +97,8 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def read_phase(self, phase_id: int) -> list:
-        """ Read all the data in the range of ranks [0..n_p] for a given phase ID
-            Collapse the iter_map dictionary into a list of ranks to be returned for the given iteration.
-        """
+    def populate_phase(self, phase_id: int) -> list:
+        """ Populate ranks a given phase ID using the JSON content."""
         # Create storage for ranks
         rank_list = [None] * self.__n_ranks
         communications = {}
@@ -166,7 +164,7 @@ class LoadReader:
         """ Reader compatible with current VT Object Map files (json)."""
         # Define phases from file
         phases = self.__vt_data.get(node_id).get("phases")
-        comm_dict = {}
+        rank_comm = {}
 
         # Handle case of empty rank file
         if not phases:
@@ -186,7 +184,7 @@ class LoadReader:
                 f"Loading phase {curr_phase_id} for rank {node_id}")
 
             # Create communicator dictionary
-            comm_dict[curr_phase_id] = {}
+            rank_comm[curr_phase_id] = {}
 
             # Add communications to the object
             communications = p.get("communications")
@@ -204,19 +202,19 @@ class LoadReader:
                         if c_to.get("type") == "object" and c_from.get("type") == "object":
                             # Create receiver if it does not exist
                             receiver_obj_id = c_to.get("id")
-                            comm_dict[curr_phase_id].setdefault(
+                            rank_comm[curr_phase_id].setdefault(
                                 receiver_obj_id, {"sent": [], "received": []})
 
                             # Create sender if it does not exist
                             sender_obj_id = c_from.get("id")
-                            comm_dict[curr_phase_id].setdefault(
+                            rank_comm[curr_phase_id].setdefault(
                                 sender_obj_id, {"sent": [], "received": []})
 
                             # Create communication edges
-                            comm_dict[curr_phase_id][receiver_obj_id]["received"].append(
+                            rank_comm[curr_phase_id][receiver_obj_id]["received"].append(
                                 {"from": c_from.get("id"),
                                  "bytes": c_bytes})
-                            comm_dict[curr_phase_id][sender_obj_id]["sent"].append(
+                            rank_comm[curr_phase_id][sender_obj_id]["sent"].append(
                                 {"to": c_to.get("id"), "bytes": c_bytes})
                             self.__logger.debug(
                                 f"Added communication {num} to phase {curr_phase_id}")
@@ -281,4 +279,4 @@ class LoadReader:
             phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned dictionaries of rank/objects and communicators per phase
-        return returned_dict, comm_dict
+        return returned_dict, rank_comm
