@@ -108,46 +108,36 @@ class LoadReader:
     def populate_phase(self, phase_id: int) -> list:
         """ Populate ranks a given phase ID using the JSON content."""
         # Create storage for ranks
-        rank_list = [None] * self.__n_ranks
+        ranks = [None] * self.__n_ranks
         communications = {}
 
         # Iterate over all ranks
         for rank_id in range(self.__n_ranks):
             # Read data for given phase and assign it to rank
-            phase_rank, rank_comm = self.parse_json(
+            ranks[rank_id], rank_comm = self.parse_json(
                 phase_id=phase_id,
                 node_id=rank_id)
 
-            # Try to retrieve rank information at given time-step
-            try:
-                rank_list[rank_id] = phase_rank
-            except KeyError as e:
-                self.__logger.error(
-                    f"Could not retrieve information for rank {rank_id} at time_step {phase_id}: KeyError {e}")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-
             # Merge rank communication with existing ones
-            if rank_comm.get(phase_id) is not None:
-                for k, v in rank_comm[phase_id].items():
-                    if k in communications:
-                        c = communications[k]
-                        c.get("sent").extend(v.get("sent"))
-                        c.get("received").extend(v.get("received"))
-                    else:
-                        communications[k] = v
+            for k, v in rank_comm.items():
+                if k in communications:
+                    c = communications[k]
+                    c.get("sent").extend(v.get("sent"))
+                    c.get("received").extend(v.get("received"))
+                else:
+                    communications[k] = v
 
         # Build dictionary of rank objects
         rank_objects_set = set()
-        for rank in rank_list:
+        for rank in ranks:
             rank_objects_set.update(rank.get_objects())
         rank_objects_dict = {obj.get_id(): obj for obj in rank_objects_set}
 
         # Iterate over ranks
-        for rank in rank_list:
+        for r in ranks:
             # Iterate over objects in rank
-            for rank_obj in rank.get_objects():
-                obj_id = rank_obj.get_id()
+            for o in r.get_objects():
+                obj_id = o.get_id()
                 # Check if there is any communication for the object
                 obj_comm = communications.get(obj_id)
                 if obj_comm:
@@ -159,17 +149,16 @@ class LoadReader:
                         rank_objects_dict.get(c.get("from")): c.get("bytes")
                         for c in obj_comm.get("received")
                         if rank_objects_dict.get(c.get("from"))}
-                    rank_obj.set_communicator(
+                    o.set_communicator(
                         ObjectCommunicator(
                             i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
-        return rank_list
+        return ranks
 
     def parse_json(self, phase_id: int, node_id: int) -> tuple:
         """ Parse JSON content."""
         # Iterate over phases
-        rank_comm = {}
         for phase in self.__vt_data.get(node_id).get("phases"):
             # Ignore phases that are not of interest
             if (curr_phase_id := phase["id"]) != phase_id:
@@ -180,7 +169,7 @@ class LoadReader:
                 f"Loading phase {curr_phase_id} for rank {node_id}")
 
             # Create communicator dictionary
-            rank_comm[curr_phase_id] = {}
+            rank_comm = {}
 
             # Add communications to the object
             communications = phase.get("communications")
@@ -198,19 +187,19 @@ class LoadReader:
                         if c_to.get("type") == "object" and c_from.get("type") == "object":
                             # Create receiver if it does not exist
                             receiver_obj_id = c_to.get("id")
-                            rank_comm[curr_phase_id].setdefault(
+                            rank_comm.setdefault(
                                 receiver_obj_id, {"sent": [], "received": []})
 
                             # Create sender if it does not exist
                             sender_obj_id = c_from.get("id")
-                            rank_comm[curr_phase_id].setdefault(
+                            rank_comm.setdefault(
                                 sender_obj_id, {"sent": [], "received": []})
 
                             # Create communication edges
-                            rank_comm[curr_phase_id][receiver_obj_id]["received"].append(
+                            rank_comm[receiver_obj_id]["received"].append(
                                 {"from": c_from.get("id"),
                                  "bytes": c_bytes})
-                            rank_comm[curr_phase_id][sender_obj_id]["sent"].append(
+                            rank_comm[sender_obj_id]["sent"].append(
                                 {"to": c_to.get("id"), "bytes": c_bytes})
                             self.__logger.debug(
                                 f"Added communication {num} to phase {curr_phase_id}")
