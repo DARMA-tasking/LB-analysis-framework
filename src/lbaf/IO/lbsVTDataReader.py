@@ -88,7 +88,7 @@ class LoadReader:
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
-        
+
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
