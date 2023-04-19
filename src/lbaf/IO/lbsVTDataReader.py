@@ -166,7 +166,7 @@ class LoadReader:
         rank_blocks, task_user_defined = {}, {}
 
         # Iterate over tasks
-        for task in phase["tasks"]:
+        for task in phase.get("tasks", []):
             # Retrieve required values
             task_entity = task.get("entity")
             task_id = task_entity.get("id")
