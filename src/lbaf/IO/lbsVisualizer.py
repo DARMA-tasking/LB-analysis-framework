@@ -17,6 +17,7 @@ class Visualizer:
         self,
         logger: Logger,
         qoi_request: list,
+        continuous_object_qoi: bool,
         phases: list,
         grid_size: list,
         object_jitter=0.0,
@@ -27,6 +28,7 @@ class Visualizer:
         resolution=1.):
         """ Class constructor:
             qoi_request: description of rank and object quantities of interest
+            continuous_object_qoi: always treat object QOI as continuous or not
             phases: list of Phase instances
             grid_size: iterable containing grid sizes in each dimension
             object_jitter: coefficient of random jitter with magnitude < 1
@@ -110,7 +112,8 @@ class Visualizer:
         self.__object_volume_max = 0.0
 
         # Compute discrete or pseudo-continuous object QOI range
-        self.__object_qoi_range = self.compute_object_qoi_range(object_qoi)
+        self.__object_qoi_range = self.compute_object_qoi_range(
+            object_qoi, continuous_object_qoi)
 
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
@@ -183,7 +186,7 @@ class Visualizer:
         # Return Cartesian coordinates
         return i, j, k
 
-    def compute_object_qoi_range(self, object_qoi):
+    def compute_object_qoi_range(self, object_qoi, continuous_object_qoi):
         """ Decide object quantity storage type and compute it."""
 
         # Return empty range if no object QOI was passed
@@ -192,9 +195,6 @@ class Visualizer:
 
         # Initialize space-time object QOI range attributes
         oq_min, oq_max, oq_all, = math.inf, -math.inf, set()
-
-        # By default use quasi-continuous storage
-        store_all = True
 
         # Iterate over all phases
         for phase in self.__phases:
@@ -206,12 +206,12 @@ class Visualizer:
 
                 # Retain all QOI values while support remains small
                 oq = getattr(o, f"get_{object_qoi}")()
-                if store_all:
+                if not continuous_object_qoi:
                     oq_all.add(oq)
                     if len(oq_all) > 20:
                         # Do not store QOI values if support is too large
                         oq_all = None
-                        store_all = False
+                        continuous_object_qoi = True
 
                 # Update extrema
                 if oq < oq_min:
@@ -220,14 +220,14 @@ class Visualizer:
                     oq_max = oq
 
         # Store either range or support
-        if store_all:
-            object_qoi_range = oq_all
-            self.__logger.info(
-                f"\tobject {self.__object_qoi} has {len(object_qoi_range)} distinct values")
-        else:
+        if continuous_object_qoi:
             object_qoi_range = (oq_min, oq_max)
             self.__logger.info(
                 f"\tobject {self.__object_qoi} range: [{object_qoi_range[0]:.4g}; {object_qoi_range[1]:.4g}]")
+        else:
+            object_qoi_range = oq_all
+            self.__logger.info(
+                f"\tobject {self.__object_qoi} has {len(object_qoi_range)} distinct values")
 
         # Return cpmputed QOI range
         return object_qoi_range
@@ -803,7 +803,7 @@ class Visualizer:
                     iteration,
                     phase.get_id(),
                     object_mesh,
-                    edge_width= ew if self.__object_qoi else None,
+                    edge_width = ew if self.__object_qoi else None,
                     glyph_factor = gf if self.__object_qoi else None,
                     win_size = ws)
                 render_window.Render()
