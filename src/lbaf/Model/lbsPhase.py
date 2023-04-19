@@ -363,7 +363,7 @@ class Phase:
 
     def populate_from_log(self, phase_id):
         """ Populate this phase by reading in a load profile from log files."""
-        # Populate phase with reader output
+        # Populate phase with JSON reader output
         self.__ranks = self.__reader.populate_phase(phase_id)
         objects = set()
         for p in self.__ranks:

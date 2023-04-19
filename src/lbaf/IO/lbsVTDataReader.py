@@ -105,59 +105,8 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def populate_phase(self, phase_id: int) -> list:
-        """ Populate ranks a given phase ID using the JSON content."""
-        # Create storage for ranks
-        ranks = [None] * self.__n_ranks
-        communications = {}
-
-        # Iterate over all ranks
-        for rank_id in range(self.__n_ranks):
-            # Read data for given phase and assign it to rank
-            ranks[rank_id], rank_comm = self.parse_json(
-                phase_id=phase_id,
-                node_id=rank_id)
-
-            # Merge rank communication with existing ones
-            for k, v in rank_comm.items():
-                if k in communications:
-                    c = communications[k]
-                    c.get("sent").extend(v.get("sent"))
-                    c.get("received").extend(v.get("received"))
-                else:
-                    communications[k] = v
-
-        # Build dictionary of rank objects
-        rank_objects_set = set()
-        for rank in ranks:
-            rank_objects_set.update(rank.get_objects())
-        rank_objects_dict = {obj.get_id(): obj for obj in rank_objects_set}
-
-        # Iterate over ranks
-        for r in ranks:
-            # Iterate over objects in rank
-            for o in r.get_objects():
-                obj_id = o.get_id()
-                # Check if there is any communication for the object
-                obj_comm = communications.get(obj_id)
-                if obj_comm:
-                    sent = {
-                        rank_objects_dict.get(c.get("to")): c.get("bytes")
-                        for c in obj_comm.get("sent")
-                        if rank_objects_dict.get(c.get("to"))}
-                    received = {
-                        rank_objects_dict.get(c.get("from")): c.get("bytes")
-                        for c in obj_comm.get("received")
-                        if rank_objects_dict.get(c.get("from"))}
-                    o.set_communicator(
-                        ObjectCommunicator(
-                            i=obj_id, logger=self.__logger, r=received, s=sent))
-
-        # Return populated list of ranks
-        return ranks
-
-    def parse_json(self, phase_id: int, node_id: int) -> tuple:
-        """ Parse JSON content."""
+    def __populate_rank(self, phase_id: int, node_id: int) -> tuple:
+        """ Populate rank and its communicator in phase using the JSON content."""
         # Iterate over phases
         for phase in self.__vt_data.get(node_id).get("phases"):
             # Ignore phases that are not of interest
@@ -264,3 +213,54 @@ class LoadReader:
 
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
+
+    def populate_phase(self, phase_id: int) -> list:
+        """ Populate phase using the JSON content."""
+        # Create storage for ranks
+        ranks = [None] * self.__n_ranks
+        communications = {}
+
+        # Iterate over all ranks
+        for rank_id in range(self.__n_ranks):
+            # Read data for given phase and assign it to rank
+            ranks[rank_id], rank_comm = self.__populate_rank(
+                phase_id=phase_id,
+                node_id=rank_id)
+
+            # Merge rank communication with existing ones
+            for k, v in rank_comm.items():
+                if k in communications:
+                    c = communications[k]
+                    c.get("sent").extend(v.get("sent"))
+                    c.get("received").extend(v.get("received"))
+                else:
+                    communications[k] = v
+
+        # Build dictionary of rank objects
+        rank_objects_set = set()
+        for rank in ranks:
+            rank_objects_set.update(rank.get_objects())
+        rank_objects_dict = {obj.get_id(): obj for obj in rank_objects_set}
+
+        # Iterate over ranks
+        for r in ranks:
+            # Iterate over objects in rank
+            for o in r.get_objects():
+                obj_id = o.get_id()
+                # Check if there is any communication for the object
+                obj_comm = communications.get(obj_id)
+                if obj_comm:
+                    sent = {
+                        rank_objects_dict.get(c.get("to")): c.get("bytes")
+                        for c in obj_comm.get("sent")
+                        if rank_objects_dict.get(c.get("to"))}
+                    received = {
+                        rank_objects_dict.get(c.get("from")): c.get("bytes")
+                        for c in obj_comm.get("received")
+                        if rank_objects_dict.get(c.get("from"))}
+                    o.set_communicator(
+                        ObjectCommunicator(
+                            i=obj_id, logger=self.__logger, r=received, s=sent))
+
+        # Return populated list of ranks
+        return ranks
