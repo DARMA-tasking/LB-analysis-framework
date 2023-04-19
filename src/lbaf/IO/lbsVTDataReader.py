@@ -109,19 +109,19 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def _populate_rank(self, phase_id: int, node_id: int) -> tuple:
+    def _populate_rank(self, phase_id: int, rank_id: int) -> tuple:
         """ Populate rank and its communicator in phase using the JSON content."""
         # Iterate over phases
-        for phase in self.__vt_data.get(node_id).get("phases"):
+        for phase in self.__vt_data.get(rank_id).get("phases"):
             # Ignore phases that are not of interest
             if (curr_phase_id := phase["id"]) != phase_id:
                 self.__logger.debug(
-                    f"Ignored phase {curr_phase_id} for rank {node_id}")
+                    f"Ignored phase {curr_phase_id} for rank {rank_id}")
                 continue
 
         # Proceed with desired phase
         self.__logger.debug(
-            f"Loading phase {curr_phase_id} for rank {node_id}")
+            f"Loading phase {curr_phase_id} for rank {rank_id}")
 
         # Add communications to the object
         rank_comm = {}
@@ -160,7 +160,7 @@ class LoadReader:
                             self.__logger.debug(f"{k}: {v}")
 
         # Instantiante rank for current phase
-        phase_rank = Rank(node_id, logger=self.__logger)
+        phase_rank = Rank(rank_id, logger=self.__logger)
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}
@@ -177,7 +177,7 @@ class LoadReader:
             # Instantiate object with retrieved parameters
             o = Object(
                 task_id,
-                r_id=node_id,
+                r_id=rank_id,
                 load=task_load,
                 user_defined=task_user_defined,
                 subphases=subphases)
@@ -207,7 +207,7 @@ class LoadReader:
         for b_id, (b_size, objects) in rank_blocks.items():
             # Create and add new block
             shared_blocks.add(block := Block(
-                b_id, h_id=node_id, size=b_size,
+                b_id, h_id=rank_id, size=b_size,
                 o_ids={o.get_id() for o in objects}))
 
             # Assign block to objects attached to it
@@ -227,9 +227,7 @@ class LoadReader:
         # Iterate over all ranks
         for rank_id in range(self.__n_ranks):
             # Read data for given phase and assign it to rank
-            ranks[rank_id], rank_comm = self._populate_rank(
-                phase_id=phase_id,
-                node_id=rank_id)
+            ranks[rank_id], rank_comm = self._populate_rank(phase_id, rank_id)
 
             # Merge rank communication with existing ones
             for k, v in rank_comm.items():

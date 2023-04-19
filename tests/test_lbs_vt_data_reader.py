@@ -29,7 +29,7 @@ class TestConfig(unittest.TestCase):
         self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', "data")
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
-        self.ranks_comm = [
+        self.rank_comm = [
             {
                 5: {"sent": [], "received": [{"from": 0, "bytes": 2.0}]},
                 0: {"sent": [{'to': 5, "bytes": 2.0}], "received": []},
@@ -104,16 +104,15 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(file_name, self.lr._get_rank_file_name(100))
 
     def test_lbs_vt_data_reader_get_rank_file_name_003(self):
-        # Node_id is an in 000 is converted to 0
         file_name = f"{self.lr._LoadReader__file_prefix}.000.{self.lr._LoadReader__file_suffix}"
         self.assertNotEqual(file_name, self.lr._get_rank_file_name(000))
 
     def test_lbs_vt_data_reader_populate_rank(self):
-        for phase_id in range(4):
-            phase_rank, rank_comm = self.lr._populate_rank(phase_id, 0)
-            self.assertEqual(self.ranks_comm[phase_id], rank_comm)
+        for rank_id in range(4):
+            phase_rank, rank_comm = self.lr._populate_rank(0, rank_id)
+            self.assertEqual(self.rank_comm[rank_id], rank_comm)
             prepared_list = sorted(
-                list(self.ranks_iter_map[phase_id].get(0).get_migratable_objects()),
+                list(self.ranks_iter_map[rank_id].get(0).get_migratable_objects()),
                 key=lambda x: x.get_id())
             generated_list = sorted(
                 list(phase_rank.get_migratable_objects()),
@@ -129,11 +128,11 @@ class TestConfig(unittest.TestCase):
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         lr = LoadReader(
             file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
-        for phase_id in range(4):
-            phase_rank, rank_comm = lr._populate_rank(phase_id, 0)
-            self.assertEqual(self.ranks_comm[phase_id], rank_comm)
+        for rank_id in range(4):
+            phase_rank, rank_comm = lr._populate_rank(0, rank_id)
+            self.assertEqual(self.rank_comm[rank_id], rank_comm)
             prepared_list = sorted(
-                list(self.ranks_iter_map[phase_id].get(0).get_migratable_objects()),
+                list(self.ranks_iter_map[rank_id].get(0).get_migratable_objects()),
                 key=lambda x: x.get_id())
             generated_list = sorted(
                 list(phase_rank.get_migratable_objects()),
@@ -185,12 +184,12 @@ class TestConfig(unittest.TestCase):
         self.assertIn(err.exception.args[0], list_of_err_msg)
 
     def test_lbs_vt_data_reader_populate_rank(self):
-        for phase_id in range(4):
-            file_name = self.lr._get_rank_file_name(phase_id)
-            phase_rank, rank_comm = self.lr._populate_rank(0, phase_id)
-            self.assertEqual(self.ranks_comm[phase_id], rank_comm)
+        for rank_id in range(4):
+            file_name = self.lr._get_rank_file_name(rank_id)
+            phase_rank, rank_comm = self.lr._populate_rank(0, rank_id)
+            self.assertEqual(self.rank_comm[rank_id], rank_comm)
             prepared_list = sorted(
-                list(self.ranks_iter_map[phase_id].get(0).get_migratable_objects()),
+                list(self.ranks_iter_map[rank_id].get(0).get_migratable_objects()),
                 key=lambda x: x.get_id())
             generated_list = sorted(
                 list(phase_rank.get_migratable_objects()),
