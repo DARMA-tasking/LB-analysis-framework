@@ -18,8 +18,8 @@ algorithm:
   name: InformAndTransfer
   parameters:
     n_iterations: 8
-    n_rounds: 4
-    fanout: 4
+    n_rounds: 2
+    fanout: 2
     order_strategy: element_id
     transfer_strategy: Recursive
     criterion: Tempered
