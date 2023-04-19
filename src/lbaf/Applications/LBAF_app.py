@@ -6,19 +6,29 @@ import math
 from typing import cast, List, Dict, Any, Union, Tuple
 import yaml
 
+# append lbaf to path
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as path_ex:
+    print(f"Can not add project path to system path. Exiting.\nERROR: {path_ex}")
+    raise SystemExit(1) from path_ex
+
+#pylint: disable=C0411,C0413
 from lbaf import __version__
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logger import logger
 from lbaf.Utils.common import abspath_from
 from lbaf.Applications.schema_validator_loader import check_and_get_schema_validator
+#pylint: enable=C0411,C0413
 
 try:
     import paraview.simple #pylint: disable=E0401,W0611
 except: #pylint: disable=W0718,W0702
     pass
 
-def parse_input_args() -> str:
-    """Parses command line argument and resolve then return the input configuration file path."""
+def parse_args() -> str:
+    """Parses command line argument and resolve then return the input configuration file absolute path."""
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--configuration",
         help="Path to the config file. If path is relative it must be resolvable from either the current working "
@@ -39,7 +49,7 @@ def parse_input_args() -> str:
             path = search_dir + '/' + args.configuration
     else:
         sys.excepthook = exc_handler
-        raise FileNotFoundError("Please provide path to the config file with '--config' argument.")
+        raise FileNotFoundError("Please provide path to the config file with '--configuration' argument.")
 
     if not os.path.isfile(path):
         sys.excepthook = exc_handler
@@ -56,7 +66,6 @@ def parse_input_args() -> str:
 def load_config(path: str)-> Tuple[dict, str]:
     """Loads and validate configuration file and returns the configuration dict and the name of the configuration
     directory"""
-
     if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
         # Try to open configuration file in read+text mode
         try:
@@ -82,7 +91,7 @@ def load_config(path: str)-> Tuple[dict, str]:
 cfg, cfg_dir = {}, None
 if __name__ == "__main__":
     # Parse input args
-    config_file = parse_input_args()
+    config_file = parse_args()
     # Load configuration
     cfg, cfg_dir = load_config(config_file)
     # Download SchemaValidator script if overwrite
@@ -411,7 +420,7 @@ class LBAFApp:
             "imbalance.txt" if self.params.output_dir is None else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
             imbalance_file.write(
-                f"{l_stats.get_imbalance()}")
+                f"{l_stats.get_imbalance()}") #pylint: disable=E1101
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
@@ -440,7 +449,7 @@ class LBAFApp:
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
-        ell = self.params.n_ranks * l_stats.average / n_o #pylint: disable=E1101
+        ell = self.params.n_ranks * l_stats.get_average() / n_o #pylint: disable=E1101
         self.logger.info("Optimal load statistics for {n_o} objects with iso-time: {ell:6g}")
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
         self.logger.info(
