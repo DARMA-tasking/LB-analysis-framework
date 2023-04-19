@@ -103,7 +103,6 @@ class LoadReader:
                     schema_to_validate=decompressed_dict)
 
         # Return rank ID and data dictionary
-        print(rank_id, decompressed_dict)
         return rank_id, decompressed_dict
 
     def populate_phase(self, phase_id: int) -> list:
@@ -171,10 +170,7 @@ class LoadReader:
         """ Parse JSON content."""
         # Iterate over phases
         rank_comm = {}
-        print("here", phase_id, node_id)
-        print(self.__vt_data.get(node_id).get("phases"))
         for phase in self.__vt_data.get(node_id).get("phases"):
-            print("there")
             # Ignore phases that are not of interest
             if (curr_phase_id := phase["id"]) != phase_id:
                 self.__logger.debug(
