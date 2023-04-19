@@ -1,29 +1,12 @@
 """Common utility functions"""
 import os
 import inspect
-import sys
 from typing import Optional
 
-
-def append_to_path(path:str) -> str:
-    """Add lbaf directory to python path"""
-    try:
-        sys.path.append(path)
-    except Exception as path_ex:
-        print(f"Can not add project path to system path. Exiting.\nERROR: {path_ex}")
-        raise SystemExit(1) from path_ex
 
 def project_dir() -> str:
     """Get the absolute path to the project root directory"""
     return os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../../")
-
-def src_dir() -> str:
-    """Get the absolute path to the src directory"""
-    return os.path.abspath(os.path.join(project_dir(), "src"))
-
-def lbaf_dir() -> str:
-    """Get the absolute path to the src/lbaf directory"""
-    return os.path.abspath(os.path.join(project_dir(), "src", "lbaf"))
 
 def current_module() -> Optional[inspect.types.ModuleType]:
     """Get the current module"""
@@ -32,7 +15,7 @@ def current_module() -> Optional[inspect.types.ModuleType]:
     return module
 
 def current_dir() -> str:
-    """Get the absolute path to the directory containing the current module"""
+    """Get the absolute path to the directory containing the current executing module"""
     frame = inspect.stack()[1]
     module = inspect.getmodule(frame[0])
     return os.path.dirname(module.__file__)

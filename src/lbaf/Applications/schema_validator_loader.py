@@ -5,16 +5,16 @@ import sys
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
-from lbaf.Utils.common import src_dir
-from lbaf.Utils.logger import logger
-from lbaf.Utils.exception_handler import exc_handler
+from ..Utils.common import project_dir
+from ..Utils.logger import logger
+from ..Utils.exception_handler import exc_handler
 
 
 def _save_schema_validator_and_init_file():
     """Initialize src/lbaf/import directory and downloads the Schema Validator script into it"""
 
     # Create src/lbaf/imported directory if not exist
-    import_dir = os.path.join(src_dir(), "lbaf", "imported")
+    import_dir = os.path.join(project_dir(), "lbaf", "imported")
     if not os.path.isdir(import_dir):
         os.makedirs(import_dir)
 
