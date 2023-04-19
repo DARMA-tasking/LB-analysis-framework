@@ -119,7 +119,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', "data")
+        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data_compressed', "data")
         lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
@@ -143,20 +143,20 @@ class TestConfig(unittest.TestCase):
         ])
 
     def test_lbs_vt_data_reader_read_wrong_schema(self):
-        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", "data")
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", "data")
         with self.assertRaises(SchemaError) as err:
             LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json').read(0, 0)
         list_of_err_msg = []
-        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_0.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_0.txt'), 'rt') as se:
             err_msg_0 = se.read()
         list_of_err_msg.append(err_msg_0)
-        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_1.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_1.txt'), 'rt') as se:
             err_msg_1 = se.read()
         list_of_err_msg.append(err_msg_1)
-        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_2.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_2.txt'), 'rt') as se:
             err_msg_2 = se.read()
         list_of_err_msg.append(err_msg_2)
-        with open(os.path.join(self.data_dir, "synthetic_lb_stats_wrong_schema", 'schema_error_3.txt'), 'rt') as se:
+        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), 'rt') as se:
             err_msg_3 = se.read()
         list_of_err_msg.append(err_msg_3)
         self.assertIn(err.exception.args[0], list_of_err_msg)
