@@ -7,8 +7,7 @@ from ..Utils.logger import logger
 
 class WorkModelBase:
     __metaclass__ = abc.ABCMeta
-    """ An abstract base class of per-rank work model
-    """
+    """ An abstract base class of per-rank work model."""
 
     def __init__(self, parameters=None):
         """ Class constructor:
@@ -33,7 +32,7 @@ class WorkModelBase:
             # Otherwise, error out
             logger().error(f"Could not create a work with name: {work_name}")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise NameError(f"Could not create a work with name: {work_name}")
 
     @abc.abstractmethod
     def compute(self, rank):
