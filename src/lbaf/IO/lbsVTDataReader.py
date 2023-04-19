@@ -63,9 +63,13 @@ class LoadReader:
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
+    def _get_rank_file_name(self, rank_id: int):
+        # Convenience method also used by test harness
+        return f"{self.__file_prefix}.{rank_id}.{self.__file_suffix}"
+
     def _load_vt_file(self, rank_id: int):
         # Assemble VT JSON file name
-        file_name = f"{self.__file_prefix}.{rank_id}.{self.__file_suffix}"
+        file_name = self._get_rank_file_name(rank_id)
         self.__logger.info(f"Reading {file_name}")
 
         # Try to open, read, and decompress file
@@ -105,7 +109,7 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def __populate_rank(self, phase_id: int, node_id: int) -> tuple:
+    def _populate_rank(self, phase_id: int, node_id: int) -> tuple:
         """ Populate rank and its communicator in phase using the JSON content."""
         # Iterate over phases
         for phase in self.__vt_data.get(node_id).get("phases"):
@@ -114,102 +118,102 @@ class LoadReader:
                 self.__logger.debug(
                     f"Ignored phase {curr_phase_id} for rank {node_id}")
                 continue
+
+        # Proceed with desired phase
+        self.__logger.debug(
+            f"Loading phase {curr_phase_id} for rank {node_id}")
+
+        # Add communications to the object
+        rank_comm = {}
+        communications = phase.get("communications")
+        if communications:
+            for num, comm in enumerate(communications):
+                # Retrieve communication attributes
+                c_type = comm.get("type")
+                c_to = comm.get("to")
+                c_from = comm.get("from")
+                c_bytes = comm.get("bytes")
+
+                # Supports only SendRecv communication type
+                if c_type == "SendRecv":
+                    # Check whether both are objects
+                    if c_to.get("type") == "object" and c_from.get("type") == "object":
+                        # Create receiver if it does not exist
+                        receiver_obj_id = c_to.get("id")
+                        rank_comm.setdefault(
+                            receiver_obj_id, {"sent": [], "received": []})
+
+                        # Create sender if it does not exist
+                        sender_obj_id = c_from.get("id")
+                        rank_comm.setdefault(
+                            sender_obj_id, {"sent": [], "received": []})
+
+                        # Create communication edges
+                        rank_comm[receiver_obj_id]["received"].append(
+                            {"from": c_from.get("id"),
+                             "bytes": c_bytes})
+                        rank_comm[sender_obj_id]["sent"].append(
+                            {"to": c_to.get("id"), "bytes": c_bytes})
+                        self.__logger.debug(
+                            f"Added communication {num} to phase {curr_phase_id}")
+                        for k, v in comm.items():
+                            self.__logger.debug(f"{k}: {v}")
+
+        # Instantiante rank for current phase
+        phase_rank = Rank(node_id, logger=self.__logger)
+
+        # Initialize storage for shared blocks information
+        rank_blocks, task_user_defined = {}, {}
+
+        # Iterate over tasks
+        for task in phase["tasks"]:
+            # Retrieve required values
+            task_entity = task.get("entity")
+            task_id = task_entity.get("id")
+            task_load = task.get("time")
+            task_user_defined = task.get("user_defined", {})
+            subphases = task.get("subphases")
+
+            # Instantiate object with retrieved parameters
+            o = Object(
+                task_id,
+                r_id=node_id,
+                load=task_load,
+                user_defined=task_user_defined,
+                subphases=subphases)
+
+            # Update shared block information as needed
+            if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
+                # Create or update (memory, objects) for shared block
+                rank_blocks.setdefault(
+                    shared_id,
+                    (task_user_defined.get("shared_bytes", 0.0), set([])))
+                rank_blocks[shared_id][1].add(o)
+
+            # Add object to rank given its type
+            if task_entity.get("migratable"):
+                phase_rank.add_migratable_object(o)
+            else:
+                phase_rank.add_sentinel_object(o)
+
+            # Print debug information when requested
             self.__logger.debug(
-                f"Loading phase {curr_phase_id} for rank {node_id}")
+                f"Added object {task_id}, load: {task_load} to phase {curr_phase_id}")
 
-            # Create communicator dictionary
-            rank_comm = {}
+        # Set rank-level memory quantities of interest
+        phase_rank.set_size(
+            task_user_defined.get("rank_working_bytes", 0.0))
+        shared_blocks = set()
+        for b_id, (b_size, objects) in rank_blocks.items():
+            # Create and add new block
+            shared_blocks.add(block := Block(
+                b_id, h_id=node_id, size=b_size,
+                o_ids={o.get_id() for o in objects}))
 
-            # Add communications to the object
-            communications = phase.get("communications")
-            if communications:
-                for num, comm in enumerate(communications):
-                    # Retrieve communication attributes
-                    c_type = comm.get("type")
-                    c_to = comm.get("to")
-                    c_from = comm.get("from")
-                    c_bytes = comm.get("bytes")
-
-                    # Supports only SendRecv communication type
-                    if c_type == "SendRecv":
-                        # Check whether both are objects
-                        if c_to.get("type") == "object" and c_from.get("type") == "object":
-                            # Create receiver if it does not exist
-                            receiver_obj_id = c_to.get("id")
-                            rank_comm.setdefault(
-                                receiver_obj_id, {"sent": [], "received": []})
-
-                            # Create sender if it does not exist
-                            sender_obj_id = c_from.get("id")
-                            rank_comm.setdefault(
-                                sender_obj_id, {"sent": [], "received": []})
-
-                            # Create communication edges
-                            rank_comm[receiver_obj_id]["received"].append(
-                                {"from": c_from.get("id"),
-                                 "bytes": c_bytes})
-                            rank_comm[sender_obj_id]["sent"].append(
-                                {"to": c_to.get("id"), "bytes": c_bytes})
-                            self.__logger.debug(
-                                f"Added communication {num} to phase {curr_phase_id}")
-                            for k, v in comm.items():
-                                self.__logger.debug(f"{k}: {v}")
-
-            # Instantiante rank for current phase
-            phase_rank = Rank(node_id, logger=self.__logger)
-
-            # Initialize storage for shared blocks information
-            rank_blocks, task_user_defined = {}, {}
-
-            # Iterate over tasks
-            for task in phase["tasks"]:
-                # Retrieve required values
-                task_entity = task.get("entity")
-                task_id = task_entity.get("id")
-                task_load = task.get("time")
-                task_user_defined = task.get("user_defined", {})
-                subphases = task.get("subphases")
-
-                # Instantiate object with retrieved parameters
-                o = Object(
-                    task_id,
-                    r_id=node_id,
-                    load=task_load,
-                    user_defined=task_user_defined,
-                    subphases=subphases)
-
-                # Update shared block information as needed
-                if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
-                    # Create or update (memory, objects) for shared block
-                    rank_blocks.setdefault(
-                        shared_id,
-                        (task_user_defined.get("shared_bytes", 0.0), set([])))
-                    rank_blocks[shared_id][1].add(o)
-
-                # Add object to rank given its type
-                if task_entity.get("migratable"):
-                    phase_rank.add_migratable_object(o)
-                else:
-                    phase_rank.add_sentinel_object(o)
-
-                # Print debug information when requested
-                self.__logger.debug(
-                    f"Added object {task_id}, load: {task_load} to phase {curr_phase_id}")
-
-            # Set rank-level memory quantities of interest
-            phase_rank.set_size(
-                task_user_defined.get("rank_working_bytes", 0.0))
-            shared_blocks = set()
-            for b_id, (b_size, objects) in rank_blocks.items():
-                # Create and add new block
-                shared_blocks.add(block := Block(
-                    b_id, h_id=node_id, size=b_size,
-                    o_ids={o.get_id() for o in objects}))
-
-                # Assign block to objects attached to it
-                for o in objects:
-                    o.set_shared_block(block)
-            phase_rank.set_shared_blocks(shared_blocks)
+            # Assign block to objects attached to it
+            for o in objects:
+                o.set_shared_block(block)
+        phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
@@ -223,7 +227,7 @@ class LoadReader:
         # Iterate over all ranks
         for rank_id in range(self.__n_ranks):
             # Read data for given phase and assign it to rank
-            ranks[rank_id], rank_comm = self.__populate_rank(
+            ranks[rank_id], rank_comm = self._populate_rank(
                 phase_id=phase_id,
                 node_id=rank_id)
 
