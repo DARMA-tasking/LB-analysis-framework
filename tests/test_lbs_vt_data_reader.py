@@ -28,7 +28,7 @@ class TestConfig(unittest.TestCase):
             raise SystemExit(1)
         self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', "data")
         self.logger = logging.getLogger()
-        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
         self.ranks_comm = [
             {
                 5: {"sent": [], "received": [{"from": 0, "bytes": 2.0}]},
@@ -85,7 +85,7 @@ class TestConfig(unittest.TestCase):
                      Object(
                          i=4, load=0.5, r_id=1,
                          comm=ObjectCommunicator(i=4, logger=self.logger, r={Object(i=1, load=0.5): 1.0}, s={Object(i=1, load=0.5): 2.0}))}),
-            Rank(i=2, logger=self.logger, 
+            Rank(i=2, logger=self.logger,
                  mo={Object(
                      i=8, load=1.5, r_id=2,
                      comm=ObjectCommunicator(i=8, logger=self.logger, r={Object(i=3, load=0.5): 0.5, Object(i=5, load=2.0): 2.0}, s={Object(i=6, load=1.0): 1.5}))}),
@@ -93,7 +93,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
-        self.assertEqual(self.lr._LoadReader__file_suffix, 'json')
+        self.assertEqual(self.lr._LoadReader__file_suffix, "json")
 
     def test_lbs_vt_data_reader_get_rank_file_name_001(self):
         file_name = f"{self.lr._LoadReader__file_prefix}.0.{self.lr._LoadReader__file_suffix}"
@@ -126,8 +126,9 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data_compressed', "data")
-        lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
+        lr = LoadReader(
+            file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
         for phase_id in range(4):
             phase_rank, rank_comm = lr._populate_rank(phase_id, 0)
             self.assertEqual(self.ranks_comm[phase_id], rank_comm)
@@ -146,7 +147,9 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
-            LoadReader(file_prefix=f"{self.file_prefix}xd", n_ranks=4, logger=self.logger, file_suffix='json')._populate_rank(0, 0)
+            LoadReader(
+                file_prefix=f"{self.file_prefix}xd", n_ranks=4,
+                logger=self.logger, file_suffix="json")._populate_rank(0, 0)
         self.assertIn(err.exception.args[0], [
             f"File {self.file_prefix}xd.0.json not found", f"File {self.file_prefix}xd.1.json not found",
             f"File {self.file_prefix}xd.2.json not found", f"File {self.file_prefix}xd.3.json not found"
@@ -155,18 +158,28 @@ class TestConfig(unittest.TestCase):
     def test_lbs_vt_data_reader_read_wrong_schema(self):
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", "data")
         with self.assertRaises(SchemaError) as err:
-            LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')._populate_rank(0, 0)
+            LoadReader(
+                file_prefix=file_prefix, n_ranks=4,
+                logger=self.logger, file_suffix="json")._populate_rank(0, 0)
         list_of_err_msg = []
-        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_0.txt'), 'rt') as se:
+        with open(os.path.join(
+            self.data_dir,
+            "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt") as se:
             err_msg_0 = se.read()
         list_of_err_msg.append(err_msg_0)
-        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_1.txt'), 'rt') as se:
+        with open(os.path.join(
+            self.data_dir,
+            "synthetic_lb_data_wrong_schema", 'schema_error_1.txt'), "rt") as se:
             err_msg_1 = se.read()
         list_of_err_msg.append(err_msg_1)
-        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_2.txt'), 'rt') as se:
+        with open(os.path.join(
+            self.data_dir,
+            "synthetic_lb_data_wrong_schema", 'schema_error_2.txt'), "rt") as se:
             err_msg_2 = se.read()
         list_of_err_msg.append(err_msg_2)
-        with open(os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), 'rt') as se:
+        with open(os.path.join(
+            self.data_dir,
+            "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt") as se:
             err_msg_3 = se.read()
         list_of_err_msg.append(err_msg_3)
         self.assertIn(err.exception.args[0], list_of_err_msg)
