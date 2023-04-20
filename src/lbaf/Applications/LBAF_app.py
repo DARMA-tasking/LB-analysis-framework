@@ -260,13 +260,53 @@ class LBAFApp:
         self.params = InternalParameters(config_file=self.config_file)
 
         # Assign logger to variable
-        self.logger = self.params.logger
+        self.__logger = self.params.logger
 
         # Create VT writer except when explicitly turned off
         self.vt_writer = VTDataWriter(
-            self.logger,
+            self.__logger,
             self.params.output_dir,
             self.params.output_file_stem) if self.params.write_vt else None
+
+    def __print_statistics(self, phase: Phase, phase_name: str):
+        """Print a set of rank and edge statistics"""
+
+        # Print rank statistics
+        l_stats = lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_load(),
+            f"{phase_name} rank load",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            f"{phase_name} rank object-level memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_size(),
+            f"{phase_name} rank working memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_shared_memory(),
+            f"{phase_name} rank shared memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            f"{phase_name} maximum memory usage",
+            self.__logger)
+
+        # Print edge statistics
+        lbstats.print_function_statistics(
+            phase.get_edge_maxima().values(),
+            lambda x: x,
+            f"{phase_name} sent volumes",
+            self.__logger)
+
+        # Return rank load statistics
+        return l_stats
 
     def main(self):
         """LBAFApp entrypoint to run"""
@@ -289,14 +329,14 @@ class LBAFApp:
                 reader = LoadReader(
                     file_prefix=self.params.data_stem,
                     n_ranks=self.params.n_ranks,
-                    logger=self.logger,
+                    logger=self.__logger,
                     file_suffix=file_suffix,
                     check_schema=check_schema)
             else:
                 reader = LoadReader(
                     file_prefix=self.params.data_stem,
                     n_ranks=self.params.n_ranks,
-                    logger=self.logger,
+                    logger=self.__logger,
                     check_schema=check_schema)
 
             # Iterate over phase IDs
@@ -304,15 +344,15 @@ class LBAFApp:
                 # Create a phase and populate it
                 if file_suffix is not None:
                     phase = Phase(
-                        self.logger, phase_id, file_suffix, reader=reader)
+                        self.__logger, phase_id, file_suffix, reader=reader)
                 else:
                     phase = Phase(
-                        self.logger, phase_id, reader=reader)
+                        self.__logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases.append(phase)
         else:
             # Populate a phase 0 pseudo-randomly
-            phase = Phase(self.logger, 0)
+            phase = Phase(self.__logger, 0)
             phase.populate_from_samplers(
                 self.params.n_ranks,
                 self.params.n_objects,
@@ -322,43 +362,14 @@ class LBAFApp:
                 self.params.n_mapped_ranks)
             phases.append(phase)
 
-        # Compute and print initial rank load and edge volume statistics
+        # Report on initial rank and edge statistics
         curr_phase = phases[0]
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_load(),
-            "initial rank load",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_max_object_level_memory(),
-            "initial rank object-level memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_size(),
-            "initial rank working memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_shared_memory(),
-            "initial rank shared memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_max_memory_usage(),
-            "initial maximum memory usage",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_edge_maxima().values(),
-            lambda x: x,
-            "initial sent volumes",
-            self.logger)
-
+        self.__print_statistics(curr_phase, "initial")
+        
         # Perform brute force optimization when needed
         if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm["name"] != "BruteForce":
             # Prepare input data for rank order enumerator
-            self.logger.info("Starting brute force optimization")
+            self.__logger.info("Starting brute force optimization")
             objects = []
 
             # Iterate over ranks
@@ -387,13 +398,13 @@ class LBAFApp:
                 objects, alpha, beta, gamma, self.params.n_ranks
             )
             if n_a != self.params.n_ranks ** len(objects):
-                self.logger.error("Incorrect number of possible arrangements with repetition")
+                self.__logger.error("Incorrect number of possible arrangements with repetition")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
-            self.logger.info(
+            self.__logger.info(
                 f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
         else:
-            self.logger.info("No brute force optimization performed")
+            self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
         # Instantiate and execute runtime
@@ -402,7 +413,7 @@ class LBAFApp:
             self.params.work_model,
             self.params.algorithm,
             a_min_max,
-            self.logger,
+            self.__logger,
             self.params.rank_qoi if self.params.rank_qoi is not None else '',
             self.params.object_qoi if self.params.object_qoi is not None else '')
         runtime.execute()
@@ -424,7 +435,7 @@ class LBAFApp:
 
             # Instantiate and execute visualizer
             ex_writer = Visualizer(
-                self.logger,
+                self.__logger,
                 qoi_request,
                 self.params.continuous_object_qoi,
                 phases,
@@ -436,65 +447,36 @@ class LBAFApp:
                 runtime.get_statistics())
             ex_writer.generate(
                 self.params.save_meshes,
-                not self.params.rank_qoi is None
-            )
+                not self.params.rank_qoi is None)
 
-        # Compute and print final rank load and edge volume statistics
+        # Report on final rank and edge statistics
         curr_phase = phases[-1]
-        l_stats = lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_load(),
-            "final rank loads",
-            self.logger)
+        l_stats = self.__print_statistics(curr_phase, "final")
         with open(
-            "imbalance.txt" if self.params.output_dir is None else os.path.join(
-                self.params.output_dir, "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
-            imbalance_file.write(
-                f"{l_stats.get_imbalance()}")
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_max_object_level_memory(),
-            "final rank object-level memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_size(),
-            "final rank working memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_shared_memory(),
-            "final rank shared memory",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_ranks(),
-            lambda x: x.get_max_memory_usage(),
-            "final maximum memory usage",
-            self.logger)
-        lbstats.print_function_statistics(
-            curr_phase.get_edge_maxima().values(),
-            lambda x: x,
-            "final sent volumes",
-            self.logger)
+            "imbalance.txt" if self.params.output_dir is None
+            else os.path.join(
+                self.params.output_dir,
+                "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
+            imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
         ell = self.params.n_ranks * l_stats.get_average() / n_o
-        self.logger.info("Optimal load statistics for %s objects with iso-time: %s", n_o, f"{ell:6g}")
+        self.__logger.info("Optimal load statistics for %s objects with iso-time: %s", n_o, f"{ell:6g}")
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
-        self.logger.info(
+        self.__logger.info(
             "\tminimum: %s  maximum: %s",
             f"{q * ell:6g}",
             f"{q + (1 if r else 0) * ell:6g}"
         )
-        self.logger.info(
+        self.__logger.info(
             "\tstandard deviation: %s imbalance: %s",
             f"{ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:6g}",
             f"{(self.params.n_ranks - r) / float(n_o):6g}" if r else '0'
         )
 
         # If this point is reached everything went fine
-        self.logger.info("Process completed without errors")
+        self.__logger.info("Process completed without errors")
 
 
 if __name__ == "__main__":
