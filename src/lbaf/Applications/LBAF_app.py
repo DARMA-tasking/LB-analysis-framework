@@ -117,7 +117,7 @@ class InternalParameters:
     rank_qoi: Union[str,None]
     object_qoi: Union[str,None]
     grid_size: Union[list,None]
-    vt_writer: Union[VTDataWriter,None]
+    json_writer: Union[VTDataWriter,None]
 
     # from_samplers options
     n_objects: int
@@ -186,7 +186,7 @@ class InternalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
-        # Parse LBAF_Viz parameters when available
+        # Parse visualizer parameters when available
         if (viz := config.get("LBAF_Viz")) is not None:
             # Retriveve mandatory visualization parameters
             try:
@@ -197,7 +197,7 @@ class InternalParameters:
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
             except Exception as ex:
-                self.logger.error("Missing LBAF-Viz configuration parameter(s): %s", ex)
+                self.logger.error("Missing visualizer configuration parameter(s): %s", ex)
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from ex
 
@@ -240,9 +240,25 @@ class InternalParameters:
         # Set output directory, local by default
         self.output_dir = abspath_from(config.get("output_dir", '.'), config_dir)
 
-        # Determine whether VT JSON file outputs are requested
-        self.write_vt = config.get("write_vt", True)
+        # Parse JSON writer parameters when available
+        self.json_output_params = {}
+        if (wrt_json := config.get("write_JSON")) is not None:
+            # Retrieve mandatory writer parameters
+            try:
+                self.json_output_params["compressed"] = wrt_json["compressed"]
+            except Exception as ex:
+                self.logger.error("Missing JSON writer configuration parameter(s): %s", ex)
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from ex
 
+            # Retrieve optional parameters
+            self.json_output_params[
+                "json_output_suffix"] = wrt_json.get("suffix", "json")
+            self.json_output_params[
+                "communications"] = wrt_json.get("communications", False)
+            self.json_output_params[
+                "offline_LB_compatible"] = wrt_json.get("offline_LB_compatible", False)
+            
     def check_parameters(self):
         """Checks after initialization."""
         # Checking if output dir exists, if not, creating one
@@ -263,10 +279,10 @@ class LBAFApp:
         self.__logger = self.params.logger
 
         # Create VT writer except when explicitly turned off
-        self.vt_writer = VTDataWriter(
+        self.json_writer = VTDataWriter(
             self.__logger,
             self.params.output_dir,
-            self.params.output_file_stem) if self.params.write_vt else None
+            self.params.output_file_stem) if self.params.json_output_params else None
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""
@@ -419,8 +435,8 @@ class LBAFApp:
         runtime.execute()
 
         # Instantiate phase to VT file writer when requested
-        if self.vt_writer:
-            self.vt_writer.write(curr_phase, 0)
+        if self.json_writer:
+            self.json_writer.write(curr_phase, 0)
 
         # Generate meshes and multimedia when requested
         if self.params.grid_size:

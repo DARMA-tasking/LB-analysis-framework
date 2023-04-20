@@ -39,3 +39,8 @@ LBAF_Viz:
   object_qoi: load
   save_meshes: true
   force_continuous_object_qoi: true
+write_JSON:
+  compressed: false
+  suffix: json
+  communications: true
+  offline_LB_compatible: true
