@@ -258,7 +258,7 @@ class InternalParameters:
                 "communications"] = wrt_json.get("communications", False)
             self.json_output_params[
                 "offline_LB_compatible"] = wrt_json.get("offline_LB_compatible", False)
-            
+
     def check_parameters(self):
         """Checks after initialization."""
         # Checking if output dir exists, if not, creating one
@@ -381,7 +381,7 @@ class LBAFApp:
         # Report on initial rank and edge statistics
         curr_phase = phases[0]
         self.__print_statistics(curr_phase, "initial")
-        
+
         # Perform brute force optimization when needed
         if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm["name"] != "BruteForce":
             # Prepare input data for rank order enumerator
