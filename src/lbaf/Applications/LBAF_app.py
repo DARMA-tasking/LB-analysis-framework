@@ -282,7 +282,8 @@ class LBAFApp:
         self.json_writer = VTDataWriter(
             self.__logger,
             self.params.output_dir,
-            self.params.output_file_stem) if self.params.json_output_params else None
+            self.params.output_file_stem,
+            self.params.json_output_params) if self.params.json_output_params else None
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""

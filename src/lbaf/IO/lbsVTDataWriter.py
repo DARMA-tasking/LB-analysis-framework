@@ -18,13 +18,13 @@ class VTDataWriter:
     def __init__(
         self,
         logger: Logger,
-        output_dir='.',
-        stem: str = "LBAF_out",
-        ext: str = "json"):
+        output_dir: str,
+        stem: str,
+        parameters: dict):
         """ Class constructor:
             phase: Phase instance
             stem: file name stem
-            ext: file name extension
+            parameters: a dictionary of parameters
         """
         # Assign logger to instance variable
         self.__logger = logger
@@ -34,7 +34,14 @@ class VTDataWriter:
         if output_dir is not None:
             self.__file_stem = os.path.join(
                 output_dir, self.__file_stem)
-        self.__extension = ext
+        try:
+            self.__extension = parameters["json_output_suffix"]
+            self.__compress = parameters["compressed"]
+            self.__offline = parameters["offline_LB_compatible"]
+        except Exception as ex:
+            self.logger.error("Missing JSON writer configuration parameter(s): %s", ex)
+            sys.excepthook = exc_handler
+            raise SystemExit(1) from ex
 
     def __create_tasks(self, rank_id, objects):
         """ Create per-object entries to be outputted to JSON."""
@@ -67,12 +74,13 @@ class VTDataWriter:
             r_id, rank.get_migratable_objects()) + self.__create_tasks(
             r_id, rank.get_sentinel_objects())
 
-        # Write file and return its name
-        json_str = json.dumps(output, separators=(',', ':'))
-        compressed_str = brotli.compress(
-            string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
-        with open(file_name, "wb") as compr_json_file:
-            compr_json_file.write(compressed_str)
+        # Serialize and possibly compress JSON payload
+        serial_json = json.dumps(output, separators=(',', ':'))
+        if self.__compress:
+            serial_json = brotli.compress(
+                string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
+        with open(file_name, "wb" if self.__compress else 'w') as json_file:
+            json_file.write(serial_json)
         return file_name
 
     def write(self, phase: Phase, increment: int):
