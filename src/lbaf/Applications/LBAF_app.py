@@ -241,22 +241,22 @@ class InternalParameters:
         self.output_dir = abspath_from(config.get("output_dir", '.'), config_dir)
 
         # Parse JSON writer parameters when available
-        self.json_output_params = {}
+        self.json_params = {}
         if (wrt_json := config.get("write_JSON")) is not None:
             # Retrieve mandatory writer parameters
             try:
-                self.json_output_params["compressed"] = wrt_json["compressed"]
+                self.json_params["compressed"] = wrt_json["compressed"]
             except Exception as ex:
                 self.logger.error("Missing JSON writer configuration parameter(s): %s", ex)
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from ex
 
             # Retrieve optional parameters
-            self.json_output_params[
+            self.json_params[
                 "json_output_suffix"] = wrt_json.get("suffix", "json")
-            self.json_output_params[
+            self.json_params[
                 "communications"] = wrt_json.get("communications", False)
-            self.json_output_params[
+            self.json_params[
                 "offline_LB_compatible"] = wrt_json.get("offline_LB_compatible", False)
 
     def check_parameters(self):
@@ -273,17 +273,17 @@ class LBAFApp:
         self.config_file = get_config_file_path()
 
         # Instantiate parameters
-        self.params = InternalParameters(config_file=self.config_file)
+        self.__parameters = InternalParameters(config_file=self.config_file)
 
         # Assign logger to variable
-        self.__logger = self.params.logger
+        self.__logger = self.__parameters.logger
 
         # Create VT writer except when explicitly turned off
         self.json_writer = VTDataWriter(
             self.__logger,
-            self.params.output_dir,
-            self.params.output_file_stem,
-            self.params.json_output_params) if self.params.json_output_params else None
+            self.__parameters.output_dir,
+            self.__parameters.output_file_stem,
+            self.__parameters.json_params) if self.__parameters.json_params else None
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""
@@ -334,30 +334,30 @@ class LBAFApp:
         phases = []
 
         # Check schema
-        check_schema = True if "check_schema" not in self.params.__dict__ else self.params.check_schema
+        check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
 
         # Populate phase depending on chosen mechanism
-        if self.params.data_stem:
+        if self.__parameters.data_stem:
             # Populate phase from log files and store number of objects
-            file_suffix = None if "file_suffix" not in self.params.__dict__ else self.params.file_suffix
+            file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
 
             # Initializing reader
             if file_suffix is not None:
                 reader = LoadReader(
-                    file_prefix=self.params.data_stem,
-                    n_ranks=self.params.n_ranks,
+                    file_prefix=self.__parameters.data_stem,
+                    n_ranks=self.__parameters.n_ranks,
                     logger=self.__logger,
                     file_suffix=file_suffix,
                     check_schema=check_schema)
             else:
                 reader = LoadReader(
-                    file_prefix=self.params.data_stem,
-                    n_ranks=self.params.n_ranks,
+                    file_prefix=self.__parameters.data_stem,
+                    n_ranks=self.__parameters.n_ranks,
                     logger=self.__logger,
                     check_schema=check_schema)
 
             # Iterate over phase IDs
-            for phase_id in self.params.phase_ids:
+            for phase_id in self.__parameters.phase_ids:
                 # Create a phase and populate it
                 if file_suffix is not None:
                     phase = Phase(
@@ -371,12 +371,12 @@ class LBAFApp:
             # Populate a phase 0 pseudo-randomly
             phase = Phase(self.__logger, 0)
             phase.populate_from_samplers(
-                self.params.n_ranks,
-                self.params.n_objects,
-                self.params.load_sampler,
-                self.params.volume_sampler,
-                self.params.communication_degree,
-                self.params.n_mapped_ranks)
+                self.__parameters.n_ranks,
+                self.__parameters.n_objects,
+                self.__parameters.load_sampler,
+                self.__parameters.volume_sampler,
+                self.__parameters.communication_degree,
+                self.__parameters.n_mapped_ranks)
             phases.append(phase)
 
         # Report on initial rank and edge statistics
@@ -384,7 +384,7 @@ class LBAFApp:
         self.__print_statistics(curr_phase, "initial")
 
         # Perform brute force optimization when needed
-        if "brute_force_optimization" in self.params.__dict__ and self.params.algorithm["name"] != "BruteForce":
+        if "brute_force_optimization" in self.__parameters.__dict__ and self.__parameters.algorithm["name"] != "BruteForce":
             # Prepare input data for rank order enumerator
             self.__logger.info("Starting brute force optimization")
             objects = []
@@ -408,13 +408,13 @@ class LBAFApp:
 
             # Execute rank order enumerator and fetch optimal arrangements
             alpha, beta, gamma = [
-                self.params.work_model.get("parameters", {}).get(k)
+                self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
             n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, self.params.n_ranks
+                objects, alpha, beta, gamma, self.__parameters.n_ranks
             )
-            if n_a != self.params.n_ranks ** len(objects):
+            if n_a != self.__parameters.n_ranks ** len(objects):
                 self.__logger.error("Incorrect number of possible arrangements with repetition")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
@@ -427,60 +427,60 @@ class LBAFApp:
         # Instantiate and execute runtime
         runtime = Runtime(
             phases,
-            self.params.work_model,
-            self.params.algorithm,
+            self.__parameters.work_model,
+            self.__parameters.algorithm,
             a_min_max,
             self.__logger,
-            self.params.rank_qoi if self.params.rank_qoi is not None else '',
-            self.params.object_qoi if self.params.object_qoi is not None else '')
+            self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
+            self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
         runtime.execute()
 
         # Instantiate phase to VT file writer when requested
         if self.json_writer:
-            self.json_writer.write(curr_phase, 0)
+            self.json_writer.write(curr_phase)
 
         # Generate meshes and multimedia when requested
-        if self.params.grid_size:
+        if self.__parameters.grid_size:
             # Look for prescribed QOI bounds
-            qoi_request = [self.params.rank_qoi]
+            qoi_request = [self.__parameters.rank_qoi]
             qoi_request.append(
-                self.params.work_model.get(
+                self.__parameters.work_model.get(
                     "parameters").get(
                     "upper_bounds", {}).get(
-                    self.params.rank_qoi))
-            qoi_request.append(self.params.object_qoi)
+                    self.__parameters.rank_qoi))
+            qoi_request.append(self.__parameters.object_qoi)
 
             # Instantiate and execute visualizer
-            ex_writer = Visualizer(
+            visualizer = Visualizer(
                 self.__logger,
                 qoi_request,
-                self.params.continuous_object_qoi,
+                self.__parameters.continuous_object_qoi,
                 phases,
-                self.params.grid_size,
-                self.params.object_jitter,
-                self.params.output_dir,
-                self.params.output_file_stem,
+                self.__parameters.grid_size,
+                self.__parameters.object_jitter,
+                self.__parameters.output_dir,
+                self.__parameters.output_file_stem,
                 runtime.get_distributions(),
                 runtime.get_statistics())
-            ex_writer.generate(
-                self.params.save_meshes,
-                not self.params.rank_qoi is None)
+            visualizer.generate(
+                self.__parameters.save_meshes,
+                not self.__parameters.rank_qoi is None)
 
         # Report on final rank and edge statistics
         curr_phase = phases[-1]
         l_stats = self.__print_statistics(curr_phase, "final")
         with open(
-            "imbalance.txt" if self.params.output_dir is None
+            "imbalance.txt" if self.__parameters.output_dir is None
             else os.path.join(
-                self.params.output_dir,
+                self.__parameters.output_dir,
                 "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
             imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
-        ell = self.params.n_ranks * l_stats.get_average() / n_o
+        ell = self.__parameters.n_ranks * l_stats.get_average() / n_o
         self.__logger.info("Optimal load statistics for %s objects with iso-time: %s", n_o, f"{ell:6g}")
-        q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
+        q, r = divmod(n_o, self.__parameters.n_ranks) #pylint: disable=C0103
         self.__logger.info(
             "\tminimum: %s  maximum: %s",
             f"{q * ell:6g}",
@@ -488,8 +488,8 @@ class LBAFApp:
         )
         self.__logger.info(
             "\tstandard deviation: %s imbalance: %s",
-            f"{ell * math.sqrt(r * (self.params.n_ranks - r)) / self.params.n_ranks:6g}",
-            f"{(self.params.n_ranks - r) / float(n_o):6g}" if r else '0'
+            f"{ell * math.sqrt(r * (self.__parameters.n_ranks - r)) / self.__parameters.n_ranks:6g}",
+            f"{(self.__parameters.n_ranks - r) / float(n_o):6g}" if r else '0'
         )
 
         # If this point is reached everything went fine

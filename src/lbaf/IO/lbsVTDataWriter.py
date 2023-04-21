@@ -37,7 +37,6 @@ class VTDataWriter:
         try:
             self.__extension = parameters["json_output_suffix"]
             self.__compress = parameters["compressed"]
-            self.__offline = parameters["offline_LB_compatible"]
         except Exception as ex:
             self.logger.error("Missing JSON writer configuration parameter(s): %s", ex)
             sys.excepthook = exc_handler
@@ -56,12 +55,12 @@ class VTDataWriter:
             "time": o.get_load()}
             for o in objects]
 
-    def json_writer(self, rank: Rank) -> str:
+    def _json_writer(self, rank: Rank) -> str:
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__extension}"
 
         # Initialize output dict
-        phase_data = {"id": self.__phase.get_id() + self.__increment}
+        phase_data = {"id": self.__phase.get_id()}
         r_id = rank.get_id()
         output = {
             "metadata": {
@@ -69,7 +68,7 @@ class VTDataWriter:
                 "rank": r_id},
             "phases": [phase_data]}
 
-        # Create list of objects descriptions
+        # Create list of object descriptions
         phase_data["tasks"] = self.__create_tasks(
             r_id, rank.get_migratable_objects()) + self.__create_tasks(
             r_id, rank.get_sentinel_objects())
@@ -81,9 +80,11 @@ class VTDataWriter:
                 string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
         with open(file_name, "wb" if self.__compress else 'w') as json_file:
             json_file.write(serial_json)
+
+        # Return JSON file name
         return file_name
 
-    def write(self, phase: Phase, increment: int):
+    def write(self, phase: Phase):
         """ Write one JSON per rank for given phase instance."""
         # Ensure that provided phase has correct type
         if not isinstance(phase, Phase):
@@ -91,9 +92,8 @@ class VTDataWriter:
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-        # Set member variables
+        # Keep track of phase to be written
         self.__phase = phase
-        self.__increment = increment
 
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
@@ -101,7 +101,7 @@ class VTDataWriter:
         # Write individual rank files using data parallelism
         with mp.pool.Pool(context=mp.get_context("fork")) as pool:
             results = pool.imap_unordered(
-                self.json_writer, self.__phase.get_ranks())
+                self._json_writer, self.__phase.get_ranks())
             for file_name in results:
                 self.__logger.info(
                     f"Wrote JSON file: {file_name}")
