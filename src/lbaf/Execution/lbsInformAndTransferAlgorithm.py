@@ -1,5 +1,4 @@
 import sys
-import copy
 
 from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
@@ -141,21 +140,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
+        # Perform pre-execution checks and initializations
+        self._initialize(phases, distributions, statistics)
 
-        # Ensure that a list with at least one phase was provided
-        if not phases or not isinstance(phases, list) or not isinstance((phase := phases[0]), Phase):
-            self._logger.error(f"Algorithm execution requires a Phase instance")
-            sys.excepthook = exc_handler
-            raise SystemExit(1)
-        self._processed_phase = copy.copy(phase)
+        # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._processed_phase)
-        self._logger.info(
-            f"Processing phase {self._processed_phase.get_id()} "
-            f"with {self._processed_phase.get_number_of_objects()} objects "
-            f"across {self._processed_phase.get_number_of_ranks()} ranks")
 
-        # Initialize run distributions and statistics
-        self.update_distributions_and_statistics(distributions, statistics)
+        # Retrieve totat work from computed statistics
         total_work = statistics["total work"][-1]
 
         # Perform requested number of load-balancing iterations
@@ -187,7 +178,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger)
 
             # Update run distributions and statistics
-            self.update_distributions_and_statistics(distributions, statistics)
+            self._update_distributions_and_statistics(distributions, statistics)
 
             # Compute current arrangement
             arrangement = tuple(

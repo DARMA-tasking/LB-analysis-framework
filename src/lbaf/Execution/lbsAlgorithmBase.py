@@ -1,8 +1,10 @@
 import abc
 import sys
+import copy
 from logging import Logger
 
 from ..IO.lbsStatistics import compute_function_statistics
+from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
 from ..Utils.logger import logger
@@ -106,7 +108,7 @@ class AlgorithmBase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-    def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
+    def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """ Compute and update run distributions and statistics."""
 
         # Create or update distributions of object quantities of interest
@@ -159,6 +161,24 @@ class AlgorithmBase:
                         for k, v in sent:
                             logger.debug(
                                 f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
+
+    def _initialize(self, phases, distributions, statistics):
+        """ Factor out pre-execution checks and initalizations."""
+        # Ensure that a list with at least one phase was provided
+        if not phases or not isinstance(phases, list) or not isinstance((phase := phases[0]), Phase):
+            self._logger.error(f"Algorithm execution requires a Phase instance")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
+        # Shallow copy phase to be processed to preserve initial one
+        self._processed_phase = copy.copy(phase)
+        self._logger.info(
+            f"Processing phase {self._processed_phase.get_id()} "
+            f"with {self._processed_phase.get_number_of_objects()} objects "
+            f"across {self._processed_phase.get_number_of_ranks()} ranks")
+
+        # Initialize run distributions and statistics
+        self._update_distributions_and_statistics(distributions, statistics)
 
     @abc.abstractmethod
     def execute(self, phases, distributions, statistics, a_min_max):
