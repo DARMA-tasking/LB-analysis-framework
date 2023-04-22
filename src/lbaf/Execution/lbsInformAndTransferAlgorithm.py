@@ -1,6 +1,7 @@
 import sys
-from logging import Logger
+import copy
 
+from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
@@ -78,7 +79,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ Execute information stage."""
 
         # Build set of all ranks in the phase
-        rank_set = set(self._phase.get_ranks())
+        rank_set = set(self._processed_phase.get_ranks())
 
         # Initialize information messages
         self._logger.info(f"Initializing information messages with fanout={self.__fanout}")
@@ -128,8 +129,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Report on gossiping status when requested
             for p in rank_set:
-                self._logger.debug(f"information known to rank {p.get_id()}: "
-                                    f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
+                self._logger.debug(
+                    f"information known to rank {p.get_id()}: "
+                    f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
 
         # Build reverse lookup of ranks to those aware of them
         for p in rank_set:
@@ -145,8 +147,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.error(f"Algorithm execution requires a Phase instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self._phase = phase
-        self.__transfer_criterion.set_phase(phase)
+        self._processed_phase = copy.copy(phase)
+        self.__transfer_criterion.set_phase(self._processed_phase)
+        self._logger.info(
+            f"Processing phase {self._processed_phase.get_id()} "
+            f"with {self._processed_phase.get_number_of_objects()} objects "
+            f"across {self._processed_phase.get_number_of_ranks()} ranks")
 
         # Initialize run distributions and statistics
         self.update_distributions_and_statistics(distributions, statistics)
@@ -161,7 +167,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
-                self._phase, statistics["average load"])
+                self._processed_phase, statistics["average load"])
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(
@@ -175,7 +181,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Compute and report iteration work statistics
             print_function_statistics(
-                self._phase.get_ranks(),
+                self._processed_phase.get_ranks(),
                 lambda x: self._work_model.compute(x),
                 f"iteration {i + 1} rank work",
                 self._logger)
@@ -187,7 +193,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             arrangement = tuple(
                 v for _, v in sorted(
                     {o.get_id(): p.get_id()
-                     for p in self._phase.get_ranks()
+                     for p in self._processed_phase.get_ranks()
                      for o in p.get_objects()}.items()))
             self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 

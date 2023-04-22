@@ -54,8 +54,8 @@ class AlgorithmBase:
         lgr.info(
             f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")
 
-        # Initially no phase is associated to algorithm
-        self._phase = None
+        # Initially no phase is assigned for processing
+        self._processed_phase = None
 
         # Map global statistical QOIs to their computation methods
         self.__statistics = {
@@ -73,6 +73,10 @@ class AlgorithmBase:
                 "maximum work": "maximum",
                 "total work": "sum",
                 "work variance": "variance"}}
+
+    def get_processed_phase(self):
+        """ Return phased assigned for processing by algoritm."""
+        return self.__processed_phase
 
     @staticmethod
     def factory(
@@ -111,7 +115,7 @@ class AlgorithmBase:
                 continue
             distributions.setdefault(f"object {object_qoi_name}", []).append(
                 {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
-                 for o in self._phase.get_objects()})
+                 for o in self._processed_phase.get_objects()})
 
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
@@ -119,25 +123,25 @@ class AlgorithmBase:
                 continue
             distributions.setdefault(f"rank {rank_qoi_name}", []).append(
                 [getattr(p, f"get_{rank_qoi_name}")()
-                 for p in self._phase.get_ranks()])
+                 for p in self._processed_phase.get_ranks()])
         distributions.setdefault("rank work", []).append(
-            [self._work_model.compute(p) for p in self._phase.get_ranks()])
+            [self._work_model.compute(p) for p in self._processed_phase.get_ranks()])
 
         # Create or update distributions of edge quantities of interest
         distributions.setdefault("sent", []).append(dict(
-            self._phase.get_edge_maxima().items()))
+            self._processed_phase.get_edge_maxima().items()))
 
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
             for k, v in stat_names.items():
                 stats = compute_function_statistics(
-                    getattr(self._phase, f"get_{support}")(), getter)
+                    getattr(self._processed_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
     def _report_final_mapping(self, logger):
         """ Report final rank object mapping in debug mode."""
 
-        for rank in self._phase.get_ranks():
+        for rank in self._processed_phase.get_ranks():
             logger.debug(f"Rank {rank.get_id()}:")
             for o in rank.get_objects():
                 comm = o.get_communicator()

@@ -84,24 +84,28 @@ class VTDataWriter:
         # Return JSON file name
         return file_name
 
-    def write(self, phase: Phase):
-        """ Write one JSON per rank for given phase instance."""
+    def write(self, phases: list):
+        """ Write one JSON per rank for list of phase instances."""
         # Ensure that provided phase has correct type
-        if not isinstance(phase, Phase):
-            self.__logger.error("Cannot write to JSON file without a Phase instance")
+        if not isinstance(phases, list) or not all(
+            [isinstance(p, Phase) for p in phases]):
+            self.__logger.error("JSON writer must be passed a list of Phase instances")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Keep track of phase to be written
-        self.__phase = phase
-
+        self.__phase_ranks = phases
+        for p in phases:
+            print(p.get_id(), p)
+        sys.exit(1)
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
 
         # Write individual rank files using data parallelism
         with mp.pool.Pool(context=mp.get_context("fork")) as pool:
             results = pool.imap_unordered(
-                self._json_writer, self.__phase.get_ranks())
+                self._json_writer, self.__phases[0].get_ranks())
             for file_name in results:
                 self.__logger.info(
                     f"Wrote JSON file: {file_name}")
+

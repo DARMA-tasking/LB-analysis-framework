@@ -256,8 +256,8 @@ class InternalParameters:
                 "json_output_suffix"] = wrt_json.get("suffix", "json")
             self.json_params[
                 "communications"] = wrt_json.get("communications", False)
-            self.json_params[
-                "offline_LB_compatible"] = wrt_json.get("offline_LB_compatible", False)
+            self.offline_LB_compatible = wrt_json.get(
+                "offline_LB_compatible", False)
 
     def check_parameters(self):
         """Checks after initialization."""
@@ -437,7 +437,13 @@ class LBAFApp:
 
         # Instantiate phase to VT file writer when requested
         if self.json_writer:
-            self.json_writer.write(curr_phase)
+            if self.__parameters.offline_LB_compatible:
+                self.__logger.info(
+                    "Writing all phases to JSON files for offline load-balancing compatibility")
+                self.json_writer.write(phases)
+            else:
+                self.__logger.info("Writing single phase {phase_id} to JSON files")
+                self.json_writer.write([curr_phase])
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:

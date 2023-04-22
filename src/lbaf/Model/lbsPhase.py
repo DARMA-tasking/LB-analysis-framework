@@ -18,14 +18,12 @@ class Phase:
     def __init__(
         self,
         lgr: Logger,
-        pid: int = 0,
-        file_suffix="json",
+        id: int = 0,
         reader: LoadReader = None):
         """ Class constructor
             logger: a Logger instance
-            pid: a phase ID
-            file_suffix: the extension for state file names
-            reader: a VT load reader instance"""
+            id: an integer indexing the phase ID
+            reader: a JSON VT reader instance"""
 
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
@@ -34,7 +32,7 @@ class Phase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__logger = lgr
-        self.__logger.info(f"Instantiating phase {pid}")
+        self.__logger.info(f"Instantiating phase {id}")
 
         # Initialize empty list of ranks
         self.__ranks = []
@@ -43,13 +41,10 @@ class Phase:
         self.__n_objects = 0
 
         # Index of this phase
-        self.__phase_id = pid
+        self.__phase_id = id
 
         # Start with null set of edges
         self.__edges = None
-
-        # Data files suffix(reading from data)
-        self.__file_suffix = file_suffix
 
         # VT Data Reader
         self.__reader = reader
