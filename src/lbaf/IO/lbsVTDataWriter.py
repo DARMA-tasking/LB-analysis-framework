@@ -120,5 +120,5 @@ class VTDataWriter:
                 self._json_writer, self.__rank_phases.items())
             for file_name in results:
                 self.__logger.info(
-                    f"Wrote JSON file: {file_name}")
+                    f"Wrote {file_name}")
 

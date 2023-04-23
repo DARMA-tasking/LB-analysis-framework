@@ -74,15 +74,15 @@ class Visualizer:
         self.__logger.info(req_str)
 
         # Make sure that Phase instances were passed
-        if not all([isinstance(p, Phase) for p in phases]):
+        if not all([isinstance(p, Phase) for p in phases.values()]):
             self.__logger.error(
-                "Visualizer expects a list of Phase instances as input")
+                "Visualizer expects a dictionary of phases as input")
             raise SystemExit(1)
         self.__phases = phases
 
         # Ensure that all phases have the same number of ranks
-        n_r = phases[0].get_number_of_ranks()
-        if not all([p.get_number_of_ranks() == n_r for p in phases[1:]]):
+        n_r = next(iter(phases.values())).get_number_of_ranks()
+        if not all([p.get_number_of_ranks() == n_r for p in phases.values()]):
             self.__logger.error(
                 f"All phases must have {n_r} ranks as the first one")
             raise SystemExit(1)
@@ -196,7 +196,7 @@ class Visualizer:
         oq_min, oq_max, oq_all, = math.inf, -math.inf, set()
 
         # Iterate over all phases
-        for phase in self.__phases:
+        for phase in self.__phases.values():
             # Iterate over all objects in phase
             for o in phase.get_objects():
                 # Update maximum object load as needed
