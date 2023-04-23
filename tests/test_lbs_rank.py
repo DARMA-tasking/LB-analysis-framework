@@ -25,7 +25,7 @@ class TestConfig(unittest.TestCase):
         self.logger = logging.getLogger()
         self.migratable_objects = {Object(i=0, load=1.0), Object(i=1, load=0.5), Object(i=2, load=0.5), Object(i=3, load=0.5)}
         self.sentinel_objects = {Object(i=15, load=4.5), Object(i=18, load=2.5)}
-        self.rank = Rank(i=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
+        self.rank = Rank(r_id=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
 
     def test_lbs_rank_initialization(self):
         self.assertEqual(self.rank._Rank__index, 0)
@@ -97,7 +97,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_sent_volume(), 6.5)
 
     def test_lbs_rank_remove_migratable_object(self):
-        temp_rank = Rank(i=1, logger=self.logger)
+        temp_rank = Rank(r_id=1, logger=self.logger)
         temp_object = Object(i=7, load=1.5)
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
@@ -108,7 +108,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
 
     def test_lbs_rank_reset_all_load_information(self):
-        temp_rank = Rank(i=1, logger=self.logger)
+        temp_rank = Rank(r_id=1, logger=self.logger)
         self.rank._Rank__known_loads[temp_rank] = 4.0
         self.assertEqual(self.rank.get_known_loads(), {temp_rank: 4.0})
         self.rank.reset_all_load_information()
@@ -117,9 +117,9 @@ class TestConfig(unittest.TestCase):
     @patch.object(random, "sample")
     def test_lbs_rank_initialize_message(self, random_mock):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
-        temp_rank_1 = Rank(i=1, logger=self.logger)
+        temp_rank_1 = Rank(r_id=1, logger=self.logger)
         temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
-        temp_rank_2 = Rank(i=2, logger=self.logger)
+        temp_rank_2 = Rank(r_id=2, logger=self.logger)
         temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
         random_mock.return_value = [temp_rank_1, temp_rank_2]
         self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[0],
@@ -132,9 +132,9 @@ class TestConfig(unittest.TestCase):
     @patch.object(random, "sample")
     def test_lbs_rank_forward_message(self, random_mock):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
-        temp_rank_1 = Rank(i=1, logger=self.logger)
+        temp_rank_1 = Rank(r_id=1, logger=self.logger)
         temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
-        temp_rank_2 = Rank(i=2, logger=self.logger)
+        temp_rank_2 = Rank(r_id=2, logger=self.logger)
         temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
         random_mock.return_value = [temp_rank_1, temp_rank_2]
         self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[0],
@@ -146,7 +146,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_rank_process_message(self):
         self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
-        temp_rank_1 = Rank(i=1, logger=self.logger)
+        temp_rank_1 = Rank(r_id=1, logger=self.logger)
         temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
         self.assertEqual(self.rank.get_load(), 9.5)
         self.rank.process_message(Message(1, {temp_rank_1: 4.0}))

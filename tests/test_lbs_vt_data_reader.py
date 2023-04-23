@@ -51,15 +51,15 @@ class TestConfig(unittest.TestCase):
             {}
         ]
         self.ranks_iter_map = [
-            {0: Rank(i=0, mo={Object(i=3, load=0.5), Object(i=2, load=0.5), Object(i=0, load=1.0),
+            {0: Rank(r_id=0, mo={Object(i=3, load=0.5), Object(i=2, load=0.5), Object(i=0, load=1.0),
                                                  Object(i=1, load=0.5)}, logger=self.logger)},
-                               {0: Rank(i=1, mo={Object(i=5, load=2.0), Object(i=7, load=0.5), Object(i=6, load=1.0),
+                               {0: Rank(r_id=1, mo={Object(i=5, load=2.0), Object(i=7, load=0.5), Object(i=6, load=1.0),
                                                  Object(i=4, load=0.5)}, logger=self.logger)},
-                               {0: Rank(i=2, mo={Object(i=8, load=1.5)}, logger=self.logger)},
-                               {0: Rank(i=3, logger=self.logger)}]
+                               {0: Rank(r_id=2, mo={Object(i=8, load=1.5)}, logger=self.logger)},
+                               {0: Rank(r_id=3, logger=self.logger)}]
 
         self.rank_list = [
-            Rank(i=0, logger=self.logger,
+            Rank(r_id=0, logger=self.logger,
                  mo={Object(
                      i=3, load=0.5, r_id=0,
                      comm=ObjectCommunicator(i=3, logger=self.logger, s={Object(i=2, load=0.5): 1.0, Object(i=8, load=1.5): 0.5})),
@@ -72,7 +72,7 @@ class TestConfig(unittest.TestCase):
                      Object(
                          i=1, load=0.5, r_id=0,
                          comm=ObjectCommunicator(i=1, logger=self.logger, r={Object(i=4, load=0.5): 2.0}, s={Object(i=4, load=0.5): 1.0}))}),
-            Rank(i=1, logger=self.logger,
+            Rank(r_id=1, logger=self.logger,
                  mo={Object(
                      i=5, load=2.0, r_id=1,
                      comm=ObjectCommunicator(i=5, logger=self.logger, r={Object(i=0, load=1.0): 2.0}, s={Object(i=8, load=1.5): 2.0})),
@@ -85,11 +85,11 @@ class TestConfig(unittest.TestCase):
                      Object(
                          i=4, load=0.5, r_id=1,
                          comm=ObjectCommunicator(i=4, logger=self.logger, r={Object(i=1, load=0.5): 1.0}, s={Object(i=1, load=0.5): 2.0}))}),
-            Rank(i=2, logger=self.logger,
+            Rank(r_id=2, logger=self.logger,
                  mo={Object(
                      i=8, load=1.5, r_id=2,
                      comm=ObjectCommunicator(i=8, logger=self.logger, r={Object(i=3, load=0.5): 0.5, Object(i=5, load=2.0): 2.0}, s={Object(i=6, load=1.0): 1.5}))}),
-            Rank(i=3, logger=self.logger)]
+            Rank(r_id=3, logger=self.logger)]
 
     def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
