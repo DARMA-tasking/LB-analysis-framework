@@ -103,11 +103,7 @@ class VTDataWriter:
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
         for p in phases.values():
-            print("phase", p.get_id(), p)
             for r in p.get_ranks():
-                print("\trank", r.get_id(), hex(id(r)), r.get_number_of_objects())
-                for o in r.get_objects():
-                    print("\t\t", o, hex(id(o)))
                 self.__rank_phases.setdefault(r.get_id(), {})
                 self.__rank_phases[r.get_id()][p.get_id()]= r
 
