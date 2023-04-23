@@ -55,11 +55,9 @@ class Rank:
         self.__size = rank.get_size()
         self.round_last_received = rank.round_last_received
 
-        # Deep copy dictionary member variables
-        self.__shared_blocks = copy.deepcopy(rank.__shared_blocks)
-        self.__known_loads = copy.deepcopy(rank.__known_loads)
-
         # Shallow copy owned objects
+        self.__shared_blocks = copy.copy(rank.__shared_blocks)
+        self.__known_loads = copy.copy(rank.__known_loads)
         self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
 

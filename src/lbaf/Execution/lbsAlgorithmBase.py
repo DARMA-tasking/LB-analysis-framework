@@ -179,10 +179,12 @@ class AlgorithmBase:
         try:
             new_ranks = []
             for r in phases[p_id].get_ranks():
+                print(r.get_id(), r.get_shared_block_ids())
                 # Minimally instantiate rank and copy
                 new_r = Rank(self._logger)
                 new_r.copy(r)
                 new_ranks.append(new_r)
+                print(new_r.get_id(), new_r.get_shared_block_ids())
             self._rebalanced_phase.set_ranks(new_ranks)
         except:
             self._logger.error(
