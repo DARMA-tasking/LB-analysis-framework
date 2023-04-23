@@ -1,9 +1,9 @@
 import abc
 import sys
-import copy
 from logging import Logger
 
 from ..IO.lbsStatistics import compute_function_statistics
+from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
@@ -78,7 +78,7 @@ class AlgorithmBase:
 
     def get_processed_phase(self):
         """ Return phased assigned for processing by algoritm."""
-        return self.__processed_phase
+        return self._processed_phase
 
     @staticmethod
     def factory(
@@ -162,27 +162,46 @@ class AlgorithmBase:
                             logger.debug(
                                 f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
-    def _initialize(self, phases, distributions, statistics):
+    def _initialize(self, p_id, phases, distributions, statistics):
         """ Factor out pre-execution checks and initalizations."""
         # Ensure that a list with at least one phase was provided
-        if not phases or not isinstance(phases, list) or not isinstance((phase := phases[0]), Phase):
-            self._logger.error(f"Algorithm execution requires a Phase instance")
+        if not isinstance(phases, dict) or not all(
+            [isinstance(p, Phase) for p in phases.values()]):
+            self._logger.error(
+                f"Algorithm execution requires a dictionary of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-        # Shallow copy phase to be processed to preserve initial one
-        self._processed_phase = copy.copy(phase)
+        # Create a processed phase to preserve phase to be processed
+        self._processed_phase = Phase(self._logger, p_id + 1)
+
+        # Try to copy ranks from phase to be processed to processd one
+        try:
+            new_ranks = []
+            for r in phases[p_id].get_ranks():
+                # Minimally instantiate rank and copy
+                new_r = Rank(self._logger)
+                new_r.copy(r)
+                new_ranks.append(new_r)
+            self._processed_phase.set_ranks(new_ranks)
+        except:
+            self._logger.error(
+                f"No phase with index {p_id} is available for processing")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
         self._logger.info(
-            f"Processing phase {self._processed_phase.get_id()} "
+            f"Processing phase {p_id} "
             f"with {self._processed_phase.get_number_of_objects()} objects "
-            f"across {self._processed_phase.get_number_of_ranks()} ranks")
+            f"across {self._processed_phase.get_number_of_ranks()} ranks "
+            f"into phase {self._processed_phase.get_id()}")
 
         # Initialize run distributions and statistics
         self._update_distributions_and_statistics(distributions, statistics)
 
     @abc.abstractmethod
-    def execute(self, phases, distributions, statistics, a_min_max):
+    def execute(self, p_id, phases, distributions, statistics, a_min_max):
         """ Excecute balancing algorithm on Phase instance
+            p_id: index of phase to be processed (all if equal to _)
             phases: list of Phase instances
             distributions: dictionary of load-varying variables
             statistics: dictionary of  statistics

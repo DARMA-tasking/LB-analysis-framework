@@ -14,10 +14,6 @@ try:
 except Exception as path_ex:
     print(f"Can not add project path to system path. Exiting.\nERROR: {path_ex}")
     raise SystemExit(1) from path_ex
-try:
-    import paraview.simple #pylint: disable=E0401,W0611
-except: #pylint: disable=W0718,W0702
-    pass
 
 # pylint: disable=C0413
 from lbaf.Utils.exception_handler import exc_handler
@@ -330,8 +326,8 @@ class LBAFApp:
         # Initialize random number generator
         lbstats.initialize()
 
-        # Create list of phase instances
-        phases = []
+        # Create dictionary for phase instances
+        phases = {}
 
         # Check schema
         check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
@@ -359,17 +355,14 @@ class LBAFApp:
             # Iterate over phase IDs
             for phase_id in self.__parameters.phase_ids:
                 # Create a phase and populate it
-                if file_suffix is not None:
-                    phase = Phase(
-                        self.__logger, phase_id, file_suffix, reader=reader)
-                else:
-                    phase = Phase(
-                        self.__logger, phase_id, reader=reader)
+                phase = Phase(
+                    self.__logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
-                phases.append(phase)
+                phases[phase_id] = phase
         else:
-            # Populate a phase 0 pseudo-randomly
-            phase = Phase(self.__logger, 0)
+            # Pseudo-randomly populate a phase 0
+            phase_id = 0
+            phase = Phase(self.__logger, phase_id)
             phase.populate_from_samplers(
                 self.__parameters.n_ranks,
                 self.__parameters.n_objects,
@@ -377,11 +370,11 @@ class LBAFApp:
                 self.__parameters.volume_sampler,
                 self.__parameters.communication_degree,
                 self.__parameters.n_mapped_ranks)
-            phases.append(phase)
+            phases[phase_id] = phase
 
         # Report on initial rank and edge statistics
-        curr_phase = phases[0]
-        self.__print_statistics(curr_phase, "initial")
+        initial_phase = phases[min(phases.keys())]
+        self.__print_statistics(initial_phase, "initial")
 
         # Perform brute force optimization when needed
         if "brute_force_optimization" in self.__parameters.__dict__ and self.__parameters.algorithm["name"] != "BruteForce":
@@ -390,7 +383,7 @@ class LBAFApp:
             objects = []
 
             # Iterate over ranks
-            for rank in curr_phase.get_ranks():
+            for rank in initial_phase.get_ranks():
                 for o in rank.get_objects():
                     entry = {
                         "id": o.get_id(),
@@ -433,7 +426,7 @@ class LBAFApp:
             self.__logger,
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
-        runtime.execute()
+        runtime.execute(0)
 
         # Instantiate phase to VT file writer when requested
         if self.json_writer:
@@ -443,7 +436,7 @@ class LBAFApp:
                 self.json_writer.write(phases)
             else:
                 self.__logger.info("Writing single phase {phase_id} to JSON files")
-                self.json_writer.write([curr_phase])
+                self.json_writer.write([initial_phase])
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
@@ -473,30 +466,13 @@ class LBAFApp:
                 not self.__parameters.rank_qoi is None)
 
         # Report on final rank and edge statistics
-        curr_phase = phases[-1]
-        l_stats = self.__print_statistics(curr_phase, "final")
+        l_stats = self.__print_statistics(final_phases[-1], "final")
         with open(
             "imbalance.txt" if self.__parameters.output_dir is None
             else os.path.join(
                 self.__parameters.output_dir,
                 "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
             imbalance_file.write(f"{l_stats.get_imbalance()}")
-
-        # Report on theoretically optimal statistics
-        n_o = curr_phase.get_number_of_objects()
-        ell = self.__parameters.n_ranks * l_stats.get_average() / n_o
-        self.__logger.info("Optimal load statistics for %s objects with iso-time: %s", n_o, f"{ell:6g}")
-        q, r = divmod(n_o, self.__parameters.n_ranks) #pylint: disable=C0103
-        self.__logger.info(
-            "\tminimum: %s  maximum: %s",
-            f"{q * ell:6g}",
-            f"{q + (1 if r else 0) * ell:6g}"
-        )
-        self.__logger.info(
-            "\tstandard deviation: %s imbalance: %s",
-            f"{ell * math.sqrt(r * (self.__parameters.n_ranks - r)) / self.__parameters.n_ranks:6g}",
-            f"{(self.__parameters.n_ranks - r) / float(n_o):6g}" if r else '0'
-        )
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")

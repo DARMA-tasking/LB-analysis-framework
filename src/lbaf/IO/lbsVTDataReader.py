@@ -160,7 +160,7 @@ class LoadReader:
                             self.__logger.debug(f"{k}: {v}")
 
         # Instantiante rank for current phase
-        phase_rank = Rank(rank_id, logger=self.__logger)
+        phase_rank = Rank(self.__logger, rank_id)
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}

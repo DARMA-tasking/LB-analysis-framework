@@ -65,10 +65,10 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Return arrangement works
         return works
 
-    def execute(self, phases: list, distributions: dict, statistics: dict, _):
-        """ Execute brute force optimization algorithm on Phase instance."""
+    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
+        """ Execute brute force optimization algorithm on phase with index p_id."""
         # Perform pre-execution checks and initializations
-        self._initialize(phases, distributions, statistics)
+        self._initialize(p_id, phases, distributions, statistics)
 
         # Prepare input data for rank order enumerator
         self._logger.info(f"Starting brute force optimization")

@@ -18,7 +18,7 @@ class Phase:
     def __init__(
         self,
         lgr: Logger,
-        id: int = 0,
+        p_id: int = 0,
         reader: LoadReader = None):
         """ Class constructor
             logger: a Logger instance
@@ -32,16 +32,13 @@ class Phase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__logger = lgr
-        self.__logger.info(f"Instantiating phase {id}")
+        self.__logger.info(f"Instantiating phase {p_id}")
+
+        # Index of this phase
+        self.__phase_id = p_id
 
         # Initialize empty list of ranks
         self.__ranks = []
-
-        # Initialize null number of objects
-        self.__n_objects = 0
-
-        # Index of this phase
-        self.__phase_id = id
 
         # Start with null set of edges
         self.__edges = None
@@ -57,17 +54,21 @@ class Phase:
         """ Retrieve number of ranks belonging to phase."""
         return len(self.__ranks)
 
+    def set_ranks(self, ranks: list):
+        """ Set list of ranks for this phase."""
+        self.__ranks = ranks
+
     def get_ranks(self):
         """ Retrieve ranks belonging to phase."""
         return self.__ranks
 
     def get_rank_ids(self):
         """ Retrieve IDs of ranks belonging to phase."""
-        return [p.get_id() for p in self.__ranks]
+        return [r.get_id() for r in self.__ranks]
 
     def get_number_of_objects(self):
         """ Return number of objects."""
-        return self.__n_objects
+        return sum([r.get_number_of_objects() for r in self.__ranks])
 
     def get_objects(self):
         """ Return all objects belonging to phase."""
@@ -259,7 +260,6 @@ class Phase:
         # Create n_objects objects with uniformly distributed loads in given range
         self.__logger.info(
             f"Creating {n_objects} objects with loads sampled from {sampler_name}")
-        self.__number_of_objects = n_objects
         objects = set([
             Object(i, load=load_sampler())
             for i in range(n_objects)])
@@ -326,7 +326,7 @@ class Phase:
         print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)
 
         # Create given number of ranks
-        self.__ranks = [Rank(i, self.__logger) for i in range(n_ranks)]
+        self.__ranks = [Rank(self.__logger, r_id) for r_id in range(n_ranks)]
 
         # Randomly assign objects to ranks
         if n_r_mapped and n_r_mapped <= n_ranks:
@@ -363,7 +363,6 @@ class Phase:
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
-        self.__n_objects = len(objects)
 
         # Compute and report object statistics
         print_function_statistics(

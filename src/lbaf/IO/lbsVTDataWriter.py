@@ -55,23 +55,30 @@ class VTDataWriter:
             "time": o.get_load()}
             for o in objects]
 
-    def _json_writer(self, rank: Rank) -> str:
+    def _json_writer(self, rank_phases_double) -> str:
+        """ Write one JSON per rank for list of phase instances."""
+        # Unpack received double
+        r_id, r_phases = rank_phases_double
+        
         # Create file name for current rank
-        file_name = f"{self.__file_stem}.{rank.get_id()}.{self.__extension}"
+        file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
+        self.__logger.debug(f"Writing {file_name}")
 
         # Initialize output dict
-        phase_data = {"id": self.__phase.get_id()}
-        r_id = rank.get_id()
         output = {
             "metadata": {
                 "type": "LBDatafile",
                 "rank": r_id},
-            "phases": [phase_data]}
+            "phases": []}
 
-        # Create list of object descriptions
-        phase_data["tasks"] = self.__create_tasks(
-            r_id, rank.get_migratable_objects()) + self.__create_tasks(
-            r_id, rank.get_sentinel_objects())
+        # Iterate over phases
+        for p_id, r in r_phases.items():
+            # Create data to be outputted for current phase
+            phase_data = {"id": p_id}
+            phase_data["tasks"] = self.__create_tasks(
+                r_id, r.get_migratable_objects()) + self.__create_tasks(
+                r_id, r.get_sentinel_objects())
+            output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
         serial_json = json.dumps(output, separators=(',', ':'))
@@ -84,27 +91,33 @@ class VTDataWriter:
         # Return JSON file name
         return file_name
 
-    def write(self, phases: list):
-        """ Write one JSON per rank for list of phase instances."""
+    def write(self, phases: dict):
+        """ Write one JSON per rank for dictonary of phases."""
         # Ensure that provided phase has correct type
-        if not isinstance(phases, list) or not all(
-            [isinstance(p, Phase) for p in phases]):
-            self.__logger.error("JSON writer must be passed a list of Phase instances")
+        if not isinstance(phases, dict) or not all(
+            [isinstance(p, Phase) for p in phases.values()]):
+            self.__logger.error("JSON writer must be passed a list of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-        # Keep track of phase to be written
-        self.__phase_ranks = phases
-        for p in phases:
-            print(p.get_id(), p)
-        sys.exit(1)
+        # Assemble mapping from ranks to their phases
+        self.__rank_phases = {}
+        for p in phases.values():
+            print("phase", p.get_id(), p)
+            for r in p.get_ranks():
+                print("\trank", r.get_id(), hex(id(r)), r.get_number_of_objects())
+                for o in r.get_objects():
+                    print("\t\t", o, hex(id(o)))
+                self.__rank_phases.setdefault(r.get_id(), {})
+                self.__rank_phases[r.get_id()][p.get_id()]= r
+
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
 
         # Write individual rank files using data parallelism
         with mp.pool.Pool(context=mp.get_context("fork")) as pool:
             results = pool.imap_unordered(
-                self._json_writer, self.__phases[0].get_ranks())
+                self._json_writer, self.__rank_phases.items())
             for file_name in results:
                 self.__logger.info(
                     f"Wrote JSON file: {file_name}")

@@ -1,4 +1,5 @@
 import sys
+import copy
 import math
 import random as rnd
 from logging import Logger
@@ -15,8 +16,8 @@ class Rank:
 
     def __init__(
         self,
-        i: int,
         logger: Logger,
+        r_id: int = -1,
         mo: set = None,
         so: set = None):
 
@@ -24,7 +25,7 @@ class Rank:
         self.__logger = logger
 
         # Member variables passed by constructor
-        self.__index = i
+        self.__index = r_id
         self.__migratable_objects = set()
         if mo is not None:
             for o in mo:
@@ -45,6 +46,22 @@ class Rank:
 
         # No message was received initially
         self.round_last_received = 0
+
+    def copy(self, rank):
+        """ Specialized copy method."""
+
+        # Copy all flat member variables
+        self.__index = rank.get_id()
+        self.__size = rank.get_size()
+        self.round_last_received = rank.round_last_received
+
+        # Deep copy dictionary member variables
+        self.__shared_blocks = copy.deepcopy(rank.__shared_blocks)
+        self.__known_loads = copy.deepcopy(rank.__known_loads)
+
+        # Shallow copy owned objects
+        self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
+        self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
     def __repr__(self):
         return f"<Rank index: {self.__index}>"
@@ -137,6 +154,10 @@ class Rank:
         """ Return all objects assigned to rank."""
         return self.__migratable_objects.union(self.__sentinel_objects)
 
+    def get_number_of_objects(self) -> int:
+        """ Return number of objects assigned to rank."""
+        return len(self.__sentinel_objects) + len(self.__migratable_objects)
+
     def add_migratable_object(self, o: Object) -> None:
         """ Add object to migratable objects."""
         return self.__migratable_objects.add(o)
@@ -152,10 +173,6 @@ class Rank:
     def get_sentinel_objects(self) -> set:
         """ Return sentinel objects assigned to rank."""
         return self.__sentinel_objects
-
-    def get_number_of_sentinel_objects(self) -> int:
-        """ Return number of sentinel objects assigned to rank."""
-        return len(self.__sentinel_objects)
 
     def get_object_ids(self) -> list:
         """ Return IDs of all objects assigned to rank."""

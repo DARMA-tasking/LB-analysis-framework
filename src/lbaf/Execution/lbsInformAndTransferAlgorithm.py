@@ -81,7 +81,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         rank_set = set(self._processed_phase.get_ranks())
 
         # Initialize information messages
-        self._logger.info(f"Initializing information messages with fanout={self.__fanout}")
+        self._logger.info(
+            f"Initializing information messages with fanout={self.__fanout}")
         information_round = 1
         messages = {}
 
@@ -138,10 +139,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             if not p.get_load():
                 continue
 
-    def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
-        """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
+    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
+        """ Execute 2-phase gossip+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
-        self._initialize(phases, distributions, statistics)
+        self._initialize(p_id, phases, distributions, statistics)
 
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._processed_phase)
