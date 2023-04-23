@@ -168,7 +168,7 @@ class AlgorithmBase:
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
             self._logger.error(
-                f"Algorithm execution requires a dictionary of phases")
+                "Algorithm execution requires a dictionary of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 

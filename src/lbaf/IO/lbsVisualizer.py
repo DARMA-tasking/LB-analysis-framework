@@ -473,7 +473,7 @@ class Visualizer:
     def __create_rendering_pipeline(
         self,
         iteration: int,
-        pid: int,
+        p_id: int,
         object_mesh,
         edge_width: int,
         glyph_factor: float,
@@ -623,7 +623,7 @@ class Visualizer:
         lb_data = self.__field_data["load imbalance"]
         text_actor = vtk.vtkTextActor()
         text_actor.SetInput(
-            f"Phase ID: {pid}"
+            f"Phase ID: {p_id}"
             f"   Iteration: {iteration}/{len(lb_data) - 1}\n"
             f"Load Imbalance: {lb_data[iteration].GetTuple1(0):.4g}")
         text_prop = text_actor.GetTextProperty()
@@ -755,6 +755,7 @@ class Visualizer:
         # Iterate over all object distributions
         phase = self.__phases[0]
         for iteration, object_mapping in enumerate(objects):
+            print(iteration, object_mapping, update_phase)
             # Update phase when required
             if update_phase:
                 phase = self.__phases[iteration]

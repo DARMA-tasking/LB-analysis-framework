@@ -24,22 +24,21 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         """ Execute brute force optimization algorithm on all phases."""
 
         # Ensure that a list with at least one phase was provided
-        if not phases or not isinstance(phases, list) or not all(
-                [isinstance(p, Phase) for p in phases]):
-            self._logger.error(f"Algorithm execution requires a Phase instance")
+        if not isinstance(phases, dict) or not all(
+                [isinstance(p, Phase) for p in phases.values()]):
+            self._logger.error(
+                "Algorithm execution requires a dictionary of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Iterate over all phases
-        for p in phases:
+        for p_id, self._processed_phase in phases.items():
             # Step through current phase
-            self._processed_phase = p
-            p_id = p.get_id()
             self._logger.info(f"Stepping through phase {p_id}")
 
             # Compute and report phase rank work statistics
             print_function_statistics(
-                p.get_ranks(),
+                self._processed_phase.get_ranks(),
                 lambda x: self._work_model.compute(x),
                 f"phase {p_id} rank works",
                 self._logger)
