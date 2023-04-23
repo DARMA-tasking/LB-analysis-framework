@@ -1,4 +1,4 @@
-import json
+!import json
 import os
 import sys
 import brotli
@@ -59,7 +59,7 @@ class VTDataWriter:
         """ Write one JSON per rank for list of phase instances."""
         # Unpack received double
         r_id, r_phases = rank_phases_double
-        
+
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
         self.__logger.debug(f"Writing {file_name}")
@@ -121,4 +121,3 @@ class VTDataWriter:
             for file_name in results:
                 self.__logger.info(
                     f"Wrote {file_name}")
-
