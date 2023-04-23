@@ -107,5 +107,9 @@ class Runtime:
             self.__statistics,
             self.__a_min_max)
 
-        if (pp := self.__algorithm.get_processed_phase()):
+        # Retrieve possibly null rebalanced phase and return it
+        if (pp := self.__algorithm.get_rebalanced_phase()):
             self.__phases[pp.get_id()] = pp
+            self.__logger.info(
+                f"Created a rebalanced phase {pp.get_id()}")
+        return pp

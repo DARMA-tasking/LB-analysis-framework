@@ -149,7 +149,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer
-                    self._processed_phase.transfer_object(r_src, o, r_dst)
+                    self._rebalanced_phase.transfer_object(r_src, o, r_dst)
                     n_transfers += 1
 
         # Report on object transfers

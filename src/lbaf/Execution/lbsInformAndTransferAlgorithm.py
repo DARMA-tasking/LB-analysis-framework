@@ -78,7 +78,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ Execute information stage."""
 
         # Build set of all ranks in the phase
-        rank_set = set(self._processed_phase.get_ranks())
+        rank_set = set(self._rebalanced_phase.get_ranks())
 
         # Initialize information messages
         self._logger.info(
@@ -145,7 +145,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self._initialize(p_id, phases, distributions, statistics)
 
         # Set phase to be used by transfer criterion
-        self.__transfer_criterion.set_phase(self._processed_phase)
+        self.__transfer_criterion.set_phase(self._rebalanced_phase)
 
         # Retrieve totat work from computed statistics
         total_work = statistics["total work"][-1]
@@ -159,7 +159,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
-                self._processed_phase, statistics["average load"])
+                self._rebalanced_phase, statistics["average load"])
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(
@@ -173,7 +173,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Compute and report iteration work statistics
             print_function_statistics(
-                self._processed_phase.get_ranks(),
+                self._rebalanced_phase.get_ranks(),
                 lambda x: self._work_model.compute(x),
                 f"iteration {i + 1} rank work",
                 self._logger)
@@ -185,7 +185,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             arrangement = tuple(
                 v for _, v in sorted(
                     {o.get_id(): p.get_id()
-                     for p in self._processed_phase.get_ranks()
+                     for p in self._rebalanced_phase.get_ranks()
                      for o in p.get_objects()}.items()))
             self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 

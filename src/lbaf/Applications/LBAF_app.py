@@ -426,7 +426,7 @@ class LBAFApp:
             self.__logger,
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
-        runtime.execute(0)
+        rebalanced_phase = runtime.execute(0)
 
         # Instantiate phase to VT file writer when requested
         if self.json_writer:
@@ -465,14 +465,15 @@ class LBAFApp:
                 self.__parameters.save_meshes,
                 not self.__parameters.rank_qoi is None)
 
-        # Report on final rank and edge statistics
-        l_stats = self.__print_statistics(final_phases[-1], "final")
-        with open(
-            "imbalance.txt" if self.__parameters.output_dir is None
-            else os.path.join(
-                self.__parameters.output_dir,
-                "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
-            imbalance_file.write(f"{l_stats.get_imbalance()}")
+        # Report on rebalanced phase when available
+        if rebalanced_phase:
+            l_stats = self.__print_statistics(rebalanced_phase, "rebalanced")
+            with open(
+                "imbalance.txt" if self.__parameters.output_dir is None
+                else os.path.join(
+                    self.__parameters.output_dir,
+                    "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
+                imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")

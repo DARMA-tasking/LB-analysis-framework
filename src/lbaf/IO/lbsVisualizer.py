@@ -749,13 +749,12 @@ class Visualizer:
 
         # Determine whether phase must be updated
         update_phase = True if len(
-            objects := self.__distributions.get("rank objects", set())
+            rank_objects := self.__distributions.get("rank objects", set())
             ) == len(self.__phases) else False
 
         # Iterate over all object distributions
         phase = self.__phases[0]
-        for iteration, object_mapping in enumerate(objects):
-            print(iteration, object_mapping, update_phase)
+        for iteration, object_mapping in enumerate(rank_objects):
             # Update phase when required
             if update_phase:
                 phase = self.__phases[iteration]

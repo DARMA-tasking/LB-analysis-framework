@@ -32,13 +32,13 @@ class PhaseStepperAlgorithm(AlgorithmBase):
             raise SystemExit(1)
 
         # Iterate over all phases
-        for p_id, self._processed_phase in phases.items():
+        for p_id, self._rebalanced_phase in phases.items():
             # Step through current phase
             self._logger.info(f"Stepping through phase {p_id}")
 
             # Compute and report phase rank work statistics
             print_function_statistics(
-                self._processed_phase.get_ranks(),
+                self._rebalanced_phase.get_ranks(),
                 lambda x: self._work_model.compute(x),
                 f"phase {p_id} rank works",
                 self._logger)
@@ -51,4 +51,4 @@ class PhaseStepperAlgorithm(AlgorithmBase):
             self._report_final_mapping(self._logger)
 
         # Indicate that no phase was modified
-        self._processed_phase = None
+        self._rebalanced_phase = None
