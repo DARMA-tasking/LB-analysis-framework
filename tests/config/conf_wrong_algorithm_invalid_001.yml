@@ -15,6 +15,7 @@ work_model:
 # Specify algorithm
 algorithm:
   name: BruteForce
+  phase_id: 0
   parameters:
     n_iterations: 8
 
