@@ -3,6 +3,7 @@ from_data:
   data_stem: ../data/user-defined-memory-toy-problem/toy_mem
   phase_ids:
     - 0
+check_schema: true
 
 # Specify work model
 work_model:
@@ -28,9 +29,6 @@ algorithm:
     deterministic_transfer: true
 
 # Specify output
-overwrite_validator: false
-check_schema: true
-terminal_background: light
 output_dir: ../output
 output_file_stem: output_file
 n_ranks: 4

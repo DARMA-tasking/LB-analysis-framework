@@ -111,13 +111,25 @@ class LoadReader:
 
     def _populate_rank(self, phase_id: int, rank_id: int) -> tuple:
         """ Populate rank and its communicator in phase using the JSON content."""
-        # Iterate over phases
+        # Seek phase with given ID
+        phase_id_found = False
         for phase in self.__vt_data.get(rank_id).get("phases"):
-            # Ignore phases that are not of interest
             if (curr_phase_id := phase["id"]) != phase_id:
+                # Ignore phases that are not of interest
                 self.__logger.debug(
                     f"Ignored phase {curr_phase_id} for rank {rank_id}")
                 continue
+            else:
+                # Desired phase was found
+                phase_id_found = True
+                break
+
+        # Error out if desired phase was not found
+        if not phase_id_found:
+            self.__logger.error(
+                f"Phase {curr_phase_id} not found for rank {rank_id}")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
 
         # Proceed with desired phase
         self.__logger.debug(

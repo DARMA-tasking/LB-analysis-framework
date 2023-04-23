@@ -64,8 +64,9 @@ class ConfigurationValidator:
                     str,
                     lambda d: d in ALLOWED_ALGORITHMS,
                     error=f"{get_error_message(ALLOWED_ALGORITHMS)} must be chosen"),
+                Optional("phase_id"): int,
                 Optional("parameters"): dict},
-            "output_file_stem": str,
+           "output_file_stem": str,
             "n_ranks": And(
                 int,
                 lambda x: x > 0,
@@ -144,6 +145,7 @@ class ConfigurationValidator:
         self.__algorithm = {
             "InformAndTransfer": Schema(
                 {"name": "InformAndTransfer",
+                 "phase_id": int,
                  "parameters": {
                      "n_iterations": int,
                      "n_rounds": int,
@@ -165,6 +167,7 @@ class ConfigurationValidator:
                      "deterministic_transfer": bool}}),
             "BruteForce": Schema(
                 {"name": "BruteForce",
+                 "phase_id": int,
                  Optional("parameters"): {"skip_transfer": bool}}),
             "PhaseStepper": Schema(
                 {"name": "PhaseStepper"})}

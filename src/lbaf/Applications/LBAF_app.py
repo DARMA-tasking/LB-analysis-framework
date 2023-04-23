@@ -126,7 +126,7 @@ class InternalParameters:
         config = self.load_config(from_file=config_file)
         config_dir = os.path.dirname(config_file)
 
-        # init lbaf logger
+        # Initialize logger
         lvl = cast(str, config.get("logging_level", "info"))
         self.logger = logger(
             name="lbaf",
@@ -137,6 +137,7 @@ class InternalParameters:
         )
         self.logger.info("Logging level: %s", lvl.lower())
 
+        # Initialize and check configuration
         self.validate_configuration(config)
         self.init_parameters(config, config_dir)
         self.check_parameters()
@@ -170,7 +171,8 @@ class InternalParameters:
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
-        ConfigurationValidator(config_to_validate=config, logger=self.logger).main()
+        ConfigurationValidator(
+            config_to_validate=config, logger=self.logger).main()
 
     def init_parameters(self, config: dict, config_dir: str):
         """Execute when YAML configuration file was found and checked"""
@@ -417,7 +419,7 @@ class LBAFApp:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
-        # Instantiate and execute runtime
+        # Instantiate runtime
         runtime = Runtime(
             phases,
             self.__parameters.work_model,
@@ -426,7 +428,10 @@ class LBAFApp:
             self.__logger,
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
-        rebalanced_phase = runtime.execute(0)
+
+        # Execute runtime for specified phases, -1 for all phases
+        rebalanced_phase = runtime.execute(
+            self.__parameters.algorithm.get("phase_id", -1))
 
         # Instantiate phase to VT file writer when requested
         if self.json_writer:

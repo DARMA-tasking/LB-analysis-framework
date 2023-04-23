@@ -105,7 +105,7 @@ class Visualizer:
             i: [(random.random() - 0.5) * object_jitter
                 if d in self.__rank_dims
                 else 0.0 for d in range(3)]
-            for i in self.__phases[0].get_object_ids()}
+            for i in next(iter(self.__phases.values())).get_object_ids()}
 
         # Initialize maximum object atrribute values
         self.__object_load_max = 0.0
@@ -753,11 +753,12 @@ class Visualizer:
             ) == len(self.__phases) else False
 
         # Iterate over all object distributions
-        phase = self.__phases[0]
+        phase = next(iter(self.__phases.values()))
+        phase_it = iter(self.__phases.values())
         for iteration, object_mapping in enumerate(rank_objects):
             # Update phase when required
             if update_phase:
-                phase = self.__phases[iteration]
+                phase = next(phase_it)
 
             # Create object mesh when requested
             if self.__object_qoi:
