@@ -7,6 +7,7 @@ from logging import Logger
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
+from ..Utils.exception_handler import exc_handler
 
 
 class VTDataWriter:

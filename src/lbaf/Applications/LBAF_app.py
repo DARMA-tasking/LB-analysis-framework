@@ -440,8 +440,10 @@ class LBAFApp:
                     "Writing all phases to JSON files for offline load-balancing compatibility")
                 self.json_writer.write(phases)
             else:
-                self.__logger.info("Writing single phase {phase_id} to JSON files")
-                self.json_writer.write([initial_phase])
+                print(phases)
+                print(rebalanced_phase)
+                self.__logger.info(f"Writing single phase {phase_id} to JSON files")
+                self.json_writer.write([rebalanced_phase])
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
