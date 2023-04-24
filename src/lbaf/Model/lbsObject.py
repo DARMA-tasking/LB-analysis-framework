@@ -95,6 +95,10 @@ class Object:
         """ Return object ID."""
         return self.__index
 
+    def set_load(self, load: float):
+        """ Set object load."""
+        self.__load = load
+
     def get_load(self) -> float:
         """ Return object load."""
         return self.__load

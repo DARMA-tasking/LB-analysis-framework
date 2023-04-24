@@ -109,7 +109,6 @@ class Runtime:
 
         # Retrieve possibly null rebalanced phase and return it
         if (pp := self.__algorithm.get_rebalanced_phase()):
-            pp.set_id((pp_id := pp.get_id()+ phase_increment))
-            self.__phases[pp_id] = pp
+            pp.set_id((pp_id := pp.get_id() + phase_increment))
             self.__logger.info(f"Created rebalanced phase {pp_id}")
         return pp

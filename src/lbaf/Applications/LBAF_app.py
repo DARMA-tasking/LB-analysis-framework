@@ -3,6 +3,7 @@ import argparse
 import os
 import sys
 import math
+import copy
 from typing import cast, List, Dict, Any, Union
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
@@ -440,11 +441,25 @@ class LBAFApp:
         # Instantiate phase to VT file writer when requested
         if self.json_writer:
             if offline_LB_compatible:
-                # Bail out early if no rebalancing took place
+                # Add rebalanced phase when present
                 if not rebalanced_phase:
                     self.__logger.warning(
                         "No rebalancing took place for offline load-balancing")
-                # Apply object timings to rebalanced phases
+                else:
+                    # Determine if a phase with same index was present
+                    if (existing_phase := phases.get(p_id := rebalanced_phase.get_id())):
+                        # Apply object timings to rebalanced phase
+                        self.__logger.info(
+                            f"Phase {p_id} already present, applying its object loads to rebalanced phase")
+                        original_loads = {
+                            o.get_id(): o.get_load()
+                            for o in phases[p_id].get_objects()}
+                        print(original_loads)
+                        for o in rebalanced_phase.get_objects():
+                            o.set_load(original_loads[o.get_id()])
+
+                    # Insert rebalanced phase into dictionary of phases
+                    phases[p_id] = rebalanced_phase
 
                 # Write all phases
                 self.__logger.info(
