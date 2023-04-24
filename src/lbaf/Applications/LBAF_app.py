@@ -444,9 +444,8 @@ class LBAFApp:
                 if not rebalanced_phase:
                     self.__logger.warning(
                         "No rebalancing took place for offline load-balancing")
-                Apply object timings to rebalanced phases
                 # Apply object timings to rebalanced phases
-                if not
+
                 # Write all phases
                 self.__logger.info(
                     f"Writing all ({len(phases)}) phases for offline load-balancing")

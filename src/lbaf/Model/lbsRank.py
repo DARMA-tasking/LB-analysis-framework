@@ -11,8 +11,7 @@ from ..Utils.exception_handler import exc_handler
 
 
 class Rank:
-    """ A class representing a rank to which objects are assigned
-    """
+    """ A class representing a rank to which objects are assigned."""
 
     def __init__(
         self,
