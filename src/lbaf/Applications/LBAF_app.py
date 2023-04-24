@@ -254,7 +254,8 @@ class InternalParameters:
                 "json_output_suffix"] = wrt_json.get("suffix", "json")
             self.json_params[
                 "communications"] = wrt_json.get("communications", False)
-            self.offline_LB_compatible = wrt_json.get(
+            self.json_params[
+                "offline_LB_compatible"] = wrt_json.get(
                 "offline_LB_compatible", False)
 
     def check_parameters(self):
@@ -430,20 +431,30 @@ class LBAFApp:
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
         # Execute runtime for specified phases, -1 for all phases
+        offline_LB_compatible = self.__parameters.json_params.get(
+            "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
-            self.__parameters.algorithm.get("phase_id", -1))
+            self.__parameters.algorithm.get("phase_id", -1),
+            offline_LB_compatible)
 
         # Instantiate phase to VT file writer when requested
         if self.json_writer:
-            if self.__parameters.offline_LB_compatible:
+            if offline_LB_compatible:
+                # Bail out early if no rebalancing took place
+                if not rebalanced_phase:
+                    self.__logger.warning(
+                        "No rebalancing took place for offline load-balancing")
+                Apply object timings to rebalanced phases
+                # Apply object timings to rebalanced phases
+                if not
+                # Write all phases
                 self.__logger.info(
-                    "Writing all phases to JSON files for offline load-balancing compatibility")
+                    f"Writing all ({len(phases)}) phases for offline load-balancing")
                 self.json_writer.write(phases)
             else:
-                print(phases)
-                print(rebalanced_phase)
                 self.__logger.info(f"Writing single phase {phase_id} to JSON files")
-                self.json_writer.write([rebalanced_phase])
+                self.json_writer.write(
+                    {phase_id: rebalanced_phase})
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:

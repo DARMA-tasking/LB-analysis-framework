@@ -75,6 +75,7 @@ class VTDataWriter:
         # Iterate over phases
         for p_id, r in r_phases.items():
             # Create data to be outputted for current phase
+            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data = {"id": p_id}
             phase_data["tasks"] = self.__create_tasks(
                 r_id, r.get_migratable_objects()) + self.__create_tasks(
@@ -97,7 +98,8 @@ class VTDataWriter:
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
-            self.__logger.error("JSON writer must be passed a list of phases")
+            self.__logger.error(
+                "JSON writer must be passed a dictionary of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
@@ -116,5 +118,4 @@ class VTDataWriter:
             results = pool.imap_unordered(
                 self._json_writer, self.__rank_phases.items())
             for file_name in results:
-                self.__logger.info(
-                    f"Wrote {file_name}")
+                self.__logger.info(f"Wrote {file_name}")

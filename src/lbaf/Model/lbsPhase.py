@@ -46,6 +46,10 @@ class Phase:
         # VT Data Reader
         self.__reader = reader
 
+    def set_id(self, p_id: int):
+        """ Set index of this phase."""
+        self.__phase_id = p_id
+
     def get_id(self):
         """ Retrieve index of this phase."""
         return self.__phase_id
@@ -72,7 +76,7 @@ class Phase:
 
     def get_objects(self):
         """ Return all objects belonging to phase."""
-        # List comprehension is not possible as we need to use set to list concatenation
+        # List comprehension is not possible as set-to-list concatenation is needed
         objects = []
         for r in self.__ranks:
             objects += r.get_objects()

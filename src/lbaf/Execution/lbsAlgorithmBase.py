@@ -173,7 +173,7 @@ class AlgorithmBase:
             raise SystemExit(1)
 
         # Create a rebalanced phase to preserve phase to be rebalanced
-        self._rebalanced_phase = Phase(self._logger, p_id + 1)
+        self._rebalanced_phase = Phase(self._logger, p_id)
 
         # Try to copy ranks from phase to be rebalanced to processd one
         try:

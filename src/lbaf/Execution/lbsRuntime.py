@@ -93,8 +93,8 @@ class Runtime:
 
         return self.__statistics
 
-    def execute(self, p_id: int=-1):
-        """ Execute runtime for all phases or a given one."""
+    def execute(self, p_id: int, phase_increment=0):
+        """ Execute runtime for single phase with given ID or all (-1)."""
 
         # Execute balancing algorithm
         self.__logger.info(
@@ -109,7 +109,7 @@ class Runtime:
 
         # Retrieve possibly null rebalanced phase and return it
         if (pp := self.__algorithm.get_rebalanced_phase()):
-            self.__phases[pp.get_id()] = pp
-            self.__logger.info(
-                f"Created a rebalanced phase {pp.get_id()}")
+            pp.set_id((pp_id := pp.get_id()+ phase_increment))
+            self.__phases[pp_id] = pp
+            self.__logger.info(f"Created rebalanced phase {pp_id}")
         return pp
