@@ -14,7 +14,7 @@ def _save_schema_validator_and_init_file():
     """Initialize src/lbaf/import directory and downloads the Schema Validator script into it"""
 
     # Create src/lbaf/imported directory if not exist
-    import_dir = os.path.join(project_dir(), "lbaf", "imported")
+    import_dir = os.path.join(project_dir(), "src", "lbaf", "imported")
     if not os.path.isdir(import_dir):
         os.makedirs(import_dir)
 
