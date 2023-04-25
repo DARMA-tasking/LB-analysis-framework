@@ -24,7 +24,7 @@ from lbaf.Applications.schema_validator_loader import check_and_get_schema_valid
 
 try:
     import paraview.simple #pylint: disable=E0401,W0611
-except: #pylint: disable=W0718,W0702
+except: #pylint: disable=W0702
     pass
 
 def parse_args() -> str:
@@ -33,7 +33,7 @@ def parse_args() -> str:
     parser.add_argument("-c", "--configuration",
         help="Path to the config file. If path is relative it must be resolvable from either the current working "
             "directory or the config directory",
-        default='conf.yaml'
+        default="conf.yaml"
     )
     args = parser.parse_args()
     path = None

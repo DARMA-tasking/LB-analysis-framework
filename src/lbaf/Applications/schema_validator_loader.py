@@ -51,7 +51,7 @@ def _save_schema_validator_and_init_file():
                                 f"Server responded with code: {err.fp.code} and message: {err.fp.msg}") from err
     except URLError as err:
         sys.excepthook = exc_handler
-        raise ConnectionError('Probably there is no internet connection') from err
+        raise ConnectionError("Probably there is no internet connection") from err
 
 def check_and_get_schema_validator(overwrite_validator: bool = True):
     """Makes sure that SchemaValidator can be imported, and it's the latest version available."""
