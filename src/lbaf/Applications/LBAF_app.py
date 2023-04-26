@@ -3,97 +3,103 @@ import argparse
 import os
 import sys
 import math
-from typing import cast, List, Dict, Any, Union
-from urllib.request import urlretrieve
-from urllib.error import HTTPError, URLError
+from typing import cast, List, Dict, Any, Union, Tuple
 import yaml
 
+# append lbaf to path
 try:
     project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
     sys.path.append(project_path)
 except Exception as path_ex:
     print(f"Can not add project path to system path. Exiting.\nERROR: {path_ex}")
     raise SystemExit(1) from path_ex
+
+#pylint: disable=C0411,C0413
+from lbaf import __version__
+from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.logger import logger
+from lbaf.Utils.common import abspath_from
+from lbaf.Applications.schema_validator_loader import check_and_get_schema_validator
+#pylint: enable=C0411,C0413
+
 try:
     import paraview.simple #pylint: disable=E0401,W0611
-except: #pylint: disable=W0718,W0702
+except: #pylint: disable=W0702
     pass
 
-# pylint: disable=C0413
-from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.colors import green
-from lbaf.Utils.functions import abspath_from
-# pylint: enable=C0413
-
-def get_config_file() -> str:
-    """Parses command line argument and returns config file path."""
+def parse_args() -> str:
+    """Parses command line argument and resolve then return the input configuration file absolute path."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", help="Path to the config file.", default="conf.yaml")
+    parser.add_argument("-c", "--configuration",
+        help="Path to the config file. If path is relative it must be resolvable from either the current working "
+            "directory or the config directory",
+        default="conf.yaml"
+    )
     args = parser.parse_args()
-    if args.config:
+    path = None
+    if args.configuration:
         # try to search the file from this place
-        config_file = os.path.abspath(args.config)
-        # if not found we might search in the config directory at project root
-        # but some thing will be disturbing : in config files we have path that must be relative
-        # to the current directory but then we might prefer paty to be relative to the configuration
-        # file location
-        if not os.path.isfile(config_file):
-            config_dir = os.path.join(
-                f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]), "config"
+        path = os.path.abspath(args.configuration)
+        if path is not None and not os.path.isfile(path):
+            # try to search the file relative to the config folder
+            search_dir = os.path.join(
+                f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]),
+                "config"
             )
-            config_file = config_dir + '/' + args.config
+            path = search_dir + '/' + args.configuration
     else:
         sys.excepthook = exc_handler
-        raise FileNotFoundError("Please provide path to the config file with '--config' argument.")
+        raise FileNotFoundError("Please provide path to the config file with '--configuration' argument.")
 
-    if not os.path.isfile(config_file):
-        raise FileNotFoundError(f"File not found at path {args.config}")
-    return config_file
-
-
-def check_and_get_schema_validator():
-    """Ensure that SchemaValidator can be imported and is the latest available version."""
-    module_name = green(f"[{os.path.splitext(os.path.split(__file__)[-1])[0]}]")
-
-    def save_schema_validator_and_init_file(import_dir: str):
-        with open(os.path.join(import_dir, "__init__.py"), "wt", encoding="utf-8") as init_file:
-            init_file.write('\n')
-        try:
-            script_name = "JSON_data_files_validator.py"
-            script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
-            filename = urlretrieve(script_url, os.path.join(import_dir, script_name))
-            print(f"{module_name} Saved SchemaValidator to: {filename}")
-        except HTTPError as err:
-            sys.excepthook = exc_handler
-            raise ConnectionError(f"Can not download file: {err.filename} \n"
-                                  f"Server responded with code: {err.fp.code} and message: {err.fp.msg}") from err
-        except URLError as err:
-            sys.excepthook = exc_handler
-            raise ConnectionError("Probably there is no internet connection") from err
-
-    overwrite_validator = True
-    config_file = None
-    if __name__ == "__main__":
-        config_file = get_config_file()
-        with open(config_file, "rt", encoding="utf-8") as config:
-            conf = yaml.safe_load(config)
-        overwrite_validator = conf.get("overwrite_validator", True)
-    if overwrite_validator:
-        import_dir = os.path.join(project_path, "lbaf", "imported")
-        if not os.path.isdir(import_dir):
-            os.makedirs(import_dir)
-            save_schema_validator_and_init_file(import_dir=import_dir)
-        else:
-            save_schema_validator_and_init_file(import_dir=import_dir)
+    if not os.path.isfile(path):
+        sys.excepthook = exc_handler
+        raise FileNotFoundError(
+            f"Configuration file not found at path {args.config}."
+            ' For relative paths, please make sure the file exists either in the current working directory or in'
+            'the `config` directory'
+        )
     else:
-        print(f"{module_name} Option \'overwrite_validator\' in configuration file: {config_file} is set to False\n"
-              f"{module_name} In case of `ModuleNotFoundError: No module named \'lbaf.imported\'` set it to True.")
+        logger().info(f"Found configuration file at path {path}")
 
+    return path
 
-check_and_get_schema_validator()
+def load_config(path: str)-> Tuple[dict, str]:
+    """Loads and validate configuration file and returns the configuration dict and the name of the configuration
+    directory"""
+    if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
+        # Try to open configuration file in read+text mode
+        try:
+            with open(path, "rt", encoding="utf-8") as file_io:
+                data = yaml.safe_load(file_io)
+                if not data.get('overwrite_validator', True):
+                    logger().info(
+                        f"Option 'overwrite_validator' in configuration file: {path} is set to False"
+                    )
+        except yaml.MarkedYAMLError as err:
+            err_line = err.problem_mark.line if err.problem_mark is not None else -1
+            logger().error(
+                f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
+            )
+            sys.excepthook = exc_handler
+            raise SystemExit(1) from err
+    else:
+        sys.excepthook = exc_handler
+        raise SystemExit(1)
 
-# pylint: disable=C0413
-from lbaf import __version__
+    return data, os.path.dirname(path)
+
+cfg, cfg_dir = {}, None
+if __name__ == "__main__":
+    # Parse input args
+    config_file = parse_args()
+    # Load configuration
+    cfg, cfg_dir = load_config(config_file)
+    # Download SchemaValidator script if overwrite
+    check_and_get_schema_validator(cfg.get("overwrite_validator", True))
+
+# Note that some of the following imports use the SchemaValidator so it is important that SchemaValidator
+# is loaded at that point
+# pylint: disable=C0412,C0413
 from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.configurationValidator import ConfigurationValidator
@@ -102,8 +108,7 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsVisualizer import Visualizer
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
-from lbaf.Utils.logger import logger
-# pylint: enable=C0413
+# pylint: enable=C0412,C0413
 
 class InternalParameters:
     """Represent LBAF application parameters"""
@@ -126,10 +131,7 @@ class InternalParameters:
     load_sampler: dict
     volume_sampler: dict
 
-    def __init__(self, config_file: str):
-        config = self.load_config(from_file=config_file)
-        config_dir = os.path.dirname(config_file)
-
+    def __init__(self, config: dict, base_dir: str):
         # init lbaf logger
         lvl = cast(str, config.get("logging_level", "info"))
         self.logger = logger(
@@ -137,46 +139,24 @@ class InternalParameters:
             level=lvl,
             theme=config.get("terminal_background", None),
             log_to_console=config.get("log_to_file", None) is None,
-            log_to_file=abspath_from(config.get("log_to_file", None), config_dir)
+            log_to_file=abspath_from(config.get("log_to_file", None), base_dir)
         )
         self.logger.info("Logging level: %s", lvl.lower())
 
         self.validate_configuration(config)
-        self.init_parameters(config, config_dir)
+        self.init_parameters(config, base_dir)
         self.check_parameters()
 
         # Print startup information
-        self.logger.info("Executing LBAF version %s", __version__)
-        svi = sys.version_info
-        self.logger.info(
-            "Executing with Python %s.%s.%s", svi.major, svi.minor, svi.micro)
-
-    def load_config(self, from_file: str)-> dict:
-        """Check extension, read YML file and return parsed YAML configuration file"""
-        if os.path.splitext(from_file)[-1] in [".yml", ".yaml"] and os.path.isfile(from_file):
-            # Try to open configuration file
-            logger().info("Found configuration file %s", from_file)
-            try:
-                with open(from_file, "rt", encoding="utf-8") as config:
-                    self.configuration_file_found = True
-                    return yaml.safe_load(config)
-            except yaml.MarkedYAMLError as err:
-                logger().error(
-                    "Invalid YAML file %s in line %s (%s) %s",
-                    from_file, err.problem_mark.line if err.problem_mark is not None else -1, err.problem, err.context
-                )
-                sys.excepthook = exc_handler
-                raise SystemExit(1) from err
-        else:
-            logger().error("Configuration file in %s not found", from_file)
-            sys.excepthook = exc_handler
-            raise SystemExit(1)
+        self.logger.info("Executing LBAF version {__version__}")
+        svi = sys.version_info #pylint: disable=W0612
+        self.logger.info("Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
         ConfigurationValidator(config_to_validate=config, logger=self.logger).main()
 
-    def init_parameters(self, config: dict, config_dir: str):
+    def init_parameters(self, config: dict, base_dir: str):
         """Execute when YAML configuration file was found and checked"""
         # Get top-level allowed configuration keys
         self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
@@ -188,7 +168,7 @@ class InternalParameters:
 
         # Parse LBAF_Viz parameters when available
         if (viz := config.get("LBAF_Viz")) is not None:
-            # Retriveve mandatory visualization parameters
+            # Retrieve mandatory visualization parameters
             try:
                 self.grid_size = []
                 for key in ("x_ranks", "y_ranks", "z_ranks"):
@@ -197,13 +177,13 @@ class InternalParameters:
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
             except Exception as ex:
-                self.logger.error("Missing LBAF-Viz configuration parameter(s): %s", ex)
+                self.logger.error("Missing LBAF-Viz configuration parameter(s): {ex}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from ex
 
             # Verify grid size consistency
             if math.prod(self.grid_size) < self.n_ranks:
-                self.logger.error("Grid size: %s < %s", self.grid_size, self.n_ranks)
+                self.logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
 
@@ -215,31 +195,33 @@ class InternalParameters:
             self.rank_qoi = self.object_qoi = self.grid_size = None
 
         # Parse data parameters if present
-        if config.get("from_data") is not None:
-            self.data_stem = config.get("from_data").get("data_stem")
+        from_data = config.get("from_data")
+        if from_data is not None:
+            self.data_stem = from_data.get("data_stem")
             # # get data directory (because data_stem includes file prefix)
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
-            data_dir = abspath_from(data_dir, config_dir)
+            data_dir = abspath_from(data_dir, base_dir)
             self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
-            self.logger.info("Data stem: %s", self.data_stem)
-            if isinstance(config.get("from_data", {}).get("phase_ids"), str):
-                range_list = list(map(int, config.get("from_data").get("phase_ids").split('-')))
+            self.logger.info("Data stem: {self.data_stem}")
+            if isinstance(from_data.get("phase_ids"), str):
+                range_list = list(map(int, from_data.get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
-                self.phase_ids = config.get("from_data").get("phase_ids")
+                self.phase_ids = from_data.get("phase_ids")
         self.write_vt = config.get("write_vt", True)
 
         # Parse sampling parameters if present
-        if config.get("from_samplers") is not None:
-            self.n_objects = config.get("from_samplers").get("n_objects", {})
-            self.n_mapped_ranks = config.get("from_samplers").get("n_mapped_ranks")
-            self.communication_degree = config.get("from_samplers").get("communication_degree")
-            self.load_sampler = config.get("from_samplers").get("load_sampler")
-            self.volume_sampler = config.get("from_samplers").get("volume_sampler")
+        from_samplers = config.get("from_samplers")
+        if from_samplers is not None:
+            self.n_objects = from_samplers.get("n_objects", {})
+            self.n_mapped_ranks = from_samplers.get("n_mapped_ranks")
+            self.communication_degree = from_samplers.get("communication_degree")
+            self.load_sampler = from_samplers.get("load_sampler")
+            self.volume_sampler = from_samplers.get("volume_sampler")
 
         # Set output directory, local by default
-        self.output_dir = abspath_from(config.get("output_dir", '.'), config_dir)
+        self.output_dir = abspath_from(config.get("output_dir", '.'), base_dir)
 
     def check_parameters(self):
         """Checks after initialization."""
@@ -250,11 +232,9 @@ class InternalParameters:
 
 class LBAFApp:
     """LBAF application class"""
-    def __init__(self):
-        self.config_file = get_config_file()
-
+    def __init__(self, config, base_dir):
         # Instantiate parameters
-        self.params = InternalParameters(config_file=self.config_file)
+        self.params = InternalParameters(config=config, base_dir=base_dir)
 
         # Assign logger to variable
         self.logger = self.params.logger
@@ -377,7 +357,8 @@ class LBAFApp:
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
             self.logger.info(
-                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}"
+            )
         else:
             self.logger.info("No brute force optimization performed")
             a_min_max = []
@@ -441,7 +422,7 @@ class LBAFApp:
             "imbalance.txt" if self.params.output_dir is None else os.path.join(
                 self.params.output_dir, "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
             imbalance_file.write(
-                f"{l_stats.get_imbalance()}")
+                f"{l_stats.get_imbalance()}") #pylint: disable=E1101
         lbstats.print_function_statistics(
             curr_phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
@@ -470,8 +451,8 @@ class LBAFApp:
 
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
-        ell = self.params.n_ranks * l_stats.get_average() / n_o
-        self.logger.info("Optimal load statistics for %s objects with iso-time: %s", n_o, f"{ell:6g}")
+        ell = self.params.n_ranks * l_stats.get_average() / n_o #pylint: disable=E1101
+        self.logger.info("Optimal load statistics for {n_o} objects with iso-time: {ell:6g}")
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
         self.logger.info(
             "\tminimum: %s  maximum: %s",
@@ -489,4 +470,4 @@ class LBAFApp:
 
 
 if __name__ == "__main__":
-    LBAFApp().main()
+    LBAFApp(config=cfg, base_dir=cfg_dir).main()
