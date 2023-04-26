@@ -12,7 +12,7 @@ import unittest
 
 import brotli
 
-from tests.utils.schema_validator_helper import check_and_get_schema_validator
+from .utils.schema_validator_helper import check_and_get_schema_validator
 check_and_get_schema_validator()
 
 from src.lbaf.imported.JSON_data_files_validator import SchemaValidator
