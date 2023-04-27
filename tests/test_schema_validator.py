@@ -12,10 +12,10 @@ import unittest
 
 import brotli
 
-from src.lbaf.Applications.schema_validator_loader import check_and_get_schema_validator
-check_and_get_schema_validator()
+from lbaf.Applications.JSON_data_files_validator_loader import load
+load()
 
-from src.lbaf.imported.JSON_data_files_validator import SchemaValidator
+from lbaf.imported.JSON_data_files_validator import SchemaValidator # pylint:disable=C0413
 
 
 class TestConfig(unittest.TestCase):

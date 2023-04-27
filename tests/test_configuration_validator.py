@@ -11,7 +11,7 @@ from schema import SchemaError, SchemaMissingKeyError, SchemaOnlyOneAllowedError
 import unittest
 import yaml
 
-from src.lbaf.IO.configurationValidator import ConfigurationValidator
+from src.lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from src.lbaf.Utils.logger import logger
 
 
