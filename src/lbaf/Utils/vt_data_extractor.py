@@ -27,7 +27,7 @@ except ImportError as e:
 
 
 class VTDataExtractor:
-    """ Reads VT data and saves chosen phases from it. """
+    """Reads VT data and saves chosen phases from it. """
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
                  file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
                  check_schema: bool = False):
@@ -44,7 +44,7 @@ class VTDataExtractor:
         self._get_files_list()
 
     def _initial_checks(self):
-        """ Checks if data and directories exists. """
+        """Checks if data and directories exists. """
         print(f"Looking for files with prefix: {self.file_prefix}")
         print(f"Looking for files with suffix: {self.file_suffix}")
         print(f"Phases to extract: {self.phases_to_extract}")
@@ -65,7 +65,7 @@ class VTDataExtractor:
 
     @staticmethod
     def _process_input_phases(phases_to_extract: list) -> list:
-        """ Creates a list of integers, based on input phases_to_extract. """
+        """Creates a list of integers, based on input phases_to_extract. """
         processed_list = []
         for phase in phases_to_extract:
             if isinstance(phase, int):
@@ -85,7 +85,7 @@ class VTDataExtractor:
         return processed_list
 
     def _get_files_list(self) -> list:
-        """ Returns list of files to iterate over and read data from them. """
+        """Returns list of files to iterate over and read data from them. """
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
@@ -101,7 +101,7 @@ class VTDataExtractor:
         return files
 
     def _get_data_from_file(self, file_path: str) -> dict:
-        """ Returns data from given file_path. """
+        """Returns data from given file_path. """
         if not BROTLI_NOT_IMPORTED:
             with open(file_path, "rb") as compr_json_file:
                 compr_bytes = compr_json_file.read()
@@ -147,7 +147,7 @@ class VTDataExtractor:
 
     @staticmethod
     def _get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
-        """ Returns just wanted phases from given data and list of phases to extract. """
+        """Returns just wanted phases from given data and list of phases to extract. """
         extracted_phases = {"phases": []}
         for phase_number, phase in enumerate(data["phases"]):
             if phase_number in phases_to_extract:
@@ -156,7 +156,7 @@ class VTDataExtractor:
         return extracted_phases
 
     def _save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
-        """ Saves extracted data with or without compression. """
+        """Saves extracted data with or without compression. """
         if extracted_phases.get("type") is None:
             extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))

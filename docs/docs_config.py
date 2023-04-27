@@ -1,15 +1,8 @@
 """Configuration to generate the documentation"""
-import os
-import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    sys.path.append(project_path)
-except Exception as path_ex:
-    print(f"Can not add project path to system path. Exiting. \nERROR: {path_ex}")
-    raise SystemExit(1) from path_ex
 
 # Applications
-import src.lbaf.Applications.LBAF_app as LBAF
+import src.lbaf.Applications.LBAF as LBAF
+
 # Model
 
 import src.lbaf.Model.lbsAffineCombinationWorkModel as AffineCombinationWorkModel
@@ -35,10 +28,10 @@ import src.lbaf.Execution.lbsTemperedCriterion as TemperedCriterion
 import src.lbaf.imported.JSON_data_files_validator as JSONDataFilesValidator
 
 # IO
-import src.lbaf.IO.configurationValidator as ConfigurationValidator
-import src.lbaf.IO.configurationUpgrader as configurationUpgrader
+import src.lbaf.IO.lbsConfigurationValidator as ConfigurationValidator
+import src.lbaf.IO.lbsConfigurationUpgrader as configurationUpgrader
 import src.lbaf.IO.lbsGridStreamer as GridStreamer
-import src.lbaf.IO.lbsMeshBasedVisualizer as MeshBasedVisualizer
+import src.lbaf.IO.lbsVisualizer as Visualizer
 import src.lbaf.IO.lbsStatistics as lbsStatistics
 import src.lbaf.IO.lbsVTDataReader as LoadReader
 import src.lbaf.IO.lbsVTDataWriter as VTDataWriter
@@ -97,7 +90,7 @@ INPUT_MODULES = [
     JSONDataFilesValidator,
     ConfigurationValidator,
     GridStreamer,
-    MeshBasedVisualizer,
+    Visualizer,
     lbsStatistics,
     LoadReader,
     VTDataWriter,

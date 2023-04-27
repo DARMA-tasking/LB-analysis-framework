@@ -8,7 +8,7 @@ def stepper_test():
         print(f"File: {log_file} does not exist!")
         sys.exit(1)
 
-    with open(log_file, 'r') as logger_output:
+    with open(log_file, 'r', encoding="utf-8") as logger_output:
         output_str = logger_output.read()
         regex_list = [
             "cardinality: 32 sum: 10.5817 imbalance: 0.992173",

@@ -1,15 +1,7 @@
 import os
 import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    raise SystemExit(1)
-
 import csv
 import getopt
-import sys
 
 import vtk
 
@@ -18,8 +10,7 @@ from lbaf.Utils.logger import logger
 
 
 class MoveCountsViewerParameters:
-    """ A class to describe MoveCountsViewer parameters
-    """
+    """A class to describe MoveCountsViewer parameters"""
 
     def __init__(self, viewer):
         # Set renderer parameters
@@ -55,10 +46,9 @@ class MoveCountsViewerParameters:
         # Set wti (WindowToImageFilter) parameters
         self.wti_scale = 10
 
-
 class MoveCountsViewer:
-    """ A class to describe MoveCountsViewer attributes
-    """
+    """A class to describe MoveCountsViewer attributes"""
+
     def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = "out",
                  output_file_name: str = "move_counts", interactive: bool = True):
 
@@ -66,6 +56,7 @@ class MoveCountsViewer:
         self.n_processors = n_processors
 
         # Input file name
+        project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
         if isinstance(input_file_name, str):
             self.input_file_name = os.path.join(project_path, input_file_name)
         else:
@@ -89,7 +80,7 @@ class MoveCountsViewer:
 
     @staticmethod
     def usage():
-        """ Provide online help
+        """Provide online help
         """
         print("# Usage:")
         print("\t [-p <np>]   number of processors")
@@ -102,7 +93,7 @@ class MoveCountsViewer:
         print("")
 
     def parse_command_line(self):
-        """ Parse command line
+        """Parse command line
         """
         # Try to hash command line with respect to allowable flags
         try:
@@ -152,7 +143,7 @@ class MoveCountsViewer:
         return False
 
     def computeMoveCountsViewer(self):
-        """ Compute MoveCountsViewer
+        """Compute MoveCountsViewer
         """
 
         # Instantiate MoveCountsViewerParameters
@@ -182,7 +173,7 @@ class MoveCountsViewer:
             with open("{}.{}.{}".format(
                     self.input_file_name,
                     i,
-                    self.input_file_suffix), "r") as f:
+                    self.input_file_suffix), "r", encoding="utf-8") as f:
                 # Instantiate CSV reader
                 reader = csv.reader(f, delimiter=",")
 

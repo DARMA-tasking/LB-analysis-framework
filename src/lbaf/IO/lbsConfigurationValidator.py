@@ -34,6 +34,7 @@ ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 def get_error_message(iterable_collection: tuple) -> str:
     """Return error message."""
+
     return " or ".join(iterable_collection)
 
 

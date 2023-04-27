@@ -1,14 +1,14 @@
 """A script to bulk upgrade LBAF configuration files"""
-import os
 from enum import Enum
 from pathlib import Path
 from pydoc import locate
 from typing import cast, Any, IO, List
 from logging import Logger
-import yaml
-from .configurationValidator import ConfigurationValidator
 
-project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+import yaml
+
+from .lbsConfigurationValidator import ConfigurationValidator
+from ..Utils.common import project_dir
 
 
 # Uncomment to format numbers with scientific notation without using Pythong automatic rule
@@ -25,16 +25,19 @@ project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
 
 class UpgradeAction(Enum):
     """Upgrade action"""
+
     ADD_KEY = 'add'
     REMOVE_KEY = 'remove'
 
 class ConfigurationDumper(yaml.Dumper):
     """Custom dumper to add indent before list items hyphens"""
+
     def increase_indent(self, flow=False, indentless=False):
         return super(ConfigurationDumper, self).increase_indent(flow, False)
 
 class ConfigurationUpgrader:
     """This class enables to bulk upgrade configuration files by adding or removing keys"""
+
     __dumper: ConfigurationDumper
     __logger: Logger
     __sections: dict
@@ -146,7 +149,7 @@ class ConfigurationUpgrader:
                     'To place this key in a specific group please update ConfigurationValidator.allowed_keys() at\n' \
                     '%s/src/lbaf/IO/configurationValidator.py:182',
                     keys_without_group,
-                    project_path
+                    project_dir()
                 )
                 if yaml_file.tell() > 0:
                     yaml_file.write('\n')
@@ -171,6 +174,6 @@ class ConfigurationUpgrader:
         """Search all files matching some pattern and upgrade each file as needed"""
         for pat in pattern:
             files = Path(relative_to).glob(pat)
-            self.__logger.debug('searching files with pattern %s in %s', pat, project_path)
+            self.__logger.debug('searching files with pattern %s in %s', pat, project_dir())
             for file in files:
                 self.upgrade(file, action, key, value, value_type)

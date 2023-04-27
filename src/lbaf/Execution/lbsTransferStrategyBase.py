@@ -11,10 +11,10 @@ from ..Utils.logger import logger
 
 class TransferStrategyBase:
     __metaclass__ = abc.ABCMeta
-    """ An abstract base class of transfer strategies for inform and transfer algorithm."""
+    """An abstract base class of transfer strategies for inform and transfer algorithm."""
 
     def __init__(self, criterion, parameters: dict, lgr: Logger):
-        """ Class constructor:
+        """Class constructor:
             criterion: a CriterionBase instance
             parameters: a dictionary of parameters
             lgr: a Logger instance."""
@@ -46,7 +46,7 @@ class TransferStrategyBase:
         parameters: dict,
         criterion: CriterionBase,
         lgr: Logger):
-        """ Instantiate the necessary concrete strategy."""
+        """Instantiate the necessary concrete strategy."""
 
         # Load up available strategies
         from .lbsRecursiveTransferStrategy import RecursiveTransferStrategy
@@ -65,7 +65,7 @@ class TransferStrategyBase:
 
     @abc.abstractmethod
     def execute(self, phase, ave_load):
-        """ Excecute transfer strategy on Phase instance
+        """Excecute transfer strategy on Phase instance
             phase: a Phase instance
             ave_load: average load in current phase."""
 

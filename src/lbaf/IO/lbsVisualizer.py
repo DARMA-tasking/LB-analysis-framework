@@ -26,7 +26,7 @@ class Visualizer:
         distributions={},
         statistics={},
         resolution=1.):
-        """ Class constructor:
+        """Class constructor:
             qoi_request: description of rank and object quantities of interest
             continuous_object_qoi: always treat object QOI as continuous or not
             phases: list of Phase instances
@@ -172,7 +172,7 @@ class Visualizer:
 
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
-        """ Map global index to its Cartesian grid coordinates."""
+        """Map global index to its Cartesian grid coordinates."""
 
         # Sanity check
         n01 = grid_sizes[0] * grid_sizes[1]
@@ -187,7 +187,7 @@ class Visualizer:
         return i, j, k
 
     def compute_object_qoi_range(self, object_qoi, continuous_object_qoi):
-        """ Decide object quantity storage type and compute it."""
+        """Decide object quantity storage type and compute it."""
 
         # Return empty range if no object QOI was passed
         if not object_qoi:
@@ -233,7 +233,7 @@ class Visualizer:
         return object_qoi_range
 
     def __create_rank_mesh(self, iteration: int):
-        """ Map ranks to polygonal mesh."""
+        """Map ranks to polygonal mesh."""
 
         # Assemble and return polygonal mesh
         pd_mesh = vtk.vtkPolyData()
@@ -244,7 +244,7 @@ class Visualizer:
         return pd_mesh
 
     def __create_object_mesh(self, phase: Phase, object_mapping: set):
-        """ Map objects to polygonal mesh."""
+        """Map objects to polygonal mesh."""
 
         # Retrieve number of mesh points and bail out early if empty set
         n_o = phase.get_number_of_objects()
@@ -384,7 +384,7 @@ class Visualizer:
 
     @staticmethod
     def create_color_transfer_function(attribute_range, scheme=None):
-        """ Create a color transfer function given attribute range."""
+        """Create a color transfer function given attribute range."""
 
         # Create dicretizable color transfer function
         ctf = vtk.vtkDiscretizableColorTransferFunction()
@@ -432,7 +432,7 @@ class Visualizer:
 
     @staticmethod
     def create_scalar_bar_actor(mapper, title, x, y, values=None):
-        """ Create scalar bar with default and custom parameters."""
+        """Create scalar bar with default and custom parameters."""
 
         # Instantiate scalar bar linked to given mapper
         scalar_bar_actor = vtk.vtkScalarBarActor()
@@ -479,7 +479,7 @@ class Visualizer:
         edge_width: int,
         glyph_factor: float,
         win_size: int):
-        """ Create VTK-based pipeline all the way to render window."""
+        """Create VTK-based pipeline all the way to render window."""
 
         # Create rank mesh for current phase
         rank_mesh = self.__create_rank_mesh(iteration)
@@ -648,7 +648,7 @@ class Visualizer:
         return render_window
 
     def generate(self, save_meshes: bool, gen_vizqoi: bool):
-        """ Generate mesh and multimedia outputs."""
+        """Generate mesh and multimedia outputs."""
 
         # Iterate over ranks and create rank mesh points
         self.__rank_points = vtk.vtkPoints()

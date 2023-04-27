@@ -17,7 +17,7 @@ class GridStreamer:
         point_arrays: list = [],
         cell_arrays: list = [],
         lgr: Logger = None):
-        """ Class constructor. """
+        """Class constructor. """
 
         # Assign logger to instance variable
         self.__logger = lgr

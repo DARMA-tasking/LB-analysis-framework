@@ -10,10 +10,10 @@ from ..Utils.logger import logger
 
 class AlgorithmBase:
     __metaclass__ = abc.ABCMeta
-    """ An abstract base class of load/work balancing algorithms."""
+    """An abstract base class of load/work balancing algorithms."""
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
-        """ Class constructor:
+        """Class constructor:
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
             rank_qoi: rank QOI to track
@@ -82,7 +82,7 @@ class AlgorithmBase:
         lgr: Logger,
         rank_qoi: str,
         object_qoi:str):
-        """ Instantiate the necessary concrete algorithm."""
+        """Instantiate the necessary concrete algorithm."""
 
         # Load up available algorithms
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
@@ -103,7 +103,7 @@ class AlgorithmBase:
             raise SystemExit(1)
 
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
-        """ Compute and update run distributions and statistics."""
+        """Compute and update run distributions and statistics."""
 
         # Create or update distributions of object quantities of interest
         for object_qoi_name in tuple({"load", self.__object_qoi}):
@@ -135,7 +135,7 @@ class AlgorithmBase:
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
     def _report_final_mapping(self, logger):
-        """ Report final rank object mapping in debug mode."""
+        """Report final rank object mapping in debug mode."""
 
         for rank in self._phase.get_ranks():
             logger.debug(f"Rank {rank.get_id()}:")
@@ -158,7 +158,7 @@ class AlgorithmBase:
 
     @abc.abstractmethod
     def execute(self, phases, distributions, statistics, a_min_max):
-        """ Excecute balancing algorithm on Phase instance
+        """Excecute balancing algorithm on Phase instance
             phases: list of Phase instances
             distributions: dictionary of load-varying variables
             statistics: dictionary of  statistics

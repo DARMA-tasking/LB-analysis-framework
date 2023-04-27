@@ -1,5 +1,6 @@
 import abc
 from logging import Logger
+from typing import List, Optional
 import sys
 
 from ..Model.lbsWorkModelBase import WorkModelBase
@@ -9,11 +10,13 @@ from ..Utils.logger import logger
 
 
 class CriterionBase:
-    __metaclass__ = abc.ABCMeta
-    """ An abstract base class of optimization criteria for LBAF execution."""
+    """An abstract base class of optimization criteria for LBAF execution."""
 
-    def __init__(self, work_model, lgr: Logger):
-        """ Class constructor:
+    __metaclass__ = abc.ABCMeta
+    _logger: Logger
+
+    def __init__(self, work_model: WorkModelBase, lgr: Logger):
+        """Class constructor:
             work_model: a WorkModelBase instance
             phase: a Phase instance
             lgr: Logger instance."""
@@ -33,7 +36,7 @@ class CriterionBase:
         self._phase = None
 
     def set_phase(self, phase: Phase):
-        """ Assign phase to criterion to provide access to phase methods."""
+        """Assign phase to criterion to provide access to phase methods."""
 
         # Assert that a phase instance was passed
         if not isinstance(phase, Phase):
@@ -43,30 +46,38 @@ class CriterionBase:
         self._phase = phase
 
     @staticmethod
-    def factory(criterion_name, work_model, lgr: Logger):
-        """ Produce the necessary concrete criterion."""
+    def factory(criterion_name: str, work_model: WorkModelBase, lgr: Logger):
+        """Produce the necessary concrete criterion."""
 
         # Load up available criteria
+        # pylint:disable=W0641,C0415
         from .lbsTemperedCriterion import TemperedCriterion
         from .lbsStrictLocalizingCriterion import StrictLocalizingCriterion
+        # pylint:enable=W0641,C0415
 
         # Ensure that criterion name is valid
         try:
             # Instantiate and return object
             criterion = locals()[criterion_name + "Criterion"]
             return criterion(work_model, lgr)
-        except:
+        except Exception as ex:
             # Otherwise, error out
             logger().error(f"Could not create a criterion with name {criterion_name}")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise SystemExit(1) from ex
 
     @abc.abstractmethod
-    def compute(self, r_src, o_src, r_dst, o_dst=[]):
-        """ Return value of criterion for candidate objects transfer
-            o_src: iterable of objects on source
-            r_src, r_dst: Rank instances.
-            o_dst: optional iterable of objects on destination for swaps."""
+    def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=None):
+        """Return value of criterion for candidate objects transfer
+
+        :param r_src: iterable of objects on source
+        :param o_src: Rank instance
+        :param r_dst: Rank instance
+        :param o_dst: optional iterable of objects on destination for swaps.
+        """
+
+        if o_dst is None:
+            o_dst = []
 
         # Must be implemented by concrete subclass
-        pass
+        pass # pylint:disable=W0107
