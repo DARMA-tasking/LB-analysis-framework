@@ -10,7 +10,7 @@ from .lbsObjectCommunicator import ObjectCommunicator
 from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import logger
+from ..Utils.logging import get_logger
 
 
 class Phase:
@@ -30,7 +30,7 @@ class Phase:
 
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
-            logger().error(
+            get_logger().error(
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)

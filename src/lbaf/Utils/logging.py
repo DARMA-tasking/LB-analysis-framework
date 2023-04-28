@@ -21,6 +21,12 @@ THEME_DARK = 'dark'
 THEME_LIGHT = 'light'
 THEMES = [ THEME_LIGHT, THEME_DARK ]
 
+# type alias
+
+
+Logger = logging.Logger
+"""Logger class"""
+
 class CustomFormatter(Formatter):
     """Custom formatter class defining a format by logging level """
     formatters: Dict[int,Formatter] = {}
@@ -64,30 +70,31 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
         }
     return CustomFormatter(frmttr)
 
-def logger(
+def get_logger(
         name: str = "root",
         level: Union[str, None] = "info",
         log_to_console: bool= True,
         log_to_file: Union[str, None] = None,
         formatter_name: str = FORMATTER_BASIC,
         theme: str = THEME_DARK
-):
+)-> Logger:
     """Return a new or an existing logger"""
-    lgr = logging.getLogger(name)
+    logger = logging.getLogger(name)
     if level is not None:
-        lgr.setLevel(level.upper())
+        logger.setLevel(level.upper())
     if log_to_file is not None:
         logs_dir = f"{os.sep}".join(log_to_file.split(os.sep)[:-1])
         if not os.path.isdir(logs_dir):
             os.makedirs(logs_dir)
-    if not lgr.hasHandlers():
+    # initialize handlers only once
+    if not logger.hasHandlers():
         handlers = [] #type: List[logging.Handler]
         if isinstance(log_to_file, str):
             handlers.append(logging.FileHandler(filename=log_to_file))
         if log_to_console:
             handlers.append(logging.StreamHandler())
         for handler in handlers:
-            handler.setLevel(lgr.level)
+            handler.setLevel(logger.level)
             handler.setFormatter(formatter(formatter_name, theme))
-            lgr.addHandler(handler)
-    return lgr
+            logger.addHandler(handler)
+    return logger

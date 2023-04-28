@@ -60,7 +60,7 @@ tox
 In order to run LBAF from main project directory:
 ```shell
 cd <project-path>
-python src/lbaf/Applications/LBAF_app.py
+python src/lbaf/Applications/LBAF.py
 ```
 
 ### JSON data files Validator

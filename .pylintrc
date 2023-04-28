@@ -201,13 +201,13 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=i,
-           j,
-           k,
-           v,
-           o,
+good-names=i, # loop variable
+           j, # loop variable
+           k, # loop variable
+           v, # loop variable
+           o, # simple object in loop
            s,
-           ex,
+           e, # exception
            Run,
            _
 
@@ -396,7 +396,7 @@ ignore-on-opaque-inference=yes
 # List of class names for which member attributes should not be checked (useful
 # for classes with dynamically set attributes). This supports the use of
 # qualified names.
-ignored-classes=optparse.Values,thread._local,_thread._local
+ignored-classes=optparse.Values,thread._local,_thread._local,lbaf.IO.lbsStatistics.Statistics
 
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime

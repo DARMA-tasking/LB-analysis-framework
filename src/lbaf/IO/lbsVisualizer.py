@@ -733,7 +733,7 @@ class Visualizer:
                 self.__field_data,
                 self.__qoi_dicts,
                 self.__volumes,
-                lgr=self.__logger)
+                logger=self.__logger)
 
             # Write to ExodusII file when possible
             if streamer.Error:

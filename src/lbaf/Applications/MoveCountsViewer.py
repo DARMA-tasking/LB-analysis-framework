@@ -6,7 +6,7 @@ import getopt
 import vtk
 
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logger import logger
+from lbaf.Utils.logging import get_logger
 
 
 class MoveCountsViewerParameters:
@@ -75,7 +75,7 @@ class MoveCountsViewer:
         self.interactive = interactive
 
         # Starting logger
-        self.logger = logger()
+        self.__logger = get_logger()
         self.logging_level = "info"
 
     @staticmethod
@@ -97,9 +97,9 @@ class MoveCountsViewer:
         """
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
+            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih") # pylint:disable=W0612
         except getopt.GetoptError:
-            self.logger.error("Incorrect command line arguments.")
+            self.__logger.error("Incorrect command line arguments.")
             self.usage()
             return True
 
@@ -107,7 +107,7 @@ class MoveCountsViewer:
         for o, a in opts:
             try:
                 i = int(a)
-            except:
+            except: # pylint:disable=W0702
                 i = None
 
             if o == "-p":
@@ -129,20 +129,20 @@ class MoveCountsViewer:
 
         # If number of processors is not provided or set to 0
         if params.n_processors == 0:
-            self.logger.error("At least one processor needs to be defined. Exiting.")
+            self.__logger.error("At least one processor needs to be defined. Exiting.")
             self.usage()
             return True
         # If  invalid file name is provided
         elif (not params.input_file_name.strip()
               or params.input_file_name.strip() == "''"):
-            self.logger.error("A file name needs to be defined. Exiting.")
+            self.__logger.error("A file name needs to be defined. Exiting.")
             self.usage()
             return True
 
         # No line parsing error occurred
         return False
 
-    def computeMoveCountsViewer(self):
+    def compute_move_counts_viewer(self):
         """Compute MoveCountsViewer
         """
 
@@ -167,7 +167,7 @@ class MoveCountsViewer:
 
         # Compute directed move counts
         directed_moves = {}
-        directed_sizes = {}
+        # directed_sizes = {} (unused)
         for i in range(self.n_processors):
             # Iterate over all files
             with open("{}.{}.{}".format(
@@ -181,7 +181,7 @@ class MoveCountsViewer:
                 for row in reader:
                     # Retrieve source node ID
                     src_id = int(row[0])
-                    src_sz = float(row[2])
+                    # src_sz = float(row[2]) (unused)
 
                     # Add edge when source != destination
                     if src_id != i:
@@ -394,15 +394,15 @@ class MoveCountsViewer:
 
 if __name__ == "__main__":
     # Default settings
-    n_processors = 8
-    input_file_name = "../data/lb50-data/data"
-    input_file_suffix = "vom"
-    output_file_name = "move_counts"
+    N_PROCESSORS = 8
+    INPUT_FILE_NAME = "../data/lb50-data/data"
+    INPUT_FILE_SUFFIX = "vom"
+    OUTPUT_FILE_NAME = "move_counts"
     params = MoveCountsViewer(
-        n_processors=n_processors,
-        input_file_name=input_file_name,
-        input_file_suffix=input_file_suffix,
-        output_file_name=output_file_name,
+        n_processors=N_PROCESSORS,
+        input_file_name=INPUT_FILE_NAME,
+        input_file_suffix=INPUT_FILE_SUFFIX,
+        output_file_name=OUTPUT_FILE_NAME,
         interactive=False)
 
     # Assign logger to variable
@@ -419,4 +419,4 @@ if __name__ == "__main__":
         raise SystemExit(1)
 
     # Execute viewer
-    params.computeMoveCountsViewer()
+    params.compute_move_counts_viewer()

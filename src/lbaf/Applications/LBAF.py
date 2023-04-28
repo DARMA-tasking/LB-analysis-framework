@@ -1,26 +1,25 @@
-"""LBAFApp class"""
+"""LBAF Application"""
 
 import argparse
 import os
 import sys
 import math
 from typing import cast, Any, Dict, List, Union
-from logging import Logger
 
 import yaml
 
-from . import JSON_data_files_validator_loader
-from .. import __version__
-from ..Utils.exception_handler import exc_handler
-from ..Utils.common import abspath_from, project_dir
-from ..Utils.logger import logger as get_logger
-from ..IO.lbsConfigurationValidator import ConfigurationValidator
+from lbaf import __version__
+from lbaf.Applications import JSON_data_files_validator_loader
+from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.common import abspath_from, project_dir
+from lbaf.Utils.logging import get_logger, Logger
+from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 
 
 class InternalParameters:
     """Represent the parameters used internally by a a LBAF Application"""
 
-    _logger: Logger
+    logger: Logger
     n_ranks: int
     check_schema: bool
     output_dir: str
@@ -41,21 +40,21 @@ class InternalParameters:
     volume_sampler: dict
 
     def __init__(self, config: dict, base_dir: str, logger: Logger):
-        self._logger = logger
+        self.__logger = logger
 
         self.validate_configuration(config)
         self.init_parameters(config, base_dir)
         self.check_parameters()
 
         # Print startup information
-        self._logger.info(f"Executing LBAF version {__version__}")
+        self.__logger.info(f"Executing LBAF version {__version__}")
         svi = sys.version_info #pylint: disable=W0612
-        self._logger.info("Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
+        self.__logger.info("Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
 
-        ConfigurationValidator(config_to_validate=config, logger=self._logger).main()
+        ConfigurationValidator(config_to_validate=config, logger=self.__logger).main()
 
     def init_parameters(self, config: dict, base_dir: str):
         """Execute when YAML configuration file was found and checked"""
@@ -78,14 +77,14 @@ class InternalParameters:
                 self.object_jitter = viz["object_jitter"]
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
-            except Exception as ex:
-                self._logger.error("Missing LBAF-Viz configuration parameter(s): {ex}")
+            except Exception as e:
+                self.__logger.error("Missing LBAF-Viz configuration parameter(s): {ex}")
                 sys.excepthook = exc_handler
-                raise SystemExit(1) from ex
+                raise SystemExit(1) from e
 
             # Verify grid size consistency
             if math.prod(self.grid_size) < self.n_ranks:
-                self._logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
+                self.__logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
 
@@ -105,7 +104,7 @@ class InternalParameters:
             file_prefix = self.data_stem.split(os.sep)[-1]
             data_dir = abspath_from(data_dir, base_dir)
             self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
-            self._logger.info("Data stem: {self.data_stem}")
+            self.__logger.info("Data stem: {self.data_stem}")
             if isinstance(from_data.get("phase_ids"), str):
                 range_list = list(map(int, from_data.get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
@@ -139,6 +138,11 @@ class Application:
     _logger: Logger
     params: InternalParameters
 
+    def __init__(self):
+
+        # Assign logger to instance variable. Default root logger.
+        self._logger = get_logger()
+
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path"""
 
@@ -148,12 +152,12 @@ class Application:
                 with open(path, "rt", encoding="utf-8") as file_io:
                     data = yaml.safe_load(file_io)
                     if not data.get('overwrite_validator', True):
-                        get_logger().info(
+                        self._logger.info(
                             f"Option 'overwrite_validator' in configuration file: {path} is set to False"
                         )
             except yaml.MarkedYAMLError as err:
                 err_line = err.problem_mark.line if err.problem_mark is not None else -1
-                get_logger().error(
+                self._logger.error(
                     f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
                 )
                 sys.excepthook = exc_handler
@@ -165,6 +169,7 @@ class Application:
         # Initialize the application logger (with some parameters from the configuration data)
         lvl = cast(str, data.get("logging_level", "info"))
         config_dir = os.path.dirname(path)
+        # change logger to a logger with some parameters found in configuration
         self._logger = get_logger(
             name="lbaf",
             level=lvl,
@@ -187,27 +192,29 @@ class Application:
         :raises FileNotFoundError: if configuration file cannot be found
         """
 
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
                 "directory or the config directory",
-            default="conf.yaml"
+            default=None
         )
         args = parser.parse_args()
         path = None
         path_list = []
-        if args.configuration:
-            # try to search the file from this place
-            path = os.path.abspath(args.configuration)
+
+        if args.configuration is None:
+            self._logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+            "working directory or in the project config directory !")
+            args.configuration = "conf.yaml"
+
+        # search config file in the current working directory if relative
+        path = os.path.abspath(args.configuration)
+        path_list.append(path)
+        if path is not None and not os.path.isfile(path) and not os.path.isabs(args.configuration):
+            # then search config file relative to the config folder
+            search_dir = os.path.join(project_dir(), "config")
+            path = search_dir + '/' + args.configuration
             path_list.append(path)
-            if path is not None and not os.path.isfile(path) and not os.path.isabs(args.configuration):
-                # try to search the file relative to the config folder
-                search_dir = os.path.join(project_dir(), "config")
-                path = search_dir + '/' + args.configuration
-                path_list.append(path)
-        else:
-            sys.excepthook = exc_handler
-            raise FileNotFoundError("Please provide path to the config file with '--configuration' argument.")
 
         if not os.path.isfile(path):
             sys.excepthook = exc_handler
@@ -220,7 +227,7 @@ class Application:
             )
             raise FileNotFoundError(error_message)
         else:
-            get_logger().info(f"Found configuration file at path {path}")
+            self._logger.info(f"Found configuration file at path {path}")
 
         return path
 
@@ -472,3 +479,6 @@ class Application:
 
         # If this point is reached everything went fine
         self._logger.info("Process completed without errors")
+
+if __name__ == "__main__":
+    Application().run()

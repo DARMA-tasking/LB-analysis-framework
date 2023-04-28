@@ -6,7 +6,7 @@ import sys
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import logger
+from ..Utils.logging import get_logger
 
 
 class CriterionBase:
@@ -15,19 +15,19 @@ class CriterionBase:
     __metaclass__ = abc.ABCMeta
     _logger: Logger
 
-    def __init__(self, work_model: WorkModelBase, lgr: Logger):
+    def __init__(self, work_model: WorkModelBase, logger: Logger):
         """Class constructor:
             work_model: a WorkModelBase instance
             phase: a Phase instance
-            lgr: Logger instance."""
+            logger: Logger instance."""
 
         # Assign logger to instance variable
-        self._logger = lgr
-        logger().debug(f"Creating base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
+        self._logger = logger
+        logger.debug(f"Creating base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
 
         # Assert that a work model instance was passed
         if not isinstance(work_model, WorkModelBase):
-            logger().error("Could not create a criterion without a work model")
+            logger.error("Could not create a criterion without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._work_model = work_model
@@ -40,13 +40,13 @@ class CriterionBase:
 
         # Assert that a phase instance was passed
         if not isinstance(phase, Phase):
-            logger().error(f"A {type(phase)} instance was passed to set_phase()")
+            self._logger.error(f"A {type(phase)} instance was passed to set_phase()")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._phase = phase
 
     @staticmethod
-    def factory(criterion_name: str, work_model: WorkModelBase, lgr: Logger):
+    def factory(criterion_name: str, work_model: WorkModelBase, logger: Logger):
         """Produce the necessary concrete criterion."""
 
         # Load up available criteria
@@ -59,12 +59,12 @@ class CriterionBase:
         try:
             # Instantiate and return object
             criterion = locals()[criterion_name + "Criterion"]
-            return criterion(work_model, lgr)
-        except Exception as ex:
+            return criterion(work_model, logger)
+        except Exception as e:
             # Otherwise, error out
-            logger().error(f"Could not create a criterion with name {criterion_name}")
+            logger.error(f"Could not create a criterion with name {criterion_name}")
             sys.excepthook = exc_handler
-            raise SystemExit(1) from ex
+            raise SystemExit(1) from e
 
     @abc.abstractmethod
     def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=None):

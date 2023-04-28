@@ -3,10 +3,8 @@ import sys
 import math
 from logging import Logger
 
-from ..Model.lbsPhase import Phase
 from ..Execution.lbsCriterionBase import CriterionBase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import logger
 
 
 class TransferStrategyBase:

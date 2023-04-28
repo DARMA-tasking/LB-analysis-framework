@@ -3,7 +3,7 @@ from logging import Logger
 import sys
 
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import logger
+from ..Utils.logging import get_logger
 
 class WorkModelBase:
     __metaclass__ = abc.ABCMeta
@@ -15,7 +15,7 @@ class WorkModelBase:
             parameters: optional parameters dictionary."""
 
         # Work keeps internal references to ranks and edges
-        logger().debug("Created base work model")
+        get_logger().debug("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters, lgr: Logger):
@@ -31,7 +31,7 @@ class WorkModelBase:
             return work(parameters, lgr=lgr)
         except:
             # Otherwise, error out
-            logger().error(f"Could not create a work with name: {work_name}")
+            get_logger().error(f"Could not create a work with name: {work_name}")
             sys.excepthook = exc_handler
             raise NameError(f"Could not create a work with name: {work_name}")
 

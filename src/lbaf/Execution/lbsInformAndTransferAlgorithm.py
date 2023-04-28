@@ -56,7 +56,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__transfer_criterion = CriterionBase.factory(
             crit_name,
             self._work_model,
-            lgr=self._logger)
+            logger=self._logger)
         if not self.__transfer_criterion:
             self._logger.error(f"Could not instantiate a transfer criterion of type {crit_name}")
             sys.excepthook = exc_handler

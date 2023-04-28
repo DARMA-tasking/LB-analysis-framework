@@ -17,7 +17,7 @@ class TestConfig(unittest.TestCase):
             sys.path.append(self.config_dir)
         except Exception as e:
             print(f"Can not add config path to system path! Exiting!\nERROR: {e}")
-            raise SystemExit(1)
+            raise SystemExit(1) from e
 
     def test_config_validator_correct_001(self):
         with open(os.path.join(self.config_dir, "conf_correct_001.yml"), "rt") as config_file:

@@ -6,7 +6,7 @@ from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
 from lbaf.Utils.common import project_dir
-from lbaf.Utils.logger import logger
+from lbaf.Utils.logging import get_logger
 from lbaf.Utils.exception_handler import exc_handler
 
 TARGET_DIR = os.path.join(project_dir(), "src", "lbaf", "imported")
@@ -25,23 +25,25 @@ def _save_schema_validator_and_init_file():
     if not os.path.isdir(TARGET_DIR):
         os.makedirs(TARGET_DIR)
 
+    logger = get_logger()
+
     # create empty __init__.py file
     with open(os.path.join(TARGET_DIR, "__init__.py"), 'wt', encoding='utf-8'):
         pass
     # then download the SchemaValidator for vt files
     try:
-        logger().info(f"Retrieve the JSON data files validator at {SOURCE_SCRIPT_URL}")
+        logger.info(f"Retrieve the JSON data files validator at {SOURCE_SCRIPT_URL}")
         tmp_filename, http_message = urlretrieve(SOURCE_SCRIPT_URL, os.path.join(TARGET_DIR, '~' + TARGET_SCRIPT_NAME))
         filename = os.path.join(TARGET_DIR, TARGET_SCRIPT_NAME)
         content_type = http_message.get_content_type()
         # validate content type for script that has been retrieved
         if content_type == 'text/plain':
             os.rename(tmp_filename, filename)
-            logger().info(f"Saved JSON data files validator to: {filename}")
+            logger.info(f"Saved JSON data files validator to: {filename}")
         else:
             os.remove(tmp_filename)
             if os.path.isfile(filename):
-                logger().error(
+                logger.error(
                     f"Unexpected Content-Type ({content_type}) for JSON data files validator file."
                     " Using last valid JSON data files validator: {filename}"
                 )
@@ -64,12 +66,14 @@ def load(overwrite_validator: bool = True):
     :param overwrite_validator: set true to download the script, defaults to True
     :type overwrite_validator: bool, optional
     """
+
+    logger = get_logger()
     if overwrite_validator:
         _save_schema_validator_and_init_file()
     else:
         if not is_loaded():
-            logger().warning('The JSON data files validator has not been loaded')
-        logger().info(
+            logger.warning('The JSON data files validator has not been loaded')
+        logger.info(
             "In case of `ModuleNotFoundError: No module named 'lbaf.imported'` set overwrite_validator to True.")
 
 def is_loaded():
@@ -78,5 +82,6 @@ def is_loaded():
     :return: True if the script exists in the target location otherwise False
     :rtype: bool
     """
+
     import_dir = os.path.join(project_dir(), "src", "lbaf", "imported")
     return os.path.isfile(os.path.join(import_dir, TARGET_SCRIPT_NAME))
