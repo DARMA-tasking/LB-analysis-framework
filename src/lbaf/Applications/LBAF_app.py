@@ -454,7 +454,6 @@ class LBAFApp:
                         original_loads = {
                             o.get_id(): o.get_load()
                             for o in phases[p_id].get_objects()}
-                        print(original_loads)
                         for o in rebalanced_phase.get_objects():
                             o.set_load(original_loads[o.get_id()])
 
