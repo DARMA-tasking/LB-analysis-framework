@@ -3,7 +3,7 @@
 [![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
 [![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)
 
-## This is the repository for Load-Balancing Simulation research
+## This is the repository for Load-Balancing Analysis Framework (LBAF)
 ### It contains the following subdirectories:
 * `src`: Load-Balancing Simulator code
 * `doc`: research and papers and related documents
