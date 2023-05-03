@@ -65,7 +65,7 @@ def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> flo
 
     # Iterate over all rank objects
     for i in rank_object_ids:
-        volume += sum([v for k, v in objects[i].get(direction, 0.) if k not in rank_object_ids])
+        volume += sum(v for (k, v) in objects[i].get(direction, []).items() if k not in rank_object_ids)
 
     # Return computed volume
     return volume
@@ -337,5 +337,5 @@ def main():
         if v == w_min_max:
             root_logger.info(f"Reachable optimal arrangement: {k}")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
