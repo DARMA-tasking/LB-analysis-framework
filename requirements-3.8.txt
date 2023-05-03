@@ -23,5 +23,5 @@ docutils==0.19
 # LBAF building package
 build==0.7.0
 
-# current setup (editable mode)
+# project packages (editable mode)
 -e .

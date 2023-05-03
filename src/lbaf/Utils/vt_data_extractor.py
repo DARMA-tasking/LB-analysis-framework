@@ -1,14 +1,6 @@
 import os
 import sys
 
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    print(f"Started in directory: {project_path}")
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    raise SystemExit(1)
-
 from multiprocessing.pool import Pool
 from multiprocessing import get_context
 
@@ -16,13 +8,14 @@ import time
 
 import json
 
-from lbaf.Utils.exception_handler import exc_handler
+from .exception_handler import exc_handler
+from .common import project_dir
 
 try:
     import brotli
     BROTLI_NOT_IMPORTED = False
 except ImportError as e:
-    print(f'Brotli was not imported: {e}')
+    print(f"Brotli was not imported: {e}")
     BROTLI_NOT_IMPORTED = True
 
 
@@ -33,7 +26,7 @@ class VTDataExtractor:
                  check_schema: bool = False):
         self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
-        self.output_data_dir = os.path.join(project_path, output_data_dir)
+        self.output_data_dir = os.path.join(project_dir(), output_data_dir)
         self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
         self.file_prefix = file_prefix
         self.file_suffix = file_suffix
@@ -52,8 +45,8 @@ class VTDataExtractor:
         if os.path.isdir(os.path.abspath(self.input_data_dir)):
             self.input_data_dir = os.path.abspath(self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
-        elif os.path.isdir(os.path.join(project_path, self.input_data_dir)):
-            self.input_data_dir = os.path.join(project_path, self.input_data_dir)
+        elif os.path.isdir(os.path.join(project_dir(), self.input_data_dir)):
+            self.input_data_dir = os.path.join(project_dir(), self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
             sys.excepthook = exc_handler
@@ -192,7 +185,7 @@ class VTDataExtractor:
         print(f"=====> DONE in {total_duration:.2f} <=====")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Here phases are declared
     # It should be declared as list of [int or str]
     # Int is just a phase number/id e.g. [1, 2, 3, 4]

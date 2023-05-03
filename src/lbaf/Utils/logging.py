@@ -41,19 +41,19 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
     """Creates a formatter of the given type"""
     if not formatter_type in FORMATTERS:
         frmtrs = str.join(', ', FORMATTERS)
-        raise ValueError(f'Invalid formatter name. Supported are {frmtrs}')
+        raise ValueError(f"Invalid formatter name. Supported are {frmtrs}")
 
     if theme is not None and not theme in THEMES:
         themes = str.join(', ', THEMES)
-        raise ValueError(f'Invalid thee name. Supported are {themes}')
+        raise ValueError(f"Invalid thee name. Supported are {themes}")
 
     def msgcolor(msg):
         if not theme is None:
-            return black(msg) if theme == 'light' else light_white(msg)
+            return black(msg) if theme == "light" else light_white(msg)
         return msg
 
     # 'extended' formatter
-    if formatter_type == 'extended':
+    if formatter_type == "extended":
         frmttr = {
             logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
             logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),

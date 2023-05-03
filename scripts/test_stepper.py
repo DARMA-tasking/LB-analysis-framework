@@ -29,7 +29,7 @@ def stepper_test():
             else:
                 print(f"Regex: {reg} not found in log.\nTEST FAILED.")
                 sys.exit(1)
-        print('TEST PASSED.')
+        print("TEST PASSED.")
 
 
 if __name__ == "__main__":

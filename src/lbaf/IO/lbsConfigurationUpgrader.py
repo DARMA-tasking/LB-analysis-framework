@@ -26,8 +26,8 @@ from ..Utils.common import project_dir
 class UpgradeAction(Enum):
     """Upgrade action"""
 
-    ADD_KEY = 'add'
-    REMOVE_KEY = 'remove'
+    ADD_KEY = "add"
+    REMOVE_KEY = "remove"
 
 class ConfigurationDumper(yaml.Dumper):
     """Custom dumper to add indent before list items hyphens"""
@@ -83,7 +83,7 @@ class ConfigurationUpgrader:
         self.__logger.debug('Upgrading file %s ...', file_path)
         key_path = None
         if action == UpgradeAction.ADD_KEY:
-            self.__logger.debug('Add key `%s` with value `%s`', key, value)
+            self.__logger.debug("Add key `%s` with value `%s`", key, value)
         elif action == UpgradeAction.REMOVE_KEY:
             print(f'Remove key `{key}`')
         key_path = key.split('.')
@@ -97,7 +97,7 @@ class ConfigurationUpgrader:
             raise ValueError('The `key` must be a valid string')
 
         conf = None
-        with open(file_path, 'r', encoding='utf-8') as yaml_file:
+        with open(file_path, "r", encoding='utf-8') as yaml_file:
             yaml_content = yaml_file.read()
             conf =  yaml.safe_load(yaml_content)
             node = conf

@@ -1,29 +1,19 @@
 import os
-import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    raise SystemExit(1)
 
 import logging
 import unittest
 
-from src.lbaf.IO.lbsVTDataReader import LoadReader
-from src.lbaf.Model.lbsPhase import Phase
+from lbaf.Utils.common import project_dir
+from lbaf.IO.lbsVTDataReader import LoadReader
+from lbaf.Model.lbsPhase import Phase
 
 
 class TestConfig(unittest.TestCase):
+
     def setUp(self):
-        try:
-            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), 'data')
-            sys.path.append(self.data_dir)
-        except Exception as e:
-            print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
-            raise SystemExit(1)
+        self.data_dir = os.path.join(project_dir(), "tests", "data")
         self.logger = logging.getLogger()
-        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
+        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
         self.reader = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
         self.phase = Phase(self.logger, 0, reader=self.reader)
 
@@ -33,12 +23,12 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.phase._Phase__edges, None)
 
     def test_lbs_phase_populate_from_log(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
         self.phase.populate_from_log(t_s=0, basename=file_prefix)
         self.assertEqual(len(self.phase.get_object_ids()), 9)
 
     def test_lbs_phase_getters(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
         self.phase.populate_from_log(t_s=0, basename=file_prefix)
         ranks = sorted([rank.get_id() for rank in self.phase.get_ranks()])
         self.assertEqual(ranks, [0, 1, 2, 3])
@@ -46,7 +36,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.phase.get_id(), 0)
 
     def test_lbs_phase_edges(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', 'data')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
         self.phase.populate_from_log(t_s=0, basename=file_prefix)
         self.assertEqual(self.phase._Phase__edges, None)
         edges = {frozenset({0, 1}): 3.0, frozenset({0, 2}): 0.5, frozenset({1, 2}): 2.0}

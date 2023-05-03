@@ -337,5 +337,5 @@ def main():
         if v == w_min_max:
             root_logger.info(f"Reachable optimal arrangement: {k}")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

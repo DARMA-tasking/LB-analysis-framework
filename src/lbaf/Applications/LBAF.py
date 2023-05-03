@@ -11,7 +11,7 @@ import yaml
 from lbaf import __version__
 from lbaf.Applications import JSON_data_files_validator_loader
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.common import abspath_from, project_dir
+from lbaf.Utils.common import abspath_from, is_editable
 from lbaf.Utils.logging import get_logger, Logger
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 
@@ -210,9 +210,9 @@ class Application:
         # search config file in the current working directory if relative
         path = os.path.abspath(args.configuration)
         path_list.append(path)
-        if path is not None and not os.path.isfile(path) and not os.path.isabs(args.configuration):
+        if path is not None and not os.path.isfile(path) and not os.path.isabs(args.configuration) and is_editable():
             # then search config file relative to the config folder
-            search_dir = os.path.join(project_dir(), "config")
+            search_dir = os.path.join(abspath_from("../../../../config", __file__))
             path = search_dir + '/' + args.configuration
             path_list.append(path)
 
@@ -233,7 +233,6 @@ class Application:
 
     def run(self):
         """Runs the LBAF application"""
-
         # Find configuration file absolute path
         config_file = self.__get_config_path()
 

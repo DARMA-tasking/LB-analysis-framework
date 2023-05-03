@@ -1,31 +1,19 @@
 import os
-import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    raise SystemExit(1)
-
 import logging
 import unittest
 
 from schema import SchemaError
 
-from src.lbaf.IO.lbsVTDataReader import LoadReader
-from src.lbaf.Model.lbsObject import Object
-from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
-from src.lbaf.Model.lbsRank import Rank
+from lbaf.Utils.common import project_dir
+from lbaf.IO.lbsVTDataReader import LoadReader
+from lbaf.Model.lbsObject import Object
+from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        try:
-            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "data")
-            sys.path.append(self.data_dir)
-        except Exception as e:
-            print(f"Can not add data path to system path. Exiting.\nERROR: {e}")
-            raise SystemExit(1)
+        self.data_dir = os.path.join(project_dir(), "tests", "data")
         self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', "data")
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
@@ -225,5 +213,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], "Could not retrieve information for rank 0 at time_step 5. KeyError 5")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

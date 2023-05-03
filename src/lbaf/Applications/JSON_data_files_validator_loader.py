@@ -49,8 +49,8 @@ def _save_schema_validator_and_init_file():
                 )
             else:
                 raise ConnectionError(
-                    f'Unexpected Content-Type `{content_type}` for schema validator' +
-                    'downloaded from {script_url}\n'
+                    f"Unexpected Content-Type `{content_type}` for schema validator" +
+                    "downloaded from {script_url}\n"
                 )
     except HTTPError as err:
         sys.excepthook = exc_handler
