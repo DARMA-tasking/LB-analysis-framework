@@ -1,7 +1,7 @@
 Input data
 ==========
 
-`LBAF_app.py` supports two kind on input data.
+`LBAF.py` supports two kind on input data.
 
 LB data
 -------

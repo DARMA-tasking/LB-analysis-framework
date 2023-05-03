@@ -97,7 +97,7 @@ jobs:
           cat ${{ env.stepper_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py --configuration=${{ env.stepper_config }}
+          python src/lbaf/Applications/LBAF.py --configuration=${{ env.stepper_config }}
 
       - name: Check output
         run: |

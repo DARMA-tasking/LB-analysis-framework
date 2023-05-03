@@ -10,7 +10,7 @@ JSON data files Validator validates VT data files against defined schema.
 
 Schema is defined `HERE <https://github.com/DARMA-tasking/vt/blob/develop/scripts/JSON_data_files_validator.py>`__
 
-After use of `LBAF_app.py`, `JSON_data_files_validator.py` appears in:
+After use of `LBAF.py`, `JSON_data_files_validator.py` appears in:
 
 * <project-path>/src/lbaf/imported/JSON_data_files_validator.py.
 
