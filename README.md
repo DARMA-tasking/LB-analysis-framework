@@ -1,4 +1,4 @@
-[![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml)
+[![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/code-quality.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/code-quality.yml)
 [![Acceptance Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml)
 [![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
 [![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)

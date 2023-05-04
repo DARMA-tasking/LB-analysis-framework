@@ -66,7 +66,7 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
 
 def logger(
         name: str = "root",
-        level: Union[str, None] = None,
+        level: Union[str, None] = "info",
         log_to_console: bool= True,
         log_to_file: Union[str, None] = None,
         formatter_name: str = FORMATTER_BASIC,
