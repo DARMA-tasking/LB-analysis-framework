@@ -9,7 +9,7 @@ import yaml
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logging import get_logger, Logger
-from lbaf.Utils.common import project_dir, abspath_from
+from lbaf.Utils.common import project_dir, abspath
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str = "json") -> tuple:
     """Read data from configuration and returns a tuple of objects with communication"""
@@ -279,7 +279,7 @@ def main():
     DATA_DIR = f"{os.sep}".join(DATA_STEM.split(os.sep)[:-1])
     FILE_PREFIX = DATA_STEM.split(os.sep)[-1]
 
-    DATA_DIR = abspath_from(DATA_DIR, CONF_DIR) # make absolute path
+    DATA_DIR = abspath(DATA_DIR, CONF_DIR) # make absolute path
     FILE_PREFIX = f"{os.sep}".join([DATA_DIR, FILE_PREFIX]) # make absolute path prefix
 
     # Get objects from log files
@@ -301,12 +301,12 @@ def main():
     root_logger.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")
 
     # Write all optimal arrangements to CSV file
-    output_dir = abspath_from(CONF.get("output_dir"), CONF_DIR)
+    output_dir = abspath(CONF.get("output_dir"), relative_to=CONF_DIR)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     out_name = os.path.join(output_dir, "optimal-arrangements.csv")
-    with open(out_name, 'w', encoding="utf-8") as f:
-        writer = csv.writer(f)
+    with open(out_name, 'w', encoding="utf-8") as input_file:
+        writer = csv.writer(input_file)
         for a in a_min_max:
             writer.writerow(a)
     root_logger.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")

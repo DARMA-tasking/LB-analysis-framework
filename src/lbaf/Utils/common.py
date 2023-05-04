@@ -29,16 +29,23 @@ def current_dir() -> str:
     module = inspect.getmodule(frame[0])
     return os.path.dirname(module.__file__)
 
-def abspath_from(path: Optional[str], base_path: Optional[str]) -> Optional[str]:
-    """Get the absolute path from the given path relative to some base directory.
-    If path is None or is already an absolute path it is just returned
-    If path is relative then base_path must indicate the base directory or file path from which to resolve the path
+def abspath(path: str, relative_to: Optional[str] = None) -> Optional[str]:
+    """Return an absolute path
+    This function provides an additional option than os.path.abspath by enabling to express a relative path from
+    another base path than the current working directory
+
+    :param path: the input path
+    :param relative_to: the base path, defaults to None (None = the current working directory)
+    :return: an absolute path
     """
-    if path is None:
-        return None
+    if relative_to is None:
+        # path is relative to the current working directory
+        return os.path.abspath(path)
     elif not os.path.isabs(path):
-        if base_path is None or not os.path.isabs(base_path):
-            raise ValueError("base_dir must be an absolute path")
-        return os.path.abspath(os.path.join(base_path, path))
+        # path is a relative path
+        if not os.path.isabs(relative_to):
+            relative_to = os.path.abspath(relative_to)
+        return os.path.abspath(os.path.join(relative_to, path))
     else:
+        # path is already an absolute path
         return path

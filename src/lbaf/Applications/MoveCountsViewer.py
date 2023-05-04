@@ -5,8 +5,9 @@ import getopt
 
 import vtk
 
+from lbaf.Utils.common import project_dir
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logging import get_logger
+from lbaf.Utils.logging import get_logger, Logger
 
 
 class MoveCountsViewerParameters:
@@ -49,6 +50,8 @@ class MoveCountsViewerParameters:
 class MoveCountsViewer:
     """A class to describe MoveCountsViewer attributes"""
 
+    logger: Logger
+
     def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = "out",
                  output_file_name: str = "move_counts", interactive: bool = True):
 
@@ -75,7 +78,7 @@ class MoveCountsViewer:
         self.interactive = interactive
 
         # Starting logger
-        self.__logger = get_logger()
+        self.logger = get_logger()
         self.logging_level = "info"
 
     @staticmethod
@@ -99,7 +102,7 @@ class MoveCountsViewer:
         try:
             opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih") # pylint:disable=W0612
         except getopt.GetoptError:
-            self.__logger.error("Incorrect command line arguments.")
+            self.logger.error("Incorrect command line arguments.")
             self.usage()
             return True
 
@@ -129,13 +132,13 @@ class MoveCountsViewer:
 
         # If number of processors is not provided or set to 0
         if params.n_processors == 0:
-            self.__logger.error("At least one processor needs to be defined. Exiting.")
+            self.logger.error("At least one processor needs to be defined. Exiting.")
             self.usage()
             return True
         # If  invalid file name is provided
         elif (not params.input_file_name.strip()
               or params.input_file_name.strip() == "''"):
-            self.__logger.error("A file name needs to be defined. Exiting.")
+            self.logger.error("A file name needs to be defined. Exiting.")
             self.usage()
             return True
 
@@ -170,12 +173,9 @@ class MoveCountsViewer:
         # directed_sizes = {} (unused)
         for i in range(self.n_processors):
             # Iterate over all files
-            with open("{}.{}.{}".format(
-                    self.input_file_name,
-                    i,
-                    self.input_file_suffix), "r", encoding="utf-8") as f:
+            with open(f"{self.input_file_name}.{i}.{self.input_file_suffix}", "r", encoding="utf-8") as input_file:
                 # Instantiate CSV reader
-                reader = csv.reader(f, delimiter=",")
+                reader = csv.reader(input_file, delimiter=",")
 
                 # Iterate over rows of processor file
                 for row in reader:
@@ -395,9 +395,9 @@ class MoveCountsViewer:
 if __name__ == "__main__":
     # Default settings
     N_PROCESSORS = 8
-    INPUT_FILE_NAME = "../data/lb50-data/data"
+    INPUT_FILE_NAME = os.path.join(project_dir(), "data", "nolb-data", "data")
     INPUT_FILE_SUFFIX = "vom"
-    OUTPUT_FILE_NAME = "move_counts"
+    OUTPUT_FILE_NAME = os.path.join(project_dir(), "output", "move_counts")
     params = MoveCountsViewer(
         n_processors=N_PROCESSORS,
         input_file_name=INPUT_FILE_NAME,

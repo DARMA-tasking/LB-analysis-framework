@@ -11,7 +11,7 @@ import yaml
 from lbaf import __version__
 from lbaf.Applications import JSON_data_files_validator_loader
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.common import abspath_from, is_editable
+from lbaf.Utils.common import abspath, is_editable
 from lbaf.Utils.logging import get_logger, Logger
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 
@@ -102,7 +102,7 @@ class InternalParameters:
             # # get data directory (because data_stem includes file prefix)
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
-            data_dir = abspath_from(data_dir, base_dir)
+            data_dir = abspath(data_dir, relative_to=base_dir)
             self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
             self.__logger.info("Data stem: {self.data_stem}")
             if isinstance(from_data.get("phase_ids"), str):
@@ -122,7 +122,7 @@ class InternalParameters:
             self.volume_sampler = from_samplers.get("volume_sampler")
 
         # Set output directory, local by default
-        self.output_dir = abspath_from(config.get("output_dir", '.'), base_dir)
+        self.output_dir = abspath(config.get("output_dir", '.'), relative_to=base_dir)
 
     def check_parameters(self):
         """Checks after initialization."""
@@ -169,13 +169,14 @@ class Application:
         # Initialize the application logger (with some parameters from the configuration data)
         lvl = cast(str, data.get("logging_level", "info"))
         config_dir = os.path.dirname(path)
+        log_to_file = data.get("log_to_file", None)
         # change logger to a logger with some parameters found in configuration
         self._logger = get_logger(
             name="lbaf",
             level=lvl,
             theme=data.get("terminal_background", None),
             log_to_console=data.get("log_to_file", None) is None,
-            log_to_file=abspath_from(data.get("log_to_file", None), config_dir)
+            log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
         )
         self._logger.info(f"Logging level: {lvl.lower()}")
 
@@ -208,11 +209,11 @@ class Application:
             args.configuration = "conf.yaml"
 
         # search config file in the current working directory if relative
-        path = os.path.abspath(args.configuration)
+        path = abspath(args.configuration)
         path_list.append(path)
         if path is not None and not os.path.isfile(path) and not os.path.isabs(args.configuration) and is_editable():
             # then search config file relative to the config folder
-            search_dir = os.path.join(abspath_from("../../../../config", __file__))
+            search_dir = abspath("../../../../config", relative_to=__file__)
             path = search_dir + '/' + args.configuration
             path_list.append(path)
 
