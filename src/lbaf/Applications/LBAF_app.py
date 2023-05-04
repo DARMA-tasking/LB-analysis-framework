@@ -256,7 +256,7 @@ class LBAFApp:
     """LBAF application class."""
     def __init__(self, config, base_dir):
         # Instantiate parameters
-        self.params = InternalParameters(config=config, base_dir=base_dir)
+        self.__parameters = InternalParameters(config=config, base_dir=base_dir)
 
         # Assign logger to variable
         self.__logger = self.__parameters.logger
