@@ -149,9 +149,9 @@ class InternalParameters:
         self.check_parameters()
 
         # Print startup information
-        self.logger.info("Executing LBAF version {__version__}")
+        self.logger.info(f"Executing LBAF version {__version__}")
         svi = sys.version_info #pylint: disable=W0612
-        self.logger.info("Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
+        self.logger.info(f"Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
@@ -205,7 +205,7 @@ class InternalParameters:
             file_prefix = self.data_stem.split(os.sep)[-1]
             data_dir = abspath_from(data_dir, base_dir)
             self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
-            self.logger.info("Data stem: {self.data_stem}")
+            self.logger.info(f"Data stem: {self.data_stem}")
             if isinstance(from_data.get("phase_ids"), str):
                 range_list = list(map(int, from_data.get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
