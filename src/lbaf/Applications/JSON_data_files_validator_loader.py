@@ -28,7 +28,7 @@ def _save_schema_validator_and_init_file():
     logger = get_logger()
 
     # create empty __init__.py file
-    with open(os.path.join(TARGET_DIR, "__init__.py"), 'wt', encoding="utf-8"):
+    with open(os.path.join(TARGET_DIR, "__init__.py"), "wt", encoding="utf-8"):
         pass
     # then download the SchemaValidator for vt files
     try:

@@ -13,17 +13,15 @@ LOGGING_LEVEL = {
     "ERROR": logging.ERROR
 }
 
-FORMATTER_BASIC = 'basic'
-FORMATTER_EXTENDED = 'extended'
+FORMATTER_BASIC = "basic"
+FORMATTER_EXTENDED = "extended"
 FORMATTERS = [ FORMATTER_BASIC, FORMATTER_EXTENDED ]
 
-THEME_DARK = 'dark'
-THEME_LIGHT = 'light'
+THEME_DARK = "dark"
+THEME_LIGHT = "light"
 THEMES = [ THEME_LIGHT, THEME_DARK ]
 
-# type alias
-
-
+# Logger type alias
 Logger = logging.Logger
 """Logger class"""
 

@@ -151,7 +151,7 @@ class Application:
             try:
                 with open(path, "rt", encoding="utf-8") as file_io:
                     data = yaml.safe_load(file_io)
-                    if not data.get('overwrite_validator', True):
+                    if not data.get("overwrite_validator", True):
                         self._logger.info(
                             f"Option 'overwrite_validator' in configuration file: {path} is set to False"
                         )
@@ -435,7 +435,7 @@ class Application:
             self._logger)
         with open(
             "imbalance.txt" if self.params.output_dir is None else os.path.join(
-                self.params.output_dir, "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
+                self.params.output_dir, "imbalance.txt"), "w", encoding="utf-8") as imbalance_file:
             imbalance_file.write(
                 f"{l_stats.get_imbalance()}") #pylint: disable=E1101
         lbstats.print_function_statistics(

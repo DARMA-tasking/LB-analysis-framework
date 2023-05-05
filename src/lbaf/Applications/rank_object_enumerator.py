@@ -256,7 +256,7 @@ def main():
     def get_conf() -> dict:
         """Gets config from file and returns a dictionary."""
 
-        with open(os.path.join(project_dir(), "config", "conf.yaml"), 'rt', encoding="utf-8") as conf_file:
+        with open(os.path.join(project_dir(), "config", "conf.yaml"), "rt", encoding="utf-8") as conf_file:
             conf = yaml.safe_load(conf_file)
         return conf
 
@@ -305,7 +305,7 @@ def main():
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     out_name = os.path.join(output_dir, "optimal-arrangements.csv")
-    with open(out_name, 'w', encoding="utf-8") as input_file:
+    with open(out_name, "w", encoding="utf-8") as input_file:
         writer = csv.writer(input_file)
         for a in a_min_max:
             writer.writerow(a)
