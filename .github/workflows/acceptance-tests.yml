@@ -13,7 +13,7 @@ jobs:
       matrix:
         config:
           - { os: ubuntu-latest, image: "3.8" }
-#          - { os: ubuntu-latest, image: "3.9" }
+          - { os: ubuntu-latest, image: "3.9" }
     runs-on: ${{ matrix.config.os }}
     container: python:${{ matrix.config.image }}-slim-buster
     env:
@@ -63,7 +63,7 @@ jobs:
       matrix:
         config:
           - { os: ubuntu-latest, image: "3.8" }
-#          - { os: ubuntu-latest, image: "3.11" }
+          - { os: ubuntu-latest, image: "3.9" }
     runs-on: ${{ matrix.config.os }}
     container: python:${{ matrix.config.image }}-slim-buster
     env:
