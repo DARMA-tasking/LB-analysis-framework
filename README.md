@@ -20,7 +20,7 @@ Currently, the only working version of Python is 3.8. This is due to the compati
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
-Make sure you have all required Pyhon packages installed with:
+Make sure you have all required Python packages installed with:
 ```shell
 pip install -r requirements-3.8.txt
 ```
@@ -35,7 +35,7 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 LBAF run base of configuration file which could be find here:
 ```shell
-<project-path>/src/lbaf/Applications/conf.yaml
+<project-path>/config/conf.yaml
 ```
 
 Description of each parameter in configuration file could be found at the top of configuration file.
@@ -57,11 +57,12 @@ tox
 
 ### LBAF
 
-In order to run LBAF from main project directory:
+In order to run the LBAF application from you workspace name:
 ```shell
-cd <project-path>
-python src/lbaf/Applications/LBAF.py
+cd <workspace-path>
+lbaf -c <config-file-name>
 ```
+
 
 ### JSON data files Validator
 

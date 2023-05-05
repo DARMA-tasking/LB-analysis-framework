@@ -1,4 +1,4 @@
-"""LBAF entry point"""#pylint:disable=C0103
+"""LBAF entry point"""
 
 import os
 import sys
@@ -7,7 +7,7 @@ import sys
 # LBAF Version
 __version__ = "0.1.0rc1"
 
-from lbaf.Applications.LBAF import Application as LBAF_Application
+from lbaf.Applications.LBAF_app import Application as LBAF_Application
 
 def run():
     """Run an LBAF Application"""
