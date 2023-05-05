@@ -4,7 +4,6 @@ from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler

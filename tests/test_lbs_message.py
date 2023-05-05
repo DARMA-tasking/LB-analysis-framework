@@ -21,5 +21,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.msg.get_content(), "something")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

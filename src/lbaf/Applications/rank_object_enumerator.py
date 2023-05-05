@@ -261,39 +261,39 @@ def main():
         return conf
 
     # Retrieve configuration
-    CONF = get_conf()
-    CONF_DIR = os.path.join(project_dir(), "config")
+    conf = get_conf()
+    conf_dir = os.path.join(project_dir(), "config")
 
     # Define number of ranks
-    viz = CONF.get("LBAF_Viz")
-    N_RANKS = viz.get("x_ranks") * viz.get("y_ranks") * viz.get("z_ranks")
+    viz = conf.get("LBAF_Viz")
+    n_ranks = viz.get("x_ranks") * viz.get("y_ranks") * viz.get("z_ranks")
 
     # Define work constants
-    ALPHA_G = CONF.get("work_model").get("parameters").get("alpha")
-    BETA_G = CONF.get("work_model").get("parameters").get("beta")
-    GAMMA_G = CONF.get("work_model").get("parameters").get("gamma")
-    FILE_SUFFIX = CONF.get("file_suffix", "json")
+    alpha_g = conf.get("work_model").get("parameters").get("alpha")
+    beta_g = conf.get("work_model").get("parameters").get("beta")
+    gamma_g = conf.get("work_model").get("parameters").get("gamma")
+    file_suffix = conf.get("file_suffix", "json")
 
     # Get datastem as absolute prefix
-    DATA_STEM = CONF.get("from_data").get("data_stem")
-    DATA_DIR = f"{os.sep}".join(DATA_STEM.split(os.sep)[:-1])
-    FILE_PREFIX = DATA_STEM.split(os.sep)[-1]
+    data_stem = conf.get("from_data").get("data_stem")
+    data_dir = f"{os.sep}".join(data_stem.split(os.sep)[:-1])
+    file_prefix = data_stem.split(os.sep)[-1]
 
-    DATA_DIR = abspath(DATA_DIR, CONF_DIR) # make absolute path
-    FILE_PREFIX = f"{os.sep}".join([DATA_DIR, FILE_PREFIX]) # make absolute path prefix
+    data_dir = abspath(data_dir, conf_dir) # make absolute path
+    file_prefix = f"{os.sep}".join([data_dir, file_prefix]) # make absolute path prefix
 
     # Get objects from log files
-    objects = get_objects(n_ranks=N_RANKS, logger=root_logger, file_prefix=FILE_PREFIX, file_suffix=FILE_SUFFIX)
+    objects = get_objects(n_ranks=n_ranks, logger=root_logger, file_prefix=file_prefix, file_suffix=file_suffix)
 
     # Print out input parameters
-    root_logger.info(f"alpha: {ALPHA_G}")
-    root_logger.info(f"beta: {BETA_G}")
-    root_logger.info(f"gamma: {GAMMA_G}")
+    root_logger.info(f"alpha: {alpha_g}")
+    root_logger.info(f"beta: {beta_g}")
+    root_logger.info(f"gamma: {gamma_g}")
 
     # Compute and report on best possible arrangements
-    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha=ALPHA_G, beta=BETA_G, gamma=GAMMA_G,
-                                                                  n_ranks=N_RANKS)
-    if n_a != N_RANKS ** len(objects):
+    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha=alpha_g, beta=beta_g, gamma=gamma_g,
+                                                                  n_ranks=n_ranks)
+    if n_a != n_ranks ** len(objects):
         root_logger.error("Incorrect number of possible arrangements with repetition")
         sys.excepthook = exc_handler
         raise SystemExit(1)
@@ -301,7 +301,7 @@ def main():
     root_logger.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")
 
     # Write all optimal arrangements to CSV file
-    output_dir = abspath(CONF.get("output_dir"), relative_to=CONF_DIR)
+    output_dir = abspath(conf.get("output_dir"), relative_to=conf_dir)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     out_name = os.path.join(output_dir, "optimal-arrangements.csv")
@@ -314,7 +314,7 @@ def main():
     # Start fom initial configuration
     initial_arrangement = (3, 0, 0, 0, 0, 1, 3, 3, 2)
     root_logger.info(f"Initial arrangement: {initial_arrangement}")
-    initial_works = compute_arrangement_works(objects, initial_arrangement, ALPHA_G, BETA_G, GAMMA_G)
+    initial_works = compute_arrangement_works(objects, initial_arrangement, alpha_g, beta_g, gamma_g)
     w_max = max(initial_works.values())
     visited = {initial_arrangement: w_max}
     root_logger.info(f"\tper-rank works: {initial_works}")
@@ -328,9 +328,9 @@ def main():
         visited,
         objects,
         initial_arrangement,
-        ALPHA_G, BETA_G, GAMMA_G,
+        alpha_g, beta_g, gamma_g,
         w_max, w_min_max,
-        N_RANKS)
+        n_ranks)
 
     # Report all optimal arrangements
     for k, v in visited.items():

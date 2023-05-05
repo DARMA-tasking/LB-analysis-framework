@@ -71,7 +71,7 @@ class AlgorithmBase:
                 "number of communication edges": "cardinality",
                 "maximum largest directed volume": "maximum",
                 "total largest directed volume": "sum"},
-            ("ranks", lambda x: self._work_model.compute(x)): {
+            ("ranks", lambda x: self._work_model.compute(x)): { #pylint:disable=W0108
                 "minimum work": "minimum",
                 "maximum work": "maximum",
                 "total work": "sum",
