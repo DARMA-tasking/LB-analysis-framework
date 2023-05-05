@@ -4,14 +4,14 @@ import unittest
 from schema import SchemaError, SchemaMissingKeyError, SchemaOnlyOneAllowedError
 import yaml
 
-from lbaf.Utils.common import current_dir
+from lbaf.Utils.common import project_path
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.Utils.logging import get_logger
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.config_dir = os.path.join(current_dir(), "config")
+        self.config_dir = os.path.join(project_path(), "config")
 
     def test_config_validator_correct_001(self):
         with open(os.path.join(self.config_dir, "conf_correct_001.yml"), "rt", encoding="utf-8") as config_file:

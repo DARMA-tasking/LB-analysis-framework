@@ -5,11 +5,11 @@ import sys
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
-from lbaf.Utils.common import project_dir
+from lbaf.Utils.common import project_path
 from lbaf.Utils.logging import get_logger
 from lbaf.Utils.exception_handler import exc_handler
 
-TARGET_DIR = os.path.join(project_dir(), "src", "lbaf", "imported")
+TARGET_DIR = os.path.join(project_path(), "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
 SOURCE_SCRIPT_URL=f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
 
@@ -83,5 +83,5 @@ def is_loaded():
     :rtype: bool
     """
 
-    import_dir = os.path.join(project_dir(), "src", "lbaf", "imported")
+    import_dir = os.path.join(project_path(), "src", "lbaf", "imported")
     return os.path.isfile(os.path.join(import_dir, TARGET_SCRIPT_NAME))

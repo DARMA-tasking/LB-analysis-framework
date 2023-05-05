@@ -57,12 +57,21 @@ tox
 
 ### LBAF
 
-In order to run the LBAF application from you workspace name:
+In order to run LBAF from main project directory:
+
 ```shell
-cd <workspace-path>
+cd <project-path>
 lbaf -c <config-file-name>
 ```
+or
 
+```shell
+cd <project-path>
+python src/lbaf/Applications/LBAF.py -c <config-file-name>
+```
+
+`<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`
+If `<config-file-name>` is a relative path then the application will search from the current working directory, then from the `<project-path>/config` directory.
 
 ### JSON data files Validator
 

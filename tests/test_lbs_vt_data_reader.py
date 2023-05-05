@@ -4,7 +4,7 @@ import unittest
 
 from schema import SchemaError
 
-from lbaf.Utils.common import project_dir
+from lbaf.Utils.common import project_path
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Model.lbsObject import Object
 from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
@@ -13,7 +13,7 @@ from lbaf.Model.lbsRank import Rank
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(project_dir(), "tests", "data")
+        self.data_dir = os.path.join(project_path(), "tests", "data")
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")

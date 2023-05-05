@@ -9,7 +9,7 @@ import time
 import json
 
 from .exception_handler import exc_handler
-from .common import project_dir
+from .common import project_path
 
 try:
     import brotli
@@ -26,7 +26,7 @@ class VTDataExtractor:
                  check_schema: bool = False):
         self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
-        self.output_data_dir = os.path.join(project_dir(), output_data_dir)
+        self.output_data_dir = os.path.join(project_path(), output_data_dir)
         self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
         self.file_prefix = file_prefix
         self.file_suffix = file_suffix
@@ -45,8 +45,8 @@ class VTDataExtractor:
         if os.path.isdir(os.path.abspath(self.input_data_dir)):
             self.input_data_dir = os.path.abspath(self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
-        elif os.path.isdir(os.path.join(project_dir(), self.input_data_dir)):
-            self.input_data_dir = os.path.join(project_dir(), self.input_data_dir)
+        elif os.path.isdir(os.path.join(project_path(), self.input_data_dir)):
+            self.input_data_dir = os.path.join(project_path(), self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
             sys.excepthook = exc_handler

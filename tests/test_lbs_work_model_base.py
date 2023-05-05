@@ -2,13 +2,13 @@ import os
 import logging
 import unittest
 
-from lbaf.Utils.common import project_dir
+from lbaf.Utils.common import project_path
 from lbaf.Model.lbsWorkModelBase import WorkModelBase
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(project_dir(), "tests", "data")
+        self.data_dir = os.path.join(project_path(), "tests", "data")
         self.logger = logging.getLogger()
 
     def test_lbs_work_model_base_factory(self):

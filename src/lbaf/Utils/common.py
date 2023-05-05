@@ -13,7 +13,7 @@ def is_editable():
             editable = False
     return editable
 
-def project_dir() -> str:
+def project_path() -> str:
     """Get the absolute path to the project root directory"""
     return os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../../")
 

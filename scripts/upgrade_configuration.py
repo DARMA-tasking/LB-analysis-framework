@@ -1,7 +1,7 @@
 """A script to bulk upgrade LBAF configuration files"""
 import argparse
 
-from lbaf.Utils.common import project_dir
+from lbaf.Utils.common import project_path
 from lbaf.Utils.logging import get_logger
 from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
 
@@ -45,7 +45,7 @@ upg_logger.info(
 upgrader = ConfigurationUpgrader(logger=upg_logger)
 upgrader.upgrade_all(
     pattern = args.pattern,
-    relative_to = project_dir(),
+    relative_to = project_path(),
     action=(UpgradeAction.ADD_KEY if args.add is not None else UpgradeAction.REMOVE_KEY),
     key=(args.add if args.add is not None else args.remove),
     value=args.value,

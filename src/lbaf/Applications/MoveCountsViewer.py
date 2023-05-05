@@ -5,7 +5,7 @@ import getopt
 
 import vtk
 
-from lbaf.Utils.common import project_dir
+from lbaf.Utils.common import project_path
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logging import get_logger, Logger
 
@@ -395,9 +395,9 @@ class MoveCountsViewer:
 if __name__ == "__main__":
     # Default settings
     N_PROCESSORS = 8
-    INPUT_FILE_NAME = os.path.join(project_dir(), "data", "nolb-data", "data")
+    INPUT_FILE_NAME = os.path.join(project_path(), "data", "nolb-data", "data")
     INPUT_FILE_SUFFIX = "vom"
-    OUTPUT_FILE_NAME = os.path.join(project_dir(), "output", "move_counts")
+    OUTPUT_FILE_NAME = os.path.join(project_path(), "output", "move_counts")
     params = MoveCountsViewer(
         n_processors=N_PROCESSORS,
         input_file_name=INPUT_FILE_NAME,
