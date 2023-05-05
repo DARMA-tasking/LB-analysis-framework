@@ -133,7 +133,7 @@ class InternalParameters:
                 os.makedirs(self.output_dir)
 
 class Application:
-    """LBAF Application class"""       
+    """LBAF Application class"""
 
     _logger: Logger
     params: InternalParameters

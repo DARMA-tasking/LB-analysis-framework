@@ -14,9 +14,9 @@ from lbaf.Model.lbsRank import Rank
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.data_dir = os.path.join(project_dir(), "tests", "data")
-        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', "data")
+        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.logger = logging.getLogger()
-        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
         self.ranks_comm = [
             {0: {
                 5: {"sent": [], "received": [{'from': 0, "bytes": 2.0}]},
@@ -77,7 +77,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
-        self.assertEqual(self.lr._LoadReader__file_suffix, 'json')
+        self.assertEqual(self.lr._LoadReader__file_suffix, "json")
 
     def test_lbs_vt_data_reader_get_node_trace_file_name_001(self):
         file_name = f"{self.lr._LoadReader__file_prefix}.0.{self.lr._LoadReader__file_suffix}"
@@ -107,8 +107,8 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', "data")
-        lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
+        lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
@@ -124,7 +124,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
-            LoadReader(file_prefix=f"{self.file_prefix}xd", n_ranks=4, logger=self.logger, file_suffix='json').read(0, 0)
+            LoadReader(file_prefix=f"{self.file_prefix}xd", n_ranks=4, logger=self.logger, file_suffix="json").read(0, 0)
         self.assertIn(err.exception.args[0], [
             f"File {self.file_prefix}xd.0.json not found", f"File {self.file_prefix}xd.1.json not found",
             f"File {self.file_prefix}xd.2.json not found", f"File {self.file_prefix}xd.3.json not found"

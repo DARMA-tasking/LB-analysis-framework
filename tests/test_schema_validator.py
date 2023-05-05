@@ -16,7 +16,7 @@ class TestConfig(unittest.TestCase):
         self.data_dir = os.path.join(project_dir(), "tests", "data", "schema")
 
     def test_schema_validator_valid_001(self):
-        with open(os.path.join(self.data_dir, 'valid_schema_001.json'), "rb") as compr_json_file:
+        with open(os.path.join(self.data_dir, "valid_schema_001.json"), "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
         decompr_bytes = brotli.decompress(compr_bytes)
         vjs_json = json.loads(decompr_bytes.decode("utf-8"))
