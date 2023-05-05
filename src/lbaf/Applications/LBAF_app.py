@@ -179,6 +179,8 @@ class Application:
             log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
         )
         self._logger.info(f"Logging level: {lvl.lower()}")
+        if log_to_file is not None:
+            self._logger.info(f"Logging to file: {abspath(data.get('log_to_file'), relative_to=config_dir)}")
 
         # Instantiate the application internal parameters
         self.params = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self._logger)
