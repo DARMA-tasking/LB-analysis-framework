@@ -11,7 +11,7 @@ import yaml
 from lbaf import __version__, PROJECT_PATH
 from lbaf.Applications import JSON_data_files_validator_loader
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.common import abspath
+from lbaf.Utils.path import abspath
 from lbaf.Utils.logging import get_logger, Logger
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 

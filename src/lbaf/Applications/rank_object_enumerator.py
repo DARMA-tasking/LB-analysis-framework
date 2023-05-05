@@ -10,7 +10,7 @@ from lbaf import PROJECT_PATH
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logging import get_logger, Logger
-from lbaf.Utils.common import abspath
+from lbaf.Utils.path import abspath
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str = "json") -> tuple:
     """Read data from configuration and returns a tuple of objects with communication"""

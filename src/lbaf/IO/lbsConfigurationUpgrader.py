@@ -8,7 +8,7 @@ from logging import Logger
 import yaml
 
 from .lbsConfigurationValidator import ConfigurationValidator
-from ..Utils.common import project_path
+from .. import PROJECT_PATH
 
 
 # Uncomment to format numbers with scientific notation without using Pythong automatic rule

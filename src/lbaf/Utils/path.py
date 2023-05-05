@@ -1,33 +1,7 @@
 """Common utility functions"""
 import os
-import sys
-import inspect
 from typing import Optional
 
-
-def is_editable():
-    """Indicates if the current lbaf package is installed in editable mode"""
-
-    editable = True
-    for path_item in sys.path:
-        egg_link = os.path.join(path_item, 'lbaf.egg-link')
-        if os.path.isfile(egg_link):
-            editable = False
-    return editable
-
-def current_module() -> Optional[inspect.types.ModuleType]:
-    """Get the current module"""
-
-    frame = inspect.stack()[1]
-    module = inspect.getmodule(frame[0])
-    return module
-
-def current_dir() -> str:
-    """Get the absolute path to the directory containing the current executing module"""
-
-    frame = inspect.stack()[1]
-    module = inspect.getmodule(frame[0])
-    return os.path.dirname(module.__file__)
 
 def abspath(path: str, relative_to: Optional[str] = None) -> Optional[str]:
     """Return an absolute path
