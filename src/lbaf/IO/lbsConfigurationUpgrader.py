@@ -149,7 +149,7 @@ class ConfigurationUpgrader:
                     "To place this key in a specific group please update ConfigurationValidator.allowed_keys() at\n" \
                     "%s/src/lbaf/IO/configurationValidator.py:182",
                     keys_without_group,
-                    project_path()
+                    PROJECT_PATH
                 )
                 if yaml_file.tell() > 0:
                     yaml_file.write("\n")
@@ -174,6 +174,6 @@ class ConfigurationUpgrader:
         """Search all files matching some pattern and upgrade each file as needed"""
         for pat in pattern:
             files = Path(relative_to).glob(pat)
-            self.__logger.debug("searching files with pattern %s in %s", pat, project_path())
+            self.__logger.debug("searching files with pattern %s in %s", pat, PROJECT_PATH)
             for file in files:
                 self.upgrade(file, action, key, value, value_type)

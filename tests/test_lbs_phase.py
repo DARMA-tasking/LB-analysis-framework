@@ -3,7 +3,7 @@ import os
 import logging
 import unittest
 
-from lbaf.Utils.common import project_path
+from lbaf import PROJECT_PATH
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Model.lbsPhase import Phase
 
@@ -11,7 +11,7 @@ from lbaf.Model.lbsPhase import Phase
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
-        self.data_dir = os.path.join(project_path(), "tests", "data")
+        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
         self.logger = logging.getLogger()
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
         self.reader = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')

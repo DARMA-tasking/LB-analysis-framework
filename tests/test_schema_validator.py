@@ -4,7 +4,7 @@ import unittest
 
 import brotli
 
-from lbaf.Utils.common import project_path
+from lbaf import PROJECT_PATH
 from lbaf.Applications.JSON_data_files_validator_loader import load as load_schema
 
 load_schema()
@@ -13,7 +13,7 @@ from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(project_path(), "tests", "data", "schema")
+        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data", "schema")
 
     def test_schema_validator_valid_001(self):
         with open(os.path.join(self.data_dir, "valid_schema_001.json"), "rb") as compr_json_file:

@@ -8,10 +8,10 @@ from typing import cast, Any, Dict, List, Union
 
 import yaml
 
-from lbaf import __version__
+from lbaf import __version__, PROJECT_PATH
 from lbaf.Applications import JSON_data_files_validator_loader
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.common import abspath, is_editable, project_path
+from lbaf.Utils.common import abspath
 from lbaf.Utils.logging import get_logger, Logger
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 
@@ -190,7 +190,7 @@ class Application:
     def __get_config_path(self)-> str:
         """Find the config file from the '-configuration' command line argument and returns its absolute path
         (if configuration file path is relative it is searched in the current working directory and at the end in the
-        {project_path}/config directory)
+        {PROJECT_PATH}/config directory)
 
         :raises FileNotFoundError: if configuration file cannot be found
         """
@@ -213,9 +213,13 @@ class Application:
         # search config file in the current working directory if relative
         path = abspath(args.configuration)
         path_list.append(path)
-        if path is not None and not os.path.isfile(path) and not os.path.isabs(args.configuration) and is_editable():
+        if (
+            path is not None and
+            not os.path.isfile(path) and
+            not os.path.isabs(args.configuration) and PROJECT_PATH is not None
+        ):
             # then search config file relative to the config folder
-            search_dir = abspath("config", relative_to=project_path())
+            search_dir = abspath("config", relative_to=PROJECT_PATH)
             path = search_dir + '/' + args.configuration
             path_list.append(path)
 

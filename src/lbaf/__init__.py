@@ -4,10 +4,14 @@ import os
 import sys
 
 
-# LBAF Version
 __version__ = "0.1.0rc1"
+"""lbaf module version"""
 
-from lbaf.Applications.LBAF_app import Application as LBAF_Application
+PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../")
+"""project path (with data, config, tests)"""
+
+from lbaf.Applications.LBAF_app import Application as LBAF_Application # pylint:disable=C0413
+
 
 def run():
     """Run an LBAF Application"""

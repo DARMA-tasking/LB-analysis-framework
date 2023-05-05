@@ -6,10 +6,11 @@ import csv
 
 import yaml
 
+from lbaf import PROJECT_PATH
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logging import get_logger, Logger
-from lbaf.Utils.common import project_path, abspath
+from lbaf.Utils.common import abspath
 
 def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str = "json") -> tuple:
     """Read data from configuration and returns a tuple of objects with communication"""
@@ -256,13 +257,13 @@ def main():
     def get_conf() -> dict:
         """Gets config from file and returns a dictionary."""
 
-        with open(os.path.join(project_path(), "config", "conf.yaml"), "rt", encoding="utf-8") as conf_file:
+        with open(os.path.join(PROJECT_PATH, "config", "conf.yaml"), "rt", encoding="utf-8") as conf_file:
             conf = yaml.safe_load(conf_file)
         return conf
 
     # Retrieve configuration
     conf = get_conf()
-    conf_dir = os.path.join(project_path(), "config")
+    conf_dir = os.path.join(PROJECT_PATH, "config")
 
     # Define number of ranks
     viz = conf.get("LBAF_Viz")
