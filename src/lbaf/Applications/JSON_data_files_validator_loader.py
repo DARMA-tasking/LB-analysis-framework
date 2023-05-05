@@ -5,9 +5,9 @@ import sys
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
-from lbaf import PROJECT_PATH
-from lbaf.Utils.logging import get_logger
-from lbaf.Utils.exception_handler import exc_handler
+from .. import PROJECT_PATH
+from ..Utils.logging import get_logger
+from ..Utils.exception_handler import exc_handler
 
 TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"

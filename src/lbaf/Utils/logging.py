@@ -68,6 +68,8 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
         }
     return CustomFormatter(frmttr)
 
+d = {}
+
 def get_logger(
         name: str = "root",
         level: Union[str, None] = "info",
@@ -77,7 +79,14 @@ def get_logger(
         theme: str = THEME_DARK
 )-> Logger:
     """Return a new or an existing logger"""
+    # return from cache if logger already created
+    logger = d.get(name, None)
+    if logger is not None:
+        return logger
+
+    # init new logger
     logger = logging.getLogger(name)
+    logging.getLogger().handlers.clear() # clear default handlers
     if level is not None:
         logger.setLevel(level.upper())
     if log_to_file is not None:
@@ -86,17 +95,16 @@ def get_logger(
             os.makedirs(logs_dir)
     # initialize handlers only once
     handlers = logger.handlers
-    has_handlers = len(handlers) > 0
-    if not has_handlers and (log_to_console or log_to_file is not None):
-        print(f'initialize handlers for {name}')
-        handlers = [] #type: List[logging.Handler]
-        if isinstance(log_to_file, str):
-            handlers.append(logging.FileHandler(filename=log_to_file))
-        if log_to_console:
-            handlers.append(logging.StreamHandler())
-        for handler in handlers:
-            handler.setLevel(logger.level)
-            handler.setFormatter(formatter(formatter_name, theme))
-            logger.addHandler(handler)
+    handlers = [] #type: List[logging.Handler]
+    if isinstance(log_to_file, str):
+        handlers.append(logging.FileHandler(filename=log_to_file))
+    if log_to_console:
+        handlers.append(logging.StreamHandler())
+    for handler in handlers:
+        handler.setLevel(logger.level)
+        handler.setFormatter(formatter(formatter_name, theme))
+        logger.addHandler(handler)
+
+    d[name] = logger
 
     return logger
