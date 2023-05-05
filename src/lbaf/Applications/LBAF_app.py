@@ -49,7 +49,7 @@ class InternalParameters:
         # Print startup information
         self.__logger.info(f"Executing LBAF version {__version__}")
         svi = sys.version_info #pylint: disable=W0612
-        self.__logger.info("Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
+        self.__logger.info(f"Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
@@ -78,7 +78,7 @@ class InternalParameters:
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
             except Exception as e:
-                self.__logger.error("Missing LBAF-Viz configuration parameter(s): {ex}")
+                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from e
 
@@ -104,7 +104,7 @@ class InternalParameters:
             file_prefix = self.data_stem.split(os.sep)[-1]
             data_dir = abspath(data_dir, relative_to=base_dir)
             self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
-            self.__logger.info("Data stem: {self.data_stem}")
+            self.__logger.info(f"Data stem: {self.data_stem}")
             if isinstance(from_data.get("phase_ids"), str):
                 range_list = list(map(int, from_data.get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
