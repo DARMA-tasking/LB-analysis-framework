@@ -71,7 +71,7 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
 def get_logger(
         name: str = "root",
         level: Union[str, None] = "info",
-        log_to_console: bool= True,
+        log_to_console: bool = True,
         log_to_file: Union[str, None] = None,
         formatter_name: str = FORMATTER_BASIC,
         theme: str = THEME_DARK
@@ -85,7 +85,10 @@ def get_logger(
         if not os.path.isdir(logs_dir):
             os.makedirs(logs_dir)
     # initialize handlers only once
-    if not logger.hasHandlers():
+    handlers = logger.handlers
+    has_handlers = len(handlers) > 0
+    if not has_handlers and (log_to_console or log_to_file is not None):
+        print(f'initialize handlers for {name}')
         handlers = [] #type: List[logging.Handler]
         if isinstance(log_to_file, str):
             handlers.append(logging.FileHandler(filename=log_to_file))
@@ -95,4 +98,5 @@ def get_logger(
             handler.setLevel(logger.level)
             handler.setFormatter(formatter(formatter_name, theme))
             logger.addHandler(handler)
+
     return logger

@@ -145,7 +145,6 @@ class Application:
 
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path"""
-
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
             try:
@@ -170,12 +169,13 @@ class Application:
         lvl = cast(str, data.get("logging_level", "info"))
         config_dir = os.path.dirname(path)
         log_to_file = data.get("log_to_file", None)
+
         # change logger to a logger with some parameters found in configuration
         self._logger = get_logger(
             name="lbaf",
             level=lvl,
             theme=data.get("terminal_background", None),
-            log_to_console=data.get("log_to_file", None) is None,
+            log_to_console=data.get("log_to_console", None) is None,
             log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
         )
         self._logger.info(f"Logging level: {lvl.lower()}")
@@ -469,7 +469,7 @@ class Application:
         # Report on theoretically optimal statistics
         n_o = curr_phase.get_number_of_objects()
         ell = self.params.n_ranks * l_stats.get_average() / n_o #pylint: disable=E1101
-        self._logger.info("Optimal load statistics for {n_o} objects with iso-time: {ell:6g}")
+        self._logger.info(f"Optimal load statistics for {n_o} objects with iso-time: {ell:6g}")
         q, r = divmod(n_o, self.params.n_ranks) #pylint: disable=C0103
         self._logger.info(
             f"\tminimum: {q * ell:6g}  maximum: {q + (1 if r else 0) * ell:6g}"

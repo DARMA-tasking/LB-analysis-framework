@@ -28,7 +28,6 @@ algorithm:
 
 # Specify output
 logging_level: info
-log_to_file: ../../output/log.txt
 terminal_background: light
 output_dir: ../../output
 output_file_stem: output_file
