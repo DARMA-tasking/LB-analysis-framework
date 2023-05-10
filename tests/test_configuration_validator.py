@@ -11,7 +11,7 @@ from lbaf.Utils.logging import get_logger
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.config_dir = abspath("config", relative_to=__file__)
+        self.config_dir = abspath("config", relative_to=os.path.dirname(__file__))
 
     def test_config_validator_correct_001(self):
         with open(os.path.join(self.config_dir, "conf_correct_001.yml"), "rt", encoding="utf-8") as config_file:
