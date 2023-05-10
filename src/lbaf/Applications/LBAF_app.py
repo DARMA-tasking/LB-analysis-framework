@@ -211,7 +211,6 @@ class InternalParameters:
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
                 self.phase_ids = from_data.get("phase_ids")
-        self.write_vt = config.get("write_vt", True)
 
         # Parse sampling parameters if present
         from_samplers = config.get("from_samplers")
