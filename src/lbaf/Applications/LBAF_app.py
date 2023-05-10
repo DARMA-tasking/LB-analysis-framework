@@ -397,7 +397,7 @@ class LBAFApp:
                 self.__logger.error("Incorrect number of possible arrangements with repetition")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
-            self.logger.info(
+            self.__logger.info(
                 f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
         else:
             self.__logger.info("No brute force optimization performed")
