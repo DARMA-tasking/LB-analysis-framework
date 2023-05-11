@@ -50,10 +50,10 @@ class CriterionBase:
         """Produce the necessary concrete criterion."""
 
         # Load up available criteria
-        # pylint:disable=W0641,C0415
+        # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsTemperedCriterion import TemperedCriterion
         from .lbsStrictLocalizingCriterion import StrictLocalizingCriterion
-        # pylint:enable=W0641,C0415
+        # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that criterion name is valid
         try:
@@ -80,4 +80,4 @@ class CriterionBase:
             o_dst = []
 
         # Must be implemented by concrete subclass
-        pass # pylint:disable=W0107
+        pass

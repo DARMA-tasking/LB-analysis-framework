@@ -94,11 +94,11 @@ class AlgorithmBase:
         """Instantiate the necessary concrete algorithm."""
 
         # Load up available algorithms
-        # pylint:disable=W0641,C0415
+        # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
-        # pylint:enable=W0641,C0415
+        # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
         algorithm = locals()[algorithm_name + "Algorithm"]

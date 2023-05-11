@@ -57,7 +57,7 @@ class InternalParameters:
 
         # Print startup information
         self.__logger.info(f"Executing LBAF version {__version__}")
-        svi = sys.version_info #pylint: disable=W0612
+        svi = sys.version_info
         self.__logger.info(f"Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
     def validate_configuration(self, config: dict):

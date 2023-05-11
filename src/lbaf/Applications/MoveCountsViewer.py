@@ -99,7 +99,7 @@ class MoveCountsViewer:
         """
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih") # pylint:disable=W0612
+            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
         except getopt.GetoptError:
             self.logger.error("Incorrect command line arguments.")
             self.usage()
@@ -109,7 +109,7 @@ class MoveCountsViewer:
         for o, a in opts:
             try:
                 i = int(a)
-            except: # pylint:disable=W0702
+            except:
                 i = None
 
             if o == "-p":
