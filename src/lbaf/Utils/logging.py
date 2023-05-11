@@ -1,4 +1,4 @@
-""" logging util module """
+"""logging util module """
 import logging
 import logging.config
 import os
@@ -13,16 +13,20 @@ LOGGING_LEVEL = {
     "ERROR": logging.ERROR
 }
 
-FORMATTER_BASIC = 'basic'
-FORMATTER_EXTENDED = 'extended'
+FORMATTER_BASIC = "basic"
+FORMATTER_EXTENDED = "extended"
 FORMATTERS = [ FORMATTER_BASIC, FORMATTER_EXTENDED ]
 
-THEME_DARK = 'dark'
-THEME_LIGHT = 'light'
+THEME_DARK = "dark"
+THEME_LIGHT = "light"
 THEMES = [ THEME_LIGHT, THEME_DARK ]
 
+# Logger type alias
+Logger = logging.Logger
+"""Logger class"""
+
 class CustomFormatter(Formatter):
-    """ Custom formatter class defining a format by logging level """
+    """Custom formatter class defining a format by logging level """
     formatters: Dict[int,Formatter] = {}
     def __init__(self, frmttr):
         super(CustomFormatter, self).__init__()
@@ -35,19 +39,19 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
     """Creates a formatter of the given type"""
     if not formatter_type in FORMATTERS:
         frmtrs = str.join(', ', FORMATTERS)
-        raise ValueError(f'Invalid formatter name. Supported are {frmtrs}')
+        raise ValueError(f"Invalid formatter name. Supported are {frmtrs}")
 
     if theme is not None and not theme in THEMES:
         themes = str.join(', ', THEMES)
-        raise ValueError(f'Invalid thee name. Supported are {themes}')
+        raise ValueError(f"Invalid thee name. Supported are {themes}")
 
     def msgcolor(msg):
         if not theme is None:
-            return black(msg) if theme == 'light' else light_white(msg)
+            return black(msg) if theme == "light" else light_white(msg)
         return msg
 
     # 'extended' formatter
-    if formatter_type == 'extended':
+    if formatter_type == "extended":
         frmttr = {
             logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
             logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
@@ -64,30 +68,43 @@ def formatter(formatter_type: str, theme: Union[str, None] = None):
         }
     return CustomFormatter(frmttr)
 
-def logger(
+d = {}
+
+def get_logger(
         name: str = "root",
         level: Union[str, None] = "info",
-        log_to_console: bool= True,
+        log_to_console: bool = True,
         log_to_file: Union[str, None] = None,
         formatter_name: str = FORMATTER_BASIC,
         theme: str = THEME_DARK
-):
-    """ Return a new or an existing logger"""
-    lgr = logging.getLogger(name)
+)-> Logger:
+    """Return a new or an existing logger"""
+    # return from cache if logger already created
+    logger = d.get(name, None)
+    if logger is not None:
+        return logger
+
+    # init new logger
+    logger = logging.getLogger(name)
+    logging.getLogger().handlers.clear() # clear default handlers
     if level is not None:
-        lgr.setLevel(level.upper())
+        logger.setLevel(level.upper())
     if log_to_file is not None:
         logs_dir = f"{os.sep}".join(log_to_file.split(os.sep)[:-1])
         if not os.path.isdir(logs_dir):
             os.makedirs(logs_dir)
-    if not lgr.hasHandlers():
-        handlers = [] #type: List[logging.Handler]
-        if isinstance(log_to_file, str):
-            handlers.append(logging.FileHandler(filename=log_to_file))
-        if log_to_console:
-            handlers.append(logging.StreamHandler())
-        for handler in handlers:
-            handler.setLevel(lgr.level)
-            handler.setFormatter(formatter(formatter_name, theme))
-            lgr.addHandler(handler)
-    return lgr
+    # initialize handlers only once
+    handlers = logger.handlers
+    handlers = [] #type: List[logging.Handler]
+    if isinstance(log_to_file, str):
+        handlers.append(logging.FileHandler(filename=log_to_file))
+    if log_to_console:
+        handlers.append(logging.StreamHandler())
+    for handler in handlers:
+        handler.setLevel(logger.level)
+        handler.setFormatter(formatter(formatter_name, theme))
+        logger.addHandler(handler)
+
+    d[name] = logger
+
+    return logger

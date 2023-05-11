@@ -1,17 +1,8 @@
-import os
-import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path. Exiting.\nERROR: {e}")
-    raise SystemExit(1)
-
 import logging
 import unittest
 
-from src.lbaf.Model.lbsObject import Object
-from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from lbaf.Model.lbsObject import Object
+from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class TestConfig(unittest.TestCase):
@@ -91,90 +82,90 @@ class TestConfig(unittest.TestCase):
     def test_object_id_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i="25", load=2.5)
-        self.assertEqual(err.exception.args[0], f"i: incorrect type <class 'str'>")
+        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'str'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2.5, load=2.5)
-        self.assertEqual(err.exception.args[0], f"i: incorrect type <class 'float'>")
+        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'float'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=True, load=2.5)
-        self.assertEqual(err.exception.args[0], f"i: incorrect type <class 'bool'>")
+        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'bool'>")
 
     def test_object_load_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=1, load="2.5")
-        self.assertEqual(err.exception.args[0], f"load: incorrect type <class 'str'> or value: 2.5")
+        self.assertEqual(err.exception.args[0], "load: incorrect type <class 'str'> or value: 2.5")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, load=3)
-        self.assertEqual(err.exception.args[0], f"load: incorrect type <class 'int'> or value: 3")
+        self.assertEqual(err.exception.args[0], "load: incorrect type <class 'int'> or value: 3")
 
         with self.assertRaises(TypeError) as err:
             Object(i=3, load=True)
-        self.assertEqual(err.exception.args[0], f"load: incorrect type <class 'bool'> or value: True")
+        self.assertEqual(err.exception.args[0], "load: incorrect type <class 'bool'> or value: True")
 
     def test_object_rank_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id="4")
-        self.assertEqual(err.exception.args[0], f"r_id: incorrect type <class 'str'>")
+        self.assertEqual(err.exception.args[0], "r_id: incorrect type <class 'str'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=4.0)
-        self.assertEqual(err.exception.args[0], f"r_id: incorrect type <class 'float'>")
+        self.assertEqual(err.exception.args[0], "r_id: incorrect type <class 'float'>")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=True)
-        self.assertEqual(err.exception.args[0], f"r_id: incorrect type <class 'bool'>")
+        self.assertEqual(err.exception.args[0], "r_id: incorrect type <class 'bool'>")
 
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm="communicator")
-        self.assertEqual(err.exception.args[0], f"comm: communicator is of type <class 'str'>. Must be <class 'ObjectCommunicator'>.")
+        self.assertEqual(err.exception.args[0], "comm: communicator is of type <class 'str'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=1, comm=4)
-        self.assertEqual(err.exception.args[0], f"comm: 4 is of type <class 'int'>. Must be <class 'ObjectCommunicator'>.")
+        self.assertEqual(err.exception.args[0], "comm: 4 is of type <class 'int'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=2, load=4.5, r_id=2, comm=4.0)
-        self.assertEqual(err.exception.args[0],f"comm: 4.0 is of type <class 'float'>. Must be <class 'ObjectCommunicator'>.")
+        self.assertEqual(err.exception.args[0], "comm: 4.0 is of type <class 'float'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=1, load=5.5, r_id=1, comm=True)
-        self.assertEqual(err.exception.args[0],f"comm: True is of type <class 'bool'>. Must be <class 'ObjectCommunicator'>.")
+        self.assertEqual(err.exception.args[0], "comm: True is of type <class 'bool'>. Must be <class 'ObjectCommunicator'>.")
 
     def test_object_user_defined_error(self):
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=[])
-        self.assertEqual(err.exception.args[0],f"user_defined: [] is of type <class 'list'>. Must be <class 'dict'>.")
+        self.assertEqual(err.exception.args[0], "user_defined: [] is of type <class 'list'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined="a")
-        self.assertEqual(err.exception.args[0], f"user_defined: a is of type <class 'str'>. Must be <class 'dict'>.")
+        self.assertEqual(err.exception.args[0], "user_defined: a is of type <class 'str'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=1)
-        self.assertEqual(err.exception.args[0], f"user_defined: 1 is of type <class 'int'>. Must be <class 'dict'>.")
+        self.assertEqual(err.exception.args[0], "user_defined: 1 is of type <class 'int'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=1.0)
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: 1.0 is of type <class 'float'>. Must be <class 'dict'>.")
+                         "user_defined: 1.0 is of type <class 'float'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=set())
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: set() is of type <class 'set'>. Must be <class 'dict'>.")
+                         "user_defined: set() is of type <class 'set'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=())
-        self.assertEqual(err.exception.args[0], f"user_defined: () is of type <class 'tuple'>. Must be <class 'dict'>.")
+        self.assertEqual(err.exception.args[0], "user_defined: () is of type <class 'tuple'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
             Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=True)
         self.assertEqual(err.exception.args[0],
-                         f"user_defined: True is of type <class 'bool'>. Must be <class 'dict'>.")
+                         "user_defined: True is of type <class 'bool'>. Must be <class 'dict'>.")
 
     def test_object_has_communicator(self):
         self.assertTrue(self.simple_obj_003.has_communicator())

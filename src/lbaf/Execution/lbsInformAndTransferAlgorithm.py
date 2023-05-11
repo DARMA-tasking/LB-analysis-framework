@@ -4,14 +4,13 @@ from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
-    """ A concrete class for the 2-phase gossip+transfer algorithm."""
+    """A concrete class for the 2-phase gossip+transfer algorithm."""
 
     def __init__(
         self,
@@ -20,7 +19,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         lgr: Logger,
         rank_qoi: str,
         object_qoi: str):
-        """ Class constructor
+        """Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
             rank_qoi: rank QOI to track
@@ -56,7 +55,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self.__transfer_criterion = CriterionBase.factory(
             crit_name,
             self._work_model,
-            lgr=self._logger)
+            logger=self._logger)
         if not self.__transfer_criterion:
             self._logger.error(f"Could not instantiate a transfer criterion of type {crit_name}")
             sys.excepthook = exc_handler
@@ -75,7 +74,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             raise SystemExit(1)
 
     def __information_stage(self):
-        """ Execute information stage."""
+        """Execute information stage."""
 
         # Build set of all ranks in the phase
         rank_set = set(self._phase.get_ranks())
@@ -138,7 +137,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 continue
 
     def execute(self, phases: list, distributions: dict, statistics: dict, a_min_max):
-        """ Execute 2-phase gossip+transfer algorithm on Phase instance."""
+        """Execute 2-phase gossip+transfer algorithm on Phase instance."""
 
         # Ensure that a list with at least one phase was provided
         if not phases or not isinstance(phases, list) or not isinstance((phase := phases[0]), Phase):

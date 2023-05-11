@@ -16,7 +16,7 @@ from ..Utils.exception_handler import exc_handler
 
 
 class LoadReader:
-    """ A class to read VT Object Map files. These json files could be compressed with Brotli.
+    """A class to read VT Object Map files. These json files could be compressed with Brotli.
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
         The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
@@ -92,7 +92,7 @@ class LoadReader:
         return rank_id, decompressed_dict
 
     def __load_vt_files(self) -> dict:
-        """ Load VT files into dict. """
+        """Load VT files into dict. """
         vt_files = {}
         with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(
@@ -102,11 +102,11 @@ class LoadReader:
         return vt_files
 
     def _get_node_trace_file_name(self, node_id):
-        """ Build the file name for a given rank/node ID."""
+        """Build the file name for a given rank/node ID."""
         return f"{self.__file_prefix}.{node_id}.{self.__file_suffix}"
 
     def read(self, node_id: int, phase_id: int = -1, comm: bool = False) -> tuple:
-        """ Read the file for a given node/rank. If phase_id==-1 then all
+        """Read the file for a given node/rank. If phase_id==-1 then all
             steps are read from the file; otherwise, only `phase_id` is.
         """
 
@@ -121,7 +121,7 @@ class LoadReader:
         return iter_dict, comm
 
     def read_iteration(self, phase_id: int) -> list:
-        """ Read all the data in the range of ranks [0..n_p] for a given iteration `phase_id`.
+        """Read all the data in the range of ranks [0..n_p] for a given iteration `phase_id`.
             Collapse the iter_map dictionary from `read()` into a list of ranks to be returned for the given iteration.
         """
 
@@ -183,7 +183,7 @@ class LoadReader:
         return rank_list
 
     def json_reader(self, returned_dict: dict, phase_id: int, node_id: int) -> tuple:
-        """ Reader compatible with current VT Object Map files (json)
+        """Reader compatible with current VT Object Map files (json)
         """
 
         # Define phases from file

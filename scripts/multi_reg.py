@@ -1,13 +1,4 @@
 import os
-import sys
-
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
-
 import glob
 import csv
 from typing import Union
@@ -27,16 +18,16 @@ class FileFinder:
 
     def _get_data_dir(self):
         """ Returns absolute path to the data dir (takes relative or absolute path)"""
-        if os.path.isdir(self.data_dir) and glob.glob(os.path.join(self.data_dir, 'in.*.dat')):
+        if os.path.isdir(self.data_dir) and glob.glob(os.path.join(self.data_dir, "in.*.dat")):
             return self.data_dir
-        elif os.path.isdir(os.path.abspath(os.path.join(project_path, self.data_dir))) and \
-                glob.glob(os.path.join(os.path.abspath(os.path.join(project_path, self.data_dir)), 'in.*.dat')):
-            return os.path.abspath(os.path.join(project_path, self.data_dir))
-        raise FileNotFoundError(f'No data found in given path {self.data_dir}')
+        elif os.path.isdir(os.path.abspath(os.path.join(os.path.dirname(__file__), self.data_dir))) and \
+                glob.glob(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), self.data_dir)), "in.*.dat")):
+            return os.path.abspath(os.path.join(os.path.dirname(__file__), self.data_dir))
+        raise FileNotFoundError(f"No data found in given path {self.data_dir}")
 
     def _get_files_list(self):
         """ Returns list of found datafiles"""
-        in_files = [file_name for file_name in glob.glob(os.path.join(self.data_dir, 'in.*.dat'))]
+        in_files = [file_name for file_name in glob.glob(os.path.join(self.data_dir, "in.*.dat"))]
         return in_files
 
 
@@ -46,7 +37,7 @@ class MultiLinearRegression:
         self.first_row = True
         self.y_col = y_col
         if self.y_col is None:
-            raise Exception('Y column must be given!')
+            raise ValueError("Y column must be given!")
         self.n_obs = n_obs
         if self.n_obs is None:
             self.n_obs = dict()
@@ -59,16 +50,16 @@ class MultiLinearRegression:
         # Compute up to 2**3 = 8 different models
         self.bool_cols = bool_cols
         if self.bool_cols is None:
-            raise Exception('Boolean columns must be given!')
+            raise ValueError("Boolean columns must be given!")
         # Possibly exclude columns from regressors
         self.excluded = excluded
         if self.excluded is None:
-            raise Exception('Excluded must be given!')
+            raise ValueError("excluded must be given!")
         # Column indexes
         self.ranks = dict()
         self.rank_col = rank_col
         if self.rank_col is None:
-            raise Exception('Rank column must be given!')
+            raise ValueError("Rank column must be given!")
         # Prepare set of columns to be disregarded as regressors
         self.excluded.update({self.y_col})
         self.excluded.update(self.bool_cols)
@@ -82,7 +73,7 @@ class MultiLinearRegression:
     def _read_input_data(self):
         """ Iterate over input files """
         for file_name in self.input_files:
-            with open(file_name, newline='') as csv_file:
+            with open(file_name, newline='', encoding="utf-8") as csv_file:
                 # Open CSV reader with blank separators and numeric conversion
                 print(f"# Reading CSV file: {file_name}")
                 csv_reader = csv.reader(csv_file, delimiter=' ', quoting=csv.QUOTE_NONNUMERIC)
@@ -102,7 +93,7 @@ class MultiLinearRegression:
                                 if i not in self.excluded:
                                     self.regressor_list.append(i)
                             if n_regressors != len(self.regressor_list):
-                                raise ValueError('Unexpected regressor list length')
+                                raise ValueError("Unexpected regressor list length")
 
                         # Initialize type cardinality
                         self.n_obs[r_type] = 1
@@ -140,7 +131,7 @@ def learn(x_data: dict, y_data: dict, regressor_list: list, num_observation: dic
         lr[k] = linear_model.LinearRegression()
         lr[k].fit(np.array(v).transpose(), y_data[k])
         print(f"  Intercept: {lr[k].intercept_}")
-        print(f"  Regressor coefficients:")
+        print( "  Regressor coefficients:")
         for num, c in enumerate(lr[k].coef_):
             print(f"    {c} for column {regressor_list[num]}")
         print(f"  Coefficient of determination (R2): {lr[k].score(np.array(v).transpose(), y_data[k])}")
@@ -181,39 +172,43 @@ def save_data(in_files: list, y_read: dict, y_predict: dict, ranks: dict):
         Saves to a file index column numbers, Y values, Y predicted values. """
     for file in in_files:
         dir_path = os.path.split(file)[0]
-        file_name = os.path.split(file)[-1].replace('in', 'model')
+        file_name = os.path.split(file)[-1].replace("in", "model")
         out_file = os.path.join(dir_path, file_name)
-        with open(out_file, 'wt') as o_file:
+        with open(out_file, "wt", encoding="utf-8") as o_file:
             for bool_type, values in y_read.items():
-                for num, val in enumerate(values):
+                for num, _val in enumerate(values):
                     o_file.write(
                         f"{ranks[bool_type][num]} {y_read[bool_type][num]} {y_predict[bool_type][num]}\n")
 
 
-if __name__ == "__main__":
-    RANK_COLUMN = 0
-    Y_COLUMN = 1
-    BOOL_COLS = {11, 12, 13}
-    EXCLUDED = {0, 6, 7, 9, 10}
+def main():
+    """main function"""
+    rank_column = 0
+    y_column = 1
+    bool_cols = {11, 12, 13}
+    excluded = {0, 6, 7, 9, 10}
     # Learning directory
-    DATA_DIR = 'linear_data/exact_correlation'
+    data_dir = 'linear_data/exact_correlation'
     # Predict / asses / save directory
-    PREDICT_DIR = 'linear_data/exact_correlation'
+    predict_dir = 'linear_data/exact_correlation'
 
     # Getting list of files for learning
-    ff_files = FileFinder(data_dir=DATA_DIR).in_files
+    ff_files = FileFinder(data_dir=data_dir).in_files
     # Getting list of files for predicting / assessing
-    ff_files_pred = FileFinder(data_dir=PREDICT_DIR).in_files
+    ff_files_pred = FileFinder(data_dir=predict_dir).in_files
 
     # Learning
-    mlr = MultiLinearRegression(input_files=ff_files, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
-                                y_col=Y_COLUMN)
+    mlr = MultiLinearRegression(input_files=ff_files, bool_cols=bool_cols, excluded=excluded, rank_col=rank_column,
+                                y_col=y_column)
     mlr_model = learn(x_data=mlr.X, y_data=mlr.Y, regressor_list=mlr.regressor_list, num_observation=mlr.n_obs)
 
     # Predict, asses and save
     for file in ff_files_pred:
-        mlr = MultiLinearRegression(input_files=file, bool_cols=BOOL_COLS, excluded=EXCLUDED, rank_col=RANK_COLUMN,
-                                    y_col=Y_COLUMN)
+        mlr = MultiLinearRegression(input_files=file, bool_cols=bool_cols, excluded=excluded, rank_col=rank_column,
+                                    y_col=y_column)
         y_pred = predict(x_data=mlr.X, linear_model_dict=mlr_model)
-        rmse = assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
+        _rmse = assess(x_data=mlr.X, y_data=mlr.Y, linear_model_dict=mlr_model)
         save_data(in_files=mlr.input_files, y_read=mlr.Y, y_predict=y_pred, ranks=mlr.ranks)
+
+if __name__ == "__main__":
+    main()

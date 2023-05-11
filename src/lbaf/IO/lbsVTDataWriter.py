@@ -12,13 +12,13 @@ from ..Model.lbsRank import Rank
 
 
 class VTDataWriter:
-    """ A class to write load directives for VT as JSON files
+    """A class to write load directives for VT as JSON files
         Each file is named as <base-name>.<node>.out, where <node> spans the number
         of MPI ranks that VT is utilizing.
     """
 
     def __init__(self, phase: Phase, logger: Logger, f: str = "lbs_out", s: str = "json", output_dir=None):
-        """ Class constructor:
+        """Class constructor:
             phase: Phase instance
             f: file name stem
             s: suffix
@@ -38,7 +38,7 @@ class VTDataWriter:
         self.__output_dir = output_dir
 
     def write(self):
-        """ Write one JSON file per rank."""
+        """Write one JSON file per rank."""
         sys.setrecursionlimit(25000)
         with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(self.json_writer, self.__phase.get_ranks())
@@ -46,7 +46,7 @@ class VTDataWriter:
                 self.__logger.info(f"Saved {file_name}")
 
     def __create_object_entries(self, rank_id, objects):
-        """ Create per-object entries to be outputted to JSON."""
+        """Create per-object entries to be outputted to JSON."""
         return [{
             "entity": {
                 "home": rank_id,

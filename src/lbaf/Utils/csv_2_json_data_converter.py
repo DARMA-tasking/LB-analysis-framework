@@ -18,7 +18,7 @@ from lbaf.Utils.exception_handler import exc_handler
 
 
 class Csv2JsonConverter:
-    """ A class to convert from previous log structure (CSV) to a current log structure (JSON)
+    """A class to convert from previous log structure (CSV) to a current log structure (JSON)
         with/without Brotli compression.
         Files for conversion should be named as follows 'prefix.rank/node.extension' e.g. 'data.0.csv', 'data.1.csv'
         Changes input CSV files e.g. <time_step/phase>, <object-id>, <time> to JSON:
@@ -46,7 +46,7 @@ class Csv2JsonConverter:
 
     @staticmethod
     def _get_data_dir(dir_path: str) -> str:
-        """ Return a path to data directory."""
+        """Return a path to data directory."""
         if os.path.isdir(dir_path):
             return dir_path
         elif os.path.isdir(os.path.join(project_path, dir_path)):
@@ -57,7 +57,7 @@ class Csv2JsonConverter:
             raise SystemExit(1)
 
     def _get_files_for_conversion(self) -> list:
-        """ Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
+        """Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
         # Defining output path and creating if not exists
         output_path = os.path.join(project_path, self.out_dir_path)
         if not os.path.exists(output_path):
@@ -96,7 +96,7 @@ class Csv2JsonConverter:
         return dir_list
 
     def _convert_file(self, file_path: tuple) -> None:
-        """ Convert a file and saves converted file to given path."""
+        """Convert a file and saves converted file to given path."""
         file_to_convert = file_path[0]
         node = int(os.path.split(file_to_convert)[-1].split('.')[-2])
         file_to_save = file_path[1]
@@ -109,7 +109,7 @@ class Csv2JsonConverter:
 
     @staticmethod
     def _read_csv(file_to_read: str) -> list:
-        """ Read CSV and returns a list of dicts (phase, object_id, time) ready to save into JSON."""
+        """Read CSV and returns a list of dicts (phase, object_id, time) ready to save into JSON."""
         # Parse CSV file lines
         with open(file_to_read, "rt") as csv_file:
             log = csv.reader(csv_file, delimiter=',')
@@ -124,7 +124,7 @@ class Csv2JsonConverter:
 
     @staticmethod
     def _get_data_phase_sorted(data: list) -> dict:
-        """ Sort data with respect to the phase. Return dict with phases as keys."""
+        """Sort data with respect to the phase. Return dict with phases as keys."""
         # Create temporary dict so rows are sorted by phase_id
         temp_dict = dict()
         for dict_ in data:
@@ -147,7 +147,7 @@ class Csv2JsonConverter:
         return temp_dict
 
     def _write_json(self, output_path: str, data_to_convert: dict, node: int) -> None:
-        """ Convert data to JSON and saves to output path."""
+        """Convert data to JSON and saves to output path."""
         # Creating dictionary with right structure, which will be dumped
         dict_to_dump = dict()
         dict_to_dump["phases"] = list()
@@ -174,7 +174,7 @@ class Csv2JsonConverter:
                 json_file.write(json_str)
 
     def main(self):
-        """ Get lists of files to convert. Iterate over it and converts each file."""
+        """Get lists of files to convert. Iterate over it and converts each file."""
         files_to_convert = self._get_files_for_conversion()
         for file in files_to_convert:
             self._convert_file(file_path=file)

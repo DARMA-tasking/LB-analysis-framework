@@ -1,3 +1,4 @@
+"""src/lbaf/Utils/colors.py"""
 import colorama
 
 

@@ -1,34 +1,22 @@
 import os
-import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    raise SystemExit(1)
-
 import logging
 import unittest
 
 from schema import SchemaError
 
-from src.lbaf.IO.lbsVTDataReader import LoadReader
-from src.lbaf.Model.lbsObject import Object
-from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
-from src.lbaf.Model.lbsRank import Rank
+from lbaf import PROJECT_PATH
+from lbaf.IO.lbsVTDataReader import LoadReader
+from lbaf.Model.lbsObject import Object
+from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        try:
-            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "data")
-            sys.path.append(self.data_dir)
-        except Exception as e:
-            print(f"Can not add data path to system path. Exiting.\nERROR: {e}")
-            raise SystemExit(1)
-        self.file_prefix = os.path.join(self.data_dir, 'synthetic_lb_data', "data")
+        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.logger = logging.getLogger()
-        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
         self.ranks_comm = [
             {0: {
                 5: {"sent": [], "received": [{'from': 0, "bytes": 2.0}]},
@@ -89,7 +77,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
-        self.assertEqual(self.lr._LoadReader__file_suffix, 'json')
+        self.assertEqual(self.lr._LoadReader__file_suffix, "json")
 
     def test_lbs_vt_data_reader_get_node_trace_file_name_001(self):
         file_name = f"{self.lr._LoadReader__file_prefix}.0.{self.lr._LoadReader__file_suffix}"
@@ -119,8 +107,8 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, 'synthetic_lb_stats_compressed', "data")
-        lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix='json')
+        file_prefix = os.path.join(self.data_dir, "synthetic_lb_stats_compressed", "data")
+        lr = LoadReader(file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
         for phase in range(4):
             rank_iter_map, rank_comm = lr.read(phase, 0)
             self.assertEqual(self.ranks_comm[phase], rank_comm)
@@ -136,7 +124,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
-            LoadReader(file_prefix=f"{self.file_prefix}xd", n_ranks=4, logger=self.logger, file_suffix='json').read(0, 0)
+            LoadReader(file_prefix=f"{self.file_prefix}xd", n_ranks=4, logger=self.logger, file_suffix="json").read(0, 0)
         self.assertIn(err.exception.args[0], [
             f"File {self.file_prefix}xd.0.json not found", f"File {self.file_prefix}xd.1.json not found",
             f"File {self.file_prefix}xd.2.json not found", f"File {self.file_prefix}xd.3.json not found"
@@ -225,5 +213,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], "Could not retrieve information for rank 0 at time_step 5. KeyError 5")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

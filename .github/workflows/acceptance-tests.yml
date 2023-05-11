@@ -13,7 +13,7 @@ jobs:
       matrix:
         config:
           - { os: ubuntu-latest, image: "3.8" }
-#          - { os: ubuntu-latest, image: "3.9" }
+          - { os: ubuntu-latest, image: "3.9" }
     runs-on: ${{ matrix.config.os }}
     container: python:${{ matrix.config.image }}-slim-buster
     env:
@@ -27,7 +27,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update && apt-get upgrade -y
-          apt-get install -y git xvfb
+          apt-get install -y git xvfb libxrender1
 
       - name: Install requirements
         run: |
@@ -47,7 +47,7 @@ jobs:
           cat ${{ env.acceptance_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py --config=${{ env.acceptance_config }}
+          python src/lbaf/Applications/LBAF_app.py --configuration=${{ env.acceptance_config }}
 
       - name: Check output
         run: |
@@ -63,7 +63,7 @@ jobs:
       matrix:
         config:
           - { os: ubuntu-latest, image: "3.8" }
-#          - { os: ubuntu-latest, image: "3.11" }
+          - { os: ubuntu-latest, image: "3.9" }
     runs-on: ${{ matrix.config.os }}
     container: python:${{ matrix.config.image }}-slim-buster
     env:
@@ -77,7 +77,7 @@ jobs:
       - name: Install packages
         run: |
           apt-get update && apt-get upgrade -y
-          apt-get install -y git xvfb
+          apt-get install -y git xvfb libxrender1
 
       - name: Install requirements
         run: |
@@ -97,7 +97,7 @@ jobs:
           cat ${{ env.stepper_config }}
           echo "\n================================================================================"
           echo "\nRunning LBAF:\n"
-          python src/lbaf/Applications/LBAF_app.py --config=${{ env.stepper_config }}
+          python src/lbaf/Applications/LBAF_app.py --configuration=${{ env.stepper_config }}
 
       - name: Check output
         run: |
