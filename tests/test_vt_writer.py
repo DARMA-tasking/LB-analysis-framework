@@ -187,9 +187,9 @@ class TestVTDataWriter(unittest.TestCase):
             output_dict = json.loads(output_file_content, object_pairs_hook=OrderedDict)
 
             print(f"-------------------------------{input_file_name}-----------------------------------")
-            print(json.dumps(input_dict, indent=4))
+            print(json.dumps(input_dict, indent=4, sort_keys = True))
             print(f"-------------------------------{output_file_name}----------------------------------")
-            print(json.dumps(output_dict, indent=4))
+            print(json.dumps(output_dict, indent=4, sort_keys = True))
             print("-----------------------------------------------------------------------")
 
             self.maxDiff = None
