@@ -13,15 +13,13 @@ from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
 from ..Utils.exception_handler import exc_handler
 
-__schema_validator_imported__ = False
-
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
         The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
-
+    
     CommCategory = {
         "SendRecv": 1,
         "CollectionToNode": 2,
@@ -96,7 +94,8 @@ class LoadReader:
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
         # dynamically import because might be downloaded when application starts
-        if not __schema_validator_imported__:
+        module = 'lbaf.imported.JSON_data_files_validator'
+        if module not in sys.modules:
             from ..imported.JSON_data_files_validator import SchemaValidator # pylint:disable=C0415:import-outside-toplevel
 
         # Checking Schema from configuration
