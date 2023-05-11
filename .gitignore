@@ -13,7 +13,7 @@ src/Applications/tcl
 .coverage
 .env
 /dist
-/output
+/tests/output
 /build
 src/lbaf/imported
 /m.css
