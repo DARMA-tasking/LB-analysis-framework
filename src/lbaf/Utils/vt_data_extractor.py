@@ -1,6 +1,14 @@
 import os
 import sys
 
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    print(f"Started in directory: {project_path}")
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
+
 from multiprocessing.pool import Pool
 from multiprocessing import get_context
 
@@ -8,25 +16,24 @@ import time
 
 import json
 
-from .exception_handler import exc_handler
-from .. import PROJECT_PATH
+from lbaf.Utils.exception_handler import exc_handler
 
 try:
     import brotli
     BROTLI_NOT_IMPORTED = False
 except ImportError as e:
-    print(f"Brotli was not imported: {e}")
+    print(f'Brotli was not imported: {e}')
     BROTLI_NOT_IMPORTED = True
 
 
 class VTDataExtractor:
-    """Reads VT data and saves chosen phases from it. """
+    """ Reads VT data and saves chosen phases from it. """
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
                  file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
                  check_schema: bool = False):
         self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
-        self.output_data_dir = os.path.join(PROJECT_PATH, output_data_dir)
+        self.output_data_dir = os.path.join(project_path, output_data_dir)
         self.phases_to_extract = self._process_input_phases(phases_to_extract=phases_to_extract)
         self.file_prefix = file_prefix
         self.file_suffix = file_suffix
@@ -37,7 +44,7 @@ class VTDataExtractor:
         self._get_files_list()
 
     def _initial_checks(self):
-        """Checks if data and directories exists. """
+        """ Checks if data and directories exists. """
         print(f"Looking for files with prefix: {self.file_prefix}")
         print(f"Looking for files with suffix: {self.file_suffix}")
         print(f"Phases to extract: {self.phases_to_extract}")
@@ -45,8 +52,8 @@ class VTDataExtractor:
         if os.path.isdir(os.path.abspath(self.input_data_dir)):
             self.input_data_dir = os.path.abspath(self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
-        elif os.path.isdir(os.path.join(PROJECT_PATH, self.input_data_dir)):
-            self.input_data_dir = os.path.join(PROJECT_PATH, self.input_data_dir)
+        elif os.path.isdir(os.path.join(project_path, self.input_data_dir)):
+            self.input_data_dir = os.path.join(project_path, self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
             sys.excepthook = exc_handler
@@ -58,7 +65,7 @@ class VTDataExtractor:
 
     @staticmethod
     def _process_input_phases(phases_to_extract: list) -> list:
-        """Creates a list of integers, based on input phases_to_extract. """
+        """ Creates a list of integers, based on input phases_to_extract. """
         processed_list = []
         for phase in phases_to_extract:
             if isinstance(phase, int):
@@ -78,7 +85,7 @@ class VTDataExtractor:
         return processed_list
 
     def _get_files_list(self) -> list:
-        """Returns list of files to iterate over and read data from them. """
+        """ Returns list of files to iterate over and read data from them. """
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
@@ -94,7 +101,7 @@ class VTDataExtractor:
         return files
 
     def _get_data_from_file(self, file_path: str) -> dict:
-        """Returns data from given file_path. """
+        """ Returns data from given file_path. """
         if not BROTLI_NOT_IMPORTED:
             with open(file_path, "rb") as compr_json_file:
                 compr_bytes = compr_json_file.read()
@@ -140,7 +147,7 @@ class VTDataExtractor:
 
     @staticmethod
     def _get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
-        """Returns just wanted phases from given data and list of phases to extract. """
+        """ Returns just wanted phases from given data and list of phases to extract. """
         extracted_phases = {"phases": []}
         for phase_number, phase in enumerate(data["phases"]):
             if phase_number in phases_to_extract:
@@ -149,7 +156,7 @@ class VTDataExtractor:
         return extracted_phases
 
     def _save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
-        """Saves extracted data with or without compression. """
+        """ Saves extracted data with or without compression. """
         if extracted_phases.get("type") is None:
             extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))
@@ -185,7 +192,7 @@ class VTDataExtractor:
         print(f"=====> DONE in {total_duration:.2f} <=====")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # Here phases are declared
     # It should be declared as list of [int or str]
     # Int is just a phase number/id e.g. [1, 2, 3, 4]

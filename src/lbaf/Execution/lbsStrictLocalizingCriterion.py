@@ -4,17 +4,17 @@ from ..Model.lbsRank import Rank
 
 
 class StrictLocalizingCriterion(CriterionBase):
-    """A concrete class for a strictly localizing criterion."""
+    """ A concrete class for a strictly localizing criterion."""
 
     def __init__(self, workmodel, lgr):
-        """Class constructor."""
+        """ Class constructor."""
 
         # Call superclass init
         super().__init__(workmodel, lgr)
         self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
     def compute(self, r_src: Rank, o_src: list, *args) -> float:
-        """A criterion enforcing strict conservation of local communications."""
+        """ A criterion enforcing strict conservation of local communications."""
 
         # Keep track source processor ID
         r_src_id = r_src.get_id()

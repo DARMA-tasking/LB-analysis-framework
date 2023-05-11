@@ -1,12 +1,23 @@
+import os
+import sys
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
+
 import logging
 import random
 import unittest
 from unittest.mock import patch
 
-from lbaf.Model.lbsMessage import Message
-from lbaf.Model.lbsObject import Object
-from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
-from lbaf.Model.lbsRank import Rank
+from src.lbaf.Execution.lbsCriterionBase import CriterionBase
+from src.lbaf.Model.lbsMessage import Message
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.lbaf.Model.lbsRank import Rank
+from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 
 
 class TestConfig(unittest.TestCase):
