@@ -18,4 +18,3 @@ src/Applications/tcl
 src/lbaf/imported
 /m.css
 /docs/output
-*.egg-info

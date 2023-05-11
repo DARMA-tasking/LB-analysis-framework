@@ -1,4 +1,11 @@
 import os
+import sys
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
 
 import json
 import shutil
@@ -6,16 +13,21 @@ import unittest
 
 import brotli
 
-from lbaf import PROJECT_PATH
-from lbaf.Utils.vt_data_extractor import VTDataExtractor
+from src.lbaf.Utils.vt_data_extractor import VTDataExtractor
 
 
 class TestVTDataExtractor(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data", "VTDataExtractor")
-        self.compr_data_dir = os.path.join(self.data_dir, "compressed_data_to_extract")
-        self.uncompr_data_dir = os.path.join(self.data_dir, "uncompressed_data_to_extract")
-        self.output_data_dir = os.path.join(PROJECT_PATH, "tests", "output")
+        try:
+            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]),
+                                         'data', 'VTDataExtractor')
+            sys.path.append(self.data_dir)
+        except Exception as e:
+            print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
+            raise SystemExit(1)
+        self.compr_data_dir = os.path.join(self.data_dir, 'compressed_data_to_extract')
+        self.uncompr_data_dir = os.path.join(self.data_dir, 'uncompressed_data_to_extract')
+        self.output_data_dir = os.path.join(self.data_dir, "output")
         self.expected_data_dir = os.path.join(self.data_dir, "expected")
 
     def tearDown(self):
@@ -31,10 +43,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -48,10 +60,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -65,10 +77,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -82,10 +94,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -137,10 +149,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=True).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -154,10 +166,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=True).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -209,10 +221,10 @@ class TestVTDataExtractor(unittest.TestCase):
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -258,16 +270,16 @@ class TestVTDataExtractor(unittest.TestCase):
         phases = [0, 1]
         dir_name = "test_vt_data_extractor_015"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
-        input_dir = os.path.join(self.data_dir, "uncompressed_data_to_extract")
+        input_dir = "../tests/data/VTDataExtractor/uncompressed_data_to_extract"
         expected_data_dir = os.path.join(self.expected_data_dir, dir_name)
         VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -276,16 +288,16 @@ class TestVTDataExtractor(unittest.TestCase):
         phases = [0, 1]
         dir_name = "test_vt_data_extractor_016"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
-        input_dir = os.path.join(self.data_dir, "compressed_data_to_extract")
+        input_dir = "../tests/data/VTDataExtractor/compressed_data_to_extract"
         expected_data_dir = os.path.join(self.expected_data_dir, dir_name)
         VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
                         file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                         check_schema=False).main()
         for file in os.listdir(output_data_dir):
-            with open(os.path.join(output_data_dir, file), "rt", encoding="utf-8") as output_file:
+            with open(os.path.join(output_data_dir, file), "rt") as output_file:
                 output_file_str = output_file.read()
                 output_file_json = json.loads(output_file_str)
-            with open(os.path.join(expected_data_dir, file), "rt", encoding="utf-8") as expected_file:
+            with open(os.path.join(expected_data_dir, file), "rt") as expected_file:
                 expected_file_str = expected_file.read()
                 expected_file_json = json.loads(expected_file_str)
             self.assertEqual(output_file_json, expected_file_json)
@@ -302,5 +314,5 @@ class TestVTDataExtractor(unittest.TestCase):
         self.assertEqual(err.exception.args[0], "Input data directory not found.")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

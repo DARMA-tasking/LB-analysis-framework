@@ -1,17 +1,25 @@
 import os
 import sys
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
+
 import csv
 import getopt
+import sys
 
 import vtk
 
-from lbaf import PROJECT_PATH
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logging import get_logger, Logger
+from lbaf.Utils.logger import logger
 
 
 class MoveCountsViewerParameters:
-    """A class to describe MoveCountsViewer parameters"""
+    """ A class to describe MoveCountsViewer parameters
+    """
 
     def __init__(self, viewer):
         # Set renderer parameters
@@ -47,11 +55,10 @@ class MoveCountsViewerParameters:
         # Set wti (WindowToImageFilter) parameters
         self.wti_scale = 10
 
+
 class MoveCountsViewer:
-    """A class to describe MoveCountsViewer attributes"""
-
-    logger: Logger
-
+    """ A class to describe MoveCountsViewer attributes
+    """
     def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = "out",
                  output_file_name: str = "move_counts", interactive: bool = True):
 
@@ -60,7 +67,7 @@ class MoveCountsViewer:
 
         # Input file name
         if isinstance(input_file_name, str):
-            self.input_file_name = os.path.join(PROJECT_PATH, input_file_name)
+            self.input_file_name = os.path.join(project_path, input_file_name)
         else:
             self.input_file_name = input_file_name
 
@@ -77,12 +84,12 @@ class MoveCountsViewer:
         self.interactive = interactive
 
         # Starting logger
-        self.logger = get_logger()
+        self.logger = logger()
         self.logging_level = "info"
 
     @staticmethod
     def usage():
-        """Provide online help
+        """ Provide online help
         """
         print("# Usage:")
         print("\t [-p <np>]   number of processors")
@@ -95,11 +102,11 @@ class MoveCountsViewer:
         print("")
 
     def parse_command_line(self):
-        """Parse command line
+        """ Parse command line
         """
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih") # pylint:disable=W0612
+            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
         except getopt.GetoptError:
             self.logger.error("Incorrect command line arguments.")
             self.usage()
@@ -109,7 +116,7 @@ class MoveCountsViewer:
         for o, a in opts:
             try:
                 i = int(a)
-            except: # pylint:disable=W0702
+            except:
                 i = None
 
             if o == "-p":
@@ -144,8 +151,8 @@ class MoveCountsViewer:
         # No line parsing error occurred
         return False
 
-    def compute_move_counts_viewer(self):
-        """Compute MoveCountsViewer
+    def computeMoveCountsViewer(self):
+        """ Compute MoveCountsViewer
         """
 
         # Instantiate MoveCountsViewerParameters
@@ -169,18 +176,21 @@ class MoveCountsViewer:
 
         # Compute directed move counts
         directed_moves = {}
-        # directed_sizes = {} (unused)
+        directed_sizes = {}
         for i in range(self.n_processors):
             # Iterate over all files
-            with open(f"{self.input_file_name}.{i}.{self.input_file_suffix}", "r", encoding="utf-8") as input_file:
+            with open("{}.{}.{}".format(
+                    self.input_file_name,
+                    i,
+                    self.input_file_suffix), "r") as f:
                 # Instantiate CSV reader
-                reader = csv.reader(input_file, delimiter=",")
+                reader = csv.reader(f, delimiter=",")
 
                 # Iterate over rows of processor file
                 for row in reader:
                     # Retrieve source node ID
                     src_id = int(row[0])
-                    # src_sz = float(row[2]) (unused)
+                    src_sz = float(row[2])
 
                     # Add edge when source != destination
                     if src_id != i:
@@ -393,15 +403,15 @@ class MoveCountsViewer:
 
 if __name__ == "__main__":
     # Default settings
-    N_PROCESSORS = 8
-    INPUT_FILE_NAME = os.path.join(PROJECT_PATH, "data", "nolb-data", "data")
-    INPUT_FILE_SUFFIX = "vom"
-    OUTPUT_FILE_NAME = os.path.join(PROJECT_PATH, "output", "move_counts")
+    n_processors = 8
+    input_file_name = "../data/lb50-data/data"
+    input_file_suffix = "vom"
+    output_file_name = "move_counts"
     params = MoveCountsViewer(
-        n_processors=N_PROCESSORS,
-        input_file_name=INPUT_FILE_NAME,
-        input_file_suffix=INPUT_FILE_SUFFIX,
-        output_file_name=OUTPUT_FILE_NAME,
+        n_processors=n_processors,
+        input_file_name=input_file_name,
+        input_file_suffix=input_file_suffix,
+        output_file_name=output_file_name,
         interactive=False)
 
     # Assign logger to variable
@@ -418,4 +428,4 @@ if __name__ == "__main__":
         raise SystemExit(1)
 
     # Execute viewer
-    params.compute_move_counts_viewer()
+    params.computeMoveCountsViewer()

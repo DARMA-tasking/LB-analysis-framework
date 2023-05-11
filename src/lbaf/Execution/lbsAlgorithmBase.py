@@ -1,60 +1,57 @@
 import abc
 import sys
+from logging import Logger
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logging import get_logger, Logger
+from ..Utils.logger import logger
 
 
 class AlgorithmBase:
-    """An abstract base class of load/work balancing algorithms."""
-
     __metaclass__ = abc.ABCMeta
+    """ An abstract base class of load/work balancing algorithms."""
 
-    _work_model: WorkModelBase
-    _logger: Logger
-
-    def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger, rank_qoi: str, object_qoi: str):
-        """Class constructor:
+    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
+        """ Class constructor:
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
             rank_qoi: rank QOI to track
             object_qoi: object QOI to track."""
 
         # Assert that a logger instance was passed
-        if not isinstance(logger, Logger):
-            get_logger().error(
-                f"Incorrect type {type(logger)} passed instead of Logger instance")
+        if not isinstance(lgr, Logger):
+            lgr().error(
+                f"Incorrect type {type(lgr)} passed instead of Logger instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self._logger = logger
+        self._logger = lgr
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            self._logger.error("Could not create an algorithm without a work model")
+            lgr.error("Could not create an algorithm without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._work_model = work_model
 
         # Assert that a parameters dict was passed
         if not isinstance(parameters, dict):
-            self._logger.error("Could not create an algorithm without a dictionary of parameters")
+            lgr.error("Could not create an algorithm without a dictionary of parameters")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
-            self._logger.error("Could not create an algorithm with non-string rank QOI name")
+            lgr.error("Could not create an algorithm with non-string rank QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__rank_qoi = rank_qoi
         if object_qoi and not isinstance(object_qoi, str):
-            self._logger.error("Could not create an algorithm with non-string object QOI name")
+            lgr.error("Could not create an algorithm with non-string object QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__object_qoi = object_qoi
-        self._logger.info(
+        lgr.info(
             f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")
 
         # Initially no phase is associated to algorithm
@@ -71,7 +68,7 @@ class AlgorithmBase:
                 "number of communication edges": "cardinality",
                 "maximum largest directed volume": "maximum",
                 "total largest directed volume": "sum"},
-            ("ranks", lambda x: self._work_model.compute(x)): { #pylint:disable=W0108
+            ("ranks", lambda x: self._work_model.compute(x)): {
                 "minimum work": "minimum",
                 "maximum work": "maximum",
                 "total work": "sum",
@@ -85,14 +82,12 @@ class AlgorithmBase:
         lgr: Logger,
         rank_qoi: str,
         object_qoi:str):
-        """Instantiate the necessary concrete algorithm."""
+        """ Instantiate the necessary concrete algorithm."""
 
         # Load up available algorithms
-        # pylint:disable=W0641,C0415
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
-        # pylint:enable=W0641,C0415
 
         # Ensure that algorithm name is valid
         algorithm = locals()[algorithm_name + "Algorithm"]
@@ -101,14 +96,14 @@ class AlgorithmBase:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
             return algorithm(work_model, parameters, lgr, rank_qoi, object_qoi)
-        except Exception as e:
+        except:
             # Otherwise, error out
             lgr.error(f"Could not create an algorithm with name {algorithm_name}")
             sys.excepthook = exc_handler
-            raise SystemExit(1) from e
+            raise SystemExit(1)
 
     def update_distributions_and_statistics(self, distributions: dict, statistics: dict):
-        """Compute and update run distributions and statistics."""
+        """ Compute and update run distributions and statistics."""
 
         # Create or update distributions of object quantities of interest
         for object_qoi_name in tuple({"load", self.__object_qoi}):
@@ -140,7 +135,7 @@ class AlgorithmBase:
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
     def _report_final_mapping(self, logger):
-        """Report final rank object mapping in debug mode."""
+        """ Report final rank object mapping in debug mode."""
 
         for rank in self._phase.get_ranks():
             logger.debug(f"Rank {rank.get_id()}:")
@@ -163,7 +158,7 @@ class AlgorithmBase:
 
     @abc.abstractmethod
     def execute(self, phases, distributions, statistics, a_min_max):
-        """Excecute balancing algorithm on Phase instance
+        """ Excecute balancing algorithm on Phase instance
             phases: list of Phase instances
             distributions: dictionary of load-varying variables
             statistics: dictionary of  statistics

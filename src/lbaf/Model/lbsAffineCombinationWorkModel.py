@@ -6,11 +6,11 @@ from .lbsRank import Rank
 
 
 class AffineCombinationWorkModel(WorkModelBase):
-    """A concrete class for a load-only work model
+    """ A concrete class for a load-only work model
     """
 
     def __init__(self, parameters, lgr: Logger):
-        """Class constructor:
+        """ Class constructor:
             parameters: dictionary with alpha, beta, and gamma values."""
 
         # Assign logger to instance variable
@@ -31,12 +31,12 @@ class AffineCombinationWorkModel(WorkModelBase):
                 f"Upper bound for rank {k}: {v}")
 
     def affine_combination(self, l, v1, v2):
-        """Compute affine combination of load and maximum volume."""
+        """ Compute affine combination of load and maximum volume."""
 
         return self.__alpha * l + self.__beta * max(v1, v2) + self.__gamma
 
     def compute(self, rank: Rank):
-        """A work model with affine combination of load and communication
+        """ A work model with affine combination of load and communication
             alpha * load + beta * max(sent, received) + gamma,
             under optional strict upper bounds."""
 

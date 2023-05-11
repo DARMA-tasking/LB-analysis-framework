@@ -6,7 +6,7 @@ from ..Utils.exception_handler import exc_handler
 
 
 class Object:
-    """A class representing an object with load and communicator
+    """ A class representing an object with load and communicator
     """
     def __init__(
         self,
@@ -93,57 +93,57 @@ class Object:
         return f"Object id: {self.__index}, load: {self.__load}"
 
     def get_id(self) -> int:
-        """Return object ID
+        """ Return object ID
         """
         return self.__index
 
     def get_load(self) -> float:
-        """Return object load
+        """ Return object load
         """
         return self.__load
 
     def get_size(self) -> float:
-        """Return object size
+        """ Return object size
         """
         return self.__size
 
     def get_overhead(self) -> float:
-        """Return additional runtime memory of object
+        """ Return additional runtime memory of object
         """
         return self.__overhead
 
     def get_sent(self) -> dict:
-        """Return communications sent by object to other objects
+        """ Return communications sent by object to other objects
         """
         return self.__communicator.get_sent() if self.__communicator else {}
 
     def get_received(self) -> dict:
-        """Return communications received by object from other objects
+        """ Return communications received by object from other objects
         """
         return self.__communicator.get_received() if self.__communicator else {}
 
     def get_received_volume(self) -> float:
-        """Return volume of communications received by object
+        """ Return volume of communications received by object
         """
         return sum([v for v in self.__communicator.get_received().values()]) if self.__communicator else 0
 
     def get_sent_volume(self) -> float:
-        """Return volume of communications sent by object
+        """ Return volume of communications sent by object
         """
         return sum([v for v in self.__communicator.get_sent().values()]) if self.__communicator else 0
 
     def set_rank_id(self, r_id: int) -> None:
-        """Assign object to rank ID
+        """ Assign object to rank ID
         """
         self.__rank_id = r_id
 
     def get_rank_id(self) -> int:
-        """Return ID of rank to which object is currently assigned
+        """ Return ID of rank to which object is currently assigned
         """
         return self.__rank_id
 
     def set_shared_block(self, b: Block) -> None:
-        """Assign shared memory block when necessary
+        """ Assign shared memory block when necessary
         """
         if not isinstance(b, Block):
             sys.excepthook = exc_handler
@@ -151,27 +151,27 @@ class Object:
         self.__shared_block = b
 
     def get_shared_block(self) -> int:
-        """Return shared memory block assigned to object
+        """ Return shared memory block assigned to object
         """
         return self.__shared_block
 
     def get_shared_block_id(self) -> int:
-        """Return ID of shared memory block assigned to object
+        """ Return ID of shared memory block assigned to object
         """
         return self.__shared_block.get_id()
 
     def has_communicator(self) -> bool:
-        """Return whether the object has communication graph data
+        """ Return whether the object has communication graph data
         """
         return self.__communicator is not None
 
     def get_communicator(self) -> ObjectCommunicator:
-        """Return the communication graph for this object
+        """ Return the communication graph for this object
         """
         return self.__communicator
 
     def set_communicator(self, c) -> None:
-        """Assign the communication graph for this object
+        """ Assign the communication graph for this object
         """
         if not isinstance(c, ObjectCommunicator):
             sys.excepthook = exc_handler
@@ -179,6 +179,6 @@ class Object:
         self.__communicator = c
 
     def get_subphases(self) -> list:
-        """Return subphases of this object
+        """ Return subphases of this object
         """
         return self.__subphases
