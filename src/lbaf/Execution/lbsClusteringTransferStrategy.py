@@ -15,17 +15,17 @@ from ..IO.lbsStatistics import inverse_transform_sample
 
 
 class ClusteringTransferStrategy(TransferStrategyBase):
-    """A concrete class for the clustering-based transfer strategy."""
+    """ A concrete class for the clustering-based transfer strategy."""
 
     def __init__(self, criterion, parameters: dict, lgr: Logger):
-        """Class constructor
+        """ Class constructor
             criterion: a CriterionBase instance
             parameters: a dictionary of parameters."""
         # Call superclass init
         super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
 
     def __cluster_objects(self, rank):
-        """Cluster migratiable objects by shared block ID when available."""
+        """ Cluster migratiable objects by shared block ID when available."""
         # Iterate over all migratable objects on rank
         clusters = {}
         for o in rank.get_migratable_objects():
@@ -41,7 +41,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         return clusters
 
     def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
-        """Find suitable sub-clusters to bring rank closest and above average load."""
+        """ Find suitable sub-clusters to bring rank closest and above average load."""
         # Bail out early if no clusters are available
         if not clusters:
             self._logger.info("No migratable clusters on rank")
@@ -83,7 +83,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
 
     def execute(self, phase: Phase, ave_load: float):
-        """Perform object transfer stage."""
+        """ Perform object transfer stage."""
         # Initialize transfer stage
         self.__average_load = ave_load
         self._logger.info(f"Executing transfer phase with average load: {self.__average_load}")

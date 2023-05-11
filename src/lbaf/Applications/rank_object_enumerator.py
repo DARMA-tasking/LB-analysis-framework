@@ -2,29 +2,36 @@ import os
 import sys
 import math
 import itertools
-import csv
-
 import yaml
+import csv
+from logging import Logger
 
-from lbaf import PROJECT_PATH
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
+
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logging import get_logger, Logger
-from lbaf.Utils.path import abspath
+from lbaf.Utils.logger import logger
 
-def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str = "json") -> tuple:
-    """Read data from configuration and returns a tuple of objects with communication"""
+
+def get_objects(n_ranks: int, lgr: Logger, file_prefix: str, file_suffix: str) -> tuple:
+    """ Read data from configuration and returns a tuple of objects with communication
+    """
 
     # Instantiate data containers
     objects = []
     communication = {}
 
     # Instantiate data reader Class
-    reader = LoadReader(file_prefix=file_prefix, n_ranks=n_ranks, logger=logger, file_suffix=file_suffix)
+    lr = LoadReader(file_prefix=file_prefix, logger=lgr, file_suffix=file_suffix)
 
     # Iterate over ranks, collecting objects and communication
     for rank in range(n_ranks):
-        iter_map, comm = reader.read(node_id=rank)
+        iter_map, comm = lr.read(node_id=rank)
         for rnk in iter_map.values():
             for obj in rnk.get_migratable_objects():
                 objects.append({"id": obj.get_id(), "load": obj.get_load()})
@@ -52,28 +59,30 @@ def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str
 
 
 def compute_load(objects: tuple, rank_object_ids: list) -> float:
-    """Return a load as a sum of all object loads
+    """ Return a load as a sum of all object loads
     """
 
     return sum([objects[i].get("load") for i in rank_object_ids])
 
 
 def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
-    """Return a volume of rank objects"""
+    """ Return a volume of rank objects
+    """
 
     # Initialize volume
     volume = 0.
 
     # Iterate over all rank objects
     for i in rank_object_ids:
-        volume += sum(v for (k, v) in objects[i].get(direction, []).items() if k not in rank_object_ids)
+        volume += sum([v for k, v in objects[i].get(direction, 0.).items() if k not in rank_object_ids])
 
     # Return computed volume
     return volume
 
 
 def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
-    """Return a dictionary with works of rank objects"""
+    """ Return a dictionary with works of rank objects
+    """
 
     # Build object rank map from arrangement
     ranks = {}
@@ -100,16 +109,16 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
 def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
                                             w_max: float, from_id: int, to_id: int, n_ranks: int,
                                             max_objects: int = None):
-    """Compute arrangements reachable by moving up to a maximum number of objects from one rank to another"""
+    """ Compute arrangements reachable by moving up to a maximum number of objects from one rank to another
+    """
 
-    logger = get_logger()
     # Sanity checks regarding rank IDs
     if from_id >= n_ranks:
-        logger.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
+        LGR.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
         sys.excepthook = exc_handler
         raise SystemExit(1)
     if to_id >= n_ranks:
-        logger.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
+        LGR.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
         sys.excepthook = exc_handler
         raise SystemExit(1)
 
@@ -124,7 +133,7 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
     reachable = {}
     n_possible = 0
     for n in range(1, min(len(matches), max_objects) + 1):
-        logger.debug(f"Generating possible arrangements with {n} transfer(s) from rank {from_id} to rank {to_id}")
+        LGR.debug(f"Generating possible arrangements with {n} transfer(s) from rank {from_id} to rank {to_id}")
         # Iterate over all combinations with given size
         for c in itertools.combinations(matches, n):
             # Change all corresponding entries
@@ -136,7 +145,7 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
             w_max_new = max(works.values())
             if w_max_new <= w_max:
                 reachable[new_arrangement] = w_max_new
-    logger.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst "
+    LGR.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst "
               f"{n_possible} possible one(s)")
 
     # Return dict of reachable arrangements
@@ -145,9 +154,8 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
 
 def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
                                        w_max: float, n_ranks: int, max_objects: int = None):
-    """Compute all arrangements reachable by moving up to a maximum number of objects"""
-
-    logger = get_logger()
+    """ Compute all arrangements reachable by moving up to a maximum number of objects
+    """
 
     # Storage for all reachable arrangements with their maximum work
     reachable = {}
@@ -160,16 +168,17 @@ def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha
                 continue
             reachable.update(compute_pairwise_reachable_arrangements(objects, arrangement, alpha, beta, gamma, w_max,
                                                                      from_id, to_id, n_ranks, max_objects))
-    logger.info(f"Found {len(reachable)} reachable arrangements, with maximum work: {max(reachable.values())}:")
+    LGR.info(f"Found {len(reachable)} reachable arrangements, with maximum work: {max(reachable.values())}:")
     for k, v in reachable.items():
-        logger.info(f"\t{k}: {v}")
+        LGR.info(f"\t{k}: {v}")
 
     # Return dict of reachable arrangements
     return reachable
 
 
 def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int):
-    """Compute all possible arrangements with repetition and minimax work"""
+    """ Compute all possible arrangements with repetition and minimax work
+    """
 
     # Initialize quantities of interest
     n_arrangements = 0
@@ -197,14 +206,13 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
 def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, arrangement: tuple, alpha: float,
                                     beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks: int,
                                     max_objects: int = None):
-    """Recursively compute all possible transitions to reachable arrangements from initial one"""
-
-    logger = get_logger()
+    """ Recursively compute all possible transitions to reachable arrangements from initial one
+    """
 
     # Sanity checks regarding current arrangement
     w_a = visited.get(arrangement, -1.)
     if w_a < 0.:
-        logger.error(f"Arrangement {arrangement} not found in visited map")
+        LGR.error(f"Arrangement {arrangement} not found in visited map")
         sys.excepthook = exc_handler
         raise SystemExit(1)
 
@@ -213,9 +221,9 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
 
     # Terminate recursion if global optimum was found
     if w_a == w_min_max:
-        logger.info(f"Global optimum found ({w_a}) for {arrangement}")
+        LGR.info(f"Global optimum found ({w_a}) for {arrangement}")
         for a in stack:
-            logger.info(f"\t{a} with maximum work {visited[a]}")
+            LGR.info(f"\t{a} with maximum work {visited[a]}")
         return
 
     # Compute all reachable arrangements
@@ -249,94 +257,80 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
         stack.pop()
 
 
-def main():
-    """Main implementation"""
+if __name__ == '__main__':
     sys.setrecursionlimit(1500)
-    root_logger = get_logger()
 
     def get_conf() -> dict:
-        """Gets config from file and returns a dictionary."""
-
-        with open(os.path.join(PROJECT_PATH, "config", "conf.yaml"), "rt", encoding="utf-8") as conf_file:
+        """ Gets config from file and returns a dictionary. """
+        with open(os.path.join(project_path, "lbaf", "Applications", "conf.yaml"), 'rt') as conf_file:
             conf = yaml.safe_load(conf_file)
         return conf
 
     # Retrieve configuration
-    conf = get_conf()
-    conf_dir = os.path.join(PROJECT_PATH, "config")
+    CONF = get_conf()
 
     # Define number of ranks
-    viz = conf.get("LBAF_Viz")
-    n_ranks = viz.get("x_ranks") * viz.get("y_ranks") * viz.get("z_ranks")
+    N_RANKS = CONF.get("x_ranks") * CONF.get("y_ranks") * CONF.get("z_ranks")
 
     # Define work constants
-    alpha_g = conf.get("work_model").get("parameters").get("alpha")
-    beta_g = conf.get("work_model").get("parameters").get("beta")
-    gamma_g = conf.get("work_model").get("parameters").get("gamma")
-    file_suffix = conf.get("file_suffix", "json")
-
-    # Get datastem as absolute prefix
-    data_stem = conf.get("from_data").get("data_stem")
-    data_dir = f"{os.sep}".join(data_stem.split(os.sep)[:-1])
-    file_prefix = data_stem.split(os.sep)[-1]
-
-    data_dir = abspath(data_dir, conf_dir) # make absolute path
-    file_prefix = f"{os.sep}".join([data_dir, file_prefix]) # make absolute path prefix
+    ALPHA_G = CONF.get("work_model").get("parameters").get("alpha")
+    BETA_G = CONF.get("work_model").get("parameters").get("beta")
+    GAMMA_G = CONF.get("work_model").get("parameters").get("gamma")
+    INPUT_DATA = os.path.join(project_path, CONF.get("log_file"))
+    FILE_SUFFIX = CONF.get("file_suffix")
+    LGR = logger()
 
     # Get objects from log files
-    objects = get_objects(n_ranks=n_ranks, logger=root_logger, file_prefix=file_prefix, file_suffix=file_suffix)
+    objects = get_objects(n_ranks=N_RANKS, lgr=LGR, file_prefix=INPUT_DATA, file_suffix=FILE_SUFFIX)
 
     # Print out input parameters
-    root_logger.info(f"alpha: {alpha_g}")
-    root_logger.info(f"beta: {beta_g}")
-    root_logger.info(f"gamma: {gamma_g}")
+    LGR.info(f"alpha: {ALPHA_G}")
+    LGR.info(f"beta: {BETA_G}")
+    LGR.info(f"gamma: {GAMMA_G}")
 
     # Compute and report on best possible arrangements
-    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha=alpha_g, beta=beta_g, gamma=gamma_g,
-                                                                  n_ranks=n_ranks)
-    if n_a != n_ranks ** len(objects):
-        root_logger.error("Incorrect number of possible arrangements with repetition")
+    n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha=ALPHA_G, beta=BETA_G, gamma=GAMMA_G,
+                                                                  n_ranks=N_RANKS)
+    if n_a != N_RANKS ** len(objects):
+        LGR.error("Incorrect number of possible arrangements with repetition")
         sys.excepthook = exc_handler
         raise SystemExit(1)
-    root_logger.info(f"Number of generated arrangements with repetition: {n_a}")
-    root_logger.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")
+    LGR.info(f"Number of generated arrangements with repetition: {n_a}")
+    LGR.info(f"\tminimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements")
 
     # Write all optimal arrangements to CSV file
-    output_dir = abspath(conf.get("output_dir"), relative_to=conf_dir)
+    output_dir = os.path.join(project_path, CONF.get("output_dir"))
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     out_name = os.path.join(output_dir, "optimal-arrangements.csv")
-    with open(out_name, "w", encoding="utf-8") as input_file:
-        writer = csv.writer(input_file)
+    with open(out_name, 'w') as f:
+        writer = csv.writer(f)
         for a in a_min_max:
             writer.writerow(a)
-    root_logger.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
+    LGR.info(f"Wrote {len(a_min_max)} optimal arrangement to {out_name}")
 
     # Start fom initial configuration
     initial_arrangement = (3, 0, 0, 0, 0, 1, 3, 3, 2)
-    root_logger.info(f"Initial arrangement: {initial_arrangement}")
-    initial_works = compute_arrangement_works(objects, initial_arrangement, alpha_g, beta_g, gamma_g)
+    LGR.info(f"Initial arrangement: {initial_arrangement}")
+    initial_works = compute_arrangement_works(objects, initial_arrangement, ALPHA_G, BETA_G, GAMMA_G)
     w_max = max(initial_works.values())
     visited = {initial_arrangement: w_max}
-    root_logger.info(f"\tper-rank works: {initial_works}")
-    root_logger.info(f"\tmaximum work: {w_max:.4g} average work: "
+    LGR.info(f"\tper-rank works: {initial_works}")
+    LGR.info(f"\tmaximum work: {w_max:.4g} average work: "
              f"{(sum(initial_works.values()) / len(initial_works)):.4g}")
 
     # Compute all possible reachable arrangements
-    stack1 = []
+    stack = []
     recursively_compute_transitions(
-        stack1,
+        stack,
         visited,
         objects,
         initial_arrangement,
-        alpha_g, beta_g, gamma_g,
+        ALPHA_G, BETA_G, GAMMA_G,
         w_max, w_min_max,
-        n_ranks)
+        N_RANKS)
 
     # Report all optimal arrangements
     for k, v in visited.items():
         if v == w_min_max:
-            root_logger.info(f"Reachable optimal arrangement: {k}")
-
-if __name__ == '__main__':
-    main()
+            LGR.info(f"Reachable optimal arrangement: {k}")

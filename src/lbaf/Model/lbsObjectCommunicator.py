@@ -5,10 +5,10 @@ from ..Utils.exception_handler import exc_handler
 
 
 class ObjectCommunicator:
-    """A class holding received and sent messages for an object."""
+    """ A class holding received and sent messages for an object."""
 
     def __init__(self, i: int, logger: Logger, r: dict = None, s: dict = None):
-        """Class constructor."""
+        """ Class constructor."""
 
         # Index of object having this communicator if defined
         self.__object_index = i
@@ -23,7 +23,7 @@ class ObjectCommunicator:
         self.__logger = logger
 
     def __summarize_unidirectional(self, direction):
-        """Summarize one-way communicator properties and check for errors."""
+        """ Summarize one-way communicator properties and check for errors."""
 
         # Initialize list of volumes
         volumes = []
@@ -47,27 +47,27 @@ class ObjectCommunicator:
         return volumes
 
     def get_received(self) -> dict:
-        """Return all from_object=volume pairs received by object."""
+        """ Return all from_object=volume pairs received by object."""
 
         return self.__received
 
     def get_received_from_object(self, o):
-        """Return the volume of a message received from an object if any."""
+        """ Return the volume of a message received from an object if any."""
 
         return self.__received.get(o)
 
     def get_sent(self) -> dict:
-        """Return all to_object=volume pairs sent from object."""
+        """ Return all to_object=volume pairs sent from object."""
 
         return self.__sent
 
     def get_sent_to_object(self, o):
-        """Return the volume of a message received from an object if any."""
+        """ Return the volume of a message received from an object if any."""
 
         return self.__sent.get(o)
 
     def summarize(self) -> tuple:
-        """Summarize communicator properties and check for errors."""
+        """ Summarize communicator properties and check for errors."""
 
         # Summarize sent communications
         w_sent = self.__summarize_unidirectional("to")

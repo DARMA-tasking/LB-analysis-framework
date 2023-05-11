@@ -1,17 +1,24 @@
-"""src/lbaf/Utils/data_stat_files_updater.py """
 import os
 import sys
+
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
+
 import argparse
 from collections import Counter
 import json
+
 import brotli
 
 from lbaf.Utils.exception_handler import exc_handler
 
 
 class DataStatFilesUpdater:
-    """Class validating VT data files according to the defined schema. """
-
+    """ Class validating VT data files according do defined schema. """
     def __init__(self, file_path: str = None, dir_path: str = None, file_prefix: str = None, file_suffix: str = None,
                  schema_type: str = "LBDatafile", compress_data: bool = None):
         self.__file_path = file_path
@@ -23,7 +30,7 @@ class DataStatFilesUpdater:
         self.__cli()
 
     def __cli(self):
-        """Support for common line arguments. """
+        """ Support for common line arguments. """
         parser = argparse.ArgumentParser()
         group = parser.add_mutually_exclusive_group()
         group.add_argument("--dir_path", help="Path to directory where files for validation are located.")
@@ -53,17 +60,17 @@ class DataStatFilesUpdater:
 
     @staticmethod
     def __check_if_file_exists(file_path: str) -> bool:
-        """Check for existence of a given file. Returns True when file exists. """
+        """ Check for existence of a given file. Returns True when file exists. """
         return os.path.isfile(file_path)
 
     @staticmethod
     def __check_if_dir_exists(dir_path: str) -> bool:
-        """Check for existence of a given directory. Returns True when file exists. """
+        """ Check for existence of a given directory. Returns True when file exists. """
         return os.path.isdir(dir_path)
 
     @staticmethod
     def __get_files_for_validation(dir_path: str, file_prefix: str, file_suffix: str) -> list:
-        """Check for existence of a given directory. Returns True when file exists. """
+        """ Check for existence of a given directory. Returns True when file exists. """
         list_of_files = os.listdir(dir_path)
 
         if not list_of_files:
@@ -87,7 +94,7 @@ class DataStatFilesUpdater:
                       key=lambda x: int(x.split(os.sep)[-1].split('.')[-2]))
 
     def __add_type_to_file(self, file_path):
-        """Add given type to the file. """
+        """ Add given type to the file. """
         print(f"Adding schema to file: {file_path}")
         file_uncompressed = None
         if self.__compress_data is None:

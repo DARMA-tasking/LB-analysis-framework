@@ -8,28 +8,26 @@ from ..Utils.exception_handler import exc_handler
 
 
 class PhaseStepperAlgorithm(AlgorithmBase):
-    """A concrete class for the phase stepper non-optimzing algorithm."""
+    """ A concrete class for the phase stepper non-optimzing algorithm."""
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
-        """Class constructor
+        """ Class constructor
+            work_model: a WorkModelBase instance
+            parameters: a dictionary of parameters
+            rank_qoi: rank QOI to track
+            object_qoi: object QOI to track."""
 
-        :param work_model: a WorkModelBase instance
-        :param parameters: a dictionary of parameters
-        :param lgr: logger
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track
-        """
         # Call superclass init
         super(PhaseStepperAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, phases: list, distributions: dict, statistics: dict, _):
-        """Execute brute force optimization algorithm on Phase instance."""
+        """ Execute brute force optimization algorithm on Phase instance."""
 
         # Ensure that a list with at least one phase was provided
         if not phases or not isinstance(phases, list) or not all(
                 [isinstance(p, Phase) for p in phases]):
-            self._logger.error("Algorithm execution requires a Phase instance")
+            self._logger.error(f"Algorithm execution requires a Phase instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 

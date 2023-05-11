@@ -1,14 +1,26 @@
 import os
+import sys
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
+    raise SystemExit(1)
+
 import logging
 import unittest
 
-from lbaf import PROJECT_PATH
-from lbaf.Model.lbsWorkModelBase import WorkModelBase
+from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        try:
+            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), 'data')
+            sys.path.append(self.data_dir)
+        except Exception as e:
+            print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
+            raise SystemExit(1)
         self.logger = logging.getLogger()
 
     def test_lbs_work_model_base_factory(self):
@@ -17,5 +29,5 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], "Could not create a work with name: Not a good name")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
