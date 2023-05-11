@@ -1,6 +1,7 @@
 import sys
 import random as rnd
 from logging import Logger
+from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -448,7 +449,7 @@ class Phase:
             b_dst.attach_object_id(o_id)
             o.set_shared_block(b_dst)
 
-    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list):
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = None):
         """Transfer list of objects between source and destination ranks."""
 
         if not o_dst:
