@@ -10,9 +10,9 @@ from ..Utils.exception_handler import exc_handler
 class Runtime:
     """A class to handle the execution of the LBS."""
 
-    def __init__(self, phases: list, work_model: dict, algorithm: dict, arrangements: list, logger: Logger, rank_qoi: str, object_qoi: str):
-        """Class constructor:
-            phases: list of Phase instances
+    def __init__(self, phases: dict, work_model: dict, algorithm: dict, arrangements: list, logger: Logger, rank_qoi: str, object_qoi: str):
+        """ Class constructor:
+            phases: dictionary of Phase instances
             work_model: dictionary with work model name and optional parameters
             algorithm: dictionary with algorithm name and parameters
             arrangements: arrangements that minimize maximum work
@@ -29,8 +29,9 @@ class Runtime:
         self.__a_min_max = arrangements
 
         # If no LBS phase was provided, do not do anything
-        if not phases or not isinstance(phases, list):
-            self.__logger.error("Could not create a LBS runtime without a list of phases")
+        if not phases or not isinstance(phases, dict):
+            self.__logger.error(
+                "Could not create a runtime without a dictionnary of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__phases = phases
@@ -56,7 +57,7 @@ class Runtime:
             raise SystemExit(1)
 
         # Initialize run distributions and statistics
-        phase_0 = self.__phases[0]
+        phase_0 = self.__phases[min(self.__phases.keys())]
         self.__distributions = {}
         l_stats = compute_function_statistics(
             phase_0.get_ranks(),
@@ -69,13 +70,13 @@ class Runtime:
                 o.get_id(): p.get_id()
                 for p in phase_0.get_ranks()
                 for o in p.get_objects()}.items()))
-        self.__logger.debug(f"Iteration 0 arrangement: {arrangement}")
+        self.__logger.debug(f"Phase 0 arrangement: {arrangement}")
 
         # Report minimum Hamming distance when minimax optimum is available
         if self.__a_min_max:
             hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
             self.__statistics["minimum Hamming distance to optimum"] = [hd_min]
-            self.__logger.info(f"Iteration 0 minimum Hamming distance to optimal arrangements: {hd_min}")
+            self.__logger.info(f"Phase 0 minimum Hamming distance to optimal arrangements: {hd_min}")
 
     def get_work_model(self):
         """Return runtime work model."""
@@ -92,13 +93,22 @@ class Runtime:
 
         return self.__statistics
 
-    def execute(self):
-        """Launch runtime execution."""
+    def execute(self, p_id: int, phase_increment=0):
+        """Execute runtime for single phase with given ID or all (-1)."""
 
         # Execute balancing algorithm
-        self.__logger.info(f"Executing {type(self.__algorithm).__name__}")
+        self.__logger.info(
+            f"Executing {type(self.__algorithm).__name__} for "
+            + ("all phases" if p_id < 0 else f"phase {p_id}"))
         self.__algorithm.execute(
+            p_id,
             self.__phases,
             self.__distributions,
             self.__statistics,
             self.__a_min_max)
+
+        # Retrieve possibly null rebalanced phase and return it
+        if (pp := self.__algorithm.get_rebalanced_phase()):
+            pp.set_id((pp_id := pp.get_id() + phase_increment))
+            self.__logger.info(f"Created rebalanced phase {pp_id}")
+        return pp

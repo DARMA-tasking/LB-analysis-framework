@@ -16,6 +16,7 @@ work_model:
 brute_force_optimization: true
 algorithm:
   name: InformAndTransfer
+  phase_id: 0
   parameters:
     n_iterations: 8
     n_rounds: 4
@@ -28,7 +29,6 @@ algorithm:
 
 # Specify output
 logging_level: debug
-terminal_background: light
 output_dir: ../../../output
 output_file_stem: output_file
 n_ranks: 4

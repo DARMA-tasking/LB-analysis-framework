@@ -19,14 +19,12 @@ class Phase:
     def __init__(
         self,
         lgr: Logger,
-        pid: int = 0,
-        file_suffix="json",
+        p_id: int = 0,
         reader: LoadReader = None):
         """Class constructor
             logger: a Logger instance
-            pid: a phase ID
-            file_suffix: the extension for state file names
-            reader: a VT load reader instance"""
+            id: an integer indexing the phase ID
+            reader: a JSON VT reader instance"""
 
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
@@ -35,25 +33,23 @@ class Phase:
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__logger = lgr
-        self.__logger.info(f"Instantiating phase {pid}")
+        self.__logger.info(f"Instantiating phase {p_id}")
+
+        # Index of this phase
+        self.__phase_id = p_id
 
         # Initialize empty list of ranks
         self.__ranks = []
 
-        # Initialize null number of objects
-        self.__n_objects = 0
-
-        # Index of this phase
-        self.__phase_id = pid
-
         # Start with null set of edges
         self.__edges = None
 
-        # Data files suffix(reading from data)
-        self.__file_suffix = file_suffix
-
         # VT Data Reader
         self.__reader = reader
+
+    def set_id(self, p_id: int):
+        """ Set index of this phase."""
+        self.__phase_id = p_id
 
     def get_id(self):
         """Retrieve index of this phase."""
@@ -64,6 +60,10 @@ class Phase:
         """Retrieve number of ranks belonging to phase."""
 
         return len(self.__ranks)
+
+    def set_ranks(self, ranks: list):
+        """ Set list of ranks for this phase."""
+        self.__ranks = ranks
 
     def get_ranks(self):
         """Retrieve ranks belonging to phase."""
@@ -78,7 +78,7 @@ class Phase:
     def get_number_of_objects(self):
         """Return number of objects."""
 
-        return self.__n_objects
+        return sum([r.get_number_of_objects() for r in self.__ranks])
 
     def get_objects(self):
 
@@ -280,7 +280,6 @@ class Phase:
         # Create n_objects objects with uniformly distributed loads in given range
         self.__logger.info(
             f"Creating {n_objects} objects with loads sampled from {sampler_name}")
-        self.__number_of_objects = n_objects
         objects = set([
             Object(i, load=load_sampler())
             for i in range(n_objects)])
@@ -347,7 +346,7 @@ class Phase:
         print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)
 
         # Create given number of ranks
-        self.__ranks = [Rank(i, self.__logger) for i in range(n_ranks)]
+        self.__ranks = [Rank(self.__logger, r_id) for r_id in range(n_ranks)]
 
         # Randomly assign objects to ranks
         if n_r_mapped and n_r_mapped <= n_ranks:
@@ -377,26 +376,21 @@ class Phase:
         for p in self.__ranks:
             self.__logger.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
-    def populate_from_log(self, t_s, basename):
+    def populate_from_log(self, phase_id):
         """Populate this phase by reading in a load profile from log files."""
-
-        # Populate phase with reader output
-        self.__ranks = self.__reader.read_iteration(t_s)
-
-        # Compute and report object statistics
+        # Populate phase with JSON reader output
+        self.__ranks = self.__reader.populate_phase(phase_id)
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
+
+        # Compute and report object statistics
         print_function_statistics(
             objects, lambda x: x.get_load(), "object loads", self.__logger)
         print_function_statistics(
             objects, lambda x: x.get_size(), "object sizes", self.__logger)
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
-
-        # Set number of read objects
-        self.__n_objects = len(objects)
-        self.__logger.info(f"Read {self.__n_objects} objects from load-step {t_s} of data files with prefix {basename}")
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""
@@ -431,6 +425,8 @@ class Phase:
             if b_id not in r_src.get_shared_block_ids():
                 self.__logger.error(
                 f"block {b_id} not present on in {r_src.get_shared_blocks()}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1)
 
             if not block.detach_object_id(o_id):
                 # Delete shared block if no tied object left on rank
@@ -452,8 +448,11 @@ class Phase:
             b_dst.attach_object_id(o_id)
             o.set_shared_block(b_dst)
 
-    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]):
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list):
         """Transfer list of objects between source and destination ranks."""
+
+        if not o_dst:
+            o_dst = []
 
         # Transfer objects from source to destination
         for o in o_src:
@@ -464,7 +463,7 @@ class Phase:
 
         # Transfer objects back from destination to source
         for o in o_dst:
-            self.transfer_object(r_dst, o, r_src)
+            self.transfer_object(r_dst, o, r_src) # pylint:disable=W1114:arguments-out-of-order
         n_transfers += (n_reverse := len(o_dst))
         if n_reverse:
             self.__logger.debug(

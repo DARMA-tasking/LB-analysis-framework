@@ -16,10 +16,11 @@ work_model:
 brute_force_optimization: true
 algorithm:
   name: InformAndTransfer
+  phase_id: 0
   parameters:
     n_iterations: 8
-    n_rounds: 4
-    fanout: 4
+    n_rounds: 2
+    fanout: 2
     order_strategy: element_id
     transfer_strategy: Recursive
     criterion: Tempered
@@ -28,7 +29,6 @@ algorithm:
 
 # Specify output
 logging_level: info
-terminal_background: light
 output_dir: ../../output
 output_file_stem: output_file
 n_ranks: 4

@@ -15,6 +15,7 @@ work_model:
 # Specify algorithm
 algorithm:
   name: InformAndTransfer
+  phase_id: 0
   parameters:
     n_iterations: 8
     n_rounds: 4
@@ -26,7 +27,6 @@ algorithm:
     deterministic_transfer: true
 
 # Specify output
-terminal_background: light
 output_dir: ../../output
 output_file_stem: output_file
 n_ranks: 4
