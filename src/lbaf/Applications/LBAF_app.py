@@ -38,7 +38,6 @@ class InternalParameters:
     rank_qoi: Union[str,None]
     object_qoi: Union[str,None]
     grid_size: Union[list,None]
-    json_writer: Union[VTDataWriter,None]
 
     # from_samplers options
     n_objects: int
@@ -165,7 +164,7 @@ class Application:
 
     __logger: Logger
     __parameters: InternalParameters
-    json_writer: VTDataWriter
+    __json_writer: Union[VTDataWriter,None]
 
     """LBAF application class."""
     def __init__(self):
@@ -213,7 +212,7 @@ class Application:
         self.__parameters = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self.__logger)
 
         # Create VT writer except when explicitly turned off
-        self.json_writer = VTDataWriter(
+        self.__json_writer = VTDataWriter(
             self.__logger,
             self.__parameters.output_dir,
             self.__parameters.output_file_stem,
@@ -396,7 +395,7 @@ class Application:
             offline_LB_compatible)
 
         # Instantiate phase to VT file writer when requested
-        if self.json_writer:
+        if self.__json_writer:
             if offline_LB_compatible:
                 # Add rebalanced phase when present
                 if not rebalanced_phase:
@@ -420,10 +419,10 @@ class Application:
                 # Write all phases
                 self.__logger.info(
                     f"Writing all ({len(phases)}) phases for offline load-balancing")
-                self.json_writer.write(phases)
+                self.__json_writer.write(phases)
             else:
                 self.__logger.info(f"Writing single phase {phase_id} to JSON files")
-                self.json_writer.write(
+                self.__json_writer.write(
                     {phase_id: rebalanced_phase})
 
         # Generate meshes and multimedia when requested

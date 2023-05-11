@@ -19,7 +19,9 @@ class LoadReader:
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
         The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
-    
+
+    SCHEMA_VALIDATOR_CLASS = None
+
     CommCategory = {
         "SendRecv": 1,
         "CollectionToNode": 2,
@@ -31,7 +33,6 @@ class LoadReader:
     }
 
     def __init__(self, file_prefix: str, n_ranks: int, logger: Logger, file_suffix: str = "json", check_schema=True):
-
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -46,6 +47,11 @@ class LoadReader:
 
         # Assign schema checker
         self.__check_schema = check_schema
+
+        # imported JSON_data_files_validator module (lazy import)
+        if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
+            from ..imported.JSON_data_files_validator import SchemaValidator as sv # pylint:disable=C0415:import-outside-toplevel
+            LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
         # Load vt data concurrently
         self.__vt_data = {}
@@ -93,21 +99,16 @@ class LoadReader:
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
-        # dynamically import because might be downloaded when application starts
-        module = 'lbaf.imported.JSON_data_files_validator'
-        if module not in sys.modules:
-            from ..imported.JSON_data_files_validator import SchemaValidator # pylint:disable=C0415:import-outside-toplevel
-
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
-            if SchemaValidator(
+            if LoadReader.SCHEMA_VALIDATOR_CLASS(
                 schema_type=schema_type).is_valid(
                 schema_to_validate=decompressed_dict):
                 self.__logger.info(f"Valid JSON schema in {file_name}")
             else:
                 self.__logger.error(f"Invalid JSON schema in {file_name}")
-                SchemaValidator(
+                LoadReader.SCHEMA_VALIDATOR_CLASS(
                     schema_type=schema_type).validate(
                     schema_to_validate=decompressed_dict)
 
