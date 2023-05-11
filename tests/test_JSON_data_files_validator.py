@@ -1,5 +1,11 @@
 import os
 import sys
+try:
+    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
+    sys.path.append(project_path)
+except Exception as e:
+    print(f"Can not add project path to system path. Exiting.\nERROR: {e}")
+    raise SystemExit(1)
 
 import argparse
 import logging
@@ -8,16 +14,20 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from lbaf import PROJECT_PATH
-from lbaf.Applications.JSON_data_files_validator_loader import load
+from src.lbaf.Applications.schema_validator_loader import check_and_get_schema_validator
+check_and_get_schema_validator()
 
-load()
-from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
+from src.lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 
 class TestJSONDataFilesValidator(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        try:
+            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "data")
+            sys.path.append(self.data_dir)
+        except Exception as e:
+            print(f"Can not add data path to system path. Exiting.\nERROR: {e}")
+            raise SystemExit(1)
         self.file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.json")
         self.wrong_file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.jso")
         self.wrong_file_schema = os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "data.0.json")

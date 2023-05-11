@@ -15,7 +15,7 @@ class Statistics:
         var: float,
         g1: float,
         g2: float):
-        """Class constructor given descriptive statistics values."""
+        """ Class constructor given descriptive statistics values."""
 
         # Store primary statistics
         self.primary_statistics = {
@@ -47,7 +47,7 @@ class Statistics:
             setattr(self, f"get_{k.replace(' ', '_')}", __getter_factory(k))
 
 def initialize():
-    """Seed pseudo-random number generators."""
+    """ Seed pseudo-random number generators."""
 
     rnd.seed(146)
     random.seed(146)
@@ -59,7 +59,7 @@ def error_out(distribution_name, parameters, logger: Logger):
 
 
 def sampler(distribution_name, parameters, logger: Logger):
-    """Return a pseudo-random number generator based of requested type."""
+    """ Return a pseudo-random number generator based of requested type."""
 
     # Uniform U(a,b) distribution
     if distribution_name.lower() == "uniform":
@@ -105,7 +105,7 @@ def sampler(distribution_name, parameters, logger: Logger):
 
 
 def Hamming_distance(arrangement_1, arrangement_2):
-    """Compute Hamming distance between two arrangements."""
+    """ Compute Hamming distance between two arrangements."""
 
     # Distance can only be compute between same length arrangements
     if len(arrangement_1) != len(arrangement_2):
@@ -123,7 +123,7 @@ def Hamming_distance(arrangement_1, arrangement_2):
 
 
 def min_Hamming_distance(arrangement, arrangement_list):
-    """Compute minimum Hamming distance from arrangement to list of arrangements."""
+    """ Compute minimum Hamming distance from arrangement to list of arrangements."""
 
     # Minimum distance is at least equal to arrangement length
     hd_min = len(arrangement)
@@ -140,7 +140,7 @@ def min_Hamming_distance(arrangement, arrangement_list):
 
 
 def inverse_transform_sample(cmf):
-    """Sample from distribution defined by cumulative mass function
+    """ Sample from distribution defined by cumulative mass function
     This is a.k.a. the Smirnov transform."""
 
     # Generate number from pseudo-random distribution U([0;1])
