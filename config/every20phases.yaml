@@ -36,7 +36,6 @@ algorithm:
   name: PhaseStepper
 
 # Specify output
-terminal_background: light
 output_dir: ../output
 output_file_stem: output_file
 n_ranks: 32

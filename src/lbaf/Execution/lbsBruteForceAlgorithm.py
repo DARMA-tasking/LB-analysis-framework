@@ -65,19 +65,10 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Return arrangement works
         return works
 
-    def execute(self, phases: list, distributions: dict, statistics: dict, _):
-        """ Execute brute force optimization algorithm on Phase instance
-        """
-        # Ensure that a list with at least one phase was provided
-        if not phases or not isinstance(phases, list) or not isinstance(
-                (phase := phases[0]), Phase):
-            self._logger.error(f"Algorithm execution requires a Phase instance")
-            sys.excepthook = exc_handler
-            raise SystemExit(1)
-        self._phase = phase
-
-        # Initialize run distributions and statistics
-        self.update_distributions_and_statistics(distributions, statistics)
+    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
+        """ Execute brute force optimization algorithm on phase with index p_id."""
+        # Perform pre-execution checks and initializations
+        self._initialize(p_id, phases, distributions, statistics)
 
         # Prepare input data for rank order enumerator
         self._logger.info(f"Starting brute force optimization")
@@ -158,14 +149,14 @@ class BruteForceAlgorithm(AlgorithmBase):
             for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer
-                    self._phase.transfer_object(r_src, o, r_dst)
+                    self._rebalanced_phase.transfer_object(r_src, o, r_dst)
                     n_transfers += 1
 
         # Report on object transfers
         self._logger.info(f"{n_transfers} transfers occurred")
 
         # Update run distributions and statistics
-        self.update_distributions_and_statistics(distributions, statistics)
+        self._update_distributions_and_statistics(distributions, statistics)
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

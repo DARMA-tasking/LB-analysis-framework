@@ -7,8 +7,7 @@ from ..Utils.logger import logger
 
 class WorkModelBase:
     __metaclass__ = abc.ABCMeta
-    """ An abstract base class of per-rank work model
-    """
+    """ An abstract base class of per-rank work model."""
 
     def __init__(self, parameters=None):
         """ Class constructor:

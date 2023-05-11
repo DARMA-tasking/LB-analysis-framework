@@ -74,15 +74,15 @@ class Visualizer:
         self.__logger.info(req_str)
 
         # Make sure that Phase instances were passed
-        if not all([isinstance(p, Phase) for p in phases]):
+        if not all([isinstance(p, Phase) for p in phases.values()]):
             self.__logger.error(
-                "Visualizer expects a list of Phase instances as input")
+                "Visualizer expects a dictionary of phases as input")
             raise SystemExit(1)
         self.__phases = phases
 
         # Ensure that all phases have the same number of ranks
-        n_r = phases[0].get_number_of_ranks()
-        if not all([p.get_number_of_ranks() == n_r for p in phases[1:]]):
+        n_r = next(iter(phases.values())).get_number_of_ranks()
+        if not all([p.get_number_of_ranks() == n_r for p in phases.values()]):
             self.__logger.error(
                 f"All phases must have {n_r} ranks as the first one")
             raise SystemExit(1)
@@ -105,7 +105,7 @@ class Visualizer:
             i: [(random.random() - 0.5) * object_jitter
                 if d in self.__rank_dims
                 else 0.0 for d in range(3)]
-            for i in self.__phases[0].get_object_ids()}
+            for i in next(iter(self.__phases.values())).get_object_ids()}
 
         # Initialize maximum object atrribute values
         self.__object_load_max = 0.0
@@ -118,14 +118,13 @@ class Visualizer:
         # Assemble file and path names from constructor parameters
         self.__rank_file_name = f"{output_file_stem}_rank_view.e"
         self.__object_file_name = f"{output_file_stem}_object_view"
-        self.__output_dir = output_dir
-        if self.__output_dir is not None:
+        if output_dir is not None:
             self.__rank_file_name = os.path.join(
-                self.__output_dir, self.__rank_file_name)
+                output_dir, self.__rank_file_name)
             self.__object_file_name = os.path.join(
-                self.__output_dir, self.__object_file_name)
+                output_dir, self.__object_file_name)
             self.__visualization_file_name = os.path.join(
-                self.__output_dir, output_file_stem)
+                output_dir, output_file_stem)
 
         # Retrieve and verify rank attribute distributions
         self.__rank_attributes = {
@@ -197,7 +196,7 @@ class Visualizer:
         oq_min, oq_max, oq_all, = math.inf, -math.inf, set()
 
         # Iterate over all phases
-        for phase in self.__phases:
+        for phase in self.__phases.values():
             # Iterate over all objects in phase
             for o in phase.get_objects():
                 # Update maximum object load as needed
@@ -474,7 +473,7 @@ class Visualizer:
     def __create_rendering_pipeline(
         self,
         iteration: int,
-        pid: int,
+        p_id: int,
         object_mesh,
         edge_width: int,
         glyph_factor: float,
@@ -624,7 +623,7 @@ class Visualizer:
         lb_data = self.__field_data["load imbalance"]
         text_actor = vtk.vtkTextActor()
         text_actor.SetInput(
-            f"Phase ID: {pid}"
+            f"Phase ID: {p_id}"
             f"   Iteration: {iteration}/{len(lb_data) - 1}\n"
             f"Load Imbalance: {lb_data[iteration].GetTuple1(0):.4g}")
         text_prop = text_actor.GetTextProperty()
@@ -740,25 +739,26 @@ class Visualizer:
                 self.__logger.warning(
                     f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
             else:
-                self.__logger.info(
-                    f"Writing ExodusII file: {self.__rank_file_name}")
                 writer = vtk.vtkExodusIIWriter()
                 writer.SetFileName(self.__rank_file_name)
                 writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
                 writer.WriteAllTimeStepsOn()
                 writer.Update()
+                self.__logger.info(
+                    f"Wrote ExodusII file: {self.__rank_file_name}")
 
         # Determine whether phase must be updated
         update_phase = True if len(
-            objects := self.__distributions.get("rank objects", set())
+            rank_objects := self.__distributions.get("rank objects", set())
             ) == len(self.__phases) else False
 
         # Iterate over all object distributions
-        phase = self.__phases[0]
-        for iteration, object_mapping in enumerate(objects):
+        phase = next(iter(self.__phases.values()))
+        phase_it = iter(self.__phases.values())
+        for iteration, object_mapping in enumerate(rank_objects):
             # Update phase when required
             if update_phase:
-                phase = self.__phases[iteration]
+                phase = next(phase_it)
 
             # Create object mesh when requested
             if self.__object_qoi:
@@ -767,11 +767,11 @@ class Visualizer:
                 # Write to VTP file when requested
                 if save_meshes:
                     file_name = f"{self.__object_file_name}_{iteration:02d}.vtp"
-                    self.__logger.info(f"Writing VTP file: {file_name}")
                     writer = vtk.vtkXMLPolyDataWriter()
                     writer.SetFileName(file_name)
                     writer.SetInputData(object_mesh)
                     writer.Update()
+                    self.__logger.info(f"Wrote VTP file: {file_name}")
             else:
                 object_mesh = None
 
@@ -815,9 +815,9 @@ class Visualizer:
 
                 # Output PNG file
                 file_name = f"{self.__visualization_file_name}_{iteration:02d}.png"
-                self.__logger.info(f"Writing PNG file: {file_name}")
                 writer = vtk.vtkPNGWriter()
                 writer.SetInputConnection(w2i.GetOutputPort())
                 writer.SetFileName(file_name)
                 writer.SetCompressionLevel(2)
                 writer.Write()
+                self.__logger.info(f"Wrote PNG file: {file_name}")

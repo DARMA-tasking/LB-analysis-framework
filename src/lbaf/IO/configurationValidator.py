@@ -64,12 +64,27 @@ class ConfigurationValidator:
                     str,
                     lambda d: d in ALLOWED_ALGORITHMS,
                     error=f"{get_error_message(ALLOWED_ALGORITHMS)} must be chosen"),
+                Optional("phase_id"): int,
                 Optional("parameters"): dict},
-            "output_file_stem": str,
+           "output_file_stem": str,
             "n_ranks": And(
                 int,
                 lambda x: x > 0,
                 error="Should be of type 'int' and > 0"),
+            Optional("brute_force_optimization"): bool,
+            Optional("overwrite_validator"): bool,
+            Optional("check_schema"): bool,
+            Optional("log_to_file"): str,
+            Optional("logging_level"): And(
+                str, Use(str.lower),
+                lambda f: f in ALLOWED_LOGGING_LEVELS,
+                error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
+            Optional("terminal_background"): And(
+                str,
+                Use(str.lower),
+                lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
+                error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
+            Optional("output_dir"): str,
             Optional("LBAF_Viz"): {
                 "x_ranks": And(
                     int, lambda x: x > 0,
@@ -87,22 +102,11 @@ class ConfigurationValidator:
                 Optional("object_qoi"): str,
                 Optional("force_continuous_object_qoi"): bool,
                 Optional("save_meshes"): bool},
-            Optional("brute_force_optimization"): bool,
-            Optional("overwrite_validator"): bool,
-            Optional("check_schema"): bool,
-            Optional("log_to_file"): str,
-            Optional("logging_level"): And(
-                str, Use(str.lower),
-                lambda f: f in ALLOWED_LOGGING_LEVELS,
-                error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
-            Optional("terminal_background"): And(
-                str,
-                Use(str.lower),
-                lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
-                error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
-            Optional("output_dir"): str,
-            Optional("write_vt"): bool,
-            Optional("file_suffix"): str
+            Optional("write_JSON"): {
+                "compressed": bool,
+                Optional("suffix"): str,
+                Optional("communications"): bool,
+                Optional("offline_LB_compatible"): bool},
         })
         self.__from_data = Schema(
             {"data_stem": str,
@@ -141,6 +145,7 @@ class ConfigurationValidator:
         self.__algorithm = {
             "InformAndTransfer": Schema(
                 {"name": "InformAndTransfer",
+                 "phase_id": int,
                  "parameters": {
                      "n_iterations": int,
                      "n_rounds": int,
@@ -162,6 +167,7 @@ class ConfigurationValidator:
                      "deterministic_transfer": bool}}),
             "BruteForce": Schema(
                 {"name": "BruteForce",
+                 "phase_id": int,
                  Optional("parameters"): {"skip_transfer": bool}}),
             "PhaseStepper": Schema(
                 {"name": "PhaseStepper"})}

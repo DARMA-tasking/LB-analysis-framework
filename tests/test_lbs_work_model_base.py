@@ -16,10 +16,10 @@ from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 class TestConfig(unittest.TestCase):
     def setUp(self):
         try:
-            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), 'data')
+            self.data_dir = os.path.join(f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-1]), "data")
             sys.path.append(self.data_dir)
         except Exception as e:
-            print(f"Can not add data path to system path! Exiting!\nERROR: {e}")
+            print(f"Can not add data path to system path. Exiting.\nERROR: {e}")
             raise SystemExit(1)
         self.logger = logging.getLogger()
 

@@ -3,6 +3,7 @@ from_data:
   data_stem: ../data/challenging_toy_hundreds_tasks/toy
   phase_ids:
     - 0
+check_schema: false
 
 # Specify work model
 work_model:
@@ -17,6 +18,7 @@ work_model:
 # Specify algorithm
 algorithm:
   name: InformAndTransfer
+  phase_id: 0
   parameters:
     n_iterations: 8
     n_rounds: 4
@@ -28,7 +30,6 @@ algorithm:
     deterministic_transfer: false
 
 # Specify output
-check_schema: false
 terminal_background: light
 output_dir: ../output
 output_file_stem: output_file
