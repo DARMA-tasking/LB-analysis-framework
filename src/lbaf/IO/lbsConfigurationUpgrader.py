@@ -99,7 +99,7 @@ class ConfigurationUpgrader:
         conf = None
         with open(file_path, "r", encoding="utf-8") as yaml_file:
             yaml_content = yaml_file.read()
-            conf =  yaml.safe_load(yaml_content)
+            conf = yaml.safe_load(yaml_content)
             node = conf
             for i, key in enumerate(key_path):
                 is_leaf = i == len(key_path)-1
@@ -125,8 +125,8 @@ class ConfigurationUpgrader:
                 # go next node in child tree
                 if is_leaf:
                     break
-                else:
-                    node=node[key]
+
+                node=node[key]
 
         with open(file_path, "w", encoding="utf-8") as yaml_file:
             added_keys = []
@@ -136,7 +136,7 @@ class ConfigurationUpgrader:
                 yaml_file.write(f"# Specify {section}\n")
                 for k in self.__sections[section]:
                     if k in conf.keys():
-                        value = conf[k]
+                        value = conf.get(k)
                         self.write_node(k, value, yaml_file)
                         added_keys.append(k)
             # process possible other nodes not defined in a specific section
@@ -155,7 +155,7 @@ class ConfigurationUpgrader:
                     yaml_file.write("\n")
                 yaml_file.write("# Other\n")
                 for k in intersect:
-                    value = conf[k]
+                    value = conf.get(k)
                     self.write_node(k, value, yaml_file)
                     added_keys.append(k)
 
