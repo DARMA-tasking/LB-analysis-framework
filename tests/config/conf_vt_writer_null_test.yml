@@ -17,6 +17,7 @@ work_model:
 # Specify balancing algorithm
 algorithm:
   name: InformAndTransfer
+  phase_id: 0
   parameters:
     n_iterations: 0
     n_rounds: 4
@@ -41,3 +42,9 @@ LBAF_Viz:
   #rank_qoi: load
   object_qoi: shared_block_id
   save_meshes: False
+
+write_JSON:
+  compressed: true
+  suffix: json
+  communications: true
+  offline_LB_compatible: true
