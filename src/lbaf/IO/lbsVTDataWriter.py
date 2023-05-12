@@ -12,8 +12,9 @@ from ..Utils.exception_handler import exc_handler
 
 class VTDataWriter:
     """A class to write load directives for VT as JSON files
-        Each file is named as <base-name>.<node>.out, where <node> spans the number
-        of MPI ranks that VT is utilizing.
+
+    Each file is named as <base-name>.<node>.out, where <node> spans the number
+    of MPI ranks that VT is utilizing.
     """
 
     def __init__(
@@ -22,10 +23,11 @@ class VTDataWriter:
         output_dir: str,
         stem: str,
         parameters: dict):
-        """ Class constructor:
-            phase: Phase instance
-            stem: file name stem
-            parameters: a dictionary of parameters
+        """Class constructor
+
+        :param phase: Phase instance
+        :param stem: file name stem
+        :param parameters: a dictionary of parameters
         """
 
         # Assign logger to instance variable
@@ -40,7 +42,7 @@ class VTDataWriter:
             self.__extension = parameters["json_output_suffix"]
             self.__compress = parameters["compressed"]
         except Exception as e:
-            self.__logger.error("Missing JSON writer configuration parameter(s): %s", e)
+            self.__logger.error(f"Missing JSON writer configuration parameter(s): {e}")
             sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
@@ -90,7 +92,7 @@ class VTDataWriter:
         if self.__compress:
             serial_json = brotli.compress(
                 string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
-        with open(file_name, "wb" if self.__compress else 'w') as json_file:
+        with open(file_name, "wb" if self.__compress else "w") as json_file:
             json_file.write(serial_json)
 
         # Return JSON file name
@@ -98,6 +100,7 @@ class VTDataWriter:
 
     def write(self, phases: dict):
         """ Write one JSON per rank for dictonary of phases."""
+
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
