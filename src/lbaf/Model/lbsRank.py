@@ -152,7 +152,7 @@ class Rank:
         return self.__migratable_objects.union(self.__sentinel_objects)
 
     def get_number_of_objects(self) -> int:
-        """ Return number of objects assigned to rank."""
+        """Return number of objects assigned to rank."""
         return len(self.__sentinel_objects) + len(self.__migratable_objects)
 
     def add_migratable_object(self, o: Object) -> None:

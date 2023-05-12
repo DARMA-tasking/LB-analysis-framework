@@ -101,6 +101,10 @@ class Object:
         """ Set object load."""
         self.__load = load
 
+    def set_load(self, load: float):
+        """ Set object load."""
+        self.__load = load
+
     def get_load(self) -> float:
         """Return object load"""
 

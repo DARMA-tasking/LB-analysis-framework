@@ -50,6 +50,7 @@ class InternalParameters:
         self.__logger = logger
 
         # Initialize and check configuration
+        # Initialize and check configuration
         self.validate_configuration(config)
         self.init_parameters(config, base_dir)
         self.check_parameters()
@@ -75,6 +76,7 @@ class InternalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
+        # Parse visualizer parameters when available
         # Parse visualizer parameters when available
         if (viz := config.get("LBAF_Viz")) is not None:
             # Retrieve mandatory visualization parameters
@@ -297,10 +299,23 @@ class Application:
         if self.__parameters.data_stem:
             # Populate phase from log files and store number of objects
             file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
+        # Create dictionary for phase instances
+        phases = {}
+
+        # Check schema
+        check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
+
+        # Populate phase depending on chosen mechanism
+        if self.__parameters.data_stem:
+            # Populate phase from log files and store number of objects
+            file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
 
             # Initializing reader
             if file_suffix is not None:
                 reader = LoadReader(
+                    file_prefix=self.__parameters.data_stem,
+                    n_ranks=self.__parameters.n_ranks,
+                    logger=self.__logger,
                     file_prefix=self.__parameters.data_stem,
                     n_ranks=self.__parameters.n_ranks,
                     logger=self.__logger,
@@ -311,8 +326,13 @@ class Application:
                     file_prefix=self.__parameters.data_stem,
                     n_ranks=self.__parameters.n_ranks,
                     logger=self.__logger,
+                    file_prefix=self.__parameters.data_stem,
+                    n_ranks=self.__parameters.n_ranks,
+                    logger=self.__logger,
                     check_schema=check_schema)
 
+            # Iterate over phase IDs
+            for phase_id in self.__parameters.phase_ids:
             # Iterate over phase IDs
             for phase_id in self.__parameters.phase_ids:
                 # Create a phase and populate it
@@ -320,7 +340,14 @@ class Application:
                     self.__logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
+                phase = Phase(
+                    self.__logger, phase_id, reader=reader)
+                phase.populate_from_log(phase_id)
+                phases[phase_id] = phase
         else:
+            # Pseudo-randomly populate a phase 0
+            phase_id = 0
+            phase = Phase(self.__logger, phase_id)
             # Pseudo-randomly populate a phase 0
             phase_id = 0
             phase = Phase(self.__logger, phase_id)
@@ -332,18 +359,31 @@ class Application:
                 self.__parameters.communication_degree,
                 self.__parameters.n_mapped_ranks)
             phases[phase_id] = phase
+                self.__parameters.n_ranks,
+                self.__parameters.n_objects,
+                self.__parameters.load_sampler,
+                self.__parameters.volume_sampler,
+                self.__parameters.communication_degree,
+                self.__parameters.n_mapped_ranks)
+            phases[phase_id] = phase
 
+        # Report on initial rank and edge statistics
+        initial_phase = phases[min(phases.keys())]
+        self.__print_statistics(initial_phase, "initial")
         # Report on initial rank and edge statistics
         initial_phase = phases[min(phases.keys())]
         self.__print_statistics(initial_phase, "initial")
 
         # Perform brute force optimization when needed
         if "brute_force_optimization" in self.__parameters.__dict__ and self.__parameters.algorithm["name"] != "BruteForce":
+        if "brute_force_optimization" in self.__parameters.__dict__ and self.__parameters.algorithm["name"] != "BruteForce":
             # Prepare input data for rank order enumerator
+            self.__logger.info("Starting brute force optimization")
             self.__logger.info("Starting brute force optimization")
             objects = []
 
             # Iterate over ranks
+            for rank in initial_phase.get_ranks():
             for rank in initial_phase.get_ranks():
                 for o in rank.get_objects():
                     entry = {
@@ -363,9 +403,13 @@ class Application:
             # Execute rank order enumerator and fetch optimal arrangements
             alpha, beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
+                self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
             n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
+                objects, alpha, beta, gamma, self.__parameters.n_ranks)
+            if n_a != self.__parameters.n_ranks ** len(objects):
+                self.__logger.error("Incorrect number of possible arrangements with repetition")
                 objects, alpha, beta, gamma, self.__parameters.n_ranks)
             if n_a != self.__parameters.n_ranks ** len(objects):
                 self.__logger.error("Incorrect number of possible arrangements with repetition")
@@ -373,16 +417,32 @@ class Application:
                 raise SystemExit(1)
             self.__logger.info(
                 f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+            self.__logger.info(
+                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
         else:
+            self.__logger.info("No brute force optimization performed")
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
+        # Instantiate runtime
         # Instantiate runtime
         runtime = Runtime(
             phases,
             self.__parameters.work_model,
             self.__parameters.algorithm,
+            self.__parameters.work_model,
+            self.__parameters.algorithm,
             a_min_max,
+            self.__logger,
+            self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
+            self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
+
+        # Execute runtime for specified phases, -1 for all phases
+        offline_LB_compatible = self.__parameters.json_params.get(
+            "offline_LB_compatible", False)
+        rebalanced_phase = runtime.execute(
+            self.__parameters.algorithm.get("phase_id", -1),
+            offline_LB_compatible)
             self.__logger,
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
@@ -427,21 +487,33 @@ class Application:
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
+        if self.__parameters.grid_size:
             # Look for prescribed QOI bounds
+            qoi_request = [self.__parameters.rank_qoi]
             qoi_request = [self.__parameters.rank_qoi]
             qoi_request.append(
                 self.__parameters.work_model.get(
+                self.__parameters.work_model.get(
                     "parameters").get(
                     "upper_bounds", {}).get(
+                    self.__parameters.rank_qoi))
+            qoi_request.append(self.__parameters.object_qoi)
                     self.__parameters.rank_qoi))
             qoi_request.append(self.__parameters.object_qoi)
 
             # Instantiate and execute visualizer
             visualizer = Visualizer(
                 self.__logger,
+            visualizer = Visualizer(
+                self.__logger,
                 qoi_request,
                 self.__parameters.continuous_object_qoi,
+                self.__parameters.continuous_object_qoi,
                 phases,
+                self.__parameters.grid_size,
+                self.__parameters.object_jitter,
+                self.__parameters.output_dir,
+                self.__parameters.output_file_stem,
                 self.__parameters.grid_size,
                 self.__parameters.object_jitter,
                 self.__parameters.output_dir,

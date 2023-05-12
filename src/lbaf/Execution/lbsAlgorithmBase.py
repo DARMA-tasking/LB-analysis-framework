@@ -205,7 +205,7 @@ class AlgorithmBase:
 
     @abc.abstractmethod
     def execute(self, p_id, phases, distributions, statistics, a_min_max):
-        """Excecute balancing algorithm on Phase instance
+        """ Excecute balancing algorithm on Phase instance
             p_id: index of phase to be rebalanced (all if equal to _)
             phases: list of Phase instances
             distributions: dictionary of load-varying variables

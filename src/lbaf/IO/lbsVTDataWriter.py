@@ -59,7 +59,7 @@ class VTDataWriter:
             for o in objects]
 
     def _json_writer(self, rank_phases_double) -> str:
-        """ Write one JSON per rank for list of phase instances."""
+        """Write one JSON per rank for list of phase instances."""
 
         # Unpack received double
         r_id, r_phases = rank_phases_double
