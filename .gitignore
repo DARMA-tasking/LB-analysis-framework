@@ -9,7 +9,7 @@ src/Applications/tcl
 /artifacts
 .tox
 /tests/.pytest_cache
-/output
+/tests/output
 .coverage
 .env
 /dist
