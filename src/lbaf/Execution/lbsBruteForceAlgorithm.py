@@ -9,11 +9,11 @@ from ..Utils.exception_handler import exc_handler
 
 
 class BruteForceAlgorithm(AlgorithmBase):
-    """ A concrete class for the brute force optimization algorithm
+    """A concrete class for the brute force optimization algorithm
     """
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
-        """ Class constructor
+        """Class constructor
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
             rank_qoi: rank QOI to track
@@ -28,7 +28,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         self._logger.info(f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
 
     def compute_arrangement_works(self, objects: tuple, arrangement: tuple) -> dict:
-        """ Return a dictionary with works of rank objects."""
+        """Return a dictionary with works of rank objects."""
 
         # Build object rank map from arrangement
         ranks = {}
@@ -71,7 +71,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         self._initialize(p_id, phases, distributions, statistics)
 
         # Prepare input data for rank order enumerator
-        self._logger.info(f"Starting brute force optimization")
+        self._logger.info("Starting brute force optimization")
         objects = []
 
         # Iterate over ranks

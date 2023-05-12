@@ -7,21 +7,23 @@ from ..Utils.exception_handler import exc_handler
 
 
 class PhaseStepperAlgorithm(AlgorithmBase):
-    """ A concrete class for the phase stepper non-optimzing algorithm."""
+    """A concrete class for the phase stepper non-optimzing algorithm."""
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
-        """ Class constructor
-            work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-            rank_qoi: rank QOI to track
-            object_qoi: object QOI to track."""
+        """Class constructor
 
+        :param work_model: a WorkModelBase instance
+        :param parameters: a dictionary of parameters
+        :param lgr: logger
+        :param rank_qoi: rank QOI to track
+        :param object_qoi: object QOI to track
+        """
         # Call superclass init
         super(PhaseStepperAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, _, phases: list, distributions: dict, statistics: dict, __):
-        """ Execute brute force optimization algorithm on all phases."""
+        """Execute brute force optimization algorithm on all phases."""
 
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
@@ -34,6 +36,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         # Iterate over all phases
         for p_id, self._rebalanced_phase in phases.items():
             # Step through current phase
+            self._logger.info(f"Stepping through phase {p_id}")
             self._logger.info(f"Stepping through phase {p_id}")
 
             # Compute and report phase rank work statistics

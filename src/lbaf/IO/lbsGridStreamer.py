@@ -1,8 +1,6 @@
-from logging import Logger
-
 import vtk
 
-from ..Utils.logger import logger
+from ..Utils.logging import get_logger, Logger
 
 
 class GridStreamer:
@@ -16,11 +14,11 @@ class GridStreamer:
         field_arrays: dict = {},
         point_arrays: list = [],
         cell_arrays: list = [],
-        lgr: Logger = None):
-        """ Class constructor. """
+        logger: Logger = None):
+        """Class constructor. """
 
         # Assign logger to instance variable
-        self.__logger = lgr
+        self.__logger = logger
 
         # Sanity checks
         self.Error = False
@@ -86,7 +84,7 @@ class GridStreamer:
             i = int(t_s)
             for f_name, f_list in field_arrays.items():
                 if n_steps != len(f_list):
-                    logger().error(
+                    get_logger().error(
                         f"Number of {f_name} arrays and data arrays do not match: {len(f_list)} <> {n_steps}")
                     self.Error = True
                     return
