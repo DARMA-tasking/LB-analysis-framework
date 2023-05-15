@@ -24,7 +24,10 @@ ignore=CVS
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
-ignore-paths=venv,venv39,tests,^src/lbaf/imported/.*$
+ignore-paths=venv,
+             venv39,
+             tests,
+             ^src/lbaf/imported/.*$
 
 # Files or directories matching the regex patterns are skipped. The regex
 # matches against base names, not paths.
@@ -86,7 +89,10 @@ disable=raw-checker-failed,
         useless-suppression,
         deprecated-pragma,
         use-symbolic-message-instead,
-        logging-fstring-interpolation
+        logging-fstring-interpolation,
+        missing-module-doctring,
+        missing-class-doctring,
+        protected-access
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

@@ -8,6 +8,7 @@ src/Applications/tcl
 /venv39
 /artifacts
 .tox
+/output
 /tests/.pytest_cache
 /tests/output
 .coverage
