@@ -1,20 +1,10 @@
 """A script to bulk upgrade LBAF configuration files"""
 import argparse
-import os
-import sys
 
-try:
-    project_dir = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    src_dir = f"{os.sep}".join([project_dir, "src"])
-    sys.path.append(src_dir)
-except Exception as ex:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {ex}")
-    raise SystemExit(1) from ex
+from lbaf import PROJECT_PATH
+from lbaf.Utils.logging import get_logger
+from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
 
-# pylint: disable=C0413
-from lbaf.Utils.logger import logger as get_logger
-from lbaf.IO.configurationUpgrader import ConfigurationUpgrader, UpgradeAction
-# pylint: enable=C0413
 
 # get and validate args
 parser = argparse.ArgumentParser()
@@ -55,7 +45,7 @@ upg_logger.info(
 upgrader = ConfigurationUpgrader(logger=upg_logger)
 upgrader.upgrade_all(
     pattern = args.pattern,
-    relative_to = project_dir,
+    relative_to = PROJECT_PATH,
     action=(UpgradeAction.ADD_KEY if args.add is not None else UpgradeAction.REMOVE_KEY),
     key=(args.add if args.add is not None else args.remove),
     value=args.value,

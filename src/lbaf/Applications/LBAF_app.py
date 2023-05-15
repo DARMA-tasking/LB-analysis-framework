@@ -1,117 +1,33 @@
-"""LBAF application module"""
+"""LBAF Application"""
+
 import argparse
 import os
 import sys
 import math
+from typing import cast, Any, Dict, Union
+
 import yaml
-from typing import cast, List, Dict, Any, Union, Tuple
 
-# Append lbaf to path
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    sys.path.append(project_path)
-except Exception as path_ex:
-    print(f"Can not add project path to system path. Exiting.\nERROR: {path_ex}")
-    raise SystemExit(1) from path_ex
+from lbaf import __version__, PROJECT_PATH
 
-#pylint: disable=C0411,C0413
-from lbaf import __version__
-from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logger import logger
-from lbaf.Utils.common import abspath_from
-from lbaf.Applications.schema_validator_loader import check_and_get_schema_validator
-#pylint: enable=C0411,C0413
-
-try:
-    import paraview.simple #pylint: disable=E0401,W0611
-except: #pylint: disable=W0702
-    pass
-
-def parse_args() -> str:
-    """Parse command line argument and resolve then return the input configuration file absolute path."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--configuration",
-        help="Path to the config file. If path is relative it must be resolvable from either the current working "
-            "directory or the config directory",
-        default="conf.yaml"
-    )
-    args = parser.parse_args()
-    path = None
-    if args.configuration:
-        # try to search the file from this place
-        path = os.path.abspath(args.configuration)
-        if path is not None and not os.path.isfile(path):
-            # try to search the file relative to the config folder
-            search_dir = os.path.join(
-                f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-4]),
-                "config"
-            )
-            path = search_dir + '/' + args.configuration
-    else:
-        sys.excepthook = exc_handler
-        raise FileNotFoundError("Please provide path to the config file with '--configuration' argument.")
-
-    if not os.path.isfile(path):
-        sys.excepthook = exc_handler
-        raise FileNotFoundError(
-            f"Configuration file not found at path {args.config}."
-            ' For relative paths, please make sure the file exists either in the current working directory or in'
-            'the `config` directory'
-        )
-    else:
-        logger().info(f"Found configuration file at path {path}")
-
-    return path
-
-def load_config(path: str)-> Tuple[dict, str]:
-    """Loads and validate configuration file and returns the configuration dict and the name of the configuration
-    directory"""
-    if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
-        # Try to open configuration file in read+text mode
-        try:
-            with open(path, "rt", encoding="utf-8") as file_io:
-                data = yaml.safe_load(file_io)
-                if not data.get('overwrite_validator', True):
-                    logger().info(
-                        f"Option 'overwrite_validator' in configuration file: {path} is set to False"
-                    )
-        except yaml.MarkedYAMLError as err:
-            err_line = err.problem_mark.line if err.problem_mark is not None else -1
-            logger().error(
-                f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
-            )
-            sys.excepthook = exc_handler
-            raise SystemExit(1) from err
-    else:
-        sys.excepthook = exc_handler
-        raise SystemExit(1)
-
-    return data, os.path.dirname(path)
-
-cfg, cfg_dir = {}, None
-if __name__ == "__main__":
-    # Parse input args
-    config_file = parse_args()
-    # Load configuration
-    cfg, cfg_dir = load_config(config_file)
-    # Download SchemaValidator script if overwrite
-    check_and_get_schema_validator(cfg.get("overwrite_validator", True))
-
-# Note that some of the following imports use the SchemaValidator so it is important that SchemaValidator
-# is loaded at that point
-# pylint: disable=C0412,C0413
+from lbaf.Applications import JSON_data_files_validator_loader
 from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
-from lbaf.Execution.lbsRuntime import Runtime
-from lbaf.IO.configurationValidator import ConfigurationValidator
+from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.path import abspath
+from lbaf.Utils.logging import get_logger, Logger
+import lbaf.IO.lbsStatistics as lbstats
+from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsVisualizer import Visualizer
-import lbaf.IO.lbsStatistics as lbstats
 from lbaf.Model.lbsPhase import Phase
-# pylint: enable=C0412,C0413
+from lbaf.Execution.lbsRuntime import Runtime
+
 
 class InternalParameters:
-    """Represent LBAF application parameters"""
+    """Represent the parameters used internally by a a LBAF Application"""
+
+    __logger: Logger
     n_ranks: int
     check_schema: bool
     output_dir: str
@@ -122,7 +38,6 @@ class InternalParameters:
     rank_qoi: Union[str,None]
     object_qoi: Union[str,None]
     grid_size: Union[list,None]
-    json_writer: Union[VTDataWriter,None]
 
     # from_samplers options
     n_objects: int
@@ -131,17 +46,8 @@ class InternalParameters:
     load_sampler: dict
     volume_sampler: dict
 
-    def __init__(self, config: dict, base_dir: str):
-        # init lbaf logger
-        lvl = cast(str, config.get("logging_level", "info"))
-        self.logger = logger(
-            name="lbaf",
-            level=lvl,
-            theme=config.get("terminal_background", None),
-            log_to_console=config.get("log_to_file", None) is None,
-            log_to_file=abspath_from(config.get("log_to_file", None), base_dir)
-        )
-        self.logger.info("Logging level: %s", lvl.lower())
+    def __init__(self, config: dict, base_dir: str, logger: Logger):
+        self.__logger = logger
 
         # Initialize and check configuration
         self.validate_configuration(config)
@@ -149,17 +55,18 @@ class InternalParameters:
         self.check_parameters()
 
         # Print startup information
-        self.logger.info(f"Executing LBAF version {__version__}")
-        svi = sys.version_info #pylint: disable=W0612
-        self.logger.info(f"Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
+        self.__logger.info(f"Executing LBAF version {__version__}")
+        svi = sys.version_info
+        self.__logger.info(f"Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
         ConfigurationValidator(
-            config_to_validate=config, logger=self.logger).main()
+            config_to_validate=config, logger=self.__logger).main()
 
     def init_parameters(self, config: dict, base_dir: str):
         """Execute when YAML configuration file was found and checked"""
+
         # Get top-level allowed configuration keys
         self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
 
@@ -178,14 +85,14 @@ class InternalParameters:
                 self.object_jitter = viz["object_jitter"]
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
-            except Exception as ex:
-                self.logger.error("Missing LBAF-Viz configuration parameter(s): {ex}")
+            except Exception as e:
+                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
                 sys.excepthook = exc_handler
-                raise SystemExit(1) from ex
+                raise SystemExit(1) from e
 
             # Verify grid size consistency
             if math.prod(self.grid_size) < self.n_ranks:
-                self.logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
+                self.__logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
 
@@ -203,9 +110,9 @@ class InternalParameters:
             # # get data directory (because data_stem includes file prefix)
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
-            data_dir = abspath_from(data_dir, base_dir)
+            data_dir = abspath(data_dir, relative_to=base_dir)
             self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
-            self.logger.info(f"Data stem: {self.data_stem}")
+            self.__logger.info(f"Data stem: {self.data_stem}")
             if isinstance(from_data.get("phase_ids"), str):
                 range_list = list(map(int, from_data.get("phase_ids").split('-')))
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
@@ -222,7 +129,7 @@ class InternalParameters:
             self.volume_sampler = from_samplers.get("volume_sampler")
 
         # Set output directory, local by default
-        self.output_dir = abspath_from(config.get("output_dir", '.'), base_dir)
+        self.output_dir = abspath(config.get("output_dir", '.'), relative_to=base_dir)
 
         # Parse JSON writer parameters when available
         self.json_params = {}
@@ -230,10 +137,10 @@ class InternalParameters:
             # Retrieve mandatory writer parameters
             try:
                 self.json_params["compressed"] = wrt_json["compressed"]
-            except Exception as ex:
-                self.logger.error("Missing JSON writer configuration parameter(s): %s", ex)
+            except Exception as e:
+                self.__logger.error("Missing JSON writer configuration parameter(s): %s", e)
                 sys.excepthook = exc_handler
-                raise SystemExit(1) from ex
+                raise SystemExit(1) from e
 
             # Retrieve optional parameters
             self.json_params[
@@ -246,72 +153,150 @@ class InternalParameters:
 
     def check_parameters(self):
         """Checks after initialization."""
+
         # Checking if output dir exists, if not, creating one
         if self.output_dir is not None:
             if not os.path.isdir(self.output_dir):
                 os.makedirs(self.output_dir)
 
-class LBAFApp:
+class Application:
     """LBAF application class."""
-    def __init__(self, config, base_dir):
-        # Instantiate parameters
-        self.__parameters = InternalParameters(config=config, base_dir=base_dir)
 
-        # Assign logger to variable
-        self.__logger = self.__parameters.logger
+    __logger: Logger
+    __parameters: InternalParameters
+    __json_writer: Union[VTDataWriter,None]
+
+    """LBAF application class."""
+    def __init__(self):
+        # Init logger to instance variable. Initially the root logger.
+        self.__logger = get_logger()
+
+    def __configure(self, path: str):
+        """Configure the application using the configuration file at the given path"""
+        if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
+            # Try to open configuration file in read+text mode
+            try:
+                with open(path, "rt", encoding="utf-8") as file_io:
+                    data = yaml.safe_load(file_io)
+                    if not data.get("overwrite_validator", True):
+                        self.__logger.info(
+                            f"Option 'overwrite_validator' in configuration file: {path} is set to False"
+                        )
+            except yaml.MarkedYAMLError as err:
+                err_line = err.problem_mark.line if err.problem_mark is not None else -1
+                self.__logger.error(
+                    f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
+                )
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from err
+        else:
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+
+        # Change logger (with parameters from the configuration data)
+        lvl = cast(str, data.get("logging_level", "info"))
+        config_dir = os.path.dirname(path)
+        log_to_file = data.get("log_to_file", None)
+        self.__logger = get_logger(
+            name="lbaf",
+            level=lvl,
+            theme=data.get("terminal_background", None),
+            log_to_console=data.get("log_to_console", None) is None,
+            log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
+        )
+        self.__logger.info(f"Logging level: {lvl.lower()}")
+        if log_to_file is not None:
+            self.__logger.info(f"Logging to file: {abspath(data.get('log_to_file'), relative_to=config_dir)}")
+
+        # Instantiate the application internal parameters
+        self.__parameters = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self.__logger)
 
         # Create VT writer except when explicitly turned off
-        self.json_writer = VTDataWriter(
+        self.__json_writer = VTDataWriter(
             self.__logger,
             self.__parameters.output_dir,
             self.__parameters.output_file_stem,
             self.__parameters.json_params) if self.__parameters.json_params else None
 
-    def __print_statistics(self, phase: Phase, phase_name: str):
-        """Print a set of rank and edge statistics"""
+        return data
 
-        # Print rank statistics
-        l_stats = lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_load(),
-            f"{phase_name} rank load",
-            self.__logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_max_object_level_memory(),
-            f"{phase_name} rank object-level memory",
-            self.__logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_size(),
-            f"{phase_name} rank working memory",
-            self.__logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_shared_memory(),
-            f"{phase_name} rank shared memory",
-            self.__logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_max_memory_usage(),
-            f"{phase_name} maximum memory usage",
-            self.__logger)
+    def __get_config_path(self)-> str:
+        """Find the config file from the '-configuration' command line argument and returns its absolute path
+        (if configuration file path is relative it is searched in the current working directory and at the end in the
+        {PROJECT_PATH}/config directory)
 
-        # Print edge statistics
-        lbstats.print_function_statistics(
-            phase.get_edge_maxima().values(),
-            lambda x: x,
-            f"{phase_name} sent volumes",
-            self.__logger)
+        :raises FileNotFoundError: if configuration file cannot be found
+        """
 
-        # Return rank load statistics
-        return l_stats
+        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser.add_argument("-c", "--configuration",
+            help="Path to the config file. If path is relative it must be resolvable from either the current working "
+                "directory or the config directory",
+            default=None
+        )
+        args = parser.parse_args()
+        path = None
+        path_list = []
 
-    def main(self):
-        """LBAFApp entrypoint to run"""
+        if args.configuration is None:
+            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+            "working directory or in the project config directory !")
+            args.configuration = "conf.yaml"
+
+        # search config file in the current working directory if relative
+        path = abspath(args.configuration)
+        path_list.append(path)
+        if (
+            path is not None and
+            not os.path.isfile(path) and
+            not os.path.isabs(args.configuration) and PROJECT_PATH is not None
+        ):
+            # then search config file relative to the config folder
+            search_dir = abspath("config", relative_to=PROJECT_PATH)
+            path = search_dir + '/' + args.configuration
+            path_list.append(path)
+
+        if not os.path.isfile(path):
+            sys.excepthook = exc_handler
+            error_message = "The configuration file cannot be found at\n"
+            for invalid_path in path_list:
+                error_message += " " + invalid_path + " -> not found\n"
+            error_message += (
+                "If you provide a relative path, please verify that the file exists relative to the "
+                "current working directory or to the `config` directory"
+            )
+            raise FileNotFoundError(error_message)
+        else:
+            self.__logger.info(f"Found configuration file at path {path}")
+
+        return path
+
+    def run(self):
+        """Runs the LBAF application"""
+        # Find configuration file absolute path
+        config_file = self.__get_config_path()
+
+        # Apply configuration
+        cfg = self.__configure(config_file)
+
+        # Download JSON data files validator (JSON data files validator is required to continue)
+        JSON_data_files_validator_loader.load(cfg.get("overwrite_validator", True))
+        if not JSON_data_files_validator_loader.is_loaded():
+            raise RuntimeError("The JSON data files validator must be loaded to run the application")
+
         # Initialize random number generator
         lbstats.initialize()
 
+        # Create dictionary for phase instances
+        phases = {}
+
+        # Check schema
+        check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
+
+        # Populate phase depending on chosen mechanism
+        if self.__parameters.data_stem:
+            # Populate phase from log files and store number of objects
+            file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
         # Create dictionary for phase instances
         phases = {}
 
@@ -345,8 +330,11 @@ class LBAFApp:
                     self.__logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
+                phase = Phase(
+                    self.__logger, phase_id, reader=reader)
+                phase.populate_from_log(phase_id)
+                phases[phase_id] = phase
         else:
-            # Pseudo-randomly populate a phase 0
             phase_id = 0
             phase = Phase(self.__logger, phase_id)
             phase.populate_from_samplers(
@@ -420,7 +408,7 @@ class LBAFApp:
             offline_LB_compatible)
 
         # Instantiate phase to VT file writer when requested
-        if self.json_writer:
+        if self.__json_writer:
             if offline_LB_compatible:
                 # Add rebalanced phase when present
                 if not rebalanced_phase:
@@ -444,10 +432,10 @@ class LBAFApp:
                 # Write all phases
                 self.__logger.info(
                     f"Writing all ({len(phases)}) phases for offline load-balancing")
-                self.json_writer.write(phases)
+                self.__json_writer.write(phases)
             else:
                 self.__logger.info(f"Writing single phase {phase_id} to JSON files")
-                self.json_writer.write(
+                self.__json_writer.write(
                     {phase_id: rebalanced_phase})
 
         # Generate meshes and multimedia when requested
@@ -484,12 +472,51 @@ class LBAFApp:
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
-                    "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
+                    "imbalance.txt"), "w", encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
 
+    def __print_statistics(self, phase: Phase, phase_name: str):
+        """Print a set of rank and edge statistics"""
+
+        # Print rank statistics
+        l_stats = lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_load(),
+            f"{phase_name} rank load",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            f"{phase_name} rank object-level memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_size(),
+            f"{phase_name} rank working memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_shared_memory(),
+            f"{phase_name} rank shared memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            f"{phase_name} maximum memory usage",
+            self.__logger)
+
+        # Print edge statistics
+        lbstats.print_function_statistics(
+            phase.get_edge_maxima().values(),
+            lambda x: x,
+            f"{phase_name} sent volumes",
+            self.__logger)
+
+        # Return rank load statistics
+        return l_stats
 
 if __name__ == "__main__":
-    LBAFApp(config=cfg, base_dir=cfg_dir).main()
+    Application().run()

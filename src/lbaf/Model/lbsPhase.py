@@ -1,6 +1,7 @@
 import sys
 import random as rnd
 from logging import Logger
+from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -10,24 +11,25 @@ from .lbsObjectCommunicator import ObjectCommunicator
 from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import logger
+from ..Utils.logging import get_logger
 
 
 class Phase:
-    """ A class representing a phase of objects distributed across ranks."""
+    """A class representing a phase of objects distributed across ranks."""
+
     def __init__(
         self,
         lgr: Logger,
         p_id: int = 0,
         reader: LoadReader = None):
-        """ Class constructor
+        """Class constructor
             logger: a Logger instance
             id: an integer indexing the phase ID
             reader: a JSON VT reader instance"""
 
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
-            logger().error(
+            get_logger().error(
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
@@ -51,11 +53,13 @@ class Phase:
         self.__phase_id = p_id
 
     def get_id(self):
-        """ Retrieve index of this phase."""
+        """Retrieve index of this phase."""
+
         return self.__phase_id
 
     def get_number_of_ranks(self):
-        """ Retrieve number of ranks belonging to phase."""
+        """Retrieve number of ranks belonging to phase."""
+
         return len(self.__ranks)
 
     def set_ranks(self, ranks: list):
@@ -63,27 +67,34 @@ class Phase:
         self.__ranks = ranks
 
     def get_ranks(self):
-        """ Retrieve ranks belonging to phase."""
+        """Retrieve ranks belonging to phase."""
+
         return self.__ranks
 
     def get_rank_ids(self):
-        """ Retrieve IDs of ranks belonging to phase."""
-        return [r.get_id() for r in self.__ranks]
+        """Retrieve IDs of ranks belonging to phase."""
+
+        return [p.get_id() for p in self.__ranks]
 
     def get_number_of_objects(self):
-        """ Return number of objects."""
+        """Return number of objects."""
+
         return sum([r.get_number_of_objects() for r in self.__ranks])
 
     def get_objects(self):
-        """ Return all objects belonging to phase."""
-        # List comprehension is not possible as set-to-list concatenation is needed
+
+        """Return all objects belonging to phase."""
+
+        # List comprehension is not possible as we need to use set to list concatenation
         objects = []
         for r in self.__ranks:
             objects += r.get_objects()
         return objects
 
     def get_object_ids(self):
-        """ Return IDs of all objects belonging to phase."""
+
+        """Return IDs of all objects belonging to phase."""
+
         # List comprehension is not possible as we need to use set to list concatenation
         ids = []
         for r in self.__ranks:
@@ -91,7 +102,8 @@ class Phase:
         return ids
 
     def compute_edges(self):
-        """ Compute and return dict of communication edge IDs to volumes."""
+        """Compute and return dict of communication edge IDs to volumes."""
+
         # Compute or re-compute edges from scratch
         self.__logger.info("Computing inter-rank communication edges")
         self.__edges = {}
@@ -152,7 +164,8 @@ class Phase:
             v_total, self.__logger)
 
     def get_edges(self):
-        """ Retrieve communication edges of phase. """
+        """Retrieve communication edges of phase. """
+
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -161,7 +174,8 @@ class Phase:
         return self.__edges
 
     def get_edge_maxima(self):
-        """ Reduce directed edges into undirected with maximum."""
+        """Reduce directed edges into undirected with maximum."""
+
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -170,7 +184,8 @@ class Phase:
         return {k: max(v) for k, v in self.__edges.items()}
 
     def get_largest_volumes(self):
-        """ Return largest directed volumes from undirected ones."""
+        """Return largest directed volumes from undirected ones."""
+
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -179,7 +194,8 @@ class Phase:
         return [max(v) for v in self.__edges.values()]
 
     def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
-        """ Convenience method to update or create directed edge with given volume."""
+        """Convenience method to update or create directed edge with given volume."""
+
         # Create undidrected edge index and try to retrieve edge
         e_id = frozenset([from_id, to_id])
         edge = self.__edges.get(e_id)
@@ -204,7 +220,8 @@ class Phase:
             del self.__edges[e_id]
 
     def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
-        """ Update inter-rank communication edges before object transfer."""
+        """Update inter-rank communication edges before object transfer."""
+
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -256,7 +273,7 @@ class Phase:
                 self.__update_or_create_directed_edge(oth_id, dst_id, +v)
 
     def populate_from_samplers(self, n_ranks, n_objects, t_sampler, v_sampler, c_degree, n_r_mapped=0):
-        """ Use samplers to populate either all or n ranks in a phase."""
+        """Use samplers to populate either all or n ranks in a phase."""
 
         # Retrieve desired load sampler with its theoretical average
         load_sampler, sampler_name = sampler(t_sampler.get("name"), t_sampler.get("parameters"), self.__logger)
@@ -361,7 +378,7 @@ class Phase:
             self.__logger.debug(f"{p.get_id()} <- {p.get_object_ids()}")
 
     def populate_from_log(self, phase_id):
-        """ Populate this phase by reading in a load profile from log files."""
+        """Populate this phase by reading in a load profile from log files."""
         # Populate phase with JSON reader output
         self.__ranks = self.__reader.populate_phase(phase_id)
         objects = set()
@@ -377,7 +394,8 @@ class Phase:
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
-        """ Transfer object from source to destination rank."""
+        """Transfer object from source to destination rank."""
+
         # Keep track of object ID for convenience
         o_id = o.get_id()
 
@@ -431,8 +449,12 @@ class Phase:
             b_dst.attach_object_id(o_id)
             o.set_shared_block(b_dst)
 
-    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: list=[]):
-        """ Transfer list of objects between source and destination ranks."""
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = None):
+        """Transfer list of objects between source and destination ranks."""
+
+        if not o_dst:
+            o_dst = []
+
         # Transfer objects from source to destination
         for o in o_src:
             self.transfer_object(r_src, o, r_dst)
@@ -442,7 +464,7 @@ class Phase:
 
         # Transfer objects back from destination to source
         for o in o_dst:
-            self.transfer_object(r_dst, o, r_src)
+            self.transfer_object(r_dst, o, r_src) # pylint:disable=W1114:arguments-out-of-order
         n_transfers += (n_reverse := len(o_dst))
         if n_reverse:
             self.__logger.debug(

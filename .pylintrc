@@ -24,7 +24,7 @@ ignore=CVS
 
 # Add files or directories matching the regex patterns to the ignore-list. The
 # regex matches against paths and can be in Posix or Windows format.
-ignore-paths=venv
+ignore-paths=venv,venv39,tests,^src/lbaf/imported/.*$
 
 # Files or directories matching the regex patterns are skipped. The regex
 # matches against base names, not paths.
@@ -201,12 +201,13 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=i,
-           j,
-           k,
-           v,
-           o,
-           ex,
+good-names=i, # loop variable
+           j, # loop variable
+           k, # loop variable
+           v, # loop variable
+           o, # simple object in loop
+           s,
+           e, # exception
            Run,
            _
 
@@ -232,7 +233,7 @@ method-naming-style=snake_case
 #method-rgx=
 
 # Naming style matching correct module names.
-module-naming-style=snake_case
+module-naming-style=any
 
 # Regular expression matching correct module names. Overrides module-naming-
 # style.
@@ -293,7 +294,7 @@ single-line-if-stmt=no
 
 # The type of string formatting that logging methods do. `old` means using %
 # formatting, `new` is for `{}` formatting.
-logging-format-style=old
+logging-format-style=new
 
 # Logging modules to check that the string format arguments are in logging
 # function parameter format.
@@ -395,7 +396,7 @@ ignore-on-opaque-inference=yes
 # List of class names for which member attributes should not be checked (useful
 # for classes with dynamically set attributes). This supports the use of
 # qualified names.
-ignored-classes=optparse.Values,thread._local,_thread._local
+ignored-classes=optparse.Values,thread._local,_thread._local,lbaf.IO.lbsStatistics.Statistics
 
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
@@ -493,7 +494,7 @@ exclude-too-few-public-methods=
 ignored-parents=
 
 # Maximum number of arguments for function / method.
-max-args=5
+max-args=7
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=7

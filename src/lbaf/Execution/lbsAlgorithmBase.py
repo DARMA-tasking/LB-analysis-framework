@@ -1,59 +1,62 @@
 import abc
 import sys
-from logging import Logger
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import logger
+from ..Utils.logging import get_logger, Logger
 
 
 class AlgorithmBase:
-    __metaclass__ = abc.ABCMeta
-    """ An abstract base class of load/work balancing algorithms."""
+    """An abstract base class of load/work balancing algorithms."""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
-        """ Class constructor:
+    __metaclass__ = abc.ABCMeta
+
+    _work_model: WorkModelBase
+    _logger: Logger
+
+    def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger, rank_qoi: str, object_qoi: str):
+        """Class constructor:
             work_model: a WorkModelBase instance
             parameters: a dictionary of parameters
             rank_qoi: rank QOI to track
             object_qoi: object QOI to track."""
 
         # Assert that a logger instance was passed
-        if not isinstance(lgr, Logger):
-            lgr().error(
-                f"Incorrect type {type(lgr)} passed instead of Logger instance")
+        if not isinstance(logger, Logger):
+            get_logger().error(
+                f"Incorrect type {type(logger)} passed instead of Logger instance")
             sys.excepthook = exc_handler
             raise SystemExit(1)
-        self._logger = lgr
+        self._logger = logger
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            lgr.error("Could not create an algorithm without a work model")
+            self._logger.error("Could not create an algorithm without a work model")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self._work_model = work_model
 
         # Assert that a parameters dict was passed
         if not isinstance(parameters, dict):
-            lgr.error("Could not create an algorithm without a dictionary of parameters")
+            self._logger.error("Could not create an algorithm without a dictionary of parameters")
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
-            lgr.error("Could not create an algorithm with non-string rank QOI name")
+            self._logger.error("Could not create an algorithm with non-string rank QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__rank_qoi = rank_qoi
         if object_qoi and not isinstance(object_qoi, str):
-            lgr.error("Could not create an algorithm with non-string object QOI name")
+            self._logger.error("Could not create an algorithm with non-string object QOI name")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__object_qoi = object_qoi
-        lgr.info(
+        self._logger.info(
             f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")
 
         # Initially no phase is assigned for processing
@@ -70,7 +73,7 @@ class AlgorithmBase:
                 "number of communication edges": "cardinality",
                 "maximum largest directed volume": "maximum",
                 "total largest directed volume": "sum"},
-            ("ranks", lambda x: self._work_model.compute(x)): {
+            ("ranks", lambda x: self._work_model.compute(x)): { #pylint:disable=W0108
                 "minimum work": "minimum",
                 "maximum work": "maximum",
                 "total work": "sum",
@@ -88,12 +91,14 @@ class AlgorithmBase:
         lgr: Logger,
         rank_qoi: str,
         object_qoi:str):
-        """ Instantiate the necessary concrete algorithm."""
+        """Instantiate the necessary concrete algorithm."""
 
         # Load up available algorithms
+        # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
+        # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
         algorithm = locals()[algorithm_name + "Algorithm"]
@@ -102,14 +107,14 @@ class AlgorithmBase:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
             return algorithm(work_model, parameters, lgr, rank_qoi, object_qoi)
-        except:
+        except Exception as e:
             # Otherwise, error out
             lgr.error(f"Could not create an algorithm with name {algorithm_name}")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise SystemExit(1) from e
 
     def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
-        """ Compute and update run distributions and statistics."""
+        """Compute and update run distributions and statistics."""
 
         # Create or update distributions of object quantities of interest
         for object_qoi_name in tuple({"load", self.__object_qoi}):
@@ -141,7 +146,7 @@ class AlgorithmBase:
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
     def _report_final_mapping(self, logger):
-        """ Report final rank object mapping in debug mode."""
+        """Report final rank object mapping in debug mode."""
 
         for rank in self._rebalanced_phase.get_ranks():
             logger.debug(f"Rank {rank.get_id()}:")

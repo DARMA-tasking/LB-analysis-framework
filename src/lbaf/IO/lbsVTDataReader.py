@@ -7,7 +7,6 @@ import sys
 
 import brotli
 
-from ..imported.JSON_data_files_validator import SchemaValidator
 from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
@@ -16,10 +15,12 @@ from ..Utils.exception_handler import exc_handler
 
 
 class LoadReader:
-    """ A class to read VT Object Map files. These json files could be compressed with Brotli.
+    """A class to read VT Object Map files. These json files could be compressed with Brotli.
         Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
         The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
+
+    SCHEMA_VALIDATOR_CLASS = None
 
     CommCategory = {
         "SendRecv": 1,
@@ -46,6 +47,11 @@ class LoadReader:
 
         # Assign schema checker
         self.__check_schema = check_schema
+
+        # imported JSON_data_files_validator module (lazy import)
+        if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
+            from ..imported.JSON_data_files_validator import SchemaValidator as sv # pylint:disable=C0415:import-outside-toplevel
+            LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
         # Load vt data concurrently
         self.__vt_data = {}
@@ -96,13 +102,13 @@ class LoadReader:
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
-            if SchemaValidator(
+            if LoadReader.SCHEMA_VALIDATOR_CLASS(
                 schema_type=schema_type).is_valid(
                 schema_to_validate=decompressed_dict):
                 self.__logger.info(f"Valid JSON schema in {file_name}")
             else:
                 self.__logger.error(f"Invalid JSON schema in {file_name}")
-                SchemaValidator(
+                LoadReader.SCHEMA_VALIDATOR_CLASS(
                     schema_type=schema_type).validate(
                     schema_to_validate=decompressed_dict)
 
