@@ -4,7 +4,10 @@ import os
 import subprocess
 import sys
 import unittest
+from typing import Any
 
+
+from schema import Optional
 import brotli
 import yaml
 from lbaf import PROJECT_PATH
@@ -13,13 +16,6 @@ from lbaf.Applications.JSON_data_files_validator_loader import load as load_sche
 load_schema()
 from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
-
-def mydata_hook(obj):
-    obj_d = dict(obj)
-    if 'Id' in obj_d:
-        return {'Id': obj_d['Id'], 'mydata': {k: v for k, v in obj_d.items() if 'Id' not in k}}
-    else:
-        return obj_d
 
 class TestVTDataWriter(unittest.TestCase):
     """Test class for VTDataWriter"""
@@ -52,39 +48,78 @@ class TestVTDataWriter(unittest.TestCase):
         )
         return proc
 
-    def __sort_data(self, data):
+    def __find_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
+        opt_nodes = []
+
+        if isinstance(nodes, list):
+            for item in nodes:
+                opt_nodes += self.__find_optional_keys_recursive(item, dot_path)
+            return opt_nodes
+
+        # Key & node
+        if isinstance(nodes, dict):
+            for key, item in nodes.items():
+                key_as_string = key if isinstance(key, str) else key.schema
+                if isinstance(key, Optional):
+                    opt_nodes.append(dot_path + key_as_string)
+                else:
+                    opt_nodes += self.__find_optional_keys_recursive(item, dot_path + key_as_string + '.')
+        return opt_nodes
+
+    def __remove_optional_keys_recursive(self, data: dict, optional_keys: list, dot_path: str = ''):
+        to_delete = []
+        for key, value in data.items():
+            if dot_path + key in optional_keys and data.get(key) is not None:
+                to_delete.append(key)
+            elif isinstance(value, dict):
+                self.__remove_optional_keys_recursive(value, optional_keys, dot_path + key + ".")
+            elif isinstance(value, list):
+                for item in value:
+                    self.__remove_optional_keys_recursive(item, optional_keys, dot_path + key + ".")
+
+        for k in to_delete:
+            del data[k]
+
+    def __sort_data_recursive(self, data) -> dict:
+        # sort keys
+        if isinstance(data, dict):
+            dict_keys = list(data.keys())
+            dict_keys.sort()
+            sorted_data = {i: data[i] for i in dict_keys}
+            data = sorted_data
+            # sort elements by id in a list of objects if id key exists
+            for key, item in data.items():
+                data[key] = self.__sort_data_recursive(item)
+        elif isinstance(data, list):
+            if isinstance(data[0], dict) and "id" in data[0]:
+                sorted_list = sorted(data, key=lambda item: item.get("id"))
+                data = sorted_list
+            # if list recursive sort children
+            sorted_data = []
+            for item in data:
+                sorted_data.append(self.__sort_data_recursive(item))
+            data = sorted_data
+        return data
+
+    def __sort_phases_by_entity_id(self, data):
+        """Specific sort required because phases might be ordered differently"""
         phases = data.get('phases')
         if phases is not None:
-            phases = sorted(phases, key=lambda item: item.get('id'))
             for phase in phases:
                 tasks = phase.get('tasks')
                 if phase.get("tasks") is not None:
-                    tasks = sorted(tasks, key=lambda item: item.get('entity').get('id'))
-                    for task in tasks:
-                        entity = task['entity']
-                        entity_keys = list(entity.keys())
-                        entity_keys.sort()
-                        task['entity'] = {i: entity[i] for i in entity_keys}
-                    phase['tasks'] = tasks
+                    phase['tasks'] = sorted(tasks, key=lambda item: item.get('entity').get('id'))
             data['phases'] = phases
 
-    def __remove_non_applicable_keys_from_input_data(self, data):
-        del data['type']
-        phases = data.get('phases')
-        if phases is not None:
-            for phase in phases:
-                tasks = phase.get('tasks')
-                if phase.get("tasks") is not None:
-                    for task in tasks:
-                        entity = task['entity']
-                        del entity['index']
-                        del entity['collection_id']
-                        del task['user_defined']
-                    phase['tasks'] = tasks
-            data['phases'] = phases
-
-    def __remove_non_applicable_keys_from_output_data(self, data):
-        del data['metadata']
+    def __read_data_file(self, file_path):
+        with open(file_path, "rb") as compr_json_file:
+            compr_bytes = compr_json_file.read()
+            try:
+                decompr_bytes = brotli.decompress(compr_bytes)
+                decompressed_dict = json.loads(decompr_bytes.decode("utf-8")) # , object_pairs_hook=OrderedDict
+            except brotli.error:
+                decompressed_dict = json.loads(compr_bytes.decode("utf-8")) # , object_pairs_hook=OrderedDict
+        return decompressed_dict
 
     def test_vt_writer_null_test_valid_output(self):
         """run LBAF with a null test"""
@@ -113,44 +148,46 @@ class TestVTDataWriter(unittest.TestCase):
             # validate file has been written
             self.assertTrue(
                 os.path.isfile(output_file),
-                f'File {output_file} not generated at {output_dir}')
-
-            # retrieve generated content
-            input_file_content = ""
-            with open(input_file, "rt", encoding="utf-8") as input_file_io:
-                input_file_content = input_file_io.read()
-                input_dict = json.loads(input_file_content) # , object_pairs_hook=OrderedDict
-            with open(output_file, "rb") as output_file_io:
-                compr_bytes = output_file_io.read()
-                try:
-                    output_file_content = brotli.decompress(compr_bytes)
-                    output_dict = json.loads(output_file_content.decode("utf-8")) # , object_pairs_hook=OrderedDict
-                except brotli.error:
-                    output_dict = json.loads(compr_bytes.decode("utf-8")) # , object_pairs_hook=OrderedDict
-
-            # remove some keys in input not written by the vt writer ?
-            self.__remove_non_applicable_keys_from_input_data(input_dict)
-            # remove non comparable key ? (meta vs type)
-            self.__remove_non_applicable_keys_from_output_data(output_dict)
-
-            # sort phases and entities by id ?
-            self.__sort_data(input_dict)
-            self.__sort_data(output_dict)
-
-            # validate output against the JSON schema validator
-            self.assertTrue(
-                SchemaValidator(schema_type="LBDatafile").is_valid(schema_to_validate=output_dict),
-                f"Invalid JSON schema in {output_file_name}"
+                f'File {output_file} not generated at {output_dir}'
             )
 
+            # retrieve generated content
+            input_data = self.__read_data_file(input_file)
+            output_data = self.__read_data_file(output_file)
+
+            # validate output against the JSON schema validator
+            schema_validator = SchemaValidator(schema_type="LBDatafile")
+            self.assertTrue(
+                schema_validator.validate(output_data),
+                f"Schema not valid for generated file at {output_file_name}"
+            )
+
+            # find optional nodes
+            opt_keys = self.__find_optional_keys_recursive(schema_validator.valid_schema.schema)
+
+            # remove optional nodes from input and output data
+            self.__remove_optional_keys_recursive(input_data, opt_keys)
+            self.__remove_optional_keys_recursive(output_data, opt_keys)
+
+            # sort dictionaries and lists of elements by id
+            input_data = self.__sort_data_recursive(input_data)
+            output_data = self.__sort_data_recursive(output_data)
+
+            self.__sort_phases_by_entity_id(input_data)
+            self.__sort_phases_by_entity_id(output_data)
+
+
             print(f"-------------------------------{input_file_name}-----------------------------------")
-            print(json.dumps(input_dict, indent=4, sort_keys = True, ))
+            print(json.dumps(input_data, indent=4))
             print(f"-------------------------------{output_file_name}----------------------------------")
-            print(json.dumps(output_dict, indent=4, sort_keys = True))
+            print(json.dumps(output_data, indent=4))
             print("-----------------------------------------------------------------------")
 
             self.maxDiff = None
-            self.assertDictEqual(input_dict, output_dict)
+            self.assertDictEqual(input_data, output_data)
+
+            # or this also works to compare directly data
+            # self.assertEqual(json.dumps(input_data, indent=4), json.dumps(output_data, indent=4))
 
 
 if __name__ == "__main__":
