@@ -22,8 +22,9 @@ jobs:
 
       - name: Install packages
         run: |
-          apt-get update && apt-get upgrade -y
-          apt-get install -y git xvfb libxrender1
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
+          sudo apt-get install -y git xvfb libxrender1
 
       - name: Python Setup
         uses: actions/setup-python@v4
