@@ -46,15 +46,16 @@ class VTDataWriter:
             sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
-    def __create_tasks(self, rank_id, objects):
+    def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
 
         return [{
             "entity": {
                 "home": rank_id,
                 "id": o.get_id(),
+                "migratable": migratable,
                 "type": "object",
-                "migratable": True},
+            },
             "node": rank_id,
             "resource": "cpu",
             "time": o.get_load()}
@@ -83,8 +84,8 @@ class VTDataWriter:
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data = {"id": p_id}
             phase_data["tasks"] = self.__create_tasks(
-                r_id, r.get_migratable_objects()) + self.__create_tasks(
-                r_id, r.get_sentinel_objects())
+                r_id, r.get_migratable_objects(), migratable=True) + self.__create_tasks(
+                r_id, r.get_sentinel_objects(), migratable=False)
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
