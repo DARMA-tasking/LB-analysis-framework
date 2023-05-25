@@ -25,8 +25,8 @@ jobs:
           sudo apt-get update -y
           sudo apt-get upgrade -y
           sudo apt-get install -y git xvfb libxrender1
-          sudo export DISPLAY=:99.0
-          sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          export DISPLAY=:99.0
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
       - name: Python Setup
         uses: actions/setup-python@v4
