@@ -1,4 +1,4 @@
-"""Tests for the VT Writer"""
+"""Tests for the VTDataWriter class"""
 import json
 import os
 import subprocess
