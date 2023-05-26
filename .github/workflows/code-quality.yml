@@ -17,16 +17,15 @@ jobs:
     env:
       deploy_badges_src_branch: develop
       deploy_badges_dst_branch: deploy-badges
-      DISPLAY: :99.0
     steps:
       - uses: actions/checkout@v3
 
       - name: Install packages
         run: |
           sudo apt-get update -y
-          sudo apt-get upgrade -y
-          sudo apt-get install -y git xvfb libxrender1
-          sudo Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          sudo apt-get install -y git xvfb
+          Xvfb :19 -screen 0 1024x768x16 &
+          export DISPLAY=:19
 
       - name: Python Setup
         uses: actions/setup-python@v4
