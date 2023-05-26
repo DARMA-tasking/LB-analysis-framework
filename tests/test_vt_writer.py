@@ -125,7 +125,8 @@ class TestVTDataWriter(unittest.TestCase):
     def test_vt_writer_required_fields_output(self):
         """Run LBAF using a PhaseStepper algorithm and test that output is same than input data files
         (required fields only).
-        dict keys order or elements order are allowed to be be different in the output from this test.
+        Note that the dictionary keys and list of elements can be ordered differently in the input and in the output
+        data.
         """
 
         # run LFAF using a PhaseStepper
