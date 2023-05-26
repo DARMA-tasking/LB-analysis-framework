@@ -18,21 +18,16 @@ from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
 
 class TestVTDataWriter(unittest.TestCase):
-    """Test class for VTDataWriter"""
-
-    output_dir: str
+    """Test class for VTDataWriter class"""
 
     def setUp(self):
-        self.output_dir = os.path.join(PROJECT_PATH, 'output', 'vt_writer_null_test')
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+        return
 
     def tearDown(self):
-        # shutil.rmtree(self.output_dir)
         return
 
     def _run_lbaf(self, config_file) -> subprocess.CompletedProcess:
-        """Run lbaf as a subprocess"""
+        """Run lbaf as a subprocess with the given configuration file (path)"""
 
         lbaf_path = os.path.join(PROJECT_PATH, 'src', 'lbaf', 'Applications', 'LBAF_app.py')
         proc = subprocess.run(
@@ -48,12 +43,13 @@ class TestVTDataWriter(unittest.TestCase):
         )
         return proc
 
-    def __find_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
+    def __list_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
+        """List optional keys as some dot path notation"""
         opt_nodes = []
 
         if isinstance(nodes, list):
             for item in nodes:
-                opt_nodes += self.__find_optional_keys_recursive(item, dot_path)
+                opt_nodes += self.__list_optional_keys_recursive(item, dot_path)
             return opt_nodes
 
         # Key & node
@@ -63,7 +59,7 @@ class TestVTDataWriter(unittest.TestCase):
                 if isinstance(key, Optional):
                     opt_nodes.append(dot_path + key_as_string)
                 else:
-                    opt_nodes += self.__find_optional_keys_recursive(item, dot_path + key_as_string + '.')
+                    opt_nodes += self.__list_optional_keys_recursive(item, dot_path + key_as_string + '.')
         return opt_nodes
 
     def __remove_optional_keys_recursive(self, data: dict, optional_keys: list, dot_path: str = ''):
@@ -81,6 +77,8 @@ class TestVTDataWriter(unittest.TestCase):
             del data[k]
 
     def __sort_data_recursive(self, data) -> dict:
+        """Sort dict by keys and also sort lists by element id if available. Recursive."""
+
         # sort keys
         if isinstance(data, dict):
             dict_keys = list(data.keys())
@@ -102,7 +100,8 @@ class TestVTDataWriter(unittest.TestCase):
         return data
 
     def __sort_phases_by_entity_id(self, data):
-        """Specific sort required because phases might be ordered differently"""
+        """Sort phases by entity ids (required to compare input and output data files)"""
+
         phases = data.get('phases')
         if phases is not None:
             for phase in phases:
@@ -112,6 +111,8 @@ class TestVTDataWriter(unittest.TestCase):
             data['phases'] = phases
 
     def __read_data_file(self, file_path):
+        """Get uncompressed data file content"""
+
         with open(file_path, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
             try:
@@ -121,37 +122,47 @@ class TestVTDataWriter(unittest.TestCase):
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8")) # , object_pairs_hook=OrderedDict
         return decompressed_dict
 
-    def test_vt_writer_null_test_valid_output(self):
-        """run LBAF with a null test"""
+    def test_vt_writer_required_fields_output(self):
+        """Run LBAF using a PhaseStepper algorithm and test that output is same than input data files
+        (required fields only).
+        dict keys order or elements order are allowed to be be different in the output from this test.
+        """
 
-        config_file = os.path.join(os.path.dirname(__file__), 'config', 'conf_vt_writer_null_test.yml')
+        # run LFAF using a PhaseStepper
+        config_file = os.path.join(os.path.dirname(__file__), 'config', 'conf_vt_writer_stepper_test.yml')
         proc = self._run_lbaf(config_file)
         self.assertEqual(0, proc.returncode)
 
-        # check output
+        # LBAF config useful information
         with open(config_file, "rt", encoding="utf-8") as file_io:
             config = yaml.safe_load(file_io)
         data_stem = config.get('from_data').get('data_stem')
-        input_dir = f"{os.sep}".join(data_stem.split(os.sep)[:-1])
-        input_dir = abspath(input_dir, os.path.dirname(config_file))
+
+        # input information
+        input_dir = abspath(f"{os.sep}".join(data_stem.split(os.sep)[:-1]), os.path.dirname(config_file))
         input_file_prefix = data_stem.split(os.sep)[-1]
         n_ranks = len([name for name in os.listdir(input_dir)])
-        output_file_prefix = config.get('output_file_stem')
-        output_dir = abspath(config.get("output_dir", '.'), os.path.dirname(config_file))
 
+        # output information
+        output_dir = abspath(config.get("output_dir", '.'), os.path.dirname(config_file))
+        output_file_prefix = config.get('output_file_stem')
+
+        # compare input/output files (at each rank)
         for i in range(0, n_ranks):
             input_file_name = f"{input_file_prefix}.{i}.json"
             input_file = os.path.join(input_dir, input_file_name)
             output_file_name = f"{output_file_prefix}.{i}.json"
             output_file = os.path.join(output_dir, output_file_name)
 
-            # validate file has been written
+            print(f"[{__loader__.name}] Compare input file ({input_file_name}) and output file ({output_file_name})...")
+
+            # validate that output file exists at rank i
             self.assertTrue(
                 os.path.isfile(output_file),
                 f'File {output_file} not generated at {output_dir}'
             )
 
-            # retrieve generated content
+            # read input and output files
             input_data = self.__read_data_file(input_file)
             output_data = self.__read_data_file(output_file)
 
@@ -162,31 +173,30 @@ class TestVTDataWriter(unittest.TestCase):
                 f"Schema not valid for generated file at {output_file_name}"
             )
 
-            # find optional nodes
-            opt_keys = self.__find_optional_keys_recursive(schema_validator.valid_schema.schema)
-
-            # remove optional nodes from input and output data
+            # compare input & output data
+            # > find optional nodes
+            opt_keys = self.__list_optional_keys_recursive(schema_validator.valid_schema.schema)
+            # > remove optional nodes from input and output data
             self.__remove_optional_keys_recursive(input_data, opt_keys)
             self.__remove_optional_keys_recursive(output_data, opt_keys)
-
-            # sort dictionaries and lists of elements by id
+            # > sort dictionaries and lists of elements by id
             input_data = self.__sort_data_recursive(input_data)
             output_data = self.__sort_data_recursive(output_data)
-
+            # > sort phases by inner entity id
             self.__sort_phases_by_entity_id(input_data)
             self.__sort_phases_by_entity_id(output_data)
 
-
+            # uncomment to see complete data file contents (uncompressed)
             # print(f"-------------------------------{input_file_name}-----------------------------------")
             # print(json.dumps(input_data, indent=4))
             # print(f"-------------------------------{output_file_name}----------------------------------")
             # print(json.dumps(output_data, indent=4))
             # print("-----------------------------------------------------------------------")
 
-            self.maxDiff = None
+            self.maxDiff = None # to remove diff limit if self.assertDictEqual returns large diffs
             self.assertDictEqual(input_data, output_data)
 
-            # or this also works to compare directly data
+            # the following is an assert alternative to compare json encoded data instead of dictionaries
             # self.assertEqual(json.dumps(input_data, indent=4), json.dumps(output_data, indent=4))
 
 

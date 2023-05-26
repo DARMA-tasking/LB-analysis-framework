@@ -29,7 +29,7 @@ algorithm:
 
 # Specify output
 terminal_background: light
-output_dir: ../output/vt_writer_null_test
+output_dir: ../output/vt_writer_stepper_test
 output_file_stem: output_file
 n_ranks: 32
 
