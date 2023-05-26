@@ -6,7 +6,6 @@ from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class TestConfig(unittest.TestCase):
-
     def setUp(self):
         self.logger = logging.getLogger()
         self.subphases = [
