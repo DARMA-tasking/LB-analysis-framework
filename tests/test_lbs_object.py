@@ -4,6 +4,7 @@ import unittest
 from lbaf.Model.lbsObject import Object
 from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 
+
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
