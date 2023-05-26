@@ -177,11 +177,11 @@ class TestVTDataWriter(unittest.TestCase):
             self.__sort_phases_by_entity_id(output_data)
 
 
-            print(f"-------------------------------{input_file_name}-----------------------------------")
-            print(json.dumps(input_data, indent=4))
-            print(f"-------------------------------{output_file_name}----------------------------------")
-            print(json.dumps(output_data, indent=4))
-            print("-----------------------------------------------------------------------")
+            # print(f"-------------------------------{input_file_name}-----------------------------------")
+            # print(json.dumps(input_data, indent=4))
+            # print(f"-------------------------------{output_file_name}----------------------------------")
+            # print(json.dumps(output_data, indent=4))
+            # print("-----------------------------------------------------------------------")
 
             self.maxDiff = None
             self.assertDictEqual(input_data, output_data)

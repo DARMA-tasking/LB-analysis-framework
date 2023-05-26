@@ -32,15 +32,6 @@ terminal_background: light
 output_dir: ../output/vt_writer_null_test
 output_file_stem: output_file
 n_ranks: 32
-LBAF_Viz:
-  x_ranks: 8
-  y_ranks: 4
-  z_ranks: 1
-  object_jitter: 0.5
-  rank_qoi: work
-  object_qoi: load
-  save_meshes: true
-  force_continuous_object_qoi: true
 
 write_JSON:
   compressed: true
