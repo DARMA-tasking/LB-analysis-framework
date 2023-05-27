@@ -1,12 +1,23 @@
 {
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintPath": "${workspaceFolder}/venv/bin/pylint",
+    "python.linting.ignorePatterns": [
+        "**/site-packages/**/*.py",
+        ".vscode/*.py"
+    ],
     "pylint.args": [
         "--rcfile=${workspaceFolder}/.pylintrc"
     ],
-    "python.linting.ignorePatterns": [
-        "**/site-packages/**/*.py",
-        ".vscode/*.py",
-        "**/tests/**/*.py",
+    "pylint.importStrategy": "fromEnvironment",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./tests",
+        "-p",
+        "test*.py"
     ],
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+
+    "python.testing.unittestEnabled": true,
+    "python.testing.pytestEnabled": false
 }
