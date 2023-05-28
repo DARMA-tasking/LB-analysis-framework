@@ -82,7 +82,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         r.set_known_load(r, r.get_load())
 
         # Create load message tagged at first round
-        msg = Message(1, r.get_known_loads())
+        msg = Message(1, {
+            "loads": r.get_known_loads()})
 
         # Broadcast message to pseudo-random sample of ranks excluding self
         return random.sample(
@@ -91,7 +92,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def __forward_message(self, i: int, r: Rank, loads: set, f:int):
         """Forward information message to sample of selected peers."""
         # Create load message tagged at given information round
-        msg = Message(i, r.get_known_loads())
+        msg = Message(i, {
+            "loads": r.get_known_loads()})
 
         # Compute complement of set of known peers
         complement = set(r.get_known_loads()).difference([r])
@@ -102,8 +104,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def __process_message(self, r: Rank, msg: Message):
         """Update internals when message is received."""
-        # Update load information
-        r.get_known_loads().update(msg.get_content())
+        # Update loads known by recipient
+        r.get_known_loads().update(msg.get_content()["loads"])
 
     def __information_stage(self):
         """Execute information stage."""
@@ -139,7 +141,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Forward messages for as long as necessary and requested
         for i in range(1, self.__n_rounds):
-            # Initiate next gossiping round
+            # Initiate next information round
             self._logger.debug(f"Performing message forwarding round {i}")
             messages.clear()
 
@@ -161,12 +163,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.debug(
                     f"information known to rank {p.get_id()}: "
                     f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
-
-        # Build reverse lookup of ranks to those aware of them
-        for p in rank_set:
-            # Skip non-loaded ranks
-            if not p.get_load():
-                continue
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
         """ Execute 2-phase gossip+transfer algorithm on Phase with index p_id."""
