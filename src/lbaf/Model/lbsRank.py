@@ -1,11 +1,9 @@
 import sys
 import copy
 import math
-import random as rnd
 from logging import Logger
 
 from .lbsBlock import Block
-from .lbsMessage import Message
 from .lbsObject import Object
 from ..Utils.exception_handler import exc_handler
 
@@ -43,16 +41,12 @@ class Rank:
         # No information about peers is known initially
         self.__known_loads = {}
 
-        # No message was received initially
-        self.round_last_received = 0
-
     def copy(self, rank):
         """ Specialized copy method."""
 
         # Copy all flat member variables
         self.__index = rank.get_id()
         self.__size = rank.get_size()
-        self.round_last_received = rank.round_last_received
 
         # Shallow copy owned objects
         self.__shared_blocks = copy.copy(rank.__shared_blocks)
@@ -194,8 +188,8 @@ class Rank:
         """Return loads of peers know to self."""
         return self.__known_loads
 
-    def add_known_load(self, rank):
-        """Make rank known to self if not already known."""
+    def set_known_load(self, rank: "Rank", l: float):
+        """Set load of peer known to self."""
         self.__known_loads.setdefault(rank, rank.get_load())
 
     def get_targets(self) -> list:
@@ -287,43 +281,6 @@ class Rank:
         """Reset all load information known to self."""
         # Reset information about known peers
         self.__known_loads = {}
-
-    def initialize_message(self, loads: set, f: int):
-        """Initialize message to be sent to selected peers."""
-        # Retrieve current load on this rank
-        l = self.get_load()
-
-        # Make rank aware of own load
-        self.__known_loads[self] = l
-
-        # Create load message tagged at first round
-        msg = Message(1, self.__known_loads)
-
-        # Broadcast message to pseudo-random sample of ranks excluding self
-        return rnd.sample(list(loads.difference([self])), min(f, len(loads) - 1)), msg
-
-    def forward_message(self, r, s, f):
-        """Forward information message to sample of selected peers."""
-        # Create load message tagged at current round
-        msg = Message(r, self.__known_loads)
-
-        # Compute complement of set of known peers
-        complement = set(self.__known_loads).difference([self])
-
-        # Forward message to pseudo-random sample of ranks
-        return rnd.sample(list(complement), min(f, len(complement))), msg
-
-    def process_message(self, msg):
-        """Update internals when message is received."""
-        # Assert that message has the expected type
-        if not isinstance(msg, Message):
-            self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
-
-        # Update load information
-        self.__known_loads.update(msg.get_content())
-
-        # Update last received message index
-        self.round_last_received = msg.get_round()
 
     def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: dict, strict=False):
         """Compute CMF for the sampling of transfer targets."""
