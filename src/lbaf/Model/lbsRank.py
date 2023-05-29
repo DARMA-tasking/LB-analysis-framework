@@ -192,16 +192,14 @@ class Rank:
         """Set load of peer known to self."""
         self.__known_loads.setdefault(rank, rank.get_load())
 
-    def get_targets(self) -> list:
+    def get_targets(self) -> set:
         """Return list of potential targets for object transfers."""
         # No potential targets for loadless ranks
         if not self.get_load() > 0.:
-            return []
+            return set()
 
         # Remove self from list of targets
-        targets = self.get_known_loads()
-        del targets[self]
-        return targets
+        return {t for t in self.get_known_loads() if t != self} 
 
     def remove_migratable_object(self, o: Object, r_dst: "Rank"):
         """Remove migratable able object from self object sent to peer."""
@@ -282,14 +280,14 @@ class Rank:
         # Reset information about known peers
         self.__known_loads = {}
 
-    def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: dict, strict=False):
+    def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: set, strict=False):
         """Compute CMF for the sampling of transfer targets."""
         # Initialize criterion values
         c_values = {}
         c_min, c_max = math.inf, -math.inf
 
         # Iterate over potential targets
-        for r_dst in targets.keys():
+        for r_dst in targets:
             # Compute value of criterion for current target
             c_dst = transfer_criterion.compute(self, objects, r_dst)
 

@@ -106,7 +106,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             n_swaps = 0
             for o_src in clusters_src.values():
                 swapped_cluster = False
-                for r_try in targets.keys():
+                for r_try in targets:
                     # Iterate over target clusters
                     for o_try in self.__cluster_objects(r_try).values():
                         # Decide whether swap is beneficial
@@ -144,7 +144,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     l_dst = math.inf
 
                     # Select best destination with respect to criterion
-                    for r_try in targets.keys():
+                    for r_try in targets:
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
                         if c_try <= 0.0:

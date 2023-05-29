@@ -97,7 +97,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
                     # Select best destination with respect to criterion
-                    for r_try in targets.keys():
+                    for r_try in targets:
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
                         if c_try > c_dst:
