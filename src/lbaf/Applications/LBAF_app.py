@@ -99,12 +99,6 @@ class InternalParameters:
 
             # Retrieve optional parameters
             self.save_meshes = viz.get("save_meshes", False)
-
-            if self.save_meshes and sys.version_info.major == 3 and sys.version_info.minor == 9:
-                self.__logger.error("save_meshes=True. Not supported with Python 3.9")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-
             self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
         else:
             # No visualization quantities of interest
