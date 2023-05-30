@@ -199,7 +199,7 @@ class Rank:
             return set()
 
         # Remove self from list of targets
-        return {t for t in self.get_known_loads() if t != self} 
+        return {t for t in self.get_known_loads() if t != self}
 
     def remove_migratable_object(self, o: Object, r_dst: "Rank"):
         """Remove migratable able object from self object sent to peer."""
