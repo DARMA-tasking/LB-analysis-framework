@@ -6,6 +6,7 @@ from logging import Formatter
 from typing import Union, List, Dict
 from .colors import red, green, cyan, yellow
 
+
 LOGGING_LEVEL = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
@@ -31,16 +32,19 @@ class CustomFormatter(Formatter):
         logging.ERROR: red
     }
 
-    _formatters: Dict[int,Formatter] = {}
+    _raw_formatter: None
+    _color_formatters: Dict[int,Formatter] = {}
     _format:Union[FORMAT_BASIC, FORMAT_EXTENDED]
+    _colored: bool = False
 
-    def __init__(self, frmt: str):
+    def __init__(self, frmt: str, colored: bool = False):
         super(CustomFormatter, self).__init__()
 
         if not frmt in FORMATS:
             formats = str.join(', ', FORMATS)
             raise ValueError(f"Invalid format. Supported are {formats}")
 
+        self._colored = colored
         self._format = frmt
         self._init_formatters()
 
@@ -53,17 +57,29 @@ class CustomFormatter(Formatter):
         if self._format == "extended":
             formats = { "prefix": "%(levelname)s [%(module)s.%(funcName)s()] ", "message": "msg:[%(message)s]" }
 
-        frmttr = {}
         # create inner formatter for each log level
-        for level, colorizer in self.LOGGING_LEVEL_COLORS.items():
-            frmttr[level] = colorizer(formats.get("prefix")) + formats.get("message")
-
-        for level, fmt in frmttr.items():
-            self._formatters[level] = Formatter(fmt)
+        if self._colored:
+            for level, colorizer in self.LOGGING_LEVEL_COLORS.items():
+                self._color_formatters[level] = Formatter(
+                    colorizer(formats.get("prefix")) + formats.get("message")
+                )
+        # or create raw formatter to use at any level
+        else:
+            self._raw_formatter = Formatter(formats.get("prefix") + formats.get("message"))
 
     def format(self, record):
-        formatter = self._formatters[record.levelno if record.levelno in self.LOGGING_LEVEL_COLORS else logging.INFO]
+        formatter = None
+        if self._colored:
+            formatter = self._color_formatters[
+                record.levelno
+                    if record.levelno in self.LOGGING_LEVEL_COLORS
+                    else logging.INFO
+            ]
+        else:
+            formatter = self._raw_formatter
         return formatter.format(record)
+
+l = {}
 
 def get_logger(
         name: str = "root",
@@ -75,12 +91,19 @@ def get_logger(
     """Return a new or an existing logger"""
 
     # return from cache if logger already created
-    logger = logging.Logger.manager.loggerDict.get(name)
-    if logger is not None:
-        return logger
+    # logger = logging.Logger.manager.loggerDict.get(name)
+    # if logger is not None:
+    #     return logger
+    if name in l:
+        return l[name]
+
+    print("Init logger " + name + "...")
 
     # init new logger
     logger = logging.getLogger(name)
+    # index logger for future usage
+    l[name] = logger
+
     logging.getLogger().handlers.clear() # clear default handlers
     if level is not None:
         logger.setLevel(level.upper())
@@ -97,7 +120,8 @@ def get_logger(
         handlers.append(logging.StreamHandler())
     for handler in handlers:
         handler.setLevel(logger.level)
-        handler.setFormatter(CustomFormatter(frmt))
+        # use color formatter only if console
+        handler.setFormatter(CustomFormatter(frmt, colored=isinstance(handler, logging.StreamHandler)))
         logger.addHandler(handler)
 
     return logger
