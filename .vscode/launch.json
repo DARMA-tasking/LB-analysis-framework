@@ -5,8 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "lbaf:run",
+            "name": "lbaf:run (Python3.8)",
             "python": "${workspaceFolder}/venv/bin/python",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/lbaf/__init__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [ "--configuration", "conf.yaml"  ]
+        },
+        {
+            "name": "lbaf:run (Python3.9)",
+            "python": "${workspaceFolder}/venv39/bin/python",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/lbaf/__init__.py",
