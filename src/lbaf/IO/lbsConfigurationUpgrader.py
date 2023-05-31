@@ -122,6 +122,10 @@ class ConfigurationUpgrader:
                     file_comment = file_comment + line
                 else:
                     break # reach 1st not commented line and non-empty line = end of file comment
+
+            if file_comment is not None:
+                file_comment = file_comment.strip() # removes potential eol at the end
+
             yaml_file.seek(0)
 
             yaml_content = yaml_file.read()
@@ -156,7 +160,7 @@ class ConfigurationUpgrader:
 
         with open(file_path, "w", encoding="utf-8") as yaml_file:
             if file_comment is not None:
-                yaml_file.write(file_comment)
+                yaml_file.write(file_comment + "\n")
 
             added_keys = []
             for section in self.__sections:
