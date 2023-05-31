@@ -20,7 +20,7 @@
 #   parameters: [dict]         optional parameters specific to each work model
 # algorithm                    balancing algorithm to be used
 #   name [str]                 in InformAndTransfer, BruteForce, PhaseStepper
-#   parameters: [dict]         parameters specitic to each algorithm:
+#   parameters: [dict]         parameters specific to each algorithm:
 #     InformAndtransfer:       InformAndtransfer algorithm parameters
 #       criterion [str]        in Tempered (default), StrictLocalizer
 #       n_iterations [int]     number of load-balancing iterations
@@ -38,14 +38,14 @@
 # log_to_file [str]            filepath to save the log file (optional)
 # output_dir [str]             output directory (default: '.')
 # LBAF_Viz:
-#   x_ranks: 2                 number of ranks in x direction for rank visualization
-#   y_ranks: 2                 number of ranks in y direction for rank visualization
-#   z_ranks: 1                 number of ranks in z direction for rank visualization
-#   object_jitter: 0.5
-#   rank_qoi: work
-#   object_qoi: load
+#   x_ranks [int]              number of ranks in x direction for rank visualization
+#   y_ranks [int]              number of ranks in y direction for rank visualization
+#   z_ranks: [int]             number of ranks in z direction for rank visualization
+#   object_jitter [float]      coefficient of random jitter with magnitude < 1
+#   rank_qoi [str]
+#   object_qoi [str]
 #   save_meshes: [bool]        generate mesh outputs (default: False)
-#   force_continuous_object_qoi [bool]
+#   force_continuous_object_qoi [bool] always treat object QOI as continuous or not
 # file_suffix [str]            file suffix of VT data files (default: "json")
 # communication_degree [int]   object communication degree (no communication if 0)
 # write_JSON:                  write load directives for VT as JSON files
