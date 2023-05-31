@@ -185,7 +185,7 @@ class ConfigurationUpgrader:
                 yaml_file.write("# Other\n")
                 for k in intersect:
                     value = conf.get(k)
-                    self.write_node(k, _alue, yaml_file)
+                    self.write_node(k, value, yaml_file)
                     added_keys.append(k)
 
         self.__logger.debug("File has been successfully upgraded")
