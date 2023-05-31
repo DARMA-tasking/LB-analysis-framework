@@ -42,8 +42,8 @@
 #   y_ranks [int]              number of ranks in y direction for rank visualization
 #   z_ranks: [int]             number of ranks in z direction for rank visualization
 #   object_jitter [float]      coefficient of random jitter with magnitude < 1
-#   rank_qoi [str]
-#   object_qoi [str]
+#   rank_qoi [str]             in load, work, None
+#   object_qoi [str]           in load, work, None
 #   save_meshes: [bool]        generate mesh outputs (default: False)
 #   force_continuous_object_qoi [bool] always treat object QOI as continuous or not
 # file_suffix [str]            file suffix of VT data files (default: "json")
