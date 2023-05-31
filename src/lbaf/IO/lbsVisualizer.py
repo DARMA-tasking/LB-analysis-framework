@@ -735,7 +735,7 @@ class Visualizer:
             if sys.version_info.major == 3 and sys.version_info.minor == 9:
                 self.__logger.error(
                     "Cannot save meshes when using Python 3.9 (issue with vtk 9.1.0). "
-                    "Please use Python 3.8 (vtk 9.0.1) to save meshes."
+                    "Please use Python 3.8 (vtk 9.0.1)."
                 )
                 raise SystemExit(1)
 

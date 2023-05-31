@@ -29,7 +29,6 @@ ALLOWED_ALGORITHMS = (
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
-ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
 def get_error_message(iterable_collection: tuple) -> str:
@@ -80,11 +79,6 @@ class ConfigurationValidator:
                 str, Use(str.lower),
                 lambda f: f in ALLOWED_LOGGING_LEVELS,
                 error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
-            Optional("terminal_background"): And(
-                str,
-                Use(str.lower),
-                lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
-                error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
             Optional("LBAF_Viz"): {
                 "x_ranks": And(
