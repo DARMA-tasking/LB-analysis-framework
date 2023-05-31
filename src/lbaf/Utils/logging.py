@@ -15,7 +15,9 @@ LOGGING_LEVEL = {
 }
 
 FORMAT_BASIC = "basic"
+""""%(levelname)s [%(module)s.%(funcName)s()] %(message)s"""
 FORMAT_EXTENDED = "extended"
+""""%(levelname)s [%(module)s.%(funcName)s()] [%(message)s]"""
 FORMATS = [ FORMAT_BASIC, FORMAT_EXTENDED ]
 
 # Logger type alias
@@ -23,7 +25,12 @@ Logger = logging.Logger
 """Logger class"""
 
 class CustomFormatter(Formatter):
-    """Custom color formatter class defining a color by logging level for log message prefix """
+    """Formatter able to write colored logs
+    Colors are used to colorize log meta information such as
+    - the calling module name
+    - the caling function name (available with 'extended' format only)
+    - logging level (available with 'extended' format only)
+    """
 
     LOGGING_LEVEL_COLORS = {
         logging.DEBUG: yellow,
@@ -38,7 +45,7 @@ class CustomFormatter(Formatter):
     _colored: bool = False
 
     def __init__(self, frmt: str, colored: bool = False):
-        super(CustomFormatter, self).__init__()
+        super().__init__()
 
         if not frmt in FORMATS:
             formats = str.join(', ', FORMATS)
@@ -79,7 +86,7 @@ class CustomFormatter(Formatter):
             formatter = self._raw_formatter
         return formatter.format(record)
 
-l = {}
+loggers = {}
 
 def get_logger(
         name: str = "root",
@@ -94,24 +101,29 @@ def get_logger(
     # logger = logging.Logger.manager.loggerDict.get(name)
     # if logger is not None:
     #     return logger
-    if name in l:
-        return l[name]
+    if name in loggers:
+        return loggers[name]
 
     print("Init logger " + name + "...")
 
     # init new logger
     logger = logging.getLogger(name)
-    # index logger for future usage
-    l[name] = logger
-
-    logging.getLogger().handlers.clear() # clear default handlers
     if level is not None:
         logger.setLevel(level.upper())
+
+    # index logger for future usage
+    loggers[name] = logger
+
+    # clear default handlers
+    logging.getLogger().handlers.clear()
+
+    # init log directory if logging to file
     if log_to_file is not None:
         logs_dir = f"{os.sep}".join(log_to_file.split(os.sep)[:-1])
         if not os.path.isdir(logs_dir):
             os.makedirs(logs_dir)
-    # initialize handlers only once
+
+    # initialize handlers
     handlers = logger.handlers
     handlers = [] #type: List[logging.Handler]
     if isinstance(log_to_file, str):
