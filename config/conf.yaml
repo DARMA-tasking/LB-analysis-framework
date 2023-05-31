@@ -1,6 +1,20 @@
 # Docs
 # parameter_name [type]        description
 # ---------------------------  -----------------------------------------------------------------------
+# from_data:
+#   data_stem: [str]           base file name of VT load logs
+#   phase_ids: [list or str]   list of ids of phase to be read in VT load logs e.g. [1, 2, 3] or "1-3"
+# from_samplers:
+#   n_objects [int]            number of objects
+#   n_mapped_ranks [int]       number of initially mapped processors
+#   communication_degree [int] object communication degree (no communication if 0)
+#   load_sampler               description of object load sampler:
+#     name [str]               in uniform, lognormal
+#     parameters [list]        parameters e.g. 1.0,10.0 for lognormal
+#   volume_sampler             description of object communication volumes sampler:
+#     name [str]               in uniform, lognormal
+#     parameters [list]        parameters e.g. 1.0,10.0 for lognormal
+# check_schema: [bool]         validates that configuration is valid with the configuration schema
 # work_model                   work model to be used
 #   name [str]                 in LoadOnly, AffineCombination
 #   parameters: [dict]         optional parameters specific to each work model
@@ -22,26 +36,18 @@
 #      PhaseStepper            PhaseStepper algorithm parameters
 # logging_level [str]          set to `info`, `debug`, `warning` or `error`
 # log_to_file [str]            filepath to save the log file (optional)
-# x_procs [int]                number of procs in x direction for rank visualization
-# y_procs [int]                number of procs in y direction for rank visualization
-# z_procs [int]                number of procs in z direction for rank visualization
-# data_stem [str]              base file name of VT load logs
-# phase_ids [list or str]      list of ids of phase to be read in VT load logs e.g. [1, 2, 3] or "1-3"
-# map_file [str]               base file name for VT object/proc mapping
-# file_suffix [str]            file suffix of VT data files (default: "json")
 # output_dir [str]             output directory (default: '.')
-# terminal_background [str]    background color for terminal output
-# generate_meshes [bool]       generate mesh outputs (default: False)
-# generate_multimedia [bool]   generate multimedia visualization (default: False)
-# n_objects [int]              number of objects
-# n_mapped_ranks [int]         number of initially mapped processors
+# LBAF_Viz:
+#   x_ranks: 2                 number of ranks in x direction for rank visualization
+#   y_ranks: 2                 number of ranks in y direction for rank visualization
+#   z_ranks: 1                 number of ranks in z direction for rank visualization
+#   object_jitter: 0.5
+#   rank_qoi: work
+#   object_qoi: load
+#   save_meshes: [bool]        generate mesh outputs (default: False)
+#   force_continuous_object_qoi [bool]
+# file_suffix [str]            file suffix of VT data files (default: "json")
 # communication_degree [int]   object communication degree (no communication if 0)
-# time_sampler                 description of object times sampler:
-#    name [str]                in uniform, lognormal
-#    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
-# volume_sampler               description of object communication volumes sampler:
-#    name [str]                in uniform, lognormal
-#    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
 # write_JSON:                  write load directives for VT as JSON files
 #   compressed: [bool]         compress json files using brotli
 #   suffix: [str]              suffix for generates files. (default: "json")
