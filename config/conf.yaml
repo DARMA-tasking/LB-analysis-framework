@@ -1,6 +1,6 @@
 # Docs
-# param_name_in_conf [type]    Description
-# ---------------------------  ----------------------------------------------------
+# parameter_name [type]        description
+# ---------------------------  -----------------------------------------------------------------------
 # work_model                   work model to be used
 #   name [str]                 in LoadOnly, AffineCombination
 #   parameters: [dict]         optional parameters specific to each work model
@@ -36,10 +36,10 @@
 # n_objects [int]              number of objects
 # n_mapped_ranks [int]         number of initially mapped processors
 # communication_degree [int]   object communication degree (no communication if 0)
-# time_sampler                 description of object times sampler: 
+# time_sampler                 description of object times sampler:
 #    name [str]                in uniform, lognormal
 #    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
-# volume_sampler               description of object communication volumes sampler: 
+# volume_sampler               description of object communication volumes sampler:
 #    name [str]                in uniform, lognormal
 #    parameters [list]         parameters e.g. 1.0,10.0 for lognormal
 # write_JSON:                  write load directives for VT as JSON files
