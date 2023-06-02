@@ -11,6 +11,7 @@ from .lbsCriterionBase import CriterionBase
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
 from ..IO.lbsStatistics import inverse_transform_sample
+from ..Model.lbsObjectCommunicator import ObjectCommunicator
 
 class RecursiveTransferStrategy(TransferStrategyBase):
     """A concrete class for the recursive transfer strategy."""

@@ -5,8 +5,6 @@ from logging import Logger
 
 from ..Execution.lbsCriterionBase import CriterionBase
 from ..Utils.exception_handler import exc_handler
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
-
 
 class TransferStrategyBase:
     __metaclass__ = abc.ABCMeta
