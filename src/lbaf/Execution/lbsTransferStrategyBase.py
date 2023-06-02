@@ -6,6 +6,7 @@ from logging import Logger
 from ..Execution.lbsCriterionBase import CriterionBase
 from ..Utils.exception_handler import exc_handler
 
+
 class TransferStrategyBase:
     __metaclass__ = abc.ABCMeta
     """An abstract base class of transfer strategies for inform and transfer algorithm."""
