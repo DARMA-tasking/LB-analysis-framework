@@ -60,7 +60,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             values["sent volume"] = v
 
             # Aggregate and store work for this rank
-            works[rank] = self.work_model.aggregate(values)
+            works[rank] = self._work_model.aggregate(values)
 
         # Return arrangement works
         return works
@@ -75,7 +75,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         objects = []
 
         # Iterate over ranks
-        phase_ranks = phase.get_ranks()
+        phase_ranks = Phase.get_ranks()
         for rank in phase_ranks:
             for o in rank.get_objects():
                 entry = {
