@@ -482,7 +482,7 @@ class Application:
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
-                    "imbalance.txt"), "w", encoding="utf-8") as imbalance_file:
+                    "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # If this point is reached everything went fine

@@ -26,7 +26,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(True, is_valid)
 
     def test_schema_validator_valid_uncompressed_001(self):
-        with open(os.path.join(self.data_dir, 'valid_schema_uncompressed_001.json'), "r", encoding="utf-8") as uncompr_json_file:
+        with open(os.path.join(self.data_dir, 'valid_schema_uncompressed_001.json'), 'r', encoding="utf-8") as uncompr_json_file:
             uncompr_txt = uncompr_json_file.read()
         vjs_json = json.loads(uncompr_txt)
         is_valid = SchemaValidator(schema_type="LBDatafile").is_valid(schema_to_validate=vjs_json)
@@ -35,14 +35,14 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(True, is_valid)
 
     def test_schema_validator_invalid_001(self):
-        with open(os.path.join(self.data_dir, "invalid_schema_001.json"), "r", encoding="utf-8") as invalid_json_schema:
+        with open(os.path.join(self.data_dir, "invalid_schema_001.json"), 'r', encoding="utf-8") as invalid_json_schema:
             vjs_str = invalid_json_schema.read()
             vjs_json = json.loads(vjs_str)
         is_valid = SchemaValidator(schema_type="LBDatafile").is_valid(schema_to_validate=vjs_json)
         self.assertEqual(False, is_valid)
 
     def test_schema_validator_invalid_002(self):
-        with open(os.path.join(self.data_dir, "invalid_schema_002.json"), "r", encoding="utf-8") as invalid_json_schema:
+        with open(os.path.join(self.data_dir, "invalid_schema_002.json"), 'r', encoding="utf-8") as invalid_json_schema:
             vjs_str = invalid_json_schema.read()
             vjs_json = json.loads(vjs_str)
         is_valid = SchemaValidator(schema_type="LBDatafile").is_valid(schema_to_validate=vjs_json)

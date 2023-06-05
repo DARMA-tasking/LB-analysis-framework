@@ -141,7 +141,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], "user_defined: [] is of type <class 'list'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined="a")
+            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined='a')
         self.assertEqual(err.exception.args[0], "user_defined: a is of type <class 'str'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
