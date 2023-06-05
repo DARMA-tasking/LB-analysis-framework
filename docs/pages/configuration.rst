@@ -44,7 +44,6 @@ Parameters
 * **output_dir [str]**: output directory (default: '.')
 * **overwrite_validator [bool]**: download and overwrite JSON_data_files_validator from VT (default: True)
 * **check_schema [bool]**: checking schema in VT input files (optional, default: True)
-* **terminal_background [str]**: background color for terminal output
 * **generate_meshes [bool]**: generate mesh outputs (default: False)
 * **generate_multimedia [bool]**: generate multimedia visualization (default: False)
 * **n_objects [int]**: number of objects
@@ -97,7 +96,6 @@ Example configuration
     #logging_level: debug
     #overwrite_validator: False
     check_schema: False
-    terminal_background: light
     generate_multimedia: False
     output_dir: ../../../output
     output_file_stem: output_file

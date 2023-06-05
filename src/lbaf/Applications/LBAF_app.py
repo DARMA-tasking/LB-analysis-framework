@@ -61,6 +61,7 @@ class InternalParameters:
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
+
         ConfigurationValidator(
             config_to_validate=config, logger=self.__logger).main()
 
@@ -165,14 +166,11 @@ class Application:
     __logger: Logger
     __parameters: InternalParameters
     __json_writer: Union[VTDataWriter,None]
-
-    """LBAF application class."""
-    def __init__(self):
-        # Init logger to instance variable. Initially the root logger.
-        self.__logger = get_logger()
+    __args: dict
 
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path"""
+
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
             try:
@@ -200,7 +198,6 @@ class Application:
         self.__logger = get_logger(
             name="lbaf",
             level=lvl,
-            theme=data.get("terminal_background", None),
             log_to_console=data.get("log_to_console", None) is None,
             log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
         )
@@ -220,13 +217,8 @@ class Application:
 
         return data
 
-    def __get_config_path(self)-> str:
-        """Find the config file from the '-configuration' command line argument and returns its absolute path
-        (if configuration file path is relative it is searched in the current working directory and at the end in the
-        {PROJECT_PATH}/config directory)
-
-        :raises FileNotFoundError: if configuration file cannot be found
-        """
+    def __parse_args(self) -> dict:
+        """Parse arguments"""
 
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
@@ -235,25 +227,31 @@ class Application:
             default=None
         )
         args = parser.parse_args()
+
+        self.__args = args
+
+    def __get_config_path(self)-> str:
+        """Find the config file from the '-configuration' command line argument and returns its absolute path
+        (if configuration file path is relative it is searched in the current working directory and at the end in the
+        {PROJECT_PATH}/config directory)
+
+        :raises FileNotFoundError: if configuration file cannot be found
+        """
+
         path = None
         path_list = []
 
-        if args.configuration is None:
-            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
-            "working directory or in the project config directory !")
-            args.configuration = "conf.yaml"
-
         # search config file in the current working directory if relative
-        path = abspath(args.configuration)
+        path = abspath(self.__args.configuration)
         path_list.append(path)
         if (
             path is not None and
             not os.path.isfile(path) and
-            not os.path.isabs(args.configuration) and PROJECT_PATH is not None
+            not os.path.isabs(self.__args.configuration) and PROJECT_PATH is not None
         ):
             # then search config file relative to the config folder
             search_dir = abspath("config", relative_to=PROJECT_PATH)
-            path = search_dir + '/' + args.configuration
+            path = search_dir + '/' + self.__args.configuration
             path_list.append(path)
 
         if not os.path.isfile(path):
@@ -273,6 +271,18 @@ class Application:
 
     def run(self):
         """Runs the LBAF application"""
+        # Parse command line arguments
+        self.__parse_args()
+
+        # Init logger and set as an instance variable.
+        self.__logger = get_logger()
+
+        # Warn if default configuration is used because not set as argument
+        if self.__args.configuration is None:
+            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+            "working directory or in the project config directory !")
+            self.__args.configuration = "conf.yaml"
+
         # Find configuration file absolute path
         config_file = self.__get_config_path()
 
@@ -472,7 +482,7 @@ class Application:
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
-                    "imbalance.txt"), "w", encoding="utf-8") as imbalance_file:
+                    "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # If this point is reached everything went fine

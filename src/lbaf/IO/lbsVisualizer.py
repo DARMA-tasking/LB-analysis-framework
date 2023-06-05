@@ -1,5 +1,6 @@
 from logging import Logger
 import os
+import sys
 import math
 import numbers
 import random
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
-
+from ..Utils.exception_handler import exc_handler
 
 class Visualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
@@ -731,6 +732,13 @@ class Visualizer:
 
         # Write ExodusII rank mesh when requested
         if save_meshes:
+            if sys.version_info.major == 3 and sys.version_info.minor == 9:
+                self.__logger.error(
+                    "Cannot save meshes when using Python 3.9 (issue with vtk 9.1.0). "
+                    "Please use Python 3.8 (vtk 9.0.1)."
+                )
+                raise SystemExit(1)
+
             # Create grid streamer
             streamer = GridStreamer(
                 self.__rank_points,

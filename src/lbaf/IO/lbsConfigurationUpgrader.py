@@ -23,6 +23,15 @@ from .. import PROJECT_PATH
 #     return dumper.represent_scalar(u'tag:yaml.org,2002:float', text)
 # yaml.add_representer(float, float_representer)
 
+def bool_representer(dumper, value):
+    """Overrides default yaml representation of boolean values for the ConfigurationDumper"""
+
+    if value:
+        text = "True"
+    else:
+        text = "False"
+    return dumper.represent_scalar('tag:yaml.org,2002:bool', text)
+
 class UpgradeAction(Enum):
     """Upgrade action"""
 
@@ -44,6 +53,7 @@ class ConfigurationUpgrader:
 
     def __init__(self, logger: Logger):
         self.__dumper = ConfigurationDumper
+        self.__dumper.add_representer(bool, bool_representer)
         self.__logger = logger
         self.__sections = cast(dict, ConfigurationValidator.allowed_keys(group=True))
 
@@ -52,24 +62,24 @@ class ConfigurationUpgrader:
         indent_str = " " * indent_size
         yaml_file.write(f"{k}:")
         if isinstance(value, list) or isinstance(value, dict):
-            yaml_file.write("\n")
+            yaml_file.write('\n')
             yaml_file.write(indent_str)
             yaml_node = yaml.dump(
                 value,
                 indent=indent_size,
-                line_break="\n",
+                line_break='\n',
                 sort_keys=False,
                 Dumper=self.__dumper
             ).replace(
-                "\n",
-                "\n" + indent_str
+                '\n',
+                '\n' + indent_str
             )
-            if yaml_node.endswith("\n" + indent_str):
+            if yaml_node.endswith('\n' + indent_str):
                 yaml_node = yaml_node[:-(indent_size + 1)]
         else:
-            yaml_node = " " + yaml.representer.SafeRepresenter().represent_data(value).value
+            yaml_node = " " + yaml.representer.BaseRepresenter().represent_data(value).value
         yaml_file.write(yaml_node)
-        yaml_file.write("\n")
+        yaml_file.write('\n')
 
     def upgrade(
         self,
@@ -97,7 +107,27 @@ class ConfigurationUpgrader:
             raise ValueError("The `key` must be a valid string")
 
         conf = None
-        with open(file_path, "r", encoding="utf-8") as yaml_file:
+        file_comment = None
+        with open(file_path, 'r', encoding="utf-8") as yaml_file:
+            lines = yaml_file.readlines()
+            for line in lines:
+                # if comment is a section comment
+                section_comments = [f"# Specify {k}" for k in self.__sections]
+                if line.strip() in section_comments:
+                    break
+                # else if another comment or empty line consider it is aprt of the file comment (at the top of the file)
+                if line.startswith('#') or line.strip() == '':
+                    if file_comment is None:
+                        file_comment = ''
+                    file_comment = file_comment + line
+                else:
+                    break # reach 1st not commented line and non-empty line = end of file comment
+
+            if file_comment is not None:
+                file_comment = file_comment.strip() # removes potential eol at the end
+
+            yaml_file.seek(0)
+
             yaml_content = yaml_file.read()
             conf = yaml.safe_load(yaml_content)
             node = conf
@@ -128,11 +158,14 @@ class ConfigurationUpgrader:
 
                 node=node[key]
 
-        with open(file_path, "w", encoding="utf-8") as yaml_file:
+        with open(file_path, 'w', encoding="utf-8") as yaml_file:
+            if file_comment is not None:
+                yaml_file.write(file_comment + '\n')
+
             added_keys = []
             for section in self.__sections:
                 if yaml_file.tell() > 0:
-                    yaml_file.write("\n")
+                    yaml_file.write('\n')
                 yaml_file.write(f"# Specify {section}\n")
                 for k in self.__sections[section]:
                     if k in conf.keys():
@@ -152,7 +185,7 @@ class ConfigurationUpgrader:
                     PROJECT_PATH
                 )
                 if yaml_file.tell() > 0:
-                    yaml_file.write("\n")
+                    yaml_file.write('\n')
                 yaml_file.write("# Other\n")
                 for k in intersect:
                     value = conf.get(k)

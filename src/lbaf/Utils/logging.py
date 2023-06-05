@@ -4,7 +4,8 @@ import logging.config
 import os
 from logging import Formatter
 from typing import Union, List, Dict
-from .colors import red, green, cyan, yellow, black, light_white
+from .colors import red, green, cyan, yellow
+
 
 LOGGING_LEVEL = {
     "DEBUG": logging.DEBUG,
@@ -13,87 +14,114 @@ LOGGING_LEVEL = {
     "ERROR": logging.ERROR
 }
 
-FORMATTER_BASIC = "basic"
-FORMATTER_EXTENDED = "extended"
-FORMATTERS = [ FORMATTER_BASIC, FORMATTER_EXTENDED ]
-
-THEME_DARK = "dark"
-THEME_LIGHT = "light"
-THEMES = [ THEME_LIGHT, THEME_DARK ]
+FORMAT_BASIC = "basic"
+""""%(levelname)s [%(module)s.%(funcName)s()] %(message)s"""
+FORMAT_EXTENDED = "extended"
+""""%(levelname)s [%(module)s.%(funcName)s()] [%(message)s]"""
+FORMATS = [ FORMAT_BASIC, FORMAT_EXTENDED ]
 
 # Logger type alias
 Logger = logging.Logger
 """Logger class"""
 
 class CustomFormatter(Formatter):
-    """Custom formatter class defining a format by logging level """
-    formatters: Dict[int,Formatter] = {}
-    def __init__(self, frmttr):
-        super(CustomFormatter, self).__init__()
-        for level, fmt in frmttr.items():
-            self.formatters[level] = Formatter(fmt)
+    """Formatter able to write colored logs
+    Colors are used to colorize log meta information such as:
+    - the calling module name
+    - the caling function name (available with 'extended' format only)
+    - logging level (available with 'extended' format only)
+    """
+
+    LOGGING_LEVEL_COLORS = {
+        logging.DEBUG: yellow,
+        logging.INFO: green,
+        logging.WARNING: cyan,
+        logging.ERROR: red
+    }
+
+    _raw_formatter: None
+    _color_formatters: Dict[int,Formatter] = {}
+    _format:Union[FORMAT_BASIC, FORMAT_EXTENDED]
+    _colored: bool = False
+
+    def __init__(self, frmt: str, colored: bool = False):
+        super().__init__()
+
+        if not frmt in FORMATS:
+            formats = str.join(', ', FORMATS)
+            raise ValueError(f"Invalid format. Supported are {formats}")
+
+        self._colored = colored
+        self._format = frmt
+        self._init_formatters()
+
+    def _init_formatters(self):
+        """Initialize inner formatters for each supported logging level"""
+
+        # 'basic' default format
+        formats = { "prefix": "[%(module)s] ", "message": "%(message)s" }
+        # 'extended' format
+        if self._format == "extended":
+            formats = { "prefix": "%(levelname)s [%(module)s.%(funcName)s()] ", "message": "msg:[%(message)s]" }
+
+        # create inner formatter for each log level
+        if self._colored:
+            for level, colorizer in self.LOGGING_LEVEL_COLORS.items():
+                self._color_formatters[level] = Formatter(
+                    colorizer(formats.get("prefix")) + formats.get("message")
+                )
+        # or create raw formatter to use at any level
+        else:
+            self._raw_formatter = Formatter(formats.get("prefix") + formats.get("message"))
+
     def format(self, record):
-        return self.formatters[record.levelno].format(record)
+        formatter = None
+        if self._colored:
+            formatter = self._color_formatters[
+                record.levelno
+                    if record.levelno in self.LOGGING_LEVEL_COLORS
+                    else logging.INFO
+            ]
+        else:
+            formatter = self._raw_formatter
+        return formatter.format(record)
 
-def formatter(formatter_type: str, theme: Union[str, None] = None):
-    """Creates a formatter of the given type"""
-    if not formatter_type in FORMATTERS:
-        frmtrs = str.join(', ', FORMATTERS)
-        raise ValueError(f"Invalid formatter name. Supported are {frmtrs}")
-
-    if theme is not None and not theme in THEMES:
-        themes = str.join(', ', THEMES)
-        raise ValueError(f"Invalid thee name. Supported are {themes}")
-
-    def msgcolor(msg):
-        if not theme is None:
-            return black(msg) if theme == "light" else light_white(msg)
-        return msg
-
-    # 'extended' formatter
-    if formatter_type == "extended":
-        frmttr = {
-            logging.DEBUG: yellow("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
-            logging.INFO: green("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
-            logging.WARNING: cyan("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]"),
-            logging.ERROR: red("%(levelname)s [%(module)s.%(funcName)s()] ") + msgcolor("msg:[%(message)s]")
-        }
-    # 'basic' formatter
-    else:
-        frmttr = {
-            logging.DEBUG: yellow("[%(module)s] ") + msgcolor("%(message)s"),
-            logging.INFO: green("[%(module)s] ") + msgcolor("%(message)s"),
-            logging.WARNING: cyan("[%(module)s] ") + msgcolor("%(message)s"),
-            logging.ERROR: red("[%(module)s] ") + msgcolor("%(message)s")
-        }
-    return CustomFormatter(frmttr)
-
-d = {}
+loggers = {}
 
 def get_logger(
         name: str = "root",
         level: Union[str, None] = "info",
         log_to_console: bool = True,
         log_to_file: Union[str, None] = None,
-        formatter_name: str = FORMATTER_BASIC,
-        theme: str = THEME_DARK
+        frmt: str = FORMAT_BASIC
 )-> Logger:
     """Return a new or an existing logger"""
+
     # return from cache if logger already created
-    logger = d.get(name, None)
-    if logger is not None:
-        return logger
+    # logger = logging.Logger.manager.loggerDict.get(name)
+    # if logger is not None:
+    #     return logger
+    if name in loggers:
+        return loggers[name]
 
     # init new logger
     logger = logging.getLogger(name)
-    logging.getLogger().handlers.clear() # clear default handlers
     if level is not None:
         logger.setLevel(level.upper())
+
+    # index logger for future usage
+    loggers[name] = logger
+
+    # clear default handlers
+    logging.getLogger().handlers.clear()
+
+    # init log directory if logging to file
     if log_to_file is not None:
         logs_dir = f"{os.sep}".join(log_to_file.split(os.sep)[:-1])
         if not os.path.isdir(logs_dir):
             os.makedirs(logs_dir)
-    # initialize handlers only once
+
+    # initialize handlers
     handlers = logger.handlers
     handlers = [] #type: List[logging.Handler]
     if isinstance(log_to_file, str):
@@ -102,9 +130,8 @@ def get_logger(
         handlers.append(logging.StreamHandler())
     for handler in handlers:
         handler.setLevel(logger.level)
-        handler.setFormatter(formatter(formatter_name, theme))
+        # use color formatter only if console
+        handler.setFormatter(CustomFormatter(frmt, colored=isinstance(handler, logging.StreamHandler)))
         logger.addHandler(handler)
-
-    d[name] = logger
 
     return logger

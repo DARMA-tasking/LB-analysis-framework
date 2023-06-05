@@ -93,7 +93,7 @@ class VTDataWriter:
         if self.__compress:
             serial_json = brotli.compress(
                 string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
-        with open(file_name, "wb" if self.__compress else "w") as json_file:
+        with open(file_name, "wb" if self.__compress else 'w') as json_file:
             json_file.write(serial_json)
 
         # Return JSON file name

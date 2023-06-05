@@ -172,7 +172,7 @@ class MoveCountsViewer:
         # directed_sizes = {} (unused)
         for i in range(self.n_processors):
             # Iterate over all files
-            with open(f"{self.input_file_name}.{i}.{self.input_file_suffix}", "r", encoding="utf-8") as input_file:
+            with open(f"{self.input_file_name}.{i}.{self.input_file_suffix}", 'r', encoding="utf-8") as input_file:
                 # Instantiate CSV reader
                 reader = csv.reader(input_file, delimiter=",")
 

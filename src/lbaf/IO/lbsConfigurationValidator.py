@@ -29,7 +29,6 @@ ALLOWED_ALGORITHMS = (
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
-ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
 def get_error_message(iterable_collection: tuple) -> str:
@@ -80,11 +79,6 @@ class ConfigurationValidator:
                 str, Use(str.lower),
                 lambda f: f in ALLOWED_LOGGING_LEVELS,
                 error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
-            Optional("terminal_background"): And(
-                str,
-                Use(str.lower),
-                lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
-                error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
             Optional("LBAF_Viz"): {
                 "x_ranks": And(
@@ -190,13 +184,13 @@ class ConfigurationValidator:
     def allowed_keys(group: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
         """Returns allowed keys at configuration root level grouped by some group key or as a flat list"""
         sections = {
-            "input": ["from_data"],
+            "input": ["from_data", "from_samplers", "check_schema"],
             "work model": ["work_model"],
             "algorithm": ["brute_force_optimization", "algorithm"],
             "output": [
-                "logging_level", "log_to_file", "overwrite_validator", "check_schema", "terminal_background",
+                "logging_level", "log_to_file", "overwrite_validator",
                 "generate_multimedia", "output_dir", "output_file_stem", "n_ranks",
-                "LBAF_Viz"
+                "LBAF_Viz", "write_JSON"
             ]
         }
 
