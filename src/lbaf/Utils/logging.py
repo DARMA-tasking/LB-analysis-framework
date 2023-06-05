@@ -26,7 +26,7 @@ Logger = logging.Logger
 
 class CustomFormatter(Formatter):
     """Formatter able to write colored logs
-    Colors are used to colorize log meta information such as
+    Colors are used to colorize log meta information such as:
     - the calling module name
     - the caling function name (available with 'extended' format only)
     - logging level (available with 'extended' format only)
