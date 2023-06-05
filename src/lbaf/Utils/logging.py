@@ -104,8 +104,6 @@ def get_logger(
     if name in loggers:
         return loggers[name]
 
-    print("Init logger " + name + "...")
-
     # init new logger
     logger = logging.getLogger(name)
     if level is not None:
