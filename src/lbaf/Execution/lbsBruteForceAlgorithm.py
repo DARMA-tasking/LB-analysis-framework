@@ -74,13 +74,14 @@ class BruteForceAlgorithm(AlgorithmBase):
         objects = []
 
         initial_phase = phases[min(phases.keys())]
+        phase_ranks = initial_phase.get_ranks()
         objects = initial_phase.get_objects()
 
         # Initialize quantities of interest
         n_arrangements = 0
         w_min_max = math.inf
         a_min_max = []
-        n_ranks = len(initial_phase.get_ranks())
+        n_ranks = len(phase_ranks)
 
         # Compute all possible arrangements with repetition and minimax work
         for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
