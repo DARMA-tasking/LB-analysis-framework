@@ -1,0 +1,1144 @@
+[32m[LBAF_app] [0mLogging level: info
+[32m[LBAF_app] [0mLogging to file: /home/thomas/repositories/LB-analysis-framework/tests/acceptance/output/log.txt
+[32m[lbsConfigurationValidator] [0mSkeleton schema is valid
+[32m[lbsConfigurationValidator] [0mReading from data was chosen
+[32m[lbsConfigurationValidator] [0mfrom_data schema is valid
+[32m[lbsConfigurationValidator] [0mChecking algorithm schema of: {'name': 'PhaseStepper'}
+[32m[lbsConfigurationValidator] [0mAlgorithm: {'name': 'PhaseStepper'} schema is valid
+[32m[LBAF_app] [0mData stem: /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data
+[32m[LBAF_app] [0mExecuting LBAF version 0.1.0rc1
+[32m[LBAF_app] [0mExecuting with Python 3.8.12
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.0.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.0.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.1.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.2.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.3.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.4.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.5.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.6.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.7.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.8.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.9.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.10.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.11.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.12.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.14.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.13.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.15.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.17.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.19.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.18.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.16.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.20.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.4.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.3.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.5.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.21.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.22.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.14.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.23.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.11.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.13.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.24.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.10.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.16.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.8.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.6.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.18.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.25.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.2.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.17.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.9.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.1.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.19.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.15.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.7.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.12.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.26.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.20.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.27.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.22.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.28.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.21.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.23.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.25.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.24.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.29.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.30.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.26.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.27.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.31.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.28.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.29.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.30.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.31.json
+[32m[lbsPhase] [0mInstantiating phase 0
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 10.5721 imbalance: 13.6221
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0220252 maximum: 0.322054
+[32m[lbsStatistics] [0m	standard deviation: 0.0533215 variance: 0.00284319
+[32m[lbsStatistics] [0m	skewness: 3.65171 kurtosis: 17.9133
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 0
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 10.5721 imbalance: 13.6221
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0220252 maximum: 0.322054
+[32m[lbsStatistics] [0m	standard deviation: 0.0533215 variance: 0.00284319
+[32m[lbsStatistics] [0m	skewness: 3.65171 kurtosis: 17.9133
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 1
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.638841 imbalance: 76.727
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00133092 maximum: 0.103448
+[32m[lbsStatistics] [0m	standard deviation: 0.00473806 variance: 2.24493e-05
+[32m[lbsStatistics] [0m	skewness: 20.8507 kurtosis: 449.528
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 1
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.638841 imbalance: 76.727
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00133092 maximum: 0.103448
+[32m[lbsStatistics] [0m	standard deviation: 0.00473806 variance: 2.24493e-05
+[32m[lbsStatistics] [0m	skewness: 20.8507 kurtosis: 449.528
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 2
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.52231 imbalance: 1.21587
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00108815 maximum: 0.00241119
+[32m[lbsStatistics] [0m	standard deviation: 0.000788201 variance: 6.21261e-07
+[32m[lbsStatistics] [0m	skewness: -0.570001 kurtosis: 1.48257
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 2
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.52231 imbalance: 1.21587
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00108815 maximum: 0.00241119
+[32m[lbsStatistics] [0m	standard deviation: 0.000788201 variance: 6.21261e-07
+[32m[lbsStatistics] [0m	skewness: -0.570001 kurtosis: 1.48257
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 3
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.517308 imbalance: 0.899745
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107773 maximum: 0.0020474
+[32m[lbsStatistics] [0m	standard deviation: 0.000781018 variance: 6.09989e-07
+[32m[lbsStatistics] [0m	skewness: -0.574517 kurtosis: 1.46685
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 3
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.517308 imbalance: 0.899745
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107773 maximum: 0.0020474
+[32m[lbsStatistics] [0m	standard deviation: 0.000781018 variance: 6.09989e-07
+[32m[lbsStatistics] [0m	skewness: -0.574517 kurtosis: 1.46685
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 4
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.518246 imbalance: 0.883197
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107968 maximum: 0.00203325
+[32m[lbsStatistics] [0m	standard deviation: 0.000781241 variance: 6.10337e-07
+[32m[lbsStatistics] [0m	skewness: -0.580212 kurtosis: 1.47139
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 4
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.518246 imbalance: 0.883197
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107968 maximum: 0.00203325
+[32m[lbsStatistics] [0m	standard deviation: 0.000781241 variance: 6.10337e-07
+[32m[lbsStatistics] [0m	skewness: -0.580212 kurtosis: 1.47139
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 5
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516488 imbalance: 0.904683
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107602 maximum: 0.00204947
+[32m[lbsStatistics] [0m	standard deviation: 0.000779714 variance: 6.07954e-07
+[32m[lbsStatistics] [0m	skewness: -0.575083 kurtosis: 1.46623
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 5
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516488 imbalance: 0.904683
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107602 maximum: 0.00204947
+[32m[lbsStatistics] [0m	standard deviation: 0.000779714 variance: 6.07954e-07
+[32m[lbsStatistics] [0m	skewness: -0.575083 kurtosis: 1.46623
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 6
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516154 imbalance: 0.886924
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107532 maximum: 0.00202905
+[32m[lbsStatistics] [0m	standard deviation: 0.000779092 variance: 6.06984e-07
+[32m[lbsStatistics] [0m	skewness: -0.575664 kurtosis: 1.46653
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 6
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516154 imbalance: 0.886924
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107532 maximum: 0.00202905
+[32m[lbsStatistics] [0m	standard deviation: 0.000779092 variance: 6.06984e-07
+[32m[lbsStatistics] [0m	skewness: -0.575664 kurtosis: 1.46653
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 7
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516329 imbalance: 0.893715
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107569 maximum: 0.00203704
+[32m[lbsStatistics] [0m	standard deviation: 0.000779243 variance: 6.07219e-07
+[32m[lbsStatistics] [0m	skewness: -0.576093 kurtosis: 1.46757
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 7
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516329 imbalance: 0.893715
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107569 maximum: 0.00203704
+[32m[lbsStatistics] [0m	standard deviation: 0.000779243 variance: 6.07219e-07
+[32m[lbsStatistics] [0m	skewness: -0.576093 kurtosis: 1.46757
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 8
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516689 imbalance: 0.911823
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107644 maximum: 0.00205795
+[32m[lbsStatistics] [0m	standard deviation: 0.000780372 variance: 6.0898e-07
+[32m[lbsStatistics] [0m	skewness: -0.572102 kurtosis: 1.46744
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 8
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516689 imbalance: 0.911823
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107644 maximum: 0.00205795
+[32m[lbsStatistics] [0m	standard deviation: 0.000780372 variance: 6.0898e-07
+[32m[lbsStatistics] [0m	skewness: -0.572102 kurtosis: 1.46744
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 9
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.543617 imbalance: 22.5119
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00113254 maximum: 0.0266281
+[32m[lbsStatistics] [0m	standard deviation: 0.00140307 variance: 1.96862e-06
+[32m[lbsStatistics] [0m	skewness: 12.3652 kurtosis: 227.299
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 9
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.543617 imbalance: 22.5119
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00113254 maximum: 0.0266281
+[32m[lbsStatistics] [0m	standard deviation: 0.00140307 variance: 1.96862e-06
+[32m[lbsStatistics] [0m	skewness: 12.3652 kurtosis: 227.299
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 10
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.519023 imbalance: 1.69388
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0010813 maximum: 0.00291289
+[32m[lbsStatistics] [0m	standard deviation: 0.000785507 variance: 6.17022e-07
+[32m[lbsStatistics] [0m	skewness: -0.550417 kurtosis: 1.50749
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 10
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.519023 imbalance: 1.69388
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0010813 maximum: 0.00291289
+[32m[lbsStatistics] [0m	standard deviation: 0.000785507 variance: 6.17022e-07
+[32m[lbsStatistics] [0m	skewness: -0.550417 kurtosis: 1.50749
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank load:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 10.5721 imbalance: 0.992946
+[32m[lbsStatistics] [0m	minimum: 0.0393747 average: 0.330377 maximum: 0.658424
+[32m[lbsStatistics] [0m	standard deviation: 0.169049 variance: 0.0285775
+[32m[lbsStatistics] [0m	skewness: 0.361936 kurtosis: 2.15054
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank object-level memory:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank working memory:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank shared memory:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial maximum memory usage:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 103 amongst 496 possible ones (20.8%)
+[32m[lbsStatistics] [0mRank-local communication volume: 2.08671e+07 amongst 2.17029e+07 total volume (96.1%)
+[32m[lbsStatistics] [0mDescriptive statistics of initial sent volumes:
+[32m[lbsStatistics] [0m	cardinality: 103 sum: 554696 imbalance: 2.124
+[32m[lbsStatistics] [0m	minimum: 88 average: 5385.4 maximum: 16824
+[32m[lbsStatistics] [0m	standard deviation: 4525.24 variance: 2.04778e+07
+[32m[lbsStatistics] [0m	skewness: 0.936535 kurtosis: 2.55858
+[32m[LBAF_app] [0mNo brute force optimization performed
+[32m[lbsRuntime] [0mInstantiating runtime with 0 optimal arrangements for Hamming distance
+[32m[lbsAffineCombinationWorkModel] [0mInstantiated work model with alpha=1.0, beta=1e-08, gamma=0.0
+[32m[lbsAlgorithmBase] [0mCreated base algorithm tracking rank  and object 
+[32m[lbsRuntime] [0mExecuting PhaseStepperAlgorithm for all phases
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 0
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 0
+[32m[lbsStatistics] [0mDescriptive statistics of phase 0 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 10.5817 imbalance: 0.992173
+[32m[lbsStatistics] [0m	minimum: 0.0396573 average: 0.330679 maximum: 0.658769
+[32m[lbsStatistics] [0m	standard deviation: 0.169057 variance: 0.0285802
+[32m[lbsStatistics] [0m	skewness: 0.361568 kurtosis: 2.15045
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 1
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 1
+[32m[lbsStatistics] [0mDescriptive statistics of phase 1 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.642948 imbalance: 4.91849
+[32m[lbsStatistics] [0m	minimum: 0.0154087 average: 0.0200921 maximum: 0.118915
+[32m[lbsStatistics] [0m	standard deviation: 0.0177674 variance: 0.00031568
+[32m[lbsStatistics] [0m	skewness: 5.37064 kurtosis: 29.9092
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11896e+07 total volume (97.3%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 2
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 2
+[32m[lbsStatistics] [0mDescriptive statistics of phase 2 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.526383 imbalance: 0.221116
+[32m[lbsStatistics] [0m	minimum: 0.0154561 average: 0.0164495 maximum: 0.0200867
+[32m[lbsStatistics] [0m	standard deviation: 0.000769406 variance: 5.91985e-07
+[32m[lbsStatistics] [0m	skewness: 3.21347 kurtosis: 15.9118
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11872e+07 total volume (97.3%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 3
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 3
+[32m[lbsStatistics] [0mDescriptive statistics of phase 3 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.521197 imbalance: 0.0442304
+[32m[lbsStatistics] [0m	minimum: 0.0153746 average: 0.0162874 maximum: 0.0170078
+[32m[lbsStatistics] [0m	standard deviation: 0.000393681 variance: 1.54985e-07
+[32m[lbsStatistics] [0m	skewness: -0.0722704 kurtosis: 2.42084
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11742e+07 total volume (97.5%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 4
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 4
+[32m[lbsStatistics] [0mDescriptive statistics of phase 4 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.52225 imbalance: 0.0461051
+[32m[lbsStatistics] [0m	minimum: 0.0153198 average: 0.0163203 maximum: 0.0170728
+[32m[lbsStatistics] [0m	standard deviation: 0.000398134 variance: 1.58511e-07
+[32m[lbsStatistics] [0m	skewness: -0.150111 kurtosis: 2.91732
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11827e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 5
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 5
+[32m[lbsStatistics] [0mDescriptive statistics of phase 5 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520378 imbalance: 0.0469951
+[32m[lbsStatistics] [0m	minimum: 0.0153576 average: 0.0162618 maximum: 0.017026
+[32m[lbsStatistics] [0m	standard deviation: 0.000382478 variance: 1.46289e-07
+[32m[lbsStatistics] [0m	skewness: 0.152419 kurtosis: 2.93541
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11744e+07 total volume (97.5%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 6
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 6
+[32m[lbsStatistics] [0mDescriptive statistics of phase 6 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520078 imbalance: 0.0430356
+[32m[lbsStatistics] [0m	minimum: 0.0153339 average: 0.0162524 maximum: 0.0169519
+[32m[lbsStatistics] [0m	standard deviation: 0.000366886 variance: 1.34605e-07
+[32m[lbsStatistics] [0m	skewness: -0.210685 kurtosis: 2.89861
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11766e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 7
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 7
+[32m[lbsStatistics] [0mDescriptive statistics of phase 7 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520286 imbalance: 0.0532831
+[32m[lbsStatistics] [0m	minimum: 0.015319 average: 0.0162589 maximum: 0.0171253
+[32m[lbsStatistics] [0m	standard deviation: 0.00037245 variance: 1.38719e-07
+[32m[lbsStatistics] [0m	skewness: 0.0837978 kurtosis: 3.31426
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11787e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 8
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 8
+[32m[lbsStatistics] [0mDescriptive statistics of phase 8 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520617 imbalance: 0.0466161
+[32m[lbsStatistics] [0m	minimum: 0.0153884 average: 0.0162693 maximum: 0.0170277
+[32m[lbsStatistics] [0m	standard deviation: 0.000365222 variance: 1.33387e-07
+[32m[lbsStatistics] [0m	skewness: -0.0417705 kurtosis: 3.01439
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11772e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 9
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 9
+[32m[lbsStatistics] [0mDescriptive statistics of phase 9 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.547612 imbalance: 1.44446
+[32m[lbsStatistics] [0m	minimum: 0.0154977 average: 0.0171129 maximum: 0.0418317
+[32m[lbsStatistics] [0m	standard deviation: 0.00445592 variance: 1.98553e-05
+[32m[lbsStatistics] [0m	skewness: 5.32546 kurtosis: 29.5971
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.089e+07 amongst 1.11817e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 10
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 10
+[32m[lbsStatistics] [0mDescriptive statistics of phase 10 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.522944 imbalance: 0.098434
+[32m[lbsStatistics] [0m	minimum: 0.0154293 average: 0.016342 maximum: 0.0179506
+[32m[lbsStatistics] [0m	standard deviation: 0.000473333 variance: 2.24044e-07
+[32m[lbsStatistics] [0m	skewness: 1.10264 kurtosis: 5.37981
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11763e+07 total volume (97.4%)
+[32m[LBAF_app] [0mProcess completed without errors
+[32m[LBAF_app] [0mLogging level: info
+[32m[LBAF_app] [0mLogging to file: /home/thomas/repositories/LB-analysis-framework/tests/acceptance/output/log.txt
+[32m[lbsConfigurationValidator] [0mSkeleton schema is valid
+[32m[lbsConfigurationValidator] [0mReading from data was chosen
+[32m[lbsConfigurationValidator] [0mfrom_data schema is valid
+[32m[lbsConfigurationValidator] [0mChecking algorithm schema of: {'name': 'PhaseStepper'}
+[32m[lbsConfigurationValidator] [0mAlgorithm: {'name': 'PhaseStepper'} schema is valid
+[32m[LBAF_app] [0mData stem: /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data
+[32m[LBAF_app] [0mExecuting LBAF version 0.1.0rc1
+[32m[LBAF_app] [0mExecuting with Python 3.8.12
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.0.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.0.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.1.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.2.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.3.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.4.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.9.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.10.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.11.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.7.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.12.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.6.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.13.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.8.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.14.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.15.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.17.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.16.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.18.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.5.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.20.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.19.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.14.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.13.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.2.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.15.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.21.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.4.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.22.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.8.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.17.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.20.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.23.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.1.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.3.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.7.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.24.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.11.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.18.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.12.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.10.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.25.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.5.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.9.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.6.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.19.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.26.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.27.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.28.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.16.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.29.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.21.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.22.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.23.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.24.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.30.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.26.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.25.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.27.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.28.json
+[32m[lbsVTDataReader] [0mReading /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.31.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.29.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.30.json
+[32m[lbsVTDataReader] [0mValid JSON schema in /home/thomas/repositories/LB-analysis-framework/data/nolb-8color-16nodes-11firstphases/data.31.json
+[32m[lbsPhase] [0mInstantiating phase 0
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 10.5721 imbalance: 13.6221
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0220252 maximum: 0.322054
+[32m[lbsStatistics] [0m	standard deviation: 0.0533215 variance: 0.00284319
+[32m[lbsStatistics] [0m	skewness: 3.65171 kurtosis: 17.9133
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 0
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 10.5721 imbalance: 13.6221
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0220252 maximum: 0.322054
+[32m[lbsStatistics] [0m	standard deviation: 0.0533215 variance: 0.00284319
+[32m[lbsStatistics] [0m	skewness: 3.65171 kurtosis: 17.9133
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 1
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.638841 imbalance: 76.727
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00133092 maximum: 0.103448
+[32m[lbsStatistics] [0m	standard deviation: 0.00473806 variance: 2.24493e-05
+[32m[lbsStatistics] [0m	skewness: 20.8507 kurtosis: 449.528
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 1
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.638841 imbalance: 76.727
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00133092 maximum: 0.103448
+[32m[lbsStatistics] [0m	standard deviation: 0.00473806 variance: 2.24493e-05
+[32m[lbsStatistics] [0m	skewness: 20.8507 kurtosis: 449.528
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 2
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.52231 imbalance: 1.21587
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00108815 maximum: 0.00241119
+[32m[lbsStatistics] [0m	standard deviation: 0.000788201 variance: 6.21261e-07
+[32m[lbsStatistics] [0m	skewness: -0.570001 kurtosis: 1.48257
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 2
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.52231 imbalance: 1.21587
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00108815 maximum: 0.00241119
+[32m[lbsStatistics] [0m	standard deviation: 0.000788201 variance: 6.21261e-07
+[32m[lbsStatistics] [0m	skewness: -0.570001 kurtosis: 1.48257
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 3
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.517308 imbalance: 0.899745
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107773 maximum: 0.0020474
+[32m[lbsStatistics] [0m	standard deviation: 0.000781018 variance: 6.09989e-07
+[32m[lbsStatistics] [0m	skewness: -0.574517 kurtosis: 1.46685
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 3
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.517308 imbalance: 0.899745
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107773 maximum: 0.0020474
+[32m[lbsStatistics] [0m	standard deviation: 0.000781018 variance: 6.09989e-07
+[32m[lbsStatistics] [0m	skewness: -0.574517 kurtosis: 1.46685
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 4
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.518246 imbalance: 0.883197
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107968 maximum: 0.00203325
+[32m[lbsStatistics] [0m	standard deviation: 0.000781241 variance: 6.10337e-07
+[32m[lbsStatistics] [0m	skewness: -0.580212 kurtosis: 1.47139
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 4
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.518246 imbalance: 0.883197
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107968 maximum: 0.00203325
+[32m[lbsStatistics] [0m	standard deviation: 0.000781241 variance: 6.10337e-07
+[32m[lbsStatistics] [0m	skewness: -0.580212 kurtosis: 1.47139
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 5
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516488 imbalance: 0.904683
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107602 maximum: 0.00204947
+[32m[lbsStatistics] [0m	standard deviation: 0.000779714 variance: 6.07954e-07
+[32m[lbsStatistics] [0m	skewness: -0.575083 kurtosis: 1.46623
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 5
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516488 imbalance: 0.904683
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107602 maximum: 0.00204947
+[32m[lbsStatistics] [0m	standard deviation: 0.000779714 variance: 6.07954e-07
+[32m[lbsStatistics] [0m	skewness: -0.575083 kurtosis: 1.46623
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 6
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516154 imbalance: 0.886924
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107532 maximum: 0.00202905
+[32m[lbsStatistics] [0m	standard deviation: 0.000779092 variance: 6.06984e-07
+[32m[lbsStatistics] [0m	skewness: -0.575664 kurtosis: 1.46653
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 6
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516154 imbalance: 0.886924
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107532 maximum: 0.00202905
+[32m[lbsStatistics] [0m	standard deviation: 0.000779092 variance: 6.06984e-07
+[32m[lbsStatistics] [0m	skewness: -0.575664 kurtosis: 1.46653
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 7
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516329 imbalance: 0.893715
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107569 maximum: 0.00203704
+[32m[lbsStatistics] [0m	standard deviation: 0.000779243 variance: 6.07219e-07
+[32m[lbsStatistics] [0m	skewness: -0.576093 kurtosis: 1.46757
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 7
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516329 imbalance: 0.893715
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107569 maximum: 0.00203704
+[32m[lbsStatistics] [0m	standard deviation: 0.000779243 variance: 6.07219e-07
+[32m[lbsStatistics] [0m	skewness: -0.576093 kurtosis: 1.46757
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 8
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516689 imbalance: 0.911823
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107644 maximum: 0.00205795
+[32m[lbsStatistics] [0m	standard deviation: 0.000780372 variance: 6.0898e-07
+[32m[lbsStatistics] [0m	skewness: -0.572102 kurtosis: 1.46744
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 8
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.516689 imbalance: 0.911823
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00107644 maximum: 0.00205795
+[32m[lbsStatistics] [0m	standard deviation: 0.000780372 variance: 6.0898e-07
+[32m[lbsStatistics] [0m	skewness: -0.572102 kurtosis: 1.46744
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 9
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.543617 imbalance: 22.5119
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00113254 maximum: 0.0266281
+[32m[lbsStatistics] [0m	standard deviation: 0.00140307 variance: 1.96862e-06
+[32m[lbsStatistics] [0m	skewness: 12.3652 kurtosis: 227.299
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 9
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.543617 imbalance: 22.5119
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.00113254 maximum: 0.0266281
+[32m[lbsStatistics] [0m	standard deviation: 0.00140307 variance: 1.96862e-06
+[32m[lbsStatistics] [0m	skewness: 12.3652 kurtosis: 227.299
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 10
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.519023 imbalance: 1.69388
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0010813 maximum: 0.00291289
+[32m[lbsStatistics] [0m	standard deviation: 0.000785507 variance: 6.17022e-07
+[32m[lbsStatistics] [0m	skewness: -0.550417 kurtosis: 1.50749
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mInstantiating phase 10
+[32m[lbsStatistics] [0mDescriptive statistics of object loads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0.519023 imbalance: 1.69388
+[32m[lbsStatistics] [0m	minimum: 0 average: 0.0010813 maximum: 0.00291289
+[32m[lbsStatistics] [0m	standard deviation: 0.000785507 variance: 6.17022e-07
+[32m[lbsStatistics] [0m	skewness: -0.550417 kurtosis: 1.50749
+[32m[lbsStatistics] [0mDescriptive statistics of object sizes:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of object overheads:
+[32m[lbsStatistics] [0m	cardinality: 480 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank load:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 10.5721 imbalance: 0.992946
+[32m[lbsStatistics] [0m	minimum: 0.0393747 average: 0.330377 maximum: 0.658424
+[32m[lbsStatistics] [0m	standard deviation: 0.169049 variance: 0.0285775
+[32m[lbsStatistics] [0m	skewness: 0.361936 kurtosis: 2.15054
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank object-level memory:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank working memory:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial rank shared memory:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsStatistics] [0mDescriptive statistics of initial maximum memory usage:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0 imbalance: nan
+[32m[lbsStatistics] [0m	minimum: 0 average: 0 maximum: 0
+[32m[lbsStatistics] [0m	standard deviation: 0 variance: 0
+[32m[lbsStatistics] [0m	skewness: nan kurtosis: nan
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 103 amongst 496 possible ones (20.8%)
+[32m[lbsStatistics] [0mRank-local communication volume: 2.08671e+07 amongst 2.17029e+07 total volume (96.1%)
+[32m[lbsStatistics] [0mDescriptive statistics of initial sent volumes:
+[32m[lbsStatistics] [0m	cardinality: 103 sum: 554696 imbalance: 2.124
+[32m[lbsStatistics] [0m	minimum: 88 average: 5385.4 maximum: 16824
+[32m[lbsStatistics] [0m	standard deviation: 4525.24 variance: 2.04778e+07
+[32m[lbsStatistics] [0m	skewness: 0.936535 kurtosis: 2.55858
+[32m[LBAF_app] [0mNo brute force optimization performed
+[32m[lbsRuntime] [0mInstantiating runtime with 0 optimal arrangements for Hamming distance
+[32m[lbsAffineCombinationWorkModel] [0mInstantiated work model with alpha=1.0, beta=1e-08, gamma=0.0
+[32m[lbsAlgorithmBase] [0mCreated base algorithm tracking rank  and object 
+[32m[lbsRuntime] [0mExecuting PhaseStepperAlgorithm for all phases
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 0
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 0
+[32m[lbsStatistics] [0mDescriptive statistics of phase 0 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 10.5817 imbalance: 0.992173
+[32m[lbsStatistics] [0m	minimum: 0.0396573 average: 0.330679 maximum: 0.658769
+[32m[lbsStatistics] [0m	standard deviation: 0.169057 variance: 0.0285802
+[32m[lbsStatistics] [0m	skewness: 0.361568 kurtosis: 2.15045
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 1
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 1
+[32m[lbsStatistics] [0mDescriptive statistics of phase 1 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.642948 imbalance: 4.91849
+[32m[lbsStatistics] [0m	minimum: 0.0154087 average: 0.0200921 maximum: 0.118915
+[32m[lbsStatistics] [0m	standard deviation: 0.0177674 variance: 0.00031568
+[32m[lbsStatistics] [0m	skewness: 5.37064 kurtosis: 29.9092
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11896e+07 total volume (97.3%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 2
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 2
+[32m[lbsStatistics] [0mDescriptive statistics of phase 2 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.526383 imbalance: 0.221116
+[32m[lbsStatistics] [0m	minimum: 0.0154561 average: 0.0164495 maximum: 0.0200867
+[32m[lbsStatistics] [0m	standard deviation: 0.000769406 variance: 5.91985e-07
+[32m[lbsStatistics] [0m	skewness: 3.21347 kurtosis: 15.9118
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11872e+07 total volume (97.3%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 3
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 3
+[32m[lbsStatistics] [0mDescriptive statistics of phase 3 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.521197 imbalance: 0.0442304
+[32m[lbsStatistics] [0m	minimum: 0.0153746 average: 0.0162874 maximum: 0.0170078
+[32m[lbsStatistics] [0m	standard deviation: 0.000393681 variance: 1.54985e-07
+[32m[lbsStatistics] [0m	skewness: -0.0722704 kurtosis: 2.42084
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11742e+07 total volume (97.5%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 4
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 4
+[32m[lbsStatistics] [0mDescriptive statistics of phase 4 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.52225 imbalance: 0.0461051
+[32m[lbsStatistics] [0m	minimum: 0.0153198 average: 0.0163203 maximum: 0.0170728
+[32m[lbsStatistics] [0m	standard deviation: 0.000398134 variance: 1.58511e-07
+[32m[lbsStatistics] [0m	skewness: -0.150111 kurtosis: 2.91732
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11827e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 5
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 5
+[32m[lbsStatistics] [0mDescriptive statistics of phase 5 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520378 imbalance: 0.0469951
+[32m[lbsStatistics] [0m	minimum: 0.0153576 average: 0.0162618 maximum: 0.017026
+[32m[lbsStatistics] [0m	standard deviation: 0.000382478 variance: 1.46289e-07
+[32m[lbsStatistics] [0m	skewness: 0.152419 kurtosis: 2.93541
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11744e+07 total volume (97.5%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 6
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 6
+[32m[lbsStatistics] [0mDescriptive statistics of phase 6 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520078 imbalance: 0.0430356
+[32m[lbsStatistics] [0m	minimum: 0.0153339 average: 0.0162524 maximum: 0.0169519
+[32m[lbsStatistics] [0m	standard deviation: 0.000366886 variance: 1.34605e-07
+[32m[lbsStatistics] [0m	skewness: -0.210685 kurtosis: 2.89861
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11766e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 7
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 7
+[32m[lbsStatistics] [0mDescriptive statistics of phase 7 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520286 imbalance: 0.0532831
+[32m[lbsStatistics] [0m	minimum: 0.015319 average: 0.0162589 maximum: 0.0171253
+[32m[lbsStatistics] [0m	standard deviation: 0.00037245 variance: 1.38719e-07
+[32m[lbsStatistics] [0m	skewness: 0.0837978 kurtosis: 3.31426
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11787e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 8
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 8
+[32m[lbsStatistics] [0mDescriptive statistics of phase 8 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.520617 imbalance: 0.0466161
+[32m[lbsStatistics] [0m	minimum: 0.0153884 average: 0.0162693 maximum: 0.0170277
+[32m[lbsStatistics] [0m	standard deviation: 0.000365222 variance: 1.33387e-07
+[32m[lbsStatistics] [0m	skewness: -0.0417705 kurtosis: 3.01439
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11772e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 9
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 9
+[32m[lbsStatistics] [0mDescriptive statistics of phase 9 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.547612 imbalance: 1.44446
+[32m[lbsStatistics] [0m	minimum: 0.0154977 average: 0.0171129 maximum: 0.0418317
+[32m[lbsStatistics] [0m	standard deviation: 0.00445592 variance: 1.98553e-05
+[32m[lbsStatistics] [0m	skewness: 5.32546 kurtosis: 29.5971
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.089e+07 amongst 1.11817e+07 total volume (97.4%)
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 10
+[32m[lbsPhaseStepperAlgorithm] [0mStepping through phase 10
+[32m[lbsStatistics] [0mDescriptive statistics of phase 10 rank works:
+[32m[lbsStatistics] [0m	cardinality: 32 sum: 0.522944 imbalance: 0.098434
+[32m[lbsStatistics] [0m	minimum: 0.0154293 average: 0.016342 maximum: 0.0179506
+[32m[lbsStatistics] [0m	standard deviation: 0.000473333 variance: 2.24044e-07
+[32m[lbsStatistics] [0m	skewness: 1.10264 kurtosis: 5.37981
+[32m[lbsPhase] [0mComputing inter-rank communication edges
+[32m[lbsStatistics] [0mInter-rank communication edges: 31 amongst 496 possible ones (6.25%)
+[32m[lbsStatistics] [0mRank-local communication volume: 1.08899e+07 amongst 1.11763e+07 total volume (97.4%)
+[32m[LBAF_app] [0mProcess completed without errors

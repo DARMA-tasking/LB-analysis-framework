@@ -1,18 +1,17 @@
 """Tests for the VTDataWriter class"""
 import json
 import os
-import subprocess
-import sys
 import unittest
 from typing import Any
-
-
 from schema import Optional
 import brotli
 import yaml
-from lbaf import PROJECT_PATH
+
+
 from lbaf.Utils.path import abspath
 from lbaf.Applications.JSON_data_files_validator_loader import load as load_schema
+from tests.functions import run_lbaf
+
 load_schema()
 from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
@@ -25,23 +24,6 @@ class TestVTDataWriter(unittest.TestCase):
 
     def tearDown(self):
         return
-
-    def _run_lbaf(self, config_file) -> subprocess.CompletedProcess:
-        """Run lbaf as a subprocess with the given configuration file (path)"""
-
-        lbaf_path = os.path.join(PROJECT_PATH, 'src', 'lbaf', 'Applications', 'LBAF_app.py')
-        proc = subprocess.run(
-            [
-                sys.executable,
-                lbaf_path,
-                '-c',
-                config_file
-            ],
-            check=True,
-            stdout=sys.stdout,
-            stderr=sys.stdout
-        )
-        return proc
 
     def __list_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
         """List optional keys as some dot path notation"""
@@ -131,7 +113,7 @@ class TestVTDataWriter(unittest.TestCase):
 
         # run LFAF using a PhaseStepper
         config_file = os.path.join(os.path.dirname(__file__), 'config', 'conf_vt_writer_stepper_test.yml')
-        proc = self._run_lbaf(config_file)
+        proc = run_lbaf(config_file)
         self.assertEqual(0, proc.returncode)
 
         # LBAF config useful information

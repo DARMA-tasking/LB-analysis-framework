@@ -1,6 +1,6 @@
 # Specify input
 from_data:
-  data_stem: ../../data/nolb-8color-16nodes-11firstphases/data
+  data_stem: ../../../data/nolb-8color-16nodes-11firstphases/data
   phase_ids:
     - 0
     - 1
@@ -27,6 +27,6 @@ algorithm:
   name: PhaseStepper
 
 # Specify output
-log_to_file: ../../output/log.txt
-output_dir: ../../output
+log_to_file: ../output/log.txt
+output_dir: ../output
 output_file_stem: output_file

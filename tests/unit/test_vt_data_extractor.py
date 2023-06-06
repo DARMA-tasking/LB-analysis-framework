@@ -6,16 +6,15 @@ import unittest
 
 import brotli
 
-from lbaf import PROJECT_PATH
 from lbaf.Utils.vt_data_extractor import VTDataExtractor
 
 
 class TestVTDataExtractor(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data", "VTDataExtractor")
+        self.data_dir = os.path.join(os.path.join(os.path.dirname(__file__), "data", "VTDataExtractor"))
         self.compr_data_dir = os.path.join(self.data_dir, "compressed_data_to_extract")
         self.uncompr_data_dir = os.path.join(self.data_dir, "uncompressed_data_to_extract")
-        self.output_data_dir = os.path.join(PROJECT_PATH, "tests", "output")
+        self.output_data_dir = os.path.join(os.path.join(os.path.dirname(__file__), "output"))
         self.expected_data_dir = os.path.join(self.data_dir, "expected")
 
     def tearDown(self):

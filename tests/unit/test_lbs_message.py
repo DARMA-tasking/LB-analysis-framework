@@ -2,7 +2,6 @@ import unittest
 
 from lbaf.Model.lbsMessage import Message
 
-
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.msg = Message(1, "something")

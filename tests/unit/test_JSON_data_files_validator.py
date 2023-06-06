@@ -17,7 +17,7 @@ from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 class TestJSONDataFilesValidator(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.json")
         self.wrong_file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.jso")
         self.wrong_file_schema = os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "data.0.json")
