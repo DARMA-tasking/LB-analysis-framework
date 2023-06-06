@@ -14,7 +14,7 @@ from lbaf.Utils.path import abspath
 from lbaf.Model.lbsPhase import Phase
 from lbaf.IO.lbsStatistics import compute_arrangement_works, compute_min_max_arrangements_work
 
-get_logger().warning('this module has been deprecated')
+get_logger().warning(f"Deprecated module")
 
 def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
                                             w_max: float, from_id: int, to_id: int, n_ranks: int,
@@ -190,7 +190,24 @@ def main():
         phases[phase_id] = phase
 
     # Get objects from log files
-    objects = phases[0].get_objects()
+    initial_phase = phases[min(phases.keys())]
+    objects = []
+    # Iterate over ranks
+    for rank in initial_phase.get_ranks():
+        for o in rank.get_objects():
+            entry = {
+                "id": o.get_id(),
+                "load": o.get_load(),
+                "to": {},
+                "from": {}}
+            comm = o.get_communicator()
+            if comm:
+                for k, v in comm.get_sent().items():
+                    entry["to"][k.get_id()] = v
+                for k, v in comm.get_received().items():
+                    entry["from"][k.get_id()] = v
+            objects.append(entry)
+    objects.sort(key=lambda x: x.get("id"))
 
     # Print out input parameters
     root_logger.info(f"alpha: {alpha_g}")

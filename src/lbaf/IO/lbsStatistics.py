@@ -172,7 +172,7 @@ def compute_load(objects: tuple, rank_object_ids: list) -> float:
     """Return a load as a sum of all object loads
     """
 
-    return sum([objects[i].get_load() for i in rank_object_ids])
+    return sum([objects[i].get('load') for i in rank_object_ids])
 
 
 def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
