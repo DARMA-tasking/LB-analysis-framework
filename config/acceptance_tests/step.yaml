@@ -30,4 +30,3 @@ algorithm:
 log_to_file: ../../output/log.txt
 output_dir: ../../output
 output_file_stem: output_file
-n_ranks: 32
