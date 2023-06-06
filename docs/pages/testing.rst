@@ -89,7 +89,6 @@ Acceptance Test Configuration
   #logging_level: debug
   #overwrite_validator: False
   #check_schema: False
-  n_ranks: 4
   logging_level: info
   output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
   output_file_stem: output_file
@@ -140,7 +139,6 @@ Stepper Test Configuration
   generate_multimedia: False
   output_dir: /__w/LB-analysis-framework/LB-analysis-framework/output
   output_file_stem: output_file
-  n_ranks: 32
   generate_meshes:
     x_ranks: 8
     y_ranks: 4
