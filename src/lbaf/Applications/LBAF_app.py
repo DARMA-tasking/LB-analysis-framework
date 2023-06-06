@@ -11,7 +11,6 @@ import yaml
 from lbaf import __version__, PROJECT_PATH
 
 from lbaf.Applications import JSON_data_files_validator_loader
-from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
 from lbaf.Utils.logging import get_logger, Logger
@@ -389,9 +388,9 @@ class Application:
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
-            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, n_ranks)
-            if n_a != n_ranks ** len(objects):
+            n_a, w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
+                objects, alpha, beta, gamma, self.__parameters.n_ranks)
+            if n_a != self.__parameters.n_ranks ** len(objects):
                 self.__logger.error("Incorrect number of possible arrangements with repetition")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
