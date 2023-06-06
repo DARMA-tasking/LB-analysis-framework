@@ -1,6 +1,5 @@
 import os
 import sys
-import math
 import itertools
 import csv
 
@@ -14,7 +13,7 @@ from lbaf.Utils.path import abspath
 from lbaf.Model.lbsPhase import Phase
 from lbaf.IO.lbsStatistics import compute_arrangement_works, compute_min_max_arrangements_work
 
-get_logger().warning(f"Deprecated module")
+get_logger().warning("Deprecated module")
 
 def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
                                             w_max: float, from_id: int, to_id: int, n_ranks: int,
@@ -179,7 +178,7 @@ def main():
     data_dir = abspath(data_dir, conf_dir) # make absolute path
     file_prefix = f"{os.sep}".join([data_dir, file_prefix]) # make absolute path prefix
 
-    reader = LoadReader(n_ranks=n_ranks, file_prefix=file_prefix, logger=root_logger, file_suffix=file_suffix)
+    reader = LoadReader(file_prefix=file_prefix, logger=root_logger, file_suffix=file_suffix)
     phases = {}
     # Iterate over phase IDs
     for phase_id in phase_ids:
