@@ -316,6 +316,8 @@ class Application:
 
         reader = None # type: Optional(LoadReader)
 
+        n_ranks = None
+
         # Populate phase depending on chosen mechanism
         if self.__parameters.data_stem:
             # Populate phase from log files and store number of objects
@@ -327,6 +329,8 @@ class Application:
                 logger=self.__logger,
                 file_suffix=file_suffix if file_suffix is not None else "json",
                 check_schema=check_schema)
+            # retrieve n_ranks
+            n_ranks = reader.n_ranks
 
             # Iterate over phase IDs
             for phase_id in self.__parameters.phase_ids:
@@ -340,6 +344,7 @@ class Application:
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
         else:
+            n_ranks = self.__parameters.n_ranks
             phase_id = 0
             phase = Phase(self.__logger, phase_id)
             phase.populate_from_samplers(
@@ -385,8 +390,8 @@ class Application:
                 for k in ("alpha", "beta", "gamma")
             ]
             n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, self.__parameters.n_ranks)
-            if n_a != self.__parameters.n_ranks ** len(objects):
+                objects, alpha, beta, gamma, n_ranks)
+            if n_a != n_ranks ** len(objects):
                 self.__logger.error("Incorrect number of possible arrangements with repetition")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
@@ -446,7 +451,6 @@ class Application:
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
-            n_ranks = reader.n_ranks if reader is not None else self.__parameters.n_ranks
             # Verify grid size consistency
             if math.prod(self.__parameters.grid_size) < n_ranks:
                 self.__logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
