@@ -99,7 +99,6 @@ Example configuration
     generate_multimedia: False
     output_dir: ../../../output
     output_file_stem: output_file
-    n_ranks: 4
     generate_meshes:
       x_ranks: 2
       y_ranks: 2
