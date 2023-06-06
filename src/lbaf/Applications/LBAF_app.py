@@ -347,7 +347,7 @@ class Application:
             phase_id = 0
             phase = Phase(self.__logger, phase_id)
             phase.populate_from_samplers(
-                self.__parameters.n_ranks,
+                n_ranks,
                 self.__parameters.n_objects,
                 self.__parameters.load_sampler,
                 self.__parameters.volume_sampler,
@@ -389,8 +389,8 @@ class Application:
                 for k in ("alpha", "beta", "gamma")
             ]
             n_a, w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, self.__parameters.n_ranks)
-            if n_a != self.__parameters.n_ranks ** len(objects):
+                objects, alpha, beta, gamma, n_ranks)
+            if n_a != n_ranks ** len(objects):
                 self.__logger.error("Incorrect number of possible arrangements with repetition")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
