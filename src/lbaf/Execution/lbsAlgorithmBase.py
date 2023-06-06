@@ -120,17 +120,27 @@ class AlgorithmBase:
         for object_qoi_name in tuple({"load", self.__object_qoi}):
             if not object_qoi_name:
                 continue
-            distributions.setdefault(f"object {object_qoi_name}", []).append(
-                {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
-                 for o in self._rebalanced_phase.get_objects()})
+            try:
+                distributions.setdefault(f"object {object_qoi_name}", []).append(
+                    {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
+                    for o in self._rebalanced_phase.get_objects()})
+            except AttributeError as err:
+                self._logger.error(f"Invalid object_qoi name \"{object_qoi_name}\"")
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from err
 
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
             if not rank_qoi_name or rank_qoi_name == "work":
                 continue
-            distributions.setdefault(f"rank {rank_qoi_name}", []).append(
-                [getattr(p, f"get_{rank_qoi_name}")()
-                 for p in self._rebalanced_phase.get_ranks()])
+            try:
+                distributions.setdefault(f"rank {rank_qoi_name}", []).append(
+                    [getattr(p, f"get_{rank_qoi_name}")()
+                    for p in self._rebalanced_phase.get_ranks()])
+            except AttributeError as err:
+                self._logger.error(f"Invalid rank_qoi name \"{rank_qoi_name}\"")
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from err
         distributions.setdefault("rank work", []).append(
             [self._work_model.compute(p) for p in self._rebalanced_phase.get_ranks()])
 

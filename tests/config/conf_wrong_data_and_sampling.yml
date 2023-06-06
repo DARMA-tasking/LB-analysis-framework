@@ -5,6 +5,7 @@ from_data:
     - 0
 from_samplers:
   n_objects: 200
+  n_ranks: 4
   n_mapped_ranks: 2
   communication_degree: 20
   load_sampler:
@@ -42,7 +43,6 @@ algorithm:
 # Specify output
 output_dir: ../../../output
 output_file_stem: output_file
-n_ranks: 4
 LBAF_Viz:
   x_ranks: 2
   y_ranks: 2

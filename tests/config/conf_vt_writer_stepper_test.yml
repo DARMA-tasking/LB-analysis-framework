@@ -30,7 +30,6 @@ algorithm:
 # Specify output
 output_dir: ../output/vt_writer_stepper_test
 output_file_stem: output_file
-n_ranks: 32
 write_JSON:
   compressed: True
   suffix: json

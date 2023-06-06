@@ -67,10 +67,6 @@ class ConfigurationValidator:
                 Optional("phase_id"): int,
                 Optional("parameters"): dict},
            "output_file_stem": str,
-            "n_ranks": And(
-                int,
-                lambda x: x > 0,
-                error="Should be of type 'int' and > 0"),
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
             Optional("check_schema"): bool,
@@ -111,6 +107,10 @@ class ConfigurationValidator:
                  Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'"))
              })
         self.__from_samplers = Schema({
+            "n_ranks": And(
+                int,
+                lambda x: x > 0,
+                error="Should be of type 'int' and > 0"),
             "n_objects": And(int, lambda x: x > 0,
                              error="Should be of type 'int' and > 0"),
             "n_mapped_ranks": And(int, lambda x: x >= 0,
@@ -188,9 +188,9 @@ class ConfigurationValidator:
             "work model": ["work_model"],
             "algorithm": ["brute_force_optimization", "algorithm"],
             "output": [
-                "logging_level", "log_to_file", "overwrite_validator",
-                "generate_multimedia", "output_dir", "output_file_stem", "n_ranks",
-                "LBAF_Viz", "write_JSON"
+                "logging_level", "log_to_file", "overwrite_validator", "check_schema", "terminal_background",
+                "generate_multimedia", "output_dir", "output_file_stem",
+                "LBAF_Viz"
             ]
         }
 

@@ -14,7 +14,7 @@ class TestConfig(unittest.TestCase):
         self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
         self.logger = logging.getLogger()
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
-        self.reader = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
+        self.reader = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
         self.phase = Phase(self.logger, 0, reader=self.reader)
 
     def test_lbs_phase_initialization(self):
