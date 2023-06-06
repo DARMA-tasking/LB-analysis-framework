@@ -446,7 +446,6 @@ class Application:
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
-
             n_ranks = reader.n_ranks if reader is not None else self.__parameters.n_ranks
             # Verify grid size consistency
             if math.prod(self.__parameters.grid_size) < n_ranks:

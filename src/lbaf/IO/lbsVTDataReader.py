@@ -12,7 +12,6 @@ from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
 from ..Utils.exception_handler import exc_handler
-from ..Utils.path import abspath
 
 
 class LoadReader:
@@ -68,7 +67,7 @@ class LoadReader:
 
         # Perform sanity check on number of loaded phases
         l = len(next(iter(self.__vt_data.values())).get("phases"))
-        if not (all(len(v.get("phases")) == l for v in self.__vt_data.values())):
+        if not all(len(v.get("phases")) == l for v in self.__vt_data.values()):
             self.__logger.error(
                 "Not all JSON files have the same number of phases")
             sys.excepthook = exc_handler
@@ -170,7 +169,7 @@ class LoadReader:
 
         # Add communications to the object
         rank_comm = {}
-        communications = phase.get("communications")
+        communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
         if communications:
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
@@ -211,7 +210,7 @@ class LoadReader:
         rank_blocks, task_user_defined = {}, {}
 
         # Iterate over tasks
-        for task in phase.get("tasks", []):
+        for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
             # Retrieve required values
             task_entity = task.get("entity")
             task_id = task_entity.get("id")
