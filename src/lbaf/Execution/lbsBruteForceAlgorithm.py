@@ -4,7 +4,6 @@ import itertools
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
-from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
 
 
@@ -75,7 +74,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         objects = []
 
         # Iterate over ranks
-        phase_ranks = phases.get_ranks()
+        phase_ranks = phases[0].get_ranks()
         for rank in phase_ranks:
             for o in rank.get_objects():
                 entry = {
