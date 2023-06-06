@@ -74,7 +74,8 @@ class BruteForceAlgorithm(AlgorithmBase):
         objects = []
 
         # Iterate over ranks
-        phase_ranks = phases[0].get_ranks()
+        initial_phase = phases[min(phases.keys())]
+        phase_ranks = initial_phase.get_ranks()
         for rank in phase_ranks:
             for o in rank.get_objects():
                 entry = {
