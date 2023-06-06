@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 import math
-from typing import cast, Any, Dict, Union
+from typing import cast, Any, Dict, Optional, Union
 
 import yaml
 
@@ -28,23 +28,32 @@ class InternalParameters:
     """Represent the parameters used internally by a a LBAF Application"""
 
     __logger: Logger
-    n_ranks: int
-    check_schema: bool
-    output_dir: str
-    output_file_stem: str
-    file_suffix: str
-    algorithm: Dict[str,Any]
-    work_model: Dict[str,dict]
-    rank_qoi: Union[str,None]
-    object_qoi: Union[str,None]
-    grid_size: Union[list,None]
 
-    # from_samplers options
-    n_objects: int
-    n_mapped_ranks: int
-    communication_degree: int
-    load_sampler: dict
-    volume_sampler: dict
+    # input options
+    check_schema: Optional[bool] = None
+    output_dir: Optional[str] = None
+    output_file_stem: Optional[str] = None
+    file_suffix: Optional[str] = None
+    # - from_data options
+    data_stem: Optional[str] = None
+    # - from_samplers options
+    n_ranks: Optional[int] = None
+    n_objects: Optional[int] = None
+    n_mapped_ranks: Optional[int] = None
+    communication_degree: Optional[int] = None
+    load_sampler: Optional[dict] = None
+    volume_sampler: Optional[dict] = None
+
+    # Viz options
+    rank_qoi: Optional[str] = None
+    object_qoi: Optional[str] = None
+    grid_size: Optional[list] = None
+
+    # work_model options
+    work_model: Optional[Dict[str,dict]] = None
+
+    # algorithm options
+    algorithm: Dict[str,Any]
 
     def __init__(self, config: dict, base_dir: str, logger: Logger):
         self.__logger = logger
@@ -76,34 +85,6 @@ class InternalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
-        # Parse visualizer parameters when available
-        if (viz := config.get("LBAF_Viz")) is not None:
-            # Retrieve mandatory visualization parameters
-            try:
-                self.grid_size = []
-                for key in ("x_ranks", "y_ranks", "z_ranks"):
-                    self.grid_size.append(viz[key])
-                self.object_jitter = viz["object_jitter"]
-                self.rank_qoi = viz["rank_qoi"]
-                self.object_qoi = viz.get("object_qoi")
-            except Exception as e:
-                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
-                sys.excepthook = exc_handler
-                raise SystemExit(1) from e
-
-            # Verify grid size consistency
-            if math.prod(self.grid_size) < self.n_ranks:
-                self.__logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-
-            # Retrieve optional parameters
-            self.save_meshes = viz.get("save_meshes", False)
-            self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
-        else:
-            # No visualization quantities of interest
-            self.rank_qoi = self.object_qoi = self.grid_size = None
-
         # Parse data parameters if present
         from_data = config.get("from_data")
         if from_data is not None:
@@ -123,11 +104,31 @@ class InternalParameters:
         # Parse sampling parameters if present
         from_samplers = config.get("from_samplers")
         if from_samplers is not None:
+            self.n_ranks = from_samplers.get("n_ranks")
             self.n_objects = from_samplers.get("n_objects", {})
             self.n_mapped_ranks = from_samplers.get("n_mapped_ranks")
             self.communication_degree = from_samplers.get("communication_degree")
             self.load_sampler = from_samplers.get("load_sampler")
             self.volume_sampler = from_samplers.get("volume_sampler")
+
+        # Parse visualizer parameters when available
+        if (viz := config.get("LBAF_Viz")) is not None:
+            # Retrieve mandatory visualization parameters
+            try:
+                self.grid_size = []
+                for key in ("x_ranks", "y_ranks", "z_ranks"):
+                    self.grid_size.append(viz[key])
+                self.object_jitter = viz["object_jitter"]
+                self.rank_qoi = viz["rank_qoi"]
+                self.object_qoi = viz.get("object_qoi")
+            except Exception as e:
+                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from e
+
+            # Retrieve optional parameters
+            self.save_meshes = viz.get("save_meshes", False)
+            self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
 
         # Set output directory, local by default
         self.output_dir = abspath(config.get("output_dir", '.'), relative_to=base_dir)
@@ -313,25 +314,19 @@ class Application:
         # Check schema
         check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
 
+        reader = None # type: Optional(LoadReader)
+
         # Populate phase depending on chosen mechanism
         if self.__parameters.data_stem:
             # Populate phase from log files and store number of objects
             file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
 
             # Initializing reader
-            if file_suffix is not None:
-                reader = LoadReader(
-                    file_prefix=self.__parameters.data_stem,
-                    n_ranks=self.__parameters.n_ranks,
-                    logger=self.__logger,
-                    file_suffix=file_suffix,
-                    check_schema=check_schema)
-            else:
-                reader = LoadReader(
-                    file_prefix=self.__parameters.data_stem,
-                    n_ranks=self.__parameters.n_ranks,
-                    logger=self.__logger,
-                    check_schema=check_schema)
+            reader = LoadReader(
+                file_prefix=self.__parameters.data_stem,
+                logger=self.__logger,
+                file_suffix=file_suffix if file_suffix is not None else "json",
+                check_schema=check_schema)
 
             # Iterate over phase IDs
             for phase_id in self.__parameters.phase_ids:
@@ -361,7 +356,8 @@ class Application:
         self.__print_statistics(initial_phase, "initial")
 
         # Perform brute force optimization when needed
-        if "brute_force_optimization" in self.__parameters.__dict__ and self.__parameters.algorithm["name"] != "BruteForce":
+        if ("brute_force_optimization" in self.__parameters.__dict__
+            and self.__parameters.algorithm["name"] != "BruteForce"):
             # Prepare input data for rank order enumerator
             self.__logger.info("Starting brute force optimization")
             objects = []
@@ -450,6 +446,15 @@ class Application:
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
+
+            n_ranks = reader.n_ranks if reader is not None else self.__parameters.n_ranks
+            # Verify grid size consistency
+            if math.prod(self.__parameters.grid_size) < n_ranks:
+                self.__logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1)
+
+
             # Look for prescribed QOI bounds
             qoi_request = [self.__parameters.rank_qoi]
             qoi_request.append(
