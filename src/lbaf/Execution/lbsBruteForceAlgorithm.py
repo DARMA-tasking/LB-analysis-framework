@@ -46,7 +46,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             v = 0.0
             for i in rank_object_ids:
                 v += sum([
-                    v for k, v in objects[i].get_communicator().get_received().items()
+                    v for k, v in objects[i].get_received().items()
                     if k not in rank_object_ids])
             values["received volume"] = v
 
