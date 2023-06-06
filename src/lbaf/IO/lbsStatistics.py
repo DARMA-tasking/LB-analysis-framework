@@ -1,3 +1,4 @@
+import itertools
 import math
 import random as rnd
 from logging import Logger
@@ -151,6 +152,78 @@ def inverse_transform_sample(cmf):
         if not v < u:
             # Return sample point
             return k
+
+
+def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
+    """Return a volume of rank objects"""
+
+    # Initialize volume
+    volume = 0.
+
+    # Iterate over all rank objects
+    for i in rank_object_ids:
+        volume += sum(v for (k, v) in getattr(objects[0], direction, {}).items() if k not in rank_object_ids)
+
+    # Return computed volume
+    return volume
+
+
+def compute_load(objects: tuple, rank_object_ids: list) -> float:
+    """Return a load as a sum of all object loads
+    """
+
+    return sum([objects[i].get_load() for i in rank_object_ids])
+
+
+def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
+    """Return a dictionary with works of rank objects"""
+
+    # Build object rank map from arrangement
+    ranks = {}
+    for i, j in enumerate(arrangement):
+        ranks.setdefault(j, []).append(i)
+
+    # iterate over ranks
+    works = {}
+    for rank, rank_objects in ranks.items():
+        # Compute per-rank loads
+        works[rank] = alpha * compute_load(objects, rank_objects)
+
+        # Compute communication volumes
+        works[rank] += beta * max(compute_volume(objects, rank_objects, "from"),
+                                  compute_volume(objects, rank_objects, "to"))
+
+        # Add constant
+        works[rank] += gamma
+
+    # Return arrangement works
+    return works
+
+
+def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int):
+    """Compute all possible arrangements with repetition and minimax work"""
+
+    # Initialize quantities of interest
+    n_arrangements = 0
+    works_min_max = math.inf
+    arrangements_min_max = []
+    for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
+        # Compute per-rank works for current arrangement
+        works = compute_arrangement_works(objects, arrangement, alpha, beta, gamma)
+
+        # Update minmax when relevant
+        work_max = max(works.values())
+        if work_max < works_min_max:
+            works_min_max = work_max
+            arrangements_min_max = [arrangement]
+        elif work_max == works_min_max:
+            arrangements_min_max.append(arrangement)
+
+        # Keep track of number of arrangements for sanity
+        n_arrangements += 1
+
+    # Return quantities of interest
+    return n_arrangements, works_min_max, arrangements_min_max
 
 
 def compute_function_statistics(population, fct) -> Statistics:
