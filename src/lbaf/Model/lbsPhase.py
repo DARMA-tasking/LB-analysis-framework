@@ -82,13 +82,34 @@ class Phase:
         return sum([r.get_number_of_objects() for r in self.__ranks])
 
     def get_objects(self):
-
         """Return all objects belonging to phase."""
 
         # List comprehension is not possible as we need to use set to list concatenation
         objects = []
-        for r in self.__ranks:
-            objects += r.get_objects()
+        for rank in self.__ranks:
+            objects += rank.get_objects()
+        objects.sort(key=lambda x: x.get_id())
+        return objects
+
+    def get_objects_dict(self):
+        """Return all objects as dictionaries with `from` and `to` values retrieved from the object communicator"""
+
+        objects = []
+        for o in self.get_objects():
+            entry = {
+                "id": o.get_id(),
+                "rank": o.get_rank_id(),
+                "load": o.get_load(),
+                "to": {},
+                "from": {}}
+            comm = o.get_communicator()
+            if comm:
+                for k, v in comm.get_sent().items():
+                    entry["to"][k.get_id()] = v
+                for k, v in comm.get_received().items():
+                    entry["from"][k.get_id()] = v
+            objects.append(entry)
+        objects.sort(key=lambda x: x.get("id"))
         return objects
 
     def get_object_ids(self):

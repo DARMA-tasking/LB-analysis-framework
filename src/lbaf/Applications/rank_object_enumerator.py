@@ -190,23 +190,7 @@ def main():
 
     # Get objects from log files
     initial_phase = phases[min(phases.keys())]
-    objects = []
-    # Iterate over ranks
-    for rank in initial_phase.get_ranks():
-        for o in rank.get_objects():
-            entry = {
-                "id": o.get_id(),
-                "load": o.get_load(),
-                "to": {},
-                "from": {}}
-            comm = o.get_communicator()
-            if comm:
-                for k, v in comm.get_sent().items():
-                    entry["to"][k.get_id()] = v
-                for k, v in comm.get_received().items():
-                    entry["from"][k.get_id()] = v
-            objects.append(entry)
-    objects.sort(key=lambda x: x.get("id"))
+    objects = initial_phase.get_objects()
 
     # Print out input parameters
     root_logger.info(f"alpha: {alpha_g}")

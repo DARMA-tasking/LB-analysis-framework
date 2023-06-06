@@ -40,13 +40,13 @@ class BruteForceAlgorithm(AlgorithmBase):
             # Compute load component for current rank
             values = {
                 "load":
-                sum([objects[i].get("load") for i in rank_object_ids])}
+                sum([objects[i].get_load() for i in rank_object_ids])}
 
             # Compute received communication volume
             v = 0.0
             for i in rank_object_ids:
                 v += sum([
-                    v for k, v in objects[i].get("from", 0.).items()
+                    v for k, v in objects[i].get_communicator().get_received().items()
                     if k not in rank_object_ids])
             values["received volume"] = v
 
@@ -54,7 +54,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             v = 0.0
             for i in rank_object_ids:
                 v += sum([
-                    v for k, v in objects[i].get("to", 0.).items()
+                    v for k, v in objects[i].get_sent().items()
                     if k not in rank_object_ids])
             values["sent volume"] = v
 
@@ -73,31 +73,14 @@ class BruteForceAlgorithm(AlgorithmBase):
         self._logger.info("Starting brute force optimization")
         objects = []
 
-        # Iterate over ranks
         initial_phase = phases[min(phases.keys())]
-        phase_ranks = initial_phase.get_ranks()
-        for rank in phase_ranks:
-            for o in rank.get_objects():
-                entry = {
-                    "id": o.get_id(),
-                    "rank": rank,
-                    "load": o.get_load(),
-                    "to": {},
-                    "from": {}}
-                comm = o.get_communicator()
-                if comm:
-                    for k, v in comm.get_sent().items():
-                        entry["to"][k.get_id()] = v
-                    for k, v in comm.get_received().items():
-                        entry["from"][k.get_id()] = v
-                objects.append(entry)
-        objects.sort(key=lambda x: x.get("id"))
+        objects = initial_phase.get_objects()
 
         # Initialize quantities of interest
         n_arrangements = 0
         w_min_max = math.inf
         a_min_max = []
-        n_ranks = len(phase_ranks)
+        n_ranks = len(initial_phase.get_ranks())
 
         # Compute all possible arrangements with repetition and minimax work
         for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):

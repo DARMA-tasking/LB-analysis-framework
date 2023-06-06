@@ -161,7 +161,7 @@ def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> flo
     volume = 0.
 
     # Iterate over all rank objects
-    for i in rank_object_ids:
+    for _ in rank_object_ids:
         volume += sum(v for (k, v) in getattr(objects[0], direction, {}).items() if k not in rank_object_ids)
 
     # Return computed volume
@@ -172,7 +172,7 @@ def compute_load(objects: tuple, rank_object_ids: list) -> float:
     """Return a load as a sum of all object loads
     """
 
-    return sum([objects[i].get('load') for i in rank_object_ids])
+    return sum([objects[i].get_load() for i in rank_object_ids])
 
 
 def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
@@ -190,8 +190,8 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
         works[rank] = alpha * compute_load(objects, rank_objects)
 
         # Compute communication volumes
-        works[rank] += beta * max(compute_volume(objects, rank_objects, "from"),
-                                  compute_volume(objects, rank_objects, "to"))
+        works[rank] += beta * max(compute_volume(objects, rank_objects, "received"),
+                                  compute_volume(objects, rank_objects, "sent"))
 
         # Add constant
         works[rank] += gamma

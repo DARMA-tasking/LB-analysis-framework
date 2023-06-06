@@ -364,24 +364,7 @@ class Application:
             and self.__parameters.algorithm["name"] != "BruteForce"):
             # Prepare input data for rank order enumerator
             self.__logger.info("Starting brute force optimization")
-            objects = []
-
-            # Iterate over ranks
-            for rank in initial_phase.get_ranks():
-                for o in rank.get_objects():
-                    entry = {
-                        "id": o.get_id(),
-                        "load": o.get_load(),
-                        "to": {},
-                        "from": {}}
-                    comm = o.get_communicator()
-                    if comm:
-                        for k, v in comm.get_sent().items():
-                            entry["to"][k.get_id()] = v
-                        for k, v in comm.get_received().items():
-                            entry["from"][k.get_id()] = v
-                    objects.append(entry)
-            objects.sort(key=lambda x: x.get("id"))
+            objects = initial_phase.get_objects()
 
             # Execute rank order enumerator and fetch optimal arrangements
             alpha, beta, gamma = [
