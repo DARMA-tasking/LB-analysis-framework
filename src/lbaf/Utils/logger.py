@@ -4,6 +4,7 @@ import logging.config
 import os
 from logging import Formatter
 from typing import Union, List, Dict
+
 from .colors import red, green, cyan, yellow
 
 
