@@ -30,7 +30,7 @@ class LoadReader:
         "CollectionToNodeBcast": 5,
         "NodeToCollectionBcast": 6,
         "CollectiveToCollectionBcast": 7,
-    }  
+    }
 
     def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True):
         # The base directory and file name for the log files
