@@ -11,51 +11,13 @@ from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.logging import get_logger, Logger
 from lbaf.Utils.path import abspath
-
-def get_objects(n_ranks: int, logger: Logger, file_prefix: str, file_suffix: str = "json") -> tuple:
-    """Read data from configuration and returns a tuple of objects with communication"""
-
-    # Instantiate data containers
-    objects = []
-    communication = {}
-
-    # Instantiate data reader Class
-    reader = LoadReader(file_prefix=file_prefix, n_ranks=n_ranks, logger=logger, file_suffix=file_suffix)
-
-    # Iterate over ranks, collecting objects and communication
-    for rank in range(n_ranks):
-        iter_map, comm = reader.read(node_id=rank)
-        for rnk in iter_map.values():
-            for obj in rnk.get_migratable_objects():
-                objects.append({"id": obj.get_id(), "load": obj.get_load()})
-        for obj_idx, obj_comm in comm.items():
-            if obj_idx not in communication.keys():
-                communication[obj_idx] = {"from": {}, "to": {}}
-            if obj_comm.get("sent"):
-                for snt in obj_comm.get("sent"):
-                    communication[obj_idx]["to"].update({snt.get("to"): snt.get("bytes")})
-            if obj_comm.get("received"):
-                for rec in obj_comm.get("received"):
-                    communication[obj_idx]["from"].update({rec.get("from"): rec.get("bytes")})
-
-    # Sort objects for debugging purposes
-    objects.sort(key=lambda x: x.get("id"))
-
-    # Adding communication to objects
-    for o in objects:
-        idx = o.get("id")
-        if communication.get(idx) is not None:
-            o.update(communication.get(idx))
-
-    # Return objects as tuple
-    return tuple(objects)
-
+from lbaf.Model.lbsPhase import Phase
 
 def compute_load(objects: tuple, rank_object_ids: list) -> float:
     """Return a load as a sum of all object loads
     """
 
-    return sum([objects[i].get("load") for i in rank_object_ids])
+    return sum([objects[i].get_load() for i in rank_object_ids])
 
 
 def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
@@ -66,7 +28,7 @@ def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> flo
 
     # Iterate over all rank objects
     for i in rank_object_ids:
-        volume += sum(v for (k, v) in objects[i].get(direction, []).items() if k not in rank_object_ids)
+        volume += sum(v for (k, v) in getattr(objects[0], direction, {}).items() if k not in rank_object_ids)
 
     # Return computed volume
     return volume
@@ -277,14 +239,28 @@ def main():
 
     # Get datastem as absolute prefix
     data_stem = conf.get("from_data").get("data_stem")
+    phase_ids = conf.get("from_data").get("phase_ids")
+    if isinstance(phase_ids, str):
+        range_list = list(map(int, conf.get("phase_ids").split('-')))
+        phase_ids = list(range(range_list[0], range_list[1] + 1))
     data_dir = f"{os.sep}".join(data_stem.split(os.sep)[:-1])
     file_prefix = data_stem.split(os.sep)[-1]
 
     data_dir = abspath(data_dir, conf_dir) # make absolute path
     file_prefix = f"{os.sep}".join([data_dir, file_prefix]) # make absolute path prefix
 
+    reader = LoadReader(n_ranks=n_ranks, file_prefix=file_prefix, logger=root_logger, file_suffix=file_suffix)
+    phases = {}
+    # Iterate over phase IDs
+    for phase_id in phase_ids:
+        # Create a phase and populate it
+        phase = Phase(
+            root_logger, phase_id, reader=reader)
+        phase.populate_from_log(phase_id)
+        phases[phase_id] = phase
+
     # Get objects from log files
-    objects = get_objects(n_ranks=n_ranks, logger=root_logger, file_prefix=file_prefix, file_suffix=file_suffix)
+    objects = phases[0].get_objects()
 
     # Print out input parameters
     root_logger.info(f"alpha: {alpha_g}")
