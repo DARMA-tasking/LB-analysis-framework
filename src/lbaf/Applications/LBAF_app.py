@@ -13,7 +13,7 @@ from lbaf import __version__, PROJECT_PATH
 from lbaf.Applications import JSON_data_files_validator_loader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
-from lbaf.Utils.logging import get_logger, Logger
+from lbaf.Utils.logger import get_logger, Logger
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader

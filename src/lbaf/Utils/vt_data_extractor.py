@@ -8,8 +8,8 @@ import time
 
 import json
 
-from .exception_handler import exc_handler
-from .. import PROJECT_PATH
+from lbaf.Utils.exception_handler import exc_handler
+from lbaf import PROJECT_PATH
 
 try:
     import brotli
