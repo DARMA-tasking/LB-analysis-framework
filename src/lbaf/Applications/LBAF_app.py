@@ -371,7 +371,8 @@ class Application:
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
-            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
+            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma,
+                                                                                    n_ranks, logger=self.__logger)
         else:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
@@ -387,7 +388,7 @@ class Application:
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
         # Execute runtime for specified phases, -1 for all phases
-        offline_LB_compatible = self.__parameters.json_params.get(
+        offline_LB_compatible = self.__parameters.json_params.get( # pylint:disable=C0103:invalid-name;not lowercase
             "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", -1),
@@ -402,7 +403,7 @@ class Application:
                         "No rebalancing took place for offline load-balancing")
                 else:
                     # Determine if a phase with same index was present
-                    if (existing_phase := phases.get(p_id := rebalanced_phase.get_id())):
+                    if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
                         # Apply object timings to rebalanced phase
                         self.__logger.info(
                             f"Phase {p_id} already present, applying its object loads to rebalanced phase")
