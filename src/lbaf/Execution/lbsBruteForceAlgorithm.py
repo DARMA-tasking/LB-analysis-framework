@@ -1,15 +1,18 @@
+"""lbsBruteForceAlgorithm module.
+Exports: BruteForceAlgorithm class"""
 import sys
 import math
 import itertools
 from logging import Logger
 
+from ..Model.lbsAffineCombinationWorkModel import AffineCombinationWorkModel
 from .lbsAlgorithmBase import AlgorithmBase
 from ..Utils.exception_handler import exc_handler
+from ..IO.lbsStatistics import compute_arrangement_works
 
 
 class BruteForceAlgorithm(AlgorithmBase):
-    """A concrete class for the brute force optimization algorithm
-    """
+    """A concrete class for the brute force optimization algorithm"""
 
     def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
         """Class constructor
@@ -29,43 +32,19 @@ class BruteForceAlgorithm(AlgorithmBase):
     def compute_arrangement_works(self, objects: tuple, arrangement: tuple) -> dict:
         """Return a dictionary with works of rank objects."""
 
-        # Build object rank map from arrangement
         ranks = {}
         for i, j in enumerate(arrangement):
             ranks.setdefault(j, []).append(i)
 
-        # iterate over ranks
-        works = {}
-        for rank, rank_object_ids in ranks.items():
-            # Compute load component for current rank
-            values = {
-                "load":
-                sum([objects[i].get_load() for i in rank_object_ids])}
-
-            # Compute received communication volume
-            v = 0.0
-            for i in rank_object_ids:
-                v += sum([
-                    v for k, v in objects[i].get_received().items()
-                    if k not in rank_object_ids])
-            values["received volume"] = v
-
-            # Compute sent communication volume
-            v = 0.0
-            for i in rank_object_ids:
-                v += sum([
-                    v for k, v in objects[i].get_sent().items()
-                    if k not in rank_object_ids])
-            values["sent volume"] = v
-
-            # Aggregate and store work for this rank
-            works[rank] = self._work_model.aggregate(values)
-
-        # Return arrangement works
-        return works
+        affine_combination = isinstance(self._work_model, AffineCombinationWorkModel)
+        alpha = self._work_model.get_alpha() if affine_combination else 1
+        beta = self._work_model.get_beta() if affine_combination else 0
+        gamma = self._work_model.get_gamma() if affine_combination else 0
+        return compute_arrangement_works(objects, arrangement, alpha, beta, gamma)
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
         """ Execute brute force optimization algorithm on phase with index p_id."""
+
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
 
@@ -100,7 +79,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             n_arrangements += 1
 
         # Sanity checks
-        if not len(a_min_max):
+        if not a_min_max:
             self._logger.error("No optimal arrangements were found")
             sys.excepthook = exc_handler
             raise SystemExit(1)
@@ -123,13 +102,13 @@ class BruteForceAlgorithm(AlgorithmBase):
         self._logger.debug(f"Reassigning objects with arrangement {arrangement}")
         for i, a in enumerate(arrangement):
             # Skip objects that do not need transfer
-            r_src = objects[i]["rank"]
+            r_src = phase_ranks[objects[i].get_rank_id()]
             r_dst = phase_ranks[a]
             if r_src == r_dst:
                 continue
 
             # Otherwise locate object on source and transfer to destination
-            object_id = objects[i]["id"]
+            object_id = objects[i].get_id()
             for o in r_src.get_objects():
                 if o.get_id() == object_id:
                     # Perform transfer

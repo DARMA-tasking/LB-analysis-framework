@@ -30,6 +30,18 @@ class AffineCombinationWorkModel(WorkModelBase):
             self.__logger.info(
                 f"Upper bound for rank {k}: {v}")
 
+    def get_alpha(self):
+        """Get the alpha parameter"""
+        return self.__alpha
+
+    def get_beta(self):
+        """Get the beta parameter"""
+        return self.__beta
+
+    def get_gamma(self):
+        """Get the gamma parameter"""
+        return self.__gamma
+
     def affine_combination(self, l, v1, v2):
         """Compute affine combination of load and maximum volume."""
 
