@@ -29,20 +29,16 @@ class BruteForceAlgorithm(AlgorithmBase):
 
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
-
-        # Prepare input data for rank order enumerator
         self._logger.info("Starting brute force optimization")
-        objects = []
-
         initial_phase = phases[min(phases.keys())]
         phase_ranks = initial_phase.get_ranks()
         objects = initial_phase.get_objects()
-
         n_ranks = len(phase_ranks)
         affine_combination = isinstance(self._work_model, AffineCombinationWorkModel)
-        alpha = self._work_model.get_alpha() if affine_combination else 1
-        beta = self._work_model.get_beta() if affine_combination else 0
-        gamma = self._work_model.get_gamma() if affine_combination else 0
+        alpha, beta, gamma = [
+            self._work_model.get_alpha() if affine_combination else 1,
+            self._work_model.get_beta() if affine_combination else 0,
+            self._work_model.get_gamma() if affine_combination else 0]
         _n_a, _w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha, beta, gamma, n_ranks,
                                                                         logger = self._logger)
 

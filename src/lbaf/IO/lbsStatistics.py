@@ -258,7 +258,7 @@ def compute_function_statistics(population, fct) -> Statistics:
     nan = math.nan
 
     # Bail out early if population is empty
-    if not len(population):
+    if not (population):
         return Statistics(0, nan, nan, nan, nan, nan, nan)
 
     # Initialize statistics

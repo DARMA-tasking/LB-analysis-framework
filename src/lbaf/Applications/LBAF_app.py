@@ -362,11 +362,8 @@ class Application:
         # Perform brute force optimization when needed
         if ("brute_force_optimization" in self.__parameters.__dict__
             and self.__parameters.algorithm["name"] != "BruteForce"):
-            # Prepare input data for rank order enumerator
             self.__logger.info("Starting brute force optimization")
             objects = initial_phase.get_objects()
-
-            # Execute rank order enumerator and fetch optimal arrangements
             alpha, beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
