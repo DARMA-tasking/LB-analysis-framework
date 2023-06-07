@@ -371,14 +371,7 @@ class Application:
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
-            n_a, w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, n_ranks)
-            if n_a != n_ranks ** len(objects):
-                self.__logger.error("Incorrect number of possible arrangements with repetition")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-            self.__logger.info(
-                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
         else:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []

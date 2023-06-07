@@ -1,8 +1,15 @@
+"""lbsStatistics"""
 import itertools
 import math
 import random as rnd
 from logging import Logger
+import sys
+
 from numpy import random
+
+
+from ..Utils import exception_handler as exc_handler
+
 
 class Statistics:
     """A class storing descriptive statistics."""
@@ -200,7 +207,7 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
     return works
 
 
-def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int):
+def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int, sanity_checks=True, logger: Logger = None):
     """Compute all possible arrangements with repetition and minimax work"""
 
     # Initialize quantities of interest
@@ -221,6 +228,23 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
 
         # Keep track of number of arrangements for sanity
         n_arrangements += 1
+
+    # Sanity checks
+    if sanity_checks:
+        if not arrangements_min_max:
+            if logger is not None:
+                logger.error("No optimal arrangements were found")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        if n_arrangements != n_ranks ** len(objects):
+            if logger is not None:
+                logger.error("Incorrect number of possible arrangements with repetition")
+            sys.excepthook = exc_handler
+            raise SystemExit(1)
+        if logger is not None:
+            logger.info(
+                f"Minimax work: {works_min_max:.4g} for {len(arrangements_min_max)} optimal arrangements"
+                " amongst {n_arrangements}")
 
     # Return quantities of interest
     return n_arrangements, works_min_max, arrangements_min_max
