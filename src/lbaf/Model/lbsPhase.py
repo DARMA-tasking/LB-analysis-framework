@@ -26,7 +26,6 @@ class Phase:
             logger: a Logger instance
             id: an integer indexing the phase ID
             reader: a JSON VT reader instance"""
-
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
             get_logger().error(
@@ -54,12 +53,10 @@ class Phase:
 
     def get_id(self):
         """Retrieve index of this phase."""
-
         return self.__phase_id
 
     def get_number_of_ranks(self):
         """Retrieve number of ranks belonging to phase."""
-
         return len(self.__ranks)
 
     def set_ranks(self, ranks: list):
@@ -73,17 +70,14 @@ class Phase:
 
     def get_rank_ids(self):
         """Retrieve IDs of ranks belonging to phase."""
-
         return [p.get_id() for p in self.__ranks]
 
     def get_number_of_objects(self):
         """Return number of objects."""
-
         return sum([r.get_number_of_objects() for r in self.__ranks])
 
     def get_objects(self):
         """Return all objects belonging to phase."""
-
         # List comprehension is not possible as we need to use set to list concatenation
         objects = []
         for rank in self.__ranks:
@@ -92,8 +86,7 @@ class Phase:
         return objects
 
     def get_objects_dict(self):
-        """Return all objects as dictionaries with `from` and `to` values retrieved from the object communicator"""
-
+        """Return all objects as dictionaries with `from` and `to` values retrieved from the object communicator."""
         objects = []
         for o in self.get_objects():
             entry = {
@@ -113,9 +106,7 @@ class Phase:
         return objects
 
     def get_object_ids(self):
-
         """Return IDs of all objects belonging to phase."""
-
         # List comprehension is not possible as we need to use set to list concatenation
         ids = []
         for r in self.__ranks:
@@ -124,7 +115,6 @@ class Phase:
 
     def compute_edges(self):
         """Compute and return dict of communication edge IDs to volumes."""
-
         # Compute or re-compute edges from scratch
         self.__logger.info("Computing inter-rank communication edges")
         self.__edges = {}
@@ -186,7 +176,6 @@ class Phase:
 
     def get_edges(self):
         """Retrieve communication edges of phase. """
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -196,7 +185,6 @@ class Phase:
 
     def get_edge_maxima(self):
         """Reduce directed edges into undirected with maximum."""
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -206,7 +194,6 @@ class Phase:
 
     def get_largest_volumes(self):
         """Return largest directed volumes from undirected ones."""
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()
@@ -216,7 +203,6 @@ class Phase:
 
     def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
         """Convenience method to update or create directed edge with given volume."""
-
         # Create undidrected edge index and try to retrieve edge
         e_id = frozenset([from_id, to_id])
         edge = self.__edges.get(e_id)
@@ -242,7 +228,6 @@ class Phase:
 
     def update_edges(self, o: Object, r_src: Rank, r_dst: Rank):
         """Update inter-rank communication edges before object transfer."""
-
         # Compute edges when not available
         if self.__edges is None:
             self.compute_edges()

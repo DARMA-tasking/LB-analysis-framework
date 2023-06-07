@@ -4,7 +4,6 @@ from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
-from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
 from ..Utils.exception_handler import exc_handler
 
@@ -19,12 +18,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         lgr: Logger,
         rank_qoi: str,
         object_qoi: str):
-        """Class constructor
-            work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-            rank_qoi: rank QOI to track
-            object_qoi: object QOI to track."""
+        """Class constructor.
 
+        :param work_model: a WorkModelBase instance
+        :param parameters: a dictionary of parameters
+        :param rank_qoi: rank QOI to track
+        :param object_qoi: object QOI to track.
+        """
         # Call superclass init
         super(InformAndTransferAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
@@ -75,7 +75,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def __information_stage(self):
         """Execute information stage."""
-
         # Build set of all ranks in the phase
         rank_set = set(self._rebalanced_phase.get_ranks())
 

@@ -56,8 +56,7 @@ class CustomFormatter(Formatter):
         self._init_formatters()
 
     def _init_formatters(self):
-        """Initialize inner formatters for each supported logging level"""
-
+        """Initialize inner formatters for each supported logging level."""
         # 'basic' default format
         formats = { "prefix": "[%(module)s] ", "message": "%(message)s" }
         # 'extended' format
@@ -95,8 +94,7 @@ def get_logger(
         log_to_file: Union[str, None] = None,
         frmt: str = FORMAT_BASIC
 )-> Logger:
-    """Return a new or an existing logger"""
-
+    """Return a new or an existing logger."""
     # return from cache if logger already created
     # logger = logging.Logger.manager.loggerDict.get(name)
     # if logger is not None:

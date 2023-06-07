@@ -11,7 +11,7 @@ from lbaf.Utils.logging import get_logger, Logger
 
 
 class MoveCountsViewerParameters:
-    """A class to describe MoveCountsViewer parameters"""
+    """A class to describe MoveCountsViewer parameters."""
 
     def __init__(self, viewer):
         # Set renderer parameters
@@ -48,7 +48,7 @@ class MoveCountsViewerParameters:
         self.wti_scale = 10
 
 class MoveCountsViewer:
-    """A class to describe MoveCountsViewer attributes"""
+    """A class to describe MoveCountsViewer attributes."""
 
     logger: Logger
 
@@ -82,8 +82,7 @@ class MoveCountsViewer:
 
     @staticmethod
     def usage():
-        """Provide online help
-        """
+        """Provide online help."""
         print("# Usage:")
         print("\t [-p <np>]   number of processors")
         print("\t [-f <fn>]   input file name")
@@ -95,8 +94,7 @@ class MoveCountsViewer:
         print("")
 
     def parse_command_line(self):
-        """Parse command line
-        """
+        """Parse command line."""
         # Try to hash command line with respect to allowable flags
         try:
             opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
@@ -145,8 +143,7 @@ class MoveCountsViewer:
         return False
 
     def compute_move_counts_viewer(self):
-        """Compute MoveCountsViewer
-        """
+        """Compute MoveCountsViewer."""
 
         # Instantiate MoveCountsViewerParameters
         viewerParams = MoveCountsViewerParameters(self)

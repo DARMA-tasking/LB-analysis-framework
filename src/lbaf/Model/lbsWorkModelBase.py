@@ -6,20 +6,21 @@ from ..Utils.exception_handler import exc_handler
 from ..Utils.logging import get_logger
 
 class WorkModelBase:
-    __metaclass__ = abc.ABCMeta
     """An abstract base class of per-rank work model."""
 
-    def __init__(self, parameters=None):
-        """Class constructor:
-            parameters: optional parameters dictionary."""
+    __metaclass__ = abc.ABCMeta
 
+    def __init__(self, parameters=None):
+        """Class constructor.
+
+        :param parameters: optional parameters dictionary.
+        """
         # Work keeps internal references to ranks and edges
         get_logger().debug("Created base work model")
 
     @staticmethod
     def factory(work_name, parameters, lgr: Logger):
         """Produce the necessary concrete work model."""
-
         from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
         from .lbsAffineCombinationWorkModel import AffineCombinationWorkModel
 
@@ -37,6 +38,5 @@ class WorkModelBase:
     @abc.abstractmethod
     def compute(self, rank):
         """Return value of work for given rank."""
-
         # Must be implemented by concrete subclass
         pass

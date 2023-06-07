@@ -169,8 +169,7 @@ class Application:
     __args: dict
 
     def __configure(self, path: str):
-        """Configure the application using the configuration file at the given path"""
-
+        """Configure the application using the configuration file at the given path."""
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
             try:
@@ -218,8 +217,7 @@ class Application:
         return data
 
     def __parse_args(self) -> dict:
-        """Parse arguments"""
-
+        """Parse arguments."""
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
@@ -237,7 +235,6 @@ class Application:
 
         :raises FileNotFoundError: if configuration file cannot be found
         """
-
         path = None
         path_list = []
 
@@ -270,7 +267,7 @@ class Application:
         return path
 
     def run(self):
-        """Runs the LBAF application"""
+        """Run the LBAF application."""
         # Parse command line arguments
         self.__parse_args()
 

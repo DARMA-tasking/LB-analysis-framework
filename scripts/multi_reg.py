@@ -17,7 +17,7 @@ class FileFinder:
         self.in_files = self._get_files_list()
 
     def _get_data_dir(self):
-        """ Returns absolute path to the data dir (takes relative or absolute path)"""
+        """Returns absolute path to the data dir (takes relative or absolute path)."""
         if os.path.isdir(self.data_dir) and glob.glob(os.path.join(self.data_dir, "in.*.dat")):
             return self.data_dir
         elif os.path.isdir(os.path.abspath(os.path.join(os.path.dirname(__file__), self.data_dir))) and \
@@ -26,7 +26,7 @@ class FileFinder:
         raise FileNotFoundError(f"No data found in given path {self.data_dir}")
 
     def _get_files_list(self):
-        """ Returns list of found datafiles"""
+        """Returns list of found datafiles."""
         in_files = [file_name for file_name in glob.glob(os.path.join(self.data_dir, "in.*.dat"))]
         return in_files
 
@@ -71,7 +71,7 @@ class MultiLinearRegression:
         self._read_input_data()
 
     def _read_input_data(self):
-        """ Iterate over input files """
+        """Iterate over input files."""
         for file_name in self.input_files:
             with open(file_name, newline='', encoding="utf-8") as csv_file:
                 # Open CSV reader with blank separators and numeric conversion
@@ -123,7 +123,7 @@ class MultiLinearRegression:
 
 
 def learn(x_data: dict, y_data: dict, regressor_list: list, num_observation: dict) -> dict:
-    """ Takes X, Y as input params. Returns dict of Linear Models """
+    """Takes X, Y as input params. Returns dict of Linear Models."""
     lr = dict()
     for k, v in x_data.items():
         print(f"# Multilinear regression to {len(regressor_list)} regressors for type {k} with {num_observation[k]}"
@@ -141,7 +141,7 @@ def learn(x_data: dict, y_data: dict, regressor_list: list, num_observation: dic
 
 
 def assess(x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
-    """ Takes X, Y and dict of linear models as input params. Returns dict of RMSE """
+    """Takes X, Y and dict of linear models as input params. Returns dict of RMSE."""
     rmse_dict = dict()
     y_predict = predict(x_data=x_data, linear_model_dict=linear_model_dict)
     for k, v in x_data.items():
@@ -155,7 +155,7 @@ def assess(x_data: dict, y_data: dict, linear_model_dict: dict) -> dict:
 
 
 def predict(x_data: dict, linear_model_dict: dict, verbose: bool = False) -> dict:
-    """ Takes X and dict of linear models as input params. Returns dict of predicted Y """
+    """Takes X and dict of linear models as input params. Returns dict of predicted Y."""
     y_pred_dict = dict()
     for k, v in x_data.items():
         lr = linear_model_dict[k]
@@ -168,8 +168,9 @@ def predict(x_data: dict, linear_model_dict: dict, verbose: bool = False) -> dic
 
 
 def save_data(in_files: list, y_read: dict, y_predict: dict, ranks: dict):
-    """ Takes list of input files, Y values, Y predicted values and index column numbers.
-        Saves to a file index column numbers, Y values, Y predicted values. """
+    """Takes list of input files, Y values, Y predicted values and index column numbers.
+    Saves to a file index column numbers, Y values, Y predicted values.
+    """
     for file in in_files:
         dir_path = os.path.split(file)[0]
         file_name = os.path.split(file)[-1].replace("in", "model")

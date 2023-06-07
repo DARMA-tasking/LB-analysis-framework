@@ -1,4 +1,4 @@
-"""LBAF Configuration validator"""
+"""LBAF Configuration validator."""
 from logging import Logger
 import sys
 from typing import Union, Dict, List
@@ -33,13 +33,11 @@ ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
 
 def get_error_message(iterable_collection: tuple) -> str:
     """Return error message."""
-
     return " or ".join(iterable_collection)
 
 
 class ConfigurationValidator:
     """Validate data in an YAML configuration file."""
-
     __algorithm: Dict[str, Schema]
     __config_to_validate: Dict[str, dict]
 

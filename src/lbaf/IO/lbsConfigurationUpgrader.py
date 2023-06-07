@@ -1,4 +1,4 @@
-"""A script to bulk upgrade LBAF configuration files"""
+"""A script to bulk upgrade LBAF configuration files."""
 from enum import Enum
 from pathlib import Path
 from pydoc import locate
@@ -24,8 +24,7 @@ from .. import PROJECT_PATH
 # yaml.add_representer(float, float_representer)
 
 def bool_representer(dumper, value):
-    """Overrides default yaml representation of boolean values for the ConfigurationDumper"""
-
+    """Overrides default yaml representation of boolean values for the ConfigurationDumper."""
     if value:
         text = "True"
     else:
@@ -39,13 +38,13 @@ class UpgradeAction(Enum):
     REMOVE_KEY = "remove"
 
 class ConfigurationDumper(yaml.Dumper):
-    """Custom dumper to add indent before list items hyphens"""
+    """Custom dumper to add indent before list items hyphens."""
 
     def increase_indent(self, flow=False, indentless=False):
         return super(ConfigurationDumper, self).increase_indent(flow, False)
 
 class ConfigurationUpgrader:
-    """This class enables to bulk upgrade configuration files by adding or removing keys"""
+    """This class enables to bulk upgrade configuration files by adding or removing keys."""
 
     __dumper: ConfigurationDumper
     __logger: Logger
@@ -58,7 +57,7 @@ class ConfigurationUpgrader:
         self.__sections = cast(dict, ConfigurationValidator.allowed_keys(group=True))
 
     def write_node(self, k: str, value: Any, yaml_file: IO, indent_size: int = 2):
-        """Write a single node (key/value) in the given yaml file"""
+        """Write a single node (key/value) in the given yaml file."""
         indent_str = " " * indent_size
         yaml_file.write(f"{k}:")
         if isinstance(value, list) or isinstance(value, dict):
@@ -89,7 +88,7 @@ class ConfigurationUpgrader:
         value: str = None,
         value_type: str = "str"
     ) -> None:
-        """Apply an upgrade to the given configuration file"""
+        """Apply an upgrade to the given configuration file."""
         self.__logger.debug("Upgrading file %s ...", file_path)
         key_path = None
         if action == UpgradeAction.ADD_KEY:
@@ -204,7 +203,7 @@ class ConfigurationUpgrader:
         value: str = None,
         value_type: str = "str"
     ) -> None:
-        """Search all files matching some pattern and upgrade each file as needed"""
+        """Search all files matching some pattern and upgrade each file as needed."""
         for pat in pattern:
             files = Path(relative_to).glob(pat)
             self.__logger.debug("searching files with pattern %s in %s", pat, PROJECT_PATH)

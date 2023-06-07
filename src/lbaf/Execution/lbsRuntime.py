@@ -10,16 +10,18 @@ from ..Utils.exception_handler import exc_handler
 class Runtime:
     """A class to handle the execution of the LBS."""
 
-    def __init__(self, phases: dict, work_model: dict, algorithm: dict, arrangements: list, logger: Logger, rank_qoi: str, object_qoi: str):
-        """ Class constructor:
-            phases: dictionary of Phase instances
-            work_model: dictionary with work model name and optional parameters
-            algorithm: dictionary with algorithm name and parameters
-            arrangements: arrangements that minimize maximum work
-            logger: logger for output messages
-            rank_qoi: rank QOI name whose distributions are to be tracked
-            object_qoi: object QOI name whose distributions are to be tracked."""
+    def __init__(self, phases: dict, work_model: dict, algorithm: dict, arrangements: list, logger: Logger,
+                rank_qoi: str, object_qoi: str):
+        """Class constructor.
 
+        :param phases: dictionary of Phase instances
+        :param work_model: dictionary with work model name and optional parameters
+        :param algorithm: dictionary with algorithm name and parameters
+        :param arrangements: arrangements that minimize maximum work
+        :param logger: logger for output messages
+        :param rank_qoi: rank QOI name whose distributions are to be tracked
+        :param object_qoi: object QOI name whose distributions are to be tracked.
+        """
         # Assign logger to instance variable
         self.__logger = logger
 
@@ -80,17 +82,14 @@ class Runtime:
 
     def get_work_model(self):
         """Return runtime work model."""
-
         return self.__work_model
 
     def get_distributions(self):
         """Return runtime distributions."""
-
         return self.__distributions
 
     def get_statistics(self):
         """Return runtime statistics."""
-
         return self.__statistics
 
     def execute(self, p_id: int, phase_increment=0):

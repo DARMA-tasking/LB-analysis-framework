@@ -1,4 +1,4 @@
-"""Common utility functions"""
+"""This module contains common path utility functions"""
 import os
 from typing import Optional
 
@@ -12,7 +12,6 @@ def abspath(path: str, relative_to: Optional[str] = None) -> Optional[str]:
     :param relative_to: the base path, defaults to None (None = the current working directory)
     :return: an absolute path
     """
-
     if relative_to is None:
         # path is relative to the current working directory
         return os.path.abspath(path)

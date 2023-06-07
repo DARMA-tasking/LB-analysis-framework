@@ -1,39 +1,32 @@
 import os
 import sys
-
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    raise SystemExit(1)
-
 from collections import Counter
 import csv
 import json
-
 import brotli
 
+from lbaf import PROJECT_PATH
 from lbaf.Utils.exception_handler import exc_handler
 
 
 class Csv2JsonConverter:
     """A class to convert from previous log structure (CSV) to a current log structure (JSON)
-        with/without Brotli compression.
-        Files for conversion should be named as follows 'prefix.rank/node.extension' e.g. 'data.0.csv', 'data.1.csv'
-        Changes input CSV files e.g. <time_step/phase>, <object-id>, <time> to JSON:
-        {"phases":[
-            {"tasks":[
-                {"time":0.036448,"resource":"cpu","object":51539607559,"node":7},
-                {"time":0.0298901,"resource":"cpu","object":47244640263,"node":7}
-                ],
-            "id":0}]}
-        :param dir_path: Absolute dir path or relative(from project path) dir path
-        :param compressed: If output file should be compressed, default = True
-        :param in_file_name_prefix: Input file name prefix e.g. 'data'
-        :param in_file_extension: Input file extension, e.g. '.csv'
-        :param out_dir_path: Output dir, relative to project path."""
+    with/without Brotli compression.
 
+    Files for conversion should be named as follows 'prefix.rank/node.extension' e.g. 'data.0.csv', 'data.1.csv'
+    Changes input CSV files e.g. <time_step/phase>, <object-id>, <time> to JSON:
+    {"phases":[
+        {"tasks":[
+            {"time":0.036448,"resource":"cpu","object":51539607559,"node":7},
+            {"time":0.0298901,"resource":"cpu","object":47244640263,"node":7}
+            ],
+        "id":0}]}
+    :param dir_path: Absolute dir path or relative(from project path) dir path
+    :param compressed: If output file should be compressed, default = True
+    :param in_file_name_prefix: Input file name prefix e.g. 'data'
+    :param in_file_extension: Input file extension, e.g. '.csv'
+    :param out_dir_path: Output dir, relative to project path.
+    """
     def __init__(self, dir_path: str, compressed: bool = True, in_file_name_prefix: str = None,
                  in_file_extension: str = None, out_dir_path: str = "converted_data"):
         self.dir_path = dir_path
@@ -49,8 +42,8 @@ class Csv2JsonConverter:
         """Return a path to data directory."""
         if os.path.isdir(dir_path):
             return dir_path
-        elif os.path.isdir(os.path.join(project_path, dir_path)):
-            return os.path.join(project_path, dir_path)
+        elif os.path.isdir(os.path.join(PROJECT_PATH, dir_path)):
+            return os.path.join(PROJECT_PATH, dir_path)
         else:
             print(f"Can not find dir {dir_path}")
             sys.excepthook = exc_handler
@@ -59,7 +52,7 @@ class Csv2JsonConverter:
     def _get_files_for_conversion(self) -> list:
         """Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
         # Defining output path and creating if not exists
-        output_path = os.path.join(project_path, self.out_dir_path)
+        output_path = os.path.join(PROJECT_PATH, self.out_dir_path)
         if not os.path.exists(output_path):
             os.makedirs(output_path)
 
@@ -111,7 +104,7 @@ class Csv2JsonConverter:
     def _read_csv(file_to_read: str) -> list:
         """Read CSV and returns a list of dicts (phase, object_id, time) ready to save into JSON."""
         # Parse CSV file lines
-        with open(file_to_read, "rt") as csv_file:
+        with open(file_to_read, "rt", encoding="utf-8") as csv_file:
             log = csv.reader(csv_file, delimiter=',')
             read_list = [{
                 "phase_id": int(row[0]),
@@ -170,7 +163,7 @@ class Csv2JsonConverter:
             with open(output_path, "wb") as compr_json_file:
                 compr_json_file.write(compressed_str)
         else:
-            with open(output_path, "wt") as json_file:
+            with open(output_path, "wt", encoding="utf-8") as json_file:
                 json_file.write(json_str)
 
     def main(self):

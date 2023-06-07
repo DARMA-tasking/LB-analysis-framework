@@ -16,8 +16,9 @@ from ..Utils.exception_handler import exc_handler
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
-        Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
-        The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
+
+    Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
+    The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
 
     SCHEMA_VALIDATOR_CLASS = None

@@ -19,8 +19,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         :param object_qoi: object QOI to track
         """
         # Call superclass init
-        super(PhaseStepperAlgorithm, self).__init__(
-            work_model, parameters, lgr, rank_qoi, object_qoi)
+        super(PhaseStepperAlgorithm, self).__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, _, phases: list, distributions: dict, statistics: dict, __):
         """Execute brute force optimization algorithm on all phases."""

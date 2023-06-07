@@ -2,11 +2,11 @@
 import itertools
 import math
 import random as rnd
-from logging import Logger
 import sys
+from logging import Logger
+from typing import Optional
 
 from numpy import random
-
 
 from ..Utils import exception_handler as exc_handler
 
@@ -24,7 +24,6 @@ class Statistics:
         g1: float,
         g2: float):
         """Class constructor given descriptive statistics values."""
-
         # Store primary statistics
         self.primary_statistics = {
             "cardinality": n,
@@ -54,21 +53,21 @@ class Statistics:
         for k in self.statistics:
             setattr(self, f"get_{k.replace(' ', '_')}", __getter_factory(k))
 
+
 def initialize():
     """Seed pseudo-random number generators."""
-
     rnd.seed(146)
     random.seed(146)
 
 
 def error_out(distribution_name, parameters, logger: Logger):
+    """Logs an error indicating not enough parameters for a distribution."""
     logger.error(f"not enough parameters in {parameters} for {distribution_name} distribution.")
     return None
 
 
 def sampler(distribution_name, parameters, logger: Logger):
     """Return a pseudo-random number generator based of requested type."""
-
     # Uniform U(a,b) distribution
     if distribution_name.lower() == "uniform":
         # 2 parameters are needed
@@ -113,8 +112,7 @@ def sampler(distribution_name, parameters, logger: Logger):
 
 
 def Hamming_distance(arrangement_1, arrangement_2):
-    """Compute Hamming distance between two arrangements."""
-
+    """Compute Hamming distance between two arrangements.""" # pylint:disable=C0103:invalid-name
     # Distance can only be compute between same length arrangements
     if len(arrangement_1) != len(arrangement_2):
         return math.inf
@@ -131,8 +129,7 @@ def Hamming_distance(arrangement_1, arrangement_2):
 
 
 def min_Hamming_distance(arrangement, arrangement_list):
-    """Compute minimum Hamming distance from arrangement to list of arrangements."""
-
+    """Compute minimum Hamming distance from arrangement to list of arrangements.""" # pylint:disable=C0103:invalid-name
     # Minimum distance is at least equal to arrangement length
     hd_min = len(arrangement)
 
@@ -149,8 +146,8 @@ def min_Hamming_distance(arrangement, arrangement_list):
 
 def inverse_transform_sample(cmf):
     """Sample from distribution defined by cumulative mass function
-    This is a.k.a. the Smirnov transform."""
-
+    This is a.k.a. the Smirnov transform.
+    """
     # Generate number from pseudo-random distribution U([0;1])
     u = rnd.random()
 
@@ -163,7 +160,6 @@ def inverse_transform_sample(cmf):
 
 def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
     """Return a volume of rank objects"""
-
     # Initialize volume
     volume = 0.
 
@@ -176,15 +172,12 @@ def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> flo
 
 
 def compute_load(objects: tuple, rank_object_ids: list) -> float:
-    """Return a load as a sum of all object loads
-    """
-
+    """Return a load as a sum of all object loads."""
     return sum([objects[i].get_load() for i in rank_object_ids])
 
 
 def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
-    """Return a dictionary with works of rank objects"""
-
+    """Return a dictionary with works of rank objects."""
     # Build object rank map from arrangement
     ranks = {}
     for i, j in enumerate(arrangement):
@@ -208,9 +201,9 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
     return works
 
 
-def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int, sanity_checks=True, logger: Logger = None):
-    """Compute all possible arrangements with repetition and minimax work"""
-
+def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int,
+    sanity_checks=True, logger: Optional[Logger] = None):
+    """Compute all possible arrangements with repetition and minimax work."""
     # Initialize quantities of interest
     n_arrangements = 0
     works_min_max = math.inf
@@ -251,15 +244,59 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
     return n_arrangements, works_min_max, arrangements_min_max
 
 
+def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
+                                            w_max: float, from_id: int, to_id: int, n_ranks: int,
+                                            max_objects: Optional[int] = None, logger: Optional[Logger] = None):
+    """Compute arrangements reachable by moving up to a maximum number of objects from one rank to another."""
+    # Sanity checks regarding rank IDs
+    if from_id >= n_ranks:
+        if logger is not None:
+            logger.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
+        sys.excepthook = exc_handler
+        raise SystemExit(1)
+    if to_id >= n_ranks:
+        if logger is not None:
+            logger.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
+        sys.excepthook = exc_handler
+        raise SystemExit(1)
+
+    # Provide upper bounder on transfer size when none provided
+    if not max_objects:
+        max_objects = len(arrangement)
+
+    # Search for all arrangement entries matching sender ID
+    matches = [i for i, r in enumerate(arrangement) if r == from_id]
+
+    # Loop over all allowable transfers to find reachable arrangements
+    reachable = {}
+    n_possible = 0
+    for n in range(1, min(len(matches), max_objects) + 1):
+        if logger is not None:
+            logger.debug(f"Generating possible arrangements with {n} transfer(s) from rank {from_id} to rank {to_id}")
+        # Iterate over all combinations with given size
+        for c in itertools.combinations(matches, n):
+            # Change all corresponding entries
+            n_possible += 1
+            new_arrangement = tuple(to_id if i in c else r for i, r in enumerate(arrangement))
+            works = compute_arrangement_works(objects, new_arrangement, alpha, beta, gamma)
+
+            # Check whether new arrangements is reachable
+            w_max_new = max(works.values())
+            if w_max_new <= w_max:
+                reachable[new_arrangement] = w_max_new
+    if logger is not None:
+        logger.debug(f"Found {len(reachable)} reachable arrangement(s) from rank {from_id} to rank {to_id} amongst "
+                    f"{n_possible} possible one(s)")
+
+    # Return dict of reachable arrangements
+    return reachable
+
+
 def compute_function_statistics(population, fct) -> Statistics:
     """Compute descriptive statistics of a function over a population."""
-
-    # Shorthand for NaN
-    nan = math.nan
-
     # Bail out early if population is empty
     if not (population):
-        return Statistics(0, nan, nan, nan, nan, nan, nan)
+        return Statistics(0, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan)
 
     # Initialize statistics
     n = 0
@@ -291,10 +328,10 @@ def compute_function_statistics(population, fct) -> Statistics:
         if y in (-math.inf, math.inf):
             has_inf_values = True
             if f_ave == -float(y):
-                f_ave = nan
+                f_ave = math.nan
             else:
                 f_ave = math.inf
-            f_ag2, f_ag3, f_ag4 = nan, nan, nan
+            f_ag2, f_ag3, f_ag4 = math.nan, math.nan, math.nan
 
         # Skip further calculations if infinite values encountered
         if has_inf_values:
@@ -322,7 +359,7 @@ def compute_function_statistics(population, fct) -> Statistics:
         nvar = n * f_var
         f_g1, f_g2 = f_ag3 / (nvar * math.sqrt(f_var)), f_ag4 / (nvar * f_var)
     else:
-        f_g1, f_g2 = nan, nan
+        f_g1, f_g2 = math.nan, math.nan
 
     # Return descriptive statistics instance
     return Statistics(n, f_min, f_ave, f_max, f_var, f_g1, f_g2)
