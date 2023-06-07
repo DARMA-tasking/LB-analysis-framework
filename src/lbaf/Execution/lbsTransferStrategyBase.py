@@ -67,7 +67,7 @@ class TransferStrategyBase:
     @abc.abstractmethod
     def execute(self, phase, ave_load):
         """Excecute transfer strategy on Phase instance
-    
+
         :param phase: a Phase instance
         :param ave_load: average load in current phase.
         """
