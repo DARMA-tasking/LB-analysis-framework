@@ -11,7 +11,8 @@
 /m.css
 /output
 /tests/.pytest_cache
-/tests/output
+/tests/unit/output
+/tests/acceptance/output
 /venv
 /venv39
 src/Applications/Include
