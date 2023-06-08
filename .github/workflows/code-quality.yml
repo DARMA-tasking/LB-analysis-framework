@@ -1,4 +1,4 @@
-name: Coverage, PyLint, Unit & Acceptance Tests
+name: Tests, PyLint, Coverage
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
