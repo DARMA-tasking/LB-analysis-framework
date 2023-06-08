@@ -4,14 +4,17 @@ from ..Utils.exception_handler import exc_handler
 
 
 class Block:
-    """A class representing a memory block with footprint and home"""
+    """A class representing a memory block with footprint and home."""
 
     def __init__(
-        self,
-        b_id: int,
-        h_id: int,
-        size: float=0.0,
-        o_ids: set=set()):
+            self,
+            b_id: int,
+            h_id: int,
+            size: float = 0.0,
+            o_ids: set = None):
+
+        if o_ids is None:
+            o_ids = set()
 
         # Block index
         if not isinstance(b_id, int) or isinstance(b_id, bool):
@@ -46,23 +49,19 @@ class Block:
         return f"Block id: {self.__index}, home id: {self.__home_id}, size: {self.__size}, object ids: {self.__attached_object_ids}"
 
     def get_id(self) -> int:
-        """Return block ID"""
-
+        """Return block ID."""
         return self.__index
 
     def get_home_id(self) -> int:
-        """Return block home ID"""
-
+        """Return block home ID."""
         return self.__home_id
 
     def get_size(self) -> float:
-        """Return block size"""
-
+        """Return block size."""
         return self.__size
 
     def detach_object_id(self, o_id: int) -> int:
-        """Try to detach object ID from block and return length"""
-
+        """Try to detach object ID from block and return length."""
         try:
             self.__attached_object_ids.remove(o_id)
         except:
@@ -71,6 +70,5 @@ class Block:
         return len(self.__attached_object_ids)
 
     def attach_object_id(self, o_id: int):
-        """Attach object ID to block"""
-
+        """Attach object ID to block."""
         self.__attached_object_ids.add(o_id)

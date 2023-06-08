@@ -11,7 +11,6 @@ import yaml
 from lbaf import __version__, PROJECT_PATH
 
 from lbaf.Applications import JSON_data_files_validator_loader
-from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
 from lbaf.Utils.logging import get_logger, Logger
@@ -170,8 +169,7 @@ class Application:
     __args: dict
 
     def __configure(self, path: str):
-        """Configure the application using the configuration file at the given path"""
-
+        """Configure the application using the configuration file at the given path."""
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
             try:
@@ -219,8 +217,7 @@ class Application:
         return data
 
     def __parse_args(self) -> dict:
-        """Parse arguments"""
-
+        """Parse arguments."""
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
@@ -238,7 +235,6 @@ class Application:
 
         :raises FileNotFoundError: if configuration file cannot be found
         """
-
         path = None
         path_list = []
 
@@ -271,7 +267,7 @@ class Application:
         return path
 
     def run(self):
-        """Runs the LBAF application"""
+        """Run the LBAF application."""
         # Parse command line arguments
         self.__parse_args()
 
@@ -348,7 +344,7 @@ class Application:
             phase_id = 0
             phase = Phase(self.__logger, phase_id)
             phase.populate_from_samplers(
-                self.__parameters.n_ranks,
+                n_ranks,
                 self.__parameters.n_objects,
                 self.__parameters.load_sampler,
                 self.__parameters.volume_sampler,
@@ -363,40 +359,14 @@ class Application:
         # Perform brute force optimization when needed
         if ("brute_force_optimization" in self.__parameters.__dict__
             and self.__parameters.algorithm["name"] != "BruteForce"):
-            # Prepare input data for rank order enumerator
             self.__logger.info("Starting brute force optimization")
-            objects = []
-
-            # Iterate over ranks
-            for rank in initial_phase.get_ranks():
-                for o in rank.get_objects():
-                    entry = {
-                        "id": o.get_id(),
-                        "load": o.get_load(),
-                        "to": {},
-                        "from": {}}
-                    comm = o.get_communicator()
-                    if comm:
-                        for k, v in comm.get_sent().items():
-                            entry["to"][k.get_id()] = v
-                        for k, v in comm.get_received().items():
-                            entry["from"][k.get_id()] = v
-                    objects.append(entry)
-            objects.sort(key=lambda x: x.get("id"))
-
-            # Execute rank order enumerator and fetch optimal arrangements
+            objects = initial_phase.get_objects()
             alpha, beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
-            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, n_ranks)
-            if n_a != n_ranks ** len(objects):
-                self.__logger.error("Incorrect number of possible arrangements with repetition")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-            self.__logger.info(
-                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma,
+                                                                                    n_ranks, logger=self.__logger)
         else:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
@@ -412,7 +382,7 @@ class Application:
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
         # Execute runtime for specified phases, -1 for all phases
-        offline_LB_compatible = self.__parameters.json_params.get(
+        offline_LB_compatible = self.__parameters.json_params.get( # pylint:disable=C0103:invalid-name;not lowercase
             "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", -1),
@@ -427,7 +397,7 @@ class Application:
                         "No rebalancing took place for offline load-balancing")
                 else:
                     # Determine if a phase with same index was present
-                    if (existing_phase := phases.get(p_id := rebalanced_phase.get_id())):
+                    if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
                         # Apply object timings to rebalanced phase
                         self.__logger.info(
                             f"Phase {p_id} already present, applying its object loads to rebalanced phase")

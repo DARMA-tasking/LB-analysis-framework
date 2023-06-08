@@ -18,12 +18,13 @@ class AlgorithmBase:
     _logger: Logger
 
     def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger, rank_qoi: str, object_qoi: str):
-        """Class constructor:
-            work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-            rank_qoi: rank QOI to track
-            object_qoi: object QOI to track."""
+        """Class constructor.
 
+        :param work_model: a WorkModelBase instance
+        :param parameters: a dictionary of parameters
+        :param rank_qoi: rank QOI to track
+        :param object_qoi: object QOI to track.
+        """
         # Assert that a logger instance was passed
         if not isinstance(logger, Logger):
             get_logger().error(

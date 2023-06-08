@@ -1,47 +1,47 @@
-"""Configuration to generate the documentation"""
+"""Configuration to generate the documentation."""
 
 # Applications
-import src.lbaf.Applications.LBAF as LBAF
+import lbaf.Applications.LBAF_app as LBAF
 
 # Model
 
-import src.lbaf.Model.lbsAffineCombinationWorkModel as AffineCombinationWorkModel
-import src.lbaf.Model.lbsLoadOnlyWorkModel as LoadOnlyWorkModel
-import src.lbaf.Model.lbsObject as Object
-import src.lbaf.Model.lbsMessage as Message
-import src.lbaf.Model.lbsObjectCommunicator as ObjectCommunicator
-import src.lbaf.Model.lbsPhase as Phase
-import src.lbaf.Model.lbsRank as Rank
-import src.lbaf.Model.lbsWorkModelBase as WorkModelBase
+import lbaf.Model.lbsAffineCombinationWorkModel as AffineCombinationWorkModel
+import lbaf.Model.lbsLoadOnlyWorkModel as LoadOnlyWorkModel
+import lbaf.Model.lbsObject as Object
+import lbaf.Model.lbsMessage as Message
+import lbaf.Model.lbsObjectCommunicator as ObjectCommunicator
+import lbaf.Model.lbsPhase as Phase
+import lbaf.Model.lbsRank as Rank
+import lbaf.Model.lbsWorkModelBase as WorkModelBase
 
 # Execution
-import src.lbaf.Execution.lbsAlgorithmBase as AlgorithmBase
-import src.lbaf.Execution.lbsBruteForceAlgorithm as BruteForceAlgorithm
-import src.lbaf.Execution.lbsCriterionBase as CriterionBase
-import src.lbaf.Execution.lbsInformAndTransferAlgorithm as InformAndTransferAlgorithm
-import src.lbaf.Execution.lbsPhaseStepperAlgorithm as PhaseStepperAlgorithm
-import src.lbaf.Execution.lbsRuntime as Runtime
-import src.lbaf.Execution.lbsStrictLocalizingCriterion as StrictLocalizingCriterion
-import src.lbaf.Execution.lbsTemperedCriterion as TemperedCriterion
+import lbaf.Execution.lbsAlgorithmBase as AlgorithmBase
+import lbaf.Execution.lbsBruteForceAlgorithm as BruteForceAlgorithm
+import lbaf.Execution.lbsCriterionBase as CriterionBase
+import lbaf.Execution.lbsInformAndTransferAlgorithm as InformAndTransferAlgorithm
+import lbaf.Execution.lbsPhaseStepperAlgorithm as PhaseStepperAlgorithm
+import lbaf.Execution.lbsRuntime as Runtime
+import lbaf.Execution.lbsStrictLocalizingCriterion as StrictLocalizingCriterion
+import lbaf.Execution.lbsTemperedCriterion as TemperedCriterion
 
 # Imported
-import src.lbaf.imported.JSON_data_files_validator as JSONDataFilesValidator
+import lbaf.imported.JSON_data_files_validator as JSONDataFilesValidator
 
 # IO
-import src.lbaf.IO.lbsConfigurationValidator as ConfigurationValidator
-import src.lbaf.IO.lbsConfigurationUpgrader as configurationUpgrader
-import src.lbaf.IO.lbsGridStreamer as GridStreamer
-import src.lbaf.IO.lbsVisualizer as Visualizer
-import src.lbaf.IO.lbsStatistics as lbsStatistics
-import src.lbaf.IO.lbsVTDataReader as LoadReader
-import src.lbaf.IO.lbsVTDataWriter as VTDataWriter
+import lbaf.IO.lbsConfigurationValidator as ConfigurationValidator
+import lbaf.IO.lbsConfigurationUpgrader as configurationUpgrader
+import lbaf.IO.lbsGridStreamer as GridStreamer
+import lbaf.IO.lbsVisualizer as Visualizer
+import lbaf.IO.lbsStatistics as lbsStatistics
+import lbaf.IO.lbsVTDataReader as LoadReader
+import lbaf.IO.lbsVTDataWriter as VTDataWriter
 
 # Utilities
-import src.lbaf.Utils.csv_2_json_data_converter as Csv2JsonConverter
-import src.lbaf.Utils.data_stat_files_updater as DataStatFilesUpdater
-import src.lbaf.Utils.exception_handler as exc_handler
-import src.lbaf.Utils.logging as logging
-import src.lbaf.Utils.vt_data_extractor as VTDataExtractor
+import lbaf.Utils.csv_2_json_data_converter as Csv2JsonConverter
+import lbaf.Utils.data_stat_files_updater as DataStatFilesUpdater
+import lbaf.Utils.exception_handler as exc_handler
+import lbaf.Utils.logging as logging
+import lbaf.Utils.vt_data_extractor as VTDataExtractor
 
 
 PROJECT_TITLE = "LBAF (Load Balancing Analysis Framework)"

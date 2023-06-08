@@ -38,8 +38,7 @@ class VTDataExtractor:
         self._get_files_list()
 
     def _initial_checks(self):
-        """Checks if data and directories exists. """
-
+        """Checks if data and directories exists."""
         print(f"Looking for files with prefix: {self.file_prefix}")
         print(f"Looking for files with suffix: {self.file_suffix}")
         print(f"Phases to extract: {self.phases_to_extract}")
@@ -60,8 +59,7 @@ class VTDataExtractor:
 
     @staticmethod
     def _process_input_phases(phases_to_extract: list) -> list:
-        """Creates a list of integers, based on input phases_to_extract. """
-
+        """Creates a list of integers, based on input phases_to_extract."""
         processed_list = []
         for phase in phases_to_extract:
             if isinstance(phase, int):
@@ -81,8 +79,7 @@ class VTDataExtractor:
         return processed_list
 
     def _get_files_list(self) -> list:
-        """Returns list of files to iterate over and read data from them. """
-
+        """Returns list of files to iterate over and read data from them."""
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
@@ -93,13 +90,12 @@ class VTDataExtractor:
         except ValueError as err:
             sys.excepthook = exc_handler
             raise ValueError(f"Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
-                             f"ERROR: {err}")
+                             f"ERROR: {err}") from err
 
         return files
 
     def _get_data_from_file(self, file_path: str) -> dict:
-        """Returns data from given file_path. """
-
+        """Returns data from given file_path."""
         if not BROTLI_NOT_IMPORTED:
             with open(file_path, "rb") as compr_json_file:
                 compr_bytes = compr_json_file.read()
@@ -110,14 +106,15 @@ class VTDataExtractor:
                     decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
         else:
             try:
-                with open(file_path, "rt") as uncompr_json_file:
+                with open(file_path, "rt", encoding="utf-8") as uncompr_json_file:
                     uncompr_str = uncompr_json_file.read()
                     decompressed_dict = json.loads(uncompr_str)
             except UnicodeDecodeError as err:
                 sys.excepthook = exc_handler
-                raise Exception("\n============================================================\n"
-                                "\t\tCan not read compressed data without Brotli."
-                                "\n============================================================")
+                raise Exception(
+                    "\n============================================================\n"
+                    "\t\tCan not read compressed data without Brotli."
+                    "\n============================================================") from err
 
         if decompressed_dict.get("type") not in ("LBDatafile", "LBStatsfile"):
             decompressed_dict["type"] = self.schema_type
@@ -126,12 +123,13 @@ class VTDataExtractor:
 
         if self.check_schema:
             try:
-                from lbaf.imported.JSON_data_files_validator import SchemaValidator
+                from lbaf.imported.JSON_data_files_validator import SchemaValidator # pylint:disable=C0415:import-outside-toplevel
             except ModuleNotFoundError as err:
                 sys.excepthook = exc_handler
-                raise ModuleNotFoundError("\n====================================================================\n"
-                                          "\t\tCan not check schema without schema module imported."
-                                          "\n====================================================================")
+                raise ModuleNotFoundError(
+                    "\n====================================================================\n"
+                    "\t\tCan not check schema without schema module imported."
+                    "\n====================================================================") from err
             # Validate schema
             if SchemaValidator(schema_type=self.schema_type).is_valid(schema_to_validate=decompressed_dict):
                 print(f"Valid JSON schema in {file_path}")
@@ -145,7 +143,7 @@ class VTDataExtractor:
 
     @staticmethod
     def _get_extracted_phases(data: dict, phases_to_extract: list) -> dict:
-        """Returns just wanted phases from given data and list of phases to extract. """
+        """Returns just wanted phases from given data and list of phases to extract."""
         extracted_phases = {"phases": []}
         for phase_number, phase in enumerate(data["phases"]):
             if phase_number in phases_to_extract:
@@ -154,7 +152,7 @@ class VTDataExtractor:
         return extracted_phases
 
     def _save_extracted_phases(self, extracted_phases: dict, file_path: str) -> None:
-        """Saves extracted data with or without compression. """
+        """Saves extracted data with or without compression."""
         if extracted_phases.get("type") is None:
             extracted_phases["type"] = self.schema_type
         json_str = json.dumps(extracted_phases, separators=(",", ":"))
@@ -165,7 +163,7 @@ class VTDataExtractor:
                 compr_json_file.write(saved_str)
         else:
             saved_str = json_str
-            with open(file_path, "wt") as compr_json_file:
+            with open(file_path, "wt", encoding="utf-8") as compr_json_file:
                 compr_json_file.write(saved_str)
 
     def _extraction(self, file: str) -> tuple:
@@ -179,6 +177,7 @@ class VTDataExtractor:
         return file, end_t - start_t
 
     def main(self):
+        """Execute the data extraction."""
         files = self._get_files_list()
         with Pool(context=get_context("fork")) as pool:
             results = pool.imap_unordered(self._extraction, files)

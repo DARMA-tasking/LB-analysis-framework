@@ -1,4 +1,4 @@
-"""Downloads the latest version of the JSON data files validator to the src/lbaf/imported directory"""
+"""Downloads the latest version of the JSON data files validator to the src/lbaf/imported directory."""
 import os
 import sys
 
@@ -14,13 +14,12 @@ TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
 SOURCE_SCRIPT_URL=f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
 
 def _save_schema_validator_and_init_file():
-    """Downloads the JSON data files validator module to the lbaf/imported directory
+    """Downloads the JSON data files validator module to the lbaf/imported directory.
 
     :raises ConnectionError: on connection error
     :raises ConnectionError: on HTTP response error
     :raises ConnectionError: on invalid content type and if no previous download is available
     """
-
     # Create src/lbaf/imported directory if not exist
     if not os.path.isdir(TARGET_DIR):
         os.makedirs(TARGET_DIR)
@@ -66,7 +65,6 @@ def load(overwrite_validator: bool = True):
     :param overwrite_validator: set true to download the script, defaults to True
     :type overwrite_validator: bool, optional
     """
-
     logger = get_logger()
     if overwrite_validator:
         _save_schema_validator_and_init_file()
@@ -77,11 +75,10 @@ def load(overwrite_validator: bool = True):
             "In case of `ModuleNotFoundError: No module named 'lbaf.imported'` set overwrite_validator to True.")
 
 def is_loaded():
-    """Verify if the module is loaded
+    """Verify if the module is loaded.
 
     :return: True if the script exists in the target location otherwise False
     :rtype: bool
     """
-
     import_dir = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
     return os.path.isfile(os.path.join(import_dir, TARGET_SCRIPT_NAME))

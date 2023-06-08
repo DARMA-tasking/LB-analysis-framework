@@ -47,8 +47,7 @@ class Rank:
         self.round_last_received = 0
 
     def copy(self, rank):
-        """ Specialized copy method."""
-
+        """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
         self.__size = rank.get_size()
