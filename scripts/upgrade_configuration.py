@@ -2,7 +2,7 @@
 import argparse
 
 from lbaf import PROJECT_PATH
-from lbaf.Utils.logging import get_logger
+from lbaf.Utils.logger import get_logger
 from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
 
 
