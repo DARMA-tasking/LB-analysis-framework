@@ -27,8 +27,15 @@ parser.add_argument("-p", "--pattern", nargs="+", type=str, default=default_patt
                     )
 args = parser.parse_args()
 
-if not args.add and not args.remove:
-    raise ValueError("Missing either add (-a or --add xxx) or remove arg (-r or --remove xxx)")
+ACTION = UpgradeAction.FORMAT_ONLY
+KEY = None
+if args.add:
+    ACTION = UpgradeAction.ADD_KEY
+    KEY = args.add
+elif args.remove:
+    ACTION = UpgradeAction.REMOVE_KEY
+    KEY = args.remove
+
 if args.add and args.remove:
     raise ValueError("Cannot set both add and remove args")
 if args.add and not args.value:
@@ -45,9 +52,9 @@ upg_logger.info(
 upgrader = ConfigurationUpgrader(logger=upg_logger)
 upgrader.upgrade_all(
     pattern = args.pattern,
-    relative_to = PROJECT_PATH,
-    action=(UpgradeAction.ADD_KEY if args.add is not None else UpgradeAction.REMOVE_KEY),
-    key=(args.add if args.add is not None else args.remove),
+    relative_to=PROJECT_PATH,
+    action=ACTION,
+    key=KEY,
     value=args.value,
     value_type=args.type
 )
