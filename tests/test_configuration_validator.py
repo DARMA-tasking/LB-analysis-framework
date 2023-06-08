@@ -6,7 +6,7 @@ import yaml
 
 from lbaf.Utils.path import abspath
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
-from lbaf.Utils.logging import get_logger
+from lbaf.Utils.logger import get_logger
 
 
 class TestConfig(unittest.TestCase):
