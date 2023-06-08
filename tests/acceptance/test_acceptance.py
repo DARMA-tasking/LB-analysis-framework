@@ -13,10 +13,10 @@ class TestAcceptance(unittest.TestCase):
     def tearDown(self):
         return
 
-    def test_acceptance(self):
+    def test_synthetic_acceptance(self):
         """Runs acceptance tests"""
 
-        run_lbaf(os.path.join(os.path.dirname(__file__), "config", "acceptance.yaml"))
+        run_lbaf(os.path.join(os.path.dirname(__file__), "config", "synthetic-acceptance.yaml"))
         imbalance_file = os.path.join(os.path.dirname(__file__), "output", "imbalance.txt")
 
         # check imbalance file exists
