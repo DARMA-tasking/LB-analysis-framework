@@ -103,7 +103,7 @@ class ConfigurationUpgrader:
         """Apply an upgrade to the given configuration file."""
         self.__logger.debug("Upgrading file %s ...", file_path)
         key_path = None
-        if action != UpgradeAction.FORMAT_ONLY: 
+        if action != UpgradeAction.FORMAT_ONLY:
             if action == UpgradeAction.ADD_KEY:
                 self.__logger.debug("Add key `%s` with value `%s`", key, value)
             elif action == UpgradeAction.REMOVE_KEY:
