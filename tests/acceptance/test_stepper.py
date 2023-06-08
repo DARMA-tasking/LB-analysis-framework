@@ -1,7 +1,7 @@
 import os
+import subprocess
+import sys
 import unittest
-
-from tests.functions import run_lbaf
 
 
 class TestStepper(unittest.TestCase):
@@ -15,8 +15,9 @@ class TestStepper(unittest.TestCase):
 
     def test_stepper(self):
         """Runs stepper tests"""
-
-        run_lbaf(os.path.join(os.path.dirname(__file__), 'config', 'stepper.yaml'))
+        # run LBAF
+        config_file = os.path.join(os.path.dirname(__file__), "config", "stepper.yaml")
+        subprocess.run(['lbaf', '-c', config_file], check=True, stdout=sys.stdout, stderr=sys.stdout)
         log_file = os.path.join(os.path.dirname(__file__), "output", "log.txt")
 
         # check log file exists

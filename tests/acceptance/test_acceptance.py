@@ -1,7 +1,7 @@
 import os
+import sys
+import subprocess
 import unittest
-
-from tests.functions import run_lbaf
 
 
 class TestAcceptance(unittest.TestCase):
@@ -15,8 +15,10 @@ class TestAcceptance(unittest.TestCase):
 
     def test_synthetic_acceptance(self):
         """Runs acceptance tests"""
+        # run LBAF
+        config_file = os.path.join(os.path.dirname(__file__), "config", "synthetic-acceptance.yaml")
+        subprocess.run(['lbaf', '-c', config_file], check=True, stdout=sys.stdout, stderr=sys.stdout)
 
-        run_lbaf(os.path.join(os.path.dirname(__file__), "config", "synthetic-acceptance.yaml"))
         imbalance_file = os.path.join(os.path.dirname(__file__), "output", "imbalance.txt")
 
         # check imbalance file exists
