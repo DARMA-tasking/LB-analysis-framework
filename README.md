@@ -1,5 +1,4 @@
 [![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/code-quality.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/code-quality.yml)
-[![Acceptance Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml)
 [![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
 [![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)
 
@@ -8,6 +7,7 @@
 * `src`: Load-Balancing Simulator code
 * `doc`: research and papers and related documents
 * `data`: various data inputs or outputs
+* `tests`: unit tests and acceptance tests
 
 ### Please check Wiki for more details:
 [Load Balancing Analysis Framework Wikipedia](https://github.com/DARMA-tasking/LB-analysis-framework/wiki)

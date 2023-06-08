@@ -1,4 +1,4 @@
-name: Code Quality (Unit tests, Coverage, PyLint)
+name: Coverage, PyLint, Unit & Acceptance Tests
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
