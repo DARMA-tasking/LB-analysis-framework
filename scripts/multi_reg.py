@@ -177,7 +177,7 @@ def save_data(in_files: list, y_read: dict, y_predict: dict, ranks: dict):
         out_file = os.path.join(dir_path, file_name)
         with open(out_file, "wt", encoding="utf-8") as o_file:
             for bool_type, values in y_read.items():
-                for num, _val in enumerate(values):
+                for num, _value in enumerate(values):
                     o_file.write(
                         f"{ranks[bool_type][num]} {y_read[bool_type][num]} {y_predict[bool_type][num]}\n")
 

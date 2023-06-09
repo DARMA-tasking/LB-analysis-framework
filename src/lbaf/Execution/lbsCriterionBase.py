@@ -80,4 +80,3 @@ class CriterionBase:
             o_dst = []
 
         # Must be implemented by concrete subclass
-        pass

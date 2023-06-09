@@ -6,7 +6,6 @@ import multiprocessing as mp
 from logging import Logger
 
 from ..Model.lbsPhase import Phase
-from ..Model.lbsRank import Rank
 from ..Utils.exception_handler import exc_handler
 
 
@@ -31,6 +30,9 @@ class VTDataWriter:
         """
         # Assign logger to instance variable
         self.__logger = logger
+
+        # data fields
+        self.__rank_phases = None
 
         # Assign internals
         self.__file_stem = stem
@@ -76,13 +78,13 @@ class VTDataWriter:
             "phases": []}
 
         # Iterate over phases
-        for p_id, r in r_phases.items():
+        for p_id, rank in r_phases.items():
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data = {"id": p_id}
             phase_data["tasks"] = self.__create_tasks(
-                r_id, r.get_migratable_objects(), migratable=True) + self.__create_tasks(
-                r_id, r.get_sentinel_objects(), migratable=False)
+                r_id, rank.get_migratable_objects(), migratable=True) + self.__create_tasks(
+                r_id, rank.get_sentinel_objects(), migratable=False)
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
