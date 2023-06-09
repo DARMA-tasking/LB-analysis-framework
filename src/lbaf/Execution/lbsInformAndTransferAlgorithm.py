@@ -1,5 +1,4 @@
 import sys
-from typing import Callable
 
 from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
