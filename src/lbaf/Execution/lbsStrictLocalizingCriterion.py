@@ -1,5 +1,8 @@
+from typing import List
+
 from .lbsCriterionBase import CriterionBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
+from ..Model.lbsObject import Object
 from ..Model.lbsRank import Rank
 
 
@@ -12,7 +15,7 @@ class StrictLocalizingCriterion(CriterionBase):
         super().__init__(workmodel, lgr)
         self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-    def compute(self, r_src: Rank, o_src: list, *args) -> float:
+    def compute(self, r_src: Rank, o_src: List[Object], *_args) -> float:
         """A criterion enforcing strict conservation of local communications."""
         # Keep track source processor ID
         r_src_id = r_src.get_id()

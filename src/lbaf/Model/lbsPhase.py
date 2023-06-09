@@ -119,30 +119,27 @@ class Phase:
         self.__logger.info("Computing inter-rank communication edges")
         self.__edges = {}
 
-        # Initialize count of loaded ranks
-        n_loaded = 0
-
         # Initialize sum of total and rank-local volumes
         v_total, v_local = 0., 0.
 
         # Iterate over ranks
-        for p in self.__ranks:
+        for rank in self.__ranks:
             # Retrieve sender rank ID
-            i = p.get_id()
+            i = rank.get_id()
             self.__logger.debug(f"rank {i}:")
 
             # Iterate over objects of current rank
-            for o in p.get_objects():
+            for o in rank.get_objects():
                 self.__logger.debug(f"* object {o.get_id()}:")
 
                 # Iterate over recipient objects
-                for q, volume in o.get_sent().items():
+                for sent, volume in o.get_sent().items():
                     # Update total volume
                     v_total += volume
 
                     # Retrieve recipient rank ID
-                    j = q.get_rank_id()
-                    self.__logger.debug(f"sent volume {volume} to object {q.get_id()} assigned to rank {j}")
+                    j = sent.get_rank_id()
+                    self.__logger.debug(f"sent volume {volume} to object {sent.get_id()} assigned to rank {j}")
 
                     # Skip rank-local communications
                     if i == j:

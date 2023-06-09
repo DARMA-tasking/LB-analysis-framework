@@ -1,4 +1,5 @@
 import sys
+from typing import Callable
 
 from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
@@ -122,19 +123,19 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Process all messages of first round
             for p_rcv, msg_lst in messages.items():
-                for m in msg_lst:
-                    p_rcv.process_message(m)
+                for msg in msg_lst:
+                    p_rcv.process_message(msg)
 
             # Report on gossiping status when requested
-            for p in rank_set:
+            for rank in rank_set:
                 self._logger.debug(
-                    f"information known to rank {p.get_id()}: "
-                    f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
+                    f"information known to rank {rank.get_id()}: "
+                    f"{[p_u.get_id() for p_u in rank.get_known_loads()]}")
 
         # Build reverse lookup of ranks to those aware of them
-        for p in rank_set:
+        for rank in rank_set:
             # Skip non-loaded ranks
-            if not p.get_load():
+            if not rank.get_load():
                 continue
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
@@ -172,7 +173,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Compute and report iteration work statistics
             print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),
+                lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
                 f"iteration {i + 1} rank work",
                 self._logger)
 

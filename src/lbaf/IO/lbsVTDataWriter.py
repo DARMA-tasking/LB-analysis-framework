@@ -31,7 +31,7 @@ class VTDataWriter:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # data fields
+        # Useful fields
         self.__rank_phases = None
 
         # Assign internals

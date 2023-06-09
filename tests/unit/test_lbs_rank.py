@@ -126,11 +126,11 @@ class TestConfig(unittest.TestCase):
         temp_rank_2 = Rank(r_id=2, logger=self.logger)
         temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
         random_mock.return_value = [temp_rank_1, temp_rank_2]
-        self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[0],
+        self.assertEqual(self.rank.forward_message(information_round=2, _rank_set=set(), fanout=4)[0],
                          [temp_rank_1, temp_rank_2])
-        self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[1].get_round(),
+        self.assertEqual(self.rank.forward_message(information_round=2, _rank_set=set(), fanout=4)[1].get_round(),
                          Message(2, self.rank._Rank__known_loads).get_round())
-        self.assertEqual(self.rank.forward_message(r=2, s=set(), f=4)[1].get_content(),
+        self.assertEqual(self.rank.forward_message(information_round=2, _rank_set=set(), fanout=4)[1].get_content(),
                          Message(2, self.rank._Rank__known_loads).get_content())
 
     def test_lbs_rank_process_message(self):

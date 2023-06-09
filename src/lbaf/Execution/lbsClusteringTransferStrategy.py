@@ -1,6 +1,7 @@
 import math
 import random
 from itertools import chain, combinations
+from logging import Logger
 
 import numpy.random as nr
 
@@ -11,6 +12,19 @@ from ..IO.lbsStatistics import inverse_transform_sample
 
 class ClusteringTransferStrategy(TransferStrategyBase):
     """A concrete class for the clustering-based transfer strategy."""
+
+    def __init__(self, criterion, parameters: dict, lgr: Logger):
+        """Class constructor.
+
+        :param criterion: a CriterionBase instance.
+        :param parameters: a dictionary of parameters.
+        :param lgr: a Logger instance.
+        """
+        # Call superclass init
+        super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
+
+        # Useful fields
+        self.__average_load = None
 
     def __cluster_objects(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
@@ -44,6 +58,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             n_o = min(self._max_objects_per_transfer, len(v))
 
             # Use combinatorial exploration or law of large number based subsampling
+            j = None
             for j, c in enumerate(chain.from_iterable(
                     combinations(v, p)
                     for p in range(1, n_o + 1)) if self._deterministic_transfer else (

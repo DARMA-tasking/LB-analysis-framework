@@ -41,7 +41,7 @@ class Visualizer:
         # Assign logger to instance variable
         self.__logger = logger
 
-        # data fields
+        # Useful fields
         self.__rank_points = None
         self.__rank_lines = None
         self.__volumes = None

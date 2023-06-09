@@ -109,10 +109,10 @@ class Rank:
         """Try to delete shared memory block."""
         try:
             self.__shared_blocks.remove(block)
-        except:
+        except Exception as err:
             sys.excepthook = exc_handler
             raise TypeError(
-                f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}")
+                f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}") from err
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
         """Return shared memory block with given ID when it exists."""
@@ -301,16 +301,16 @@ class Rank:
         # Broadcast message to pseudo-random sample of ranks excluding self
         return rnd.sample(list(loads.difference([self])), min(f, len(loads) - 1)), msg
 
-    def forward_message(self, r, s, f):
+    def forward_message(self, information_round, _rank_set, fanout):
         """Forward information message to sample of selected peers."""
         # Create load message tagged at current round
-        msg = Message(r, self.__known_loads)
+        msg = Message(information_round, self.__known_loads)
 
         # Compute complement of set of known peers
         complement = set(self.__known_loads).difference([self])
 
         # Forward message to pseudo-random sample of ranks
-        return rnd.sample(list(complement), min(f, len(complement))), msg
+        return rnd.sample(list(complement), min(fanout, len(complement))), msg
 
     def process_message(self, msg):
         """Update internals when message is received."""
