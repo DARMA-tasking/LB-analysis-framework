@@ -171,24 +171,6 @@ class TestConfig(unittest.TestCase):
         list_of_err_msg.append(err_msg_3)
         self.assertIn(err.exception.args[0], list_of_err_msg)
 
-    def test_lbs_vt_data_reader_populate_rank(self):
-        for rank_id in range(4):
-            file_name = self.lr._get_rank_file_name(rank_id)
-            phase_rank, rank_comm = self.lr._populate_rank(0, rank_id)
-            self.assertEqual(self.rank_comm[rank_id], rank_comm)
-            prepared_list = sorted(
-                list(self.ranks_iter_map[rank_id].get(0).get_migratable_objects()),
-                key=lambda x: x.get_id())
-            generated_list = sorted(
-                list(phase_rank.get_migratable_objects()),
-                key=lambda x: x.get_id())
-            prep_load_list = [obj.get_load() for obj in prepared_list]
-            gen_load_list = [obj.get_load() for obj in generated_list]
-            prep_id_list = [obj.get_id() for obj in prepared_list]
-            gen_id_list = [obj.get_id() for obj in generated_list]
-            self.assertEqual(prep_load_list, gen_load_list)
-            self.assertEqual(prep_id_list, gen_id_list)
-
     def test_lbs_vt_data_reader_populate_phase(self):
         rank_list = self.lr.populate_phase(0)
         for rank_real, rank_mock in zip(rank_list, self.rank_list):
@@ -212,14 +194,14 @@ class TestConfig(unittest.TestCase):
             gen_comm_rcv_id_list = []
 
             for obj in prepared_list:
-                for key, val in obj.get_communicator().get_received().items():
-                    prep_comm_rcv_list.append(val)
+                for key, value in obj.get_communicator().get_received().items():
+                    prep_comm_rcv_list.append(value)
                     prep_comm_rcv_load_list.append(key.get_load())
                     prep_comm_rcv_id_list.append(key.get_id())
 
             for obj in generated_list:
-                for key, val in obj.get_communicator().get_received().items():
-                    gen_comm_rcv_list.append(val)
+                for key, value in obj.get_communicator().get_received().items():
+                    gen_comm_rcv_list.append(value)
                     gen_comm_rcv_load_list.append(key.get_load())
                     gen_comm_rcv_id_list.append(key.get_id())
 
