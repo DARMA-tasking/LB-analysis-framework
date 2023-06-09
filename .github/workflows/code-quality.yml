@@ -1,4 +1,4 @@
-name: Tests, PyLint, Coverage
+name: Tests, Code Analysis, Coverage
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
