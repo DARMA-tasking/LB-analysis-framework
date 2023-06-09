@@ -1,4 +1,4 @@
-name: Tests, Code Analysis, Coverage
+name: Code Quality (Tests, Linting, Coverage)
 on: push
 concurrency:
   group: CI-${{ github.head_ref }}
