@@ -4,11 +4,11 @@ PyYAML==6.0
 Brotli==1.0.9
 schema==0.7.5
 scikit-learn==1.0.2
-colorama==0.4.4
+colorama==0.4.6
 matplotlib==3.6.2
 
 # LBAF testing
-tox==3.24.5
+tox==4.6.0
 coverage==6.3.2
 pylint==2.12.2
 pytest==7.1.1
