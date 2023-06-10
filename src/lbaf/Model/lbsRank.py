@@ -179,10 +179,7 @@ class Rank:
 
     def is_sentinel(self, o: Object) -> list:
         """Return whether given object is sentinel of rank."""
-        if o in self.__sentinel_objects:
-            return True
-        else:
-            return False
+        return (o in self.__sentinel_objects)
 
     def get_known_loads(self) -> dict:
         """Return loads of peers know to self."""
@@ -274,11 +271,6 @@ class Rank:
     def get_max_memory_usage(self) -> float:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
-
-    def reset_all_load_information(self):
-        """Reset all load information known to self."""
-        # Reset information about known peers
-        self.__known_loads = {}
 
     def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: set, strict=False):
         """Compute CMF for the sampling of transfer targets."""

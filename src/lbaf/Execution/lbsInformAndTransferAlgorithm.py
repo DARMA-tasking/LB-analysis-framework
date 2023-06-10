@@ -76,18 +76,20 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-    def __initialize_message(self, r: Rank, loads: set, f: int):
-        """Initialize message to be sent to selected peers."""
-        # Make rank aware of own load
-        r.set_known_load(r, r.get_load())
+        # Initialize empty dictionary of known peers
+        self.__known_peers = {}
 
-        # Create load message tagged at first round
-        msg = Message(1, {
-            "loads": r.get_known_loads()})
+    def __initialize_message(self, r_snd: Rank, rank_set: set, f: int):
+        """Initialize message to be sent to selected peers."""
+        # Make rank aware of itself
+        self.__known_peers[r_snd] = {r_snd}
+
+        # Create initial message spawned from rank
+        msg = Message(0, self.__known_peers[r_snd])
 
         # Broadcast message to pseudo-random sample of ranks excluding self
         return random.sample(
-            list(loads.difference([r])), min(f, len(loads) - 1)), msg
+            list(rank_set.difference([r_snd])), min(f, len(rank_set) - 1)), msg
 
     def __forward_message(self, i: int, r: Rank, loads: set, f:int):
         """Forward information message to sample of selected peers."""
@@ -102,36 +104,31 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         return random.sample(
             list(complement), min(f, len(complement))), msg
 
-    def __process_message(self, r: Rank, msg: Message):
-        """Update internals when message is received."""
-        # Update loads known by recipient
-        r.get_known_loads().update(msg.get_content()["loads"])
-
     def __information_stage(self):
         """Execute information stage."""
 
         # Build set of all ranks in the phase
         rank_set = set(self._rebalanced_phase.get_ranks())
 
-        # Initialize information messages
+        # Initialize information messages and known peers
         self._logger.info(
             f"Initializing information messages with fanout={self.__fanout}")
         messages = {}
 
         # Iterate over all ranks
         for r_snd in rank_set:
-            # Reset load information known by sender
-            r_snd.reset_all_load_information()
-
             # Collect message when destination list is not empty
             dst, msg = self.__initialize_message(r_snd, rank_set, self.__fanout)
             for r_rcv in dst:
                 messages.setdefault(r_rcv, []).append(msg)
 
         # Process all messages of first round
-        for r_rcv, msg_lst in messages.items():
-            for m in msg_lst:
-                self.__process_message(r_rcv, m)
+        print(self.__known_peers)
+        for r_rcv, m_rcv in messages.items():
+            print(r_rcv, ":")
+            for m in m_rcv:
+                # Process message by recipient
+                self.__known_peers[r_rcv].update(m.get_support())
 
         # Report on gossiping status when requested
         for p in rank_set:
@@ -165,7 +162,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
-        """ Execute 2-phase gossip+transfer algorithm on Phase with index p_id."""
+        """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
 
