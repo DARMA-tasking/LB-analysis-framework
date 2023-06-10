@@ -123,19 +123,17 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 messages.setdefault(r_rcv, []).append(msg)
 
         # Process all messages of first round
-        print(self.__known_peers)
         for r_rcv, m_rcv in messages.items():
-            print(r_rcv, ":")
             for m in m_rcv:
                 # Process message by recipient
                 self.__known_peers[r_rcv].update(m.get_support())
 
         # Report on gossiping status when requested
-        for p in rank_set:
-            self._logger.debug(
-                f"information known to rank {p.get_id()}: "
-                f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
-
+        for r in rank_set:
+            self._logger.info(
+                f"peers known to rank {r.get_id()}: "
+                f"{[r_k.get_id() for r_k in self.__known_peers.get(r, {})]}")
+        sys.exit(1)
         # Forward messages for as long as necessary and requested
         for i in range(1, self.__n_rounds):
             # Initiate next information round
