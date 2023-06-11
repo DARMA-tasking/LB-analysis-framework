@@ -25,7 +25,7 @@ algorithm:
     transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
-    deterministic_transfer: True
+    deterministic_transfer: False
 
 # Specify output
 output_dir: ../output

@@ -105,8 +105,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                             r_dst = r_try
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, o_src, targets, False)
+                    p_cmf, c_values = self._compute_transfer_cmf(
+                        r_src, o_src, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
