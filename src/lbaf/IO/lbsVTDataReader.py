@@ -16,8 +16,9 @@ from ..Utils.exception_handler import exc_handler
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
-        Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
-        The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
+
+    Each file is named as <base-name>.<node>.json, where <node> spans the number of MPI ranks that VT is utilizing.
+    The schema of the compatible files is defined in <project-path>/src/IO/schemaValidator.py
     """
 
     SCHEMA_VALIDATOR_CLASS = None
@@ -32,15 +33,12 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix: str, n_ranks: int, logger: Logger, file_suffix: str = "json", check_schema=True):
+    def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
         # Data files(data loading) suffix
         self.__file_suffix = file_suffix
-
-        # Number of ranks
-        self.__n_ranks = n_ranks
 
         # Assign logger to instance variable
         self.__logger = logger
@@ -53,21 +51,49 @@ class LoadReader:
             from ..imported.JSON_data_files_validator import SchemaValidator as sv # pylint:disable=C0415:import-outside-toplevel
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
-        # Load vt data concurrently
+        # load vt data at rank 0
         self.__vt_data = {}
-        with Pool(context=get_context("fork")) as pool:
-            results = pool.imap_unordered(
-                self._load_vt_file, range(self.__n_ranks))
-            for rank, decompressed_dict in results:
-                self.__vt_data[rank] = decompressed_dict
+        rank_0, vt_data_0 = self._load_vt_file(0)
+        self.__vt_data[rank_0] = vt_data_0
+
+        # determine the number of ranks
+        self.n_ranks = self._get_n_ranks()
+        if self.n_ranks > 1:
+            # Load vt data concurrently from rank 1 to n_ranks
+            with Pool(context=get_context("fork")) as pool:
+                results = pool.imap_unordered(
+                    self._load_vt_file, range(1, self.n_ranks))
+                for rank, decompressed_dict in results:
+                    self.__vt_data[rank] = decompressed_dict
 
         # Perform sanity check on number of loaded phases
         l = len(next(iter(self.__vt_data.values())).get("phases"))
-        if not (all(len(v.get("phases")) == l for v in self.__vt_data.values())):
+        if not all(len(v.get("phases")) == l for v in self.__vt_data.values()):
             self.__logger.error(
                 "Not all JSON files have the same number of phases")
             sys.excepthook = exc_handler
             raise SystemExit(1)
+
+    def _get_n_ranks(self):
+        """Determine the number of ranks by
+        - reading the first loaded vt data file metadata (Requires first data file loaded)
+        - then (if not available) counting the number of files found in the data directory.
+        """
+
+        if len(self.__vt_data) > 0:
+            metadata = self.__vt_data.get(0).get('metadata')
+            if metadata is not None:
+                shared_node = metadata.get('shared_node')
+                if shared_node is not None:
+                    num_nodes = shared_node.get('num_nodes')
+                    if num_nodes is not None:
+                        return num_nodes
+        else:
+            self.__logger.warn('First vt data file has not been loaded. Cannot get n_ranks from vt data')
+
+        # or default count files in data dir
+        data_dir = f"{os.sep}".join(self.__file_prefix.split(os.sep)[:-1])
+        return len([name for name in os.listdir(data_dir)])
 
     def _get_rank_file_name(self, rank_id: int):
         # Convenience method also used by test harness
@@ -117,6 +143,7 @@ class LoadReader:
 
     def _populate_rank(self, phase_id: int, rank_id: int) -> tuple:
         """ Populate rank and its communicator in phase using the JSON content."""
+
         # Seek phase with given ID
         phase_id_found = False
         for phase in self.__vt_data.get(rank_id).get("phases"):
@@ -143,7 +170,7 @@ class LoadReader:
 
         # Add communications to the object
         rank_comm = {}
-        communications = phase.get("communications")
+        communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
         if communications:
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
@@ -184,7 +211,7 @@ class LoadReader:
         rank_blocks, task_user_defined = {}, {}
 
         # Iterate over tasks
-        for task in phase.get("tasks", []):
+        for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
             # Retrieve required values
             task_entity = task.get("entity")
             task_id = task_entity.get("id")
@@ -238,12 +265,13 @@ class LoadReader:
 
     def populate_phase(self, phase_id: int) -> list:
         """ Populate phase using the JSON content."""
+
         # Create storage for ranks
-        ranks = [None] * self.__n_ranks
+        ranks = [None] * self.n_ranks
         communications = {}
 
         # Iterate over all ranks
-        for rank_id in range(self.__n_ranks):
+        for rank_id in range(self.n_ranks):
             # Read data for given phase and assign it to rank
             ranks[rank_id], rank_comm = self._populate_rank(phase_id, rank_id)
 

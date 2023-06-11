@@ -1,4 +1,4 @@
-"""LBAF Configuration validator"""
+"""LBAF Configuration validator."""
 from logging import Logger
 import sys
 from typing import Union, Dict, List
@@ -29,18 +29,15 @@ ALLOWED_ALGORITHMS = (
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
-ALLOWED_TERMINAL_BACKGROUND = ("light", "dark")
 
 
 def get_error_message(iterable_collection: tuple) -> str:
     """Return error message."""
-
     return " or ".join(iterable_collection)
 
 
 class ConfigurationValidator:
     """Validate data in an YAML configuration file."""
-
     __algorithm: Dict[str, Schema]
     __config_to_validate: Dict[str, dict]
 
@@ -68,10 +65,6 @@ class ConfigurationValidator:
                 Optional("phase_id"): int,
                 Optional("parameters"): dict},
            "output_file_stem": str,
-            "n_ranks": And(
-                int,
-                lambda x: x > 0,
-                error="Should be of type 'int' and > 0"),
             Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
             Optional("check_schema"): bool,
@@ -80,11 +73,6 @@ class ConfigurationValidator:
                 str, Use(str.lower),
                 lambda f: f in ALLOWED_LOGGING_LEVELS,
                 error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
-            Optional("terminal_background"): And(
-                str,
-                Use(str.lower),
-                lambda g: g in ALLOWED_TERMINAL_BACKGROUND,
-                error=f"{get_error_message(ALLOWED_TERMINAL_BACKGROUND)} must be chosen"),
             Optional("output_dir"): str,
             Optional("LBAF_Viz"): {
                 "x_ranks": And(
@@ -117,6 +105,10 @@ class ConfigurationValidator:
                  Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'"))
              })
         self.__from_samplers = Schema({
+            "n_ranks": And(
+                int,
+                lambda x: x > 0,
+                error="Should be of type 'int' and > 0"),
             "n_objects": And(int, lambda x: x > 0,
                              error="Should be of type 'int' and > 0"),
             "n_mapped_ranks": And(int, lambda x: x >= 0,
@@ -190,12 +182,12 @@ class ConfigurationValidator:
     def allowed_keys(group: bool =  False) -> Union[List[str], Dict[str, List[str]]]:
         """Returns allowed keys at configuration root level grouped by some group key or as a flat list"""
         sections = {
-            "input": ["from_data"],
+            "input": ["from_data", "from_samplers", "check_schema"],
             "work model": ["work_model"],
             "algorithm": ["brute_force_optimization", "algorithm"],
             "output": [
                 "logging_level", "log_to_file", "overwrite_validator", "check_schema", "terminal_background",
-                "generate_multimedia", "output_dir", "output_file_stem", "n_ranks",
+                "generate_multimedia", "output_dir", "output_file_stem",
                 "LBAF_Viz"
             ]
         }

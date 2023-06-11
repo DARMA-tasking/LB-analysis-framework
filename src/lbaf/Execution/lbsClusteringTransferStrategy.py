@@ -1,28 +1,16 @@
-import sys
 import math
 import random
+from itertools import chain, combinations
+
 import numpy.random as nr
-from logging import Logger
-from typing import Union
-from itertools import accumulate, chain, combinations
-from bisect import bisect
 
 from .lbsTransferStrategyBase import TransferStrategyBase
-from .lbsCriterionBase import CriterionBase
 from ..Model.lbsPhase import Phase
-from ..Utils.exception_handler import exc_handler
 from ..IO.lbsStatistics import inverse_transform_sample
 
 
 class ClusteringTransferStrategy(TransferStrategyBase):
     """A concrete class for the clustering-based transfer strategy."""
-
-    def __init__(self, criterion, parameters: dict, lgr: Logger):
-        """Class constructor
-            criterion: a CriterionBase instance
-            parameters: a dictionary of parameters."""
-        # Call superclass init
-        super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
 
     def __cluster_objects(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
@@ -31,7 +19,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         for o in rank.get_migratable_objects():
             # Retrieve shared block ID and skip object without one
             sb_id = o.get_shared_block_id()
-            if sb_id == None:
+            if sb_id is None:
                 continue
 
             # Add current object to its block ID cluster
@@ -57,10 +45,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Use combinatorial exploration or law of large number based subsampling
             for j, c in enumerate(chain.from_iterable(
-                combinations(v, p)
-                for p in range(1, n_o + 1)) if self._deterministic_transfer else (
-                tuple(random.sample(v, p))
-                for p in nr.binomial(n_o, 0.5, n_o))):
+                    combinations(v, p)
+                    for p in range(1, n_o + 1)) if self._deterministic_transfer else (
+                    tuple(random.sample(v, p))
+                    for p in nr.binomial(n_o, 0.5, n_o))):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - r_tol) * self.__average_load:
@@ -71,7 +59,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Limit number of returned suitable clusters
                 if not self._deterministic_transfer and len(suitable_subclusters) > (
-                    i + 1) * step:
+                        i + 1) * step:
                     break
 
             # Update number of inspected combinations
@@ -100,7 +88,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Cluster migratiable objects on source rank
             clusters_src = self.__cluster_objects(r_src)
-            self._logger.info(f"Constructed {len(clusters_src)} migratable clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
+            self._logger.info(
+                f"Constructed {len(clusters_src)} migratable clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
@@ -132,7 +121,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
-                self.__cluster_objects(r_src), r_src.get_load()):
+                    self.__cluster_objects(r_src), r_src.get_load()):
                 # Initialize destination information
                 r_dst = None
                 c_dst = -math.inf

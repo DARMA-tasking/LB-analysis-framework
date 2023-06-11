@@ -22,12 +22,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         lgr: Logger,
         rank_qoi: str,
         object_qoi: str):
-        """Class constructor
-            work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-            rank_qoi: rank QOI to track
-            object_qoi: object QOI to track."""
+        """Class constructor.
 
+        :param work_model: a WorkModelBase instance
+        :param parameters: a dictionary of parameters
+        :param rank_qoi: rank QOI to track
+        :param object_qoi: object QOI to track.
+        """
         # Call superclass init
         super(InformAndTransferAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
@@ -94,7 +95,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
     def __execute_information_stage(self):
         """Execute information stage."""
-
         # Build set of all ranks in the phase
         rank_set = set(self._rebalanced_phase.get_ranks())
 

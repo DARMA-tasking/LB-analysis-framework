@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "lbaf:run",
+            "name": "LBAF: run",
             "python": "${workspaceFolder}/venv/bin/python",
             "type": "python",
             "request": "launch",
@@ -15,7 +15,27 @@
             "args": [ "--configuration", "conf.yaml"  ]
         },
         {
-            "name": "lbaf:current_file",
+            "name": "LBAF: BruteForce",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/lbaf/__init__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [ "--configuration", "tests/config/conf_correct_brute_force.yml"  ]
+        },
+        {
+            "name": "LBAF: Acceptance Tests",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/lbaf/__init__.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [ "--configuration", "config/acceptance_tests/conf.yaml"  ]
+        },
+        {
+            "name": "LBAF: current",
             "type": "python",
             "request": "launch",
             "program": "${file}",

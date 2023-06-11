@@ -7,19 +7,20 @@ from itertools import accumulate
 from bisect import bisect
 
 from .lbsTransferStrategyBase import TransferStrategyBase
-from .lbsCriterionBase import CriterionBase
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
 from ..IO.lbsStatistics import inverse_transform_sample
+from ..Model.lbsObjectCommunicator import ObjectCommunicator
 
 class RecursiveTransferStrategy(TransferStrategyBase):
     """A concrete class for the recursive transfer strategy."""
 
     def __init__(self, criterion, parameters: dict, lgr: Logger):
-        """Class constructor
-            criterion: a CriterionBase instance
-            parameters: a dictionary of parameters."""
+        """Class constructor.
 
+        :param criterion: a CriterionBase instance
+        :param parameters: a dictionary of parameters.
+        """
         # Call superclass init
         super(RecursiveTransferStrategy, self).__init__(criterion, parameters, lgr)
 
@@ -65,7 +66,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
-
         # Initialize transfer stage
         self.__average_load = ave_load
         self._logger.info(f"Executing transfer phase with average load of {self.__average_load}")
@@ -157,25 +157,21 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     @staticmethod
     def element_id(objects: set, _):
         """Order objects by ID."""
-
         return sorted(objects, key=lambda x: x.get_id())
 
     @staticmethod
     def decreasing_loads(objects: set, _):
         """Order objects by decreasing object loads."""
-
         return sorted(objects, key=lambda x: -x.get_load())
 
     @staticmethod
     def increasing_loads(objects: set, _):
         """Order objects by increasing object loads."""
-
         return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
     def increasing_connectivity(objects: set, src_id):
         """Order objects by increasing local communication volume."""
-
         # Initialize list with all objects without a communicator
         no_comm = [
             o for o in objects
@@ -213,10 +209,11 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def fewest_migrations(self, objects: set, _):
         """First find the load of the smallest single object that, if migrated
-            away, could bring this rank's load below the target load.
-            Sort largest to the smallest if <= load_excess
-            Sort smallest to the largest if > load_excess."""
+        away, could bring this rank's load below the target load.
 
+        Sort largest to the smallest if <= load_excess
+        Sort smallest to the largest if > load_excess.
+        """
         load_excess = self.load_excess(objects)
         lt_load_excess = [obj for obj in objects if obj.get_load() <= load_excess]
         get_load_excess = [obj for obj in objects if obj.get_load() > load_excess]
@@ -224,9 +221,11 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def small_objects(self, objects: set, _):
         """First find the smallest object that, if migrated away along with all
-            smaller objects, could bring this rank's load below the target load.
-            Sort largest to the smallest if <= load_excess
-            Sort smallest to the largest if > load_excess."""
+        smaller objects, could bring this rank's load below the target load.
+
+        Sort largest to the smallest if <= load_excess
+        Sort smallest to the largest if > load_excess.
+        """
 
         load_excess = self.load_excess(objects)
         sorted_objects = self.sorted_ascending(objects)

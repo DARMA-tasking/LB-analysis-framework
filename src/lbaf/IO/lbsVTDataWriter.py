@@ -29,7 +29,6 @@ class VTDataWriter:
         :param stem: file name stem
         :param parameters: a dictionary of parameters
         """
-
         # Assign logger to instance variable
         self.__logger = logger
 
@@ -48,7 +47,6 @@ class VTDataWriter:
 
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
-
         return [{
             "entity": {
                 "home": rank_id,
@@ -63,7 +61,6 @@ class VTDataWriter:
 
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
-
         # Unpack received double
         r_id, r_phases = rank_phases_double
 
@@ -93,7 +90,7 @@ class VTDataWriter:
         if self.__compress:
             serial_json = brotli.compress(
                 string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
-        with open(file_name, "wb" if self.__compress else "w") as json_file:
+        with open(file_name, "wb" if self.__compress else 'w') as json_file:
             json_file.write(serial_json)
 
         # Return JSON file name

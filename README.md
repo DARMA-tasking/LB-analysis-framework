@@ -14,9 +14,9 @@
 
 ## Before starting
 
-The LBAF is available from source only now. It requires [Python 3.8](https://www.python.org/downloads/) to run.
+The LBAF is available from source only now.
 
-Currently, the only working version of Python is 3.8. This is due to the compatibility of used packages.
+Currently, the only working version of Python is [Python 3.8](https://www.python.org/downloads/). This is due to the compatibility of used packages.
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
@@ -75,34 +75,30 @@ If `<config-file-name>` is a relative path then the application will search from
 
 ### JSON data files Validator
 
-JSON data files Validator validates VT data files against defined schema.
-
-Schema is defined in `<project-path>/src/lbaf/IO/schemaValidator.py`.
-
-JSON data files Validator is located in `<project-path>/src/lbaf/Utils/JSON_data_files_validator.py`.
+JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
 
 Usage for single file:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --file_path=../../../data/8color-4node/data.0.json
+python JSON_data_files_validator.py --file_path=../../../data/nolb-8color-16nodes-data/data.0.json
 
 # With absolute path
-python JSON_data_files_validator.py --file_path=<project-path>/data/8color-4node/data.0.json
+python JSON_data_files_validator.py --file_path=<project-path>/data/nolb-8color-16nodes-data/data.0.json
 ```
 
 Usage for many files in the same directory:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --dir_path=../../../data/8color-4node
+python JSON_data_files_validator.py --dir_path=../../../data/nolb-8color-16nodes-data
 
 # With absolute path
-python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node
+python JSON_data_files_validator.py --dir_path=<project-path>/data/nolb-8color-16nodes-data
 
 # Optionally one could pass --file_prefix and/or --file_suffix
 # When one passes files with given prefix/suffix or both will be validated
 # When no prefix and suffix will be given validator will find most common prefix and suffix in the directory
 # and will use them for validation process
-python JSON_data_files_validator.py --dir_path=../../data/8color-4node --file_prefix=data --file_suffix=json
+python JSON_data_files_validator.py --dir_path=../../data/nolb-8color-16nodes-data --file_prefix=data --file_suffix=json
 ```
 
 ### VT data Extractor

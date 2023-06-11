@@ -22,13 +22,11 @@ algorithm:
     transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
-    deterministic_transfer: true
+    deterministic_transfer: True
 
 # Specify output
-terminal_background: light
 output_dir: ../../../output
 output_file_stem: output_file
-n_ranks: 4
 LBAF_Viz:
   x_ranks: 2
   y_ranks: 2
@@ -36,4 +34,4 @@ LBAF_Viz:
   object_jitter: 0.5
   rank_qoi: None
   object_qoi: None
-  force_continuous_object_qoi: true
+  force_continuous_object_qoi: True

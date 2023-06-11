@@ -1,5 +1,6 @@
 from logging import Logger
 import os
+import sys
 import math
 import numbers
 import random
@@ -8,7 +9,6 @@ import matplotlib.pyplot as plt
 
 from .lbsGridStreamer import GridStreamer
 from ..Model.lbsPhase import Phase
-
 
 class Visualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
@@ -178,7 +178,6 @@ class Visualizer:
     @staticmethod
     def global_id_to_cartesian(flat_id, grid_sizes):
         """Map global index to its Cartesian grid coordinates."""
-
         # Sanity check
         n01 = grid_sizes[0] * grid_sizes[1]
         if flat_id < 0 or flat_id >= n01 * grid_sizes[2]:
@@ -239,7 +238,6 @@ class Visualizer:
 
     def __create_rank_mesh(self, iteration: int):
         """Map ranks to polygonal mesh."""
-
         # Assemble and return polygonal mesh
         pd_mesh = vtk.vtkPolyData()
         pd_mesh.SetPoints(self.__rank_points)
@@ -250,7 +248,6 @@ class Visualizer:
 
     def __create_object_mesh(self, phase: Phase, object_mapping: set):
         """Map objects to polygonal mesh."""
-
         # Retrieve number of mesh points and bail out early if empty set
         n_o = phase.get_number_of_objects()
         if not n_o:
@@ -731,6 +728,13 @@ class Visualizer:
 
         # Write ExodusII rank mesh when requested
         if save_meshes:
+            if sys.version_info.major == 3 and sys.version_info.minor == 9:
+                self.__logger.error(
+                    "Cannot save meshes when using Python 3.9 (issue with vtk 9.1.0). "
+                    "Please use Python 3.8 (vtk 9.0.1)."
+                )
+                raise SystemExit(1)
+
             # Create grid streamer
             streamer = GridStreamer(
                 self.__rank_points,
@@ -741,13 +745,13 @@ class Visualizer:
                 logger=self.__logger)
 
             # Write to ExodusII file when possible
-            if streamer.Error:
+            if streamer.error:
                 self.__logger.warning(
                     f"Failed to instantiate a grid streamer for file {self.__rank_file_name}")
             else:
                 writer = vtk.vtkExodusIIWriter()
                 writer.SetFileName(self.__rank_file_name)
-                writer.SetInputConnection(streamer.Algorithm.GetOutputPort())
+                writer.SetInputConnection(streamer.algorithm.GetOutputPort())
                 writer.WriteAllTimeStepsOn()
                 writer.Update()
                 self.__logger.info(

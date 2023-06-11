@@ -10,7 +10,7 @@ from lbaf.Utils.exception_handler import exc_handler
 
 
 class DataStatFilesUpdater:
-    """Class validating VT data files according to the defined schema. """
+    """Class validating VT data files according to the defined schema."""
 
     def __init__(self, file_path: str = None, dir_path: str = None, file_prefix: str = None, file_suffix: str = None,
                  schema_type: str = "LBDatafile", compress_data: bool = None):
@@ -23,7 +23,7 @@ class DataStatFilesUpdater:
         self.__cli()
 
     def __cli(self):
-        """Support for common line arguments. """
+        """Support for common line arguments."""
         parser = argparse.ArgumentParser()
         group = parser.add_mutually_exclusive_group()
         group.add_argument("--dir_path", help="Path to directory where files for validation are located.")
@@ -53,17 +53,17 @@ class DataStatFilesUpdater:
 
     @staticmethod
     def __check_if_file_exists(file_path: str) -> bool:
-        """Check for existence of a given file. Returns True when file exists. """
+        """Check for existence of a given file. Returns True when file exists."""
         return os.path.isfile(file_path)
 
     @staticmethod
     def __check_if_dir_exists(dir_path: str) -> bool:
-        """Check for existence of a given directory. Returns True when file exists. """
+        """Check for existence of a given directory. Returns True when file exists."""
         return os.path.isdir(dir_path)
 
     @staticmethod
     def __get_files_for_validation(dir_path: str, file_prefix: str, file_suffix: str) -> list:
-        """Check for existence of a given directory. Returns True when file exists. """
+        """Check for existence of a given directory. Returns True when file exists."""
         list_of_files = os.listdir(dir_path)
 
         if not list_of_files:
@@ -114,7 +114,7 @@ class DataStatFilesUpdater:
         json_str = json.dumps(decompressed_dict, separators=(',', ':'))
 
         if file_uncompressed:
-            with open(file_path, "wt") as uncompr_json_file:
+            with open(file_path, "wt", encoding="utf-8") as uncompr_json_file:
                 uncompr_json_file.write(json_str)
         else:
             with open(file_path, "wb") as compr_json_file:
@@ -122,6 +122,7 @@ class DataStatFilesUpdater:
                 compr_json_file.write(compressed_str)
 
     def main(self):
+        """Main function"""
         if self.__file_path is not None:
             if self.__check_if_file_exists(file_path=self.__file_path):
                 self.__add_type_to_file(file_path=self.__file_path)

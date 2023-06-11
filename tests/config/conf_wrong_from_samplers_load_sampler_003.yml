@@ -1,4 +1,19 @@
 # Specify input
+from_samplers:
+  n_objects: 200
+  n_ranks: 4
+  n_mapped_ranks: 2
+  communication_degree: 20
+  load_sampler:
+    name: lognormal
+    parameters:
+      - 1.0
+      - "10.0"
+  volume_sampler:
+    name: lognormal
+    parameters:
+      - 1.0
+      - 10.0
 
 # Specify work model
 work_model:
@@ -19,13 +34,11 @@ algorithm:
     transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
-    deterministic_transfer: true
+    deterministic_transfer: True
 
 # Specify output
-terminal_background: light
 output_dir: ../../../output
 output_file_stem: output_file
-n_ranks: 4
 LBAF_Viz:
   x_ranks: 2
   y_ranks: 2
@@ -33,20 +46,4 @@ LBAF_Viz:
   object_jitter: 0.5
   rank_qoi: None
   object_qoi: None
-  force_continuous_object_qoi: true
-
-# Other
-from_samplers:
-  n_objects: 200
-  n_mapped_ranks: 2
-  communication_degree: 20
-  load_sampler:
-    name: lognormal
-    parameters:
-      - 1.0
-      - '10.0'
-  volume_sampler:
-    name: lognormal
-    parameters:
-      - 1.0
-      - 10.0
+  force_continuous_object_qoi: True

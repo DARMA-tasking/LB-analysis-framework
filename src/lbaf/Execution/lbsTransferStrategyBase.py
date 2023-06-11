@@ -8,15 +8,17 @@ from ..Utils.exception_handler import exc_handler
 
 
 class TransferStrategyBase:
-    __metaclass__ = abc.ABCMeta
     """An abstract base class of transfer strategies for inform and transfer algorithm."""
 
-    def __init__(self, criterion, parameters: dict, lgr: Logger):
-        """Class constructor:
-            criterion: a CriterionBase instance
-            parameters: a dictionary of parameters
-            lgr: a Logger instance."""
+    __metaclass__ = abc.ABCMeta
 
+    def __init__(self, criterion, parameters: dict, lgr: Logger):
+        """Class constructor.
+
+        :param criterion: a CriterionBase instance
+        :param parameters: a dictionary of parameters
+        :param lgr: a Logger instance.
+        """
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
             lgr().error(
@@ -45,10 +47,11 @@ class TransferStrategyBase:
         criterion: CriterionBase,
         lgr: Logger):
         """Instantiate the necessary concrete strategy."""
-
         # Load up available strategies
+        # pylint:disable=C0415:import-outside-toplevel,W0641:possibly-unused-variable
         from .lbsRecursiveTransferStrategy import RecursiveTransferStrategy
         from .lbsClusteringTransferStrategy import ClusteringTransferStrategy
+        # pylint:enable=C0415:import-outside-toplevel,W0641:possibly-unused-variable
 
         # Ensure that strategy name is valid
         try:
@@ -68,5 +71,8 @@ class TransferStrategyBase:
             known_peers: a dictionary of sets of known rank peers
             ave_load: average load in current phase."""
 
+        :param phase: a Phase instance
+        :param ave_load: average load in current phase.
+        """
         # Must be implemented by concrete subclass
         pass

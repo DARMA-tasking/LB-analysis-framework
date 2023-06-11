@@ -18,12 +18,13 @@ class AlgorithmBase:
     _logger: Logger
 
     def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger, rank_qoi: str, object_qoi: str):
-        """Class constructor:
-            work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-            rank_qoi: rank QOI to track
-            object_qoi: object QOI to track."""
+        """Class constructor.
 
+        :param work_model: a WorkModelBase instance
+        :param parameters: a dictionary of parameters
+        :param rank_qoi: rank QOI to track
+        :param object_qoi: object QOI to track.
+        """
         # Assert that a logger instance was passed
         if not isinstance(logger, Logger):
             get_logger().error(
@@ -120,17 +121,27 @@ class AlgorithmBase:
         for object_qoi_name in tuple({"load", self.__object_qoi}):
             if not object_qoi_name:
                 continue
-            distributions.setdefault(f"object {object_qoi_name}", []).append(
-                {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
-                 for o in self._rebalanced_phase.get_objects()})
+            try:
+                distributions.setdefault(f"object {object_qoi_name}", []).append(
+                    {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
+                    for o in self._rebalanced_phase.get_objects()})
+            except AttributeError as err:
+                self._logger.error(f"Invalid object_qoi name \"{object_qoi_name}\"")
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from err
 
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
             if not rank_qoi_name or rank_qoi_name == "work":
                 continue
-            distributions.setdefault(f"rank {rank_qoi_name}", []).append(
-                [getattr(p, f"get_{rank_qoi_name}")()
-                 for p in self._rebalanced_phase.get_ranks()])
+            try:
+                distributions.setdefault(f"rank {rank_qoi_name}", []).append(
+                    [getattr(p, f"get_{rank_qoi_name}")()
+                    for p in self._rebalanced_phase.get_ranks()])
+            except AttributeError as err:
+                self._logger.error(f"Invalid rank_qoi name \"{rank_qoi_name}\"")
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from err
         distributions.setdefault("rank work", []).append(
             [self._work_model.compute(p) for p in self._rebalanced_phase.get_ranks()])
 

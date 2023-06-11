@@ -13,6 +13,7 @@ class CriterionBase:
     """An abstract base class of optimization criteria for LBAF execution."""
 
     __metaclass__ = abc.ABCMeta
+
     _logger: Logger
 
     def __init__(self, work_model: WorkModelBase, logger: Logger):

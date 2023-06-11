@@ -1,4 +1,4 @@
-"""LBAF entry point"""
+"""LBAF module"""
 
 import os
 import sys
@@ -14,7 +14,7 @@ from lbaf.Applications.LBAF_app import Application as LBAF_Application # pylint:
 
 
 def run():
-    """Run an LBAF Application"""
+    """Run an LBAF Application."""
     LBAF_Application().run()
 
 if __name__ == "__main__":

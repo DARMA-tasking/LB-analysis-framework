@@ -4,14 +4,13 @@ import argparse
 import os
 import sys
 import math
-from typing import cast, Any, Dict, Union
+from typing import cast, Any, Dict, Optional, Union
 
 import yaml
 
 from lbaf import __version__, PROJECT_PATH
 
 from lbaf.Applications import JSON_data_files_validator_loader
-from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
 from lbaf.Utils.logging import get_logger, Logger
@@ -28,23 +27,32 @@ class InternalParameters:
     """Represent the parameters used internally by a a LBAF Application"""
 
     __logger: Logger
-    n_ranks: int
-    check_schema: bool
-    output_dir: str
-    output_file_stem: str
-    file_suffix: str
-    algorithm: Dict[str,Any]
-    work_model: Dict[str,dict]
-    rank_qoi: Union[str,None]
-    object_qoi: Union[str,None]
-    grid_size: Union[list,None]
 
-    # from_samplers options
-    n_objects: int
-    n_mapped_ranks: int
-    communication_degree: int
-    load_sampler: dict
-    volume_sampler: dict
+    # input options
+    check_schema: Optional[bool] = None
+    output_dir: Optional[str] = None
+    output_file_stem: Optional[str] = None
+    file_suffix: Optional[str] = None
+    # - from_data options
+    data_stem: Optional[str] = None
+    # - from_samplers options
+    n_ranks: Optional[int] = None
+    n_objects: Optional[int] = None
+    n_mapped_ranks: Optional[int] = None
+    communication_degree: Optional[int] = None
+    load_sampler: Optional[dict] = None
+    volume_sampler: Optional[dict] = None
+
+    # Viz options
+    rank_qoi: Optional[str] = None
+    object_qoi: Optional[str] = None
+    grid_size: Optional[list] = None
+
+    # work_model options
+    work_model: Optional[Dict[str,dict]] = None
+
+    # algorithm options
+    algorithm: Dict[str,Any]
 
     def __init__(self, config: dict, base_dir: str, logger: Logger):
         self.__logger = logger
@@ -61,6 +69,7 @@ class InternalParameters:
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
+
         ConfigurationValidator(
             config_to_validate=config, logger=self.__logger).main()
 
@@ -74,34 +83,6 @@ class InternalParameters:
         for param_key, param_val in config.items():
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
-
-        # Parse visualizer parameters when available
-        if (viz := config.get("LBAF_Viz")) is not None:
-            # Retrieve mandatory visualization parameters
-            try:
-                self.grid_size = []
-                for key in ("x_ranks", "y_ranks", "z_ranks"):
-                    self.grid_size.append(viz[key])
-                self.object_jitter = viz["object_jitter"]
-                self.rank_qoi = viz["rank_qoi"]
-                self.object_qoi = viz.get("object_qoi")
-            except Exception as e:
-                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
-                sys.excepthook = exc_handler
-                raise SystemExit(1) from e
-
-            # Verify grid size consistency
-            if math.prod(self.grid_size) < self.n_ranks:
-                self.__logger.error("Grid size: {self.grid_size} < {self.n_ranks}")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-
-            # Retrieve optional parameters
-            self.save_meshes = viz.get("save_meshes", False)
-            self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
-        else:
-            # No visualization quantities of interest
-            self.rank_qoi = self.object_qoi = self.grid_size = None
 
         # Parse data parameters if present
         from_data = config.get("from_data")
@@ -122,11 +103,31 @@ class InternalParameters:
         # Parse sampling parameters if present
         from_samplers = config.get("from_samplers")
         if from_samplers is not None:
+            self.n_ranks = from_samplers.get("n_ranks")
             self.n_objects = from_samplers.get("n_objects", {})
             self.n_mapped_ranks = from_samplers.get("n_mapped_ranks")
             self.communication_degree = from_samplers.get("communication_degree")
             self.load_sampler = from_samplers.get("load_sampler")
             self.volume_sampler = from_samplers.get("volume_sampler")
+
+        # Parse visualizer parameters when available
+        if (viz := config.get("LBAF_Viz")) is not None:
+            # Retrieve mandatory visualization parameters
+            try:
+                self.grid_size = []
+                for key in ("x_ranks", "y_ranks", "z_ranks"):
+                    self.grid_size.append(viz[key])
+                self.object_jitter = viz["object_jitter"]
+                self.rank_qoi = viz["rank_qoi"]
+                self.object_qoi = viz.get("object_qoi")
+            except Exception as e:
+                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1) from e
+
+            # Retrieve optional parameters
+            self.save_meshes = viz.get("save_meshes", False)
+            self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
 
         # Set output directory, local by default
         self.output_dir = abspath(config.get("output_dir", '.'), relative_to=base_dir)
@@ -165,14 +166,10 @@ class Application:
     __logger: Logger
     __parameters: InternalParameters
     __json_writer: Union[VTDataWriter,None]
-
-    """LBAF application class."""
-    def __init__(self):
-        # Init logger to instance variable. Initially the root logger.
-        self.__logger = get_logger()
+    __args: dict
 
     def __configure(self, path: str):
-        """Configure the application using the configuration file at the given path"""
+        """Configure the application using the configuration file at the given path."""
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
             try:
@@ -200,7 +197,6 @@ class Application:
         self.__logger = get_logger(
             name="lbaf",
             level=lvl,
-            theme=data.get("terminal_background", None),
             log_to_console=data.get("log_to_console", None) is None,
             log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
         )
@@ -220,14 +216,8 @@ class Application:
 
         return data
 
-    def __get_config_path(self)-> str:
-        """Find the config file from the '-configuration' command line argument and returns its absolute path
-        (if configuration file path is relative it is searched in the current working directory and at the end in the
-        {PROJECT_PATH}/config directory)
-
-        :raises FileNotFoundError: if configuration file cannot be found
-        """
-
+    def __parse_args(self) -> dict:
+        """Parse arguments."""
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
@@ -235,25 +225,30 @@ class Application:
             default=None
         )
         args = parser.parse_args()
+
+        self.__args = args
+
+    def __get_config_path(self)-> str:
+        """Find the config file from the '-configuration' command line argument and returns its absolute path
+        (if configuration file path is relative it is searched in the current working directory and at the end in the
+        {PROJECT_PATH}/config directory)
+
+        :raises FileNotFoundError: if configuration file cannot be found
+        """
         path = None
         path_list = []
 
-        if args.configuration is None:
-            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
-            "working directory or in the project config directory !")
-            args.configuration = "conf.yaml"
-
         # search config file in the current working directory if relative
-        path = abspath(args.configuration)
+        path = abspath(self.__args.configuration)
         path_list.append(path)
         if (
             path is not None and
             not os.path.isfile(path) and
-            not os.path.isabs(args.configuration) and PROJECT_PATH is not None
+            not os.path.isabs(self.__args.configuration) and PROJECT_PATH is not None
         ):
             # then search config file relative to the config folder
             search_dir = abspath("config", relative_to=PROJECT_PATH)
-            path = search_dir + '/' + args.configuration
+            path = search_dir + '/' + self.__args.configuration
             path_list.append(path)
 
         if not os.path.isfile(path):
@@ -272,7 +267,19 @@ class Application:
         return path
 
     def run(self):
-        """Runs the LBAF application"""
+        """Run the LBAF application."""
+        # Parse command line arguments
+        self.__parse_args()
+
+        # Init logger and set as an instance variable.
+        self.__logger = get_logger()
+
+        # Warn if default configuration is used because not set as argument
+        if self.__args.configuration is None:
+            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+            "working directory or in the project config directory !")
+            self.__args.configuration = "conf.yaml"
+
         # Find configuration file absolute path
         config_file = self.__get_config_path()
 
@@ -303,25 +310,23 @@ class Application:
         # Check schema
         check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
 
+        reader = None # type: Optional(LoadReader)
+
+        n_ranks = None
+
         # Populate phase depending on chosen mechanism
         if self.__parameters.data_stem:
             # Populate phase from log files and store number of objects
             file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
 
             # Initializing reader
-            if file_suffix is not None:
-                reader = LoadReader(
-                    file_prefix=self.__parameters.data_stem,
-                    n_ranks=self.__parameters.n_ranks,
-                    logger=self.__logger,
-                    file_suffix=file_suffix,
-                    check_schema=check_schema)
-            else:
-                reader = LoadReader(
-                    file_prefix=self.__parameters.data_stem,
-                    n_ranks=self.__parameters.n_ranks,
-                    logger=self.__logger,
-                    check_schema=check_schema)
+            reader = LoadReader(
+                file_prefix=self.__parameters.data_stem,
+                logger=self.__logger,
+                file_suffix=file_suffix if file_suffix is not None else "json",
+                check_schema=check_schema)
+            # retrieve n_ranks
+            n_ranks = reader.n_ranks
 
             # Iterate over phase IDs
             for phase_id in self.__parameters.phase_ids:
@@ -335,10 +340,11 @@ class Application:
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
         else:
+            n_ranks = self.__parameters.n_ranks
             phase_id = 0
             phase = Phase(self.__logger, phase_id)
             phase.populate_from_samplers(
-                self.__parameters.n_ranks,
+                n_ranks,
                 self.__parameters.n_objects,
                 self.__parameters.load_sampler,
                 self.__parameters.volume_sampler,
@@ -351,41 +357,16 @@ class Application:
         self.__print_statistics(initial_phase, "initial")
 
         # Perform brute force optimization when needed
-        if "brute_force_optimization" in self.__parameters.__dict__ and self.__parameters.algorithm["name"] != "BruteForce":
-            # Prepare input data for rank order enumerator
+        if ("brute_force_optimization" in self.__parameters.__dict__
+            and self.__parameters.algorithm["name"] != "BruteForce"):
             self.__logger.info("Starting brute force optimization")
-            objects = []
-
-            # Iterate over ranks
-            for rank in initial_phase.get_ranks():
-                for o in rank.get_objects():
-                    entry = {
-                        "id": o.get_id(),
-                        "load": o.get_load(),
-                        "to": {},
-                        "from": {}}
-                    comm = o.get_communicator()
-                    if comm:
-                        for k, v in comm.get_sent().items():
-                            entry["to"][k.get_id()] = v
-                        for k, v in comm.get_received().items():
-                            entry["from"][k.get_id()] = v
-                    objects.append(entry)
-            objects.sort(key=lambda x: x.get("id"))
-
-            # Execute rank order enumerator and fetch optimal arrangements
+            objects = initial_phase.get_objects()
             alpha, beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
-            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, self.__parameters.n_ranks)
-            if n_a != self.__parameters.n_ranks ** len(objects):
-                self.__logger.error("Incorrect number of possible arrangements with repetition")
-                sys.excepthook = exc_handler
-                raise SystemExit(1)
-            self.__logger.info(
-                f"Minimax work: {w_min_max:4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma,
+                                                                                    n_ranks, logger=self.__logger)
         else:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
@@ -401,7 +382,7 @@ class Application:
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
         # Execute runtime for specified phases, -1 for all phases
-        offline_LB_compatible = self.__parameters.json_params.get(
+        offline_LB_compatible = self.__parameters.json_params.get( # pylint:disable=C0103:invalid-name;not lowercase
             "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", -1),
@@ -416,7 +397,7 @@ class Application:
                         "No rebalancing took place for offline load-balancing")
                 else:
                     # Determine if a phase with same index was present
-                    if (existing_phase := phases.get(p_id := rebalanced_phase.get_id())):
+                    if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
                         # Apply object timings to rebalanced phase
                         self.__logger.info(
                             f"Phase {p_id} already present, applying its object loads to rebalanced phase")
@@ -440,6 +421,13 @@ class Application:
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
+            # Verify grid size consistency
+            if math.prod(self.__parameters.grid_size) < n_ranks:
+                self.__logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
+                sys.excepthook = exc_handler
+                raise SystemExit(1)
+
+
             # Look for prescribed QOI bounds
             qoi_request = [self.__parameters.rank_qoi]
             qoi_request.append(
@@ -472,7 +460,7 @@ class Application:
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
-                    "imbalance.txt"), "w", encoding="utf-8") as imbalance_file:
+                    "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # If this point is reached everything went fine

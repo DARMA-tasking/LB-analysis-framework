@@ -39,8 +39,7 @@ class Rank:
         self.__shared_blocks = {}
 
     def copy(self, rank):
-        """ Specialized copy method."""
-
+        """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
         self.__size = rank.get_size()

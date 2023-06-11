@@ -16,7 +16,7 @@ class TestConfig(unittest.TestCase):
         self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.logger = logging.getLogger()
-        self.lr = LoadReader(file_prefix=self.file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
+        self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
         self.rank_comm = [
             {
                 5: {"sent": [], "received": [{"from": 0, "bytes": 2.0}]},
@@ -115,7 +115,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_vt_data_reader_read_compressed(self):
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         lr = LoadReader(
-            file_prefix=file_prefix, n_ranks=4, logger=self.logger, file_suffix="json")
+            file_prefix=file_prefix, logger=self.logger, file_suffix="json")
         for rank_id in range(4):
             phase_rank, rank_comm = lr._populate_rank(0, rank_id)
             self.assertEqual(self.rank_comm[rank_id], rank_comm)
@@ -135,7 +135,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_vt_data_reader_read_file_not_found(self):
         with self.assertRaises(FileNotFoundError) as err:
             LoadReader(
-                file_prefix=f"{self.file_prefix}xd", n_ranks=4,
+                file_prefix=f"{self.file_prefix}xd",
                 logger=self.logger, file_suffix="json")._populate_rank(0, 0)
         self.assertIn(err.exception.args[0], [
             f"File {self.file_prefix}xd.0.json not found", f"File {self.file_prefix}xd.1.json not found",
@@ -146,7 +146,7 @@ class TestConfig(unittest.TestCase):
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", "data")
         with self.assertRaises(SchemaError) as err:
             LoadReader(
-                file_prefix=file_prefix, n_ranks=4,
+                file_prefix=file_prefix,
                 logger=self.logger, file_suffix="json")._populate_rank(0, 0)
         list_of_err_msg = []
         with open(os.path.join(
