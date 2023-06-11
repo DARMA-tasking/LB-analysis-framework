@@ -8,7 +8,7 @@ class Message:
         self.__support = s
 
     def __repr__(self):
-        return f"Message at round: {self.__round}, Content: {self.__content}"
+        return f"Message at round: {self.__round}, support: {self.__support}"
 
     def get_round(self):
         """Return message round index

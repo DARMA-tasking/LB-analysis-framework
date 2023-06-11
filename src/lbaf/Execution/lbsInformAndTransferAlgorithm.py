@@ -79,18 +79,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Initialize empty dictionary of known peers
         self.__known_peers = {}
 
-    def __initialize_message(self, r_snd: Rank, rank_set: set, f: int):
-        """Initialize message to be sent to selected peers."""
-        # Make rank aware of itself
-        self.__known_peers[r_snd] = {r_snd}
-
-        # Create initial message spawned from rank
-        msg = Message(0, self.__known_peers[r_snd])
-
-        # Broadcast message to pseudo-random sample of ranks excluding self
-        return random.sample(
-            list(rank_set.difference([r_snd])), min(f, len(rank_set) - 1)), msg
-
     def __forward_message(self, i: int, r: Rank, loads: set, f:int):
         """Forward information message to sample of selected peers."""
         # Create load message tagged at given information round
@@ -111,16 +99,29 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         rank_set = set(self._rebalanced_phase.get_ranks())
 
         # Initialize information messages and known peers
-        self._logger.info(
-            f"Initializing information messages with fanout={self.__fanout}")
         messages = {}
-
-        # Iterate over all ranks
         for r_snd in rank_set:
-            # Collect message when destination list is not empty
-            dst, msg = self.__initialize_message(r_snd, rank_set, self.__fanout)
-            for r_rcv in dst:
+            # Make rank aware of itself
+            self.__known_peers[r_snd] = {r_snd}
+
+            # Create initial message spawned from rank
+            msg = Message(0, {r_snd})
+
+            # Broadcast message to random sample of ranks excluding self
+            for r_rcv in random.sample(
+                list(rank_set.difference([r_snd])),
+                min(self.__fanout, len(rank_set) - 1)):
                 messages.setdefault(r_rcv, []).append(msg)
+
+        # Sanity check prior to forwarding iterations
+        if (n_m := sum([len(m) for m in messages.values()])) != (n_c := len(rank_set) * self.__fanout):
+            self._logger.error(
+                f"Incorrect number of initial messages: {n_m} <> {n_c}")
+        self._logger.info(
+            f"Sent {n_m} initial information messages with fanout={self.__fanout}")
+
+        for k, v in messages.items():
+            print(k, v)
 
         # Process all messages of first round
         for r_rcv, m_rcv in messages.items():
@@ -128,12 +129,18 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 # Process message by recipient
                 self.__known_peers[r_rcv].update(m.get_support())
 
-        # Report on gossiping status when requested
+        # Perform sanity check on first round of information aggregation
+        n_k = 0
         for r in rank_set:
-            self._logger.info(
-                f"peers known to rank {r.get_id()}: "
-                f"{[r_k.get_id() for r_k in self.__known_peers.get(r, {})]}")
-        sys.exit(1)
+            # Retrieve and tally peers known to rank
+            k_p = self.__known_peers.get(r, {})
+            n_k += len(k_p)
+            self._logger.debug(
+                f"Peers known to rank {r.get_id()}: {[r_k.get_id() for r_k in k_p]}")
+        if n_k != (n_c := n_c + len(rank_set)):
+            self._logger.error(
+                f"Incorrect total number of aggregated initial messages: {n_k} <> {n_c}")
+
         # Forward messages for as long as necessary and requested
         for i in range(1, self.__n_rounds):
             # Initiate next information round
