@@ -32,7 +32,6 @@ algorithm:
 # Specify output
 output_dir: ../output
 output_file_stem: output_file
-n_ranks: 16
 LBAF_Viz:
   x_ranks: 4
   y_ranks: 4

@@ -66,12 +66,9 @@ class TransferStrategyBase:
 
     @abc.abstractmethod
     def execute(self, phase, known_peers: dict, ave_load: float):
-        """Excecute transfer strategy on Phase instance
-            phase: a Phase instance
-            known_peers: a dictionary of sets of known rank peers
-            ave_load: average load in current phase."""
-
+        """Execute transfer strategy on Phase instance
         :param phase: a Phase instance
+        :param known_peers: a dictionary of sets of known rank peers
         :param ave_load: average load in current phase.
         """
         # Must be implemented by concrete subclass
