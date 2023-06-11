@@ -76,9 +76,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
-        # Initialize empty dictionary of known peers
-        self.__known_peers = {}
-
     def __process_message(self, r_rcv: Rank, m: Message):
         """Process message received by rank."""
         self.__known_peers[r_rcv].update(m.get_support())
@@ -102,7 +99,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         rank_set = set(self._rebalanced_phase.get_ranks())
 
         # Initialize information messages and known peers
-        messages = {}
+        messages, self.__known_peers = {}, {}
         n_r = len(rank_set)
         for r_snd in rank_set:
             # Make rank aware of itself
@@ -190,7 +187,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
-                self._rebalanced_phase, statistics["average load"])
+                self.__known_peers, self._rebalanced_phase, statistics["average load"])
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(

@@ -82,7 +82,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
         return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
 
-    def execute(self, phase: Phase, ave_load: float):
+    def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self.__average_load = ave_load
@@ -92,7 +92,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Iterate over ranks
         for r_src in phase.get_ranks():
             # Retrieve potential targets
-            targets = r_src.get_targets()
+            targets = known_peers.get(r_src, set()).difference({r_src})
             if not targets:
                 n_ignored += 1
                 continue

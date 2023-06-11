@@ -38,9 +38,6 @@ class Rank:
         # Start with empty shared blokck information
         self.__shared_blocks = {}
 
-        # No information about peers is known initially
-        self.__known_loads = {}
-
     def copy(self, rank):
         """ Specialized copy method."""
 
@@ -50,7 +47,6 @@ class Rank:
 
         # Shallow copy owned objects
         self.__shared_blocks = copy.copy(rank.__shared_blocks)
-        self.__known_loads = copy.copy(rank.__known_loads)
         self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
@@ -181,31 +177,9 @@ class Rank:
         """Return whether given object is sentinel of rank."""
         return (o in self.__sentinel_objects)
 
-    def get_known_loads(self) -> dict:
-        """Return loads of peers know to self."""
-        return self.__known_loads
-
-    def set_known_load(self, rank: "Rank", l: float):
-        """Set load of peer known to self."""
-        self.__known_loads.setdefault(rank, rank.get_load())
-
-    def get_targets(self) -> set:
-        """Return list of potential targets for object transfers."""
-        # No potential targets for loadless ranks
-        if not self.get_load() > 0.:
-            return set()
-
-        # Remove self from list of targets
-        return {t for t in self.get_known_loads() if t != self}
-
     def remove_migratable_object(self, o: Object, r_dst: "Rank"):
         """Remove migratable able object from self object sent to peer."""
-        # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
-
-        # Update known load when destination is already known
-        if self.__known_loads and r_dst in self.__known_loads:
-            self.__known_loads[r_dst] += o.get_load()
 
     def get_load(self) -> float:
         """Return total load on rank."""

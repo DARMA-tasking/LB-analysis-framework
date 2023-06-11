@@ -62,9 +62,10 @@ class TransferStrategyBase:
             raise SystemExit(1)
 
     @abc.abstractmethod
-    def execute(self, phase, ave_load):
+    def execute(self, phase, known_peers: dict, ave_load: float):
         """Excecute transfer strategy on Phase instance
             phase: a Phase instance
+            known_peers: a dictionary of sets of known rank peers
             ave_load: average load in current phase."""
 
         # Must be implemented by concrete subclass
