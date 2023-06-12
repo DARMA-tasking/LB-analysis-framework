@@ -3,7 +3,7 @@ from logging import Logger
 import sys
 
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logging import get_logger
+from ..Utils.logger import get_logger
 
 class WorkModelBase:
     """An abstract base class of per-rank work model."""

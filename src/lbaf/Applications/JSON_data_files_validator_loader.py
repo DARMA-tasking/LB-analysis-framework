@@ -5,13 +5,15 @@ import sys
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
-from .. import PROJECT_PATH
-from ..Utils.logging import get_logger
-from ..Utils.exception_handler import exc_handler
+from lbaf import PROJECT_PATH
+from lbaf.Utils.logger import get_logger
+from lbaf.Utils.exception_handler import exc_handler
 
 TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
 SOURCE_SCRIPT_URL=f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
+IMPORT_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
+
 
 def _save_schema_validator_and_init_file():
     """Downloads the JSON data files validator module to the lbaf/imported directory.
@@ -80,5 +82,7 @@ def is_loaded():
     :return: True if the script exists in the target location otherwise False
     :rtype: bool
     """
-    import_dir = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
-    return os.path.isfile(os.path.join(import_dir, TARGET_SCRIPT_NAME))
+    return os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME))
+
+if __name__ == "__main__":
+    load()

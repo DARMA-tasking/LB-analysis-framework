@@ -1,9 +1,8 @@
 """logging util module """
 import logging
-import logging.config
 import os
-from logging import Formatter
 from typing import Union, List, Dict
+
 from .colors import red, green, cyan, yellow
 
 
@@ -13,18 +12,15 @@ LOGGING_LEVEL = {
     "WARNING": logging.WARNING,
     "ERROR": logging.ERROR
 }
-
 FORMAT_BASIC = "basic"
 """"%(levelname)s [%(module)s.%(funcName)s()] %(message)s"""
 FORMAT_EXTENDED = "extended"
 """"%(levelname)s [%(module)s.%(funcName)s()] [%(message)s]"""
 FORMATS = [ FORMAT_BASIC, FORMAT_EXTENDED ]
-
-# Logger type alias
 Logger = logging.Logger
 """Logger class"""
 
-class CustomFormatter(Formatter):
+class CustomFormatter(logging.Formatter):
     """Formatter able to write colored logs
     Colors are used to colorize log meta information such as:
     - the calling module name
@@ -40,7 +36,7 @@ class CustomFormatter(Formatter):
     }
 
     _raw_formatter: None
-    _color_formatters: Dict[int,Formatter] = {}
+    _color_formatters: Dict[int,logging.Formatter] = {}
     _format:Union[FORMAT_BASIC, FORMAT_EXTENDED]
     _colored: bool = False
 
@@ -56,7 +52,8 @@ class CustomFormatter(Formatter):
         self._init_formatters()
 
     def _init_formatters(self):
-        """Initialize inner formatters for each supported logging level."""
+        """Initialize inner formatters for each supported logging level"""
+
         # 'basic' default format
         formats = { "prefix": "[%(module)s] ", "message": "%(message)s" }
         # 'extended' format
@@ -66,12 +63,12 @@ class CustomFormatter(Formatter):
         # create inner formatter for each log level
         if self._colored:
             for level, colorizer in self.LOGGING_LEVEL_COLORS.items():
-                self._color_formatters[level] = Formatter(
+                self._color_formatters[level] = logging.Formatter(
                     colorizer(formats.get("prefix")) + formats.get("message")
                 )
         # or create raw formatter to use at any level
         else:
-            self._raw_formatter = Formatter(formats.get("prefix") + formats.get("message"))
+            self._raw_formatter = logging.Formatter(formats.get("prefix") + formats.get("message"))
 
     def format(self, record):
         formatter = None

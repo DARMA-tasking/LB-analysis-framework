@@ -11,7 +11,7 @@ from .lbsObjectCommunicator import ObjectCommunicator
 from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logging import get_logger
+from ..Utils.logger import get_logger
 
 
 class Phase:

@@ -40,7 +40,7 @@ import lbaf.IO.lbsVTDataWriter as VTDataWriter
 import lbaf.Utils.csv_2_json_data_converter as Csv2JsonConverter
 import lbaf.Utils.data_stat_files_updater as DataStatFilesUpdater
 import lbaf.Utils.exception_handler as exc_handler
-import lbaf.Utils.logging as logging
+import lbaf.Utils.logger as logger
 import lbaf.Utils.vt_data_extractor as VTDataExtractor
 
 
@@ -97,7 +97,7 @@ INPUT_MODULES = [
     Csv2JsonConverter,
     DataStatFilesUpdater,
     exc_handler,
-    logging,
+    logger,
     VTDataExtractor,
     configurationUpgrader]
 

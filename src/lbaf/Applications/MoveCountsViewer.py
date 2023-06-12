@@ -7,7 +7,7 @@ import vtk
 
 from lbaf import PROJECT_PATH
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logging import get_logger, Logger
+from lbaf.Utils.logger import get_logger, Logger
 
 
 class MoveCountsViewerParameters:
