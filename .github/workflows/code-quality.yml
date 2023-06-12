@@ -56,6 +56,7 @@ jobs:
           name: Tests report (${{ matrix.os }}, ${{ matrix.python-version }})
           path: artifacts/unittest/reports/TEST-*.xml
           reporter: java-junit
+          output-to: step-summary
 
       - name: Upload pylint artifact
         if: |
