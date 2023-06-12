@@ -224,6 +224,10 @@ class Application:
                 "directory or the config directory",
             default=None
         )
+        parser.add_argument("-v", "--verbose",
+            help="Verbosity level. If 1, print the rank QOI. If 2, print the rank QOI and the object QOI.",
+            default=None
+        )
         args = parser.parse_args()
 
         self.__args = args
@@ -266,6 +270,11 @@ class Application:
 
         return path
 
+    def __get_verbosity_level(self) -> int:
+        """Find the verbosity level from the '-verbosity' command line argument. When a yaml file contains an invalid QOI, print that list as part of the error message."""
+        verbosity = self.__args.verbose
+        
+
     def run(self):
         """Run the LBAF application."""
         # Parse command line arguments
@@ -290,6 +299,9 @@ class Application:
         JSON_data_files_validator_loader.load(cfg.get("overwrite_validator", True))
         if not JSON_data_files_validator_loader.is_loaded():
             raise RuntimeError("The JSON data files validator must be loaded to run the application")
+
+        self.__logger.warning("something")
+        self.__get_verbosity_level()
 
         # Initialize random number generator
         lbstats.initialize()
