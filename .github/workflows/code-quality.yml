@@ -49,6 +49,14 @@ jobs:
           if [ -e "./artifacts/coverage.txt" ]; then COVERAGE_REPORT_EXISTS="true"; else COVERAGE_REPORT_EXISTS="false"; fi
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
 
+      - name: Tests report
+        uses: phoenix-actions/test-reporting@v8
+        if: success() || failure()
+        with:
+          name: LBAF Tests
+          path: artifacts/unittest/reports/TEST-*.xml
+          reporter: junit
+
       - name: Upload pylint artifact
         if: |
           steps.run_tox.outputs.pylint_report_exists == 'true'
