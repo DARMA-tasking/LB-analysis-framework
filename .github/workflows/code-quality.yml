@@ -49,11 +49,11 @@ jobs:
           if [ -e "./artifacts/coverage.txt" ]; then COVERAGE_REPORT_EXISTS="true"; else COVERAGE_REPORT_EXISTS="false"; fi
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
 
-      - name: Tests report
+      - name: Build tests report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: LBAF Tests
+          name: Tests report (${{ matrix.os }}, ${{ matrix.python-version }})
           path: artifacts/unittest/reports/TEST-*.xml
           reporter: java-junit
 
