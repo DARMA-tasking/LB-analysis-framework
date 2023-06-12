@@ -24,7 +24,6 @@ class Object:
             raise TypeError(
                 f"i: incorrect type {type(i)}")
         self.__index = i
-        self.__user_defined = None
 
         # Nonnegative load required to perform the work of this object
         if not isinstance(load, float) or load < 0.0:
