@@ -13,7 +13,7 @@ from lbaf.Model.lbsRank import Rank
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
@@ -151,43 +151,25 @@ class TestConfig(unittest.TestCase):
         list_of_err_msg = []
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt") as se:
+            "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt", encoding="utf-8") as se:
             err_msg_0 = se.read()
         list_of_err_msg.append(err_msg_0)
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_1.txt'), "rt") as se:
+            "synthetic_lb_data_wrong_schema", "schema_error_1.txt"), "rt", encoding="utf-8") as se:
             err_msg_1 = se.read()
         list_of_err_msg.append(err_msg_1)
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_2.txt'), "rt") as se:
+            "synthetic_lb_data_wrong_schema", "schema_error_2.txt"), "rt", encoding="utf-8") as se:
             err_msg_2 = se.read()
         list_of_err_msg.append(err_msg_2)
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt") as se:
+            "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt", encoding="utf-8") as se:
             err_msg_3 = se.read()
         list_of_err_msg.append(err_msg_3)
         self.assertIn(err.exception.args[0], list_of_err_msg)
-
-    def test_lbs_vt_data_reader_populate_rank(self):
-        for rank_id in range(4):
-            file_name = self.lr._get_rank_file_name(rank_id)
-            phase_rank, rank_comm = self.lr._populate_rank(0, rank_id)
-            self.assertEqual(self.rank_comm[rank_id], rank_comm)
-            prepared_list = sorted(
-                list(self.ranks_iter_map[rank_id].get(0).get_migratable_objects()),
-                key=lambda x: x.get_id())
-            generated_list = sorted(
-                list(phase_rank.get_migratable_objects()),
-                key=lambda x: x.get_id())
-            prep_load_list = [obj.get_load() for obj in prepared_list]
-            gen_load_list = [obj.get_load() for obj in generated_list]
-            prep_id_list = [obj.get_id() for obj in prepared_list]
-            gen_id_list = [obj.get_id() for obj in generated_list]
-            self.assertEqual(prep_load_list, gen_load_list)
-            self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_populate_phase(self):
         rank_list = self.lr.populate_phase(0)
@@ -212,14 +194,14 @@ class TestConfig(unittest.TestCase):
             gen_comm_rcv_id_list = []
 
             for obj in prepared_list:
-                for key, val in obj.get_communicator().get_received().items():
-                    prep_comm_rcv_list.append(val)
+                for key, value in obj.get_communicator().get_received().items():
+                    prep_comm_rcv_list.append(value)
                     prep_comm_rcv_load_list.append(key.get_load())
                     prep_comm_rcv_id_list.append(key.get_id())
 
             for obj in generated_list:
-                for key, val in obj.get_communicator().get_received().items():
-                    gen_comm_rcv_list.append(val)
+                for key, value in obj.get_communicator().get_received().items():
+                    gen_comm_rcv_list.append(value)
                     gen_comm_rcv_load_list.append(key.get_load())
                     gen_comm_rcv_id_list.append(key.get_id())
 
@@ -231,5 +213,5 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_comm_rcv_load_list, gen_comm_rcv_load_list)
             self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -10,7 +10,7 @@ Requirements for testing
 
 A file which contains all required packages for testing purposes can be found under:
 
-* `<project-path>/requirements-3.<x>.txt`, where `<x>` stands for python version.
+* `<project-path>/requirements.txt`, where `<x>` stands for python version.
 
 Unit testing
 ------------

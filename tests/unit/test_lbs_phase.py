@@ -11,7 +11,7 @@ from lbaf.Model.lbsPhase import Phase
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.logger = logging.getLogger()
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         self.reader = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")

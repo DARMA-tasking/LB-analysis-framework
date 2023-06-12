@@ -24,6 +24,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         # Call superclass init
         super(RecursiveTransferStrategy, self).__init__(criterion, parameters, lgr)
 
+        # Useful fields
+        self.__average_load = None
+
         # Select object order strategy
         self.__strategy_mapped = {
             "arbitrary": self.arbitrary,
@@ -36,7 +39,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         o_s = parameters.get("order_strategy")
         if o_s not in self.__strategy_mapped:
             self._logger.error(f"{o_s} does not exist in known ordering strategies: "
-                                f"{[x for x in self.__strategy_mapped.keys()]}")
+                                f"{[x for x in self.__strategy_mapped]}")
             sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
