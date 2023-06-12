@@ -13,7 +13,7 @@ from lbaf.Model.lbsRank import Rank
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
@@ -151,22 +151,22 @@ class TestConfig(unittest.TestCase):
         list_of_err_msg = []
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt") as se:
+            "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt", encoding="utf-8") as se:
             err_msg_0 = se.read()
         list_of_err_msg.append(err_msg_0)
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_1.txt'), "rt") as se:
+            "synthetic_lb_data_wrong_schema", "schema_error_1.txt"), "rt", encoding="utf-8") as se:
             err_msg_1 = se.read()
         list_of_err_msg.append(err_msg_1)
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_2.txt'), "rt") as se:
+            "synthetic_lb_data_wrong_schema", "schema_error_2.txt"), "rt", encoding="utf-8") as se:
             err_msg_2 = se.read()
         list_of_err_msg.append(err_msg_2)
         with open(os.path.join(
             self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt") as se:
+            "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt", encoding="utf-8") as se:
             err_msg_3 = se.read()
         list_of_err_msg.append(err_msg_3)
         self.assertIn(err.exception.args[0], list_of_err_msg)
@@ -213,5 +213,5 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_comm_rcv_load_list, gen_comm_rcv_load_list)
             self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

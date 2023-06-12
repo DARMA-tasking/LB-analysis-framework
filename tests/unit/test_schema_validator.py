@@ -13,7 +13,7 @@ from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), 'data', 'schema')
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data", "schema")
 
     def test_schema_validator_valid_001(self):
         with open(os.path.join(self.data_dir, "valid_schema_001.json"), "rb") as compr_json_file:
@@ -26,7 +26,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(True, is_valid)
 
     def test_schema_validator_valid_uncompressed_001(self):
-        with open(os.path.join(self.data_dir, 'valid_schema_uncompressed_001.json'), 'r', encoding="utf-8") as uncompr_json_file:
+        with open(os.path.join(self.data_dir, "valid_schema_uncompressed_001.json"), 'r', encoding="utf-8") as uncompr_json_file:
             uncompr_txt = uncompr_json_file.read()
         vjs_json = json.loads(uncompr_txt)
         is_valid = SchemaValidator(schema_type="LBDatafile").is_valid(schema_to_validate=vjs_json)
