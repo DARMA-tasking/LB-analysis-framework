@@ -17,7 +17,7 @@ class TestStepper(unittest.TestCase):
         """Runs stepper tests"""
         # run LBAF
         config_file = os.path.join(os.path.dirname(__file__), "config", "stepper.yaml")
-        subprocess.run(['lbaf', '-c', config_file], check=True, stdout=sys.stdout, stderr=sys.stdout)
+        subprocess.run(['lbaf', '-c', config_file], check=True)
         log_file = os.path.join(os.path.dirname(__file__), "output", "log.txt")
 
         # check log file exists
