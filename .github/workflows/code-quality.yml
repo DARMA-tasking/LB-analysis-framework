@@ -49,8 +49,8 @@ jobs:
           if [ -e "./artifacts/coverage.txt" ]; then COVERAGE_REPORT_EXISTS="true"; else COVERAGE_REPORT_EXISTS="false"; fi
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
 
-      - name: Build tests report
-        uses: dorny/test-reporter@v1
+      - name: Report Test results
+        uses: phoenix-actions/test-reporting@v8
         if: success() || failure()
         with:
           name: Tests report (${{ matrix.os }}, ${{ matrix.python-version }})
