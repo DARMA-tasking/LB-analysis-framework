@@ -33,14 +33,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-${{ matrix.python-version }}.txt
+          pip install -r requirements.txt
           pip install tox-gh-actions
 
       - name: Register Github Actions Problem matchers (pylint)
         run: |
           echo "::add-matcher::.github/workflows/matchers/pylint.json"
 
-      - name: Running Unit-tests, Coverage, Pylint using TOX
+      - name: Running Tests, Pylint and Coverage using TOX
         id: run_tox
         run: |
           tox
@@ -55,7 +55,7 @@ jobs:
         with:
           name: LBAF Tests
           path: artifacts/unittest/reports/TEST-*.xml
-          reporter: junit
+          reporter: java-junit
 
       - name: Upload pylint artifact
         if: |

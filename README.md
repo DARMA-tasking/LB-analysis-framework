@@ -22,7 +22,7 @@ Please mind your platform as well as proper 32 or 64 bit version.
 
 Make sure you have all required Python packages installed with:
 ```shell
-pip install -r requirements-3.8.txt
+pip install -r requirements.txt
 ```
 
 Requirements are divided into `LBAF dependencies` and `LBAF testing`.
