@@ -50,7 +50,7 @@ jobs:
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
 
       - name: Report Test results
-        uses: phoenix-actions/test-reporting@v8
+        uses: phoenix-actions/test-reporting@v12
         if: success() || failure()
         with:
           name: Tests report (${{ matrix.os }}, ${{ matrix.python-version }})
