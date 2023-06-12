@@ -42,7 +42,7 @@ class Csv2JsonConverter:
         """Return a path to data directory."""
         if os.path.isdir(dir_path):
             return dir_path
-        elif os.path.isdir(os.path.join(PROJECT_PATH, dir_path)):
+        if os.path.isdir(os.path.join(PROJECT_PATH, dir_path)):
             return os.path.join(PROJECT_PATH, dir_path)
         else:
             print(f"Can not find dir {dir_path}")
@@ -130,7 +130,7 @@ class Csv2JsonConverter:
                     "obj_id": obj_id,
                     "obj_time": obj_time})
             else:
-                temp_dict[phase_id] = list()
+                temp_dict[phase_id] = []
                 temp_dict[phase_id].append({
                     "phase_id": phase_id,
                     "obj_id": obj_id,
@@ -142,10 +142,10 @@ class Csv2JsonConverter:
     def _write_json(self, output_path: str, data_to_convert: dict, node: int) -> None:
         """Convert data to JSON and saves to output path."""
         # Creating dictionary with right structure, which will be dumped
-        dict_to_dump = dict()
-        dict_to_dump["phases"] = list()
+        dict_to_dump = {}
+        dict_to_dump["phases"] = []
         for rank_id, others_list in data_to_convert.items():
-            phase_dict = {"tasks": list(), "id": rank_id}
+            phase_dict = {"tasks": [], "id": rank_id}
             for task in others_list:
                 task_dict = {
                     "time": task["obj_time"],
