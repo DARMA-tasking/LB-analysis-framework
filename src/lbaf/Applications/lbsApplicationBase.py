@@ -31,7 +31,7 @@ class ApplicationBase:
             # if interactive
             args = {}
             for action in parser._actions:
-                if action.dest != 'help':
+                if action.dest != 'help' and action.dest != 'no_interaction':
                     args[action.dest] = ask(action.help, action.type, action.default, action.required)
             self._args = Arguments(args)
         else:
@@ -41,7 +41,12 @@ class ApplicationBase:
         self._logger = logger
 
     def init_arguments(self) -> argparse.ArgumentParser:
-        """Parse arguments. By default arguments supportes are -h (help) and --no-interaction (disable interactive mode if enabled)"""
+        """Parse arguments.
+
+        Do not add the following  since these will be added internally:
+        -h or --help: to display help)
+        --no-interaction: to disable interactive mode if enabled in initialization
+        """
         return argparse.ArgumentParser()
 
     def run(self):

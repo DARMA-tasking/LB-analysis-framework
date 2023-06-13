@@ -5,8 +5,8 @@ import os
 import sys
 import time
 
-from lbaf import PROJECT_PATH
-from lbaf.Utils.exception_handler import exc_handler
+from .. import PROJECT_PATH
+from ..Utils.exception_handler import exc_handler
 
 
 try:
