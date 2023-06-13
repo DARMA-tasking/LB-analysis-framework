@@ -19,7 +19,6 @@ class TestConfig(unittest.TestCase):
     def test_lbs_rank_initialization(self):
         self.assertEqual(self.rank._Rank__index, 0)
         self.assertEqual(self.rank._Rank__migratable_objects, self.migratable_objects)
-        self.assertEqual(self.rank._Rank__known_loads, {})
         self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
     def test_lbs_rank_repr(self):
@@ -51,9 +50,6 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_rank_get_sentinel_object_ids(self):
         self.assertEqual(sorted(self.rank.get_sentinel_object_ids()), [15, 18])
-
-    def test_lbs_rank_get_known_loads(self):
-        self.assertEqual(self.rank.get_known_loads(), {})
 
     def test_lbs_rank_get_load(self):
         self.assertEqual(self.rank.get_load(), 9.5)
@@ -94,13 +90,6 @@ class TestConfig(unittest.TestCase):
         self.rank.remove_migratable_object(temp_object, temp_rank)
         self.migratable_objects.remove(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
-
-    def test_lbs_rank_reset_all_load_information(self):
-        temp_rank = Rank(r_id=1, logger=self.logger)
-        self.rank._Rank__known_loads[temp_rank] = 4.0
-        self.assertEqual(self.rank.get_known_loads(), {temp_rank: 4.0})
-        self.rank.reset_all_load_information()
-        self.assertEqual(self.rank.get_known_loads(), {})
 
 if __name__ == "__main__":
     unittest.main()
