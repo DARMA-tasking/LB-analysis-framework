@@ -21,6 +21,7 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsRuntime import Runtime
+from lbaf.Applications.lbsApplicationBase import ApplicationBase
 
 
 class InternalParameters:
@@ -160,13 +161,16 @@ class InternalParameters:
             if not os.path.isdir(self.output_dir):
                 os.makedirs(self.output_dir)
 
-class Application:
+class LBAFApplication(ApplicationBase):
     """LBAF application class."""
 
     __logger: Logger
     __parameters: InternalParameters
     __json_writer: Union[VTDataWriter,None]
     __args: dict
+
+    def __init__(self):
+        super(LBAFApplication, self).__init__(interactive=False)
 
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path."""
@@ -176,12 +180,12 @@ class Application:
                 with open(path, "rt", encoding="utf-8") as file_io:
                     data = yaml.safe_load(file_io)
                     if not data.get("overwrite_validator", True):
-                        self.__logger.info(
+                        self._logger.info(
                             f"Option 'overwrite_validator' in configuration file: {path} is set to False"
                         )
             except yaml.MarkedYAMLError as err:
                 err_line = err.problem_mark.line if err.problem_mark is not None else -1
-                self.__logger.error(
+                self._logger.error(
                     f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
                 )
                 sys.excepthook = exc_handler
@@ -194,7 +198,7 @@ class Application:
         lvl = cast(str, data.get("logging_level", "info"))
         config_dir = os.path.dirname(path)
         log_to_file = data.get("log_to_file", None)
-        self.__logger = get_logger(
+        self._logger = get_logger(
             name="lbaf",
             level=lvl,
             log_to_console=data.get("log_to_console", None) is None,
@@ -216,7 +220,7 @@ class Application:
 
         return data
 
-    def __parse_args(self) -> dict:
+    def init_arguments(self) -> argparse.ArgumentParser:
         """Parse arguments."""
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
@@ -228,9 +232,7 @@ class Application:
             help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
             default="0"
         )
-        args = parser.parse_args()
-
-        self.__args = args
+        return parser
 
     def __get_config_path(self)-> str:
         """Find the config file from the '-configuration' command line argument and returns its absolute path
@@ -243,16 +245,16 @@ class Application:
         path_list = []
 
         # search config file in the current working directory if relative
-        path = abspath(self.__args.configuration)
+        path = abspath(self._args.configuration)
         path_list.append(path)
         if (
             path is not None and
             not os.path.isfile(path) and
-            not os.path.isabs(self.__args.configuration) and PROJECT_PATH is not None
+            not os.path.isabs(self._args.configuration) and PROJECT_PATH is not None
         ):
             # then search config file relative to the config folder
             search_dir = abspath("config", relative_to=PROJECT_PATH)
-            path = search_dir + '/' + self.__args.configuration
+            path = search_dir + '/' + self._args.configuration
             path_list.append(path)
 
         if not os.path.isfile(path):
@@ -272,17 +274,14 @@ class Application:
 
     def run(self):
         """Run the LBAF application."""
-        # Parse command line arguments
-        self.__parse_args()
-
         # Init logger and set as an instance variable.
         self.__logger = get_logger()
 
         # Warn if default configuration is used because not set as argument
-        if self.__args.configuration is None:
+        if self._args.configuration is None:
             self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
             "working directory or in the project config directory !")
-            self.__args.configuration = "conf.yaml"
+            self._args.configuration = "conf.yaml"
 
         # Find configuration file absolute path
         config_file = self.__get_config_path()
@@ -555,4 +554,4 @@ class Application:
         return l_stats
 
 if __name__ == "__main__":
-    Application().run()
+    LBAFApplication().run()

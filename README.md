@@ -67,7 +67,7 @@ or
 
 ```shell
 cd <project-path>
-python src/lbaf/Applications/LBAF_App.py -c <config-file-name>
+python src/lbaf -c <config-file-name>
 ```
 
 `<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`

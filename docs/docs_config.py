@@ -1,7 +1,7 @@
 """Configuration to generate the documentation."""
 
 # Applications
-import lbaf.Applications.LBAF_app as LBAF
+import lbaf.Applications.lbsLbafApplication as LBAF
 
 # Model
 
@@ -41,7 +41,7 @@ import lbaf.Utils.csv_2_json_data_converter as Csv2JsonConverter
 import lbaf.Utils.data_stat_files_updater as DataStatFilesUpdater
 import lbaf.Utils.exception_handler as exc_handler
 import lbaf.Utils.logger as logger
-import lbaf.Utils.vt_data_extractor as VTDataExtractor
+import lbaf.IO.lbsVTDataExtractor as VTDataExtractor
 
 
 PROJECT_TITLE = "LBAF (Load Balancing Analysis Framework)"

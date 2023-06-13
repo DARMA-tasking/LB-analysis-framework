@@ -10,12 +10,22 @@ __version__ = "0.1.0rc1"
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../")
 """project path (with data, config, tests)"""
 
-from lbaf.Applications.LBAF_app import Application as LBAF_Application # pylint:disable=C0413:wrong-import-position
+# pylint:disable=C0413:wrong-import-position
+from lbaf.Applications.lbsLbafApplication import LBAFApplication
+from lbaf.Applications.lbsVTDataExtractorApplication import VTDataExtractorApplication
+# pylint:enable=C0413:wrong-import-position
 
+# expose all applications through methods for the package
 
 def run():
-    """Run an LBAF Application."""
-    LBAF_Application().run()
+    """Run LBAF Application."""
+    LBAFApplication().run()
+
+def extract_vt_data():
+    """Run VTDataExtractor Application."""
+    VTDataExtractorApplication().run()
+
+# set default behaviour of this module to run the LBAF application
 
 if __name__ == "__main__":
     run()

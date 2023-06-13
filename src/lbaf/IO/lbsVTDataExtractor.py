@@ -185,20 +185,3 @@ class VTDataExtractor:
         end_t = time.perf_counter()
         total_duration = end_t - self.start_t
         print(f"=====> DONE in {total_duration:.2f} <=====")
-
-
-if __name__ == "__main__":
-    # Here phases are declared
-    # It should be declared as list of [int or str]
-    # Int is just a phase number/id e.g. [1, 2, 3, 4]
-    # Str is a range of pages in form of "a-b", "a" must be smaller than "b", e.g. "9-11" => [9, 10, 11] will be added
-    phases = [0, 1, 2, 3, "4-9"]
-    vtde = VTDataExtractor(input_data_dir="../data/nolb-8color-16nodes-11firstphases",
-                           output_data_dir="../output",
-                           phases_to_extract=phases,
-                           file_prefix="data",
-                           file_suffix="json",
-                           compressed=False,
-                           schema_type="LBDatafile",
-                           check_schema=False)
-    vtde.main()
