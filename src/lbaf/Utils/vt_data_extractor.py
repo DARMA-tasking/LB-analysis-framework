@@ -1,15 +1,13 @@
-import os
-import sys
-
+import json
 from multiprocessing.pool import Pool
 from multiprocessing import get_context
-
+import os
+import sys
 import time
 
-import json
+from lbaf import PROJECT_PATH
+from lbaf.Utils.exception_handler import exc_handler
 
-from .exception_handler import exc_handler
-from .. import PROJECT_PATH
 
 try:
     import brotli

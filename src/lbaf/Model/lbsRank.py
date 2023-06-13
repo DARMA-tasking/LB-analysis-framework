@@ -99,10 +99,10 @@ class Rank:
         """Try to delete shared memory block."""
         try:
             self.__shared_blocks.remove(block)
-        except:
+        except Exception as err:
             sys.excepthook = exc_handler
             raise TypeError(
-                f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}")
+                f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}") from err
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
         """Return shared memory block with given ID when it exists."""

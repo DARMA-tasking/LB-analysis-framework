@@ -1,15 +1,17 @@
 # LBAF dependencies
-vtk==9.0.1
+vtk==9.0.1;python_version == '3.8'
+vtk==9.1.0;python_version == '3.9'
 numpy==1.22.3
 PyYAML==6.0
 Brotli==1.0.9
 schema==0.7.5
 scikit-learn==1.0.2
-colorama==0.4.4
-matplotlib==3.5.3
+colorama==0.4.6
+matplotlib==3.5.3;python_version == '3.8'
+matplotlib==3.6.2;python_version == '3.9'
 
 # LBAF testing
-tox==3.24.5
+tox==4.6.0
 coverage==6.3.2
 pylint==2.12.2
 pytest==7.1.1

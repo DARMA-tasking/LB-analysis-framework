@@ -99,11 +99,11 @@ class TransferStrategyBase:
             # Instantiate and return object
             strategy = locals()[strategy_name + "TransferStrategy"]
             return strategy(criterion, parameters, lgr)
-        except:
+        except Exception as error:
             # Otherwise, error out
             lgr.error(f"Could not create a strategy with name {strategy_name}")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise SystemExit(1) from error
 
     @abc.abstractmethod
     def execute(self, phase, known_peers: dict, ave_load: float):
@@ -113,4 +113,3 @@ class TransferStrategyBase:
         :param ave_load: average load in current phase.
         """
         # Must be implemented by concrete subclass
-        pass

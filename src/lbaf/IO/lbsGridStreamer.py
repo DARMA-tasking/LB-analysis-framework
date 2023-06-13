@@ -2,7 +2,7 @@ from typing import Optional
 
 import vtk
 
-from ..Utils.logging import get_logger, Logger
+from ..Utils.logger import get_logger, Logger
 
 
 class GridStreamer:

@@ -1,18 +1,20 @@
 """Tests for the VTDataWriter class"""
 import json
 import os
-import subprocess
-import sys
 import unittest
 from typing import Any
-
+import subprocess
+import sys
 
 from schema import Optional
 import brotli
 import yaml
-from lbaf import PROJECT_PATH
+
+
+
 from lbaf.Utils.path import abspath
 from lbaf.Applications.JSON_data_files_validator_loader import load as load_schema
+
 load_schema()
 from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
@@ -25,23 +27,6 @@ class TestVTDataWriter(unittest.TestCase):
 
     def tearDown(self):
         return
-
-    def _run_lbaf(self, config_file) -> subprocess.CompletedProcess:
-        """Run lbaf as a subprocess with the given configuration file (path)"""
-
-        lbaf_path = os.path.join(PROJECT_PATH, 'src', 'lbaf', 'Applications', 'LBAF_app.py')
-        proc = subprocess.run(
-            [
-                sys.executable,
-                lbaf_path,
-                '-c',
-                config_file
-            ],
-            check=True,
-            stdout=sys.stdout,
-            stderr=sys.stdout
-        )
-        return proc
 
     def __list_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
         """List optional keys as some dot path notation"""
@@ -102,13 +87,13 @@ class TestVTDataWriter(unittest.TestCase):
     def __sort_phases_by_entity_id(self, data):
         """Sort phases by entity ids (required to compare input and output data files)"""
 
-        phases = data.get('phases')
+        phases = data.get("phases")
         if phases is not None:
             for phase in phases:
-                tasks = phase.get('tasks')
+                tasks = phase.get("tasks")
                 if phase.get("tasks") is not None:
-                    phase['tasks'] = sorted(tasks, key=lambda item: item.get('entity').get('id'))
-            data['phases'] = phases
+                    phase["tasks"] = sorted(tasks, key=lambda item: item.get("entity").get("id"))
+            data["phases"] = phases
 
     def __read_data_file(self, file_path):
         """Get uncompressed data file content"""
@@ -129,15 +114,15 @@ class TestVTDataWriter(unittest.TestCase):
         data.
         """
 
-        # run LFAF using a PhaseStepper
-        config_file = os.path.join(os.path.dirname(__file__), 'config', 'conf_vt_writer_stepper_test.yml')
-        proc = self._run_lbaf(config_file)
+        # run LBAF
+        config_file = os.path.join(os.path.dirname(__file__), "config", "conf_vt_writer_stepper_test.yml")
+        proc = subprocess.run(["lbaf", "-c", config_file], check=True)
         self.assertEqual(0, proc.returncode)
 
         # LBAF config useful information
         with open(config_file, "rt", encoding="utf-8") as file_io:
             config = yaml.safe_load(file_io)
-        data_stem = config.get('from_data').get('data_stem')
+        data_stem = config.get("from_data").get("data_stem")
 
         # input information
         input_dir = abspath(f"{os.sep}".join(data_stem.split(os.sep)[:-1]), os.path.dirname(config_file))
@@ -146,7 +131,7 @@ class TestVTDataWriter(unittest.TestCase):
 
         # output information
         output_dir = abspath(config.get("output_dir", '.'), os.path.dirname(config_file))
-        output_file_prefix = config.get('output_file_stem')
+        output_file_prefix = config.get("output_file_stem")
 
         # compare input/output files (at each rank)
         for i in range(0, n_ranks):
@@ -160,7 +145,7 @@ class TestVTDataWriter(unittest.TestCase):
             # validate that output file exists at rank i
             self.assertTrue(
                 os.path.isfile(output_file),
-                f'File {output_file} not generated at {output_dir}'
+                f"File {output_file} not generated at {output_dir}"
             )
 
             # read input and output files

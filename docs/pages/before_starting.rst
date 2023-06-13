@@ -10,7 +10,7 @@ Make sure you have all required Pyhon packages installed with:
 .. code-block:: bash
 
   # Make sure you are in project directory
-  pip install -r requirements-3.8.txt
+  pip install -r requirements.txt
 
 Requirements are divided into `LBAF dependencies`, `LBAF testing` and `LBAF building package`:
 

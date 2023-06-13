@@ -6,7 +6,7 @@ from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logging import get_logger, Logger
+from ..Utils.logger import get_logger, Logger
 
 
 class AlgorithmBase:
@@ -81,7 +81,7 @@ class AlgorithmBase:
                 "work variance": "variance"}}
 
     def get_rebalanced_phase(self):
-        """ Return phased assigned for processing by algoritm."""
+        """Return phased assigned for processing by algoritm."""
         return self._rebalanced_phase
 
     @staticmethod
@@ -89,11 +89,10 @@ class AlgorithmBase:
         algorithm_name:str,
         parameters: dict,
         work_model: WorkModelBase,
-        lgr: Logger,
+        logger: Logger,
         rank_qoi: str,
         object_qoi:str):
         """Instantiate the necessary concrete algorithm."""
-
         # Load up available algorithms
         # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
@@ -102,21 +101,18 @@ class AlgorithmBase:
         # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
-        algorithm = locals()[algorithm_name + "Algorithm"]
-        return algorithm(work_model, parameters, lgr, rank_qoi, object_qoi)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
-            return algorithm(work_model, parameters, lgr, rank_qoi, object_qoi)
+            return algorithm(work_model, parameters, logger, rank_qoi, object_qoi)
         except Exception as e:
             # Otherwise, error out
-            lgr.error(f"Could not create an algorithm with name {algorithm_name}")
+            logger.error(f"Could not create an algorithm with name {algorithm_name}")
             sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
     def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """Compute and update run distributions and statistics."""
-
         # Create or update distributions of object quantities of interest
         for object_qoi_name in tuple({"load", self.__object_qoi}):
             if not object_qoi_name:
@@ -158,7 +154,6 @@ class AlgorithmBase:
 
     def _report_final_mapping(self, logger):
         """Report final rank object mapping in debug mode."""
-
         for rank in self._rebalanced_phase.get_ranks():
             logger.debug(f"Rank {rank.get_id()}:")
             for o in rank.get_objects():
@@ -179,7 +174,7 @@ class AlgorithmBase:
                                 f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
     def _initialize(self, p_id, phases, distributions, statistics):
-        """ Factor out pre-execution checks and initalizations."""
+        """Factor out pre-execution checks and initalizations."""
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
@@ -200,11 +195,11 @@ class AlgorithmBase:
                 new_r.copy(r)
                 new_ranks.append(new_r)
             self._rebalanced_phase.set_ranks(new_ranks)
-        except:
+        except Exception as err:
             self._logger.error(
                 f"No phase with index {p_id} is available for processing")
             sys.excepthook = exc_handler
-            raise SystemExit(1)
+            raise SystemExit(1) from err
         self._logger.info(
             f"Processing phase {p_id} "
             f"with {self._rebalanced_phase.get_number_of_objects()} objects "
@@ -216,12 +211,11 @@ class AlgorithmBase:
 
     @abc.abstractmethod
     def execute(self, p_id, phases, distributions, statistics, a_min_max):
-        """ Excecute balancing algorithm on Phase instance
-            p_id: index of phase to be rebalanced (all if equal to _)
-            phases: list of Phase instances
-            distributions: dictionary of load-varying variables
-            statistics: dictionary of  statistics
-            a_min_max: possibly empty list of optimal arrangements."""
+        """Execute balancing algorithm on Phase instance.
 
-        # Must be implemented by concrete subclass
-        pass
+        :param: p_id: index of phase to be rebalanced (all if equal to _)
+        :param: phases: list of Phase instances
+        :param: distributions: dictionary of load-varying variables
+        :param: statistics: dictionary of  statistics
+        :param: a_min_max: possibly empty list of optimal arrangements.
+        """

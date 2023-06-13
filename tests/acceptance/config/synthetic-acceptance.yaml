@@ -1,6 +1,6 @@
 # Specify input
 from_data:
-  data_stem: ../../data/synthetic_lb_data/data
+  data_stem: ../../../data/synthetic_lb_data/data
   phase_ids:
     - 0
 
@@ -29,5 +29,5 @@ algorithm:
 
 # Specify output
 logging_level: info
-output_dir: ../../output
+output_dir: ../output
 output_file_stem: output_file

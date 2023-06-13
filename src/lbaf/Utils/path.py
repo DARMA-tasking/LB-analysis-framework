@@ -15,7 +15,7 @@ def abspath(path: str, relative_to: Optional[str] = None) -> Optional[str]:
     if relative_to is None:
         # path is relative to the current working directory
         return os.path.abspath(path)
-    elif not os.path.isabs(path):
+    if not os.path.isabs(path):
         # path is a relative path
         if not os.path.isabs(relative_to):
             relative_to = os.path.abspath(relative_to)

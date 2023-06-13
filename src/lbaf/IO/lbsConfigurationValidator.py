@@ -186,9 +186,9 @@ class ConfigurationValidator:
             "work model": ["work_model"],
             "algorithm": ["brute_force_optimization", "algorithm"],
             "output": [
-                "logging_level", "log_to_file", "overwrite_validator", "check_schema", "terminal_background",
+                "logging_level", "log_to_file", "overwrite_validator", "terminal_background",
                 "generate_multimedia", "output_dir", "output_file_stem",
-                "LBAF_Viz"
+                "LBAF_Viz", "write_JSON"
             ]
         }
 

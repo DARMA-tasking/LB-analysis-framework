@@ -31,11 +31,13 @@ def bool_representer(dumper, value):
         text = "False"
     return dumper.represent_scalar('tag:yaml.org,2002:bool', text)
 
+
 class UpgradeAction(Enum):
     """Upgrade action"""
 
     ADD_KEY = "add"
     REMOVE_KEY = "remove"
+    FORMAT_ONLY = "format_only"
 
 class ConfigurationDumper(yaml.Dumper):
     """Custom dumper to add indent before list items hyphens."""
@@ -43,16 +45,17 @@ class ConfigurationDumper(yaml.Dumper):
     def increase_indent(self, flow=False, indentless=False):
         return super(ConfigurationDumper, self).increase_indent(flow, False)
 
+
+ConfigurationDumper.add_representer(bool, bool_representer)
+
+
 class ConfigurationUpgrader:
     """This class enables to bulk upgrade configuration files by adding or removing keys."""
 
-    __dumper: ConfigurationDumper
     __logger: Logger
     __sections: dict
 
     def __init__(self, logger: Logger):
-        self.__dumper = ConfigurationDumper
-        self.__dumper.add_representer(bool, bool_representer)
         self.__logger = logger
         self.__sections = cast(dict, ConfigurationValidator.allowed_keys(group=True))
 
@@ -68,7 +71,7 @@ class ConfigurationUpgrader:
                 indent=indent_size,
                 line_break='\n',
                 sort_keys=False,
-                Dumper=self.__dumper
+                Dumper=ConfigurationDumper
             ).replace(
                 '\n',
                 '\n' + indent_str
@@ -76,7 +79,16 @@ class ConfigurationUpgrader:
             if yaml_node.endswith('\n' + indent_str):
                 yaml_node = yaml_node[:-(indent_size + 1)]
         else:
-            yaml_node = " " + yaml.representer.BaseRepresenter().represent_data(value).value
+            yaml_node = yaml.dump(
+                value,
+                indent=0,
+                Dumper=ConfigurationDumper,
+                explicit_start=None,
+                explicit_end=None
+            )
+            if yaml_node.endswith('...\n'):
+                yaml_node = yaml_node[:-4]
+            yaml_node = ' ' + yaml_node.strip()
         yaml_file.write(yaml_node)
         yaml_file.write('\n')
 
@@ -84,26 +96,27 @@ class ConfigurationUpgrader:
         self,
         file_path: Path,
         action: UpgradeAction,
-        key: str,
+        key: str = None,
         value: str = None,
         value_type: str = "str"
     ) -> None:
         """Apply an upgrade to the given configuration file."""
         self.__logger.debug("Upgrading file %s ...", file_path)
         key_path = None
-        if action == UpgradeAction.ADD_KEY:
-            self.__logger.debug("Add key `%s` with value `%s`", key, value)
-        elif action == UpgradeAction.REMOVE_KEY:
-            print(f"Remove key `{key}`")
-        key_path = key.split('.')
-        parsed_value = value
-        if value_type is not None:
-            type_v = locate(value_type)
-            if callable(type_v):
-                parsed_value = type_v(value)
+        if action != UpgradeAction.FORMAT_ONLY:
+            if action == UpgradeAction.ADD_KEY:
+                self.__logger.debug("Add key `%s` with value `%s`", key, value)
+            elif action == UpgradeAction.REMOVE_KEY:
+                print(f"Remove key `{key}`")
+            key_path = key.split('.')
+            parsed_value = value
+            if value_type is not None:
+                type_v = locate(value_type)
+                if callable(type_v):
+                    parsed_value = type_v(value)
 
-        if key_path is None:
-            raise ValueError("The `key` must be a valid string")
+            if key_path is None and action != UpgradeAction.FORMAT_ONLY:
+                raise ValueError("The `key` must be a valid string")
 
         conf = None
         file_comment = None
@@ -126,36 +139,36 @@ class ConfigurationUpgrader:
                 file_comment = file_comment.strip() # removes potential eol at the end
 
             yaml_file.seek(0)
-
             yaml_content = yaml_file.read()
             conf = yaml.safe_load(yaml_content)
             node = conf
-            for i, key in enumerate(key_path):
-                is_leaf = i == len(key_path)-1
-                # if node does not exist create it
-                if not key in node.keys():
-                    if action == UpgradeAction.ADD_KEY:
-                        if is_leaf:
+            if action != UpgradeAction.FORMAT_ONLY:
+                for i, key in enumerate(key_path):
+                    is_leaf = i == len(key_path)-1
+                    # if node does not exist create it
+                    if not key in node.keys():
+                        if action == UpgradeAction.ADD_KEY:
+                            if is_leaf:
+                                node[key] = parsed_value
+                            else:
+                                new_branch = {}
+                                new_node = new_branch
+                                new_key_path = key_path[i+1:]
+                                for j, new_key in enumerate(new_key_path):
+                                    is_leaf = j == len(new_key_path) - 1
+                                    new_node[new_key] = parsed_value if is_leaf else {}
+                                    new_node = new_node[new_key]
+                                node[key] = new_branch
+                    elif is_leaf:
+                        if action == UpgradeAction.REMOVE_KEY:
+                            del node[key]
+                        elif action == UpgradeAction.ADD_KEY:
                             node[key] = parsed_value
-                        else:
-                            new_branch = {}
-                            new_node = new_branch
-                            new_key_path = key_path[i+1:]
-                            for j, new_key in enumerate(new_key_path):
-                                is_leaf = j == len(new_key_path) - 1
-                                new_node[new_key] = parsed_value if is_leaf else {}
-                                new_node = new_node[new_key]
-                            node[key] = new_branch
-                elif is_leaf:
-                    if action == UpgradeAction.REMOVE_KEY:
-                        del node[key]
-                    else:
-                        node[key] = parsed_value
-                # go next node in child tree
-                if is_leaf:
-                    break
+                    # go next node in child tree
+                    if is_leaf:
+                        break
 
-                node=node[key]
+                    node=node[key]
 
         with open(file_path, 'w', encoding="utf-8") as yaml_file:
             if file_comment is not None:

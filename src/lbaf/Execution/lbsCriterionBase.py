@@ -6,7 +6,6 @@ import sys
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logging import get_logger
 
 
 class CriterionBase:
@@ -91,4 +90,3 @@ class CriterionBase:
         """
 
         # Must be implemented by concrete subclass
-        pass

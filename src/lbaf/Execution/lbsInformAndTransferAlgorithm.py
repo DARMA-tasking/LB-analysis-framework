@@ -157,8 +157,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 for m in msg_lst:
                     self.__process_message(r_rcv, m)
 
-            # Report on gossiping status when requested
-            for p in rank_set:
+            # Report on known peers when requested
+            for rank in rank_set:
                 self._logger.debug(
                     f"Peers known to rank {r.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
@@ -202,7 +202,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Compute and report iteration work statistics
             print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),
+                lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
                 f"iteration {i + 1} rank work",
                 self._logger)
 

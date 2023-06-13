@@ -41,6 +41,12 @@ class Visualizer:
         # Assign logger to instance variable
         self.__logger = logger
 
+        # Useful fields
+        self.__rank_points = None
+        self.__rank_lines = None
+        self.__volumes = None
+        self.__field_data = None
+
         if not distributions:
             distributions = {}
 
@@ -169,7 +175,7 @@ class Visualizer:
             # Create and append new rank QOI dictionaries
             arr_dict = {}
             self.__qoi_dicts.append(arr_dict)
-            for k, v in self.__rank_attributes.items():
+            for k in self.__rank_attributes.keys():
                 qoi_arr = vtk.vtkDoubleArray()
                 qoi_arr.SetName(k)
                 qoi_arr.SetNumberOfTuples(self.__n_ranks)

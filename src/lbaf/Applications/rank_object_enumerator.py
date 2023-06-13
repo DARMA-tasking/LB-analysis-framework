@@ -8,7 +8,7 @@ import yaml
 from lbaf import PROJECT_PATH
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logging import get_logger
+from lbaf.Utils.logger import get_logger
 from lbaf.Utils.path import abspath
 from lbaf.Model.lbsPhase import Phase
 from lbaf.IO.lbsStatistics import (

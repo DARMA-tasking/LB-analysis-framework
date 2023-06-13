@@ -7,7 +7,7 @@ import vtk
 
 from lbaf import PROJECT_PATH
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logging import get_logger, Logger
+from lbaf.Utils.logger import get_logger, Logger
 
 
 class MoveCountsViewerParameters:
@@ -97,33 +97,33 @@ class MoveCountsViewer:
         """Parse command line."""
         # Try to hash command line with respect to allowable flags
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
+            opts, _args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
         except getopt.GetoptError:
             self.logger.error("Incorrect command line arguments.")
             self.usage()
             return True
 
         # Parse arguments and assign corresponding member variable values
-        for o, a in opts:
+        for o, value in opts:
             try:
-                i = int(a)
-            except:
+                i = int(value)
+            except ValueError:
                 i = None
 
             if o == "-p":
                 if i > 0:
                     self.n_processors = i
             elif o == "-f":
-                self.input_file_name = a
+                self.input_file_name = value
                 # Output file name is equal to input file name by default
                 if self.output_file_name is None:
-                    self.output_file_name = a
+                    self.output_file_name = value
             elif o == "-s":
-                self.input_file_suffix = a
+                self.input_file_suffix = value
             elif o == "-o":
-                self.output_file_name = a
+                self.output_file_name = value
             elif o == "-t":
-                self.output_file_suffix = a
+                self.output_file_suffix = value
             elif o == "-i":
                 self.interactive = True
 
@@ -146,7 +146,7 @@ class MoveCountsViewer:
         """Compute MoveCountsViewer."""
 
         # Instantiate MoveCountsViewerParameters
-        viewerParams = MoveCountsViewerParameters(self)
+        viewer_params = MoveCountsViewerParameters(self)
 
         # Create storage for vertex values
         vertex_name = "Node ID"
@@ -215,7 +215,7 @@ class MoveCountsViewer:
 
         # Create renderer
         renderer = vtk.vtkRenderer()
-        renderer.SetBackground(viewerParams.renderer_background)
+        renderer.SetBackground(viewer_params.renderer_background)
         renderer.GradientBackgroundOff()
 
         # Create graph vertex layout
@@ -234,7 +234,7 @@ class MoveCountsViewer:
             gtg.SetGlyphType(v)
             gtg.SetRenderer(renderer)
             if k:
-                gtg.SetScreenSize(viewerParams.actor_vertices_screen_size)
+                gtg.SetScreenSize(viewer_params.actor_vertices_screen_size)
                 gtg.FilledOn()
             glyphs.append(gtg)
 
@@ -245,9 +245,9 @@ class MoveCountsViewer:
         actor_vertices = vtk.vtkActor()
         actor_vertices.SetMapper(mapper_vertices)
         actor_vertices.GetProperty().SetColor(
-            viewerParams.actor_vertices_color)
+            viewer_params.actor_vertices_color)
         actor_vertices.GetProperty().SetOpacity(
-            viewerParams.actor_vertices_opacity)
+            viewer_params.actor_vertices_opacity)
         renderer.AddViewProp(actor_vertices)
 
         # Vertex labels
@@ -260,8 +260,8 @@ class MoveCountsViewer:
         l_props = labels.GetLabelTextProperty()
         l_props.SetJustificationToCentered()
         l_props.SetVerticalJustificationToCentered()
-        l_props.SetColor(viewerParams.actor_labels_color)
-        l_props.SetFontSize(viewerParams.actor_labels_font_size)
+        l_props.SetColor(viewer_params.actor_labels_color)
+        l_props.SetFontSize(viewer_params.actor_labels_font_size)
         l_props.BoldOn()
         l_props.ItalicOff()
         renderer.AddViewProp(actor_labels)
@@ -278,12 +278,12 @@ class MoveCountsViewer:
         directed_edges.SetInputConnection(layout_directed_edges.GetOutputPort())
         directed_edges.EdgeGlyphOutputOn()
         directed_edges.SetEdgeGlyphPosition(
-            viewerParams.actor_arrows_edge_glyph_position)
+            viewer_params.actor_arrows_edge_glyph_position)
 
         # Arrow source and glyph
         arrow_source = vtk.vtkGlyphSource2D()
         arrow_source.SetGlyphTypeToEdgeArrow()
-        arrow_source.SetScale(viewerParams.actor_arrows_source_scale)
+        arrow_source.SetScale(viewer_params.actor_arrows_source_scale)
         arrow_glyph = vtk.vtkGlyph3D()
         arrow_glyph.SetInputConnection(0, directed_edges.GetOutputPort(1))
         arrow_glyph.SetInputConnection(1, arrow_source.GetOutputPort())
@@ -327,9 +327,9 @@ class MoveCountsViewer:
         actor_edges = vtk.vtkActor()
         actor_edges.SetMapper(mapper_edges)
         actor_edges.GetProperty().SetOpacity(
-            viewerParams.actor_edges_opacity)
+            viewer_params.actor_edges_opacity)
         actor_edges.GetProperty().SetLineWidth(
-            viewerParams.actor_edges_line_width)
+            viewer_params.actor_edges_line_width)
         renderer.AddViewProp(actor_edges)
 
         # Reset camera to set it up based on edge actor
@@ -340,24 +340,24 @@ class MoveCountsViewer:
         actor_bar.SetLookupTable(mapper_edges.GetLookupTable())
         actor_bar.SetTitle("Object Moves")
         actor_bar.SetOrientationToHorizontal()
-        actor_bar.SetNumberOfLabels(viewerParams.actor_bar_number_of_labels)
-        actor_bar.SetWidth(viewerParams.actor_bar_width)
-        actor_bar.SetHeight(viewerParams.actor_bar_heigth)
+        actor_bar.SetNumberOfLabels(viewer_params.actor_bar_number_of_labels)
+        actor_bar.SetWidth(viewer_params.actor_bar_width)
+        actor_bar.SetHeight(viewer_params.actor_bar_heigth)
         actor_bar.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
         actor_bar.GetPositionCoordinate().SetValue(
-            viewerParams.actor_bar_position[0],
-            viewerParams.actor_bar_position[1])
+            viewer_params.actor_bar_position[0],
+            viewer_params.actor_bar_position[1])
         actor_bar.GetTitleTextProperty().SetColor(
-            viewerParams.actor_bar_title_color)
+            viewer_params.actor_bar_title_color)
         actor_bar.GetLabelTextProperty().SetColor(
-            viewerParams.actor_bar_label_color)
+            viewer_params.actor_bar_label_color)
         actor_bar.SetLabelFormat("%g")
         renderer.AddViewProp(actor_bar)
 
         # Render window
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
-        window.SetSize(viewerParams.window_size_x, viewerParams.window_size_y)
+        window.SetSize(viewer_params.window_size_x, viewer_params.window_size_y)
         window.SetAlphaBitPlanes(True)
         window.SetMultiSamples(0)
 
@@ -376,7 +376,7 @@ class MoveCountsViewer:
             window.Render()
             wti.SetInput(window)
             # Set high scale for image quality
-            wti.SetScale(viewerParams.wti_scale)
+            wti.SetScale(viewer_params.wti_scale)
             # Save with alpha channel for transparency
             wti.SetInputBufferTypeToRGBA()
 
