@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import argparse
+from typing import Optional
 
 import vtk
 
@@ -325,11 +326,12 @@ class MoveCountsViewerAplication(ApplicationBase):
                 f"{self._args.output_file_name}.{self._args.output_file_suffix}")
             writer.Write()
 
-    def run(self) -> int:
+    def run(self, args: Optional[dict] = None) -> int:
         """Run the application.
 
         If args are required then this method must call the self.parse_args method.
 
+        :param args: arguments to use or None to load from CLI
         :returns: return code. 0 if success.
         """
         # Print startup information
@@ -337,7 +339,7 @@ class MoveCountsViewerAplication(ApplicationBase):
         self._logger.info(f"### Started with Python {svi.major}.{svi.minor}.{svi.micro}")
 
         # Instantiate parameters and set values from command line arguments
-        self.parse_args()
+        self.parse_args(args)
         if not self.validate_args():
             return 1
 

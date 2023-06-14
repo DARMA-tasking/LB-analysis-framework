@@ -6,7 +6,7 @@ import brotli
 
 from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
 loader = DataFilesValidatorLoaderApplication(interactive=False)
-loader.run()
+loader.run({ "overwrite": True })
 
 from lbaf.imported.JSON_data_files_validator import SchemaValidator
 

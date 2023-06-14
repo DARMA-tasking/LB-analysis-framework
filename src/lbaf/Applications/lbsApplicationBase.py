@@ -8,7 +8,6 @@ from typing import Optional
 from lbaf.Utils.logger import get_logger, Logger
 from lbaf.Utils.cli import title, ask
 
-PARSER_CALLED = False
 
 class ApplicationBase:
     """Base class that represent an application for the lbaf module"""
@@ -41,11 +40,6 @@ class ApplicationBase:
         :param args: arguments to use or None to load from CLI
         :param interactive: set True to enable to ask user for argument values in CLI.
         """
-        if PARSER_CALLED is True:
-            return
-
-        PARSER_CALLED = True
-
         parser = self.init_argument_parser()
         print(parser._actions)
         print("----------------")
@@ -90,11 +84,12 @@ class ApplicationBase:
         return self
 
     @abc.abstractmethod
-    def run(self) -> int:
+    def run(self, args: Optional[dict] = None) -> int:
         """Run the application.
 
         If args are required then this method must call the self.parse_args method.
 
+        :param args: arguments to use or None to load from CLI
         :returns: return code. 0 if success.
         """
         raise NotImplementedError("Please implement the execution logic in child class")

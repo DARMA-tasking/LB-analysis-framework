@@ -313,15 +313,16 @@ class LBAFApplication(ApplicationBase):
         # Return rank load statistics
         return l_stats
 
-    def run(self):
+    def run(self, args: Optional[dict] = None) -> int:
         """Run the application.
 
         If args are required then this method must call the self.parse_args method.
 
+        :param args: arguments to use or None to load from CLI
         :returns: return code. 0 if success.
         """
         # parse arguments
-        self.parse_args()
+        self.parse_args(args)
         # Warn if default configuration is used because not set as argument
         if self._args.configuration is None:
             self._logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
@@ -337,8 +338,7 @@ class LBAFApplication(ApplicationBase):
         # Download JSON data files validator (JSON data files validator is required to continue)
         loader = DataFilesValidatorLoaderApplication(interactive=False)
         if (loader
-            .parse_args({"overwrite": cfg.get("overwrite_validator", True)})
-            .run()) != 0:
+            .run({"overwrite": cfg.get("overwrite_validator", True)})) != 0:
             raise RuntimeError("The JSON data files validator must be loaded to run the application")
 
         # Initialize random number generator

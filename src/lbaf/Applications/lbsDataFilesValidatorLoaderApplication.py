@@ -22,12 +22,15 @@ class DataFilesValidatorLoaderApplication(ApplicationBase):
         )
         return parser
 
-    def run(self) -> Optional[int] :
+    def run(self, args: Optional[dict] = None) -> int:
         """Run the application.
 
+        If args are required then this method must call the self.parse_args method.
+
+        :param args: arguments to use or None to load from CLI
         :returns: return code. 0 if success.
         """
-        self.parse_args()
+        self.parse_args(args)
         if self._args.overwrite:
             download(SCRIPT_URL, IMPORT_DIR, logger=self._logger, file_title=SCRIPT_TITLE)
         else:

@@ -1,5 +1,6 @@
 import argparse
 import os
+from typing import Optional
 
 from lbaf import PROJECT_PATH
 from lbaf.IO.lbsVTDataExtractor import VTDataExtractor
@@ -41,8 +42,16 @@ class VTDataExtractorApplication(ApplicationBase):
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
         return parser
 
-    def run(self):
-        self.parse_args()
+    def run(self, args: Optional[dict] = None) -> int:
+        """Run the application.
+
+        If args are required then this method must call the self.parse_args method.
+
+        :param args: arguments to use or None to load from CLI
+        :returns: return code. 0 if success.
+        """
+        # parse arguments
+        self.parse_args(args)
         vtde = VTDataExtractor(input_data_dir=self._args.input_dir,
                             output_data_dir=self._args.output_dir,
                             phases_to_extract=self._args.phases,

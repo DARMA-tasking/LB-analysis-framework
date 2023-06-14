@@ -6,7 +6,7 @@ import unittest
 
 import brotli
 
-from lbaf.Utils.vt_data_extractor import VTDataExtractor
+from lbaf.Applications.lbsVTDataExtractorApplication import VTDataExtractor
 
 
 class TestVTDataExtractor(unittest.TestCase):
