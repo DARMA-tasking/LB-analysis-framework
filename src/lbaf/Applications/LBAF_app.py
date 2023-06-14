@@ -226,7 +226,7 @@ class Application:
         )
         parser.add_argument("-v", "--verbose",
             help="Verbosity level. If 1, print the rank QOI. If 2, print the rank QOI and the object QOI.",
-            default=None
+            default="0"
         )
         args = parser.parse_args()
 
