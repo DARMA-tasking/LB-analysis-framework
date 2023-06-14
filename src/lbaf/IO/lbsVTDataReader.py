@@ -3,6 +3,7 @@ from logging import Logger
 from multiprocessing.pool import Pool
 from multiprocessing import get_context
 import os
+import re
 import sys
 
 import brotli
@@ -58,6 +59,8 @@ class LoadReader:
 
         # determine the number of ranks
         self.n_ranks = self._get_n_ranks()
+        self.__logger.info(f"Number of ranks: {self.n_ranks}")
+
         if self.n_ranks > 1:
             # Load vt data concurrently from rank 1 to n_ranks
             with Pool(context=get_context("fork")) as pool:
@@ -75,9 +78,11 @@ class LoadReader:
             raise SystemExit(1)
 
     def _get_n_ranks(self):
-        """Determine the number of ranks by
-        - reading the first loaded vt data file metadata (Requires first data file loaded)
-        - then (if not available) counting the number of files found in the data directory.
+        """Determine the number of ranks automatically.
+
+        This use the first applicable method in the following methods:
+        1. Read the first loaded vt data file metadata (applicable only if first data file has been loaded)
+        2. List all data file names matching {file_prefix}.{rank_id}.{file_suffix} pattern and return max(rank_id) + 1.
         """
 
         if len(self.__vt_data) > 0:
@@ -91,9 +96,18 @@ class LoadReader:
         else:
             self.__logger.warn('First vt data file has not been loaded. Cannot get n_ranks from vt data')
 
-        # or default count files in data dir
+        # or default detect data files with pattern
         data_dir = f"{os.sep}".join(self.__file_prefix.split(os.sep)[:-1])
-        return len([name for name in os.listdir(data_dir)])
+        pattern = re.compile(rf"^{self.__file_prefix}.(\d+).{self.__file_suffix}$")
+        highest_rank = 0
+        for name in os.listdir(data_dir):
+            path = os.path.join(data_dir, name)
+            match_result = pattern.search(path)
+            if match_result:
+                rank_id = int(match_result.group(1))
+                if rank_id > highest_rank:
+                    highest_rank = rank_id
+        return highest_rank + 1
 
     def _get_rank_file_name(self, rank_id: int):
         # Convenience method also used by test harness
