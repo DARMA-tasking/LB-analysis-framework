@@ -35,7 +35,7 @@ class Rank:
         # Initialize other instance variables
         self.__size = 0.0
 
-        # Start with empty shared blokck information
+        # Start with empty shared block information
         self.__shared_blocks = {}
 
     def copy(self, rank):
@@ -189,7 +189,7 @@ class Rank:
         return sum([o.get_load() for o in self.__migratable_objects])
 
     def get_sentinel_load(self) -> float:
-        """Return sentinel load oon rank."""
+        """Return sentinel load on rank."""
         return sum([o.get_load() for o in self.__sentinel_objects])
 
     def get_received_volume(self):

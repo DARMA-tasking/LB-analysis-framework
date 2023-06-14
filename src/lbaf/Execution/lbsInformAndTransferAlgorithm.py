@@ -77,12 +77,28 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             sys.excepthook = exc_handler
             raise SystemExit(1)
 
+        # No information about peers is known initially
+        self.__known_peers = {}
+
+    def get_known_peers(self):
+        """Return all known peers."""
+        return self.__known_peers
+
     def __process_message(self, r_rcv: Rank, m: Message):
         """Process message received by rank."""
+        # Make rank aware of itself
+        if r_rcv not in self.__known_peers:
+            self.__known_peers[r_rcv] = {r_rcv}
+
+        # Process the message
         self.__known_peers[r_rcv].update(m.get_support())
 
-    def __forward_message(self, i: int, r_snd: Rank, loads: set, f:int):
+    def __forward_message(self, i: int, r_snd: Rank, f:int):
         """Forward information message to rank peers sampled from known ones."""
+        # Make rank aware of itself
+        if r_snd not in self.__known_peers:
+            self.__known_peers[r_snd] = {r_snd}
+
         # Create load message tagged at given information round
         msg = Message(i, self.__known_peers[r_snd])
 
@@ -148,7 +164,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             for r_snd in rank_set:
                 # Collect message when destination list is not empty
                 dst, msg = self.__forward_message(
-                    i, r_snd, rank_set, self.__fanout)
+                    i, r_snd, self.__fanout)
                 for r_rcv in dst:
                     messages.setdefault(r_rcv, []).append(msg)
 

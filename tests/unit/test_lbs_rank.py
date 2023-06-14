@@ -86,7 +86,6 @@ class TestConfig(unittest.TestCase):
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
-        self.rank._Rank__known_loads[temp_rank] = 4.0
         self.rank.remove_migratable_object(temp_object, temp_rank)
         self.migratable_objects.remove(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
