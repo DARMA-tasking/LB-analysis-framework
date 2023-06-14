@@ -7,12 +7,12 @@ from lbaf.Applications.lbsApplicationBase import ApplicationBase
 
 
 class VTDataExtractorApplication(ApplicationBase):
-    """LBAF application class."""
+    """VTDataExtractor application."""
 
     def __init__(self):
         super(VTDataExtractorApplication, self).__init__()
 
-    def init_arguments(self) -> argparse.ArgumentParser:
+    def init_argument_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("--input-dir", help="Input data directory", required=True)
         parser.add_argument("--output-dir", help="Output data directory",
@@ -39,6 +39,7 @@ class VTDataExtractorApplication(ApplicationBase):
         return phases
 
     def run(self):
+        self.parse_args()
         vtde = VTDataExtractor(input_data_dir=self._args.input_dir,
                             output_data_dir=self._args.output_dir,
                             phases_to_extract=self._parse_phases_arg(self._args.phases),

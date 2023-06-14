@@ -13,19 +13,25 @@ PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/.
 # pylint:disable=C0413:wrong-import-position
 from lbaf.Applications.lbsLbafApplication import LBAFApplication
 from lbaf.Applications.lbsVTDataExtractorApplication import VTDataExtractorApplication
+from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
+
 # pylint:enable=C0413:wrong-import-position
 
-# expose all applications through methods for the package
+# expose all applications through methods for the package defined in setup.cfg
+def run() -> int:
+    """Run LBAFApplication instance."""
+    return LBAFApplication().run()
 
-def run():
-    """Run LBAF Application."""
-    LBAFApplication().run()
+def extract_vt_data() -> int:
+    """Run a VTDataExtractorApplication instance."""
+    return VTDataExtractorApplication().run()
 
-def extract_vt_data():
-    """Run VTDataExtractor Application."""
-    VTDataExtractorApplication().run()
+def load_data_files_validator(overwrite: bool = True) -> int:
+    """Run a DataFilesValidatorLoaderApplication instance."""
+    return (DataFilesValidatorLoaderApplication()
+        .parse_args({ "overwrite": overwrite })
+        .run())
 
-# set default behaviour of this module to run the LBAF application
-
+# set default behaviour if calling this module to run the LBAF application
 if __name__ == "__main__":
     run()

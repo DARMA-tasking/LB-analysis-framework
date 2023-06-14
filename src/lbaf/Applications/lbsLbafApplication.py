@@ -9,8 +9,8 @@ from typing import cast, Any, Dict, Optional, Union
 import yaml
 
 from lbaf import __version__, PROJECT_PATH
-
-from lbaf.Applications import JSON_data_files_validator_loader
+from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
+from lbaf.Applications.lbsApplicationBase import ApplicationBase
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
 from lbaf.Utils.logger import get_logger, Logger
@@ -21,7 +21,6 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsRuntime import Runtime
-from lbaf.Applications.lbsApplicationBase import ApplicationBase
 
 
 class InternalParameters:
@@ -164,13 +163,9 @@ class InternalParameters:
 class LBAFApplication(ApplicationBase):
     """LBAF application class."""
 
-    __logger: Logger
     __parameters: InternalParameters
     __json_writer: Union[VTDataWriter,None]
     __args: dict
-
-    def __init__(self):
-        super(LBAFApplication, self).__init__(interactive=False)
 
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path."""
@@ -204,23 +199,23 @@ class LBAFApplication(ApplicationBase):
             log_to_console=data.get("log_to_console", None) is None,
             log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
         )
-        self.__logger.info(f"Logging level: {lvl.lower()}")
+        self._logger.info(f"Logging level: {lvl.lower()}")
         if log_to_file is not None:
-            self.__logger.info(f"Logging to file: {abspath(data.get('log_to_file'), relative_to=config_dir)}")
+            self._logger.info(f"Logging to file: {abspath(data.get('log_to_file'), relative_to=config_dir)}")
 
         # Instantiate the application internal parameters
-        self.__parameters = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self.__logger)
+        self.__parameters = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self._logger)
 
         # Create VT writer except when explicitly turned off
         self.__json_writer = VTDataWriter(
-            self.__logger,
+            self._logger,
             self.__parameters.output_dir,
             self.__parameters.output_file_stem,
             self.__parameters.json_params) if self.__parameters.json_params else None
 
         return data
 
-    def init_arguments(self) -> argparse.ArgumentParser:
+    def init_argument_parser(self) -> argparse.ArgumentParser:
         """Parse arguments."""
         parser = argparse.ArgumentParser(allow_abbrev=False)
         parser.add_argument("-c", "--configuration",
@@ -268,18 +263,16 @@ class LBAFApplication(ApplicationBase):
             )
             raise FileNotFoundError(error_message)
         else:
-            self.__logger.info(f"Found configuration file at path {path}")
+            self._logger.info(f"Found configuration file at path {path}")
 
         return path
 
     def run(self):
-        """Run the LBAF application."""
-        # Init logger and set as an instance variable.
-        self.__logger = get_logger()
-
+        # parse arguments
+        self.parse_args()
         # Warn if default configuration is used because not set as argument
         if self._args.configuration is None:
-            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+            self._logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
             "working directory or in the project config directory !")
             self._args.configuration = "conf.yaml"
 
@@ -290,8 +283,11 @@ class LBAFApplication(ApplicationBase):
         cfg = self.__configure(config_file)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
-        JSON_data_files_validator_loader.load(cfg.get("overwrite_validator", True))
-        if not JSON_data_files_validator_loader.is_loaded():
+
+        loader = DataFilesValidatorLoaderApplication()
+        if (loader
+            .parse_args({"overwrite": cfg.get("overwrite_validator", True)})
+            .run()) != 0:
             raise RuntimeError("The JSON data files validator must be loaded to run the application")
 
         # Initialize random number generator
@@ -325,7 +321,7 @@ class LBAFApplication(ApplicationBase):
             # Initializing reader
             reader = LoadReader(
                 file_prefix=self.__parameters.data_stem,
-                logger=self.__logger,
+                logger=self._logger,
                 file_suffix=file_suffix if file_suffix is not None else "json",
                 check_schema=check_schema)
             # retrieve n_ranks
@@ -335,17 +331,17 @@ class LBAFApplication(ApplicationBase):
             for phase_id in self.__parameters.phase_ids:
                 # Create a phase and populate it
                 phase = Phase(
-                    self.__logger, phase_id, reader=reader)
+                    self._logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
                 phase = Phase(
-                    self.__logger, phase_id, reader=reader)
+                    self._logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
         else:
             n_ranks = self.__parameters.n_ranks
             phase_id = 0
-            phase = Phase(self.__logger, phase_id)
+            phase = Phase(self._logger, phase_id)
             phase.populate_from_samplers(
                 n_ranks,
                 self.__parameters.n_objects,
@@ -362,16 +358,16 @@ class LBAFApplication(ApplicationBase):
         # Perform brute force optimization when needed
         if ("brute_force_optimization" in self.__parameters.__dict__
             and self.__parameters.algorithm["name"] != "BruteForce"):
-            self.__logger.info("Starting brute force optimization")
+            self._logger.info("Starting brute force optimization")
             objects = initial_phase.get_objects()
             alpha, beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
             _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma,
-                                                                                    n_ranks, logger=self.__logger)
+                                                                                    n_ranks, logger=self._logger)
         else:
-            self.__logger.info("No brute force optimization performed")
+            self._logger.info("No brute force optimization performed")
             a_min_max = []
 
         # Instantiate runtime
@@ -380,7 +376,7 @@ class LBAFApplication(ApplicationBase):
             self.__parameters.work_model,
             self.__parameters.algorithm,
             a_min_max,
-            self.__logger,
+            self._logger,
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
@@ -396,13 +392,13 @@ class LBAFApplication(ApplicationBase):
             if offline_LB_compatible:
                 # Add rebalanced phase when present
                 if not rebalanced_phase:
-                    self.__logger.warning(
+                    self._logger.warning(
                         "No rebalancing took place for offline load-balancing")
                 else:
                     # Determine if a phase with same index was present
                     if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
                         # Apply object timings to rebalanced phase
-                        self.__logger.info(
+                        self._logger.info(
                             f"Phase {p_id} already present, applying its object loads to rebalanced phase")
                         original_loads = {
                             o.get_id(): o.get_load()
@@ -414,11 +410,11 @@ class LBAFApplication(ApplicationBase):
                     phases[p_id] = rebalanced_phase
 
                 # Write all phases
-                self.__logger.info(
+                self._logger.info(
                     f"Writing all ({len(phases)}) phases for offline load-balancing")
                 self.__json_writer.write(phases)
             else:
-                self.__logger.info(f"Writing single phase {phase_id} to JSON files")
+                self._logger.info(f"Writing single phase {phase_id} to JSON files")
                 self.__json_writer.write(
                     {phase_id: rebalanced_phase})
 
@@ -426,7 +422,7 @@ class LBAFApplication(ApplicationBase):
         if self.__parameters.grid_size:
             # Verify grid size consistency
             if math.prod(self.__parameters.grid_size) < n_ranks:
-                self.__logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
+                self._logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
                 sys.excepthook = exc_handler
                 raise SystemExit(1)
 
@@ -442,7 +438,7 @@ class LBAFApplication(ApplicationBase):
 
             # Instantiate and execute visualizer
             visualizer = Visualizer(
-                self.__logger,
+                self._logger,
                 qoi_request,
                 self.__parameters.continuous_object_qoi,
                 phases,
@@ -470,7 +466,8 @@ class LBAFApplication(ApplicationBase):
         self.__print_QOI()
 
         # If this point is reached everything went fine
-        self.__logger.info("Process completed without errors")
+        self._logger.info("Process completed without errors")
+        return 0
 
     def __print_QOI(self) -> int:
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
@@ -521,34 +518,34 @@ class LBAFApplication(ApplicationBase):
             phase.get_ranks(),
             lambda x: x.get_load(),
             f"{phase_name} rank load",
-            self.__logger)
+            self._logger)
         lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_max_object_level_memory(),
             f"{phase_name} rank object-level memory",
-            self.__logger)
+            self._logger)
         lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_size(),
             f"{phase_name} rank working memory",
-            self.__logger)
+            self._logger)
         lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             f"{phase_name} rank shared memory",
-            self.__logger)
+            self._logger)
         lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_max_memory_usage(),
             f"{phase_name} maximum memory usage",
-            self.__logger)
+            self._logger)
 
         # Print edge statistics
         lbstats.print_function_statistics(
             phase.get_edge_maxima().values(),
             lambda x: x,
             f"{phase_name} sent volumes",
-            self.__logger)
+            self._logger)
 
         # Return rank load statistics
         return l_stats
