@@ -221,7 +221,13 @@ class LBAFApplication(ApplicationBase):
         parser.add_argument("-c", "--configuration",
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
                 "directory or the config directory",
-            default=None
+            default="conf.yaml",
+            required=True
+        )
+        parser.add_argument("-r", "--required",
+            help="Required data",
+            default=None,
+            required=True
         )
         parser.add_argument("-v", "--verbose",
             help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
@@ -268,6 +274,7 @@ class LBAFApplication(ApplicationBase):
         return path
 
     def run(self):
+        """Run the LBAF application."""
         # parse arguments
         self.parse_args()
         # Warn if default configuration is used because not set as argument
@@ -283,7 +290,6 @@ class LBAFApplication(ApplicationBase):
         cfg = self.__configure(config_file)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
-
         loader = DataFilesValidatorLoaderApplication()
         if (loader
             .parse_args({"overwrite": cfg.get("overwrite_validator", True)})

@@ -36,10 +36,9 @@ class DataFilesValidatorLoaderApplication(ApplicationBase):
                 "In case of `ModuleNotFoundError: No module named 'lbaf.imported'` set overwrite_validator to True.")
         return 0 if os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME)) else 1
 
-    def is_loaded(self):
+    def is_loaded(self) -> bool:
         """Verify if the data files validator module has been downloaded.
 
-        :return: True if the module has been downloaded to the IMPORT_DIR directory
-        :rtype: bool
+        :return: True if the module has been downloaded to lbsDataFilesValidatorLoaderApplication.IMPORT_DIR
         """
         return os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME))
