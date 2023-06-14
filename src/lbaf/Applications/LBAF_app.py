@@ -270,11 +270,6 @@ class Application:
 
         return path
 
-    def __get_verbosity_level(self) -> int:
-        """Find the verbosity level from the '-verbosity' command line argument. When a yaml file contains an invalid QOI, print that list as part of the error message."""
-        verbosity = self.__args.verbose
-        
-
     def run(self):
         """Run the LBAF application."""
         # Parse command line arguments
@@ -299,9 +294,6 @@ class Application:
         JSON_data_files_validator_loader.load(cfg.get("overwrite_validator", True))
         if not JSON_data_files_validator_loader.is_loaded():
             raise RuntimeError("The JSON data files validator must be loaded to run the application")
-
-        self.__logger.warning("something")
-        self.__get_verbosity_level()
 
         # Initialize random number generator
         lbstats.initialize()
@@ -475,8 +467,26 @@ class Application:
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
+        # Print list of implemented QOI (according to verbosity argument)
+        self.__print_QOI()
+
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
+
+    def __print_QOI(self) -> int:
+        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        verbosity = int(self.__args.verbose)
+
+        # Print QOI based on verbosity level
+        if verbosity == 1:
+            self.__logger.info(f"List of implemented QOI \n \
+            Rank QOI:   {self.__parameters.rank_qoi}"
+            )
+        elif verbosity > 1:
+            self.__logger.info(f"List of implemented QOI \n \
+            Rank QOI:   {self.__parameters.rank_qoi} \n \
+            Object QOI: {self.__parameters.object_qoi}"
+            )
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""
