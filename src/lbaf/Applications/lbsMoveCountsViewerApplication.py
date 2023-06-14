@@ -1,32 +1,31 @@
 import os
 import sys
 import csv
-import getopt
+import argparse
 
 import vtk
 
 from lbaf import PROJECT_PATH
-from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.logger import get_logger, Logger
+from lbaf.Applications.lbsApplicationBase import ApplicationBase
 
 
 class MoveCountsViewerParameters:
     """A class to describe MoveCountsViewer parameters."""
 
-    def __init__(self, viewer):
+    def __init__(self, interactive):
         # Set renderer parameters
         self.renderer_background = [1, 1, 1]
 
         # Set actor_vertices parameters
-        self.actor_vertices_screen_size = 50 if viewer.interactive else 5000
+        self.actor_vertices_screen_size = 50 if interactive else 5000
         self.actor_vertices_color = [0, 0, 0]
-        self.actor_vertices_opacity = .3 if viewer.interactive else .5
+        self.actor_vertices_opacity = .3 if interactive else .5
 
         # Set actor_labels parameters
         self.actor_labels_color = [0, 0, 0]
-        self.actor_labels_font_size = 16 if viewer.interactive else 150
-        self.actor_edges_opacity = .5 if viewer.interactive else 1
-        self.actor_edges_line_width = 2 if viewer.interactive else 15
+        self.actor_labels_font_size = 16 if interactive else 150
+        self.actor_edges_opacity = .5 if interactive else 1
+        self.actor_edges_line_width = 2 if interactive else 15
 
         # Set actor_arrows parameters
         self.actor_arrows_edge_glyph_position = .5
@@ -47,106 +46,45 @@ class MoveCountsViewerParameters:
         # Set wti (WindowToImageFilter) parameters
         self.wti_scale = 10
 
-class MoveCountsViewer:
-    """A class to describe MoveCountsViewer attributes."""
 
-    logger: Logger
+class MoveCountsViewerAplication(ApplicationBase):
+    """MoveCountsViewer application class"""
 
-    def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = "out",
-                 output_file_name: str = "move_counts", interactive: bool = True):
+    def init_argument_parser(self) -> argparse.ArgumentParser:
+        """Defines the expected arguments for this application.
 
-        # Size of subset to which objects are initially mapped (0 = all)
-        self.n_processors = n_processors
+        Do not add the following arguments to the returned parser since these will be added internally:
+        -h or --help: to display help)
+        """
+        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser.add_argument("-p", "--n-processors", help="number of processors", default=8, type=int)
+        parser.add_argument("-f", "--input-file-name", help="input file name",
+                            default=os.path.join(PROJECT_PATH, "data", "nolb-data", "data"))
+        parser.add_argument("-s", "--input-file-suffix", help="input file suffix", default="vom")
+        parser.add_argument("-o", "--output-file-name", help="output file name", default=os.path.join(PROJECT_PATH, "output", "move_counts"))
+        parser.add_argument("-t", "--output-file-suffix", help="output file suffix", default=8)
+        parser.add_argument("-i", "--interactive", type=None, nargs='*', help="interactive call")
+        return parser
 
-        # Input file name
-        if isinstance(input_file_name, str):
-            self.input_file_name = os.path.join(PROJECT_PATH, input_file_name)
-        else:
-            self.input_file_name = input_file_name
-
-        # Input file suffix -- .vom by default
-        self.input_file_suffix = input_file_suffix
-
-        # Output file name
-        self.output_file_name = output_file_name
-
-        # Output file suffix -- .png by default
-        self.output_file_suffix = "png"
-
-        # Interactive call -- False by default
-        self.interactive = interactive
-
-        # Starting logger
-        self.logger = get_logger()
-        self.logging_level = "info"
-
-    @staticmethod
-    def usage():
-        """Provide online help."""
-        print("# Usage:")
-        print("\t [-p <np>]   number of processors")
-        print("\t [-f <fn>]   input file name")
-        print("\t [-s]        input file format suffix")
-        print("\t [-o]        output file name")
-        print("\t [-t]        output file format suffix")
-        print("\t [-i]        interactive call")
-        print("\t [-h]        help: print this message and exit")
-        print("")
-
-    def parse_command_line(self):
-        """Parse command line."""
-        # Try to hash command line with respect to allowable flags
-        try:
-            opts, _args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
-        except getopt.GetoptError:
-            self.logger.error("Incorrect command line arguments.")
-            self.usage()
-            return True
-
-        # Parse arguments and assign corresponding member variable values
-        for o, value in opts:
-            try:
-                i = int(value)
-            except ValueError:
-                i = None
-
-            if o == "-p":
-                if i > 0:
-                    self.n_processors = i
-            elif o == "-f":
-                self.input_file_name = value
-                # Output file name is equal to input file name by default
-                if self.output_file_name is None:
-                    self.output_file_name = value
-            elif o == "-s":
-                self.input_file_suffix = value
-            elif o == "-o":
-                self.output_file_name = value
-            elif o == "-t":
-                self.output_file_suffix = value
-            elif o == "-i":
-                self.interactive = True
-
+    def validate_args(self) -> bool:
+        """Validate input arguments."""
+        if self._args.output_file_name is None:
+            self._args.output_file_name = self._args.input_file_name
         # If number of processors is not provided or set to 0
-        if params.n_processors == 0:
-            self.logger.error("At least one processor needs to be defined. Exiting.")
-            self.usage()
-            return True
+        if self._args.n_processors == 0:
+            self._logger.error("At least one processor needs to be defined. Exiting.")
+            return False
         # If  invalid file name is provided
-        elif (not params.input_file_name.strip()
-              or params.input_file_name.strip() == "''"):
-            self.logger.error("A file name needs to be defined. Exiting.")
-            self.usage()
-            return True
-
-        # No line parsing error occurred
-        return False
+        elif (not self._args.input_file_name.strip() or self._args.input_file_name.strip() == "''"):
+            self._logger.error("A file name needs to be defined. Exiting.")
+            return False
+        return True
 
     def compute_move_counts_viewer(self):
         """Compute MoveCountsViewer."""
 
         # Instantiate MoveCountsViewerParameters
-        viewer_params = MoveCountsViewerParameters(self)
+        viewer_params = MoveCountsViewerParameters(self._args.interactive)
 
         # Create storage for vertex values
         vertex_name = "Node ID"
@@ -160,16 +98,16 @@ class MoveCountsViewer:
         graph.GetVertexData().SetActiveScalars(vertex_name)
 
         # Populate graph vertices
-        for i in range(self.n_processors):
+        for i in range(self._args.n_processors):
             vertex_data.InsertNextValue(i)
             graph.AddVertex()
 
         # Compute directed move counts
         directed_moves = {}
         # directed_sizes = {} (unused)
-        for i in range(self.n_processors):
+        for i in range(self._args.n_processors):
             # Iterate over all files
-            with open(f"{self.input_file_name}.{i}.{self.input_file_suffix}", 'r', encoding="utf-8") as input_file:
+            with open(f"{self._args.input_file_name}.{i}.{self._args.input_file_suffix}", 'r', encoding="utf-8") as input_file:
                 # Instantiate CSV reader
                 reader = csv.reader(input_file, delimiter=",")
 
@@ -362,7 +300,7 @@ class MoveCountsViewer:
         window.SetMultiSamples(0)
 
         # Run interactive MoveCountsViewer if demanded
-        if self.interactive:
+        if self._args.interactive:
             # Render and interact
             interactor = vtk.vtkRenderWindowInteractor()
             interactor.SetRenderWindow(window)
@@ -384,35 +322,30 @@ class MoveCountsViewer:
             writer = vtk.vtkPNGWriter()
             writer.SetInputConnection(wti.GetOutputPort())
             writer.SetFileName(
-                f"{self.output_file_name}.{self.output_file_suffix}")
+                f"{self._args.output_file_name}.{self._args.output_file_suffix}")
             writer.Write()
 
+    def run(self) -> int:
+        """Run the application.
+
+        If args are required then this method must call the self.parse_args method.
+
+        :returns: return code. 0 if success.
+        """
+        # Print startup information
+        svi = sys.version_info
+        self._logger.info(f"### Started with Python {svi.major}.{svi.minor}.{svi.micro}")
+
+        # Instantiate parameters and set values from command line arguments
+        self.parse_args()
+        if not self.validate_args():
+            return 1
+
+        self._logger.info("# Parsing command line arguments")
+
+        # Execute viewer
+        self.compute_move_counts_viewer()
+        return 0
 
 if __name__ == "__main__":
-    # Default settings
-    N_PROCESSORS = 8
-    INPUT_FILE_NAME = os.path.join(PROJECT_PATH, "data", "nolb-data", "data")
-    INPUT_FILE_SUFFIX = "vom"
-    OUTPUT_FILE_NAME = os.path.join(PROJECT_PATH, "output", "move_counts")
-    params = MoveCountsViewer(
-        n_processors=N_PROCESSORS,
-        input_file_name=INPUT_FILE_NAME,
-        input_file_suffix=INPUT_FILE_SUFFIX,
-        output_file_name=OUTPUT_FILE_NAME,
-        interactive=False)
-
-    # Assign logger to variable
-    lgr = params.logger
-
-    # Print startup information
-    sv = sys.version_info
-    lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
-
-    # Instantiate parameters and set values from command line arguments
-    lgr.info("# Parsing command line arguments")
-    if params.parse_command_line():
-        sys.excepthook = exc_handler
-        raise SystemExit(1)
-
-    # Execute viewer
-    params.compute_move_counts_viewer()
+    MoveCountsViewerAplication().run()

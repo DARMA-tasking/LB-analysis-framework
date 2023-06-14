@@ -4,18 +4,17 @@ import os
 import unittest
 from typing import Any
 import subprocess
-import sys
 
 from schema import Optional
 import brotli
 import yaml
 
 
-
 from lbaf.Utils.path import abspath
-from lbaf.Applications.JSON_data_files_validator_loader import load as load_schema
+from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
+loader = DataFilesValidatorLoaderApplication(interactive=False)
+loader.run()
 
-load_schema()
 from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
 
@@ -116,7 +115,7 @@ class TestVTDataWriter(unittest.TestCase):
 
         # run LBAF
         config_file = os.path.join(os.path.dirname(__file__), "config", "conf_vt_writer_stepper_test.yml")
-        proc = subprocess.run(["lbaf", "-c", config_file], check=True)
+        proc = subprocess.run(["lbaf", "-c", config_file, "--no-interaction"], check=True)
         self.assertEqual(0, proc.returncode)
 
         # LBAF config useful information

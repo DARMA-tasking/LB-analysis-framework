@@ -27,6 +27,7 @@ class DataFilesValidatorLoaderApplication(ApplicationBase):
 
         :returns: return code. 0 if success.
         """
+        self.parse_args()
         if self._args.overwrite:
             download(SCRIPT_URL, IMPORT_DIR, logger=self._logger, file_title=SCRIPT_TITLE)
         else:

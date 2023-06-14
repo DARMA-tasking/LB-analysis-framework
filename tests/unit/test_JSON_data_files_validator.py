@@ -1,5 +1,4 @@
 import os
-import sys
 
 import argparse
 import logging
@@ -8,10 +7,10 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from lbaf import PROJECT_PATH
-from lbaf.Applications.JSON_data_files_validator_loader import load
+from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
+loader = DataFilesValidatorLoaderApplication(interactive=False)
+loader.run()
 
-load()
 from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 

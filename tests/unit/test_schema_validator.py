@@ -4,10 +4,10 @@ import unittest
 
 import brotli
 
-from lbaf import PROJECT_PATH
-from lbaf.Applications.JSON_data_files_validator_loader import load as load_schema
+from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
+loader = DataFilesValidatorLoaderApplication(interactive=False)
+loader.run()
 
-load_schema()
 from lbaf.imported.JSON_data_files_validator import SchemaValidator
 
 

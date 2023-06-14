@@ -395,3 +395,83 @@ def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger
     # Print summary
     ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''
     logger.info(f"{subset_name}: {subset_size:.6g} amongst {set_size:.6g} {set_name} ({ss}%)")
+
+def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
+                                       w_max: float, n_ranks: int, logger: Logger, max_objects: int = None):
+    """Compute all arrangements reachable by moving up to a maximum number of objects."""
+
+    logger.warning("Old function. Used by the removed Rank Object Enumerator script")
+
+    # Storage for all reachable arrangements with their maximum work
+    reachable = {}
+
+    # Loop over all possible senders
+    for from_id in range(n_ranks):
+        # Loop over all possible receivers
+        for to_id in range(n_ranks):
+            if from_id == to_id:
+                continue
+            reachable.update(compute_pairwise_reachable_arrangements(objects, arrangement, alpha, beta, gamma, w_max,
+                                                                     from_id, to_id, n_ranks, max_objects, logger))
+    logger.info(
+        f"Found {len(reachable)} reachable arrangements, with maximum work: {max(reachable.values())}:")
+    for k, v in reachable.items():
+        logger.info(f"\t{k}: {v}")
+
+    # Return dict of reachable arrangements
+    return reachable
+
+
+def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, arrangement: tuple, alpha: float,
+                                    beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks: int,
+                                    logger: Logger, max_objects: Optional[int] = None):
+    """Recursively compute all possible transitions to reachable arrangements from initial one."""
+
+    logger.warning("Old function. Used by the removed Rank Object Enumerator script")
+
+    # Sanity checks regarding current arrangement
+    w_a = visited.get(arrangement, -1.)
+    if w_a < 0.:
+        logger.error(f"Arrangement {arrangement} not found in visited map")
+        sys.excepthook = exc_handler
+        raise SystemExit(1)
+
+    # Append current arrangement to trajectory stack
+    stack.append(arrangement)
+
+    # Terminate recursion if global optimum was found
+    if w_a == w_min_max:
+        logger.info(f"Global optimum found ({w_a}) for {arrangement}")
+        for a in stack:
+            logger.info(f"\t{a} with maximum work {visited[a]}")
+        return
+
+    # Compute all reachable arrangements
+    reachable = compute_all_reachable_arrangements(
+        objects,
+        arrangement,
+        alpha, beta, gamma,
+        w_max,
+        n_ranks,
+        max_objects)
+
+    # Otherwise, iterate over all reachable arrangements
+    for k, v in reachable.items():
+        # Skip already visited arrangements
+        if k in visited:
+            continue
+
+        # Add newly visited arrangements to map and recurse to it
+        visited[k] = v
+        recursively_compute_transitions(
+            stack,
+            visited,
+            objects,
+            k,
+            alpha, beta, gamma,
+            w_max, w_min_max,
+            n_ranks,
+            max_objects)
+
+        # Pop last stack entry
+        stack.pop()

@@ -7,7 +7,7 @@ from typing import Optional, Union
 from itertools import repeat
 from os import linesep
 
-from lbaf.Utils.colors import green, yellow, blue, white_on_red
+from .colors import green, yellow, blue, white_on_red
 
 
 def title(text):

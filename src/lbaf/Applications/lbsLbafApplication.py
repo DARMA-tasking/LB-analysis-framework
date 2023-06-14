@@ -167,6 +167,26 @@ class LBAFApplication(ApplicationBase):
     __json_writer: Union[VTDataWriter,None]
     __args: dict
 
+    def init_argument_parser(self) -> argparse.ArgumentParser:
+        """Parse arguments."""
+        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser.add_argument("-c", "--configuration",
+            help="Path to the config file. If path is relative it must be resolvable from either the current working "
+                "directory or the config directory",
+            default="conf.yaml",
+            required=True
+        )
+        parser.add_argument("-r", "--required",
+            help="Required data",
+            default=None,
+            required=True
+        )
+        parser.add_argument("-v", "--verbose",
+            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
+            default="0"
+        )
+        return parser
+
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path."""
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
@@ -215,26 +235,6 @@ class LBAFApplication(ApplicationBase):
 
         return data
 
-    def init_argument_parser(self) -> argparse.ArgumentParser:
-        """Parse arguments."""
-        parser = argparse.ArgumentParser(allow_abbrev=False)
-        parser.add_argument("-c", "--configuration",
-            help="Path to the config file. If path is relative it must be resolvable from either the current working "
-                "directory or the config directory",
-            default="conf.yaml",
-            required=True
-        )
-        parser.add_argument("-r", "--required",
-            help="Required data",
-            default=None,
-            required=True
-        )
-        parser.add_argument("-v", "--verbose",
-            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
-            default="0"
-        )
-        return parser
-
     def __get_config_path(self)-> str:
         """Find the config file from the '-configuration' command line argument and returns its absolute path
         (if configuration file path is relative it is searched in the current working directory and at the end in the
@@ -273,8 +273,53 @@ class LBAFApplication(ApplicationBase):
 
         return path
 
+    def __print_statistics(self, phase: Phase, phase_name: str):
+        """Print a set of rank and edge statistics"""
+
+        # Print rank statistics
+        l_stats = lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_load(),
+            f"{phase_name} rank load",
+            self._logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            f"{phase_name} rank object-level memory",
+            self._logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_size(),
+            f"{phase_name} rank working memory",
+            self._logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_shared_memory(),
+            f"{phase_name} rank shared memory",
+            self._logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            f"{phase_name} maximum memory usage",
+            self._logger)
+
+        # Print edge statistics
+        lbstats.print_function_statistics(
+            phase.get_edge_maxima().values(),
+            lambda x: x,
+            f"{phase_name} sent volumes",
+            self._logger)
+
+        # Return rank load statistics
+        return l_stats
+
     def run(self):
-        """Run the LBAF application."""
+        """Run the application.
+
+        If args are required then this method must call the self.parse_args method.
+
+        :returns: return code. 0 if success.
+        """
         # parse arguments
         self.parse_args()
         # Warn if default configuration is used because not set as argument
@@ -290,7 +335,7 @@ class LBAFApplication(ApplicationBase):
         cfg = self.__configure(config_file)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
-        loader = DataFilesValidatorLoaderApplication()
+        loader = DataFilesValidatorLoaderApplication(interactive=False)
         if (loader
             .parse_args({"overwrite": cfg.get("overwrite_validator", True)})
             .run()) != 0:

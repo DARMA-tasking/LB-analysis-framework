@@ -5,8 +5,8 @@ import csv
 import json
 import brotli
 
-from lbaf import PROJECT_PATH
-from lbaf.Utils.exception_handler import exc_handler
+from .. import PROJECT_PATH
+from .exception_handler import exc_handler
 
 
 class Csv2JsonConverter:
