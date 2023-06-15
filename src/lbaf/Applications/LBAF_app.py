@@ -224,6 +224,10 @@ class Application:
                 "directory or the config directory",
             default=None
         )
+        parser.add_argument("-v", "--verbose",
+            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
+            default="0"
+        )
         args = parser.parse_args()
 
         self.__args = args
@@ -463,8 +467,52 @@ class Application:
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
+        # Print list of implemented QOI (according to verbosity argument)
+        self.__print_QOI()
+
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
+
+    def __print_QOI(self) -> int:
+        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        verbosity = int(self.__args.verbose)
+
+        # Initialize file paths
+        TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        RANK_SCRIPT_NAME = "lbsRank.py"
+        OBJECT_SCRIPT_NAME = "lbsObject.py"
+
+        # Create list of all Rank QOI (Rank.get_*)
+        r_qoi_list = ["work"]
+        lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r')
+        lbsRank_lines = lbsRank_file.readlines()
+        for line in lbsRank_lines:
+            if line[8:12] == "get_":
+                r_qoi_list.append(line[12:line.find("(")])
+
+        # Create list of all Object QOI (Object.get_*)
+        o_qoi_list = []
+        lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
+        lbsObject_lines = lbsObject_file.readlines()
+        for line in lbsObject_lines:
+            if line[8:12] == "get_":
+                o_qoi_list.append(line[12:line.find("(")])
+
+        # Print QOI based on verbosity level
+        if verbosity > 0:
+            self.__logger.info("List of Implemented QOI:")
+        if verbosity == 1:
+            self.__logger.info("\tRank QOI:")
+            for r_qoi in r_qoi_list:
+                self.__logger.info("\t\t" + r_qoi)
+        elif verbosity > 1:
+            self.__logger.info("\tRank QOI:")
+            for r_qoi in r_qoi_list:
+                self.__logger.info("\t\t" + r_qoi)
+            self.__logger.info("")
+            self.__logger.info("\tObject QOI:")
+            for o_qoi in o_qoi_list:
+                self.__logger.info("\t\t" + o_qoi)
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""

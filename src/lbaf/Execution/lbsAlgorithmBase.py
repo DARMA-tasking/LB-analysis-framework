@@ -1,6 +1,8 @@
 import abc
 import sys
+import os
 
+from ..import PROJECT_PATH
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
@@ -123,6 +125,7 @@ class AlgorithmBase:
                     for o in self._rebalanced_phase.get_objects()})
             except AttributeError as err:
                 self._logger.error(f"Invalid object_qoi name \"{object_qoi_name}\"")
+                self.__print_QOI("obj")
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from err
 
@@ -136,6 +139,7 @@ class AlgorithmBase:
                     for p in self._rebalanced_phase.get_ranks()])
             except AttributeError as err:
                 self._logger.error(f"Invalid rank_qoi name \"{rank_qoi_name}\"")
+                self.__print_QOI("rank")
                 sys.excepthook = exc_handler
                 raise SystemExit(1) from err
         distributions.setdefault("rank work", []).append(
@@ -151,6 +155,41 @@ class AlgorithmBase:
                 stats = compute_function_statistics(
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
+
+    def __print_QOI(self,rank_or_obj):
+        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        # Initialize file paths
+        TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        RANK_SCRIPT_NAME = "lbsRank.py"
+        OBJECT_SCRIPT_NAME = "lbsObject.py"
+
+        if rank_or_obj == "rank":
+            # Create list of all Rank QOI (lbsRank.get_*)
+            r_qoi_list = ["work"]
+            lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r')
+            lbsRank_lines = lbsRank_file.readlines()
+            for line in lbsRank_lines:
+                if line[8:12] == "get_":
+                    r_qoi_list.append(line[12:line.find("(")])
+
+            # Print QOI based on verbosity level
+            self._logger.error("List of all possible Rank QOI:")
+            for r_qoi in r_qoi_list:
+                self._logger.error("\t" + r_qoi)
+
+        if rank_or_obj == "obj":
+            # Create list of all Object QOI (lbsObject.get_*)
+            o_qoi_list = []
+            lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
+            lbsObject_lines = lbsObject_file.readlines()
+            for line in lbsObject_lines:
+                if line[8:12] == "get_":
+                    o_qoi_list.append(line[12:line.find("(")])
+
+            # Print QOI based on verbosity level
+            self._logger.error("List of all possible Object QOI:")
+            for o_qoi in o_qoi_list:
+                self._logger.error("\t" + o_qoi)
 
     def _report_final_mapping(self, logger):
         """Report final rank object mapping in debug mode."""
