@@ -10,7 +10,7 @@ def abspath(path: str, relative_to: Optional[str] = None) -> Optional[str]:
 
     :param path: the input path
     :param relative_to: the base path, defaults to None (None = the current working directory)
-    :return: an absolute path
+    :returns: an absolute path
     """
     if relative_to is None:
         # path is relative to the current working directory

@@ -9,8 +9,7 @@ from typing import cast, Any, Dict, Optional, Union
 import yaml
 
 from lbaf import __version__, PROJECT_PATH
-from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
-from lbaf.Applications.lbsApplicationBase import ApplicationBase
+from lbaf.Utils.lbsVTDataFilesValidatorLoader import VTDataFilesValidatorLoader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
 from lbaf.Utils.logger import get_logger, Logger
@@ -21,7 +20,7 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsRuntime import Runtime
-
+from lbaf.Utils.lbsRunnerBase import RunnerBase
 
 class InternalParameters:
     """Represent the parameters used internally by a a LBAF Application"""
@@ -160,7 +159,7 @@ class InternalParameters:
             if not os.path.isdir(self.output_dir):
                 os.makedirs(self.output_dir)
 
-class LBAFApplication(ApplicationBase):
+class LBAFApplication(RunnerBase):
     """LBAF application class."""
 
     __parameters: InternalParameters
@@ -314,15 +313,8 @@ class LBAFApplication(ApplicationBase):
         return l_stats
 
     def run(self, args: Optional[dict] = None) -> int:
-        """Run the application.
-
-        If args are required then this method must call the self.parse_args method.
-
-        :param args: arguments to use or None to load from CLI
-        :returns: return code. 0 if success.
-        """
         # parse arguments
-        self.parse_args(args)
+        self.load_args(args)
         # Warn if default configuration is used because not set as argument
         if self._args.configuration is None:
             self._logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
@@ -336,7 +328,7 @@ class LBAFApplication(ApplicationBase):
         cfg = self.__configure(config_file)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
-        loader = DataFilesValidatorLoaderApplication(interactive=False)
+        loader = VTDataFilesValidatorLoader(prompt=False)
         if (loader
             .run({"overwrite": cfg.get("overwrite_validator", True)})) != 0:
             raise RuntimeError("The JSON data files validator must be loaded to run the application")

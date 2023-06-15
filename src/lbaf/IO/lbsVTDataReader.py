@@ -8,12 +8,16 @@ import sys
 
 import brotli
 
+from ..Utils.lbsVTDataFilesValidatorLoader import VTDataFilesValidatorLoader
 from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
 from ..Utils.exception_handler import exc_handler
 
+# The VT Data reader requires the VT Data Validator
+loader = VTDataFilesValidatorLoader(prompt=False)
+loader.run({ "overwrite": False })
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.

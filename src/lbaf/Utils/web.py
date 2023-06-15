@@ -1,4 +1,4 @@
-"""downloader module """
+"""web module """
 import os
 import sys
 
@@ -42,7 +42,7 @@ def download(
     try:
         logger.info(f"Retrieve {file_title} at {url}")
         tmp_filepath, http_message = urlretrieve(url, os.path.join(target_dir, '~' + filename))
-        filepath = os.path.join(target_dir, tmp_filepath)
+        filepath = os.path.join(target_dir, filename)
         content_type = http_message.get_content_type()
         # validate content type for script that has been retrieved
         if content_type == expected_content_type:

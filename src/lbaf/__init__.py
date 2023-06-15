@@ -11,26 +11,35 @@ PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/.
 """project path (with data, config, tests)"""
 
 # pylint:disable=C0413:wrong-import-position
-from lbaf.Applications.lbsLbafApplication import LBAFApplication
-from lbaf.Applications.lbsVTDataExtractorApplication import VTDataExtractorApplication
-from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
-
+from lbaf.Applications.lbsLBAFApplication import LBAFApplication
+from lbaf.Utils.lbsVTDataExtractor import VTDataExtractorRunner
+from lbaf.Utils.lbsVTDataFilesValidatorLoader import VTDataFilesValidatorLoader
+from lbaf.Applications.lbsMoveCountsViewer import MoveCountsViewer
+from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
 # pylint:enable=C0413:wrong-import-position
 
-# expose all applications through methods for the package defined in setup.cfg
+# expose all runnable applications and utility scripts
+# through methods from the top of the lbaf package (this file)
+# these methods correspond to console commands as defined in setup.cfg
 def run() -> int:
-    """Run LBAFApplication instance."""
+    """Run a LBAFApplication instance."""
     return LBAFApplication().run()
 
-def extract_vt_data() -> int:
-    """Run a VTDataExtractorApplication instance."""
-    return VTDataExtractorApplication().run()
+def vt_data_extractor() -> int:
+    """Run a VTDataExtractorRunner instance."""
+    return VTDataExtractorRunner().run()
 
-def load_data_files_validator(overwrite: bool = True) -> int:
-    """Run a DataFilesValidatorLoaderApplication instance."""
-    return (DataFilesValidatorLoaderApplication()
-        .parse_args({ "overwrite": overwrite })
-        .run())
+def vt_data_validator_loader() -> int:
+    """Run a VTDataFilesValidatorLoader instance."""
+    return VTDataFilesValidatorLoader().run()
+
+def move_counts_viewer() -> int:
+    """Run a MoveCountsViewer instance."""
+    return MoveCountsViewer().run()
+
+def vt_data_converter() -> int:
+    """Run a Csv2JsonConverter instance."""
+    return Csv2JsonConverter().run()
 
 # set default behaviour if calling this module to run the LBAF application
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from typing import Optional
 import vtk
 
 from lbaf import PROJECT_PATH
-from lbaf.Applications.lbsApplicationBase import ApplicationBase
+from lbaf.Utils.lbsRunnerBase import RunnerBase
 
 
 class MoveCountsViewerParameters:
@@ -48,7 +48,7 @@ class MoveCountsViewerParameters:
         self.wti_scale = 10
 
 
-class MoveCountsViewerAplication(ApplicationBase):
+class MoveCountsViewer(RunnerBase):
     """MoveCountsViewer application class"""
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
@@ -62,9 +62,10 @@ class MoveCountsViewerAplication(ApplicationBase):
         parser.add_argument("-f", "--input-file-name", help="input file name",
                             default=os.path.join(PROJECT_PATH, "data", "nolb-data", "data"))
         parser.add_argument("-s", "--input-file-suffix", help="input file suffix", default="vom")
-        parser.add_argument("-o", "--output-file-name", help="output file name", default=os.path.join(PROJECT_PATH, "output", "move_counts"))
+        parser.add_argument("-o", "--output-file-name", help="output file name",
+                            default=os.path.join(PROJECT_PATH, "output", "move_counts"))
         parser.add_argument("-t", "--output-file-suffix", help="output file suffix", default=8)
-        parser.add_argument("-i", "--interactive", type=None, nargs='*', help="interactive call")
+        parser.add_argument("-i", "--interactive", type=bool, help="interactive call", default=False)
         return parser
 
     def validate_args(self) -> bool:
@@ -108,7 +109,9 @@ class MoveCountsViewerAplication(ApplicationBase):
         # directed_sizes = {} (unused)
         for i in range(self._args.n_processors):
             # Iterate over all files
-            with open(f"{self._args.input_file_name}.{i}.{self._args.input_file_suffix}", 'r', encoding="utf-8") as input_file:
+            with open(
+                f"{self._args.input_file_name}.{i}.{self._args.input_file_suffix}", 'r', encoding="utf-8"
+            ) as input_file:
                 # Instantiate CSV reader
                 reader = csv.reader(input_file, delimiter=",")
 
@@ -327,19 +330,12 @@ class MoveCountsViewerAplication(ApplicationBase):
             writer.Write()
 
     def run(self, args: Optional[dict] = None) -> int:
-        """Run the application.
-
-        If args are required then this method must call the self.parse_args method.
-
-        :param args: arguments to use or None to load from CLI
-        :returns: return code. 0 if success.
-        """
         # Print startup information
         svi = sys.version_info
         self._logger.info(f"### Started with Python {svi.major}.{svi.minor}.{svi.micro}")
 
         # Instantiate parameters and set values from command line arguments
-        self.parse_args(args)
+        self.load_args(args)
         if not self.validate_args():
             return 1
 
@@ -349,5 +345,6 @@ class MoveCountsViewerAplication(ApplicationBase):
         self.compute_move_counts_viewer()
         return 0
 
+
 if __name__ == "__main__":
-    MoveCountsViewerAplication().run()
+    MoveCountsViewer().run()

@@ -115,7 +115,7 @@ class TestVTDataWriter(unittest.TestCase):
 
         # run LBAF
         config_file = os.path.join(os.path.dirname(__file__), "config", "conf_vt_writer_stepper_test.yml")
-        proc = subprocess.run(["lbaf", "-c", config_file, "--no-interaction"], check=True)
+        proc = subprocess.run(["lbaf", "-c", config_file], check=True)
         self.assertEqual(0, proc.returncode)
 
         # LBAF config useful information
