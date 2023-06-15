@@ -468,14 +468,15 @@ class Application:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
         # Print list of implemented QOI (according to verbosity argument)
-        verbosity = int(self.__args.verbose)
-        self.__print_QOI(verbosity)
+        self.__print_QOI()
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
 
-    def __print_QOI(self, verbosity) -> int:
+    def __print_QOI(self) -> int:
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        verbosity = int(self.__args.verbose)
+
         # Initialize file paths
         TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
         RANK_SCRIPT_NAME = "lbsRank.py"
