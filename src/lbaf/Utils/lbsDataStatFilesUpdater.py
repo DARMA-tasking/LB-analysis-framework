@@ -16,16 +16,18 @@ class DataStatFilesUpdater(RunnerBase):
     """Class validating VT data files according to the defined schema."""
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser = argparse.ArgumentParser(
+            allow_abbrev=False,
+            description="Updates a data file (file path) or a set of files (directory path) with the given schema type")
         group = parser.add_mutually_exclusive_group()
         group.add_argument("--file-path", help="Path to a validated file. Pass only when validating a single file.",
-                            default=None)
-        group.add_argument("--dir-path", help="Path to directory where files for validation are located.", default=None)
-        parser.add_argument("--file-prefix", help="File prefix. Optional. Pass only when --dir_path is provided.")
-        parser.add_argument("--file-suffix", help="File suffix. Optional. Pass only when --dir_path is provided.")
+                           default=None)
+        group.add_argument("--dir-path", help="Path to directory where files for validation are located.", default="data/challenging_toy_fewer_tasks")
+        parser.add_argument("--file-prefix", help="File prefix. Optional. Pass only when --dir_path is provided.", default="toy")
+        parser.add_argument("--file-suffix", help="File suffix. Optional. Pass only when --dir_path is provided.", default="json")
         parser.add_argument("--schema-type", help="Schema type. Must be `LBDatafile` or `LBStatsfile`",
-            choices=["LBDatafile", "LBStatsfile"])
-        parser.add_argument("--compress-data", help="If output data should be compressed. Default as input data.")
+                            choices=["LBDatafile", "LBStatsfile"], default="LBDatafile")
+        parser.add_argument("--compress-data", help="If output data should be compressed. Default (None) as input data.", default=None)
         return parser
 
     @staticmethod
@@ -100,6 +102,11 @@ class DataStatFilesUpdater(RunnerBase):
 
     def run(self, args: Optional[dict] = None) -> int:
         self.load_args(args)
+
+        if not (self._args.file_path is None) ^ (self._args.dir_path is None):
+            self._logger.error("One argument value is required for either file-path or dir-path")
+            raise SystemExit(1)
+
         # get input path as absolute path
         if self._args.file_path:
             self._args.file_path = os.path.abspath(self._args.file_path)

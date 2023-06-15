@@ -15,7 +15,7 @@ class JSONDataFilesValidatorLoader(RunnerBase):
     """Data Files Validator Loader application class."""
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser = argparse.ArgumentParser(allow_abbrev=False, description="Downloads the JSON data files Validator")
         parser.add_argument("--overwrite",
             help="Overwrite JSON_data_files_validator.py from VT (default: True)",
             type=bool,
@@ -25,7 +25,6 @@ class JSONDataFilesValidatorLoader(RunnerBase):
 
     def run(self, args: Optional[dict] = None) -> int:
         self.load_args(args)
-        self._logger.info("loaded args")
         if self._args.overwrite:
             self._logger.info("Overwrite JSON data files validator")
 

@@ -4,7 +4,7 @@ import sys
 from typing import Optional
 
 from .logger import get_logger, Logger
-from .cli import title, ask
+from .cli import description, ask
 
 
 class RunnerBase:
@@ -31,7 +31,7 @@ class RunnerBase:
         self.prompt = prompt
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
-        """Defines the expected arguments for this application.
+        """Defines the expected arguments.
 
         Do not add the following arguments to the returned parser since these will be added internally:
         -h or --help: to display help)
@@ -72,18 +72,19 @@ class RunnerBase:
                     break
             if self.prompt:
                 # if prompt
-                title(parser.prog)
+                if parser.description:
+                    description(parser.description)
                 for action in parser._actions:
                     if action.dest != 'help' and action.dest != 'prompt':
-                        values = ask(
-                            action.dest + ": " + action.help,
-                            action.type, action.default, action.required, action.choices)
+                        question = action.dest + " "
+                        question += "(str)" if action.type is None else f"({action.type})"
+                        question += ": " + action.help
+                        values = ask(question, action.type, action.default, action.required, action.choices)
                         # call the action
                         action(parser, self._args, values)
             else:
                 # if not help requested nor prompt requested
                 self._args = parser.parse_args()
-        print(self._args.__dict__)
         return self
 
     @abc.abstractmethod

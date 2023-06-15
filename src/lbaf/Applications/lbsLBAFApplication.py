@@ -168,8 +168,12 @@ class LBAFApplication(RunnerBase):
     __args: dict
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
-        """Parse arguments."""
-        parser = argparse.ArgumentParser(allow_abbrev=False)
+        """Defines the expected arguments for this application.
+
+        Do not add the following arguments to the returned parser since these will be added internally:
+        -h or --help: to display help)
+        """
+        parser = argparse.ArgumentParser(allow_abbrev=False, description="Run a Load-Balancing Simulation with some configuration")
         parser.add_argument("-c", "--configuration",
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
                 "directory or the config directory",

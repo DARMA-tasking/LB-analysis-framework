@@ -18,6 +18,12 @@ def title(text):
     print(yellow(''.join(list(repeat('=', len(text))))))
     print(''.join(list(repeat(' ', len(text)))))
 
+def description(text):
+    """Output some title text"""
+    print(''.join(list(repeat(' ', len(text)))))
+    print(blue(text))
+    print(blue(''.join(list(repeat('-', len(text))))))
+    print(''.join(list(repeat(' ', len(text)))))
 
 def ask(question: str, value_type: Optional[str] = None, default: Optional[Union[str,int,float]] = None,
     required: bool = False, choices: Optional[list] = None):
@@ -25,6 +31,8 @@ def ask(question: str, value_type: Optional[str] = None, default: Optional[Union
     msg = green(question)
     if default is not None:
         msg += " [" + yellow(default) + ']'
+    else:
+        msg += " [" + blue(None) + ']'
 
     raw_response = None
 

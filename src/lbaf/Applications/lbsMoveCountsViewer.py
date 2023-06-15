@@ -49,15 +49,10 @@ class MoveCountsViewerParameters:
 
 
 class MoveCountsViewer(RunnerBase):
-    """MoveCountsViewer application class"""
+    """MoveCountsViewer class"""
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
-        """Defines the expected arguments for this application.
-
-        Do not add the following arguments to the returned parser since these will be added internally:
-        -h or --help: to display help)
-        """
-        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser = argparse.ArgumentParser(allow_abbrev=False, description="MoveCountsViewer")
         parser.add_argument("-p", "--n-processors", help="number of processors", default=8, type=int)
         parser.add_argument("-f", "--input-file-name", help="input file name",
                             default=os.path.join(PROJECT_PATH, "data", "nolb-data", "data"))

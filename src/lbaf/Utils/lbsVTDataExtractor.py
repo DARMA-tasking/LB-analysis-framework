@@ -19,6 +19,7 @@ except ImportError as e:
     print(f"Brotli was not imported: {e}")
     BROTLI_NOT_IMPORTED = True
 
+
 class VTDataExtractor():
     """Reads VT data and saves chosen phases from it. """
 
@@ -123,7 +124,7 @@ class VTDataExtractor():
 
         if self.check_schema:
             try:
-                from lbaf.imported.JSON_data_files_validator import SchemaValidator # pylint:disable=C0415:import-outside-toplevel
+                from lbaf.imported.JSON_data_files_validator import SchemaValidator  # pylint:disable=C0415:import-outside-toplevel
             except ModuleNotFoundError as err:
                 sys.excepthook = exc_handler
                 raise ModuleNotFoundError(
@@ -188,8 +189,10 @@ class VTDataExtractor():
         total_duration = end_t - self.start_t
         print(f"=====> DONE in {total_duration:.2f} <=====")
 
+
 class PhaseAction(argparse.Action):
     """Custom action to split phases string argument to a list of int(n)|str(x-y)"""
+
     def __call__(self, parser, namespace, values, option_string=None):
         values_str = values.split(',')
         values = []
@@ -200,21 +203,23 @@ class PhaseAction(argparse.Action):
                 values.append(int(value_str))
         setattr(namespace, self.dest, values)
 
+
 class VTDataExtractorRunner(RunnerBase):
     """VTDataExtractor application."""
 
     def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser = argparse.ArgumentParser(allow_abbrev=False,
+                                         description="Reads VT data and saves chosen phases from it.")
         parser.add_argument("--input-dir", help="Input data directory", required=True)
         parser.add_argument("--output-dir", help="Output data directory",
-            default=os.path.join(PROJECT_PATH, "output", "extract"))
+                            default=os.path.join(PROJECT_PATH, "output", "extract"))
         parser.add_argument("--phases",
-            help="Phase numbers or ranges separated by a comma."
-            "Example: 1-6,8,10 will extract phases from 1 to 6, phase 8 and phase 10",
-            default=None,
-            required=True,
-            action=PhaseAction
-        )
+                            help="Phase numbers or ranges separated by a comma."
+                            "Example: 1-6,8,10 will extract phases from 1 to 6, phase 8 and phase 10",
+                            default=None,
+                            required=True,
+                            action=PhaseAction
+                            )
         parser.add_argument("--file-prefix", help="File prefix", default="data")
         parser.add_argument("--file-suffix", help="File suffix", default="json")
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
@@ -223,13 +228,13 @@ class VTDataExtractorRunner(RunnerBase):
     def run(self, args: Optional[dict] = None) -> int:
         self.load_args(args)
         vtde = VTDataExtractor(input_data_dir=self._args.input_dir,
-                            output_data_dir=self._args.output_dir,
-                            phases_to_extract=self._args.phases,
-                            file_prefix=self._args.file_prefix,
-                            file_suffix=self._args.file_suffix,
-                            compressed=self._args.compressed,
-                            schema_type="LBDatafile",
-                            check_schema=False)
+                               output_data_dir=self._args.output_dir,
+                               phases_to_extract=self._args.phases,
+                               file_prefix=self._args.file_prefix,
+                               file_suffix=self._args.file_suffix,
+                               compressed=self._args.compressed,
+                               schema_type="LBDatafile",
+                               check_schema=False)
         vtde.main()
 
 
