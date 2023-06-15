@@ -495,7 +495,6 @@ class Application:
         lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
         lbsObject_lines = lbsObject_file.readlines()
         for line in lbsObject_lines:
-            # self.__logger.warning(line[8:12])
             if line[8:12] == "get_":
                 o_qoi_list.append(line[12:line.find("(")])
 
