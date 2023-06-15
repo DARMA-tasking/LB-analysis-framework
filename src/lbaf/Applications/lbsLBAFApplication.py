@@ -22,6 +22,7 @@ from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.Utils.lbsRunnerBase import RunnerBase
 
+
 class InternalParameters:
     """Represent the parameters used internally by a a LBAF Application"""
 

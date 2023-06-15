@@ -19,9 +19,7 @@ from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
 from lbaf.Utils.lbsDataStatFilesUpdater import DataStatFilesUpdater
 # pylint:enable=C0413:wrong-import-position
 
-# expose all runnable applications and utility scripts
-# through methods from the top of the lbaf package (this file)
-# these methods correspond to console commands as defined in setup.cfg
+# lbaf functions to expose as lbaf package console commands (see setup.cfg)
 def run() -> int:
     """Run a LBAFApplication instance."""
     return LBAFApplication().run()
@@ -30,11 +28,11 @@ def vt_data_extractor() -> int:
     """Run a VTDataExtractorRunner instance."""
     return VTDataExtractorRunner().run()
 
-def vt_data_validator_loader() -> int:
+def vt_data_files_validator_loader() -> int:
     """Run a JSONDataFilesValidatorLoader instance."""
     return JSONDataFilesValidatorLoader().run()
 
-def vt_data_validator() -> int:
+def vt_data_files_validator() -> int:
     """Run vt_data_validator instance."""
     JSONDataFilesValidatorLoader().run({ "overwrite": True })
     from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator #pylint:disable=C0415:import-outside-toplevel
@@ -44,7 +42,7 @@ def move_counts_viewer() -> int:
     """Run a MoveCountsViewer instance."""
     return MoveCountsViewer().run()
 
-def vt_data_converter() -> int:
+def csv_2_json_converter() -> int:
     """Run a Csv2JsonConverter instance."""
     return Csv2JsonConverter().run()
 
