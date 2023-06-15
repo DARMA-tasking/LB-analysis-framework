@@ -13,9 +13,10 @@ PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/.
 # pylint:disable=C0413:wrong-import-position
 from lbaf.Applications.lbsLBAFApplication import LBAFApplication
 from lbaf.Utils.lbsVTDataExtractor import VTDataExtractorRunner
-from lbaf.Utils.lbsVTDataFilesValidatorLoader import VTDataFilesValidatorLoader
+from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
 from lbaf.Applications.lbsMoveCountsViewer import MoveCountsViewer
 from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
+from lbaf.Utils.lbsDataStatFilesUpdater import DataStatFilesUpdater
 # pylint:enable=C0413:wrong-import-position
 
 # expose all runnable applications and utility scripts
@@ -30,8 +31,14 @@ def vt_data_extractor() -> int:
     return VTDataExtractorRunner().run()
 
 def vt_data_validator_loader() -> int:
-    """Run a VTDataFilesValidatorLoader instance."""
-    return VTDataFilesValidatorLoader().run()
+    """Run a JSONDataFilesValidatorLoader instance."""
+    return JSONDataFilesValidatorLoader().run()
+
+def vt_data_validator() -> int:
+    """Run vt_data_validator instance."""
+    JSONDataFilesValidatorLoader().run({ "overwrite": True })
+    from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator #pylint:disable=C0415:import-outside-toplevel
+    JSONDataFilesValidator().main()
 
 def move_counts_viewer() -> int:
     """Run a MoveCountsViewer instance."""
@@ -40,6 +47,10 @@ def move_counts_viewer() -> int:
 def vt_data_converter() -> int:
     """Run a Csv2JsonConverter instance."""
     return Csv2JsonConverter().run()
+
+def vt_data_stat_files_updater() -> int:
+    """Run a DataStatFilesUpdater instance."""
+    return DataStatFilesUpdater().run()
 
 # set default behaviour if calling this module to run the LBAF application
 if __name__ == "__main__":

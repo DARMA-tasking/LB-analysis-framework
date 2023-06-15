@@ -1,55 +1,32 @@
-"""src/lbaf/Utils/data_stat_files_updater.py """
-import os
-import sys
+"""src/lbaf/Utils/lbsDataStatFilesUpdater.py"""
 import argparse
 from collections import Counter
 import json
+import os
+import sys
+from typing import Optional
+
 import brotli
 
 from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.lbsRunnerBase import RunnerBase
 
 
-class DataStatFilesUpdater:
+class DataStatFilesUpdater(RunnerBase):
     """Class validating VT data files according to the defined schema."""
 
-    def __init__(self, file_path: str = None, dir_path: str = None, file_prefix: str = None, file_suffix: str = None,
-                 schema_type: str = "LBDatafile", compress_data: bool = None):
-        self.__file_path = file_path
-        self.__dir_path = dir_path
-        self.__file_prefix = file_prefix
-        self.__file_suffix = file_suffix
-        self.__schema_type = schema_type
-        self.__compress_data = compress_data
-        self.__cli()
-
-    def __cli(self):
-        """Support for common line arguments."""
-        parser = argparse.ArgumentParser()
+    def init_argument_parser(self) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(allow_abbrev=False)
         group = parser.add_mutually_exclusive_group()
-        group.add_argument("--dir_path", help="Path to directory where files for validation are located.")
-        group.add_argument("--file_path", help="Path to a validated file. Pass only when validating a single file.")
-        parser.add_argument("--file_prefix", help="File prefix. Optional. Pass only when --dir_path is provided.")
-        parser.add_argument("--file_suffix", help="File suffix. Optional. Pass only when --dir_path is provided.")
-        parser.add_argument("--schema_type", help="Schema type. Must be `LBDatafile` or `LBStatsfile`")
-        parser.add_argument("--compress_data", help="If output data should be compressed. Default as input data.")
-        args = parser.parse_args()
-        if args.file_path:
-            self.__file_path = os.path.abspath(args.file_path)
-        if args.dir_path:
-            self.__dir_path = os.path.abspath(args.dir_path)
-        if args.file_prefix:
-            self.__file_prefix = args.file_prefix
-        if args.file_suffix:
-            self.__file_suffix = args.file_suffix
-        if args.schema_type:
-            if args.schema_type in ["LBDatafile", "LBStatsfile"]:
-                self.__schema_type = args.schema_type
-            else:
-                sys.excepthook = exc_handler
-                raise TypeError("Schema_type must be: LBDatafile or LBStatsfile")
-        if args.compress_data:
-            self.__compress_data = args.compress_data
-
+        group.add_argument("--file-path", help="Path to a validated file. Pass only when validating a single file.",
+                            default=None)
+        group.add_argument("--dir-path", help="Path to directory where files for validation are located.", default=None)
+        parser.add_argument("--file-prefix", help="File prefix. Optional. Pass only when --dir_path is provided.")
+        parser.add_argument("--file-suffix", help="File suffix. Optional. Pass only when --dir_path is provided.")
+        parser.add_argument("--schema-type", help="Schema type. Must be `LBDatafile` or `LBStatsfile`",
+            choices=["LBDatafile", "LBStatsfile"])
+        parser.add_argument("--compress-data", help="If output data should be compressed. Default as input data.")
+        return parser
 
     @staticmethod
     def __check_if_file_exists(file_path: str) -> bool:
@@ -90,10 +67,10 @@ class DataStatFilesUpdater:
         """Add given type to the file. """
         print(f"Adding schema to file: {file_path}")
         file_uncompressed = None
-        if self.__compress_data is None:
+        if self._args.compress_data is None:
             file_uncompressed = 0
-        elif self.__compress_data is not None:
-            if self.__compress_data:
+        elif self._args.compress_data is not None:
+            if self._args.compress_data:
                 file_uncompressed = 0
             else:
                 file_uncompressed = 1
@@ -104,12 +81,12 @@ class DataStatFilesUpdater:
                 decompr_bytes = brotli.decompress(compr_bytes)
                 decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
             except brotli.error:
-                if self.__compress_data is None:
+                if self._args.compress_data is None:
                     file_uncompressed = 1
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
 
         # Adding schema type to file
-        decompressed_dict["type"] = self.__schema_type
+        decompressed_dict["type"] = self._args.schema_type
 
         json_str = json.dumps(decompressed_dict, separators=(',', ':'))
 
@@ -121,28 +98,34 @@ class DataStatFilesUpdater:
                 compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
                 compr_json_file.write(compressed_str)
 
-    def main(self):
-        """Main function"""
-        if self.__file_path is not None:
-            if self.__check_if_file_exists(file_path=self.__file_path):
-                self.__add_type_to_file(file_path=self.__file_path)
+    def run(self, args: Optional[dict] = None) -> int:
+        self.load_args(args)
+        # get input path as absolute path
+        if self._args.file_path:
+            self._args.file_path = os.path.abspath(self._args.file_path)
+        if self._args.dir_path:
+            self._args.dir_path = os.path.abspath(self._args.dir_path)
+
+        if self._args.file_path is not None:
+            if self.__check_if_file_exists(file_path=self._args.file_path):
+                self.__add_type_to_file(file_path=self._args.file_path)
             else:
                 sys.excepthook = exc_handler
-                raise FileNotFoundError(f"File: {self.__file_path} NOT found!")
-        elif self.__dir_path is not None:
-            if self.__check_if_dir_exists(dir_path=self.__dir_path):
-                list_of_files_for_validation = self.__get_files_for_validation(dir_path=self.__dir_path,
-                                                                               file_prefix=self.__file_prefix,
-                                                                               file_suffix=self.__file_suffix)
+                raise FileNotFoundError(f"File: {self._args.file_path} NOT found!")
+        elif self._args.dir_path is not None:
+            if self.__check_if_dir_exists(dir_path=self._args.dir_path):
+                list_of_files_for_validation = self.__get_files_for_validation(dir_path=self._args.dir_path,
+                                                                               file_prefix=self._args.file_prefix,
+                                                                               file_suffix=self._args.file_suffix)
                 for file in list_of_files_for_validation:
                     self.__add_type_to_file(file_path=file)
             else:
                 sys.excepthook = exc_handler
-                raise FileNotFoundError(f"Directory: {self.__dir_path} does NOT exist")
+                raise FileNotFoundError(f"Directory: {self._args.dir_path} does NOT exist")
         else:
             sys.excepthook = exc_handler
             raise Exception("FILE path or DIRECTORY path has to be given")
 
 
 if __name__ == "__main__":
-    DataStatFilesUpdater().main()
+    DataStatFilesUpdater().run()

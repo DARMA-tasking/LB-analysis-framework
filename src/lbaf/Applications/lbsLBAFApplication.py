@@ -9,7 +9,7 @@ from typing import cast, Any, Dict, Optional, Union
 import yaml
 
 from lbaf import __version__, PROJECT_PATH
-from lbaf.Utils.lbsVTDataFilesValidatorLoader import VTDataFilesValidatorLoader
+from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
 from lbaf.Utils.exception_handler import exc_handler
 from lbaf.Utils.path import abspath
 from lbaf.Utils.logger import get_logger, Logger
@@ -328,7 +328,7 @@ class LBAFApplication(RunnerBase):
         cfg = self.__configure(config_file)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
-        loader = VTDataFilesValidatorLoader(prompt=False)
+        loader = JSONDataFilesValidatorLoader(prompt=False)
         if (loader
             .run({"overwrite": cfg.get("overwrite_validator", True)})) != 0:
             raise RuntimeError("The JSON data files validator must be loaded to run the application")

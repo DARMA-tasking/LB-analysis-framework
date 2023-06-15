@@ -7,8 +7,8 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from lbaf.Applications.lbsDataFilesValidatorLoaderApplication import DataFilesValidatorLoaderApplication
-loader = DataFilesValidatorLoaderApplication(interactive=False)
+from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
+loader = JSONDataFilesValidatorLoader()
 loader.run({ "overwrite": True })
 
 from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator

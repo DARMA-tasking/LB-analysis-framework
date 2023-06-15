@@ -78,13 +78,12 @@ class RunnerBase:
                         values = ask(
                             action.dest + ": " + action.help,
                             action.type, action.default, action.required, action.choices)
-                        # call the action for potential values transformer
+                        # call the action
                         action(parser, self._args, values)
             else:
                 # if not help requested nor prompt requested
                 self._args = parser.parse_args()
-
-                
+        print(self._args.__dict__)
         return self
 
     @abc.abstractmethod

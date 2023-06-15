@@ -35,16 +35,24 @@ def ask(question: str, value_type: Optional[str] = None, default: Optional[Union
                 print(' [' + yellow(index) + ']' + ' ' + (blue('None') if choice is None else choice) )
 
         raw_response = input("> ")
-        # set default if no response given and if default given
+        # empty reponse but default value set default
         if raw_response == '' and default:
             raw_response = default
-        elif choices is not None:
+        # empty response but no default value set None
+        elif raw_response == '' or raw_response == "None":
+            raw_response = None
+        # expected bool
+        elif value_type == bool:
+            raw_response = value_type in ["TRUE", "True", "true", "1"]
+        # else cast if type set
+        elif value_type is not None and value_type != str:
+            raw_response = value_type(raw_response)
+
+        # look for choice by choice index or value as input
+        if choices is not None:
             for index, choice in enumerate(choices):
                 if raw_response == str(index) or raw_response == choice or (choice is None and raw_response == "None"):
                     raw_response = choice
-        # consider empty response as None
-        if raw_response == '' or raw_response == "None":
-            raw_response = None
 
         if required is True and raw_response is None:
             print(white_on_red(f"{linesep}{linesep} [ERROR] Value is required{linesep}") + linesep)
