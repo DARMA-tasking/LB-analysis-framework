@@ -483,36 +483,36 @@ class Application:
         OBJECT_SCRIPT_NAME = "lbsObject.py"
 
         # Create list of all Rank QOI (Rank.get_*)
-        r_qoi = []
+        r_qoi_list = []
         lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r')
         lbsRank_lines = lbsRank_file.readlines()
         for line in lbsRank_lines:
             if line[8:12] == "get_":
-                r_qoi.append(line[12:line.find("(")])
+                r_qoi_list.append(line[12:line.find("(")])
 
         # Create list of all Object QOI (Rank.get_*)
-        o_qoi = []
+        o_qoi_list = []
         lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
         lbsObject_lines = lbsObject_file.readlines()
         for line in lbsObject_lines:
             # self.__logger.warning(line[8:12])
             if line[8:12] == "get_":
-                o_qoi.append(line[12:line.find("(")])
+                o_qoi_list.append(line[12:line.find("(")])
 
         # Print QOI based on verbosity level
         self.__logger.info("List of Implemented QOI:")
         if verbosity == 1:
             self.__logger.info("\tRANK QOI:")
-            for i in range(len(r_qoi)):
-                self.__logger.info("\t" + r_qoi[i])
+            for r_qoi in r_qoi_list:
+                self.__logger.info("\t" + r_qoi)
         elif verbosity > 1:
             self.__logger.info("\tRANK QOI:")
-            for i in range (len(r_qoi)):
-                self.__logger.info("\t" + r_qoi[i])
+            for r_qoi in r_qoi_list:
+                self.__logger.info("\t" + r_qoi)
             self.__logger.info("")
             self.__logger.info("\tOBJECT QOI:")
-            for j in range (len(o_qoi)):
-                self.__logger.info("\t" + o_qoi[j])
+            for o_qoi in o_qoi_list:
+                self.__logger.info("\t" + o_qoi)
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""
