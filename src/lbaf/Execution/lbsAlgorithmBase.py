@@ -169,7 +169,7 @@ class AlgorithmBase:
 
         if rank_or_obj == "rank":
             # Create list of all Rank QOI (lbsRank.get_*)
-            r_qoi_list = []
+            r_qoi_list = ["work"]
             lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r')
             lbsRank_lines = lbsRank_file.readlines()
             for line in lbsRank_lines:
