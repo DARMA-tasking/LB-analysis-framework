@@ -47,9 +47,9 @@ class Statistics:
 
         # Define getter methods
         def __getter_factory(k):
-            def f():
+            def getter():
                 return self.statistics[k]
-            return f
+            return getter
         for k in self.statistics:
             setattr(self, f"get_{k.replace(' ', '_')}", __getter_factory(k))
 
@@ -295,7 +295,7 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
 def compute_function_statistics(population, fct) -> Statistics:
     """Compute descriptive statistics of a function over a population."""
     # Bail out early if population is empty
-    if not (population):
+    if not population:
         return Statistics(0, math.nan, math.nan, math.nan, math.nan, math.nan, math.nan)
 
     # Initialize statistics

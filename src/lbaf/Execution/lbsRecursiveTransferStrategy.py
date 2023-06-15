@@ -131,7 +131,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     success = self.__recursive_extended_search(
                         pick_list,
                         o_src,
-                        lambda x: self._criterion.compute(r_src, x, r_dst),
+                        lambda x, r_src=r_src, r_dst=r_dst: self._criterion.compute(r_src, x, r_dst),
                         1,
                         self._max_objects_per_transfer)
                     if success:

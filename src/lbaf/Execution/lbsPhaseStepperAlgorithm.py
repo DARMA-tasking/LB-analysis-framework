@@ -41,7 +41,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
             # Compute and report phase rank work statistics
             print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),
+                self._work_model.compute,
                 f"phase {p_id} rank works",
                 self._logger)
 

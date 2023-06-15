@@ -64,9 +64,9 @@ class Block:
         """Try to detach object ID from block and return length."""
         try:
             self.__attached_object_ids.remove(o_id)
-        except:
+        except Exception as err:
             raise TypeError(
-                f"object id {o_id} is not attached to block {self.get_id()}")
+                f"object id {o_id} is not attached to block {self.get_id()}") from err
         return len(self.__attached_object_ids)
 
     def attach_object_id(self, o_id: int):
