@@ -502,17 +502,17 @@ class Application:
         # Print QOI based on verbosity level
         self.__logger.info("List of Implemented QOI:")
         if verbosity == 1:
-            self.__logger.info("RANK QOI:")
+            self.__logger.info("\tRANK QOI:")
             for i in range(len(r_qoi)):
-                self.__logger.info(r_qoi[i])
+                self.__logger.info("\t" + r_qoi[i])
         elif verbosity > 1:
-            self.__logger.info("RANK QOI:")
+            self.__logger.info("\tRANK QOI:")
             for i in range (len(r_qoi)):
-                self.__logger.info(r_qoi[i])
+                self.__logger.info("\t" + r_qoi[i])
             self.__logger.info("")
-            self.__logger.info("OBJECT QOI:")
+            self.__logger.info("\tOBJECT QOI:")
             for j in range (len(o_qoi)):
-                self.__logger.info(o_qoi[j])
+                self.__logger.info("\t" + o_qoi[j])
 
     def __print_statistics(self, phase: Phase, phase_name: str):
         """Print a set of rank and edge statistics"""
