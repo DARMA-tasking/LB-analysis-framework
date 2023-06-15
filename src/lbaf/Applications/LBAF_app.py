@@ -225,7 +225,7 @@ class Application:
             default=None
         )
         parser.add_argument("-v", "--verbose",
-            help="Verbosity level. If 1, print the rank QOI. If 2, print the rank QOI and the object QOI.",
+            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
             default="0"
         )
         args = parser.parse_args()
@@ -490,7 +490,7 @@ class Application:
             if line[8:12] == "get_":
                 r_qoi_list.append(line[12:line.find("(")])
 
-        # Create list of all Object QOI (Rank.get_*)
+        # Create list of all Object QOI (Object.get_*)
         o_qoi_list = []
         lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
         lbsObject_lines = lbsObject_file.readlines()
