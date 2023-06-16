@@ -10,30 +10,30 @@ class TransferStrategyBase:
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, criterion, parameters: dict, lgr: Logger):
+    def __init__(self, criterion, parameters: dict, logger: Logger):
         """Class constructor.
 
         :param criterion: a CriterionBase instance
         :param parameters: a dictionary of parameters
-        :param lgr: a Logger instance.
+        :param logger: a Logger instance.
         """
         # Assert that a logger instance was passed
-        if not isinstance(lgr, Logger):
-            lgr().error(
-                f"Incorrect type {type(lgr)} passed instead of Logger instance")
+        if not isinstance(logger, Logger):
+            logger().error(
+                f"Incorrect type {type(logger)} passed instead of Logger instance")
             raise SystemExit(1)
-        self._logger = lgr
+        self._logger = logger
 
         # Assert that a criterion base instance was passed
         if not isinstance(criterion, CriterionBase):
-            lgr.error("Could not create a transfer strategy without a criterion")
+            logger.error("Could not create a transfer strategy without a criterion")
             raise SystemExit(1)
         self._criterion = criterion
 
         # Assign optional parameters
         self._max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
         self._deterministic_transfer = parameters.get("deterministic_transfer", False)
-        lgr.info(
+        logger.info(
             f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
 
     @staticmethod
@@ -41,7 +41,7 @@ class TransferStrategyBase:
         strategy_name:str,
         parameters: dict,
         criterion: CriterionBase,
-        lgr: Logger):
+        logger: Logger):
         """Instantiate the necessary concrete strategy."""
         # Load up available strategies
         # pylint:disable=C0415:import-outside-toplevel,W0641:possibly-unused-variable
@@ -53,10 +53,10 @@ class TransferStrategyBase:
         try:
             # Instantiate and return object
             strategy = locals()[strategy_name + "TransferStrategy"]
-            return strategy(criterion, parameters, lgr)
+            return strategy(criterion, parameters, logger)
         except Exception as error:
             # Otherwise, error out
-            lgr.error(f"Could not create a strategy with name {strategy_name}")
+            logger.error(f"Could not create a strategy with name {strategy_name}")
             raise SystemExit(1) from error
 
     @abc.abstractmethod
