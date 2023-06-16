@@ -1,14 +1,16 @@
-from logging import Logger
-import os
-import sys
 import math
 import numbers
+import os
 import random
-import vtk
-import matplotlib.pyplot as plt
+import sys
+from logging import Logger
 
-from .lbsGridStreamer import GridStreamer
+import matplotlib.pyplot as plt
+import vtk
+
 from ..Model.lbsPhase import Phase
+from .lbsGridStreamer import GridStreamer
+
 
 class Visualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""

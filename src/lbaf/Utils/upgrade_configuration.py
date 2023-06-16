@@ -1,13 +1,12 @@
 """A script to bulk upgrade LBAF configuration files"""
-import argparse
-
 from lbaf import PROJECT_PATH
-from lbaf.Utils.logger import get_logger
+from lbaf.Utils.argparse_prompt import PromptArgumentParser
+from lbaf.Utils.lbsLogger import get_logger
 from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
 
 
 # get and validate args
-parser = argparse.ArgumentParser()
+parser = PromptArgumentParser()
 default_pattern = [
     "./config/**/*[.yml][.yaml]",
     "./tests/config/**/*[.yml][.yaml]"

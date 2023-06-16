@@ -6,7 +6,7 @@ from typing import Optional
 from urllib.request import urlretrieve, urlparse
 from urllib.error import HTTPError, URLError
 
-from .logger import Logger
+from .lbsLogger import Logger
 from .exception_handler import exc_handler
 
 

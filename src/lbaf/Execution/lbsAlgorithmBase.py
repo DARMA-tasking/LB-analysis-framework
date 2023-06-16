@@ -8,7 +8,7 @@ from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import get_logger, Logger
+from ..Utils.lbsLogger import get_logger, Logger
 
 
 class AlgorithmBase:

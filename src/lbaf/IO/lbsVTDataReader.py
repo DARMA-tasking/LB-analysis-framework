@@ -1,10 +1,10 @@
 import json
-from logging import Logger
-from multiprocessing.pool import Pool
-from multiprocessing import get_context
 import os
 import re
 import sys
+from logging import Logger
+from multiprocessing import get_context
+from multiprocessing.pool import Pool
 
 import brotli
 
@@ -49,7 +49,9 @@ class LoadReader:
 
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
-            from ..imported.JSON_data_files_validator import SchemaValidator as sv # pylint:disable=C0415:import-outside-toplevel
+            from ..imported.JSON_data_files_validator import \
+                SchemaValidator as \
+                sv  # pylint:disable=C0415:import-outside-toplevel
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
         # load vt data at rank 0

@@ -1,19 +1,17 @@
-import argparse
-from collections import Counter
 import csv
 import json
 import os
 import sys
-from typing import Optional
+from collections import Counter
 
 import brotli
 
 from lbaf import PROJECT_PATH
+from lbaf.Utils.argparse_prompt import PromptArgumentParser
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.lbsRunnerBase import RunnerBase
 
 
-class Csv2JsonConverter(RunnerBase):
+class Csv2JsonConverter:
     """A class to convert from previous log structure (CSV) to a current log structure (JSON)
     with/without Brotli compression.
 
@@ -27,8 +25,12 @@ class Csv2JsonConverter(RunnerBase):
         "id":0}]}
     """
 
-    def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False)
+    def __init__(self):
+        self.__args = None
+
+    def __parse_args(self):
+        """Parse arguments."""
+        parser = PromptArgumentParser(allow_abbrev=False, prompt_default=True)
         parser.add_argument("--dir", help="Absolute dir path or relative(from project path)",
                             default="data/vt_example_lb_data")
         parser.add_argument("--output-dir", help="Absolute dir path or relative(from project path)",
@@ -36,7 +38,7 @@ class Csv2JsonConverter(RunnerBase):
         parser.add_argument("--compressed", help="If output file should be compressed", type=bool, default=True)
         parser.add_argument("--in-file-name-prefix", help="Input file name prefix e.g. 'data'", default="data")
         parser.add_argument("--in-file-extension", help="Input file extension, e.g. '.csv'", default=".vom")
-        return parser
+        self.__args = parser.parse_args()
 
     @staticmethod
     def _get_data_dir(dir_path: str) -> str:
@@ -54,33 +56,33 @@ class Csv2JsonConverter(RunnerBase):
     def _get_files_for_conversion(self) -> list:
         """Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
         # Defining output path and creating if not exists
-        output_path = os.path.join(PROJECT_PATH, self._args.output_dir)
+        output_path = os.path.join(PROJECT_PATH, self.__args.output_dir)
         if not os.path.exists(output_path):
             os.makedirs(output_path)
 
         # Getting files paths
-        if self._args.in_file_extension is not None and self._args.in_file_name_prefix is not None:
-            dir_list = [(os.path.join(self._args.data_dir, file), os.path.join(output_path, file)) for file in
-                        os.listdir(self._args.data_dir) if os.path.isfile(os.path.join(self._args.data_dir, file)) and
-                        os.path.splitext(file)[-1] == self._args.in_file_extension and
-                        file.split('.')[0] == self._args.in_file_name_prefix]
-        elif self._args.in_file_extension is not None and self._args.in_file_name_prefix is None:
-            dir_list = [(os.path.join(self._args.data_dir, file), os.path.join(output_path, file)) for file in
-                        os.listdir(self._args.data_dir) if os.path.isfile(os.path.join(self._args.data_dir, file)) and
-                        os.path.splitext(file)[-1] == self._args.in_file_extension]
-        elif self._args.in_file_extension is None and self._args.in_file_name_prefix is not None:
-            dir_list = [(os.path.join(self._args.data_dir, file), os.path.join(output_path, file)) for file in
-                        os.listdir(self._args.data_dir) if os.path.isfile(os.path.join(self._args.data_dir, file)) and
-                        file.split('.')[0] == self._args.in_file_name_prefix]
+        if self.__args.in_file_extension is not None and self.__args.in_file_name_prefix is not None:
+            dir_list = [(os.path.join(self.__args.data_dir, file), os.path.join(output_path, file)) for file in
+                        os.listdir(self.__args.data_dir) if os.path.isfile(os.path.join(self.__args.data_dir, file)) and
+                        os.path.splitext(file)[-1] == self.__args.in_file_extension and
+                        file.split('.')[0] == self.__args.in_file_name_prefix]
+        elif self.__args.in_file_extension is not None and self.__args.in_file_name_prefix is None:
+            dir_list = [(os.path.join(self.__args.data_dir, file), os.path.join(output_path, file)) for file in
+                        os.listdir(self.__args.data_dir) if os.path.isfile(os.path.join(self.__args.data_dir, file)) and
+                        os.path.splitext(file)[-1] == self.__args.in_file_extension]
+        elif self.__args.in_file_extension is None and self.__args.in_file_name_prefix is not None:
+            dir_list = [(os.path.join(self.__args.data_dir, file), os.path.join(output_path, file)) for file in
+                        os.listdir(self.__args.data_dir) if os.path.isfile(os.path.join(self.__args.data_dir, file)) and
+                        file.split('.')[0] == self.__args.in_file_name_prefix]
         else:
-            prefix_list = [file.split('.')[0] for file in os.listdir(self._args.data_dir) if
-                           os.path.isfile(os.path.join(self._args.data_dir, file))]
-            extenion_list = [os.path.splitext(file)[-1] for file in os.listdir(self._args.data_dir) if
-                             os.path.isfile(os.path.join(self._args.data_dir, file))]
+            prefix_list = [file.split('.')[0] for file in os.listdir(self.__args.data_dir) if
+                           os.path.isfile(os.path.join(self.__args.data_dir, file))]
+            extenion_list = [os.path.splitext(file)[-1] for file in os.listdir(self.__args.data_dir) if
+                             os.path.isfile(os.path.join(self.__args.data_dir, file))]
             most_common_prefix = Counter(prefix_list).most_common(1)[0][0]
             most_common_extension = Counter(extenion_list).most_common(1)[0][0]
-            dir_list = [(os.path.join(self._args.data_dir, file), os.path.join(output_path, file)) for file in
-                        os.listdir(self._args.data_dir) if os.path.isfile(os.path.join(self._args.data_dir, file)) and
+            dir_list = [(os.path.join(self.__args.data_dir, file), os.path.join(output_path, file)) for file in
+                        os.listdir(self.__args.data_dir) if os.path.isfile(os.path.join(self.__args.data_dir, file)) and
                         os.path.splitext(file)[-1] == most_common_extension and
                         file.split('.')[0] == most_common_prefix]
 
@@ -160,7 +162,7 @@ class Csv2JsonConverter(RunnerBase):
             dict_to_dump["phases"].append(phase_dict)
 
         json_str = json.dumps(dict_to_dump, separators=(',', ':'))
-        if self._args.compressed:
+        if self.__args.compressed:
             compressed_str = brotli.compress(string=json_str.encode("utf-8"), mode=brotli.MODE_TEXT)
             with open(output_path, "wb") as compr_json_file:
                 compr_json_file.write(compressed_str)
@@ -168,11 +170,11 @@ class Csv2JsonConverter(RunnerBase):
             with open(output_path, "wt", encoding="utf-8") as json_file:
                 json_file.write(json_str)
 
-    def run(self, args: Optional[dict] = None) -> int:
+    def run(self):
         """Get lists of files to convert. Iterate over it and converts each file."""
-
-        self.load_args(args)
-        self._args.data_dir = self._get_data_dir(self._args.dir)
+        # Parse command line arguments
+        self.__parse_args()
+        self.__args.data_dir = self._get_data_dir(self.__args.dir)
 
         files_to_convert = self._get_files_for_conversion()
         print("Generated files:")

@@ -37,11 +37,11 @@ import lbaf.IO.lbsVTDataReader as LoadReader
 import lbaf.IO.lbsVTDataWriter as VTDataWriter
 
 # Utilities
-import lbaf.Utils.csv_2_json_data_converter as Csv2JsonConverter
-import lbaf.Utils.data_stat_files_updater as DataStatFilesUpdater
 import lbaf.Utils.exception_handler as exc_handler
-import lbaf.Utils.logger as logger
-import lbaf.IO.lbsVTDataExtractor as VTDataExtractor
+import lbaf.Utils.lbsCsv2JsonDataConverter as Csv2JsonConverter
+import lbaf.Utils.lbsDataStatFilesUpdater as DataStatFilesUpdater
+import lbaf.Utils.lbsLogger as logger
+import lbaf.Utils.lbsVTDataExtractor as VTDataExtractor
 
 
 PROJECT_TITLE = "LBAF (Load Balancing Analysis Framework)"

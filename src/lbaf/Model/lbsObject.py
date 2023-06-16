@@ -1,8 +1,9 @@
 import sys
+from typing import Optional
 
+from ..Utils.exception_handler import exc_handler
 from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
-from ..Utils.exception_handler import exc_handler
 
 
 class Object:
@@ -11,10 +12,10 @@ class Object:
     def __init__(
         self,
         i: int,
-        r_id: int=None,
+        r_id: Optional[int]=None,
         load: float=0.0,
         size: float=0.0,
-        comm: ObjectCommunicator=None,
+        comm: Optional[ObjectCommunicator]=None,
         user_defined: dict=None,
         subphases: list=None):
 

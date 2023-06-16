@@ -1,9 +1,10 @@
 import json
+import multiprocessing as mp
 import os
 import sys
-import brotli
-import multiprocessing as mp
 from logging import Logger
+
+import brotli
 
 from ..Model.lbsPhase import Phase
 from ..Utils.exception_handler import exc_handler

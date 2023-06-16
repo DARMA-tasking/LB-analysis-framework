@@ -38,11 +38,9 @@ def get_error_message(iterable_collection: tuple) -> str:
 
 class ConfigurationValidator:
     """Validate data in an YAML configuration file."""
-    __algorithm: Dict[str, Schema]
-    __config_to_validate: Dict[str, dict]
 
     def __init__(self, config_to_validate: dict, logger: Logger):
-        self.__config_to_validate = config_to_validate
+        self.__config_to_validate: Dict[str, Schema] = config_to_validate
         self.__skeleton = Schema({
             Or("from_data", "from_samplers", only_one=True): dict,
             "work_model": {
@@ -135,7 +133,7 @@ class ConfigurationValidator:
                     lambda s: len(s) == 2,
                     error="There should be exactly 2 provided parameters of type 'float'")}
         })
-        self.__algorithm = {
+        self.__algorithm: Dict[str, Schema] = {
             "InformAndTransfer": Schema(
                 {"name": "InformAndTransfer",
                  "phase_id": int,

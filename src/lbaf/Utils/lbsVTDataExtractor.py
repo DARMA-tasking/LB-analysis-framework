@@ -1,16 +1,14 @@
+import argparse
 import json
-from multiprocessing.pool import Pool
-from multiprocessing import get_context
 import os
 import sys
 import time
-import argparse
-from typing import Optional
+from multiprocessing import get_context
+from multiprocessing.pool import Pool
 
 from lbaf import PROJECT_PATH
+from lbaf.Utils.argparse_prompt import PromptArgumentParser
 from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.lbsRunnerBase import RunnerBase
-
 
 try:
     import brotli
@@ -124,7 +122,8 @@ class VTDataExtractor():
 
         if self.check_schema:
             try:
-                from lbaf.imported.JSON_data_files_validator import SchemaValidator  # pylint:disable=C0415:import-outside-toplevel
+                from lbaf.imported.JSON_data_files_validator import \
+                    SchemaValidator  # pylint:disable=C0415:import-outside-toplevel
             except ModuleNotFoundError as err:
                 sys.excepthook = exc_handler
                 raise ModuleNotFoundError(
@@ -204,12 +203,17 @@ class PhaseAction(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
-class VTDataExtractorRunner(RunnerBase):
+class VTDataExtractorRunner:
     """VTDataExtractor application."""
 
-    def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False,
-                                         description="Reads VT data and saves chosen phases from it.")
+    def __init__(self):
+        self.__args: dict = None
+
+    def __parse_args(self):
+        """Parse arguments."""
+        parser = PromptArgumentParser(allow_abbrev=False,
+                                description="Reads VT data and saves chosen phases from it.",
+                                prompt_default=True)
         parser.add_argument("--input-dir", help="Input data directory", required=True)
         parser.add_argument("--output-dir", help="Output data directory",
                             default=os.path.join(PROJECT_PATH, "output", "extract"))
@@ -223,16 +227,19 @@ class VTDataExtractorRunner(RunnerBase):
         parser.add_argument("--file-prefix", help="File prefix", default="data")
         parser.add_argument("--file-suffix", help="File suffix", default="json")
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
-        return parser
+        self.__args = parser.parse_args()
 
-    def run(self, args: Optional[dict] = None) -> int:
-        self.load_args(args)
-        vtde = VTDataExtractor(input_data_dir=self._args.input_dir,
-                               output_data_dir=self._args.output_dir,
-                               phases_to_extract=self._args.phases,
-                               file_prefix=self._args.file_prefix,
-                               file_suffix=self._args.file_suffix,
-                               compressed=self._args.compressed,
+    def run(self):
+        """Run the VTDataExtractor"""
+        # Parse command line arguments
+        self.__parse_args()
+
+        vtde = VTDataExtractor(input_data_dir=self.__args.input_dir,
+                               output_data_dir=self.__args.output_dir,
+                               phases_to_extract=self.__args.phases,
+                               file_prefix=self.__args.file_prefix,
+                               file_suffix=self.__args.file_suffix,
+                               compressed=self.__args.compressed,
                                schema_type="LBDatafile",
                                check_schema=False)
         vtde.main()

@@ -1,13 +1,12 @@
 import os
 import sys
 import csv
-import argparse
-from typing import Optional
 
 import vtk
 
 from lbaf import PROJECT_PATH
-from lbaf.Utils.lbsRunnerBase import RunnerBase
+from lbaf.Utils.lbsLogger import get_logger, Logger
+from lbaf.Utils.argparse_prompt import PromptArgumentParser
 
 
 class MoveCountsViewerParameters:
@@ -48,11 +47,16 @@ class MoveCountsViewerParameters:
         self.wti_scale = 10
 
 
-class MoveCountsViewer(RunnerBase):
+class MoveCountsViewer:
     """MoveCountsViewer class"""
 
-    def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False, description="MoveCountsViewer")
+    def __init__(self):
+        self.__args: dict = None
+        self.__logger: Logger = get_logger()
+
+    def __parse_args(self):
+        """Parse arguments."""
+        parser = PromptArgumentParser(allow_abbrev=False, description="MoveCountsViewer", prompt_default=True)
         parser.add_argument("-p", "--n-processors", help="number of processors", default=8, type=int)
         parser.add_argument("-f", "--input-file-name", help="input file name",
                             default=os.path.join(PROJECT_PATH, "data", "nolb-data", "data"))
@@ -61,19 +65,19 @@ class MoveCountsViewer(RunnerBase):
                             default=os.path.join(PROJECT_PATH, "output", "move_counts"))
         parser.add_argument("-t", "--output-file-suffix", help="output file suffix", default=8)
         parser.add_argument("-i", "--interactive", type=bool, help="interactive call", default=False)
-        return parser
+        self.__args = parser.parse_args()
 
-    def validate_args(self) -> bool:
+    def check_args(self) -> bool:
         """Validate input arguments."""
-        if self._args.output_file_name is None:
-            self._args.output_file_name = self._args.input_file_name
+        if self.__args.output_file_name is None:
+            self.__args.output_file_name = self.__args.input_file_name
         # If number of processors is not provided or set to 0
-        if self._args.n_processors == 0:
-            self._logger.error("At least one processor needs to be defined. Exiting.")
+        if self.__args.n_processors == 0:
+            self.__logger.error("At least one processor needs to be defined. Exiting.")
             return False
         # If  invalid file name is provided
-        elif (not self._args.input_file_name.strip() or self._args.input_file_name.strip() == "''"):
-            self._logger.error("A file name needs to be defined. Exiting.")
+        elif (not self.__args.input_file_name.strip() or self.__args.input_file_name.strip() == "''"):
+            self.__logger.error("A file name needs to be defined. Exiting.")
             return False
         return True
 
@@ -81,7 +85,7 @@ class MoveCountsViewer(RunnerBase):
         """Compute MoveCountsViewer."""
 
         # Instantiate MoveCountsViewerParameters
-        viewer_params = MoveCountsViewerParameters(self._args.interactive)
+        viewer_params = MoveCountsViewerParameters(self.__args.interactive)
 
         # Create storage for vertex values
         vertex_name = "Node ID"
@@ -95,17 +99,17 @@ class MoveCountsViewer(RunnerBase):
         graph.GetVertexData().SetActiveScalars(vertex_name)
 
         # Populate graph vertices
-        for i in range(self._args.n_processors):
+        for i in range(self.__args.n_processors):
             vertex_data.InsertNextValue(i)
             graph.AddVertex()
 
         # Compute directed move counts
         directed_moves = {}
         # directed_sizes = {} (unused)
-        for i in range(self._args.n_processors):
+        for i in range(self.__args.n_processors):
             # Iterate over all files
             with open(
-                f"{self._args.input_file_name}.{i}.{self._args.input_file_suffix}", 'r', encoding="utf-8"
+                f"{self.__args.input_file_name}.{i}.{self.__args.input_file_suffix}", 'r', encoding="utf-8"
             ) as input_file:
                 # Instantiate CSV reader
                 reader = csv.reader(input_file, delimiter=",")
@@ -299,7 +303,7 @@ class MoveCountsViewer(RunnerBase):
         window.SetMultiSamples(0)
 
         # Run interactive MoveCountsViewer if demanded
-        if self._args.interactive:
+        if self.__args.interactive:
             # Render and interact
             interactor = vtk.vtkRenderWindowInteractor()
             interactor.SetRenderWindow(window)
@@ -321,20 +325,24 @@ class MoveCountsViewer(RunnerBase):
             writer = vtk.vtkPNGWriter()
             writer.SetInputConnection(wti.GetOutputPort())
             writer.SetFileName(
-                f"{self._args.output_file_name}.{self._args.output_file_suffix}")
+                f"{self.__args.output_file_name}.{self.__args.output_file_suffix}")
             writer.Write()
 
-    def run(self, args: Optional[dict] = None) -> int:
+    def run(self):
+        """Run the MoveCountViewer logic."""
+        # Parse command line arguments
+        self.__parse_args()
+
         # Print startup information
         svi = sys.version_info
-        self._logger.info(f"### Started with Python {svi.major}.{svi.minor}.{svi.micro}")
+        self.__logger.info(f"### Started with Python {svi.major}.{svi.minor}.{svi.micro}")
 
-        # Instantiate parameters and set values from command line arguments
-        self.load_args(args)
-        if not self.validate_args():
+        # Parse command line arguments
+        self.__parse_args()
+        if not self.check_args():
             return 1
 
-        self._logger.info("# Parsing command line arguments")
+        self.__logger.info("# Parsing command line arguments")
 
         # Execute viewer
         self.compute_move_counts_viewer()

@@ -18,7 +18,7 @@ FORMAT_EXTENDED = "extended"
 """"%(levelname)s [%(module)s.%(funcName)s()] [%(message)s]"""
 FORMATS = [ FORMAT_BASIC, FORMAT_EXTENDED ]
 Logger = logging.Logger
-"""Logger class"""
+"""Logger class alias to the logging Logger class"""
 
 class CustomFormatter(logging.Formatter):
     """Formatter able to write colored logs

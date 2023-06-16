@@ -1,15 +1,14 @@
 """A script to bulk upgrade LBAF configuration files."""
 from enum import Enum
+from logging import Logger
 from pathlib import Path
 from pydoc import locate
-from typing import cast, Any, IO, List
-from logging import Logger
+from typing import IO, Any, List, cast
 
 import yaml
 
-from .lbsConfigurationValidator import ConfigurationValidator
 from .. import PROJECT_PATH
-
+from .lbsConfigurationValidator import ConfigurationValidator
 
 # Uncomment to format numbers with scientific notation without using Pythong automatic rule
 # and also `import re`
@@ -52,12 +51,9 @@ ConfigurationDumper.add_representer(bool, bool_representer)
 class ConfigurationUpgrader:
     """This class enables to bulk upgrade configuration files by adding or removing keys."""
 
-    __logger: Logger
-    __sections: dict
-
     def __init__(self, logger: Logger):
-        self.__logger = logger
-        self.__sections = cast(dict, ConfigurationValidator.allowed_keys(group=True))
+        self.__logger: Logger = logger
+        self.__sections: dict = cast(dict, ConfigurationValidator.allowed_keys(group=True))
 
     def write_node(self, k: str, value: Any, yaml_file: IO, indent_size: int = 2):
         """Write a single node (key/value) in the given yaml file."""

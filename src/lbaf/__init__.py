@@ -32,13 +32,13 @@ def vt_data_files_validator_loader() -> int:
     """Run a JSONDataFilesValidatorLoader instance."""
     return JSONDataFilesValidatorLoader().run()
 
-def vt_data_files_validator() -> int:
+def vt_data_files_validator():
     """Run vt_data_validator instance."""
-    JSONDataFilesValidatorLoader().run({ "overwrite": True })
+    JSONDataFilesValidatorLoader().run(overwrite=True)
     from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator #pylint:disable=C0415:import-outside-toplevel
     JSONDataFilesValidator().main()
 
-def move_counts_viewer() -> int:
+def move_counts_viewer():
     """Run a MoveCountsViewer instance."""
     return MoveCountsViewer().run()
 

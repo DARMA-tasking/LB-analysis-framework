@@ -1,37 +1,55 @@
 import os
-import argparse
 from typing import Optional
 
-from lbaf import __version__, PROJECT_PATH
-from lbaf.Utils.lbsRunnerBase import RunnerBase
+from lbaf import PROJECT_PATH, __version__
+from lbaf.Utils.argparse_prompt import PromptArgumentParser
+from lbaf.Utils.lbsLogger import Logger, get_logger
 from lbaf.Utils.web import download
 
 IMPORT_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
-SCRIPT_URL=f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
+SCRIPT_URL = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
 SCRIPT_TITLE = "JSON data files validator"
 
-class JSONDataFilesValidatorLoader(RunnerBase):
+
+class JSONDataFilesValidatorLoader:
     """Data Files Validator Loader application class."""
 
-    def init_argument_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(allow_abbrev=False, description="Downloads the JSON data files Validator")
+    def __init__(self):
+        self.__args: dict = None
+        self.__logger: Logger = get_logger()
+
+    def __parse_args(self):
+        """Parse arguments."""
+        parser = PromptArgumentParser(allow_abbrev=False, description="Downloads the JSON_data_files_validator.py script from the VT repository.")
         parser.add_argument("--overwrite",
-            help="Overwrite JSON_data_files_validator.py from VT (default: True)",
-            type=bool,
-            default=True
-        )
-        return parser
+                            help="Overwrite JSON_data_files_validator.py from VT (default: True)",
+                            type=bool,
+                            default=True,
+                            prompt_default=False)
+        self.__args = parser.parse_args()
 
-    def run(self, args: Optional[dict] = None) -> int:
-        self.load_args(args)
-        if self._args.overwrite:
-            self._logger.info("Overwrite JSON data files validator")
+    def run(self, overwrite: Optional[bool] = None)-> int:
+        """Downloads the VT Data validator script named self.TARGET_SCRIPT_NAME from the VT repository.
 
-        if self._args.overwrite or not os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME)):
-            download(SCRIPT_URL, IMPORT_DIR, logger=self._logger, file_title=SCRIPT_TITLE)
+        :param overwrite: None to parse arg from cli. True to overwrite the script if exists.
+        :returns: False if the script cannot be loaded.
+        """
+        exists = self.is_loaded()
+        # Parse command line arguments
+        if overwrite is None:
+            self.__parse_args()
+            overwrite = self.__args.overwrite
+
+        if overwrite:
+            self.__logger.info("Overwrite JSON data files validator")
+
+        if overwrite or not exists:
+            download(SCRIPT_URL, IMPORT_DIR, logger=self.__logger, file_title=SCRIPT_TITLE)
             if not self.is_loaded():
-                self._logger.warning('The JSON data files validator cannot be loaded')
+                self.__logger.warning("The JSON data files validator cannot be loaded")
+        elif exists:
+            self.__logger.info("The JSON data files is ready to be used")
         return 0 if os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME)) else 1
 
     def is_loaded(self) -> bool:
@@ -40,6 +58,7 @@ class JSONDataFilesValidatorLoader(RunnerBase):
         :returns: True if the module has been downloaded to lbsDataFilesValidatorLoaderApplication.IMPORT_DIR
         """
         return os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME))
+
 
 if __name__ == "__main__":
     JSONDataFilesValidatorLoader().run()
