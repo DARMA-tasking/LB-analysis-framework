@@ -73,8 +73,7 @@ class LoadReader:
         # Perform sanity check on number of loaded phases
         l = len(next(iter(self.__vt_data.values())).get("phases"))
         if not all(len(v.get("phases")) == l for v in self.__vt_data.values()):
-            self.__logger.error(
-                "Not all JSON files have the same number of phases")
+            self.__logger.error("Not all JSON files have the same number of phases")
             raise SystemExit(1)
 
     def _get_n_ranks(self):
