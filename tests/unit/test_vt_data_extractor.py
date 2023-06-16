@@ -294,7 +294,7 @@ class TestVTDataExtractor(unittest.TestCase):
         dir_name = "test_vt_data_extractor_017"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
         input_dir = "input_dir_does_not_exists"
-        with self.assertRaises(SystemExit) as err:
+        with self.assertRaises(ValueError) as err:
             VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
                             file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                             check_schema=False).main()
