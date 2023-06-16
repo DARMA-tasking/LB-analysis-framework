@@ -453,12 +453,13 @@ class Visualizer:
         scalar_bar_actor.SetWidth(0.42)
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
-        scalar_bar_actor.SetLabelFormat("%.2G")
         if values:
+            scalar_bar_actor.SetLabelFormat("%.0f")
             scalar_bar_actor.SetNumberOfLabels(len(values))
             scalar_bar_actor.SetAnnotationLeaderPadding(8)
             scalar_bar_actor.SetTitle(title.title().replace('_', ' ') + '\n')
         else:
+            scalar_bar_actor.SetLabelFormat("%.2G")
             scalar_bar_actor.SetNumberOfLabels(2)
             scalar_bar_actor.SetTitle(title.title().replace('_', ' '))
         for text_prop in (
