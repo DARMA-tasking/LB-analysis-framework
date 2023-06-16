@@ -5,8 +5,9 @@ import csv
 import vtk
 
 from lbaf import PROJECT_PATH
-from lbaf.Utils.lbsLogger import get_logger, Logger
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
+from lbaf.Utils.lbsLogging import get_logger, Logger
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsExceptionHandler import exc_handler
 
 
 class MoveCountsViewerParameters:
@@ -330,6 +331,9 @@ class MoveCountsViewer:
 
     def run(self):
         """Run the MoveCountViewer logic."""
+        # Exception handler
+        sys.excepthook = exc_handler
+
         # Parse command line arguments
         self.__parse_args()
 

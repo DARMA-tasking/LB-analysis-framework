@@ -9,7 +9,7 @@ from itertools import repeat
 from os import linesep
 from typing import Optional, Union
 
-from .colors import blue, green, white_on_red, yellow
+from .lbsColors import blue, green, white_on_red, yellow
 
 
 class PromptArgumentParser(argparse.ArgumentParser):

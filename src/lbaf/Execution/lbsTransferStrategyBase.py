@@ -1,10 +1,8 @@
 import abc
-import sys
 import math
 from logging import Logger
 
 from ..Execution.lbsCriterionBase import CriterionBase
-from ..Utils.exception_handler import exc_handler
 
 
 class TransferStrategyBase:
@@ -23,14 +21,12 @@ class TransferStrategyBase:
         if not isinstance(lgr, Logger):
             lgr().error(
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._logger = lgr
 
         # Assert that a criterion base instance was passed
         if not isinstance(criterion, CriterionBase):
             lgr.error("Could not create a transfer strategy without a criterion")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._criterion = criterion
 
@@ -61,7 +57,6 @@ class TransferStrategyBase:
         except Exception as error:
             # Otherwise, error out
             lgr.error(f"Could not create a strategy with name {strategy_name}")
-            sys.excepthook = exc_handler
             raise SystemExit(1) from error
 
     @abc.abstractmethod

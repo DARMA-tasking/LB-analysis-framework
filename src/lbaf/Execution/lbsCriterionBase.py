@@ -1,11 +1,9 @@
 import abc
 from logging import Logger
 from typing import List, Optional
-import sys
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Model.lbsPhase import Phase
-from ..Utils.exception_handler import exc_handler
 
 
 class CriterionBase:
@@ -28,7 +26,6 @@ class CriterionBase:
         # Assert that a work model instance was passed
         if not isinstance(work_model, WorkModelBase):
             logger.error("Could not create a criterion without a work model")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._work_model = work_model
 
@@ -41,7 +38,6 @@ class CriterionBase:
         # Assert that a phase instance was passed
         if not isinstance(phase, Phase):
             self._logger.error(f"A {type(phase)} instance was passed to set_phase()")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._phase = phase
 
@@ -63,7 +59,6 @@ class CriterionBase:
         except Exception as e:
             # Otherwise, error out
             logger.error(f"Could not create a criterion with name {criterion_name}")
-            sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
     @abc.abstractmethod

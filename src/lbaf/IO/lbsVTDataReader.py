@@ -12,7 +12,6 @@ from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
-from ..Utils.exception_handler import exc_handler
 
 
 class LoadReader:
@@ -76,7 +75,6 @@ class LoadReader:
         if not all(len(v.get("phases")) == l for v in self.__vt_data.values()):
             self.__logger.error(
                 "Not all JSON files have the same number of phases")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def _get_n_ranks(self):
@@ -122,7 +120,6 @@ class LoadReader:
 
         # Try to open, read, and decompress file
         if not os.path.isfile(file_name):
-            sys.excepthook = exc_handler
             raise FileNotFoundError(f"File {file_name} not found")
         with open(file_name, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
@@ -137,7 +134,6 @@ class LoadReader:
         if not metadata or not (schema_type := metadata.get("type")):
             if not (schema_type := decompressed_dict.get("type")):
                 self.__logger.error("JSON data is missing 'type' key")
-                sys.excepthook = exc_handler
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
@@ -177,7 +173,6 @@ class LoadReader:
         if not phase_id_found:
             self.__logger.error(
                 f"Phase {curr_phase_id} not found for rank {rank_id}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Proceed with desired phase

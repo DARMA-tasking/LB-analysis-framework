@@ -7,8 +7,7 @@ from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
-from ..Utils.exception_handler import exc_handler
-from ..Utils.lbsLogger import get_logger, Logger
+from ..Utils.lbsLogging import get_logger, Logger
 
 
 class AlgorithmBase:
@@ -31,32 +30,27 @@ class AlgorithmBase:
         if not isinstance(logger, Logger):
             get_logger().error(
                 f"Incorrect type {type(logger)} passed instead of Logger instance")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._logger = logger
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
             self._logger.error("Could not create an algorithm without a work model")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._work_model = work_model
 
         # Assert that a parameters dict was passed
         if not isinstance(parameters, dict):
             self._logger.error("Could not create an algorithm without a dictionary of parameters")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
             self._logger.error("Could not create an algorithm with non-string rank QOI name")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__rank_qoi = rank_qoi
         if object_qoi and not isinstance(object_qoi, str):
             self._logger.error("Could not create an algorithm with non-string object QOI name")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__object_qoi = object_qoi
         self._logger.info(
@@ -110,7 +104,6 @@ class AlgorithmBase:
         except Exception as e:
             # Otherwise, error out
             logger.error(f"Could not create an algorithm with name {algorithm_name}")
-            sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
     def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
@@ -219,7 +212,6 @@ class AlgorithmBase:
             [isinstance(p, Phase) for p in phases.values()]):
             self._logger.error(
                 "Algorithm execution requires a dictionary of phases")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Create a rebalanced phase to preserve phase to be rebalanced
@@ -237,7 +229,6 @@ class AlgorithmBase:
         except Exception as err:
             self._logger.error(
                 f"No phase with index {p_id} is available for processing")
-            sys.excepthook = exc_handler
             raise SystemExit(1) from err
         self._logger.info(
             f"Processing phase {p_id} "

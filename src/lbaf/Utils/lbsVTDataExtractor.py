@@ -7,8 +7,8 @@ from multiprocessing import get_context
 from multiprocessing.pool import Pool
 
 from lbaf import PROJECT_PATH
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
-from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsExceptionHandler import exc_handler
 
 try:
     import brotli
@@ -49,8 +49,7 @@ class VTDataExtractor():
             self.input_data_dir = os.path.join(PROJECT_PATH, self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
-            sys.excepthook = exc_handler
-            raise SystemExit("Input data directory not found.")
+            raise ValueError("Input data directory not found.")
         # Output data
         if not os.path.exists(self.output_data_dir):
             print("Output data directory not found, creating ...")
@@ -67,7 +66,6 @@ class VTDataExtractor():
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
                     print("Phase range wrongly declared.")
-                    sys.excepthook = exc_handler
                     raise SystemExit("Phase range wrongly declared.")
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
@@ -82,12 +80,10 @@ class VTDataExtractor():
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
-            sys.excepthook = exc_handler
             raise SystemExit("No files were found")
         try:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
-            sys.excepthook = exc_handler
             raise ValueError(f"Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
                              f"ERROR: {err}") from err
 
@@ -109,7 +105,6 @@ class VTDataExtractor():
                     uncompr_str = uncompr_json_file.read()
                     decompressed_dict = json.loads(uncompr_str)
             except UnicodeDecodeError as err:
-                sys.excepthook = exc_handler
                 raise Exception(
                     "\n============================================================\n"
                     "\t\tCan not read compressed data without Brotli."
@@ -125,7 +120,6 @@ class VTDataExtractor():
                 from lbaf.imported.JSON_data_files_validator import \
                     SchemaValidator  # pylint:disable=C0415:import-outside-toplevel
             except ModuleNotFoundError as err:
-                sys.excepthook = exc_handler
                 raise ModuleNotFoundError(
                     "\n====================================================================\n"
                     "\t\tCan not check schema without schema module imported."
@@ -136,7 +130,6 @@ class VTDataExtractor():
             else:
                 print(f"Invalid JSON schema in {file_path}")
                 SchemaValidator(schema_type=self.schema_type).validate(schema_to_validate=decompressed_dict)
-                sys.excepthook = exc_handler
                 raise SystemExit(1)
 
         return decompressed_dict
@@ -231,6 +224,9 @@ class VTDataExtractorRunner:
 
     def run(self):
         """Run the VTDataExtractor"""
+        # Exception handler
+        sys.excepthook = exc_handler
+
         # Parse command line arguments
         self.__parse_args()
 

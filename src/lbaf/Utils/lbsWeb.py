@@ -1,13 +1,10 @@
-"""web module """
+"""This module contains web utility methods."""
 import os
-import sys
-
 from typing import Optional
 from urllib.request import urlretrieve, urlparse
 from urllib.error import HTTPError, URLError
 
-from .lbsLogger import Logger
-from .exception_handler import exc_handler
+from .lbsLogging import Logger
 
 
 def download(
@@ -61,9 +58,7 @@ def download(
                     "downloaded from {script_url}\n"
                 )
     except HTTPError as err:
-        sys.excepthook = exc_handler
         raise ConnectionError(f"Can not download file: {err.filename} \n"
                                 f"Server responded with code: {err.fp.code} and message: {err.fp.msg}") from err
     except URLError as err:
-        sys.excepthook = exc_handler
         raise ConnectionError("Probably there is no internet connection") from err

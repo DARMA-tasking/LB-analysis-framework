@@ -1,10 +1,12 @@
 import os
+import sys
 from typing import Optional
 
 from lbaf import PROJECT_PATH, __version__
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
-from lbaf.Utils.lbsLogger import Logger, get_logger
-from lbaf.Utils.web import download
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsLogging import Logger, get_logger
+from lbaf.Utils.lbsWeb import download
+from lbaf.Utils.lbsExceptionHandler import exc_handler
 
 IMPORT_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
@@ -35,6 +37,9 @@ class JSONDataFilesValidatorLoader:
         :param overwrite: None to parse arg from cli. True to overwrite the script if exists.
         :returns: False if the script cannot be loaded.
         """
+        # Exception handler
+        sys.excepthook = exc_handler
+
         exists = self.is_loaded()
         # Parse command line arguments
         if overwrite is None:

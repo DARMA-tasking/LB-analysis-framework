@@ -1,9 +1,9 @@
-"""logging util module """
+"""This module contains logging utility method to create and get loggers"""
 import logging
 import os
 from typing import Union, List, Dict
 
-from .colors import red, green, cyan, yellow
+from .lbsColors import red, green, cyan, yellow
 
 
 LOGGING_LEVEL = {

@@ -6,9 +6,9 @@ from collections import Counter
 
 import brotli
 
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
-from lbaf.Utils.exception_handler import exc_handler
-from lbaf.Utils.lbsLogger import Logger, get_logger
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsExceptionHandler import exc_handler
+from lbaf.Utils.lbsLogging import Logger, get_logger
 
 
 class DataStatFilesUpdater:
@@ -55,7 +55,6 @@ class DataStatFilesUpdater:
         list_of_files = os.listdir(dir_path)
 
         if not list_of_files:
-            sys.excepthook = exc_handler
             raise FileNotFoundError(f"Directory: {dir_path} is EMPTY!")
 
         if file_prefix is None and file_suffix is None:
@@ -111,6 +110,9 @@ class DataStatFilesUpdater:
 
     def run(self):
         """Run the DataStatsFilesUpdater logic."""
+        # Exception handler
+        sys.excepthook = exc_handler
+
         # Parse command line arguments
         self.__parse_args()
 
@@ -128,7 +130,6 @@ class DataStatFilesUpdater:
             if self.__check_if_file_exists(file_path=self.__args.file_path):
                 self.__add_type_to_file(file_path=self.__args.file_path)
             else:
-                sys.excepthook = exc_handler
                 raise FileNotFoundError(f"File: {self.__args.file_path} NOT found!")
         elif self.__args.dir_path is not None:
             if self.__check_if_dir_exists(dir_path=self.__args.dir_path):
@@ -138,10 +139,8 @@ class DataStatFilesUpdater:
                 for file in list_of_files_for_validation:
                     self.__add_type_to_file(file_path=file)
             else:
-                sys.excepthook = exc_handler
                 raise FileNotFoundError(f"Directory: {self.__args.dir_path} does NOT exist")
         else:
-            sys.excepthook = exc_handler
             raise Exception("FILE path or DIRECTORY path has to be given")
 
 

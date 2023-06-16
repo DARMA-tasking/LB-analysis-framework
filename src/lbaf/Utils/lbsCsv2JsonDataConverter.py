@@ -7,8 +7,8 @@ from collections import Counter
 import brotli
 
 from lbaf import PROJECT_PATH
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
-from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsExceptionHandler import exc_handler
 
 
 class Csv2JsonConverter:
@@ -50,7 +50,6 @@ class Csv2JsonConverter:
             return os.path.join(PROJECT_PATH, dir_path)
         else:
             print(f"Can not find dir {dir_path}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def _get_files_for_conversion(self) -> list:
@@ -172,6 +171,9 @@ class Csv2JsonConverter:
 
     def run(self):
         """Get lists of files to convert. Iterate over it and converts each file."""
+        # Exception handler
+        sys.excepthook = exc_handler
+
         # Parse command line arguments
         self.__parse_args()
         self.__args.data_dir = self._get_data_dir(self.__args.dir)

@@ -1,8 +1,3 @@
-import sys
-
-from ..Utils.exception_handler import exc_handler
-
-
 class Block:
     """A class representing a memory block with footprint and home."""
 
@@ -18,7 +13,6 @@ class Block:
 
         # Block index
         if not isinstance(b_id, int) or isinstance(b_id, bool):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"b_id: incorrect type {type(b_id)}")
         else:
@@ -26,21 +20,18 @@ class Block:
 
         # Rank to which block is initially assigned
         if not isinstance(h_id, int) or isinstance(h_id, bool):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"h_id: incorrect type {type(h_id)}")
         self.__home_id = h_id
 
         # Nonnegative size required to for memory footprint of this block
         if not isinstance(size, float) or size < 0.0:
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
 
         # Possibly empty set of objects initially attached to block
         if not isinstance(o_ids, set):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"o_ids: incorrect type {type(o_ids)}")
         self.__attached_object_ids = o_ids

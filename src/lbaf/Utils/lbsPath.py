@@ -1,4 +1,4 @@
-"""This module contains common path utility functions"""
+"""This module contains path utility methods."""
 import os
 from typing import Optional
 

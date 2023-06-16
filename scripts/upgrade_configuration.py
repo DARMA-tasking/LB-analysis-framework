@@ -1,9 +1,14 @@
 """A script to bulk upgrade LBAF configuration files"""
-from lbaf import PROJECT_PATH
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
-from lbaf.Utils.lbsLogger import get_logger
-from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
+import sys
 
+from lbaf import PROJECT_PATH
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsLogging import get_logger
+from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
+from lbaf.Utils.lbsExceptionHandler import exc_handler
+
+# Exception handler
+sys.excepthook = exc_handler
 
 # get and validate args
 parser = PromptArgumentParser()

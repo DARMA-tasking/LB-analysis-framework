@@ -1,6 +1,6 @@
 import os
 
-from .colors import red
+from .lbsColors import red
 
 
 def exc_handler(exception_type, exception, _traceback):

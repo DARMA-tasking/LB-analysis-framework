@@ -14,12 +14,12 @@ from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
-from lbaf.Utils.argparse_prompt import PromptArgumentParser
-from lbaf.Utils.exception_handler import exc_handler
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsExceptionHandler import exc_handler
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
-from lbaf.Utils.lbsLogger import Logger, get_logger
-from lbaf.Utils.path import abspath
+from lbaf.Utils.lbsLogging import Logger, get_logger
+from lbaf.Utils.lbsPath import abspath
 
 
 class InternalParameters:
@@ -121,7 +121,6 @@ class InternalParameters:
                 self.object_qoi = viz.get("object_qoi")
             except Exception as e:
                 self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
-                sys.excepthook = exc_handler
                 raise SystemExit(1) from e
 
             # Retrieve optional parameters
@@ -139,7 +138,6 @@ class InternalParameters:
                 self.json_params["compressed"] = wrt_json["compressed"]
             except Exception as e:
                 self.__logger.error("Missing JSON writer configuration parameter(s): %s", e)
-                sys.excepthook = exc_handler
                 raise SystemExit(1) from e
 
             # Retrieve optional parameters
@@ -202,10 +200,8 @@ class LBAFApplication:
                 self.__logger.error(
                     f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
                 )
-                sys.excepthook = exc_handler
                 raise SystemExit(1) from err
         else:
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Change logger (with parameters from the configuration data)
@@ -258,7 +254,6 @@ class LBAFApplication:
             path_list.append(path)
 
         if not os.path.isfile(path):
-            sys.excepthook = exc_handler
             error_message = "The configuration file cannot be found at\n"
             for invalid_path in path_list:
                 error_message += " " + invalid_path + " -> not found\n"
@@ -314,6 +309,9 @@ class LBAFApplication:
 
     def run(self):
         """Run the LBAF application."""
+        # Exception handler
+        sys.excepthook = exc_handler
+
         # Parse command line arguments
         self.__parse_args()
 
@@ -467,7 +465,6 @@ class LBAFApplication:
             # Verify grid size consistency
             if math.prod(self.__parameters.grid_size) < n_ranks:
                 self.__logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
-                sys.excepthook = exc_handler
                 raise SystemExit(1)
 
             # Look for prescribed QOI bounds

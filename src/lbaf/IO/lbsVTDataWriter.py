@@ -7,7 +7,6 @@ from logging import Logger
 import brotli
 
 from ..Model.lbsPhase import Phase
-from ..Utils.exception_handler import exc_handler
 
 
 class VTDataWriter:
@@ -45,7 +44,6 @@ class VTDataWriter:
             self.__compress = parameters["compressed"]
         except Exception as e:
             self.__logger.error(f"Missing JSON writer configuration parameter(s): {e}")
-            sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
     def __create_tasks(self, rank_id, objects, migratable):
@@ -107,7 +105,6 @@ class VTDataWriter:
             [isinstance(p, Phase) for p in phases.values()]):
             self.__logger.error(
                 "JSON writer must be passed a dictionary of phases")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Assemble mapping from ranks to their phases

@@ -2,13 +2,10 @@
 import itertools
 import math
 import random as rnd
-import sys
 from logging import Logger
 from typing import Optional
 
 from numpy import random
-
-from ..Utils import exception_handler as exc_handler
 
 
 class Statistics:
@@ -228,12 +225,10 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
         if not arrangements_min_max:
             if logger is not None:
                 logger.error("No optimal arrangements were found")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         if n_arrangements != n_ranks ** len(objects):
             if logger is not None:
                 logger.error("Incorrect number of possible arrangements with repetition")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         if logger is not None:
             logger.info(
@@ -252,12 +247,10 @@ def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, 
     if from_id >= n_ranks:
         if logger is not None:
             logger.error(f"Incorrect sender ID: {from_id} >= {n_ranks}")
-        sys.excepthook = exc_handler
         raise SystemExit(1)
     if to_id >= n_ranks:
         if logger is not None:
             logger.error(f"Incorrect receiver ID: {to_id} >= {n_ranks}")
-        sys.excepthook = exc_handler
         raise SystemExit(1)
 
     # Provide upper bounder on transfer size when none provided
@@ -433,7 +426,6 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
     w_a = visited.get(arrangement, -1.)
     if w_a < 0.:
         logger.error(f"Arrangement {arrangement} not found in visited map")
-        sys.excepthook = exc_handler
         raise SystemExit(1)
 
     # Append current arrangement to trajectory stack
