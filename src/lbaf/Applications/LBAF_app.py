@@ -185,8 +185,19 @@ class LBAFApplication:
                             )
         self.__args = parser.parse_args()
 
-    def __configure(self, path: str):
-        """Configure the application using the configuration file at the given path."""
+    def __merge(self, src: dict, dest: dict) -> dict:
+        """Merges dictionaries. Internally used to merge configuration data"""
+        data = dest.copy()
+        for k in src:
+            if not k in data:
+                data[k] = src[k]
+            else:
+                # exists but inner key might be overriden
+                if isinstance(src[k], dict) and isinstance(data[k], dict):
+                    data[k] = self.__merge(src[k], data[k])
+        return data
+
+    def __read_configuration_file(self, path: str):
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
             try:
@@ -203,6 +214,17 @@ class LBAFApplication:
                 raise SystemExit(1) from err
         else:
             raise SystemExit(1)
+        return data
+
+    def __configure(self, path: str, global_path: Optional[str] = None):
+        """Configure the application using the configuration file at the given path and an optional
+        global configuration file."""
+        local = self.__read_configuration_file(path)
+        global_ = self.__read_configuration_file(global_path) if global_path is not None else []
+
+        data = {}
+        data = self.__merge(local, data)
+        data = self.__merge(global_, data)
 
         # Change logger (with parameters from the configuration data)
         lvl = cast(str, data.get("logging_level", "info"))
@@ -231,27 +253,25 @@ class LBAFApplication:
 
         return data
 
-    def __get_config_path(self) -> str:
+    def __resolve_config_path(self, config_path)-> str:
         """Find the config file from the '-configuration' command line argument and returns its absolute path
         (if configuration file path is relative it is searched in the current working directory and at the end in the
         {PROJECT_PATH}/config directory)
 
         :raises FileNotFoundError: if configuration file cannot be found
         """
-        path = None
-        path_list = []
-
         # search config file in the current working directory if relative
-        path = abspath(self.__args.configuration)
+        path = config_path
+        path_list = []
         path_list.append(path)
         if (
             path is not None and
             not os.path.isfile(path) and
-            not os.path.isabs(self.__args.configuration) and PROJECT_PATH is not None
+            not os.path.isabs(config_path) and PROJECT_PATH is not None
         ):
             # then search config file relative to the config folder
             search_dir = abspath("config", relative_to=PROJECT_PATH)
-            path = search_dir + '/' + self.__args.configuration
+            path = search_dir + '/' + config_path
             path_list.append(path)
 
         if not os.path.isfile(path):
@@ -360,11 +380,16 @@ class LBAFApplication:
                                   "working directory or in the project config directory !")
             self.__args.configuration = "conf.yaml"
 
-        # Find configuration file absolute path
-        config_file = self.__get_config_path()
+        # Find configuration file (global and current) absolute path
+        config_file = self.__resolve_config_path(self.__args.configuration)
+        global_config_file = None
+        try:
+            global_config_file = self.__resolve_config_path("global.yaml")
+        except FileNotFoundError:
+            pass
 
         # Apply configuration
-        cfg = self.__configure(config_file)
+        cfg = self.__configure(config_file, global_config_file)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
         loader = JSONDataFilesValidatorLoader()
