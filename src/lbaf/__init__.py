@@ -11,10 +11,10 @@ PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/.
 """project path (with data, config, tests)"""
 
 # pylint:disable=C0413:wrong-import-position
-from lbaf.Applications.lbsLBAFApplication import LBAFApplication
+from lbaf.Applications.LBAF_app import LBAFApplication
 from lbaf.Utils.lbsVTDataExtractor import VTDataExtractorRunner
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
-from lbaf.Applications.lbsMoveCountsViewer import MoveCountsViewer
+from lbaf.Applications.MoveCountsViewer import MoveCountsViewer
 from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
 from lbaf.Utils.lbsDataStatFilesUpdater import DataStatFilesUpdater
 # pylint:enable=C0413:wrong-import-position

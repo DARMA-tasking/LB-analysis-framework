@@ -1,3 +1,3 @@
 """LBAF module"""
-from .Applications.lbsLBAFApplication import LBAFApplication
+from .Applications.LBAF_app import LBAFApplication
 LBAFApplication().run()

@@ -1,7 +1,7 @@
 """Configuration to generate the documentation."""
 
 # Applications
-import lbaf.Applications.lbsLbafApplication as LBAF
+import lbaf.Applications.LBAF_app as LBAF
 
 # Model
 
