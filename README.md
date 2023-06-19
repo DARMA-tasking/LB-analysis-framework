@@ -16,7 +16,10 @@
 
 The LBAF is available from source only now.
 
-Currently, the only working version of Python is [Python 3.8](https://www.python.org/downloads/). This is due to the compatibility of used packages.
+Currently, the versions of Python are [Python 3.8](https://www.python.org/downloads/) and [Python 3.9](https://www.python.org/downloads/).
+
+The recommended version is Python 3.8. This is because configuration key `save_meshes` is not supported with Python 3.9
+
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
@@ -57,17 +60,10 @@ tox
 
 ### LBAF
 
-In order to run LBAF from main project directory:
+In order to run LBAF:
 
 ```shell
-cd <project-path>
 lbaf -c <config-file-name>
-```
-or
-
-```shell
-cd <project-path>
-python src/lbaf -c <config-file-name>
 ```
 
 `<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`
@@ -76,6 +72,8 @@ If `<config-file-name>` is a relative path then the application will search from
 ### JSON data files Validator
 
 JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
+
+## Standalone usage
 
 Usage for single file:
 ```shell
@@ -101,15 +99,24 @@ python JSON_data_files_validator.py --dir_path=<project-path>/data/nolb-8color-1
 python JSON_data_files_validator.py --dir_path=../../data/nolb-8color-16nodes-data --file_prefix=data --file_suffix=json
 ```
 
+## Run from the LBAF package
+You can more easily run the JSON data files Validator itself wich a dedicated command
+that run from the project directory (for relative path)
+```shell
+lbaf-vt-data-files-validator --dir_path=data/nolb-8color-16nodes-data
+```
+It calls internally a loader script that downloads the JSON data files Validator into LBAF.
+This loader can also be run independently
+```shell
+lbaf-vt-data-files-validator-loader
+```
+
 ### VT data Extractor
 
 VT data Extractor extracts phases from VT stats files.
-
-#### Location
-
-VT data Extractor is located in:
+VT data Extractor can be run using the following command:
 ```shell
-<project-path>/src/lbaf/Utils/vt_data_extractor.py
+lbaf-vt-data-files-validator-loader
 ```
 
 #### Input arguments (defined at the bottom of a file)
