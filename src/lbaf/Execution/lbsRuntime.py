@@ -2,6 +2,7 @@ from logging import Logger
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
+from ..Utils.lbsException import TerseError
 from ..IO.lbsStatistics import compute_function_statistics, min_Hamming_distance
 
 

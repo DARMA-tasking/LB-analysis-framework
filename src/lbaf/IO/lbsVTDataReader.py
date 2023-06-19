@@ -83,15 +83,15 @@ class LoadReader:
         """
 
         if len(self.__vt_data) > 0:
-            metadata = self.__vt_data.get(0).get('metadata')
+            metadata = self.__vt_data.get(0).get("metadata")
             if metadata is not None:
-                shared_node = metadata.get('shared_node')
+                shared_node = metadata.get("shared_node")
                 if shared_node is not None:
-                    num_nodes = shared_node.get('num_nodes')
+                    num_nodes = shared_node.get("num_nodes")
                     if num_nodes is not None:
                         return num_nodes
         else:
-            self.__logger.warn('First vt data file has not been loaded. Cannot get n_ranks from vt data')
+            self.__logger.warn("First vt data file has not been loaded. Cannot get n_ranks from vt data")
 
         # or default detect data files with pattern
         data_dir = f"{os.sep}".join(self.__file_prefix.split(os.sep)[:-1])

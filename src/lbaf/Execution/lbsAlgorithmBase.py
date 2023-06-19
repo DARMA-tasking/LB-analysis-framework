@@ -1,5 +1,4 @@
 import abc
-import sys
 import os
 
 from ..import PROJECT_PATH
@@ -7,7 +6,7 @@ from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
-from ..Utils.lbsLogging import get_logger, Logger
+from ..Utils.lbsLogging import Logger
 from ..Utils.lbsException import TerseError
 
 class AlgorithmBase:
@@ -111,7 +110,7 @@ class AlgorithmBase:
                     for o in self._rebalanced_phase.get_objects()})
             except AttributeError as err:
                 self.__print_QOI("obj")
-                raise TerseError(f"Invalid object_qoi name \"{object_qoi_name}\"")
+                raise TerseError(f"Invalid object_qoi name \"{object_qoi_name}\"") from err
 
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
@@ -148,7 +147,7 @@ class AlgorithmBase:
         if rank_or_obj == "rank":
             # Create list of all Rank QOI (lbsRank.get_*)
             r_qoi_list = ["work"]
-            lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r')
+            lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r', encoding="utf-8")
             lbsRank_lines = lbsRank_file.readlines()
             for line in lbsRank_lines:
                 if line[8:12] == "get_":
@@ -162,7 +161,7 @@ class AlgorithmBase:
         if rank_or_obj == "obj":
             # Create list of all Object QOI (lbsObject.get_*)
             o_qoi_list = []
-            lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
+            lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r', encoding="utf-8")
             lbsObject_lines = lbsObject_file.readlines()
             for line in lbsObject_lines:
                 if line[8:12] == "get_":

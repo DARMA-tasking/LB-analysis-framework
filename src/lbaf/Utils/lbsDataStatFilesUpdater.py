@@ -8,7 +8,6 @@ import brotli
 
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsException import exc_handler, TerseError
-from lbaf.Utils.lbsLogging import Logger, get_logger
 
 
 class DataStatFilesUpdater:
@@ -16,7 +15,6 @@ class DataStatFilesUpdater:
 
     def __init__(self):
         self.__args: dict = None
-        self.__logger: Logger = get_logger()
 
     def __parse_args(self):
         """Parse arguments."""

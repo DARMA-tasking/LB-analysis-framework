@@ -174,13 +174,12 @@ class LBAFApplication:
             help="Path to the config file. If path is relative it must be resolvable from either the current working "
                 "directory or the config directory",
             default="conf.yaml",
-            required=True
         )
         parser.add_argument("-v", "--verbose",
             help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
             default="0"
         )
-        return parser
+        self.__args = parser.parse_args()
 
     def __configure(self, path: str):
         """Configure the application using the configuration file at the given path."""
@@ -211,7 +210,8 @@ class LBAFApplication:
         )
         self.__logger.info(f"Logging level: {lvl.lower()}")
         if log_to_file is not None:
-            self.__logger.info(f"Logging to file: {abspath(data.get('log_to_file'), relative_to=config_dir)}")
+            log_to_file_path = abspath(data.get("log_to_file"), relative_to=config_dir)
+            self.__logger.info(f"Logging to file: {log_to_file_path}")
 
         # Instantiate the application internal parameters
         self.__parameters = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self.__logger)
@@ -301,6 +301,47 @@ class LBAFApplication:
 
         # Return rank load statistics
         return l_stats
+
+    def __print_QOI(self) -> int: # pylint:disable=C0103:invalid-name # not snake case
+        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        verbosity = int(self.__args.verbose)
+
+        # Initialize file paths
+        target_dir = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        rank_script_name = "lbsRank.py"
+        object_script_name = "lbsObject.py"
+
+        # Create list of all Rank QOI (Rank.get_*)
+        r_qoi_list = ["work"]
+        lbs_rank_file = open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8")
+        lbs_rank_lines = lbs_rank_file.readlines()
+        for line in lbs_rank_lines:
+            if line[8:12] == "get_":
+                r_qoi_list.append(line[12:line.find("(")])
+
+        # Create list of all Object QOI (Object.get_*)
+        o_qoi_list = []
+        lbs_object_file = open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8")
+        lbs_object_lines = lbs_object_file.readlines()
+        for line in lbs_object_lines:
+            if line[8:12] == "get_":
+                o_qoi_list.append(line[12:line.find("(")])
+
+        # Print QOI based on verbosity level
+        if verbosity > 0:
+            self.__logger.info("List of Implemented QOI:")
+        if verbosity == 1:
+            self.__logger.info("\tRank QOI:")
+            for r_qoi in r_qoi_list:
+                self.__logger.info(f"\t\t{r_qoi}")
+        elif verbosity > 1:
+            self.__logger.info("\tRank QOI:")
+            for r_qoi in r_qoi_list:
+                self.__logger.info(f"\t\t{r_qoi}")
+            self.__logger.info("")
+            self.__logger.info("\tObject QOI:")
+            for o_qoi in o_qoi_list:
+                self.__logger.info(f"\t\t{o_qoi}")
 
     def run(self):
         """Run the LBAF application."""
@@ -503,86 +544,6 @@ class LBAFApplication:
         self.__logger.info("Process completed without errors")
         return 0
 
-    def __print_QOI(self) -> int:
-        """Print list of implemented QOI based on the '-verbosity' command line argument."""
-        verbosity = int(self.__args.verbose)
-
-        # Initialize file paths
-        TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
-        RANK_SCRIPT_NAME = "lbsRank.py"
-        OBJECT_SCRIPT_NAME = "lbsObject.py"
-
-        # Create list of all Rank QOI (Rank.get_*)
-        r_qoi_list = ["work"]
-        lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r')
-        lbsRank_lines = lbsRank_file.readlines()
-        for line in lbsRank_lines:
-            if line[8:12] == "get_":
-                r_qoi_list.append(line[12:line.find("(")])
-
-        # Create list of all Object QOI (Object.get_*)
-        o_qoi_list = []
-        lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r')
-        lbsObject_lines = lbsObject_file.readlines()
-        for line in lbsObject_lines:
-            if line[8:12] == "get_":
-                o_qoi_list.append(line[12:line.find("(")])
-
-        # Print QOI based on verbosity level
-        if verbosity > 0:
-            self.__logger.info("List of Implemented QOI:")
-        if verbosity == 1:
-            self.__logger.info("\tRank QOI:")
-            for r_qoi in r_qoi_list:
-                self.__logger.info("\t\t" + r_qoi)
-        elif verbosity > 1:
-            self.__logger.info("\tRank QOI:")
-            for r_qoi in r_qoi_list:
-                self.__logger.info("\t\t" + r_qoi)
-            self.__logger.info("")
-            self.__logger.info("\tObject QOI:")
-            for o_qoi in o_qoi_list:
-                self.__logger.info("\t\t" + o_qoi)
-
-    def __print_statistics(self, phase: Phase, phase_name: str):
-        """Print a set of rank and edge statistics"""
-
-        # Print rank statistics
-        l_stats = lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_load(),
-            f"{phase_name} rank load",
-            self._logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_max_object_level_memory(),
-            f"{phase_name} rank object-level memory",
-            self._logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_size(),
-            f"{phase_name} rank working memory",
-            self._logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_shared_memory(),
-            f"{phase_name} rank shared memory",
-            self._logger)
-        lbstats.print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_max_memory_usage(),
-            f"{phase_name} maximum memory usage",
-            self._logger)
-
-        # Print edge statistics
-        lbstats.print_function_statistics(
-            phase.get_edge_maxima().values(),
-            lambda x: x,
-            f"{phase_name} sent volumes",
-            self._logger)
-
-        # Return rank load statistics
-        return l_stats
 
 if __name__ == "__main__":
     LBAFApplication().run()

@@ -25,7 +25,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
                  prefix_chars='-',
                  fromfile_prefix_chars=None,
                  argument_default=None,
-                 conflict_handler='error',
+                 conflict_handler="error",
                  add_help=True,
                  allow_abbrev=True,
                  prompt_default: bool = False):
@@ -41,10 +41,10 @@ class PromptArgumentParser(argparse.ArgumentParser):
 
         # add new argument to request argument prompt
         if self._prompt_default:
-            self.add_argument("--no-prompt", action='store_false',
+            self.add_argument("--no-prompt", action="store_false",
                               help="Disables user prompt to enter values for arguments")
         else:
-            self.add_argument("--prompt", action='store_true',
+            self.add_argument("--prompt", action="store_true",
                               help="Prompt the user to enter values for all arguments")
 
     def __print_description(self):
@@ -70,7 +70,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
             print(msg)
             if choices is not None:
                 for index, choice in enumerate(choices):
-                    print(' [' + yellow(index) + ']' + ' ' + (blue('None') if choice is None else choice))
+                    print(" [" + yellow(index) + "]" + ' ' + (blue("None") if choice is None else choice))
 
             raw_response = input("> ")
             # empty reponse but default value set default
@@ -164,7 +164,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
                 if self.description is not None:
                     self.__print_description()
                 for action in self._actions:
-                    if action.dest != 'help' and action.dest != 'prompt' and action.dest != 'no_prompt':
+                    if action.dest != "help" and action.dest != "prompt" and action.dest != "no_prompt":
                         question = action.dest + " "
                         question += ":str" if action.type is None else f":{action.type.__name__}"
                         question += ": " + action.help

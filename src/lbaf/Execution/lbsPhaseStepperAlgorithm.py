@@ -2,7 +2,7 @@ from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics
-
+from ..Utils.lbsException import TerseError
 
 class PhaseStepperAlgorithm(AlgorithmBase):
     """A concrete class for the phase stepper non-optimzing algorithm."""

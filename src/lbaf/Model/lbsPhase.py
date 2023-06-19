@@ -5,7 +5,6 @@ from typing import Optional
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
 from ..Utils.lbsException import TerseError
-from ..Utils.lbsLogging import get_logger
 from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsObjectCommunicator import ObjectCommunicator

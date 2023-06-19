@@ -7,9 +7,9 @@ def __make_colorizer(color, bg_color=colorama.Back.RESET):
         s = color + bg_color + str(s)
         if style is None:
             pass
-        elif style.upper() == 'DIM':
+        elif style.upper() == "DIM":
             s = colorama.Style.DIM + s
-        elif style.upper() == 'BRIGHT':
+        elif style.upper() == "BRIGHT":
             s = colorama.Style.BRIGHT + s
         return s + colorama.Style.RESET_ALL
     return colored

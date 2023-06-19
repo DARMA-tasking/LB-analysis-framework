@@ -28,7 +28,7 @@ def bool_representer(dumper, value):
         text = "True"
     else:
         text = "False"
-    return dumper.represent_scalar('tag:yaml.org,2002:bool', text)
+    return dumper.represent_scalar("tag:yaml.org,2002:bool", text)
 
 
 class UpgradeAction(Enum):
@@ -82,7 +82,7 @@ class ConfigurationUpgrader:
                 explicit_start=None,
                 explicit_end=None
             )
-            if yaml_node.endswith('...\n'):
+            if yaml_node.endswith("...\n"):
                 yaml_node = yaml_node[:-4]
             yaml_node = ' ' + yaml_node.strip()
         yaml_file.write(yaml_node)

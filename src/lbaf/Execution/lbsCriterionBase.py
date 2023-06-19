@@ -57,7 +57,7 @@ class CriterionBase:
             return criterion(work_model, logger)
         except Exception as e:
             # Otherwise, error out
-            raise TerseError(f"Could not create a criterion with name {criterion_name}")
+            raise TerseError(f"Could not create a criterion with name {criterion_name}") from e
 
     @abc.abstractmethod
     def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=None):

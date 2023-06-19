@@ -9,7 +9,7 @@ class WorkModelBase:
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, parameters=None):
+    def __init__(self, parameters=None): # pylint:disable=W0613:unused-argument # might be used in child class constructor
         """Class constructor.
 
         :param parameters: optional parameters dictionary.
