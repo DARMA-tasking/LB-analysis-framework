@@ -23,15 +23,16 @@ class JSONDataFilesValidatorLoader:
 
     def __parse_args(self):
         """Parse arguments."""
-        parser = PromptArgumentParser(allow_abbrev=False, description="Downloads the JSON_data_files_validator.py script from the VT repository.")
+        parser = PromptArgumentParser(allow_abbrev=False,
+                                      description="Downloads the JSON_data_files_validator.py script " \
+                                      "from the VT repository.", prompt_default=False)
         parser.add_argument("--overwrite",
                             help="Overwrite JSON_data_files_validator.py from VT (default: True)",
                             type=bool,
-                            default=True,
-                            prompt_default=False)
+                            default=True)
         self.__args = parser.parse_args()
 
-    def run(self, overwrite: Optional[bool] = None)-> int:
+    def run(self, overwrite: Optional[bool] = None) -> int:
         """Downloads the VT Data validator script named self.TARGET_SCRIPT_NAME from the VT repository.
 
         :param overwrite: None to parse arg from cli. True to overwrite the script if exists.
