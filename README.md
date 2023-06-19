@@ -89,7 +89,8 @@ lbaf-vt-data-files-validator-loader
 ```
 or
 ```shell
-python /home/thomas/repositories/LB-analysis-framework/src/lbaf/Utils/lbsJSONDataFilesValidatorLoader.py
+cd <project-path>
+python src/lbaf/Utils/lbsJSONDataFilesValidatorLoader.py
 ```
 
 The script is then saved to `<project-path>/src/lbaf/imported/JSON_data_files_validator.py`
@@ -102,6 +103,7 @@ lbaf-vt-data-files-validator
 ```
 or
 ```shell
+cd <project-path>
 python src/lbaf/imported/JSON_data_files_validator.py
 ```
 This command automatically downloads the JSON_data_files_validator.py script if needed.
@@ -140,7 +142,8 @@ lbaf-vt-data-extractor
 ```
 or
 ```shell
-python /home/thomas/repositories/LB-analysis-framework/src/lbaf/Utils/lbsVTDataExtractor.py
+cd <project-path>
+python src/lbaf/Utils/lbsVTDataExtractor.py
 ```
 
 #### Input arguments (defined at the bottom of a file)
