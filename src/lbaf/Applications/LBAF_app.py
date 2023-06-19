@@ -190,11 +190,14 @@ class LBAFApplication:
         data = dest.copy()
         for k in src:
             if not k in data:
+                # if new key
                 data[k] = src[k]
             else:
-                # exists but inner key might be overriden
+                # if key exists in both src and dest
                 if isinstance(src[k], dict) and isinstance(data[k], dict):
-                    data[k] = self.__merge(src[k], data[k])
+                    data[k] = self.__merge(src[k], dest[k])
+                else:
+                    data[k] = src[k]
         return data
 
     def __read_configuration_file(self, path: str):
@@ -223,8 +226,8 @@ class LBAFApplication:
         global_ = self.__read_configuration_file(global_path) if global_path is not None else []
 
         data = {}
-        data = self.__merge(local, data)
         data = self.__merge(global_, data)
+        data = self.__merge(local, data)
 
         # Change logger (with parameters from the configuration data)
         lvl = cast(str, data.get("logging_level", "info"))
