@@ -8,7 +8,7 @@ import brotli
 
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsExceptionHandler import exc_handler
+from lbaf.Utils.lbsException import exc_handler, TerseError
 
 
 class Csv2JsonConverter:
@@ -49,8 +49,7 @@ class Csv2JsonConverter:
         if os.path.isdir(os.path.join(PROJECT_PATH, dir_path)):
             return os.path.join(PROJECT_PATH, dir_path)
         else:
-            print(f"Can not find dir {dir_path}")
-            raise SystemExit(1)
+            raise TerseError(f"Can not find dir {dir_path}")
 
     def _get_files_for_conversion(self) -> list:
         """Return list of tuples as follows (file_to_convert_path, converted_file_path)."""

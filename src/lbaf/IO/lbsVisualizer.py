@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import vtk
 
 from ..Model.lbsPhase import Phase
+from ..Utils.lbsException import TerseError
 from .lbsGridStreamer import GridStreamer
 
 
@@ -57,29 +58,25 @@ class Visualizer:
 
         # Make sure that rank quantity of interest name was passed
         if not isinstance(qoi_request, list) or (l_req := len(qoi_request)) != 3:
-            self.__logger.error(
+            raise TerseError(
                 f"Visualizer expects 3 quantity of interest parameters and not {l_req}")
-            raise SystemExit(1)
         if not (rank_qoi := qoi_request[0]) or not isinstance(rank_qoi, str):
-            self.__logger.error(
+            raise TerseError(
                 "Visualizer expects a non-empty rank quantity of interest name")
-            raise SystemExit(1)
         self.__rank_qoi = rank_qoi
 
         # When rank QOI range was passed make sure it is consistent
         rank_qoi_max = qoi_request[1]
         if rank_qoi_max is not None:
             if not isinstance(rank_qoi_max, float):
-                self.__logger.error(
+                raise TerseError(
                     f"Inconsistent quantity of interest maximum: {rank_qoi_max}")
-                raise SystemExit(1)
 
         # When object QOI name was passed make sure it is consistent
         req_str = f"Creating visualization for rank {self.__rank_qoi}"
         if (object_qoi := qoi_request[2]) and not isinstance(object_qoi, str):
-            self.__logger.error(
+            raise TerseError(
                 "Optional object quantity of interest name must be a string")
-            raise SystemExit(1)
         if object_qoi:
             self.__object_qoi = object_qoi
             req_str += f" and object {self.__object_qoi}"
@@ -89,23 +86,20 @@ class Visualizer:
 
         # Make sure that Phase instances were passed
         if not all([isinstance(p, Phase) for p in phases.values()]):
-            self.__logger.error(
+            raise TerseError(
                 "Visualizer expects a dictionary of phases as input")
-            raise SystemExit(1)
         self.__phases = phases
 
         # Ensure that all phases have the same number of ranks
         n_r = next(iter(phases.values())).get_number_of_ranks()
         if not all([p.get_number_of_ranks() == n_r for p in phases.values()]):
-            self.__logger.error(
+            raise TerseError(
                 f"All phases must have {n_r} ranks as the first one")
-            raise SystemExit(1)
         self.__n_ranks =  n_r
 
         # Ensure that specified grid resolution is correct
         if not isinstance(resolution, numbers.Number) or resolution <= 0.:
-            self.__logger.error("Grid resolution must be a positive number")
-            raise SystemExit(1)
+            raise TerseError("Grid resolution must be a positive number")
         self.__grid_resolution = float(resolution)
 
         # Determine available dimensions for object placement in ranks
@@ -146,16 +140,14 @@ class Visualizer:
             for k in list({"load", "work", self.__rank_qoi})}
         if not all((n_dis := len(self.__rank_attributes["load"])) == len(v)
                    for v in self.__rank_attributes.values()):
-            self.__logger.error(
+            raise TerseError(
                 "Rank attribute distributions do not have equal lengths")
-            raise SystemExit(1)
         self.__distributions = distributions
 
         # Retrieve and verify globale statistics
         if not isinstance(statistics, dict):
-            self.__logger.error(
+            raise TerseError(
                 "Global statistics must be passed in a dictionary")
-            raise SystemExit(1)
         self.__statistics = statistics
 
         # Assign or compute rank quantity of interest range
@@ -737,11 +729,10 @@ class Visualizer:
         # Write ExodusII rank mesh when requested
         if save_meshes:
             if sys.version_info.major == 3 and sys.version_info.minor == 9:
-                self.__logger.error(
+                raise TerseError(
                     "Cannot save meshes when using Python 3.9 (issue with vtk 9.1.0). "
                     "Please use Python 3.8 (vtk 9.0.1)."
                 )
-                raise SystemExit(1)
 
             # Create grid streamer
             streamer = GridStreamer(

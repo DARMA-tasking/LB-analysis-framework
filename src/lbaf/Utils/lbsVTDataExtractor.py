@@ -8,7 +8,7 @@ from multiprocessing.pool import Pool
 
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsExceptionHandler import exc_handler
+from lbaf.Utils.lbsException import exc_handler, TerseError
 
 try:
     import brotli
@@ -65,8 +65,7 @@ class VTDataExtractor():
             elif isinstance(phase, str):
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
-                    print("Phase range wrongly declared.")
-                    raise SystemExit("Phase range wrongly declared.")
+                    raise TerseError("Phase range wrongly declared.")
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
         processed_set = set(processed_list)
@@ -80,7 +79,7 @@ class VTDataExtractor():
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
-            raise SystemExit("No files were found")
+            raise TerseError("No files were found")
         try:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
@@ -128,9 +127,7 @@ class VTDataExtractor():
             if SchemaValidator(schema_type=self.schema_type).is_valid(schema_to_validate=decompressed_dict):
                 print(f"Valid JSON schema in {file_path}")
             else:
-                print(f"Invalid JSON schema in {file_path}")
-                SchemaValidator(schema_type=self.schema_type).validate(schema_to_validate=decompressed_dict)
-                raise SystemExit(1)
+                raise TerseError(f"Invalid JSON schema in {file_path}")
 
         return decompressed_dict
 

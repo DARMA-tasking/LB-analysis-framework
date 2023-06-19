@@ -4,6 +4,7 @@ from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
+from ..Utils.lbsException import TerseError
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -30,18 +31,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
-            self._logger.error(
-                f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
-            raise SystemExit(1)
+            raise TerseError(f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
-            self._logger.error(
-                f"Incorrect provided number of information rounds: {self.__n_rounds}")
-            raise SystemExit(1)
+            raise TerseError(f"Incorrect provided number of information rounds: {self.__n_rounds}")
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
-            self._logger.error(f"Incorrect provided information fanout {self.__fanout}")
-            raise SystemExit(1)
+            raise TerseError(f"Incorrect provided information fanout {self.__fanout}")
         self._logger.info(
             f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
 
@@ -52,8 +48,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._work_model,
             logger=self._logger)
         if not self.__transfer_criterion:
-            self._logger.error(f"Could not instantiate a transfer criterion of type {crit_name}")
-            raise SystemExit(1)
+            raise TerseError(f"Could not instantiate a transfer criterion of type {crit_name}")
 
         # Try to instantiate object transfer strategy
         strat_name = parameters.get("transfer_strategy")
@@ -61,10 +56,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             strat_name.title(),
             parameters,
             self.__transfer_criterion,
-            lgr=self._logger)
+            logger=self._logger)
         if not self.__transfer_strategy:
-            self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
-            raise SystemExit(1)
+            raise TerseError(f"Could not instantiate a transfer strategy of type {strat_name}")
 
     def __information_stage(self):
         """Execute information stage."""

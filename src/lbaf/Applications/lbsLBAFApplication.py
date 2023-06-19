@@ -15,7 +15,7 @@ from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsExceptionHandler import exc_handler
+from lbaf.Utils.lbsException import exc_handler, TerseError
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
 from lbaf.Utils.lbsLogging import Logger, get_logger
@@ -120,8 +120,7 @@ class InternalParameters:
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
             except Exception as e:
-                self.__logger.error(f"Missing LBAF-Viz configuration parameter(s): {e}")
-                raise SystemExit(1) from e
+                raise TerseError(f"Missing LBAF-Viz configuration parameter(s): {e}") from e
 
             # Retrieve optional parameters
             self.save_meshes = viz.get("save_meshes", False)
@@ -137,8 +136,7 @@ class InternalParameters:
             try:
                 self.json_params["compressed"] = wrt_json["compressed"]
             except Exception as e:
-                self.__logger.error("Missing JSON writer configuration parameter(s): %s", e)
-                raise SystemExit(1) from e
+                raise TerseError(f"Missing JSON writer configuration parameter(s): {e}") from e
 
             # Retrieve optional parameters
             self.json_params[
@@ -197,10 +195,7 @@ class LBAFApplication:
                         )
             except yaml.MarkedYAMLError as err:
                 err_line = err.problem_mark.line if err.problem_mark is not None else -1
-                self.__logger.error(
-                    f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}"
-                )
-                raise SystemExit(1) from err
+                raise TerseError(f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}") from err
         else:
             raise SystemExit(1)
 
@@ -464,8 +459,7 @@ class LBAFApplication:
         if self.__parameters.grid_size:
             # Verify grid size consistency
             if math.prod(self.__parameters.grid_size) < n_ranks:
-                self.__logger.error("Grid size: {self.__parameters.grid_size} < {n_ranks}")
-                raise SystemExit(1)
+                raise TerseError("Grid size: {self.__parameters.grid_size} < {n_ranks}")
 
             # Look for prescribed QOI bounds
             qoi_request = [self.__parameters.rank_qoi]

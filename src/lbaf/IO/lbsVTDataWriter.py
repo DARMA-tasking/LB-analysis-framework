@@ -7,6 +7,7 @@ from logging import Logger
 import brotli
 
 from ..Model.lbsPhase import Phase
+from ..Utils.lbsException import TerseError
 
 
 class VTDataWriter:
@@ -43,8 +44,7 @@ class VTDataWriter:
             self.__extension = parameters["json_output_suffix"]
             self.__compress = parameters["compressed"]
         except Exception as e:
-            self.__logger.error(f"Missing JSON writer configuration parameter(s): {e}")
-            raise SystemExit(1) from e
+            raise TerseError(f"Missing JSON writer configuration parameter(s): {e}") from e
 
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
@@ -103,9 +103,8 @@ class VTDataWriter:
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
-            self.__logger.error(
+            raise TerseError(
                 "JSON writer must be passed a dictionary of phases")
-            raise SystemExit(1)
 
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}

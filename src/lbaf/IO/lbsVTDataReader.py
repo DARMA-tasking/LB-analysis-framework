@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import sys
 from logging import Logger
 from multiprocessing import get_context
 from multiprocessing.pool import Pool
@@ -12,7 +11,7 @@ from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
-
+from ..Utils.lbsException import TerseError
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
@@ -73,8 +72,7 @@ class LoadReader:
         # Perform sanity check on number of loaded phases
         l = len(next(iter(self.__vt_data.values())).get("phases"))
         if not all(len(v.get("phases")) == l for v in self.__vt_data.values()):
-            self.__logger.error("Not all JSON files have the same number of phases")
-            raise SystemExit(1)
+            raise TerseError("Not all JSON files have the same number of phases")
 
     def _get_n_ranks(self):
         """Determine the number of ranks automatically.
@@ -132,8 +130,7 @@ class LoadReader:
         metadata = decompressed_dict.get("metadata")
         if not metadata or not (schema_type := metadata.get("type")):
             if not (schema_type := decompressed_dict.get("type")):
-                self.__logger.error("JSON data is missing 'type' key")
-                raise SystemExit(1)
+                raise TerseError("JSON data is missing 'type' key")
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
         # Checking Schema from configuration
@@ -170,9 +167,8 @@ class LoadReader:
 
         # Error out if desired phase was not found
         if not phase_id_found:
-            self.__logger.error(
+            raise TerseError(
                 f"Phase {curr_phase_id} not found for rank {rank_id}")
-            raise SystemExit(1)
 
         # Proceed with desired phase
         self.__logger.debug(

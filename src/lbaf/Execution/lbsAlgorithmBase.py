@@ -8,7 +8,7 @@ from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.lbsLogging import get_logger, Logger
-
+from ..Utils.lbsException import TerseError
 
 class AlgorithmBase:
     """An abstract base class of load/work balancing algorithms."""
@@ -28,30 +28,24 @@ class AlgorithmBase:
         """
         # Assert that a logger instance was passed
         if not isinstance(logger, Logger):
-            get_logger().error(
-                f"Incorrect type {type(logger)} passed instead of Logger instance")
-            raise SystemExit(1)
+            raise TerseError(f"Incorrect type {type(logger)} passed instead of Logger instance")
         self._logger = logger
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
-            self._logger.error("Could not create an algorithm without a work model")
-            raise SystemExit(1)
+            raise TerseError("Could not create an algorithm without a work model")
         self._work_model = work_model
 
         # Assert that a parameters dict was passed
         if not isinstance(parameters, dict):
-            self._logger.error("Could not create an algorithm without a dictionary of parameters")
-            raise SystemExit(1)
+            raise TerseError("Could not create an algorithm without a dictionary of parameters")
 
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
-            self._logger.error("Could not create an algorithm with non-string rank QOI name")
-            raise SystemExit(1)
+            raise TerseError("Could not create an algorithm with non-string rank QOI name")
         self.__rank_qoi = rank_qoi
         if object_qoi and not isinstance(object_qoi, str):
-            self._logger.error("Could not create an algorithm with non-string object QOI name")
-            raise SystemExit(1)
+            raise TerseError("Could not create an algorithm with non-string object QOI name")
         self.__object_qoi = object_qoi
         self._logger.info(
             f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")
@@ -103,8 +97,7 @@ class AlgorithmBase:
             return algorithm(work_model, parameters, logger, rank_qoi, object_qoi)
         except Exception as e:
             # Otherwise, error out
-            logger.error(f"Could not create an algorithm with name {algorithm_name}")
-            raise SystemExit(1) from e
+            raise TerseError(f"Could not create an algorithm with name {algorithm_name}") from e
 
     def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
         """Compute and update run distributions and statistics."""
@@ -117,10 +110,8 @@ class AlgorithmBase:
                     {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
                     for o in self._rebalanced_phase.get_objects()})
             except AttributeError as err:
-                self._logger.error(f"Invalid object_qoi name \"{object_qoi_name}\"")
                 self.__print_QOI("obj")
-                sys.excepthook = exc_handler
-                raise SystemExit(1) from err
+                raise TerseError(f"Invalid object_qoi name \"{object_qoi_name}\"")
 
         # Create or update distributions of rank quantities of interest
         for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
@@ -131,10 +122,8 @@ class AlgorithmBase:
                     [getattr(p, f"get_{rank_qoi_name}")()
                     for p in self._rebalanced_phase.get_ranks()])
             except AttributeError as err:
-                self._logger.error(f"Invalid rank_qoi name \"{rank_qoi_name}\"")
                 self.__print_QOI("rank")
-                sys.excepthook = exc_handler
-                raise SystemExit(1) from err
+                raise TerseError(f"Invalid rank_qoi name \"{rank_qoi_name}\"") from err
         distributions.setdefault("rank work", []).append(
             [self._work_model.compute(p) for p in self._rebalanced_phase.get_ranks()])
 
@@ -210,9 +199,7 @@ class AlgorithmBase:
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
-            self._logger.error(
-                "Algorithm execution requires a dictionary of phases")
-            raise SystemExit(1)
+            raise TerseError("Algorithm execution requires a dictionary of phases")
 
         # Create a rebalanced phase to preserve phase to be rebalanced
         self._rebalanced_phase = Phase(self._logger, p_id)
@@ -227,9 +214,7 @@ class AlgorithmBase:
                 new_ranks.append(new_r)
             self._rebalanced_phase.set_ranks(new_ranks)
         except Exception as err:
-            self._logger.error(
-                f"No phase with index {p_id} is available for processing")
-            raise SystemExit(1) from err
+            raise TerseError(f"No phase with index {p_id} is available for processing") from err
         self._logger.info(
             f"Processing phase {p_id} "
             f"with {self._rebalanced_phase.get_number_of_objects()} objects "

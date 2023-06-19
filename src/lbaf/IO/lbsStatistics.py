@@ -7,6 +7,8 @@ from typing import Optional
 
 from numpy import random
 
+from ..Utils.lbsException import TerseError
+
 
 class Statistics:
     """A class storing descriptive statistics."""
@@ -425,8 +427,7 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
     # Sanity checks regarding current arrangement
     w_a = visited.get(arrangement, -1.)
     if w_a < 0.:
-        logger.error(f"Arrangement {arrangement} not found in visited map")
-        raise SystemExit(1)
+        raise TerseError(f"Arrangement {arrangement} not found in visited map")
 
     # Append current arrangement to trajectory stack
     stack.append(arrangement)

@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Model.lbsPhase import Phase
+from ..Utils.lbsException import TerseError
 
 
 class CriterionBase:
@@ -25,8 +26,7 @@ class CriterionBase:
 
         # Assert that a work model instance was passed
         if not isinstance(work_model, WorkModelBase):
-            logger.error("Could not create a criterion without a work model")
-            raise SystemExit(1)
+            raise TerseError("Could not create a criterion without a work model")
         self._work_model = work_model
 
         # No phase is initially assigned
@@ -37,8 +37,7 @@ class CriterionBase:
 
         # Assert that a phase instance was passed
         if not isinstance(phase, Phase):
-            self._logger.error(f"A {type(phase)} instance was passed to set_phase()")
-            raise SystemExit(1)
+            raise TerseError(f"A {type(phase)} instance was passed to set_phase()")
         self._phase = phase
 
     @staticmethod
@@ -58,8 +57,7 @@ class CriterionBase:
             return criterion(work_model, logger)
         except Exception as e:
             # Otherwise, error out
-            logger.error(f"Could not create a criterion with name {criterion_name}")
-            raise SystemExit(1) from e
+            raise TerseError(f"Could not create a criterion with name {criterion_name}")
 
     @abc.abstractmethod
     def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=None):

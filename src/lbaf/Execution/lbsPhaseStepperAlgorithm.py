@@ -25,9 +25,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
                 [isinstance(p, Phase) for p in phases.values()]):
-            self._logger.error(
-                "Algorithm execution requires a dictionary of phases")
-            raise SystemExit(1)
+            raise TerseError("Algorithm execution requires a dictionary of phases")
 
         # Iterate over all phases
         for p_id, self._rebalanced_phase in phases.items():

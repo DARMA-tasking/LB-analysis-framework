@@ -7,7 +7,7 @@ from collections import Counter
 import brotli
 
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsExceptionHandler import exc_handler
+from lbaf.Utils.lbsException import exc_handler, TerseError
 from lbaf.Utils.lbsLogging import Logger, get_logger
 
 
@@ -117,8 +117,7 @@ class DataStatFilesUpdater:
         self.__parse_args()
 
         if not (self.__args.file_path is None) ^ (self.__args.dir_path is None):
-            self.__logger.error("One argument value is required for either file-path or dir-path")
-            raise SystemExit(1)
+            raise TerseError("One argument value is required for either file-path or dir-path")
 
         # get input path as absolute path
         if self.__args.file_path:

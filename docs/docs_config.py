@@ -37,7 +37,7 @@ import lbaf.IO.lbsVTDataReader as LoadReader
 import lbaf.IO.lbsVTDataWriter as VTDataWriter
 
 # Utilities
-import lbaf.Utils.lbsExceptionHandler as exc_handler
+import lbaf.Utils.lbsException as exc_handler
 import lbaf.Utils.lbsCsv2JsonDataConverter as Csv2JsonConverter
 import lbaf.Utils.lbsDataStatFilesUpdater as DataStatFilesUpdater
 import lbaf.Utils.lbsLogging as logger

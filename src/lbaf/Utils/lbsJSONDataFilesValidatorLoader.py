@@ -6,7 +6,7 @@ from lbaf import PROJECT_PATH, __version__
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import Logger, get_logger
 from lbaf.Utils.lbsWeb import download
-from lbaf.Utils.lbsExceptionHandler import exc_handler
+from lbaf.Utils.lbsException import exc_handler
 
 IMPORT_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
