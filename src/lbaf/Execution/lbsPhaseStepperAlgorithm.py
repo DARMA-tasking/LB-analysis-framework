@@ -2,7 +2,6 @@ from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics
-from ..Utils.lbsException import TerseError
 
 class PhaseStepperAlgorithm(AlgorithmBase):
     """A concrete class for the phase stepper non-optimzing algorithm."""
@@ -25,7 +24,8 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
                 [isinstance(p, Phase) for p in phases.values()]):
-            raise TerseError("Algorithm execution requires a dictionary of phases")
+            self._logger.error("Algorithm execution requires a dictionary of phases")
+            raise SystemExit(1)
 
         # Iterate over all phases
         for p_id, self._rebalanced_phase in phases.items():

@@ -119,11 +119,11 @@ class ConfigurationUpgrader:
         with open(file_path, 'r', encoding="utf-8") as yaml_file:
             lines = yaml_file.readlines()
             for line in lines:
-                # if comment is a section comment
+                # Section comment
                 section_comments = [f"# Specify {k}" for k in self.__sections]
                 if line.strip() in section_comments:
                     break
-                # else if another comment or empty line consider it is aprt of the file comment (at the top of the file)
+                # Other comment or empty line. Consider it is part of the file comment (at the top of the file)
                 if line.startswith('#') or line.strip() == '':
                     if file_comment is None:
                         file_comment = ''
@@ -141,7 +141,7 @@ class ConfigurationUpgrader:
             if action != UpgradeAction.FORMAT_ONLY:
                 for i, key in enumerate(key_path):
                     is_leaf = i == len(key_path)-1
-                    # if node does not exist create it
+                    # Create the node if it does not exist
                     if not key in node.keys():
                         if action == UpgradeAction.ADD_KEY:
                             if is_leaf:
@@ -160,7 +160,7 @@ class ConfigurationUpgrader:
                             del node[key]
                         elif action == UpgradeAction.ADD_KEY:
                             node[key] = parsed_value
-                    # go next node in child tree
+                    # Go to the next node in child tree
                     if is_leaf:
                         break
 
@@ -180,7 +180,7 @@ class ConfigurationUpgrader:
                         value = conf.get(k)
                         self.write_node(k, value, yaml_file)
                         added_keys.append(k)
-            # process possible other nodes not defined in a specific section
+            # Process possible other nodes not defined in a specific section
             intersect = [value for value in conf.keys() if not value in added_keys ]
             if len(intersect) > 0:
                 keys_without_group = "`" + str.join("`, `", intersect) + "`"

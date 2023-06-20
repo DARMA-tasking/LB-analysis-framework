@@ -16,11 +16,15 @@ def download(
 ):
     """Download a file to a local directory.
 
-    :param file_title. Used for logs. Defaults to the downloaded file name.
+    :param url: The url
+    :param target_dir: The directory where to place the downloaded file.
+    :param logger: A logger instance for logs
+    :param expected_content_type: Specify the expected content type of the file
+    :param file_title: Used for logs. Defaults to the downloaded file name.
 
     :raises ConnectionError: on connection error
     :raises ConnectionError: on HTTP response error
-    :raises ConnectionError: on invalid content type and if no previous download is available
+    :raises ConnectionError: on invalid content type and if file has not already been downloaded
     """
 
     url_parsed = urlparse(url)
@@ -32,16 +36,16 @@ def download(
     if not os.path.isdir(target_dir):
         os.makedirs(target_dir)
 
-    # create empty __init__.py file
+    # Create empty __init__.py file
     with open(os.path.join(target_dir, "__init__.py"), "wt", encoding="utf-8"):
         pass
-    # then download the SchemaValidator for vt files
+    # Download the file
     try:
         logger.info(f"Retrieve {file_title} at {url}")
         tmp_filepath, http_message = urlretrieve(url, os.path.join(target_dir, '~' + filename))
         filepath = os.path.join(target_dir, filename)
         content_type = http_message.get_content_type()
-        # validate content type for script that has been retrieved
+        # Validate content type for script that has been retrieved
         if content_type == expected_content_type:
             os.rename(tmp_filepath, filepath)
             logger.info(f"Saved {file_title} to: {filepath}")
@@ -59,6 +63,6 @@ def download(
                 )
     except HTTPError as err:
         raise ConnectionError(f"Can not download file: {err.filename} \n"
-                                f"Server responded with code: {err.fp.code} and message: {err.fp.msg}") from err
+                              f"Server responded with code: {err.fp.code} and message: {err.fp.msg}") from err
     except URLError as err:
         raise ConnectionError("Probably there is no internet connection") from err

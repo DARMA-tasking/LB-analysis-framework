@@ -4,7 +4,7 @@ from typing import Optional
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
-from ..Utils.lbsException import TerseError
+from ..Utils.lbsLogging import get_logger
 from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsObjectCommunicator import ObjectCommunicator
@@ -25,8 +25,9 @@ class Phase:
             reader: a JSON VT reader instance"""
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
-            raise TerseError(
+            get_logger().error(
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
+            raise SystemExit(1)
         self.__logger = lgr
         self.__logger.info(f"Instantiating phase {p_id}")
 
@@ -337,7 +338,9 @@ class Phase:
 
         # Perform sanity checks
         if len(v_recv) != len(v_sent):
-            raise TerseError(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
+            self.__logger.error(
+                f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
+            raise SystemExit(1)
 
         # Compute and report communication volume statistics
         print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)

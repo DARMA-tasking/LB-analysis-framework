@@ -1,14 +1,14 @@
 import argparse
 import json
 import os
-import sys
 import time
 from multiprocessing import get_context
 from multiprocessing.pool import Pool
+from typing import Optional
 
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsException import exc_handler, TerseError
+from lbaf.Utils.lbsLogging import get_logger, Logger
 
 try:
     import brotli
@@ -23,7 +23,8 @@ class VTDataExtractor():
 
     def __init__(self, input_data_dir: str, output_data_dir: str, phases_to_extract: list, file_prefix: str = "stats",
                  file_suffix: str = "json", compressed: bool = True, schema_type: str = "LBDatafile",
-                 check_schema: bool = False):
+                 check_schema: bool = False, logger: Optional[Logger] = None):
+        self.__logger = logger if logger is not None else get_logger()
         self.start_t = time.perf_counter()
         self.input_data_dir = input_data_dir
         self.output_data_dir = os.path.join(PROJECT_PATH, output_data_dir)
@@ -49,7 +50,8 @@ class VTDataExtractor():
             self.input_data_dir = os.path.join(PROJECT_PATH, self.input_data_dir)
             print(f"Input data directory: {self.input_data_dir}")
         else:
-            raise ValueError("Input data directory not found.")
+            self.__logger.error("Input data directory not found.")
+            raise SystemExit(1)
         # Output data
         if not os.path.exists(self.output_data_dir):
             print("Output data directory not found, creating ...")
@@ -65,7 +67,8 @@ class VTDataExtractor():
             elif isinstance(phase, str):
                 phase_list = phase.split('-')
                 if int(phase_list[0]) >= int(phase_list[1]):
-                    raise TerseError("Phase range wrongly declared.")
+                    get_logger().error("Phase range wrongly declared.")
+                    raise SystemExit(1)
                 phase_range = list(range(int(phase_list[0]), int(phase_list[1]) + 1))
                 processed_list.extend(phase_range)
         processed_set = set(processed_list)
@@ -79,12 +82,14 @@ class VTDataExtractor():
         files = [os.path.abspath(os.path.join(self.input_data_dir, file)) for file in os.listdir(self.input_data_dir)
                  if file.startswith(self.file_prefix) and file.endswith(self.file_suffix)]
         if not files:
-            raise TerseError("No files were found")
+            self.__logger.error("No files were found")
+            raise SystemExit(1)
         try:
             files.sort(key=lambda x: int(x.split('.')[1]))
         except ValueError as err:
-            raise ValueError(f"Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
-                             f"ERROR: {err}") from err
+            self.__logger.error(f"Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
+                                f"ERROR: {err}")
+            raise SystemExit(1) from err
 
         return files
 
@@ -127,7 +132,9 @@ class VTDataExtractor():
             if SchemaValidator(schema_type=self.schema_type).is_valid(schema_to_validate=decompressed_dict):
                 print(f"Valid JSON schema in {file_path}")
             else:
-                raise TerseError(f"Invalid JSON schema in {file_path}")
+                self.__logger.error(
+                    f"Invalid JSON schema in {file_path}")
+                raise SystemExit(1)
 
         return decompressed_dict
 
@@ -202,8 +209,8 @@ class VTDataExtractorRunner:
     def __parse_args(self):
         """Parse arguments."""
         parser = PromptArgumentParser(allow_abbrev=False,
-                                description="Reads VT data and saves chosen phases from it.",
-                                prompt_default=True)
+                                      description="Reads VT data and saves chosen phases from it.",
+                                      prompt_default=True)
         parser.add_argument("--input-dir", help="Input data directory", required=True)
         parser.add_argument("--output-dir", help="Output data directory",
                             default=os.path.join(PROJECT_PATH, "output", "extract"))
@@ -221,9 +228,6 @@ class VTDataExtractorRunner:
 
     def run(self):
         """Run the VTDataExtractor"""
-        # Exception handler
-        sys.excepthook = exc_handler
-
         # Parse command line arguments
         self.__parse_args()
 

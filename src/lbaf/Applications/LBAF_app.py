@@ -15,7 +15,6 @@ from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsException import exc_handler, TerseError
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
 from lbaf.Utils.lbsLogging import Logger, get_logger
@@ -27,7 +26,7 @@ class InternalParameters:
 
     __logger: Logger
 
-    # input options
+    # Input options
     check_schema: Optional[bool] = None
     output_dir: Optional[str] = None
     output_file_stem: Optional[str] = None
@@ -120,7 +119,9 @@ class InternalParameters:
                 self.rank_qoi = viz["rank_qoi"]
                 self.object_qoi = viz.get("object_qoi")
             except Exception as e:
-                raise TerseError(f"Missing LBAF-Viz configuration parameter(s): {e}") from e
+                self.__logger.error(
+                    f"Missing LBAF-Viz configuration parameter(s): {e}")
+                raise SystemExit(1) from e
 
             # Retrieve optional parameters
             self.save_meshes = viz.get("save_meshes", False)
@@ -136,7 +137,9 @@ class InternalParameters:
             try:
                 self.json_params["compressed"] = wrt_json["compressed"]
             except Exception as e:
-                raise TerseError(f"Missing JSON writer configuration parameter(s): {e}") from e
+                self.__logger.error(
+                    f"Missing JSON writer configuration parameter(s): {e}")
+                raise SystemExit(1) from e
 
             # Retrieve optional parameters
             self.json_params[
@@ -168,17 +171,18 @@ class LBAFApplication:
     def __parse_args(self):
         """Parse arguments."""
         parser = PromptArgumentParser(allow_abbrev=False,
-                                description="Run a Load-Balancing Simulation with some configuration",
-                                prompt_default=False)
+                                      description="Run a Load-Balancing Simulation with some configuration",
+                                      prompt_default=False)
         parser.add_argument("-c", "--configuration",
-            help="Path to the config file. If path is relative it must be resolvable from either the current working "
-                "directory or the config directory",
-            default="conf.yaml",
-        )
+                            help="Path to the config file. If path is relative it must be resolvable from either the "
+                                 "current working directory or the config directory",
+                            default="conf.yaml",
+                            )
         parser.add_argument("-v", "--verbose",
-            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
-            default="0"
-        )
+                            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank "
+                                 "and object QOI.",
+                            default="0"
+                            )
         self.__args = parser.parse_args()
 
     def __configure(self, path: str):
@@ -194,7 +198,9 @@ class LBAFApplication:
                         )
             except yaml.MarkedYAMLError as err:
                 err_line = err.problem_mark.line if err.problem_mark is not None else -1
-                raise TerseError(f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}") from err
+                self.__logger.error(
+                    f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}")
+                raise SystemExit(1) from err
         else:
             raise SystemExit(1)
 
@@ -302,7 +308,7 @@ class LBAFApplication:
         # Return rank load statistics
         return l_stats
 
-    def __print_QOI(self) -> int: # pylint:disable=C0103:invalid-name # not snake case
+    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name # not snake case
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
@@ -345,9 +351,6 @@ class LBAFApplication:
 
     def run(self):
         """Run the LBAF application."""
-        # Exception handler
-        sys.excepthook = exc_handler
-
         # Parse command line arguments
         self.__parse_args()
 
@@ -500,7 +503,9 @@ class LBAFApplication:
         if self.__parameters.grid_size:
             # Verify grid size consistency
             if math.prod(self.__parameters.grid_size) < n_ranks:
-                raise TerseError("Grid size: {self.__parameters.grid_size} < {n_ranks}")
+                self.__logger.error(
+                    "Grid size: {self.__parameters.grid_size} < {n_ranks}")
+                raise SystemExit(1)
 
             # Look for prescribed QOI bounds
             qoi_request = [self.__parameters.rank_qoi]

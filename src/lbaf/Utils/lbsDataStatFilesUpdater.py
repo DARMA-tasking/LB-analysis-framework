@@ -1,13 +1,12 @@
 """src/lbaf/Utils/lbsDataStatFilesUpdater.py"""
 import json
 import os
-import sys
 from collections import Counter
 
 import brotli
 
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsException import exc_handler, TerseError
+from lbaf.Utils.lbsLogging import get_logger
 
 
 class DataStatFilesUpdater:
@@ -108,16 +107,15 @@ class DataStatFilesUpdater:
 
     def run(self):
         """Run the DataStatsFilesUpdater logic."""
-        # Exception handler
-        sys.excepthook = exc_handler
-
         # Parse command line arguments
         self.__parse_args()
 
         if not (self.__args.file_path is None) ^ (self.__args.dir_path is None):
-            raise TerseError("One argument value is required for either file-path or dir-path")
+            get_logger().error(
+                "One argument value is required for either file-path or dir-path")
+            raise SystemExit(1)
 
-        # get input path as absolute path
+        # Get input path as absolute path
         if self.__args.file_path:
             self.__args.file_path = os.path.abspath(self.__args.file_path)
         if self.__args.dir_path:

@@ -8,21 +8,20 @@ from typing import Union
 from ..IO.lbsStatistics import inverse_transform_sample
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from ..Utils.lbsException import TerseError
 from .lbsTransferStrategyBase import TransferStrategyBase
 
 
 class RecursiveTransferStrategy(TransferStrategyBase):
     """A concrete class for the recursive transfer strategy."""
 
-    def __init__(self, criterion, parameters: dict, lgr: Logger):
+    def __init__(self, criterion, parameters: dict, logger: Logger):
         """Class constructor.
 
         :param criterion: a CriterionBase instance
         :param parameters: a dictionary of parameters.
         """
         # Call superclass init
-        super(RecursiveTransferStrategy, self).__init__(criterion, parameters, lgr)
+        super(RecursiveTransferStrategy, self).__init__(criterion, parameters, logger)
 
         # Useful fields
         self.__average_load = None
@@ -38,8 +37,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             "small_objects": self.small_objects}
         o_s = parameters.get("order_strategy")
         if o_s not in self.__strategy_mapped:
-            raise TerseError(f"{o_s} does not exist in known ordering strategies: "
+            self._logger.error(f"{o_s} does not exist in known ordering strategies: "
                                 f"{[x for x in self.__strategy_mapped]}")
+            raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
 

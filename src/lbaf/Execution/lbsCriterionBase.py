@@ -4,8 +4,7 @@ from typing import List, Optional
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Model.lbsPhase import Phase
-from ..Utils.lbsException import TerseError
-
+from ..Utils.lbsLogging import get_logger
 
 class CriterionBase:
     """An abstract base class of optimization criteria for LBAF execution."""
@@ -22,11 +21,13 @@ class CriterionBase:
 
         # Assign logger to instance variable
         self._logger = logger
-        logger.debug(f"Creating base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
+        logger.debug(
+            f"Creating base criterion with {str(type(work_model)).rsplit('.', maxsplit=1)[-1][:-2]} work model")
 
         # Assert that a work model instance was passed
         if not isinstance(work_model, WorkModelBase):
-            raise TerseError("Could not create a criterion without a work model")
+            self._logger.error("Could not create a criterion without a work model")
+            raise SystemExit(1)
         self._work_model = work_model
 
         # No phase is initially assigned
@@ -37,7 +38,8 @@ class CriterionBase:
 
         # Assert that a phase instance was passed
         if not isinstance(phase, Phase):
-            raise TerseError(f"A {type(phase)} instance was passed to set_phase()")
+            self._logger.error(f"A {type(phase)} instance was passed to set_phase()")
+            raise SystemExit(1)
         self._phase = phase
 
     @staticmethod
@@ -57,7 +59,8 @@ class CriterionBase:
             return criterion(work_model, logger)
         except Exception as e:
             # Otherwise, error out
-            raise TerseError(f"Could not create a criterion with name {criterion_name}") from e
+            get_logger().error(f"Could not create a criterion with name {criterion_name}")
+            raise SystemExit(1) from e
 
     @abc.abstractmethod
     def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=None):

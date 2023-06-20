@@ -5,10 +5,7 @@ from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger
 from lbaf.IO.lbsConfigurationUpgrader import ConfigurationUpgrader, UpgradeAction
-from lbaf.Utils.lbsException import exc_handler
 
-# Exception handler
-sys.excepthook = exc_handler
 
 # get and validate args
 parser = PromptArgumentParser()

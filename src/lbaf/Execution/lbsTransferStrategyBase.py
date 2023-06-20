@@ -3,7 +3,8 @@ import math
 from logging import Logger
 
 from ..Execution.lbsCriterionBase import CriterionBase
-from ..Utils.lbsException import TerseError
+from ..Utils.lbsLogging import get_logger
+
 
 class TransferStrategyBase:
     """An abstract base class of transfer strategies for inform and transfer algorithm."""
@@ -19,12 +20,14 @@ class TransferStrategyBase:
         """
         # Assert that a logger instance was passed
         if not isinstance(logger, Logger):
-            raise TerseError(f"Incorrect type {type(logger)} passed instead of Logger instance")
+            get_logger().error(f"Incorrect type {type(logger)} passed instead of Logger instance")
+            raise SystemExit(1)
         self._logger = logger
 
         # Assert that a criterion base instance was passed
         if not isinstance(criterion, CriterionBase):
-            raise TerseError("Could not create a transfer strategy without a criterion")
+            self._logger.error("Could not create a transfer strategy without a criterion")
+            raise SystemExit(1)
         self._criterion = criterion
 
         # Assign optional parameters
@@ -35,10 +38,10 @@ class TransferStrategyBase:
 
     @staticmethod
     def factory(
-        strategy_name:str,
-        parameters: dict,
-        criterion: CriterionBase,
-        logger: Logger):
+            strategy_name: str,
+            parameters: dict,
+            criterion: CriterionBase,
+            logger: Logger):
         """Instantiate the necessary concrete strategy."""
         # Load up available strategies
         # pylint:disable=C0415:import-outside-toplevel,W0641:possibly-unused-variable
@@ -53,7 +56,8 @@ class TransferStrategyBase:
             return strategy(criterion, parameters, logger)
         except Exception as error:
             # Otherwise, error out
-            raise TerseError(f"Could not create a strategy with name {strategy_name}") from error
+            get_logger().error(f"Could not create a strategy with name {strategy_name}")
+            raise SystemExit(1) from error
 
     @abc.abstractmethod
     def execute(self, phase, ave_load):

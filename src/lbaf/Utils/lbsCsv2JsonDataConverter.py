@@ -1,14 +1,13 @@
 import csv
 import json
 import os
-import sys
 from collections import Counter
 
 import brotli
 
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsException import exc_handler, TerseError
+from lbaf.Utils.lbsLogging import get_logger
 
 
 class Csv2JsonConverter:
@@ -49,7 +48,9 @@ class Csv2JsonConverter:
         if os.path.isdir(os.path.join(PROJECT_PATH, dir_path)):
             return os.path.join(PROJECT_PATH, dir_path)
         else:
-            raise TerseError(f"Can not find dir {dir_path}")
+            get_logger().error(
+                f"Can not find dir {dir_path}")
+            raise SystemExit(1)
 
     def _get_files_for_conversion(self) -> list:
         """Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
@@ -170,9 +171,6 @@ class Csv2JsonConverter:
 
     def run(self):
         """Get lists of files to convert. Iterate over it and converts each file."""
-        # Exception handler
-        sys.excepthook = exc_handler
-
         # Parse command line arguments
         self.__parse_args()
         self.__args.data_dir = self._get_data_dir(self.__args.dir)
@@ -182,6 +180,7 @@ class Csv2JsonConverter:
         for file in files_to_convert:
             self._convert_file(file_path=file)
             print(file[1])
+
 
 if __name__ == "__main__":
     Csv2JsonConverter().run()

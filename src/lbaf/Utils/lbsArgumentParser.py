@@ -33,9 +33,9 @@ class PromptArgumentParser(argparse.ArgumentParser):
         if parents is None:
             parents = []
 
-        super(PromptArgumentParser, self).__init__(prog, usage, description, epilog, parents, formatter_class, prefix_chars,
-                                             fromfile_prefix_chars, argument_default, conflict_handler, add_help,
-                                             allow_abbrev)
+        super(PromptArgumentParser, self).__init__(prog, usage, description, epilog, parents, formatter_class,
+                                                   prefix_chars, fromfile_prefix_chars, argument_default,
+                                                   conflict_handler, add_help, allow_abbrev)
 
         self._prompt_default = prompt_default
 
@@ -64,8 +64,10 @@ class PromptArgumentParser(argparse.ArgumentParser):
         else:
             msg += " [" + blue(None) + ']'
 
+        # The raw_response variable will store the resolved input value
         raw_response = None
 
+        # Ask user until the response value is correct
         while raw_response is None:
             print(msg)
             if choices is not None:
@@ -73,20 +75,20 @@ class PromptArgumentParser(argparse.ArgumentParser):
                     print(" [" + yellow(index) + "]" + ' ' + (blue("None") if choice is None else choice))
 
             raw_response = input("> ")
-            # empty reponse but default value set default
+            # Empty reponse but default value set default
             if raw_response == '' and default:
                 raw_response = default
-            # empty response but no default value set None
+            # Empty response but no default value set None
             elif raw_response == '' or raw_response == "None":
                 raw_response = None
-            # expected bool
+            # Expected bool
             elif value_type == bool:
                 raw_response = value_type in ["TRUE", "True", "true", "1"]
-            # else cast if type set
+            # Else cast if type set
             elif value_type is not None and value_type != str:
                 raw_response = value_type(raw_response)
 
-            # look for choice by choice index or value as input
+            # Look for choice by choice index or value as input
             if choices is not None:
                 for index, choice in enumerate(choices):
                     if raw_response == str(index) or raw_response == choice or \
@@ -99,6 +101,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
                 print(white_on_red(
                     f"{linesep}{linesep} [ERROR] Value \"{raw_response}\" is invalid{linesep}") + linesep)
                 raw_response = None
+            # In case the None response is correct we break the loop
             elif required is False and raw_response is None:
                 break
 
@@ -116,19 +119,19 @@ class PromptArgumentParser(argparse.ArgumentParser):
         if namespace is None:
             namespace = argparse.Namespace()
 
-        # add any action defaults that aren't present
+        # Add any action defaults that aren't present
         for action in self._actions:
             if action.dest is not argparse.SUPPRESS:
                 if not hasattr(namespace, action.dest):
                     if action.default is not argparse.SUPPRESS:
                         setattr(namespace, action.dest, action.default)
 
-        # add any parser defaults that aren't present
+        # Add any parser defaults that aren't present
         for dest in self._defaults.items():
             if not hasattr(namespace, dest):
                 setattr(namespace, dest, self._defaults[dest])
 
-        # set specific dest values from dict
+        # Set specific dest values from dict
         for arg in args:
             if not hasattr(namespace, arg):
                 setattr(namespace, arg, None)
