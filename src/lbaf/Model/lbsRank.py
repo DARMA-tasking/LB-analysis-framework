@@ -1,4 +1,3 @@
-import sys
 import copy
 import math
 import random as rnd
@@ -7,7 +6,6 @@ from logging import Logger
 from .lbsBlock import Block
 from .lbsMessage import Message
 from .lbsObject import Object
-from ..Utils.exception_handler import exc_handler
 
 
 class Rank:
@@ -74,7 +72,6 @@ class Rank:
         """Set rank working memory, called size."""
         # Nonnegative size required for memory footprint of this rank
         if not isinstance(size, float) or size < 0.0:
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
@@ -87,7 +84,6 @@ class Rank:
         """Set rank shared memory blocks."""
         # A set is required for shared memory blocks
         if not isinstance(blocks, set):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"shared blocks: incorrect type {type(blocks)}")
 
@@ -98,7 +94,6 @@ class Rank:
         """Add rank shared memory block."""
         # A Block instance is required to add shared memory block
         if not isinstance(block, Block):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"block: incorrect type {type(block)}")
 
@@ -110,7 +105,6 @@ class Rank:
         try:
             self.__shared_blocks.remove(block)
         except Exception as err:
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}") from err
 

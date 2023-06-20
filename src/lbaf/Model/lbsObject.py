@@ -1,8 +1,7 @@
-import sys
+from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
-from ..Utils.exception_handler import exc_handler
 
 
 class Object:
@@ -11,44 +10,39 @@ class Object:
     def __init__(
         self,
         i: int,
-        r_id: int=None,
+        r_id: Optional[int]=None,
         load: float=0.0,
         size: float=0.0,
-        comm: ObjectCommunicator=None,
+        comm: Optional[ObjectCommunicator]=None,
         user_defined: dict=None,
         subphases: list=None):
 
         # Object index
         if not isinstance(i, int) or isinstance(i, bool):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"i: incorrect type {type(i)}")
         self.__index = i
 
         # Nonnegative load required to perform the work of this object
         if not isinstance(load, float) or load < 0.0:
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"load: incorrect type {type(load)} or value: {load}")
         self.__load = load
 
         # Nonnegative size required to for memory footprint of this object
         if not isinstance(size, float) or size < 0.0:
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
 
         # Rank to which object is currently assigned if defined
         if not(r_id is None or isinstance(r_id, int)) or isinstance(r_id, bool):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"r_id: incorrect type {type(r_id)}")
         self.__rank_id = r_id
 
         # Communication graph of this object if defined
         if not(isinstance(comm, ObjectCommunicator) or comm is None):
-            sys.excepthook = exc_handler
             raise TypeError(
                 f"comm: {comm} is of type {type(comm)}. Must be <class 'ObjectCommunicator'>.")
         self.__communicator = comm
@@ -61,13 +55,11 @@ class Object:
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
         else:
-            sys.excepthook = exc_handler
             raise TypeError(f"user_defined: {user_defined} is of type {type(user_defined)}. Must be <class 'dict'>.")
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
                 size := user_defined.get("task_footprint_bytes")), float) or size < 0.0:
-                sys.excepthook = exc_handler
                 raise TypeError(
                     f"size: incorrect type {type(size)} or value: {size}")
             else:
@@ -76,7 +68,6 @@ class Object:
             # Object overhead is by definition its additional working memory
             if not isinstance((
                 overhead := user_defined.get("task_working_bytes")), float) or overhead < 0.0:
-                sys.excepthook = exc_handler
                 raise TypeError(
                     f"overhead: incorrect type {type(overhead)} or value: {overhead}")
             else:
@@ -86,7 +77,6 @@ class Object:
         if isinstance(subphases, list) or subphases is None:
             self.__subphases = subphases
         else:
-            sys.excepthook = exc_handler
             raise TypeError(f"subphases: {subphases} is of type {type(subphases)} but must be <class 'list'>")
 
     def __repr__(self):
@@ -140,7 +130,6 @@ class Object:
     def set_shared_block(self, b: Block) -> None:
         """Assign shared memory block when necessary."""
         if not isinstance(b, Block):
-            sys.excepthook = exc_handler
             raise TypeError(f"shared block: incorrect type {type(b)}")
         self.__shared_block = b
 
@@ -164,7 +153,6 @@ class Object:
         """Assign the communication graph for this object."""
 
         if not isinstance(c, ObjectCommunicator):
-            sys.excepthook = exc_handler
             raise TypeError(f"object communicator: incorrect type {type(c)}")
         self.__communicator = c
 

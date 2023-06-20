@@ -1,14 +1,16 @@
-from logging import Logger
-import os
-import sys
 import math
 import numbers
+import os
 import random
-import vtk
-import matplotlib.pyplot as plt
+import sys
+from logging import Logger
 
-from .lbsGridStreamer import GridStreamer
+import matplotlib.pyplot as plt
+import vtk
+
 from ..Model.lbsPhase import Phase
+from .lbsGridStreamer import GridStreamer
+
 
 class Visualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
@@ -102,7 +104,8 @@ class Visualizer:
 
         # Ensure that specified grid resolution is correct
         if not isinstance(resolution, numbers.Number) or resolution <= 0.:
-            self.__logger.error("Grid resolution must be a positive number")
+            self.__logger.error(
+                "Grid resolution must be a positive number")
             raise SystemExit(1)
         self.__grid_resolution = float(resolution)
 

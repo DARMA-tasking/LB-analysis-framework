@@ -1,12 +1,18 @@
 import os
 
 import json
+import io
 import shutil
 import unittest
+import re
+from contextlib import redirect_stderr, redirect_stdout
+import sys
+
 
 import brotli
 
-from lbaf.Utils.vt_data_extractor import VTDataExtractor
+from lbaf.Utils.lbsVTDataExtractor import VTDataExtractor
+from lbaf.Utils.lbsLogging import get_logger
 
 
 class TestVTDataExtractor(unittest.TestCase):
@@ -16,6 +22,7 @@ class TestVTDataExtractor(unittest.TestCase):
         self.uncompr_data_dir = os.path.join(self.data_dir, "uncompressed_data_to_extract")
         self.output_data_dir = os.path.join(os.path.join(os.path.dirname(__file__), "output"))
         self.expected_data_dir = os.path.join(self.data_dir, "expected")
+        self.logger = get_logger()
 
     def tearDown(self):
         if os.path.isdir(self.output_data_dir):
@@ -220,38 +227,47 @@ class TestVTDataExtractor(unittest.TestCase):
         phases = ["6-5"]
         dir_name = "test_vt_data_extractor_012"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
-        with self.assertRaises(SystemExit) as err:
-            VTDataExtractor(input_data_dir=self.compr_data_dir, output_data_dir=output_data_dir,
-                            phases_to_extract=phases,
-                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
-                            check_schema=False).main()
-        self.assertEqual(err.exception.args[0], "Phase range wrongly declared.")
+        # Check that SystemExit is raised
+        with self.assertLogs(self.logger, level="ERROR") as cm:
+            with self.assertRaises(SystemExit):
+                VTDataExtractor(input_data_dir=self.compr_data_dir, output_data_dir=output_data_dir,
+                                phases_to_extract=phases,
+                                file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                                check_schema=False, logger=self.logger).main()
+            # Check logger message
+            self.assertEqual(cm.output, [
+                "ERROR:root:Phase range wrongly declared."])
 
     def test_vt_data_extractor_013(self):
         phases = [2, 3]
         dir_name = "test_vt_data_extractor_013"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
         input_dir = os.path.join(self.data_dir, "empty_input_dir")
-        with self.assertRaises(SystemExit) as err:
-            VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
-                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
-                            check_schema=False).main()
-        self.assertEqual(err.exception.args[0], "No files were found")
+        # Check that SystemExit is raised
+        with self.assertLogs(self.logger, level="ERROR") as cm:
+            with self.assertRaises(SystemExit):
+                VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                                file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                                check_schema=False, logger=self.logger).main()
+            # Check logger message
+            self.assertEqual(cm.output, [
+                "ERROR:root:No files were found"])
 
     def test_vt_data_extractor_014(self):
         phases = [2, 3]
         dir_name = "test_vt_data_extractor_014"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
         input_dir = os.path.join(self.data_dir, "wrong_input_files")
-        with self.assertRaises(ValueError) as err:
-            VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
-                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
-                            check_schema=False).main()
-        expected = ["Values in filenames can not be converted to `int`.\nPhases are not sorted.\nERROR: invalid litera"
-                    "l for int() with base 10: 'other'",
-                    "Values in filenames can not be converted to `int`.\nPhases are not sorted.\nERROR: invalid litera"
-                    "l for int() with base 10: 'sm'"]
-        self.assertIn(err.exception.args[0], expected)
+        # Check that SystemExit is raised
+        with self.assertLogs(self.logger, level="ERROR") as cm:
+            with self.assertRaises(SystemExit):
+                VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                                file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                                check_schema=False, logger=self.logger).main()
+            # Check logger message
+            self.assertEqual(cm.output, [
+                "ERROR:root:Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
+                "ERROR: invalid literal for int() with base 10: 'other'"])
 
     def test_vt_data_extractor_015(self):
         phases = [0, 1]
@@ -294,12 +310,14 @@ class TestVTDataExtractor(unittest.TestCase):
         dir_name = "test_vt_data_extractor_017"
         output_data_dir = os.path.join(self.output_data_dir, dir_name)
         input_dir = "input_dir_does_not_exists"
-        with self.assertRaises(SystemExit) as err:
-            VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
-                            file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
-                            check_schema=False).main()
-        self.assertEqual(err.exception.args[0], "Input data directory not found.")
-
+        # Check that SystemExit is raised
+        with self.assertLogs(self.logger, level="ERROR") as cm:
+            with self.assertRaises(SystemExit):
+                VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
+                                    file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                                    check_schema=False, logger=self.logger).main()
+            # Check logger message
+            self.assertEqual(cm.output, ["ERROR:root:Input data directory not found."])
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,10 +1,8 @@
-import sys
 from logging import Logger
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Execution.lbsAlgorithmBase import AlgorithmBase
 from ..IO.lbsStatistics import compute_function_statistics, min_Hamming_distance
-from ..Utils.exception_handler import exc_handler
 
 
 class Runtime:
@@ -34,7 +32,6 @@ class Runtime:
         if not phases or not isinstance(phases, dict):
             self.__logger.error(
                 "Could not create a runtime without a dictionnary of phases")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__phases = phases
 
@@ -55,7 +52,6 @@ class Runtime:
         if not self.__algorithm:
             self.__logger.error(
                 f"Could not instantiate an algorithm of type {self.__algorithm}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Initialize run distributions and statistics

@@ -16,7 +16,10 @@
 
 The LBAF is available from source only now.
 
-Currently, the only working version of Python is [Python 3.8](https://www.python.org/downloads/). This is due to the compatibility of used packages.
+Currently, the versions of Python are [Python 3.8](https://www.python.org/downloads/) and [Python 3.9](https://www.python.org/downloads/).
+
+The recommended version is Python 3.8. This is because configuration key `save_meshes` is not supported with Python 3.9
+
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
@@ -57,17 +60,17 @@ tox
 
 ### LBAF
 
-In order to run LBAF from main project directory:
+In order to run LBAF:
 
 ```shell
-cd <project-path>
 lbaf -c <config-file-name>
 ```
+
 or
 
 ```shell
 cd <project-path>
-python src/lbaf/Applications/LBAF_App.py -c <config-file-name>
+python src/lbaf/Applications/LBAF_app.py -c <config-file-name>
 ```
 
 `<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`
@@ -77,39 +80,70 @@ If `<config-file-name>` is a relative path then the application will search from
 
 JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
 
+
+## Download into LBAF
+
+A command can be used to only download the data files validator without running it
+```shell
+lbaf-vt-data-files-validator-loader
+```
+or
+```shell
+cd <project-path>
+python src/lbaf/Utils/lbsJSONDataFilesValidatorLoader.py
+```
+
+The script is then saved to `<project-path>/src/lbaf/imported/JSON_data_files_validator.py`
+
+## Download and Run from LBAF
+
+it can be run with
+```shell
+lbaf-vt-data-files-validator
+```
+or
+```shell
+cd <project-path>
+python src/lbaf/imported/JSON_data_files_validator.py
+```
+This command automatically downloads the JSON_data_files_validator.py script if needed.
+
+
 Usage for single file:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --file_path=../../../data/nolb-8color-16nodes-data/data.0.json
+lbaf-vt-data-files-validator --file_path=../../../data/nolb-8color-16nodes-data/data.0.json
 
 # With absolute path
-python JSON_data_files_validator.py --file_path=<project-path>/data/nolb-8color-16nodes-data/data.0.json
+lbaf-vt-data-files-validator --file_path=<project-path>/data/nolb-8color-16nodes-data/data.0.json
 ```
 
 Usage for many files in the same directory:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --dir_path=../../../data/nolb-8color-16nodes-data
+lbaf-vt-data-files-validator --dir_path=../../../data/nolb-8color-16nodes-data
 
 # With absolute path
-python JSON_data_files_validator.py --dir_path=<project-path>/data/nolb-8color-16nodes-data
+lbaf-vt-data-files-validator --dir_path=<project-path>/data/nolb-8color-16nodes-data
 
 # Optionally one could pass --file_prefix and/or --file_suffix
 # When one passes files with given prefix/suffix or both will be validated
 # When no prefix and suffix will be given validator will find most common prefix and suffix in the directory
 # and will use them for validation process
-python JSON_data_files_validator.py --dir_path=../../data/nolb-8color-16nodes-data --file_prefix=data --file_suffix=json
+lbaf-vt-data-files-validator --dir_path=../../data/nolb-8color-16nodes-data --file_prefix=data --file_suffix=json
 ```
 
 ### VT data Extractor
 
 VT data Extractor extracts phases from VT stats files.
-
-#### Location
-
-VT data Extractor is located in:
+VT data Extractor can be run using the following command:
 ```shell
-<project-path>/src/lbaf/Utils/vt_data_extractor.py
+lbaf-vt-data-extractor
+```
+or
+```shell
+cd <project-path>
+python src/lbaf/Utils/lbsVTDataExtractor.py
 ```
 
 #### Input arguments (defined at the bottom of a file)

@@ -1,28 +1,27 @@
-import sys
 import math
 import random
+from bisect import bisect
+from itertools import accumulate
 from logging import Logger
 from typing import Union
-from itertools import accumulate
-from bisect import bisect
 
-from .lbsTransferStrategyBase import TransferStrategyBase
-from ..Model.lbsPhase import Phase
-from ..Utils.exception_handler import exc_handler
 from ..IO.lbsStatistics import inverse_transform_sample
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
+from ..Model.lbsPhase import Phase
+from .lbsTransferStrategyBase import TransferStrategyBase
+
 
 class RecursiveTransferStrategy(TransferStrategyBase):
     """A concrete class for the recursive transfer strategy."""
 
-    def __init__(self, criterion, parameters: dict, lgr: Logger):
+    def __init__(self, criterion, parameters: dict, logger: Logger):
         """Class constructor.
 
         :param criterion: a CriterionBase instance
         :param parameters: a dictionary of parameters.
         """
         # Call superclass init
-        super(RecursiveTransferStrategy, self).__init__(criterion, parameters, lgr)
+        super(RecursiveTransferStrategy, self).__init__(criterion, parameters, logger)
 
         # Useful fields
         self.__average_load = None
@@ -40,7 +39,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         if o_s not in self.__strategy_mapped:
             self._logger.error(f"{o_s} does not exist in known ordering strategies: "
                                 f"{[x for x in self.__strategy_mapped]}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
@@ -131,7 +129,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     success = self.__recursive_extended_search(
                         pick_list,
                         o_src,
-                        lambda x: self._criterion.compute(r_src, x, r_dst),
+                        lambda x, r_src=r_src, r_dst=r_dst: self._criterion.compute(r_src, x, r_dst),
                         1,
                         self._max_objects_per_transfer)
                     if success:

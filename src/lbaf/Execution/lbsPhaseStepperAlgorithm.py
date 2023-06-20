@@ -1,10 +1,7 @@
-import sys
 from logging import Logger
 from .lbsAlgorithmBase import AlgorithmBase
 from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import print_function_statistics
-from ..Utils.exception_handler import exc_handler
-
 
 class PhaseStepperAlgorithm(AlgorithmBase):
     """A concrete class for the phase stepper non-optimzing algorithm."""
@@ -27,9 +24,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
                 [isinstance(p, Phase) for p in phases.values()]):
-            self._logger.error(
-                "Algorithm execution requires a dictionary of phases")
-            sys.excepthook = exc_handler
+            self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
         # Iterate over all phases
@@ -41,7 +36,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
             # Compute and report phase rank work statistics
             print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),
+                self._work_model.compute,
                 f"phase {p_id} rank works",
                 self._logger)
 

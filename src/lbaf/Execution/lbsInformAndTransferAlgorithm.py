@@ -1,11 +1,9 @@
-import sys
-
 from logging import Logger
+
+from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
-from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
-from ..Utils.exception_handler import exc_handler
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -32,20 +30,15 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
         if not isinstance(self.__n_iterations, int) or self.__n_iterations < 0:
-            self._logger.error(
-                f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
-            sys.excepthook = exc_handler
+            self._logger.error(f"Incorrect provided number of algorithm iterations: {self.__n_iterations}")
             raise SystemExit(1)
         self.__n_rounds = parameters.get("n_rounds")
         if not isinstance(self.__n_rounds, int) or self.__n_rounds < 0:
-            self._logger.error(
-                f"Incorrect provided number of information rounds: {self.__n_rounds}")
-            sys.excepthook = exc_handler
+            self._logger.error(f"Incorrect provided number of information rounds: {self.__n_rounds}")
             raise SystemExit(1)
         self.__fanout = parameters.get("fanout")
         if not isinstance(self.__fanout, int) or self.__fanout < 0:
             self._logger.error(f"Incorrect provided information fanout {self.__fanout}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._logger.info(
             f"Instantiated with {self.__n_iterations} iterations, {self.__n_rounds} rounds, fanout {self.__fanout}")
@@ -58,7 +51,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             logger=self._logger)
         if not self.__transfer_criterion:
             self._logger.error(f"Could not instantiate a transfer criterion of type {crit_name}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Try to instantiate object transfer strategy
@@ -67,10 +59,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             strat_name.title(),
             parameters,
             self.__transfer_criterion,
-            lgr=self._logger)
+            logger=self._logger)
         if not self.__transfer_strategy:
             self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def __information_stage(self):

@@ -1,15 +1,14 @@
 """A script to bulk upgrade LBAF configuration files."""
 from enum import Enum
+from logging import Logger
 from pathlib import Path
 from pydoc import locate
-from typing import cast, Any, IO, List
-from logging import Logger
+from typing import IO, Any, List, cast
 
 import yaml
 
-from .lbsConfigurationValidator import ConfigurationValidator
 from .. import PROJECT_PATH
-
+from .lbsConfigurationValidator import ConfigurationValidator
 
 # Uncomment to format numbers with scientific notation without using Pythong automatic rule
 # and also `import re`
@@ -29,7 +28,7 @@ def bool_representer(dumper, value):
         text = "True"
     else:
         text = "False"
-    return dumper.represent_scalar('tag:yaml.org,2002:bool', text)
+    return dumper.represent_scalar("tag:yaml.org,2002:bool", text)
 
 
 class UpgradeAction(Enum):
@@ -52,12 +51,9 @@ ConfigurationDumper.add_representer(bool, bool_representer)
 class ConfigurationUpgrader:
     """This class enables to bulk upgrade configuration files by adding or removing keys."""
 
-    __logger: Logger
-    __sections: dict
-
     def __init__(self, logger: Logger):
-        self.__logger = logger
-        self.__sections = cast(dict, ConfigurationValidator.allowed_keys(group=True))
+        self.__logger: Logger = logger
+        self.__sections: dict = cast(dict, ConfigurationValidator.allowed_keys(group=True))
 
     def write_node(self, k: str, value: Any, yaml_file: IO, indent_size: int = 2):
         """Write a single node (key/value) in the given yaml file."""
@@ -86,7 +82,7 @@ class ConfigurationUpgrader:
                 explicit_start=None,
                 explicit_end=None
             )
-            if yaml_node.endswith('...\n'):
+            if yaml_node.endswith("...\n"):
                 yaml_node = yaml_node[:-4]
             yaml_node = ' ' + yaml_node.strip()
         yaml_file.write(yaml_node)
@@ -123,11 +119,11 @@ class ConfigurationUpgrader:
         with open(file_path, 'r', encoding="utf-8") as yaml_file:
             lines = yaml_file.readlines()
             for line in lines:
-                # if comment is a section comment
+                # Section comment
                 section_comments = [f"# Specify {k}" for k in self.__sections]
                 if line.strip() in section_comments:
                     break
-                # else if another comment or empty line consider it is aprt of the file comment (at the top of the file)
+                # Other comment or empty line. Consider it is part of the file comment (at the top of the file)
                 if line.startswith('#') or line.strip() == '':
                     if file_comment is None:
                         file_comment = ''
@@ -145,7 +141,7 @@ class ConfigurationUpgrader:
             if action != UpgradeAction.FORMAT_ONLY:
                 for i, key in enumerate(key_path):
                     is_leaf = i == len(key_path)-1
-                    # if node does not exist create it
+                    # Create the node if it does not exist
                     if not key in node.keys():
                         if action == UpgradeAction.ADD_KEY:
                             if is_leaf:
@@ -164,7 +160,7 @@ class ConfigurationUpgrader:
                             del node[key]
                         elif action == UpgradeAction.ADD_KEY:
                             node[key] = parsed_value
-                    # go next node in child tree
+                    # Go to the next node in child tree
                     if is_leaf:
                         break
 
@@ -184,7 +180,7 @@ class ConfigurationUpgrader:
                         value = conf.get(k)
                         self.write_node(k, value, yaml_file)
                         added_keys.append(k)
-            # process possible other nodes not defined in a specific section
+            # Process possible other nodes not defined in a specific section
             intersect = [value for value in conf.keys() if not value in added_keys ]
             if len(intersect) > 0:
                 keys_without_group = "`" + str.join("`, `", intersect) + "`"
