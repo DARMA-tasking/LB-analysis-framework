@@ -185,21 +185,6 @@ class LBAFApplication:
                             )
         self.__args = parser.parse_args()
 
-    def __merge(self, src: dict, dest: dict) -> dict:
-        """Merges dictionaries. Internally used to merge configuration data"""
-        data = dest.copy()
-        for k in src:
-            if not k in data:
-                # if new key
-                data[k] = src[k]
-            else:
-                # if key exists in both src and dest
-                if isinstance(src[k], dict) and isinstance(data[k], dict):
-                    data[k] = self.__merge(src[k], dest[k])
-                else:
-                    data[k] = src[k]
-        return data
-
     def __read_configuration_file(self, path: str):
         if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
             # Try to open configuration file in read+text mode
@@ -219,33 +204,57 @@ class LBAFApplication:
             raise SystemExit(1)
         return data
 
-    def __configure(self, path: str, global_path: Optional[str] = None):
-        """Configure the application using the configuration file at the given path and an optional
-        global configuration file."""
-        local = self.__read_configuration_file(path)
-        global_ = self.__read_configuration_file(global_path) if global_path is not None else []
+    def __merge(self, src: dict, dest: dict) -> dict:
+        """Merges dictionaries. Internally used to merge configuration data"""
+        data = dest.copy()
+        for k in src:
+            if not k in data:
+                # if new key
+                data[k] = src[k]
+            else:
+                # if key exists in both src and dest
+                if isinstance(src[k], dict) and isinstance(data[k], dict):
+                    data[k] = self.__merge(src[k], dest[k])
+                else:
+                    data[k] = src[k]
+        return data
 
-        data = {}
-        data = self.__merge(global_, data)
-        data = self.__merge(local, data)
+    def __merge_configurations(self, *config_path):
+        """Generates a unique configuration dict from multiple configurations from a path list"""
+        config = {}
+        for path in config_path:
+            next_config = self.__read_configuration_file(path)
+            config = self.__merge(next_config, config)
+        return config
 
-        # Change logger (with parameters from the configuration data)
-        lvl = cast(str, data.get("logging_level", "info"))
-        config_dir = os.path.dirname(path)
-        log_to_file = data.get("log_to_file", None)
+    def __configure(self, *config_path):
+        """Configure the application using the configuration file(s) at the given path(s).
+
+        :param config_path: The configuration file path.
+            If multiple then provide it from the most generic to the most specialized.
+        :returns: The configuration as a dictionary
+        """
+
+        # merge configurations
+        config = self.__merge_configurations(*config_path)
+
+        # Change logger (with parameters from the configuration)
+        lvl = cast(str, config.get("logging_level", "info"))
+        config_dir = os.path.dirname(config_path[-1]) # Directory of the most specialized configuration
+        log_to_file = config.get("log_to_file", None)
         self.__logger = get_logger(
             name="lbaf",
             level=lvl,
-            log_to_console=data.get("log_to_console", None) is None,
-            log_to_file=None if log_to_file is None else abspath(data.get("log_to_file"), relative_to=config_dir)
+            log_to_console=config.get("log_to_console", None) is None,
+            log_to_file=None if log_to_file is None else abspath(config.get("log_to_file"), relative_to=config_dir)
         )
         self.__logger.info(f"Logging level: {lvl.lower()}")
         if log_to_file is not None:
-            log_to_file_path = abspath(data.get("log_to_file"), relative_to=config_dir)
+            log_to_file_path = abspath(config.get("log_to_file"), relative_to=config_dir)
             self.__logger.info(f"Logging to file: {log_to_file_path}")
 
         # Instantiate the application internal parameters
-        self.__parameters = InternalParameters(config=data, base_dir=os.path.dirname(path), logger=self.__logger)
+        self.__parameters = InternalParameters(config=config, base_dir=config_dir, logger=self.__logger)
 
         # Create VT writer except when explicitly turned off
         self.__json_writer = VTDataWriter(
@@ -254,9 +263,9 @@ class LBAFApplication:
             self.__parameters.output_file_stem,
             self.__parameters.json_params) if self.__parameters.json_params else None
 
-        return data
+        return config
 
-    def __resolve_config_path(self, config_path)-> str:
+    def __resolve_config_path(self, config_path) -> str:
         """Find the config file from the '-configuration' command line argument and returns its absolute path
         (if configuration file path is relative it is searched in the current working directory and at the end in the
         {PROJECT_PATH}/config directory)
@@ -278,13 +287,9 @@ class LBAFApplication:
             path_list.append(path)
 
         if not os.path.isfile(path):
-            error_message = "The configuration file cannot be found at\n"
-            for invalid_path in path_list:
-                error_message += " " + invalid_path + " -> not found\n"
-            error_message += (
-                "If you provide a relative path, please verify that the file exists relative to the "
-                "current working directory or to the `config` directory"
-            )
+            error_message = "The configuration file cannot be found." \
+                            " If you provide a relative path, please verify that the file exists in the " \
+                            "current working directory or in the `<project_path>/config` directory"
             raise FileNotFoundError(error_message)
         else:
             self.__logger.info(f"Found configuration file at path {path}")
@@ -384,15 +389,20 @@ class LBAFApplication:
             self.__args.configuration = "conf.yaml"
 
         # Find configuration file (global and current) absolute path
-        config_file = self.__resolve_config_path(self.__args.configuration)
-        global_config_file = None
+        config_file_list = []
         try:
-            global_config_file = self.__resolve_config_path("global.yaml")
+            config_file_list.append(self.__resolve_config_path(self.__args.configuration))
+        except(FileNotFoundError) as err:
+            self.__logger.error(err)
+            raise SystemExit(-1) from err
+
+        try:
+            config_file_list.append(self.__resolve_config_path("global.yaml"))
         except FileNotFoundError:
             pass
 
         # Apply configuration
-        cfg = self.__configure(config_file, global_config_file)
+        cfg = self.__configure(*config_file_list)
 
         # Download JSON data files validator (JSON data files validator is required to continue)
         loader = JSONDataFilesValidatorLoader()
