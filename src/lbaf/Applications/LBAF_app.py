@@ -67,13 +67,11 @@ class InternalParameters:
 
     def validate_configuration(self, config: dict):
         """Configuration file validation."""
-
         ConfigurationValidator(
             config_to_validate=config, logger=self.__logger).main()
 
     def init_parameters(self, config: dict, base_dir: str):
         """Execute when YAML configuration file was found and checked"""
-
         # Get top-level allowed configuration keys
         self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
 
@@ -388,18 +386,19 @@ class LBAFApplication:
                                   "working directory or in the project config directory !")
             self.__args.configuration = "conf.yaml"
 
-        # Find configuration file (global and current) absolute path
+        # Find configuration files
         config_file_list = []
+        # Global configuration (optional)
+        try:
+            config_file_list.append(self.__resolve_config_path("global.yaml"))
+        except FileNotFoundError:
+            pass
+        # Local/Specialized configuration (required)
         try:
             config_file_list.append(self.__resolve_config_path(self.__args.configuration))
         except(FileNotFoundError) as err:
             self.__logger.error(err)
             raise SystemExit(-1) from err
-
-        try:
-            config_file_list.append(self.__resolve_config_path("global.yaml"))
-        except FileNotFoundError:
-            pass
 
         # Apply configuration
         cfg = self.__configure(*config_file_list)
