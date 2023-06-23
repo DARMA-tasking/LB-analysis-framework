@@ -140,8 +140,8 @@ class ConfigurationUpgrader:
 
             yaml_file.seek(0)
             yaml_content = yaml_file.read()
-            node = yaml.safe_load(yaml_content)
-            conf = set.union(*node.keys())
+            conf = yaml.safe_load(yaml_content)
+            node = conf
             if action != UpgradeAction.FORMAT_ONLY:
                 for i, key in enumerate(key_path):
                     is_leaf = i == len(key_path)-1
@@ -180,12 +180,12 @@ class ConfigurationUpgrader:
                     yaml_file.write('\n')
                 yaml_file.write(f"# Specify {section}\n")
                 for k in self.__sections[section]:
-                    if k in conf:
+                    if k in conf.keys():
                         value = conf.get(k)
                         self.write_node(k, value, yaml_file)
                         added_keys.append(k)
             # process possible other nodes not defined in a specific section
-            intersect = [value for value in conf if not value in added_keys ]
+            intersect = [value for value in conf.keys() if not value in added_keys ]
             if len(intersect) > 0:
                 keys_without_group = "`" + str.join("`, `", intersect) + "`"
                 self.__logger.warning(
