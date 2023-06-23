@@ -216,6 +216,11 @@ class Visualizer:
 
                 # Retain all QOI values while support remains small
                 oq = getattr(o, f"get_{object_qoi}")()
+
+                # Check if the QOI value ends in .0, then convert to integer
+                if isinstance(oq, float) and oq.is_integer():
+                    oq = int(oq)
+
                 if not continuous_object_qoi:
                     oq_all.add(oq)
                     if len(oq_all) > 20:
@@ -453,13 +458,12 @@ class Visualizer:
         scalar_bar_actor.SetWidth(0.42)
         scalar_bar_actor.SetBarRatio(0.3)
         scalar_bar_actor.DrawTickLabelsOn()
+        scalar_bar_actor.SetLabelFormat("%.2G")
         if values:
-            scalar_bar_actor.SetLabelFormat("%.0f")
             scalar_bar_actor.SetNumberOfLabels(len(values))
             scalar_bar_actor.SetAnnotationLeaderPadding(8)
             scalar_bar_actor.SetTitle(title.title().replace('_', ' ') + '\n')
         else:
-            scalar_bar_actor.SetLabelFormat("%.2G")
             scalar_bar_actor.SetNumberOfLabels(2)
             scalar_bar_actor.SetTitle(title.title().replace('_', ' '))
         for text_prop in (
