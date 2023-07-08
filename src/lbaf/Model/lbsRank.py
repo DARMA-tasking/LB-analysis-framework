@@ -1,10 +1,8 @@
 import copy
 import math
-import random as rnd
 from logging import Logger
 
 from .lbsBlock import Block
-from .lbsMessage import Message
 from .lbsObject import Object
 
 
@@ -35,25 +33,17 @@ class Rank:
         # Initialize other instance variables
         self.__size = 0.0
 
-        # Start with empty shared blokck information
+        # Start with empty shared block information
         self.__shared_blocks = {}
-
-        # No information about peers is known initially
-        self.__known_loads = {}
-
-        # No message was received initially
-        self.round_last_received = 0
 
     def copy(self, rank):
         """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
         self.__size = rank.get_size()
-        self.round_last_received = rank.round_last_received
 
         # Shallow copy owned objects
         self.__shared_blocks = copy.copy(rank.__shared_blocks)
-        self.__known_loads = copy.copy(rank.__known_loads)
         self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
@@ -178,38 +168,11 @@ class Rank:
 
     def is_sentinel(self, o: Object) -> list:
         """Return whether given object is sentinel of rank."""
-        if o in self.__sentinel_objects:
-            return True
-        else:
-            return False
-
-    def get_known_loads(self) -> dict:
-        """Return loads of peers know to self."""
-        return self.__known_loads
-
-    def add_known_load(self, rank):
-        """Make rank known to self if not already known."""
-        self.__known_loads.setdefault(rank, rank.get_load())
-
-    def get_targets(self) -> list:
-        """Return list of potential targets for object transfers."""
-        # No potential targets for loadless ranks
-        if not self.get_load() > 0.:
-            return []
-
-        # Remove self from list of targets
-        targets = self.get_known_loads()
-        del targets[self]
-        return targets
+        return (o in self.__sentinel_objects)
 
     def remove_migratable_object(self, o: Object, r_dst: "Rank"):
         """Remove migratable able object from self object sent to peer."""
-        # Remove object from those assigned to self
         self.__migratable_objects.remove(o)
-
-        # Update known load when destination is already known
-        if self.__known_loads and r_dst in self.__known_loads:
-            self.__known_loads[r_dst] += o.get_load()
 
     def get_load(self) -> float:
         """Return total load on rank."""
@@ -220,7 +183,7 @@ class Rank:
         return sum([o.get_load() for o in self.__migratable_objects])
 
     def get_sentinel_load(self) -> float:
-        """Return sentinel load oon rank."""
+        """Return sentinel load on rank."""
         return sum([o.get_load() for o in self.__sentinel_objects])
 
     def get_received_volume(self):
@@ -275,85 +238,3 @@ class Rank:
     def get_max_memory_usage(self) -> float:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
-
-    def reset_all_load_information(self):
-        """Reset all load information known to self."""
-        # Reset information about known peers
-        self.__known_loads = {}
-
-    def initialize_message(self, loads: set, f: int):
-        """Initialize message to be sent to selected peers."""
-        # Retrieve current load on this rank
-        l = self.get_load()
-
-        # Make rank aware of own load
-        self.__known_loads[self] = l
-
-        # Create load message tagged at first round
-        msg = Message(1, self.__known_loads)
-
-        # Broadcast message to pseudo-random sample of ranks excluding self
-        return rnd.sample(list(loads.difference([self])), min(f, len(loads) - 1)), msg
-
-    def forward_message(self, information_round, _rank_set, fanout):
-        """Forward information message to sample of selected peers."""
-        # Create load message tagged at current round
-        msg = Message(information_round, self.__known_loads)
-
-        # Compute complement of set of known peers
-        complement = set(self.__known_loads).difference([self])
-
-        # Forward message to pseudo-random sample of ranks
-        return rnd.sample(list(complement), min(fanout, len(complement))), msg
-
-    def process_message(self, msg):
-        """Update internals when message is received."""
-        # Assert that message has the expected type
-        if not isinstance(msg, Message):
-            self.__logger.warning(f"Attempted to pass message of incorrect type {type(msg)}. Ignoring it.")
-
-        # Update load information
-        self.__known_loads.update(msg.get_content())
-
-        # Update last received message index
-        self.round_last_received = msg.get_round()
-
-    def compute_transfer_cmf(self, transfer_criterion, objects: list, targets: dict, strict=False):
-        """Compute CMF for the sampling of transfer targets."""
-        # Initialize criterion values
-        c_values = {}
-        c_min, c_max = math.inf, -math.inf
-
-        # Iterate over potential targets
-        for r_dst in targets.keys():
-            # Compute value of criterion for current target
-            c_dst = transfer_criterion.compute(self, objects, r_dst)
-
-            # Do not include rejected targets for strict CMF
-            if strict and c_dst < 0.:
-                continue
-
-            # Update criterion values
-            c_values[r_dst] = c_dst
-            if c_dst < c_min:
-                c_min = c_dst
-            if c_dst > c_max:
-                c_max = c_dst
-
-        # Initialize CMF depending on singleton or non-singleton support
-        if c_min == c_max:
-            # Sample uniformly if all criteria have same value
-            cmf = {k: 1.0 / len(c_values) for k in c_values.keys()}
-        else:
-            # Otherwise, use relative weights
-            c_range = c_max - c_min
-            cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
-
-        # Compute CMF
-        sum_p = 0.0
-        for k, v in cmf.items():
-            sum_p += v
-            cmf[k] = sum_p
-
-        # Return normalized CMF and criterion values
-        return {k: v / sum_p for k, v in cmf.items()}, c_values

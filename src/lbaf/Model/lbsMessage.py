@@ -1,18 +1,18 @@
 class Message:
     """A class representing information sent between ranks."""
 
-    def __init__(self, r, c):
+    def __init__(self, r: int, s: set):
         # Member variables passed by constructor
         self.__round = r
-        self.__content = c
+        self.__support = s
 
     def __repr__(self):
-        return f"Message round: {self.__round}, Content: {self.__content}"
+        return f"Message at round: {self.__round}, support: {self.__support}"
 
     def get_round(self):
         """Return message round index."""
         return self.__round
 
-    def get_content(self):
-        """Return message content."""
-        return self.__content
+    def get_support(self):
+        """Return message support."""
+        return self.__support

@@ -65,7 +65,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             # Succeed when criterion is satisfied
             return True
 
-    def execute(self, phase: Phase, ave_load: float):
+    def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self.__average_load = ave_load
@@ -75,11 +75,11 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         # Iterate over ranks
         for r_src in phase.get_ranks():
             # Retrieve potential targets
-            targets = r_src.get_targets()
+            targets = known_peers.get(r_src, set()).difference({r_src})
             if not targets:
                 n_ignored += 1
                 continue
-            self._logger.debug(f"Trying to offload from rank {r_src.get_id()} to {[p.get_id() for p in targets]}:")
+            self._logger.debug(f"Trying to offload rank {r_src.get_id()} onto {[r.get_id() for r in targets]}:")
 
             # Offload objects for as long as necessary and possible
             srt_rank_obj = list(self.__order_strategy(
@@ -89,7 +89,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 # Pick next object in ordered list
                 o = srt_rank_obj.pop()
                 o_src = [o]
-                self._logger.debug(f"* object {o.get_id()}:")
+                self._logger.debug(f"\tobject {o.get_id()}:")
 
                 # Initialize destination information
                 r_dst = None
@@ -98,7 +98,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
                     # Select best destination with respect to criterion
-                    for r_try in targets.keys():
+                    for r_try in targets:
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
                         if c_try > c_dst:
@@ -106,8 +106,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                             r_dst = r_try
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, o_src, targets, False)
+                    p_cmf, c_values = self._compute_transfer_cmf(
+                        r_src, o_src, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1

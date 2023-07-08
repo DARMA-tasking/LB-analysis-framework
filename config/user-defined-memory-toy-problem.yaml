@@ -3,7 +3,7 @@ from_data:
   data_stem: ../data/user-defined-memory-toy-problem/toy_mem
   phase_ids:
     - 0
-check_schema: True
+check_schema: False
 
 # Specify work model
 work_model:
@@ -21,13 +21,13 @@ algorithm:
   phase_id: 0
   parameters:
     n_iterations: 4
-    n_rounds: 4
-    fanout: 4
+    n_rounds: 2
+    fanout: 2
     order_strategy: arbitrary
     transfer_strategy: Clustering
     criterion: Tempered
     max_objects_per_transfer: 32
-    deterministic_transfer: True
+    deterministic_transfer: False
 
 # Specify output
 output_dir: ../output

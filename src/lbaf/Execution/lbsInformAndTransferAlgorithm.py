@@ -1,9 +1,13 @@
+import random
 from logging import Logger
 
 from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
+from ..Model.lbsRank import Rank
+from ..Model.lbsMessage import Message
+from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -64,72 +68,114 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
             raise SystemExit(1)
 
-    def __information_stage(self):
+        # No information about peers is known initially
+        self.__known_peers = {}
+
+    def get_known_peers(self):
+        """Return all known peers."""
+        return self.__known_peers
+
+    def __process_message(self, r_rcv: Rank, m: Message):
+        """Process message received by rank."""
+        # Make rank aware of itself
+        if r_rcv not in self.__known_peers:
+            self.__known_peers[r_rcv] = {r_rcv}
+
+        # Process the message
+        self.__known_peers[r_rcv].update(m.get_support())
+
+    def __forward_message(self, i: int, r_snd: Rank, f:int):
+        """Forward information message to rank peers sampled from known ones."""
+        # Make rank aware of itself
+        if r_snd not in self.__known_peers:
+            self.__known_peers[r_snd] = {r_snd}
+
+        # Create load message tagged at given information round
+        msg = Message(i, self.__known_peers[r_snd])
+
+        # Compute complement of set of known peers
+        complement = self.__known_peers[r_snd].difference({r_snd})
+
+        # Forward message to pseudo-random sample of ranks
+        return random.sample(
+            list(complement), min(f, len(complement))), msg
+
+    def __execute_information_stage(self):
         """Execute information stage."""
         # Build set of all ranks in the phase
         rank_set = set(self._rebalanced_phase.get_ranks())
 
-        # Initialize information messages
+        # Initialize information messages and known peers
+        messages, self.__known_peers = {}, {}
+        n_r = len(rank_set)
+        for r_snd in rank_set:
+            # Make rank aware of itself
+            self.__known_peers[r_snd] = {r_snd}
+
+            # Create initial message spawned from rank
+            msg = Message(0, {r_snd})
+
+            # Broadcast message to random sample of ranks excluding self
+            for r_rcv in random.sample(
+                list(rank_set.difference({r_snd})), min(self.__fanout, n_r - 1)):
+                messages.setdefault(r_rcv, []).append(msg)
+
+        # Sanity check prior to forwarding iterations
+        if (n_m := sum([len(m) for m in messages.values()])) != (n_c := n_r * self.__fanout):
+            self._logger.error(
+                f"Incorrect number of initial messages: {n_m} <> {n_c}")
         self._logger.info(
-            f"Initializing information messages with fanout={self.__fanout}")
-        information_round = 1
-        messages = {}
+            f"Sent {n_m} initial information messages with fanout={self.__fanout}")
 
-        # Iterate over all ranks
-        for p_snd in rank_set:
-            # Reset load information known by sender
-            p_snd.reset_all_load_information()
+        # Process all received initial messages
+        for r_rcv, m_rcv in messages.items():
+            for m in m_rcv:
+                # Process message by recipient
+                self.__process_message(r_rcv, m)
 
-            # Collect message when destination list is not empty
-            dst, msg = p_snd.initialize_message(rank_set, self.__fanout)
-            for p_rcv in dst:
-                messages.setdefault(p_rcv, []).append(msg)
-
-        # Process all messages of first round
-        for p_rcv, msg_lst in messages.items():
-            for m in msg_lst:
-                p_rcv.process_message(m)
-
-        # Report on gossiping status when requested
-        for p in rank_set:
-            self._logger.debug(f"information known to rank {p.get_id()}: "
-                                f"{[p_u.get_id() for p_u in p.get_known_loads()]}")
+        # Perform sanity check on first round of information aggregation
+        n_k = 0
+        for r in rank_set:
+            # Retrieve and tally peers known to rank
+            k_p = self.__known_peers.get(r, {})
+            n_k += len(k_p)
+            self._logger.debug(
+                f"Peers known to rank {r.get_id()}: {[r_k.get_id() for r_k in k_p]}")
+        if n_k != (n_c := n_c + n_r):
+            self._logger.error(
+                f"Incorrect total number of aggregated initial known peers: {n_k} <> {n_c}")
 
         # Forward messages for as long as necessary and requested
-        while information_round < self.__n_rounds:
-            # Initiate next gossiping round
-            self._logger.debug(f"Performing message forwarding round {information_round}")
-            information_round += 1
+        for i in range(1, self.__n_rounds):
+            # Initiate next information round
+            self._logger.debug(f"Performing message forwarding round {i}")
             messages.clear()
 
             # Iterate over all ranks
-            for p_snd in rank_set:
-                # Check whether rank must relay previously received message
-                if p_snd.round_last_received + 1 == information_round:
-                    # Collect message when destination list is not empty
-                    dst, msg = p_snd.forward_message(information_round, rank_set, self.__fanout)
-                    for p_rcv in dst:
-                        messages.setdefault(p_rcv, []).append(msg)
+            for r_snd in rank_set:
+                # Collect message when destination list is not empty
+                dst, msg = self.__forward_message(
+                    i, r_snd, self.__fanout)
+                for r_rcv in dst:
+                    messages.setdefault(r_rcv, []).append(msg)
 
             # Process all messages of first round
-            for p_rcv, msg_lst in messages.items():
-                for msg in msg_lst:
-                    p_rcv.process_message(msg)
+            for r_rcv, msg_lst in messages.items():
+                for m in msg_lst:
+                    self.__process_message(r_rcv, m)
 
-            # Report on gossiping status when requested
+            # Report on known peers when requested
             for rank in rank_set:
                 self._logger.debug(
-                    f"information known to rank {rank.get_id()}: "
-                    f"{[p_u.get_id() for p_u in rank.get_known_loads()]}")
+                    f"Peers known to rank {r.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
-        # Build reverse lookup of ranks to those aware of them
-        for rank in rank_set:
-            # Skip non-loaded ranks
-            if not rank.get_load():
-                continue
+        # Report on final know information ratio
+        n_k = sum([len(k_p) for k_p in self.__known_peers.values() if k_p]) / n_r
+        self._logger.info(
+            f"Average number of peers known to ranks: {n_k} ({100 * n_k / n_r:.2f}% of {n_r})")
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
-        """ Execute 2-phase gossip+transfer algorithm on Phase with index p_id."""
+        """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
 
@@ -144,11 +190,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
 
             # Start with information stage
-            self.__information_stage()
+            self.__execute_information_stage()
 
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
-                self._rebalanced_phase, statistics["average load"])
+                self.__known_peers, self._rebalanced_phase, statistics["average load"])
             n_proposed = n_transfers + n_rejects
             if n_proposed:
                 self._logger.info(

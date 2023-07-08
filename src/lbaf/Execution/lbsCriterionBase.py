@@ -63,8 +63,8 @@ class CriterionBase:
             raise SystemExit(1) from e
 
     @abc.abstractmethod
-    def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=None):
-        """Return value of criterion for candidate objects transfer
+    def compute(self, r_src, o_src, r_dst, o_dst: Optional[List]=[]):
+        """Compute value of criterion for candidate objects transfer
 
         :param r_src: iterable of objects on source
         :param o_src: Rank instance
@@ -72,7 +72,17 @@ class CriterionBase:
         :param o_dst: optional iterable of objects on destination for swaps.
         """
 
-        if o_dst is None:
-            o_dst = []
+        # Must be implemented by concrete subclass
+        pass
+
+    @abc.abstractmethod
+    def estimate(self, r_src, o_src, r_dst_id, o_dst: Optional[List]=[]):
+        """Estimate value of criterion for candidate objects transfer
+
+        :param r_src: iterable of objects on source
+        :param o_src: Rank instance
+        :param r_dst_id: Rank instance ID
+        :param o_dst: optional iterable of objects on destination for swaps.
+        """
 
         # Must be implemented by concrete subclass

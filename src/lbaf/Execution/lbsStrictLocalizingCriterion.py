@@ -43,3 +43,7 @@ class StrictLocalizingCriterion(CriterionBase):
 
         # Accept transfer if this point was reached as no locality was broken
         return 1.
+
+    def estimate(self, r_src: Rank, o_src: list, *args) -> float:
+        """Estimate is compute because all information is local for this criterion."""
+        return self.compute(r_src, o_src, *args)

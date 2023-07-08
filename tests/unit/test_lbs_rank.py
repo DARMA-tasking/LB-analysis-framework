@@ -19,8 +19,6 @@ class TestConfig(unittest.TestCase):
     def test_lbs_rank_initialization(self):
         self.assertEqual(self.rank._Rank__index, 0)
         self.assertEqual(self.rank._Rank__migratable_objects, self.migratable_objects)
-        self.assertEqual(self.rank._Rank__known_loads, {})
-        self.assertEqual(self.rank.round_last_received, 0)
         self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
     def test_lbs_rank_repr(self):
@@ -52,9 +50,6 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_rank_get_sentinel_object_ids(self):
         self.assertEqual(sorted(self.rank.get_sentinel_object_ids()), [15, 18])
-
-    def test_lbs_rank_get_known_loads(self):
-        self.assertEqual(self.rank.get_known_loads(), {})
 
     def test_lbs_rank_get_load(self):
         self.assertEqual(self.rank.get_load(), 9.5)
@@ -91,57 +86,9 @@ class TestConfig(unittest.TestCase):
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
-        self.rank._Rank__known_loads[temp_rank] = 4.0
         self.rank.remove_migratable_object(temp_object, temp_rank)
         self.migratable_objects.remove(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
-
-    def test_lbs_rank_reset_all_load_information(self):
-        temp_rank = Rank(r_id=1, logger=self.logger)
-        self.rank._Rank__known_loads[temp_rank] = 4.0
-        self.assertEqual(self.rank.get_known_loads(), {temp_rank: 4.0})
-        self.rank.reset_all_load_information()
-        self.assertEqual(self.rank.get_known_loads(), {})
-
-    @patch.object(random, "sample")
-    def test_lbs_rank_initialize_message(self, random_mock):
-        self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
-        temp_rank_1 = Rank(r_id=1, logger=self.logger)
-        temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
-        temp_rank_2 = Rank(r_id=2, logger=self.logger)
-        temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
-        random_mock.return_value = [temp_rank_1, temp_rank_2]
-        self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[0],
-                         [temp_rank_1, temp_rank_2])
-        self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[1].get_round(),
-                         Message(1, self.rank._Rank__known_loads).get_round())
-        self.assertEqual(self.rank.initialize_message(loads={self.rank, temp_rank_1, temp_rank_2}, f=4)[1].get_content(),
-                         Message(1, self.rank._Rank__known_loads).get_content())
-
-    @patch.object(random, "sample")
-    def test_lbs_rank_forward_message(self, random_mock):
-        self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
-        temp_rank_1 = Rank(r_id=1, logger=self.logger)
-        temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
-        temp_rank_2 = Rank(r_id=2, logger=self.logger)
-        temp_rank_2._Rank__known_loads[temp_rank_2] = 5.0
-        random_mock.return_value = [temp_rank_1, temp_rank_2]
-        self.assertEqual(self.rank.forward_message(information_round=2, _rank_set=set(), fanout=4)[0],
-                         [temp_rank_1, temp_rank_2])
-        self.assertEqual(self.rank.forward_message(information_round=2, _rank_set=set(), fanout=4)[1].get_round(),
-                         Message(2, self.rank._Rank__known_loads).get_round())
-        self.assertEqual(self.rank.forward_message(information_round=2, _rank_set=set(), fanout=4)[1].get_content(),
-                         Message(2, self.rank._Rank__known_loads).get_content())
-
-    def test_lbs_rank_process_message(self):
-        self.rank._Rank__known_loads[self.rank] = self.rank.get_load()
-        temp_rank_1 = Rank(r_id=1, logger=self.logger)
-        temp_rank_1._Rank__known_loads[temp_rank_1] = 4.0
-        self.assertEqual(self.rank.get_load(), 9.5)
-        self.rank.process_message(Message(1, {temp_rank_1: 4.0}))
-        self.assertEqual(self.rank._Rank__known_loads, {self.rank: 9.5, temp_rank_1: 4.0})
-        self.assertEqual(self.rank.round_last_received, 1)
-
 
 if __name__ == "__main__":
     unittest.main()

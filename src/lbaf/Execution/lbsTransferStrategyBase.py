@@ -36,6 +36,47 @@ class TransferStrategyBase:
         logger.info(
             f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
 
+
+    def _compute_transfer_cmf(self, r_src, objects: list, targets: set, strict=False):
+        """Compute CMF for the sampling of transfer targets."""
+        # Initialize criterion values
+        c_values = {}
+        c_min, c_max = math.inf, -math.inf
+
+        # Iterate over potential targets
+        for r_dst in targets:
+            # Compute value of criterion for current target
+            c_dst = self._criterion.compute(r_src, objects, r_dst)
+
+            # Do not include rejected targets for strict CMF
+            if strict and c_dst < 0.:
+                continue
+
+            # Update criterion values
+            c_values[r_dst] = c_dst
+            if c_dst < c_min:
+                c_min = c_dst
+            if c_dst > c_max:
+                c_max = c_dst
+
+        # Initialize CMF depending on singleton or non-singleton support
+        if c_min == c_max:
+            # Sample uniformly if all criteria have same value
+            cmf = {k: 1.0 / len(c_values) for k in c_values.keys()}
+        else:
+            # Otherwise, use relative weights
+            c_range = c_max - c_min
+            cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
+
+        # Compute CMF
+        sum_p = 0.0
+        for k, v in cmf.items():
+            sum_p += v
+            cmf[k] = sum_p
+
+        # Return normalized CMF and criterion values
+        return {k: v / sum_p for k, v in cmf.items()}, c_values
+
     @staticmethod
     def factory(
             strategy_name: str,
@@ -60,10 +101,10 @@ class TransferStrategyBase:
             raise SystemExit(1) from error
 
     @abc.abstractmethod
-    def execute(self, phase, ave_load):
-        """Excecute transfer strategy on Phase instance
-
+    def execute(self, phase, known_peers: dict, ave_load: float):
+        """Execute transfer strategy on Phase instance
         :param phase: a Phase instance
+        :param known_peers: a dictionary of sets of known rank peers
         :param ave_load: average load in current phase.
         """
         # Must be implemented by concrete subclass

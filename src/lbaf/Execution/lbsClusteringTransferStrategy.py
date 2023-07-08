@@ -85,7 +85,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
         return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
 
-    def execute(self, phase: Phase, ave_load: float):
+    def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self.__average_load = ave_load
@@ -95,7 +95,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Iterate over ranks
         for r_src in phase.get_ranks():
             # Retrieve potential targets
-            targets = r_src.get_targets()
+            targets = known_peers.get(r_src, set()).difference({r_src})
             if not targets:
                 n_ignored += 1
                 continue
@@ -110,7 +110,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             n_swaps = 0
             for o_src in clusters_src.values():
                 swapped_cluster = False
-                for r_try in targets.keys():
+                for r_try in targets:
                     # Iterate over target clusters
                     for o_try in self.__cluster_objects(r_try).values():
                         # Decide whether swap is beneficial
@@ -148,7 +148,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     l_dst = math.inf
 
                     # Select best destination with respect to criterion
-                    for r_try in targets.keys():
+                    for r_try in targets:
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
                         if c_try <= 0.0:
@@ -163,8 +163,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             r_dst = r_try
                 else:
                     # Compute transfer CMF given information known to source
-                    p_cmf, c_values = r_src.compute_transfer_cmf(
-                        self._criterion, o_src, targets, False)
+                    p_cmf, c_values = self._compute_transfer_cmf(
+                        r_src, o_src, targets, False)
                     self._logger.debug(f"CMF = {p_cmf}")
                     if not p_cmf:
                         n_rejects += 1
