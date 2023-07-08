@@ -2,14 +2,14 @@
 import colorama
 
 
-def __make_colorizer(color):
+def __make_colorizer(color, bg_color=colorama.Back.RESET):
     def colored(s, style=None):
-        s = color + str(s)
+        s = color + bg_color + str(s)
         if style is None:
             pass
-        elif style.upper() == 'DIM':
+        elif style.upper() == "DIM":
             s = colorama.Style.DIM + s
-        elif style.upper() == 'BRIGHT':
+        elif style.upper() == "BRIGHT":
             s = colorama.Style.BRIGHT + s
         return s + colorama.Style.RESET_ALL
     return colored
@@ -31,5 +31,7 @@ light_magenta = __make_colorizer(colorama.Fore.LIGHTMAGENTA_EX)
 light_yellow = __make_colorizer(colorama.Fore.LIGHTYELLOW_EX)
 light_white = __make_colorizer(colorama.Fore.LIGHTWHITE_EX)
 light_black = __make_colorizer(colorama.Fore.LIGHTBLACK_EX)
+
+white_on_red = __make_colorizer(colorama.Fore.WHITE, colorama.Back.RED)
 
 colorama.init()

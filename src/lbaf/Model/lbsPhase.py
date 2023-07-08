@@ -1,17 +1,14 @@
-import sys
 import random as rnd
 from logging import Logger
 from typing import Optional
 
+from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
+from ..IO.lbsVTDataReader import LoadReader
+from ..Utils.lbsLogging import get_logger
 from .lbsBlock import Block
 from .lbsObject import Object
-from .lbsRank import Rank
 from .lbsObjectCommunicator import ObjectCommunicator
-
-from ..IO.lbsStatistics import print_subset_statistics, print_function_statistics, sampler
-from ..IO.lbsVTDataReader import LoadReader
-from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import get_logger
+from .lbsRank import Rank
 
 
 class Phase:
@@ -30,7 +27,6 @@ class Phase:
         if not isinstance(lgr, Logger):
             get_logger().error(
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__logger = lgr
         self.__logger.info(f"Instantiating phase {p_id}")
@@ -342,8 +338,8 @@ class Phase:
 
         # Perform sanity checks
         if len(v_recv) != len(v_sent):
-            self.__logger.error(f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
-            sys.excepthook = exc_handler
+            self.__logger.error(
+                f"Number of sent and received communications differ: {len(v_sent)} <> {len(v_recv)}")
             raise SystemExit(1)
 
         # Compute and report communication volume statistics
@@ -429,7 +425,6 @@ class Phase:
             if b_id not in r_src.get_shared_block_ids():
                 self.__logger.error(
                 f"block {b_id} not present on in {r_src.get_shared_blocks()}")
-                sys.excepthook = exc_handler
                 raise SystemExit(1)
 
             if not block.detach_object_id(o_id):

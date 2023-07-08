@@ -1,7 +1,4 @@
 from logging import Logger
-import sys
-
-from ..Utils.exception_handler import exc_handler
 
 
 class ObjectCommunicator:
@@ -32,7 +29,6 @@ class ObjectCommunicator:
             # Sanity check
             if k.get_id() == self.__object_index:
                 self.__logger.error(f"object {self.__object_index} cannot send communication to itself.")
-                sys.excepthook = exc_handler
                 raise IndexError(f"object {self.__object_index} cannot send communication to itself.")
 
             # Update list of volumes

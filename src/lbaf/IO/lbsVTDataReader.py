@@ -1,9 +1,9 @@
 import json
-from logging import Logger
-from multiprocessing.pool import Pool
-from multiprocessing import get_context
 import os
-import sys
+import re
+from logging import Logger
+from multiprocessing import get_context
+from multiprocessing.pool import Pool
 
 import brotli
 
@@ -11,8 +11,6 @@ from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
-from ..Utils.exception_handler import exc_handler
-
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
@@ -48,7 +46,9 @@ class LoadReader:
 
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
-            from ..imported.JSON_data_files_validator import SchemaValidator as sv # pylint:disable=C0415:import-outside-toplevel
+            from ..imported.JSON_data_files_validator import \
+                SchemaValidator as \
+                sv  # pylint:disable=C0415:import-outside-toplevel
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
         # load vt data at rank 0
@@ -58,6 +58,8 @@ class LoadReader:
 
         # determine the number of ranks
         self.n_ranks = self._get_n_ranks()
+        self.__logger.info(f"Number of ranks: {self.n_ranks}")
+
         if self.n_ranks > 1:
             # Load vt data concurrently from rank 1 to n_ranks
             with Pool(context=get_context("fork")) as pool:
@@ -71,29 +73,39 @@ class LoadReader:
         if not all(len(v.get("phases")) == l for v in self.__vt_data.values()):
             self.__logger.error(
                 "Not all JSON files have the same number of phases")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
     def _get_n_ranks(self):
-        """Determine the number of ranks by
-        - reading the first loaded vt data file metadata (Requires first data file loaded)
-        - then (if not available) counting the number of files found in the data directory.
+        """Determine the number of ranks automatically.
+
+        This use the first applicable method in the following methods:
+        1. Read the first loaded vt data file metadata (applicable only if first data file has been loaded)
+        2. List all data file names matching {file_prefix}.{rank_id}.{file_suffix} pattern and return max(rank_id) + 1.
         """
 
         if len(self.__vt_data) > 0:
-            metadata = self.__vt_data.get(0).get('metadata')
+            metadata = self.__vt_data.get(0).get("metadata")
             if metadata is not None:
-                shared_node = metadata.get('shared_node')
+                shared_node = metadata.get("shared_node")
                 if shared_node is not None:
-                    num_nodes = shared_node.get('num_nodes')
+                    num_nodes = shared_node.get("num_nodes")
                     if num_nodes is not None:
                         return num_nodes
         else:
-            self.__logger.warn('First vt data file has not been loaded. Cannot get n_ranks from vt data')
+            self.__logger.warn("First vt data file has not been loaded. Cannot get n_ranks from vt data")
 
-        # or default count files in data dir
+        # or default detect data files with pattern
         data_dir = f"{os.sep}".join(self.__file_prefix.split(os.sep)[:-1])
-        return len([name for name in os.listdir(data_dir)])
+        pattern = re.compile(rf"^{self.__file_prefix}.(\d+).{self.__file_suffix}$")
+        highest_rank = 0
+        for name in os.listdir(data_dir):
+            path = os.path.join(data_dir, name)
+            match_result = pattern.search(path)
+            if match_result:
+                rank_id = int(match_result.group(1))
+                if rank_id > highest_rank:
+                    highest_rank = rank_id
+        return highest_rank + 1
 
     def _get_rank_file_name(self, rank_id: int):
         # Convenience method also used by test harness
@@ -106,7 +118,6 @@ class LoadReader:
 
         # Try to open, read, and decompress file
         if not os.path.isfile(file_name):
-            sys.excepthook = exc_handler
             raise FileNotFoundError(f"File {file_name} not found")
         with open(file_name, "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
@@ -120,8 +131,8 @@ class LoadReader:
         metadata = decompressed_dict.get("metadata")
         if not metadata or not (schema_type := metadata.get("type")):
             if not (schema_type := decompressed_dict.get("type")):
-                self.__logger.error("JSON data is missing 'type' key")
-                sys.excepthook = exc_handler
+                self.__logger.error(
+                    "JSON data is missing 'type' key")
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
@@ -161,7 +172,6 @@ class LoadReader:
         if not phase_id_found:
             self.__logger.error(
                 f"Phase {curr_phase_id} not found for rank {rank_id}")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Proceed with desired phase

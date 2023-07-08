@@ -1,12 +1,10 @@
 import abc
 from logging import Logger
 from typing import List, Optional
-import sys
 
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Model.lbsPhase import Phase
-from ..Utils.exception_handler import exc_handler
-
+from ..Utils.lbsLogging import get_logger
 
 class CriterionBase:
     """An abstract base class of optimization criteria for LBAF execution."""
@@ -23,12 +21,12 @@ class CriterionBase:
 
         # Assign logger to instance variable
         self._logger = logger
-        logger.debug(f"Creating base criterion with {str(type(work_model)).split('.')[-1][:-2]} work model")
+        logger.debug(
+            f"Creating base criterion with {str(type(work_model)).rsplit('.', maxsplit=1)[-1][:-2]} work model")
 
         # Assert that a work model instance was passed
         if not isinstance(work_model, WorkModelBase):
-            logger.error("Could not create a criterion without a work model")
-            sys.excepthook = exc_handler
+            self._logger.error("Could not create a criterion without a work model")
             raise SystemExit(1)
         self._work_model = work_model
 
@@ -41,7 +39,6 @@ class CriterionBase:
         # Assert that a phase instance was passed
         if not isinstance(phase, Phase):
             self._logger.error(f"A {type(phase)} instance was passed to set_phase()")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._phase = phase
 
@@ -62,8 +59,7 @@ class CriterionBase:
             return criterion(work_model, logger)
         except Exception as e:
             # Otherwise, error out
-            logger.error(f"Could not create a criterion with name {criterion_name}")
-            sys.excepthook = exc_handler
+            get_logger().error(f"Could not create a criterion with name {criterion_name}")
             raise SystemExit(1) from e
 
     @abc.abstractmethod

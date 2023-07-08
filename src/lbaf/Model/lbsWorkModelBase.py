@@ -1,16 +1,15 @@
 import abc
 from logging import Logger
-import sys
 
-from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import get_logger
+from ..Utils.lbsLogging import get_logger
+
 
 class WorkModelBase:
     """An abstract base class of per-rank work model."""
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, parameters=None):
+    def __init__(self, parameters=None): # pylint:disable=W0613:unused-argument # might be used in child class constructor
         """Class constructor.
 
         :param parameters: optional parameters dictionary.
@@ -22,10 +21,10 @@ class WorkModelBase:
     def factory(work_name, parameters, lgr: Logger):
         """Produce the necessary concrete work model."""
         # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
-        from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
         from .lbsAffineCombinationWorkModel import AffineCombinationWorkModel
-        # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
+        from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
 
+        # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         # Ensure that work name is valid
         try:
             # Instantiate and return object
@@ -34,7 +33,6 @@ class WorkModelBase:
         except Exception as err:
             # Otherwise, error out
             get_logger().error(f"Could not create a work with name: {work_name}")
-            sys.excepthook = exc_handler
             raise NameError(f"Could not create a work with name: {work_name}") from err
 
     @abc.abstractmethod

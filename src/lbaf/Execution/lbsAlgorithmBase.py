@@ -1,13 +1,12 @@
 import abc
-import sys
+import os
 
+from ..import PROJECT_PATH
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
-from ..Utils.exception_handler import exc_handler
-from ..Utils.logger import get_logger, Logger
-
+from ..Utils.lbsLogging import Logger
 
 class AlgorithmBase:
     """An abstract base class of load/work balancing algorithms."""
@@ -27,34 +26,28 @@ class AlgorithmBase:
         """
         # Assert that a logger instance was passed
         if not isinstance(logger, Logger):
-            get_logger().error(
-                f"Incorrect type {type(logger)} passed instead of Logger instance")
-            sys.excepthook = exc_handler
+            self._logger.error(f"Incorrect type {type(logger)} passed instead of Logger instance")
             raise SystemExit(1)
         self._logger = logger
 
         # Assert that a work model base instance was passed
         if not isinstance(work_model, WorkModelBase):
             self._logger.error("Could not create an algorithm without a work model")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self._work_model = work_model
 
         # Assert that a parameters dict was passed
         if not isinstance(parameters, dict):
             self._logger.error("Could not create an algorithm without a dictionary of parameters")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
 
         # Assert that quantity of interest names are string
         if rank_qoi and not isinstance(rank_qoi, str):
             self._logger.error("Could not create an algorithm with non-string rank QOI name")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__rank_qoi = rank_qoi
         if object_qoi and not isinstance(object_qoi, str):
             self._logger.error("Could not create an algorithm with non-string object QOI name")
-            sys.excepthook = exc_handler
             raise SystemExit(1)
         self.__object_qoi = object_qoi
         self._logger.info(
@@ -108,7 +101,6 @@ class AlgorithmBase:
         except Exception as e:
             # Otherwise, error out
             logger.error(f"Could not create an algorithm with name {algorithm_name}")
-            sys.excepthook = exc_handler
             raise SystemExit(1) from e
 
     def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
@@ -122,8 +114,8 @@ class AlgorithmBase:
                     {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
                     for o in self._rebalanced_phase.get_objects()})
             except AttributeError as err:
+                self.__print_QOI("obj")
                 self._logger.error(f"Invalid object_qoi name \"{object_qoi_name}\"")
-                sys.excepthook = exc_handler
                 raise SystemExit(1) from err
 
         # Create or update distributions of rank quantities of interest
@@ -135,8 +127,8 @@ class AlgorithmBase:
                     [getattr(p, f"get_{rank_qoi_name}")()
                     for p in self._rebalanced_phase.get_ranks()])
             except AttributeError as err:
+                self.__print_QOI("rank")
                 self._logger.error(f"Invalid rank_qoi name \"{rank_qoi_name}\"")
-                sys.excepthook = exc_handler
                 raise SystemExit(1) from err
         distributions.setdefault("rank work", []).append(
             [self._work_model.compute(p) for p in self._rebalanced_phase.get_ranks()])
@@ -151,6 +143,41 @@ class AlgorithmBase:
                 stats = compute_function_statistics(
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
+
+    def __print_QOI(self,rank_or_obj):
+        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        # Initialize file paths
+        TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        RANK_SCRIPT_NAME = "lbsRank.py"
+        OBJECT_SCRIPT_NAME = "lbsObject.py"
+
+        if rank_or_obj == "rank":
+            # Create list of all Rank QOI (lbsRank.get_*)
+            r_qoi_list = ["work"]
+            lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r', encoding="utf-8")
+            lbsRank_lines = lbsRank_file.readlines()
+            for line in lbsRank_lines:
+                if line[8:12] == "get_":
+                    r_qoi_list.append(line[12:line.find("(")])
+
+            # Print QOI based on verbosity level
+            self._logger.error("List of all possible Rank QOI:")
+            for r_qoi in r_qoi_list:
+                self._logger.error("\t" + r_qoi)
+
+        if rank_or_obj == "obj":
+            # Create list of all Object QOI (lbsObject.get_*)
+            o_qoi_list = []
+            lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r', encoding="utf-8")
+            lbsObject_lines = lbsObject_file.readlines()
+            for line in lbsObject_lines:
+                if line[8:12] == "get_":
+                    o_qoi_list.append(line[12:line.find("(")])
+
+            # Print QOI based on verbosity level
+            self._logger.error("List of all possible Object QOI:")
+            for o_qoi in o_qoi_list:
+                self._logger.error("\t" + o_qoi)
 
     def _report_final_mapping(self, logger):
         """Report final rank object mapping in debug mode."""
@@ -178,9 +205,7 @@ class AlgorithmBase:
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
             [isinstance(p, Phase) for p in phases.values()]):
-            self._logger.error(
-                "Algorithm execution requires a dictionary of phases")
-            sys.excepthook = exc_handler
+            self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
         # Create a rebalanced phase to preserve phase to be rebalanced
@@ -196,9 +221,7 @@ class AlgorithmBase:
                 new_ranks.append(new_r)
             self._rebalanced_phase.set_ranks(new_ranks)
         except Exception as err:
-            self._logger.error(
-                f"No phase with index {p_id} is available for processing")
-            sys.excepthook = exc_handler
+            self._logger.error(f"No phase with index {p_id} is available for processing")
             raise SystemExit(1) from err
         self._logger.info(
             f"Processing phase {p_id} "

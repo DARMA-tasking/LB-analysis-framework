@@ -1,22 +1,20 @@
 """Tests for the VTDataWriter class"""
+
 import json
 import os
+import subprocess
 import unittest
 from typing import Any
-import subprocess
-import sys
 
-from schema import Optional
 import brotli
 import yaml
+from schema import Optional
 
+from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
+from lbaf.Utils.lbsPath import abspath
 
-
-from lbaf.Utils.path import abspath
-from lbaf.Applications.JSON_data_files_validator_loader import load as load_schema
-
-load_schema()
-from lbaf.imported.JSON_data_files_validator import SchemaValidator
+JSONDataFilesValidatorLoader().run(overwrite=True)
+from lbaf.imported.JSON_data_files_validator import SchemaValidator  # pylint:disable=C0413:wrong-import-position
 
 
 class TestVTDataWriter(unittest.TestCase):
@@ -102,9 +100,9 @@ class TestVTDataWriter(unittest.TestCase):
             compr_bytes = compr_json_file.read()
             try:
                 decompr_bytes = brotli.decompress(compr_bytes)
-                decompressed_dict = json.loads(decompr_bytes.decode("utf-8")) # , object_pairs_hook=OrderedDict
+                decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))  # , object_pairs_hook=OrderedDict
             except brotli.error:
-                decompressed_dict = json.loads(compr_bytes.decode("utf-8")) # , object_pairs_hook=OrderedDict
+                decompressed_dict = json.loads(compr_bytes.decode("utf-8"))  # , object_pairs_hook=OrderedDict
         return decompressed_dict
 
     def test_vt_writer_required_fields_output(self):
@@ -179,7 +177,7 @@ class TestVTDataWriter(unittest.TestCase):
             # print(json.dumps(output_data, indent=4))
             # print("-----------------------------------------------------------------------")
 
-            self.maxDiff = None # to remove diff limit if self.assertDictEqual returns large diffs
+            self.maxDiff = None  # to remove diff limit if self.assertDictEqual returns large diffs
             self.assertDictEqual(input_data, output_data)
 
             # the following is an assert alternative to compare json encoded data instead of dictionaries

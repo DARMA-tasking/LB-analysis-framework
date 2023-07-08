@@ -1,14 +1,16 @@
-from logging import Logger
-import os
-import sys
 import math
 import numbers
+import os
 import random
-import vtk
-import matplotlib.pyplot as plt
+import sys
+from logging import Logger
 
-from .lbsGridStreamer import GridStreamer
+import matplotlib.pyplot as plt
+import vtk
+
 from ..Model.lbsPhase import Phase
+from .lbsGridStreamer import GridStreamer
+
 
 class Visualizer:
     """A class to visualize LBAF results via mesh files and VTK views."""
@@ -102,7 +104,8 @@ class Visualizer:
 
         # Ensure that specified grid resolution is correct
         if not isinstance(resolution, numbers.Number) or resolution <= 0.:
-            self.__logger.error("Grid resolution must be a positive number")
+            self.__logger.error(
+                "Grid resolution must be a positive number")
             raise SystemExit(1)
         self.__grid_resolution = float(resolution)
 
@@ -216,6 +219,11 @@ class Visualizer:
 
                 # Retain all QOI values while support remains small
                 oq = getattr(o, f"get_{object_qoi}")()
+
+                # Check if the QOI value ends in .0, then convert to integer
+                if isinstance(oq, float) and oq.is_integer():
+                    oq = int(oq)
+
                 if not continuous_object_qoi:
                     oq_all.add(oq)
                     if len(oq_all) > 20:

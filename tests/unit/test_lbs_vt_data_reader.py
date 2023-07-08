@@ -4,7 +4,6 @@ import unittest
 
 from schema import SchemaError
 
-from lbaf import PROJECT_PATH
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Model.lbsObject import Object
 from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
@@ -15,27 +14,28 @@ class TestConfig(unittest.TestCase):
     def setUp(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
+        self.file_suffix = "json"
         self.logger = logging.getLogger()
-        self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
+        self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix=self.file_suffix)
         self.rank_comm = [
             {
                 5: {"sent": [], "received": [{"from": 0, "bytes": 2.0}]},
-                0: {"sent": [{'to': 5, "bytes": 2.0}], "received": []},
+                0: {"sent": [{"to": 5, "bytes": 2.0}], "received": []},
                 4: {"sent": [], "received": [{"from": 1, "bytes": 1.0}]},
-                1: {"sent": [{'to': 4, "bytes": 1.0}], "received": []},
+                1: {"sent": [{"to": 4, "bytes": 1.0}], "received": []},
                 2: {"sent": [], "received": [{"from": 3, "bytes": 1.0}]},
-                3: {"sent": [{'to': 2, "bytes": 1.0}, {'to': 8, "bytes": 0.5}], "received": []},
+                3: {"sent": [{"to": 2, "bytes": 1.0}, {"to": 8, "bytes": 0.5}], "received": []},
                 8: {"sent": [], "received": [{"from": 3, "bytes": 0.5}]}},
             {
                 1: {"sent": [], "received": [{"from": 4, "bytes": 2.0}]},
-                4: {"sent": [{'to': 1, "bytes": 2.0}], "received": []},
+                4: {"sent": [{"to": 1, "bytes": 2.0}], "received": []},
                 8: {"sent": [], "received": [{"from": 5, "bytes": 2.0}]},
-                5: {"sent": [{'to': 8, "bytes": 2.0}], "received": []},
+                5: {"sent": [{"to": 8, "bytes": 2.0}], "received": []},
                 6: {"sent": [], "received": [{"from": 7, "bytes": 1.0}]},
-                7: {"sent": [{'to': 6, "bytes": 1.0}], "received": []}},
+                7: {"sent": [{"to": 6, "bytes": 1.0}], "received": []}},
             {
                 6: {"sent": [], "received": [{"from": 8, "bytes": 1.5}]},
-                8: {"sent": [{'to': 6, "bytes": 1.5}], "received": []}},
+                8: {"sent": [{"to": 6, "bytes": 1.5}], "received": []}},
             {}
         ]
         self.ranks_iter_map = [
@@ -81,7 +81,7 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_vt_data_reader_initialization(self):
         self.assertEqual(self.lr._LoadReader__file_prefix, self.file_prefix)
-        self.assertEqual(self.lr._LoadReader__file_suffix, "json")
+        self.assertEqual(self.lr._LoadReader__file_suffix, self.file_suffix)
 
     def test_lbs_vt_data_reader_get_rank_file_name_001(self):
         file_name = f"{self.lr._LoadReader__file_prefix}.0.{self.lr._LoadReader__file_suffix}"
@@ -115,7 +115,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_vt_data_reader_read_compressed(self):
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         lr = LoadReader(
-            file_prefix=file_prefix, logger=self.logger, file_suffix="json")
+            file_prefix=file_prefix, logger=self.logger, file_suffix=self.file_suffix)
         for rank_id in range(4):
             phase_rank, rank_comm = lr._populate_rank(0, rank_id)
             self.assertEqual(self.rank_comm[rank_id], rank_comm)
@@ -136,10 +136,10 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(FileNotFoundError) as err:
             LoadReader(
                 file_prefix=f"{self.file_prefix}xd",
-                logger=self.logger, file_suffix="json")._populate_rank(0, 0)
+                logger=self.logger, file_suffix=self.file_suffix)._populate_rank(0, 0)
         self.assertIn(err.exception.args[0], [
-            f"File {self.file_prefix}xd.0.json not found", f"File {self.file_prefix}xd.1.json not found",
-            f"File {self.file_prefix}xd.2.json not found", f"File {self.file_prefix}xd.3.json not found"
+            f"File {self.file_prefix}xd.0.{self.file_suffix} not found", f"File {self.file_prefix}xd.1.{self.file_suffix} not found",
+            f"File {self.file_prefix}xd.2.{self.file_suffix} not found", f"File {self.file_prefix}xd.3.{self.file_suffix} not found"
         ])
 
     def test_lbs_vt_data_reader_read_wrong_schema(self):
@@ -147,7 +147,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(SchemaError) as err:
             LoadReader(
                 file_prefix=file_prefix,
-                logger=self.logger, file_suffix="json")._populate_rank(0, 0)
+                logger=self.logger, file_suffix=self.file_suffix)._populate_rank(0, 0)
         list_of_err_msg = []
         with open(os.path.join(
             self.data_dir,
@@ -212,6 +212,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_comm_rcv_list, gen_comm_rcv_list)
             self.assertEqual(prep_comm_rcv_load_list, gen_comm_rcv_load_list)
             self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
+
 
 if __name__ == "__main__":
     unittest.main()
