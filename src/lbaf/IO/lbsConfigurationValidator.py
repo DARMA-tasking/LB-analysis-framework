@@ -23,6 +23,7 @@ ALLOWED_WORK_MODELS = (
 ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
+    "CentralizedPrefixOptimizer",
     "PhaseStepper")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
@@ -158,6 +159,9 @@ class ConfigurationValidator:
                 {"name": "BruteForce",
                  "phase_id": int,
                  Optional("parameters"): {"skip_transfer": bool}}),
+            "CentralizedPrefixOptimizer": Schema(
+                {"name": "CentralizedPrefixOptimizer",
+                 Optional("parameters"): {"do_second_stage": bool}}),
             "PhaseStepper": Schema(
                 {"name": "PhaseStepper"})}
         self.__logger = logger

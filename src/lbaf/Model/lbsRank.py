@@ -47,6 +47,9 @@ class Rank:
         self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
+    def __lt__(self, other):
+        return self.get_load() < other.get_load()
+
     def __repr__(self):
         return f"<Rank index: {self.__index}>"
 
