@@ -1,6 +1,5 @@
 import sys
 import math
-import itertools
 import heapq
 from logging import Logger
 
