@@ -371,10 +371,6 @@ class Application:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
-        # Perform central prefix optimizer when requested
-        if self.__parameters.algorithm["name"] != "CentralizedPrefixOptimizer":
-            self.__logger.info("Starting centralized prefix optimizer")
-
         # Instantiate runtime
         runtime = Runtime(
             phases,
