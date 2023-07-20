@@ -38,15 +38,14 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
 
         # Prepare input data for rank order enumerator
         self._logger.info(f"Starting optimizer")
-
         phase_ranks = self._phase.get_ranks()
 
+        # Initialize max shared ID
         max_shared_ids = 0
         for rank in phase_ranks:
             max_shared_ids = max(len(rank.get_shared_block_ids()), max_shared_ids)
         self._max_shared_ids = max_shared_ids + 1
 
-        made_no_assignments = 0
 
         # Max-heap for rank's load
         rank_max_heap = []
@@ -55,6 +54,8 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         for rank in phase_ranks:
             rank_max_heap.append(rank);
 
+        # Iterate until number of assignments reached
+        made_no_assignments = 0
         while made_no_assignments < 2:
             # Make the actual heap
             heapq._heapify_max(rank_max_heap)
@@ -163,13 +164,12 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         """Try to find a rank to offload a bin (load grouping that shares a
         common memory ID)"""
 
-        self._logger.info(f"tryBin size={size}, max={self._max_shared_ids}")
-
+        
         # Min-heap of ranks
         rank_min_heap = []
 
-        # Add all ranks that could possibly take this load grouping based on
-        # memory usage
+        # Add all ranks that could possibly take this load grouping based on memory usage
+        self._logger.info(f"tryBin size={size}, max={self._max_shared_ids}")
         for rank in ranks:
             if sid in rank.get_shared_block_ids() or len(rank.get_shared_block_ids()) < self._max_shared_ids:
                 rank_min_heap.append(rank)
