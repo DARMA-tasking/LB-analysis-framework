@@ -23,9 +23,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         # Call superclass init
         super(RecursiveTransferStrategy, self).__init__(criterion, parameters, logger)
 
-        # Useful fields
-        self.__average_load = None
-
         # Select object order strategy
         self.__strategy_mapped = {
             "arbitrary": self.arbitrary,
@@ -68,9 +65,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
-        self.__average_load = ave_load
-        self._logger.info(f"Executing transfer phase with average load of {self.__average_load}")
-        n_ignored, n_transfers, n_rejects, max_obj_transfers = 0, 0, 0, 0
+        n_ignored, n_transfers, n_rejects = self._intialize_transfer_stage(
+            ave_load)
+        max_obj_transfers = 0
 
         # Iterate over ranks
         for r_src in phase.get_ranks():
@@ -102,8 +99,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
                         if c_try > c_dst:
-                            c_dst = c_try
-                            r_dst = r_try
+                            c_dst, r_dst = c_try, r_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = self._compute_transfer_cmf(
@@ -141,6 +137,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         continue
 
                 # Transfer objects
+                if (n_o_src := len(o_src)) > max_obj_transfers:
+                    max_obj_transfers = n_o_src
+                self._logger.debug(f"Transferring {n_o_src} object(s)")
                 n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
 
         self._logger.info(
@@ -206,7 +205,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def load_excess(self, objects: set):
         rank_load = sum([obj.get_load() for obj in objects])
-        return rank_load - self.__average_load
+        return rank_load - self._average_load
 
     def fewest_migrations(self, objects: set, _):
         """First find the load of the smallest single object that, if migrated

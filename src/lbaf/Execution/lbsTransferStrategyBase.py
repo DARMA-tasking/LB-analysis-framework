@@ -36,6 +36,18 @@ class TransferStrategyBase:
         logger.info(
             f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
 
+        # Null defaut value for average load
+        self._average_load = 0.0
+
+    def _intialize_transfer_stage(self, ave_load: float):
+        """Convenience method for consistent initialization across strategies."""
+
+        # Keep track of average load
+        self._average_load = ave_load
+        self._logger.info(f"Executing transfer phase with average load: {self._average_load}")
+
+        # Initialize numbers of ignored ranks, transfers, and rejects
+        return 0, 0, 0
 
     def _compute_transfer_cmf(self, r_src, objects: list, targets: set, strict=False):
         """Compute CMF for the sampling of transfer targets."""
