@@ -65,32 +65,25 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
-        n_ignored, n_transfers, n_rejects = self._intialize_transfer_stage(
-            ave_load)
+        n_transfers, n_rejects = self._intialize_transfer_stage(ave_load)
         max_obj_transfers = 0
 
-        # Iterate over ranks
-        for r_src in phase.get_ranks():
-            # Retrieve potential targets
-            targets = known_peers.get(r_src, set()).difference({r_src})
-            if not targets:
-                n_ignored += 1
-                continue
-            self._logger.debug(f"Trying to offload rank {r_src.get_id()} onto {[r.get_id() for r in targets]}:")
-
-            # Offload objects for as long as necessary and possible
+        # Iterate over traversable ranks
+        ranks = phase.get_ranks()
+        rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
+        for r_src, targets in rank_targets.items():
+            # Try to recursively offload objects from source
+            self._logger.debug(
+                f"Trying to offload rank {r_src.get_id()} onto {[r.get_id() for r in targets]}:")
             srt_rank_obj = list(self.__order_strategy(
                 r_src.get_migratable_objects(), r_src.get_id()))
-
             while srt_rank_obj:
                 # Pick next object in ordered list
-                o = srt_rank_obj.pop()
-                o_src = [o]
-                self._logger.debug(f"\tobject {o.get_id()}:")
+                o_src = [srt_rank_obj.pop()]
+                self._logger.debug(f"\tobject {o_src[0].get_id()}:")
 
                 # Initialize destination information
-                r_dst = None
-                c_dst = -math.inf
+                r_dst, c_dst = None, -math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
@@ -145,8 +138,8 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
 
-        # Return object transfer counts
-        return n_ignored, n_transfers, n_rejects
+        # Return transfer phase counts
+        return len(ranks) - len(rank_targets), n_transfers, n_rejects
 
     @staticmethod
     def arbitrary(objects: set, _):

@@ -1,5 +1,6 @@
 import abc
 import math
+import random
 from logging import Logger
 
 from ..Execution.lbsCriterionBase import CriterionBase
@@ -40,15 +41,40 @@ class TransferStrategyBase:
         self._average_load = 0.0
 
     def _intialize_transfer_stage(self, ave_load: float):
-        """Convenience method for consistent initialization across strategies."""
+        """Initialize transfer stage consistently across strategies."""
 
         # Keep track of average load
         self._average_load = ave_load
         self._logger.info(f"Executing transfer phase with average load: {self._average_load}")
 
-        # Initialize numbers of ignored ranks, transfers, and rejects
-        return 0, 0, 0
+        # Initialize numbers of transfers and rejects
+        return 0, 0
 
+    def _get_ranks_to_traverse(self, ranks: list, known_peers: list):
+        """Prepare randomized list of ranks to traverse in transfer stage."""
+
+        # Initialize dictionary of traversable ranks to targets
+        rank_targets = {}
+        
+        # Iterate over all provided ranks
+        for r_src in ranks:
+            # Ignore ranks without migratable objects
+            if not r_src.get_migratable_objects():
+                continue
+                
+            # Retrieve potential targets
+            targets = known_peers.get(r_src, set()).difference({r_src})
+            if not targets:
+                continue
+
+            # Append rank to be traversed
+            rank_targets[r_src] = targets
+
+        # Return randomized dict of rank_targets ranks
+        return {
+            k: rank_targets[k]
+            for k in random.sample(rank_targets.keys(), len(rank_targets))}
+    
     def _compute_transfer_cmf(self, r_src, objects: list, targets: set, strict=False):
         """Compute CMF for the sampling of transfer targets."""
         # Initialize criterion values

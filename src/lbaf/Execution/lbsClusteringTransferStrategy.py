@@ -85,18 +85,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
-        n_ignored, n_transfers, n_rejects = self._intialize_transfer_stage(
-            ave_load)
+        n_transfers, n_rejects = self._intialize_transfer_stage(ave_load)
 
         # Iterate over ranks
-        for r_src in phase.get_ranks():
-            # Retrieve potential targets
-            targets = known_peers.get(r_src, set()).difference({r_src})
-            if not targets:
-                n_ignored += 1
-                continue
-            self._logger.debug(f"Trying to offload from rank {r_src.get_id()} to {[p.get_id() for p in targets]}:")
-
+        ranks = phase.get_ranks()
+        rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
+        for r_src, targets in rank_targets.items():
             # Cluster migratiable objects on source rank
             clusters_src = self.__cluster_objects(r_src)
             self._logger.info(
@@ -134,8 +128,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             for o_src in self.__find_suitable_subclusters(
                     self.__cluster_objects(r_src), r_src.get_load()):
                 # Initialize destination information
-                r_dst = None
-                c_dst = -math.inf
+                r_dst, c_dst = None, -math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
@@ -151,12 +144,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             continue
                         l_try = abs(r_try.get_load() + objects_load - ave_load)
                         if l_try < l_dst:
-                            c_dst = c_try
-                            l_dst = l_try
-                            r_dst = r_try
+                            c_dst, r_dst, r_dst = c_try, r_try, r_try
                         elif l_try == l_dst and c_try > c_dst:
-                            c_dst = c_try
-                            r_dst = r_try
+                            c_dst, r_dst = c_try, r_try
                 else:
                     # Compute transfer CMF given information known to source
                     p_cmf, c_values = self._compute_transfer_cmf(
@@ -180,4 +170,4 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_transfers} object transfers")
 
         # Return object transfer counts
-        return n_ignored, n_transfers, n_rejects
+        return len(ranks) - len(rank_targets), n_transfers, n_rejects
