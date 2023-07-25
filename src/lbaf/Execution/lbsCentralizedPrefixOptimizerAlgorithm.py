@@ -5,7 +5,6 @@ from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
 from ..IO.lbsStatistics import print_function_statistics
-from ..Utils.exception_handler import exc_handler
 
 
 class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
@@ -185,7 +184,6 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         for o in objs[sid]:
             if len(rank_min_heap) == 0:
                 self._logger.error("Reached condition where no ranks could take the element!")
-                sys.excepthook = exc_handler
                 raise SystemExit(1)
 
             # Pick the rank that is most underloaded (greedy)
