@@ -128,8 +128,10 @@ def get_logger(
         handlers.append(logging.StreamHandler())
     for handler in handlers:
         handler.setLevel(logger.level)
-        # Use color formatter only if console
-        handler.setFormatter(CustomFormatter(frmt, colored=isinstance(handler, logging.StreamHandler)))
+        # Use color formatter except for FileHandler
+        handler.setFormatter(CustomFormatter(
+            frmt, colored=isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+        ))
         logger.addHandler(handler)
 
     return logger

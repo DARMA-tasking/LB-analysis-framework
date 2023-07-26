@@ -28,6 +28,7 @@ algorithm:
     deterministic_transfer: True
 
 # Specify output
-logging_level: info
+logging_level: debug
+log_to_file: ../output/acceptance_tests.log
 output_dir: ../output
 output_file_stem: output_file
