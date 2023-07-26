@@ -29,9 +29,10 @@ class TestConfig(unittest.TestCase):
         self.assertAlmostEqual(math.isnan(empty_result.get_kurtosis()), True)
 
         # Test with a sample population and three different functions
-        sample_pop_arr = random.normal(loc=0.0, scale=1.0, size=100)
+        sample_pop_arr = random.normal(loc=5, scale=1.0, size=100)
         sample_pop = sample_pop_arr.tolist()
 
+        print(sum(sample_pop)/len(sample_pop))
         # Get lists of output
         identity_output = identity_function(sample_pop)
         polynomial_output = polynomial_function(sample_pop)
@@ -115,15 +116,6 @@ class TestConfig(unittest.TestCase):
         expected_standard_deviation = math.sqrt(expected_variance)
         expected_kurtosis_excess = expected_kurtosis - 3.0
 
-        print("expected average: " + str(expected_average))
-        print("lbsStats_exp.get_average(): " + str(lbsStats_exp.get_average()))
-        print("expected variance: " + str(expected_variance))
-        print("lbsStats_exp.get_variance(): " + str(lbsStats_exp.get_variance()))
-        print("expected skewness: " + str(expected_skewness))
-        print("lbsStats_exp.get_skewness(): " + str(lbsStats_exp.get_skewness()))
-        print("expected kurtosis: " + str(expected_kurtosis))
-        print("lbsStats_exp.get_kurtosis(): " + str(lbsStats_exp.get_kurtosis()))
-
         # Assert the returned statistics match the expected values
         self.assertAlmostEqual(lbsStats_exp.get_minimum(), expected_min)
         self.assertAlmostEqual(lbsStats_exp.get_maximum(), expected_max)
@@ -145,7 +137,7 @@ def poly_test(x):
     return 4 + x**2
 
 def exp_test(x):
-    return 4 + 2**x
+    return np.exp(x)
 
 def identity_function(population):
     y = []
