@@ -163,7 +163,6 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         """Try to find a rank to offload a bin (load grouping that shares a
         common memory ID)"""
 
-        
         # Min-heap of ranks
         rank_min_heap = []
 
