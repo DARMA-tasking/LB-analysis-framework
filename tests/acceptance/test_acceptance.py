@@ -17,7 +17,10 @@ class TestAcceptance(unittest.TestCase):
         """Runs acceptance tests"""
         # run LBAF
         config_file = os.path.join(os.path.dirname(__file__), "config", "synthetic-acceptance.yaml")
-        subprocess.run(["lbaf", "-c", config_file], check=True)
+        proc = subprocess.run([
+            "python", os.path.dirname(__file__) + "/../../src/lbaf/Applications/LBAF_app.py", "-c", config_file],
+            check=True)
+        self.assertEqual(0, proc.returncode)
 
         imbalance_file = os.path.join(os.path.dirname(__file__), "output", "imbalance.txt")
 
