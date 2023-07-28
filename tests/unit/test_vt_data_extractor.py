@@ -266,7 +266,7 @@ class TestVTDataExtractor(unittest.TestCase):
                                 check_schema=False, logger=self.logger).main()
             # Check logger message
             # 2 files have wrong names but since it is loaded parallel we can expect an error for one or the other file
-            invalid_values = ['sm', 'other']
+            invalid_values = ["sm", "other"]
             self.assertTrue(
                 any(cm.output == [
                     "ERROR:root:Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
