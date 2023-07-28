@@ -22,7 +22,7 @@
             "program": "${workspaceFolder}/src/lbaf/__init__.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": [ "--configuration", "tests/config/conf_correct_brute_force.yml"  ]
+            "args": [ "--configuration", "tests/unit/config/conf_correct_brute_force.yml"  ]
         },
         {
             "name": "LBAF: current",

@@ -24,7 +24,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)
         self._logger.info(
-            f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
+            f"""Instantiated {"with" if self.__skip_transfer else "without"} transfer stage skipping"""        )
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
         """Execute brute force optimization algorithm on phase with index p_id."""
