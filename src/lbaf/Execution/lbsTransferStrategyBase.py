@@ -3,6 +3,7 @@ import math
 import random
 from logging import Logger
 
+from ..IO.lbsStatistics import inverse_transform_sample
 from ..Execution.lbsCriterionBase import CriterionBase
 from ..Utils.lbsLogging import get_logger
 
@@ -75,8 +76,8 @@ class TransferStrategyBase:
             k: rank_targets[k]
             for k in random.sample(rank_targets.keys(), len(rank_targets))}
     
-    def _compute_transfer_cmf(self, r_src, objects: list, targets: set, strict=False):
-        """Compute CMF for the sampling of transfer targets."""
+    def _randomly_select_target(self, r_src, objects: list, targets: set, strict=False):
+        """Pseudo-randomly select transfer destination using ECMF."""
         # Initialize criterion values
         c_values = {}
         c_min, c_max = math.inf, -math.inf
@@ -106,14 +107,23 @@ class TransferStrategyBase:
             c_range = c_max - c_min
             cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 
-        # Compute CMF
+        # Bail out early when no CMF can be computed
+        if not cmf:
+            return None, None
+
+        # Compute cumlates
         sum_p = 0.0
         for k, v in cmf.items():
             sum_p += v
             cmf[k] = sum_p
 
-        # Return normalized CMF and criterion values
-        return {k: v / sum_p for k, v in cmf.items()}, c_values
+        # Normalize cumulates to obtain CMF and criterion values
+        for k, v in cmf.items():
+            cmf[k] /= sum_p
+        self._logger.debug(f"CMF = {cmf}")
+
+        # Return selected target and criterion value
+        return inverse_transform_sample(cmf), c_values[r_dst]
 
     @staticmethod
     def factory(

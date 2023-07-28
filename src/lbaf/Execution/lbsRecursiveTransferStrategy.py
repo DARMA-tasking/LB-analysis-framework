@@ -5,7 +5,6 @@ from itertools import accumulate
 from logging import Logger
 from typing import Union
 
-from ..IO.lbsStatistics import inverse_transform_sample
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 from .lbsTransferStrategyBase import TransferStrategyBase
@@ -94,18 +93,13 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         if c_try > c_dst:
                             c_dst, r_dst = c_try, r_try
                 else:
-                    # Compute transfer CMF given information known to source
-                    p_cmf, c_values = self._compute_transfer_cmf(
-                        r_src, o_src, targets, False)
-                    self._logger.debug(f"CMF = {p_cmf}")
-                    if not p_cmf:
+                    # Pseudo-randomly select transfer destination
+                    r_dst, c_dst = self._randomly_select_target(
+                        r_src, o_src, targets)
+                    if not r_dst:
                         n_rejects += 1
                         continue
-
-                    # Pseudo-randomly select destination proc
-                    r_dst = inverse_transform_sample(p_cmf)
-                    c_dst = c_values[r_dst]
-
+                        
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.0:
                     # Give up if no objects left of no rank is feasible
