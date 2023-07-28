@@ -1,5 +1,3 @@
-import sys
-import math
 import heapq
 from logging import Logger
 
@@ -21,6 +19,8 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             work_model, parameters, lgr, qoi_name, obj_qoi)
 
         self._do_second_stage = parameters.get("do_second_stage", False)
+        self._phase = None
+        self._max_shared_ids = None
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
         """ Execute centralized prefix memory-constrained optimizer"""
@@ -36,7 +36,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         self._update_distributions_and_statistics(distributions, statistics)
 
         # Prepare input data for rank order enumerator
-        self._logger.info(f"Starting optimizer")
+        self._logger.info("Starting optimizer")
         phase_ranks = self._phase.get_ranks()
 
         # Initialize max shared ID
@@ -51,7 +51,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
 
         # Add the ranks to the list
         for rank in phase_ranks:
-            rank_max_heap.append(rank);
+            rank_max_heap.append(rank)
 
         # Iterate until number of assignments reached
         made_no_assignments = 0
@@ -162,7 +162,6 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
     def _tryBin(self, ranks, max_rank, tbin, size, sid, objs):
         """Try to find a rank to offload a bin (load grouping that shares a
         common memory ID)"""
-
 
         # Min-heap of ranks
         rank_min_heap = []

@@ -265,9 +265,14 @@ class TestVTDataExtractor(unittest.TestCase):
                                 file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
                                 check_schema=False, logger=self.logger).main()
             # Check logger message
-            self.assertEqual(cm.output, [
-                "ERROR:root:Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
-                "ERROR: invalid literal for int() with base 10: 'other'"])
+            # 2 files have wrong names but since it is loaded parallel we can expect an error for one or the other file
+            invalid_values = ['sm', 'other']
+            self.assertTrue(
+                any(cm.output == [
+                    "ERROR:root:Values in filenames can not be converted to `int`.\nPhases are not sorted.\n"
+                    f"ERROR: invalid literal for int() with base 10: '{x}'"]
+                    for x in invalid_values)
+            )
 
     def test_vt_data_extractor_015(self):
         phases = [0, 1]
@@ -314,10 +319,11 @@ class TestVTDataExtractor(unittest.TestCase):
         with self.assertLogs(self.logger, level="ERROR") as cm:
             with self.assertRaises(SystemExit):
                 VTDataExtractor(input_data_dir=input_dir, output_data_dir=output_data_dir, phases_to_extract=phases,
-                                    file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
-                                    check_schema=False, logger=self.logger).main()
+                                file_prefix="data", file_suffix="json", compressed=False, schema_type="LBDatafile",
+                                check_schema=False, logger=self.logger).main()
             # Check logger message
             self.assertEqual(cm.output, ["ERROR:root:Input data directory not found."])
+
 
 if __name__ == "__main__":
     unittest.main()
