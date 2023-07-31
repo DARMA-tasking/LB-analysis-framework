@@ -7,7 +7,6 @@ import numpy.random as nr
 
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import inverse_transform_sample
 
 
 class ClusteringTransferStrategy(TransferStrategyBase):

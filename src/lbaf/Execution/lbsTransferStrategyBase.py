@@ -57,7 +57,7 @@ class TransferStrategyBase:
         self._n_rejects = 0
 
     def _get_ranks_to_traverse(self, ranks: list, known_peers: list):
-        """Prepare randomized list of ranks to traverse in transfer stage."""
+        """Prepare randomized dict of ranks to transfer targets."""
 
         # Initialize dictionary of traversable ranks to targets
         rank_targets = {}

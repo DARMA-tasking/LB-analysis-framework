@@ -5,9 +5,9 @@ from itertools import accumulate
 from logging import Logger
 from typing import Union
 
+from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from .lbsTransferStrategyBase import TransferStrategyBase
 
 
 class RecursiveTransferStrategy(TransferStrategyBase):
@@ -41,7 +41,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def __recursive_extended_search(self, pick_list, objects, c_fct, n_o, max_n_o):
         """Recursively extend search to other objects."""
-
         # Fail when no more objects available or maximum depth is reached
         if not pick_list or n_o >= max_n_o:
             return False
@@ -67,9 +66,11 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         self._initialize_transfer_stage(ave_load)
         max_obj_transfers = 0
 
-        # Iterate over traversable ranks
+        # Map rank to targets and ordered migratable objects
         ranks = phase.get_ranks()
         rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
+
+        # Iterate over traversable ranks
         for r_src, targets in rank_targets.items():
             # Try to recursively offload objects from source
             self._logger.debug(
@@ -109,13 +110,12 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
                     # Recursively extend search if possible
                     pick_list = srt_rank_obj[:]
-                    success = self.__recursive_extended_search(
+                    if self.__recursive_extended_search(
                         pick_list,
                         o_src,
                         lambda x, r_src=r_src, r_dst=r_dst: self._criterion.compute(r_src, x, r_dst),
                         1,
-                        self._max_objects_per_transfer)
-                    if success:
+                        self._max_objects_per_transfer):
                         # Remove accepted objects from remaining object list
                         srt_rank_obj = pick_list
                     else:
@@ -129,10 +129,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                 self._logger.debug(f"Transferring {n_o_src} object(s)")
                 self._n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
 
+        # Return transfer phase counts
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
-
-        # Return transfer phase counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
 
     @staticmethod
