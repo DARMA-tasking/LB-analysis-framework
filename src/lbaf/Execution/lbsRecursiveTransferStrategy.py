@@ -137,7 +137,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     @staticmethod
     def arbitrary(objects: set, _):
         """Default: objects are passed as they are stored."""
-
         return objects
 
     @staticmethod
