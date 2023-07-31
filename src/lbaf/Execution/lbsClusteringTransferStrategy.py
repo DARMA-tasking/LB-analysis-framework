@@ -85,7 +85,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
-        n_transfers, n_rejects = self._intialize_transfer_stage(ave_load)
+        self._initialize_transfer_stage(ave_load)
 
         # Iterate over ranks
         ranks = phase.get_ranks()
@@ -106,7 +106,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         # Decide whether swap is beneficial
                         if self._criterion.compute(r_src, o_src, r_try, o_try) > 0.0:
                             # Perform swap
-                            n_transfers += phase.transfer_objects(
+                            self._n_transfers += phase.transfer_objects(
                                 r_src, o_src, r_try, o_try)
                             swapped_cluster = True
                             n_swaps += 1
@@ -152,17 +152,19 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     r_dst, c_dst = self._randomly_select_target(
                         r_src, o_src, targets)
                     if not r_dst:
-                        n_rejects += 1
+                        self._n_rejects += 1
                         continue
 
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
-                    n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
+                    self._n_transfers += phase.transfer_objects(
+                        r_src, o_src, r_dst)
                     break
 
             # Report on new load and exit from rank
             self._logger.info(
-                f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_transfers} object transfers")
+                f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
 
         # Return object transfer counts
-        return len(ranks) - len(rank_targets), n_transfers, n_rejects
+        return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
+

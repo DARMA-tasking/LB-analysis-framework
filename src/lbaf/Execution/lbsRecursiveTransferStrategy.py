@@ -64,7 +64,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
-        n_transfers, n_rejects = self._intialize_transfer_stage(ave_load)
+        self._initialize_transfer_stage(ave_load)
         max_obj_transfers = 0
 
         # Iterate over traversable ranks
@@ -97,14 +97,14 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     r_dst, c_dst = self._randomly_select_target(
                         r_src, o_src, targets)
                     if not r_dst:
-                        n_rejects += 1
+                        self._n_rejects += 1
                         continue
                         
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.0:
                     # Give up if no objects left of no rank is feasible
                     if not srt_rank_obj or not r_dst:
-                        n_rejects += 1
+                        self._n_rejects += 1
                         continue
 
                     # Recursively extend search if possible
@@ -120,20 +120,20 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         srt_rank_obj = pick_list
                     else:
                         # No transferable list of objects was found
-                        n_rejects += 1
+                        self._n_rejects += 1
                         continue
 
                 # Transfer objects
                 if (n_o_src := len(o_src)) > max_obj_transfers:
                     max_obj_transfers = n_o_src
                 self._logger.debug(f"Transferring {n_o_src} object(s)")
-                n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
+                self._n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
 
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
 
         # Return transfer phase counts
-        return len(ranks) - len(rank_targets), n_transfers, n_rejects
+        return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
 
     @staticmethod
     def arbitrary(objects: set, _):

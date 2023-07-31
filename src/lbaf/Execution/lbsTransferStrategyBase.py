@@ -41,7 +41,11 @@ class TransferStrategyBase:
         # Null defaut value for average load
         self._average_load = 0.0
 
-    def _intialize_transfer_stage(self, ave_load: float):
+        # Initialize numbers of transfers and rejects
+        self._n_transfers = 0
+        self._n_rejects = 0
+
+    def _initialize_transfer_stage(self, ave_load: float):
         """Initialize transfer stage consistently across strategies."""
 
         # Keep track of average load
@@ -49,7 +53,8 @@ class TransferStrategyBase:
         self._logger.info(f"Executing transfer phase with average load: {self._average_load}")
 
         # Initialize numbers of transfers and rejects
-        return 0, 0
+        self._n_transfers = 0
+        self._n_rejects = 0
 
     def _get_ranks_to_traverse(self, ranks: list, known_peers: list):
         """Prepare randomized list of ranks to traverse in transfer stage."""
