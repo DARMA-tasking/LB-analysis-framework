@@ -32,7 +32,6 @@ class TestConfig(unittest.TestCase):
         sample_pop_arr = random.normal(loc=5, scale=1.0, size=100)
         sample_pop = sample_pop_arr.tolist()
 
-        print(sum(sample_pop)/len(sample_pop))
         # Get lists of output
         identity_output = identity_function(sample_pop)
         polynomial_output = polynomial_function(sample_pop)
