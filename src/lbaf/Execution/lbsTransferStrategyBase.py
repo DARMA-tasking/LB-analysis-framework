@@ -61,13 +61,13 @@ class TransferStrategyBase:
 
         # Initialize dictionary of traversable ranks to targets
         rank_targets = {}
-        
+
         # Iterate over all provided ranks
         for r_src in ranks:
             # Ignore ranks without migratable objects
             if not r_src.get_migratable_objects():
                 continue
-                
+
             # Retrieve potential targets
             targets = known_peers.get(r_src, set()).difference({r_src})
             if not targets:
@@ -80,7 +80,7 @@ class TransferStrategyBase:
         return {
             k: rank_targets[k]
             for k in random.sample(rank_targets.keys(), len(rank_targets))}
-    
+
     def _randomly_select_target(self, r_src, objects: list, targets: set, strict=False):
         """Pseudo-randomly select transfer destination using ECMF."""
         # Initialize criterion values

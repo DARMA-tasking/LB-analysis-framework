@@ -100,7 +100,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                     if not r_dst:
                         self._n_rejects += 1
                         continue
-                        
+
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.0:
                     # Give up if no objects left of no rank is feasible

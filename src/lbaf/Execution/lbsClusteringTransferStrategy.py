@@ -166,4 +166,3 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
-
