@@ -35,8 +35,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Add current object to its block ID cluster
             clusters.setdefault(sb_id, []).append(o)
 
-        # Return dict of computed object clusters
-        return clusters
+        # Return dict of computed object clusters possibly randomized
+        return clusters if self._deterministic_transfer else {
+            k: clusters[k]
+            for k in random.sample(clusters.keys(), len(clusters))}
 
     def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
         """Find suitable sub-clusters to bring rank closest and above average load."""
