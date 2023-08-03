@@ -160,8 +160,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         self._report_final_mapping(self._logger)
 
     def _tryBin(self, ranks, max_rank, tbin, size, sid, objs):
-        """Try to find a rank to offload a bin (load grouping that shares a
-        common memory ID)"""
+        """Try to find a rank to offload a bin (load grouping that shares a common memory ID)"""
 
         # Min-heap of ranks
         rank_min_heap = []
