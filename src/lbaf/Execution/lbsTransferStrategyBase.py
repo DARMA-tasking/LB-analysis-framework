@@ -77,10 +77,10 @@ class TransferStrategyBase:
             rank_targets[r_src] = targets
 
         # Return randomized dict of rank_targets ranks
-        return {
+        return rank_targets if self._deterministic_transfer else {
             k: rank_targets[k]
             for k in random.sample(rank_targets.keys(), len(rank_targets))}
-
+    
     def _randomly_select_target(self, r_src, objects: list, targets: set, strict=False):
         """Pseudo-randomly select transfer destination using ECMF."""
         # Initialize criterion values
