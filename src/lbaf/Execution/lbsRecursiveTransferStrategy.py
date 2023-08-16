@@ -5,10 +5,9 @@ from itertools import accumulate
 from logging import Logger
 from typing import Union
 
-from ..IO.lbsStatistics import inverse_transform_sample
+from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
-from .lbsTransferStrategyBase import TransferStrategyBase
 
 
 class RecursiveTransferStrategy(TransferStrategyBase):
@@ -22,9 +21,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         """
         # Call superclass init
         super(RecursiveTransferStrategy, self).__init__(criterion, parameters, logger)
-
-        # Useful fields
-        self.__average_load = None
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -45,7 +41,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def __recursive_extended_search(self, pick_list, objects, c_fct, n_o, max_n_o):
         """Recursively extend search to other objects."""
-
         # Fail when no more objects available or maximum depth is reached
         if not pick_list or n_o >= max_n_o:
             return False
@@ -68,32 +63,27 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
-        self.__average_load = ave_load
-        self._logger.info(f"Executing transfer phase with average load of {self.__average_load}")
-        n_ignored, n_transfers, n_rejects, max_obj_transfers = 0, 0, 0, 0
+        self._initialize_transfer_stage(ave_load)
+        max_obj_transfers = 0
 
-        # Iterate over ranks
-        for r_src in phase.get_ranks():
-            # Retrieve potential targets
-            targets = known_peers.get(r_src, set()).difference({r_src})
-            if not targets:
-                n_ignored += 1
-                continue
-            self._logger.debug(f"Trying to offload rank {r_src.get_id()} onto {[r.get_id() for r in targets]}:")
+        # Map rank to targets and ordered migratable objects
+        ranks = phase.get_ranks()
+        rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
 
-            # Offload objects for as long as necessary and possible
+        # Iterate over traversable ranks
+        for r_src, targets in rank_targets.items():
+            # Try to recursively offload objects from source
+            self._logger.debug(
+                f"Trying to offload rank {r_src.get_id()} onto {[r.get_id() for r in targets]}:")
             srt_rank_obj = list(self.__order_strategy(
                 r_src.get_migratable_objects(), r_src.get_id()))
-
             while srt_rank_obj:
                 # Pick next object in ordered list
-                o = srt_rank_obj.pop()
-                o_src = [o]
-                self._logger.debug(f"\tobject {o.get_id()}:")
+                o_src = [srt_rank_obj.pop()]
+                self._logger.debug(f"\tobject {o_src[0].get_id()}:")
 
                 # Initialize destination information
-                r_dst = None
-                c_dst = -math.inf
+                r_dst, c_dst = None, -math.inf
 
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
@@ -102,57 +92,51 @@ class RecursiveTransferStrategy(TransferStrategyBase):
                         c_try = self._criterion.compute(
                             r_src, o_src, r_try)
                         if c_try > c_dst:
-                            c_dst = c_try
-                            r_dst = r_try
+                            c_dst, r_dst = c_try, r_try
                 else:
-                    # Compute transfer CMF given information known to source
-                    p_cmf, c_values = self._compute_transfer_cmf(
-                        r_src, o_src, targets, False)
-                    self._logger.debug(f"CMF = {p_cmf}")
-                    if not p_cmf:
-                        n_rejects += 1
+                    # Pseudo-randomly select transfer destination
+                    r_dst, c_dst = self._randomly_select_target(
+                        r_src, o_src, targets)
+                    if not r_dst:
+                        self._n_rejects += 1
                         continue
-
-                    # Pseudo-randomly select destination proc
-                    r_dst = inverse_transform_sample(p_cmf)
-                    c_dst = c_values[r_dst]
 
                 # Handle case where object not suitable for transfer
                 if c_dst < 0.0:
                     # Give up if no objects left of no rank is feasible
                     if not srt_rank_obj or not r_dst:
-                        n_rejects += 1
+                        self._n_rejects += 1
                         continue
 
                     # Recursively extend search if possible
                     pick_list = srt_rank_obj[:]
-                    success = self.__recursive_extended_search(
+                    if self.__recursive_extended_search(
                         pick_list,
                         o_src,
                         lambda x, r_src=r_src, r_dst=r_dst: self._criterion.compute(r_src, x, r_dst),
                         1,
-                        self._max_objects_per_transfer)
-                    if success:
+                        self._max_objects_per_transfer):
                         # Remove accepted objects from remaining object list
                         srt_rank_obj = pick_list
                     else:
                         # No transferable list of objects was found
-                        n_rejects += 1
+                        self._n_rejects += 1
                         continue
 
                 # Transfer objects
-                n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
+                if (n_o_src := len(o_src)) > max_obj_transfers:
+                    max_obj_transfers = n_o_src
+                self._logger.debug(f"Transferring {n_o_src} object(s)")
+                self._n_transfers += phase.transfer_objects(r_src, o_src, r_dst)
 
+        # Return transfer phase counts
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
-
-        # Return object transfer counts
-        return n_ignored, n_transfers, n_rejects
+        return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
 
     @staticmethod
     def arbitrary(objects: set, _):
         """Default: objects are passed as they are stored."""
-
         return objects
 
     @staticmethod
@@ -206,7 +190,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     def load_excess(self, objects: set):
         rank_load = sum([obj.get_load() for obj in objects])
-        return rank_load - self.__average_load
+        return rank_load - self._average_load
 
     def fewest_migrations(self, objects: set, _):
         """First find the load of the smallest single object that, if migrated

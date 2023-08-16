@@ -468,5 +468,5 @@ class Phase:
             self.__logger.debug(
                 f"Transferred back {n_transfers} objects from rank {r_dst.get_id()} to {r_src.get_id()}")
 
-        # Report and return number of transferred objects
+        # Return number of transferred objects
         return n_transfers

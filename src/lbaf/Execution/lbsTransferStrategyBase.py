@@ -1,7 +1,9 @@
 import abc
 import math
+import random
 from logging import Logger
 
+from ..IO.lbsStatistics import inverse_transform_sample
 from ..Execution.lbsCriterionBase import CriterionBase
 from ..Utils.lbsLogging import get_logger
 
@@ -36,9 +38,51 @@ class TransferStrategyBase:
         logger.info(
             f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
 
+        # Null defaut value for average load
+        self._average_load = 0.0
 
-    def _compute_transfer_cmf(self, r_src, objects: list, targets: set, strict=False):
-        """Compute CMF for the sampling of transfer targets."""
+        # Initialize numbers of transfers and rejects
+        self._n_transfers = 0
+        self._n_rejects = 0
+
+    def _initialize_transfer_stage(self, ave_load: float):
+        """Initialize transfer stage consistently across strategies."""
+
+        # Keep track of average load
+        self._average_load = ave_load
+        self._logger.info(f"Executing transfer phase with average load: {self._average_load}")
+
+        # Initialize numbers of transfers and rejects
+        self._n_transfers = 0
+        self._n_rejects = 0
+
+    def _get_ranks_to_traverse(self, ranks: list, known_peers: list):
+        """Prepare randomized dict of ranks to transfer targets."""
+
+        # Initialize dictionary of traversable ranks to targets
+        rank_targets = {}
+
+        # Iterate over all provided ranks
+        for r_src in ranks:
+            # Ignore ranks without migratable objects
+            if not r_src.get_migratable_objects():
+                continue
+
+            # Retrieve potential targets
+            targets = known_peers.get(r_src, set()).difference({r_src})
+            if not targets:
+                continue
+
+            # Append rank to be traversed
+            rank_targets[r_src] = targets
+
+        # Return randomized dict of rank_targets ranks
+        return rank_targets if self._deterministic_transfer else {
+            k: rank_targets[k]
+            for k in random.sample(rank_targets.keys(), len(rank_targets))}
+
+    def _randomly_select_target(self, r_src, objects: list, targets: set, strict=False):
+        """Pseudo-randomly select transfer destination using ECMF."""
         # Initialize criterion values
         c_values = {}
         c_min, c_max = math.inf, -math.inf
@@ -68,14 +112,23 @@ class TransferStrategyBase:
             c_range = c_max - c_min
             cmf = {k: (v - c_min) / c_range for k, v in c_values.items()}
 
-        # Compute CMF
+        # Bail out early when no CMF can be computed
+        if not cmf:
+            return None, None
+
+        # Compute cumlates
         sum_p = 0.0
         for k, v in cmf.items():
             sum_p += v
             cmf[k] = sum_p
 
-        # Return normalized CMF and criterion values
-        return {k: v / sum_p for k, v in cmf.items()}, c_values
+        # Normalize cumulates to obtain CMF and criterion values
+        for k, v in cmf.items():
+            cmf[k] /= sum_p
+        self._logger.debug(f"CMF = {cmf}")
+
+        # Return selected target and criterion value
+        return inverse_transform_sample(cmf), c_values[r_dst]
 
     @staticmethod
     def factory(
