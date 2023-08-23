@@ -34,6 +34,42 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF testing` are needed for testing purposes.
 
+### Installing PyZoltan on MacOS/Linux
+
+Open MPI is needed to be installed. For Ubuntu based distributions packages `openmpi-bin libopenmpi-dev` have to be installed.
+
+One needs to clone PyZoltan repository:
+```shell
+cd <some-directory>
+git clone https://github.com/pypr/pyzoltan.git
+```
+
+One needs to build and link PyZoltan. Easiest way is to use the script provided in PyZoltan repository:
+```shell
+cd <some-directory>/pyzoltan
+# INSTALL_PREFIX is an ABSOLUTE path to the directory, where Zoltan will be installed
+./build_zoltan.sh INSTALL_PREFIX
+# One needs to export ZOLTAN as an environment variable
+export ZOLTAN=$INSTALL_PREFIX
+```
+
+`ZOLTAN` environment variable is very important, and it's used when installing `PyZoltan`
+
+One needs to install `PyZoltan` requirements with:
+```shell
+pip install -r <some-directory>/pyzoltan/requirements.txt
+```
+
+Last step is to install `PyZoltan` itself:
+```shell
+pip install pyzoltan --no-build-isolation
+```
+
+One could check if `PyZoltan` is correctly installed by trying to import zoltan:
+```Python3
+from pyzoltan.core import zoltan
+```
+
 ## Configuration file
 
 LBAF run base of configuration file which could be find here:
@@ -160,38 +196,47 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 
 [//]: # (## Getting Started with Docker)
 
-[//]: # (### Example use:)
+Replace `<in_dir>` with path to existing directory which will be mapped with `/lbaf/in` in container
 
-[//]: # ()
-[//]: # (Replace `<in_dir>` with path to existing directory which will be mapped with `/lbaf/in` in container)
+Replace `<out_dir>` with path to existing directory which will be mapped with `/lbaf/out` in container
 
-[//]: # ()
-[//]: # (Replace `<out_dir>` with path to existing directory which will be mapped with `/lbaf/out` in container)
+Put `conf.yaml` inside mapped `<in_dir>` and set `output_dir` in `conf.yaml` to `/lbaf/out`
 
-[//]: # (```shell)
+When using sample data from repository set `data_stem` in `conf.yaml` to e.g. `/lbaf/data/synthetic_lb_data/data`
 
-[//]: # (docker run -it -v "<out_dir>:/lbaf/out" -v "<in_dir>:/lbaf/in" nganalytics/lbaf "python src/Applications/NodeGossiper.py -l /lbaf/data/vt_example_lb_stats/stats -x 4 -y 2 -z 1 -s 0 -f 4 -k 4 -i 4 -c 1 -e" "/bin/bash")
+When using other data put the data inside mapped `<in_dir>` and set `data_stem` in `conf.yaml` to e.g. `/lbaf/in/<your_data_dir>/<data_name_prefix>`
 
-[//]: # (```)
+#### Building locally (otherwise docker image will be pulled from dockerhub):
+```shell
+cd <main_repository_directory>
+docker build -t nganalytics/lbaf:latest . -f lbaf.Dockerfile
+```
 
-[//]: # (### Example use explained:)
+#### Running:
+```shell
+docker run -it -v "<out_dir>:/lbaf/out" -v "<in_dir>:/lbaf/in" nganalytics/lbaf "python /lbaf/src/lbaf/Applications/LBAF_app.py --config=/lbaf/in/conf.yaml" "/bin/bash"
+# in order to exit container
+exit
+```
 
-[//]: # (- container starts with interactive mode &#40;stdout visible&#41;)
+### Example use explained:
 
-[//]: # (- two volumes are mounted&#40;data exchange between host and container possible&#41;:)
+- container starts with interactive mode (stdout visible)
 
-[//]: # (  - directory `<in_dir>` on the host and `/lbaf/in` is mount inside container)
+- two volumes are mounted(data exchange between host and container possible):
 
-[//]: # (  - directory `<out_dir>` on the host and `/lbaf/out` is mount inside container)
+  - directory `<in_dir>` on the host and `/lbaf/in` is mount inside container
 
-[//]: # (- docker image `nganalytics/lbaf`)
+  - directory `<out_dir>` on the host and `/lbaf/out` is mount inside container
 
-[//]: # (- commands executed inside container:)
+- docker image `nganalytics/lbaf`
 
-[//]: # (  - sample LBAF usage:)
+- commands executed inside container:
 
-[//]: # (    ```"python src/Applications/NodeGossiper.py -l /lbaf/data/vt_example_lb_stats/stats -x 4 -y 2 -z 1 -s 0 -f 4 -k 4 -i 4 -c 1 -e"```)
+  - sample LBAF usage:
 
-[//]: # (  - command to stay inside container, after above command is completed:)
+    ```"python /lbaf/src/lbaf/Applications/LBAF_app.py --config=/lbaf/in/conf.yaml"```
+
+  - command to stay inside container, after above command is completed:
 
 [//]: # (    ```"/bin/bash"```)

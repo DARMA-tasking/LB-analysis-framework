@@ -1,0 +1,53 @@
+name: Package Install
+on: push
+concurrency:
+  group: CI-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  Package-Install:
+    continue-on-error: false
+    strategy:
+      max-parallel: 10
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9']
+    runs-on: ${{ matrix.os }}
+    env:
+      home_dir: /home/runner/work/LB-analysis-framework/LB-analysis-framework
+      zoltan_dir: /home/runner/work/LB-analysis-framework/zoltan
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install -y git xvfb openmpi-bin libopenmpi-dev
+
+      - name: Python Setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          cd ${{ env.home_dir }}
+          python -m pip install --upgrade pip
+          pip install -r requirements-${{ matrix.python-version }}.txt
+
+      - name: Install PyZoltan
+        run: |
+          mkdir ${{ env.zoltan_dir }}
+          cd ${{ env.zoltan_dir }}
+          git clone https://github.com/pypr/pyzoltan.git
+          cd pyzoltan
+          /bin/sh build_zoltan.sh ${{ env.zoltan_dir }}
+          export ZOLTAN=${{ env.zoltan_dir }}
+          pip install -r ${{ env.zoltan_dir }}/pyzoltan/requirements.txt
+          pip install pyzoltan --no-build-isolation
+
+      - name: Importing Packages
+        run: |
+          python3 ${{ env.home_dir }}/scripts/test_imports.py
