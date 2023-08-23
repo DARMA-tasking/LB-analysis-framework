@@ -1,0 +1,37 @@
+# Specify input
+from_data:
+  data_stem: ../../../data/nolb-8color-16nodes-11firstphases/data
+  phase_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+check_schema: False
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.0
+    beta: 1.0e-08
+    gamma: 0.0
+
+# Specify algorithm
+algorithm:
+  name: PhaseStepper
+
+# Specify output
+output_dir: ../output/vt_writer_stepper_test
+output_file_stem: output_file
+write_JSON:
+  compressed: True
+  suffix: json
+  communications: True
+  offline_LB_compatible: True

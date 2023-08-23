@@ -1,91 +1,126 @@
-import os
 import json
-import brotli
+import multiprocessing as mp
+import os
+import sys
 from logging import Logger
 
+import brotli
 
 from ..Model.lbsPhase import Phase
-from ..Model.lbsRank import Rank
 
 
 class VTDataWriter:
-    """ A class to write load directives for VT as JSON files
-        Each file is named as <base-name>.<node>.out, where <node> spans the number
-        of MPI ranks that VT is utilizing.
+    """A class to write load directives for VT as JSON files
+
+    Each file is named as <base-name>.<node>.out, where <node> spans the number
+    of MPI ranks that VT is utilizing.
     """
 
-    def __init__(self, phase: Phase, f: str = "lbs_out", s: str = "vom", output_dir=None, logger: Logger = None):
-        """ Class constructor:
-            phase: Phase instance
-            f: file name stem
-            s: suffix
+    def __init__(
+        self,
+        logger: Logger,
+        output_dir: str,
+        stem: str,
+        parameters: dict):
+        """Class constructor
+
+        :param phase: Phase instance
+        :param stem: file name stem
+        :param parameters: a dictionary of parameters
         """
         # Assign logger to instance variable
         self.__logger = logger
 
-        # Ensure that provided phase has correct type
-        if not isinstance(phase, Phase):
-            self.__logger.error("Could not write to ExodusII file by lack of a LBS phase")
-            return
+        # Useful fields
+        self.__rank_phases = None
 
         # Assign internals
-        self.__phase = phase
-        self.__file_stem = f"{f}"
-        self.__suffix = s
-        self.__output_dir = output_dir
+        self.__file_stem = stem
+        if output_dir is not None:
+            self.__file_stem = os.path.join(
+                output_dir, self.__file_stem)
+        try:
+            self.__extension = parameters["json_output_suffix"]
+            self.__compress = parameters["compressed"]
+        except Exception as e:
+            self.__logger.error(
+                f"Missing JSON writer configuration parameter(s): {e}")
+            raise SystemExit(1) from e
 
-    def write(self):
-        """Write one JSON file per rank with the following format:
-            <phase-id>, <object-id>, <time>
-        """
-        # Iterate over ranks
-        for p in self.__phase.get_ranks():
-            # Create file name for current rank
-            file_name = f"{self.__file_stem}.{p.get_id()}.{self.__suffix}"
+    def __create_tasks(self, rank_id, objects, migratable):
+        """Create per-object entries to be outputted to JSON."""
+        return [{
+            "entity": {
+                "home": rank_id,
+                "id": o.get_id(),
+                "migratable": migratable,
+                "type": "object",
+            },
+            "node": rank_id,
+            "resource": "cpu",
+            "time": o.get_load()}
+            for o in objects]
 
-            if self.__output_dir is not None:
-                file_name = os.path.join(self.__output_dir, file_name)
+    def _json_writer(self, rank_phases_double) -> str:
+        """Write one JSON per rank for list of phase instances."""
+        # Unpack received double
+        r_id, r_phases = rank_phases_double
 
-            # Count number of unsaved objects for sanity
-            n_u = 0
+        # Create file name for current rank
+        file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
+        self.__logger.debug(f"Writing {file_name}")
 
-            self.json_writer(file_name=file_name, n_u=n_u, rank=p)
+        # Initialize output dict
+        output = {
+            "metadata": {
+                "type": "LBDatafile",
+                "rank": r_id},
+            "phases": []}
 
-    def json_writer(self, file_name: str, n_u: int, rank: Rank):
-        temp_dict = {}
-        # Iterate over objects
-        for o in rank.get_objects():
-            # Write object to file and increment count
-            try:
-                # writer.writerow([o.get_rank_id(), o.get_id(), o.get_time()])
-                proc_id = o.get_rank_id()
-                obj_id = o.get_id()
-                obj_time = o.get_time()
-                if isinstance(temp_dict.get(proc_id, None), list):
-                    temp_dict[proc_id].append({'proc_id': proc_id, 'obj_id': obj_id, 'obj_time': obj_time})
-                else:
-                    temp_dict[proc_id] = list()
-                    temp_dict[proc_id].append({'proc_id': proc_id, 'obj_id': obj_id, 'obj_time': obj_time})
-            except:
-                n_u += 1
+        # Iterate over phases
+        for p_id, rank in r_phases.items():
+            # Create data to be outputted for current phase
+            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
+            phase_data = {"id": p_id}
+            phase_data["tasks"] = self.__create_tasks(
+                r_id, rank.get_migratable_objects(), migratable=True) + self.__create_tasks(
+                r_id, rank.get_sentinel_objects(), migratable=False)
+            output["phases"].append(phase_data)
 
-        dict_to_dump = {}
-        dict_to_dump['phases'] = list()
-        for proc_id, others_list in temp_dict.items():
-            phase_dict = {'tasks': list(), 'id': proc_id}
-            for task in others_list:
-                task_dict = {'time': task['obj_time'], 'resource': 'cpu', 'object': task['obj_id']}
-                phase_dict['tasks'].append(task_dict)
-            dict_to_dump['phases'].append(phase_dict)
+        # Serialize and possibly compress JSON payload
+        serial_json = json.dumps(output, separators=(',', ':'))
+        if self.__compress:
+            serial_json = brotli.compress(
+                string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
+        with open(file_name, "wb" if self.__compress else 'w') as json_file:
+            json_file.write(serial_json)
 
-        json_str = json.dumps(dict_to_dump, separators=(',', ':'))
-        compressed_str = brotli.compress(string=json_str.encode('utf-8'), mode=brotli.MODE_TEXT)
+        # Return JSON file name
+        return file_name
 
-        with open(file_name, 'wb') as compr_json_file:
-            compr_json_file.write(compressed_str)
+    def write(self, phases: dict):
+        """ Write one JSON per rank for dictonary of phases."""
 
-        # Sanity check
-        if n_u:
-            self.__logger.error(f"{n_u} objects could not be written to JSON file {file_name}")
-        else:
-            self.__logger.info(f"Wrote {len(rank.get_objects())} objects to {file_name}")
+        # Ensure that provided phase has correct type
+        if not isinstance(phases, dict) or not all(
+            [isinstance(p, Phase) for p in phases.values()]):
+            self.__logger.error(
+                "JSON writer must be passed a dictionary of phases")
+            raise SystemExit(1)
+
+        # Assemble mapping from ranks to their phases
+        self.__rank_phases = {}
+        for p in phases.values():
+            for r in p.get_ranks():
+                self.__rank_phases.setdefault(r.get_id(), {})
+                self.__rank_phases[r.get_id()][p.get_id()]= r
+
+        # Prevent recursion overruns
+        sys.setrecursionlimit(25000)
+
+        # Write individual rank files using data parallelism
+        with mp.pool.Pool(context=mp.get_context("fork")) as pool:
+            results = pool.imap_unordered(
+                self._json_writer, self.__rank_phases.items())
+            for file_name in results:
+                self.__logger.info(f"Wrote {file_name}")

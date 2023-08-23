@@ -1,0 +1,33 @@
+# Specify input
+from_data:
+  data_stem: ../../../data/synthetic_lb_data/data
+  phase_ids:
+    - 0
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.0
+    beta: 0.0
+    gamma: 0.0
+
+# Specify algorithm
+brute_force_optimization: True
+algorithm:
+  name: InformAndTransfer
+  phase_id: 0
+  parameters:
+    n_iterations: 8
+    n_rounds: 2
+    fanout: 2
+    order_strategy: element_id
+    transfer_strategy: Recursive
+    criterion: Tempered
+    max_objects_per_transfer: 8
+    deterministic_transfer: True
+
+# Specify output
+logging_level: info
+output_dir: ../output
+output_file_stem: output_file

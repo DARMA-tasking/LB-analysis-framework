@@ -1,447 +1,591 @@
-import argparse
+"""LBAF Application"""
+import math
 import os
 import sys
-import logging
-import math
+from typing import Any, Dict, Optional, cast
+
 import yaml
 
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    sys.exit(1)
-try:
-    import paraview.simple
-except:
-    pass
-
-from lbaf import __version__
-from lbaf.Model.lbsPhase import Phase
+import lbaf.IO.lbsStatistics as lbstats
+from lbaf import PROJECT_PATH, __version__
 from lbaf.Execution.lbsRuntime import Runtime
+from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
+from lbaf.IO.lbsVisualizer import Visualizer
+from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.IO.lbsWriterExodusII import WriterExodusII
-from lbaf.IO.lbsStatistics import initialize, print_function_statistics
-from lbaf.Utils.logger import logger
+from lbaf.Model.lbsPhase import Phase
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
+    JSONDataFilesValidatorLoader
+from lbaf.Utils.lbsLogging import Logger, get_logger
+from lbaf.Utils.lbsPath import abspath
 
-from lbaf.Applications.rank_object_enumerator import compute_min_max_arrangements_work
 
+class InternalParameters:
+    """Represent the parameters used internally by a a LBAF Application"""
 
-class internalParameters:
-    """A class to describe LBAF internal parameters
-    """
+    __logger: Logger
 
-    def __init__(self, config_file: str):
-        # Starting logger
-        self.logger = logger()
+    # Input options
+    check_schema: Optional[bool] = None
+    output_dir: Optional[str] = None
+    output_file_stem: Optional[str] = None
+    file_suffix: Optional[str] = None
+    # - from_data options
+    data_stem: Optional[str] = None
+    # - from_samplers options
+    n_ranks: Optional[int] = None
+    n_objects: Optional[int] = None
+    n_mapped_ranks: Optional[int] = None
+    communication_degree: Optional[int] = None
+    load_sampler: Optional[dict] = None
+    volume_sampler: Optional[dict] = None
+
+    # Viz options
+    rank_qoi: Optional[str] = None
+    object_qoi: Optional[str] = None
+    grid_size: Optional[list] = None
+
+    # work_model options
+    work_model: Optional[Dict[str, dict]] = None
+
+    # algorithm options
+    algorithm: Dict[str, Any]
+
+    def __init__(self, config: dict, base_dir: str, logger: Logger):
+        self.__logger = logger
+
+        # Initialize and check configuration
+        self.validate_configuration(config)
+        self.init_parameters(config, base_dir)
+        self.check_parameters()
 
         # Print startup information
-        self.logger.info(f"Executing LBAF version {__version__}")
-        sv = sys.version_info
-        self.logger.info(f"Executing with Python {sv.major}.{sv.minor}.{sv.micro}")
+        self.__logger.info(f"Executing LBAF version {__version__}")
+        svi = sys.version_info
+        self.__logger.info(f"Executing with Python {svi.major}.{svi.minor}.{svi.micro}")
 
-        self.__allowed_config_keys = [
-            "algorithm",
-            "brute_force_optimization",
-            "communication_degree",
-            "exodus",
-            "file_suffix",
-            "generate_multimedia",
-            "data_stem",
-            "logging_level",
-            "output_dir",
-            "output_file_stem",
-            "n_mapped_ranks",
-            "n_objects",
-            "phase_id",
-            "terminal_background",
-            "time_sampler",
-            "volume_sampler",
-            "work_model",
-            "x_procs",
-            "y_procs",
-            "z_procs"]
+    def validate_configuration(self, config: dict):
+        """Configuration file validation."""
+        ConfigurationValidator(
+            config_to_validate=config, logger=self.__logger).main()
 
-        # Initializing instance variables
-        self.algorithm = None
-        self.brute_force_optimization = None
-        self.communication_degree = None
-        self.exodus = None
-        self.file_suffix = None
-        self.generate_multimedia = None
-        self.grid_size = None
-        self.data_stem = None
-        self.logging_level = None
-        self.output_dir = None
-        self.output_file_stem = None
-        self.n_mapped_ranks = None
-        self.n_objects = None
-        self.phase_id = None
-        self.terminal_background = None
-        self.time_sampler = None
-        self.time_sampler_type = None
-        self.time_sampler_parameters = None
-        self.volume_sampler = None
-        self.volume_sampler_type = None
-        self.volume_sampler_parameters = None
-        self.work_model = None
-        self.x_procs = None
-        self.y_procs = None
-        self.z_procs = None
+    def init_parameters(self, config: dict, base_dir: str):
+        """Execute when YAML configuration file was found and checked"""
+        # Get top-level allowed configuration keys
+        self.__allowed_config_keys = cast(list, ConfigurationValidator.allowed_keys())
 
-        # Read configuration values from file
-        self.configuration_file_found = False
-        self.configuration = self.get_configuration_file(conf_file=config_file)
-        if self.configuration_file_found:
-            self.parse_conf_file()
-        self.checks_after_init()
-
-    def get_configuration_file(self, conf_file: str):
-        """ Check extension, read YML file and return parsed YAML configuration file
-        """
-        if os.path.splitext(conf_file)[-1] in [".yml", ".yaml"] and os.path.isfile(conf_file):
-            # Try to open configuration file
-            self.logger.info(f"Found configuration file {conf_file}")
-
-            try:
-                with open(conf_file, "rt") as config:
-                    self.configuration_file_found = True
-                    return yaml.safe_load(config)
-            except yaml.MarkedYAMLError as err:
-                self.logger.error(f"Invalid YAML file {conf_file} in line {err.problem_mark.line} ({err.problem,} "
-                                  f"{err.context})")
-                sys.exit(1)
-        else:
-            self.logger.error(f"Configuration file in {conf_file} not found")
-            sys.exit(1)
-
-    def checks_after_init(self):
-        """ Checks after initialization.
-        """
-        # Ensure that an algorithm was chosen
-        if not (algo := self.algorithm) or not algo.get("name") or not algo.get("parameters"):
-            self.logger.error("An algorithm name and its parameters must be defined")
-            sys.exit(1)
-
-        # Ensure that a work model algorithm was chosen
-        if not (wm := self.work_model) or not wm.get("name"):
-            self.logger.error("A work model name must be defined")
-            sys.exit(1)
-
-        # Ensure that exactly one population strategy was chosen
-        # Make sure that when populate from sampling both time_sampler and volume_sampler are defined
-        # Both data and sampling are set
-        both_on = self.data_stem is not None and bool(self.time_sampler is not None or self.volume_sampler is not None)
-        # Both data and sampling are not set
-        both_off = self.data_stem is None and bool(self.time_sampler is None or self.volume_sampler is None)
-
-        if both_on or both_off:
-            self.logger.error("Exactly one strategy to populate phase must be chosen: either log file or sampler types")
-            sys.exit(1)
-
-        # Case when phases are populated from data file
-        if self.data_stem is not None:
-            # Checking if log dir exists, if not, checking if dir exists in project path
-            if os.path.isdir(os.path.abspath(os.path.split(self.data_stem)[0])):
-                self.data_stem = os.path.abspath(self.data_stem)
-            elif os.path.isdir(os.path.abspath(os.path.join(project_path, os.path.split(self.data_stem)[0]))):
-                self.data_stem = os.path.abspath(os.path.join(project_path, self.data_stem))
-
-        # Checking if output dir exists, if not, creating one
-        if self.output_dir is not None:
-            if not os.path.exists(self.output_dir):
-                os.makedirs(self.output_dir)
-
-    def parse_conf_file(self):
-        """ Execute when YAML configuration file was found and checked
-        """
         # Assign parameters found in configuration file
-        for param_key, param_val in self.configuration.items():
+        for param_key, param_val in config.items():
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
-        self.generate_multimedia = None if not self.generate_multimedia else self.generate_multimedia
-        self.brute_force_optimization = None if not self.brute_force_optimization else self.brute_force_optimization
+        # Parse data parameters if present
+        from_data = config.get("from_data")
+        if from_data is not None:
+            self.data_stem = from_data.get("data_stem")
+            # # get data directory (because data_stem includes file prefix)
+            data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
+            file_prefix = self.data_stem.split(os.sep)[-1]
+            data_dir = abspath(data_dir, relative_to=base_dir)
+            self.data_stem = f"{os.sep}".join([data_dir, file_prefix])
+            self.__logger.info(f"Data stem: {self.data_stem}")
+            if isinstance(from_data.get("phase_ids"), str):
+                range_list = list(map(int, from_data.get("phase_ids").split('-')))
+                self.phase_ids = list(range(range_list[0], range_list[1] + 1))
+            else:
+                self.phase_ids = from_data.get("phase_ids")
 
-        # Set number of ranks in each direction for ExodusII output
-        self.grid_size = []
-        for i, key in enumerate(["x_procs", "y_procs", "z_procs"]):
-            n_procs = self.configuration.get(key)
-            # Reject invalid values
-            if not isinstance(n_procs, int) or n_procs < 1:
-                self.logger.error(f"Invalid number of processors in {key[0]}-direction for ExodusII output: {n_procs}")
-                sys.exit(1)
-            self.grid_size.append(n_procs)
+        # Parse sampling parameters if present
+        from_samplers = config.get("from_samplers")
+        if from_samplers is not None:
+            self.n_ranks = from_samplers.get("n_ranks")
+            self.n_objects = from_samplers.get("n_objects", {})
+            self.n_mapped_ranks = from_samplers.get("n_mapped_ranks")
+            self.communication_degree = from_samplers.get("communication_degree")
+            self.load_sampler = from_samplers.get("load_sampler")
+            self.volume_sampler = from_samplers.get("volume_sampler")
 
-        # Set sampling parameters for random inputs
-        if isinstance(self.configuration.get("time_sampler_type", None), str):
-            self.time_sampler_type, self.time_sampler_parameters = self.parse_sampler(
-                self.configuration["time_sampler_type"])
-        if isinstance(self.configuration.get("volume_sampler_type", None), str):
-            self.volume_sampler_type, self.volume_sampler_parameters = self.parse_sampler(
-                self.configuration["volume_sampler_type"])
+        # Parse visualizer parameters when available
+        if (viz := config.get("LBAF_Viz")) is not None:
+            # Retrieve mandatory visualization parameters
+            try:
+                self.grid_size = []
+                for key in ("x_ranks", "y_ranks", "z_ranks"):
+                    self.grid_size.append(viz[key])
+                self.object_jitter = viz["object_jitter"]
+                self.rank_qoi = viz["rank_qoi"]
+                self.object_qoi = viz.get("object_qoi")
+            except Exception as e:
+                self.__logger.error(
+                    f"Missing LBAF-Viz configuration parameter(s): {e}")
+                raise SystemExit(1) from e
 
-        # Set logging level
-        ll = self.logging_level or "info"
-        logging_level = {
-            "info": logging.INFO,
-            "debug": logging.DEBUG,
-            "error": logging.ERROR,
-            "warning": logging.WARNING}
-        self.logger.level = logging_level.get(ll.lower())
-        self.logger.info(f"Logging level: {ll.lower()}")
+            # Retrieve optional parameters
+            self.save_meshes = viz.get("save_meshes", False)
+            self.continuous_object_qoi = viz.get("force_continuous_object_qoi", False)
 
         # Set output directory, local by default
-        self.output_dir = os.path.abspath(self.output_dir or '.')
-        self.logger.info(f"Output directory: {self.output_dir}")
+        self.output_dir = abspath(config.get("output_dir", '.'), relative_to=base_dir)
 
-    def parse_sampler(self, cmd_str):
-        """ Parse command line arguments specifying sampler type and input parameters
-            Example: lognormal,1.0,10.0
+        # Parse JSON writer parameters when available
+        self.json_params = {}
+        if (wrt_json := config.get("write_JSON")) is not None:
+            # Retrieve mandatory writer parameters
+            try:
+                self.json_params["compressed"] = wrt_json["compressed"]
+            except Exception as e:
+                self.__logger.error(
+                    f"Missing JSON writer configuration parameter(s): {e}")
+                raise SystemExit(1) from e
+
+            # Retrieve optional parameters
+            self.json_params[
+                "json_output_suffix"] = wrt_json.get("suffix", "json")
+            self.json_params[
+                "communications"] = wrt_json.get("communications", False)
+            self.json_params[
+                "offline_LB_compatible"] = wrt_json.get(
+                "offline_LB_compatible", False)
+
+    def check_parameters(self):
+        """Checks after initialization."""
+
+        # Checking if output dir exists, if not, creating one
+        if self.output_dir is not None:
+            if not os.path.isdir(self.output_dir):
+                os.makedirs(self.output_dir)
+
+
+class LBAFApplication:
+    """LBAF application class."""
+
+    def __init__(self):
+        self.__parameters: Optional[InternalParameters] = None
+        self.__json_writer: Optional[VTDataWriter] = None
+        self.__args: Optional[dict] = None
+        self.__logger = get_logger()
+
+    def __parse_args(self):
+        """Parse arguments."""
+        parser = PromptArgumentParser(allow_abbrev=False,
+                                      description="Run a Load-Balancing Simulation with some configuration",
+                                      prompt_default=False)
+        parser.add_argument("-c", "--configuration",
+                            help="Path to the config file. If path is relative it must be resolvable from either the "
+                                 "current working directory or the config directory",
+                            default="conf.yaml",
+                            )
+        parser.add_argument("-v", "--verbose",
+                            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank "
+                                 "and object QOI.",
+                            default="0"
+                            )
+        self.__args = parser.parse_args()
+
+    def __read_configuration_file(self, path: str):
+        if os.path.splitext(path)[-1] in [".yml", ".yaml"]:
+            # Try to open configuration file in read+text mode
+            try:
+                with open(path, "rt", encoding="utf-8") as file_io:
+                    data = yaml.safe_load(file_io)
+                    if not data.get("overwrite_validator", True):
+                        self.__logger.info(
+                            f"Option 'overwrite_validator' in configuration file: {path} is set to False"
+                        )
+            except yaml.MarkedYAMLError as err:
+                err_line = err.problem_mark.line if err.problem_mark is not None else -1
+                self.__logger.error(
+                    f"Invalid YAML file {path} in line {err_line} ({err.problem}) {err.context}")
+                raise SystemExit(1) from err
+        else:
+            raise SystemExit(1)
+        return data
+
+    def __merge(self, src: dict, dest: dict) -> dict:
+        """Merges dictionaries. Internally used to merge configuration data"""
+        data = dest.copy()
+        for k in src:
+            if not k in data:
+                # if new key
+                data[k] = src[k]
+            else:
+                # if key exists in both src and dest
+                if isinstance(src[k], dict) and isinstance(data[k], dict):
+                    data[k] = self.__merge(src[k], dest[k])
+                else:
+                    data[k] = src[k]
+        return data
+
+    def __merge_configurations(self, *config_path):
+        """Generates a unique configuration dict from multiple configurations from a path list"""
+        config = {}
+        for path in config_path:
+            next_config = self.__read_configuration_file(path)
+            config = self.__merge(next_config, config)
+        return config
+
+    def __configure(self, *config_path):
+        """Configure the application using the configuration file(s) at the given path(s).
+
+        :param config_path: The configuration file path.
+            If multiple then provide it from the most generic to the most specialized.
+        :returns: The configuration as a dictionary
         """
 
-        # Default return values
-        sampler_type = None
-        sampler_args = []
+        # merge configurations
+        config = self.__merge_configurations(*config_path)
 
-        # Try to parse the sampler from `cmd_str`
-        a_s = cmd_str.split(",")
-        if len(a_s):
-            sampler_type = a_s[0].lower()
-            for p in a_s[1:]:
-                try:
-                    x = float(p)
-                except:
-                    self.logger.error(f"{p} cannot be converted to a float")
-                    sys.exit(1)
-                sampler_args.append(x)
+        # Change logger (with parameters from the configuration)
+        lvl = cast(str, config.get("logging_level", "info"))
+        config_dir = os.path.dirname(config_path[-1]) # Directory of the most specialized configuration
+        log_to_file = config.get("log_to_file", None)
+        self.__logger = get_logger(
+            name="lbaf",
+            level=lvl,
+            log_to_console=config.get("log_to_console", None) is None,
+            log_to_file=None if log_to_file is None else abspath(config.get("log_to_file"), relative_to=config_dir)
+        )
+        self.__logger.info(f"Logging level: {lvl.lower()}")
+        if log_to_file is not None:
+            log_to_file_path = abspath(config.get("log_to_file"), relative_to=config_dir)
+            self.__logger.info(f"Logging to file: {log_to_file_path}")
 
-        # Error check the sampler parsed from input string
-        if sampler_type not in ("uniform", "lognormal"):
-            self.logger.error(f"Unsupported sampler type: {sampler_type}")
-            sys.exit(1)
-        if len(sampler_args) != 2:
-            self.logger.error(f"Expected two parameters for sampler type: {sampler_type}, got {len(sampler_args)}")
-            sys.exit(1)
+        # Instantiate the application internal parameters
+        self.__parameters = InternalParameters(config=config, base_dir=config_dir, logger=self.__logger)
 
-        # Return the sampler parsed from the input argument
-        return sampler_type, sampler_args
+        # Create VT writer except when explicitly turned off
+        self.__json_writer = VTDataWriter(
+            self.__logger,
+            self.__parameters.output_dir,
+            self.__parameters.output_file_stem,
+            self.__parameters.json_params) if self.__parameters.json_params else None
 
+        return config
 
-def global_id_to_cartesian(id, grid_sizes):
-    """Map global index to its Cartesian coordinates in a grid
-    """
+    def __resolve_config_path(self, config_path) -> str:
+        """Find the config file from the '-configuration' command line argument and returns its absolute path
+        (if configuration file path is relative it is searched in the current working directory and at the end in the
+        {PROJECT_PATH}/config directory)
 
-    # Sanity check
-    n01 = grid_sizes[0] * grid_sizes[1]
-    if id < 0 or id >= n01 * grid_sizes[2]:
-        return None
+        :raises FileNotFoundError: if configuration file cannot be found
+        """
+        # search config file in the current working directory if relative
+        path = config_path
+        path_list = []
+        path_list.append(path)
+        if (
+            path is not None and
+            not os.path.isfile(path) and
+            not os.path.isabs(config_path) and PROJECT_PATH is not None
+        ):
+            # then search config file relative to the config folder
+            search_dir = abspath("config", relative_to=PROJECT_PATH)
+            path = search_dir + '/' + config_path
+            path_list.append(path)
 
-    # Compute successive euclidean divisions
-    k, r = divmod(id, n01)
-    j, i = divmod(r, grid_sizes[0])
-
-    # Return Cartesian coordinates
-    return i, j, k
-
-
-class LBAFApp:
-    def __init__(self):
-        self.config_file = self.__get_config_file()
-
-        # Instantiate parameters
-        self.params = internalParameters(config_file=self.config_file)
-
-        # Assign logger to variable
-        self.logger = self.params.logger
-
-    @staticmethod
-    def __get_config_file() -> str:
-        """ Parses command line argument and returns config file path. """
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--config", help="Path to the config file.")
-        args = parser.parse_args()
-        if args.config:
-            config_file = os.path.abspath(args.config)
+        if not os.path.isfile(path):
+            error_message = "The configuration file cannot be found." \
+                            " If you provide a relative path, please verify that the file exists in the " \
+                            "current working directory or in the `<project_path>/config` directory"
+            raise FileNotFoundError(error_message)
         else:
-            config_file = os.path.join(project_path, "lbaf", "Applications", "conf.yaml")
+            self.__logger.info(f"Found configuration file at path {path}")
 
-        return config_file
+        return path
 
-    def main(self):
-        # Keep track of total number of procs
-        n_ranks = self.params.grid_size[0] * self.params.grid_size[1] * self.params.grid_size[2]
-        if n_ranks < 2:
-            self.logger.info(f"Total number of ranks ({n_ranks}) must be > 1")
-            sys.exit(1)
+    def __print_statistics(self, phase: Phase, phase_name: str):
+        """Print a set of rank and edge statistics"""
+
+        # Print rank statistics
+        l_stats = lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_load(),
+            f"{phase_name} rank load",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_object_level_memory(),
+            f"{phase_name} rank object-level memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_size(),
+            f"{phase_name} rank working memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_shared_memory(),
+            f"{phase_name} rank shared memory",
+            self.__logger)
+        lbstats.print_function_statistics(
+            phase.get_ranks(),
+            lambda x: x.get_max_memory_usage(),
+            f"{phase_name} maximum memory usage",
+            self.__logger)
+
+        # Print edge statistics
+        lbstats.print_function_statistics(
+            phase.get_edge_maxima().values(),
+            lambda x: x,
+            f"{phase_name} sent volumes",
+            self.__logger)
+
+        # Return rank load statistics
+        return l_stats
+
+    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name # not snake case
+        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        verbosity = int(self.__args.verbose)
+
+        # Initialize file paths
+        target_dir = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        rank_script_name = "lbsRank.py"
+        object_script_name = "lbsObject.py"
+
+        # Create list of all Rank QOI (Rank.get_*)
+        r_qoi_list = ["work"]
+        lbs_rank_file = open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8")
+        lbs_rank_lines = lbs_rank_file.readlines()
+        for line in lbs_rank_lines:
+            if line[8:12] == "get_":
+                r_qoi_list.append(line[12:line.find("(")])
+
+        # Create list of all Object QOI (Object.get_*)
+        o_qoi_list = []
+        lbs_object_file = open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8")
+        lbs_object_lines = lbs_object_file.readlines()
+        for line in lbs_object_lines:
+            if line[8:12] == "get_":
+                o_qoi_list.append(line[12:line.find("(")])
+
+        # Print QOI based on verbosity level
+        if verbosity > 0:
+            self.__logger.info("List of Implemented QOI:")
+        if verbosity == 1:
+            self.__logger.info("\tRank QOI:")
+            for r_qoi in r_qoi_list:
+                self.__logger.info(f"\t\t{r_qoi}")
+        elif verbosity > 1:
+            self.__logger.info("\tRank QOI:")
+            for r_qoi in r_qoi_list:
+                self.__logger.info(f"\t\t{r_qoi}")
+            self.__logger.info("")
+            self.__logger.info("\tObject QOI:")
+            for o_qoi in o_qoi_list:
+                self.__logger.info(f"\t\t{o_qoi}")
+
+    def run(self):
+        """Run the LBAF application."""
+        # Parse command line arguments
+        self.__parse_args()
+
+        # Warn if default configuration is used because not set as argument
+        if self.__args.configuration is None:
+            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+                                  "working directory or in the project config directory !")
+            self.__args.configuration = "conf.yaml"
+
+        # Find configuration files
+        config_file_list = []
+        # Global configuration (optional)
+        try:
+            config_file_list.append(self.__resolve_config_path("global.yaml"))
+        except FileNotFoundError:
+            pass
+        # Local/Specialized configuration (required)
+        try:
+            config_file_list.append(self.__resolve_config_path(self.__args.configuration))
+        except(FileNotFoundError) as err:
+            self.__logger.error(err)
+            raise SystemExit(-1) from err
+
+        # Apply configuration
+        cfg = self.__configure(*config_file_list)
+
+        # Download JSON data files validator (JSON data files validator is required to continue)
+        loader = JSONDataFilesValidatorLoader()
+        if loader.run(cfg.get("overwrite_validator", True)) != 0:
+            raise RuntimeError("The JSON data files validator must be loaded to run the application")
 
         # Initialize random number generator
-        initialize()
+        lbstats.initialize()
 
-        # Create a phase and populate it
-        if self.params.file_suffix is not None:
-            phase = Phase(0, self.logger, self.params.file_suffix)
-        else:
-            phase = Phase(0, self.logger)
-        if self.params.data_stem:
-            # Try to populate phase from log files and store number of objects
-            if not isinstance(self.params.phase_id, int) or self.params.phase_id < 0:
-                self.logger.error(f"A valid phase ID is required to populate from VT log file: {self.params.phase_id}")
-                sys.exit(1)
-            self.params.n_objects = phase.populate_from_log(n_ranks, self.params.phase_id, self.params.data_stem)
-        else:
-            # Try to populate phase pseudo-randomly
-            if self.params.n_objects is None or not isinstance(self.params.n_objects, int) or self.params.n_objects < 1:
-                self.logger.error(f"A valid number of objects is required: {self.params.n_objects}")
-                sys.exit(1)
-            if self.params.communication_degree is None or not isinstance(self.params.communication_degree, int) \
-                    or self.params.communication_degree < 0:
-                self.logger.error(f"A valid communication degree is required: {self.params.communication_degree}")
-                sys.exit(1)
-            if self.params.time_sampler is None or self.params.time_sampler.get("name") is None \
-                    or self.params.time_sampler.get("parameters") is None:
-                self.logger.error("A time sampler name and its parameters must be defined")
-                sys.exit(1)
-            if self.params.volume_sampler is None or self.params.volume_sampler.get("name") is None \
-                    or self.params.volume_sampler.get("parameters") is None:
-                self.logger.error("A volume sampler name and its parameters must be defined")
-                sys.exit(1)
-            self.params.n_mapped_ranks = 0 if self.params.n_mapped_ranks is None else self.params.n_mapped_ranks
-            phase.populate_from_samplers(n_ranks, self.params.n_objects, self.params.time_sampler,
-                                         self.params.volume_sampler, self.params.communication_degree,
-                                         self.params.n_mapped_ranks)
+        # Create dictionary for phase instances
+        phases = {}
 
-        # Compute and print initial rank load and edge volume statistics
-        print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_load(),
-            "initial rank loads",
-            logger=self.logger)
-        print_function_statistics(
-            phase.get_edges().values(),
-            lambda x: x,
-            "initial sent volumes",
-            logger=self.logger)
+        # Check schema
+        check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
+
+        # Populate phase depending on chosen mechanism
+        if self.__parameters.data_stem:
+            # Populate phase from log files and store number of objects
+            file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
+        # Create dictionary for phase instances
+        phases = {}
+
+        # Check schema
+        check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
+
+        reader = None  # type: Optional(LoadReader)
+
+        n_ranks = None
+
+        # Populate phase depending on chosen mechanism
+        if self.__parameters.data_stem:
+            # Populate phase from log files and store number of objects
+            file_suffix = None if "file_suffix" not in self.__parameters.__dict__ else self.__parameters.file_suffix
+
+            # Initializing reader
+            reader = LoadReader(
+                file_prefix=self.__parameters.data_stem,
+                logger=self.__logger,
+                file_suffix=file_suffix if file_suffix is not None else "json",
+                check_schema=check_schema)
+            # retrieve n_ranks
+            n_ranks = reader.n_ranks
+
+            # Iterate over phase IDs
+            for phase_id in self.__parameters.phase_ids:
+                # Create a phase and populate it
+                phase = Phase(
+                    self.__logger, phase_id, reader=reader)
+                phase.populate_from_log(phase_id)
+                phases[phase_id] = phase
+                phase = Phase(
+                    self.__logger, phase_id, reader=reader)
+                phase.populate_from_log(phase_id)
+                phases[phase_id] = phase
+        else:
+            n_ranks = self.__parameters.n_ranks
+            phase_id = 0
+            phase = Phase(self.__logger, phase_id)
+            phase.populate_from_samplers(
+                n_ranks,
+                self.__parameters.n_objects,
+                self.__parameters.load_sampler,
+                self.__parameters.volume_sampler,
+                self.__parameters.communication_degree,
+                self.__parameters.n_mapped_ranks)
+            phases[phase_id] = phase
+
+        # Report on initial rank and edge statistics
+        initial_phase = phases[min(phases.keys())]
+        self.__print_statistics(initial_phase, "initial")
 
         # Perform brute force optimization when needed
-        if self.params.brute_force_optimization is not None and self.params.algorithm["name"] != "BruteForce":
-            # Prepare input data for rank order enumerator
-            self.logger.info(f"Starting brute force optimization")
-            objects = []
-
-            # Iterate over ranks
-            for rank in phase.get_ranks():
-                for o in rank.get_objects():
-                    entry = {
-                        "id": o.get_id(),
-                        "time": o.get_time(),
-                        "to": {},
-                        "from": {}}
-                    comm = o.get_communicator()
-                    if comm:
-                        for k, v in comm.get_sent().items():
-                            entry["to"][k.get_id()] = v
-                        for k, v in comm.get_received().items():
-                            entry["from"][k.get_id()] = v
-                    objects.append(entry)
-            objects.sort(key=lambda x: x.get("id"))
-
-            # Execute rank order enumerator and fetch optimal arrangements
-            alpha = self.params.work_model.get("parameters").get("alpha")
-            beta = self.params.work_model.get("parameters").get("beta")
-            gamma = self.params.work_model.get("parameters").get("gamma")
-            n_a, w_min_max, a_min_max = compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, n_ranks)
-            if n_a != n_ranks ** len(objects):
-                self.logger.error("Incorrect number of possible arrangements with repetition")
-                sys.exit(1)
-            self.logger.info(f"Minimax work: {w_min_max:.4g} for {len(a_min_max)} optimal arrangements amongst {n_a}")
+        if ("brute_force_optimization" in self.__parameters.__dict__
+                and self.__parameters.algorithm["name"] != "BruteForce"):
+            self.__logger.info("Starting brute force optimization")
+            objects = initial_phase.get_objects()
+            alpha, beta, gamma = [
+                self.__parameters.work_model.get("parameters", {}).get(k)
+                for k in ("alpha", "beta", "gamma")
+            ]
+            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma,
+                                                                                    n_ranks, logger=self.__logger)
         else:
-            self.logger.info("No brute force optimization performed")
+            self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
-        # Instantiate and execute runtime
-        rt = Runtime(
-            phase,
-            self.params.work_model,
-            self.params.algorithm,
+        # Instantiate runtime
+        runtime = Runtime(
+            phases,
+            self.__parameters.work_model,
+            self.__parameters.algorithm,
             a_min_max,
-            self.logger)
-        rt.execute()
+            self.__logger,
+            self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
+            self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
-        # Create mapping from rank to Cartesian grid
-        pgs = self.params.grid_size
-        self.logger.info(f"Mapping {n_ranks} ranks onto a {pgs[0]}x{pgs[1]}x{pgs[2]} rectilinear grid")
-        grid_map = lambda x: global_id_to_cartesian(x.get_id(), self.params.grid_size)
+        # Execute runtime for specified phases, -1 for all phases
+        offline_LB_compatible = self.__parameters.json_params.get(  # pylint:disable=C0103:invalid-name;not lowercase
+            "offline_LB_compatible", False)
+        rebalanced_phase = runtime.execute(
+            self.__parameters.algorithm.get("phase_id", -1),
+            offline_LB_compatible)
 
-        # Try to output file name stem
-        if self.params.output_file_stem is None:
-            self.logger.error("An output file stem must be provided")
-            sys.exit(1)
+        # Instantiate phase to VT file writer when requested
+        if self.__json_writer:
+            if offline_LB_compatible:
+                # Add rebalanced phase when present
+                if not rebalanced_phase:
+                    self.__logger.warning(
+                        "No rebalancing took place for offline load-balancing")
+                else:
+                    # Determine if a phase with same index was present
+                    if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
+                        # Apply object timings to rebalanced phase
+                        self.__logger.info(
+                            f"Phase {p_id} already present, applying its object loads to rebalanced phase")
+                        original_loads = {
+                            o.get_id(): o.get_load()
+                            for o in phases[p_id].get_objects()}
+                        for o in rebalanced_phase.get_objects():
+                            o.set_load(original_loads[o.get_id()])
 
-        # Instantiate phase to VT file writer if started from a log file
-        if self.params.data_stem:
-            vt_writer = VTDataWriter(
-                phase,
-                self.params.output_file_stem,
-                output_dir=self.params.output_dir,
-                logger=self.logger)
-            vt_writer.write()
+                    # Insert rebalanced phase into dictionary of phases
+                    phases[p_id] = rebalanced_phase
 
-        # If prefix parsed from command line
-        if self.params.exodus:
-            # Instantiate phase to ExodusII file writer if requested
-            ex_writer = WriterExodusII(
-                phase,
-                grid_map,
-                self.params.output_file_stem,
-                output_dir=self.params.output_dir,
-                logger=self.logger)
-            ex_writer.write(rt.distributions, rt.statistics)
+                # Write all phases
+                self.__logger.info(
+                    f"Writing all ({len(phases)}) phases for offline load-balancing")
+                self.__json_writer.write(phases)
+            else:
+                self.__logger.info(f"Writing single phase {phase_id} to JSON files")
+                self.__json_writer.write(
+                    {phase_id: rebalanced_phase})
 
-        # Create a viewer if paraview is available
-        file_name = self.params.output_file_stem
-        if self.params.generate_multimedia is not None:
-            from ParaviewViewerBase import ParaviewViewerBase
-            if self.params.output_dir is not None:
-                file_name = os.path.join(self.params.output_dir, file_name)
-                output_file_stem = file_name
-                viewer = ParaviewViewerBase.factory(
-                    exodus=output_file_stem,
-                    file_name=file_name,
-                    viewer_type='')
-                reader = viewer.createViews()
-            viewer.saveView(reader)
+        # Generate meshes and multimedia when requested
+        if self.__parameters.grid_size:
+            # Verify grid size consistency
+            if math.prod(self.__parameters.grid_size) < n_ranks:
+                self.__logger.error(
+                    "Grid size: {self.__parameters.grid_size} < {n_ranks}")
+                raise SystemExit(1)
 
-        # Create file to store imbalance statistics
-        imb_file = "imbalance.txt" if self.params.output_dir is None else os.path.join(self.params.output_dir,
-                                                                                       "imbalance.txt")
+            # Look for prescribed QOI bounds
+            qoi_request = [self.__parameters.rank_qoi]
+            qoi_request.append(
+                self.__parameters.work_model.get(
+                    "parameters").get(
+                    "upper_bounds", {}).get(
+                    self.__parameters.rank_qoi))
+            qoi_request.append(self.__parameters.object_qoi)
 
-        # Compute and print final rank load and edge volume statistics
-        _, _, l_ave, _, _, _, _, _ = print_function_statistics(
-            phase.get_ranks(),
-            lambda x: x.get_load(),
-            "final rank loads",
-            logger=self.logger,
-            file=imb_file)
-        print_function_statistics(
-            phase.get_edges().values(),
-            lambda x: x,
-            "final sent volumes",
-            logger=self.logger)
+            # Instantiate and execute visualizer
+            visualizer = Visualizer(
+                self.__logger,
+                qoi_request,
+                self.__parameters.continuous_object_qoi,
+                phases,
+                self.__parameters.grid_size,
+                self.__parameters.object_jitter,
+                self.__parameters.output_dir,
+                self.__parameters.output_file_stem,
+                runtime.get_distributions(),
+                runtime.get_statistics())
+            visualizer.generate(
+                self.__parameters.save_meshes,
+                not self.__parameters.rank_qoi is None)
 
-        # Report on theoretically optimal statistics
-        q, r = divmod(self.params.n_objects, n_ranks)
-        ell = n_ranks * l_ave / self.params.n_objects
-        self.logger.info(f"Optimal load statistics for {self.params.n_objects} objects with iso-time: {ell:.6g}")
-        self.logger.info(f"\tminimum: {q * ell:.6g}  maximum: {(q + (1 if r else 0)) * ell:.6g}")
-        imbalance = (n_ranks - r) / float(self.params.n_objects) if r else 0.
-        self.logger.info(
-            f"\tstandard deviation: {ell * math.sqrt(r * (n_ranks - r)) / n_ranks:.6g}  imbalance: {imbalance:.6g}")
+        # Report on rebalanced phase when available
+        if rebalanced_phase:
+            l_stats = self.__print_statistics(rebalanced_phase, "rebalanced")
+            with open(
+                "imbalance.txt" if self.__parameters.output_dir is None
+                else os.path.join(
+                    self.__parameters.output_dir,
+                    "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
+                imbalance_file.write(f"{l_stats.get_imbalance()}")
+
+        # Print list of implemented QOI (according to verbosity argument)
+        self.__print_QOI()
 
         # If this point is reached everything went fine
-        self.logger.info("Process completed without errors")
+        self.__logger.info("Process completed without errors")
+        return 0
 
 
 if __name__ == "__main__":
-    LBAFApp().main()
+    LBAFApplication().run()

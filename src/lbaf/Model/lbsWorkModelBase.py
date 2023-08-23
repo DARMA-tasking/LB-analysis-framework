@@ -1,53 +1,41 @@
 import abc
 from logging import Logger
-import sys
 
-from ..Utils.logger import logger
-
-
-LGR = logger()
+from ..Utils.lbsLogging import get_logger
 
 
 class WorkModelBase:
-    __metaclass__ = abc.ABCMeta
-    """ An abstract base class of per-rank work model
-    """
+    """An abstract base class of per-rank work model."""
 
-    def __init__(self, parameters=None):
-        """ Class constructor:
-            parameters: optional parameters dictionary
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, parameters=None): # pylint:disable=W0613:unused-argument # might be used in child class constructor
+        """Class constructor.
+
+        :param parameters: optional parameters dictionary.
         """
         # Work keeps internal references to ranks and edges
-        LGR.debug("Created base work model")
+        get_logger().debug("Created base work model")
 
     @staticmethod
-    def factory(work_name, parameters=None, lgr: Logger = None):
-        """ Produce the necessary concrete work model
-        """
-        from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
+    def factory(work_name, parameters, lgr: Logger):
+        """Produce the necessary concrete work model."""
+        # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsAffineCombinationWorkModel import AffineCombinationWorkModel
+        from .lbsLoadOnlyWorkModel import LoadOnlyWorkModel
 
+        # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         # Ensure that work name is valid
         try:
             # Instantiate and return object
             work = locals()[work_name + "WorkModel"]
-            lgr = LGR if lgr is None else lgr
             return work(parameters, lgr=lgr)
-        except:
+        except Exception as err:
             # Otherwise, error out
-            LGR.error(f"Could not create a work with name {work_name}")
-            sys.exit(1)
+            get_logger().error(f"Could not create a work with name: {work_name}")
+            raise NameError(f"Could not create a work with name: {work_name}") from err
 
     @abc.abstractmethod
     def compute(self, rank):
-        """ Return value of work for given rank
-        """
+        """Return value of work for given rank."""
         # Must be implemented by concrete subclass
-        pass
-
-    @abc.abstractmethod
-    def aggregate(self, values: dict):
-        """ Return value of work given relevant dictionary of values
-        """
-        # Must be implemented by concrete subclass
-        pass

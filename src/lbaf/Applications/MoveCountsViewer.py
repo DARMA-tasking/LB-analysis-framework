@@ -1,125 +1,91 @@
 import os
 import sys
-try:
-    project_path = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
-    sys.path.append(project_path)
-except Exception as e:
-    print(f"Can not add project path to system path! Exiting!\nERROR: {e}")
-    exit(1)
-
 import csv
-import getopt
-import sys
 
 import vtk
 
-from lbaf.Applications.MoveCountsViewerParameters import MoveCountsViewerParameters
-from lbaf.Utils.logger import logger
+from lbaf import PROJECT_PATH
+from lbaf.Utils.lbsLogging import get_logger, Logger
+from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+
+
+class MoveCountsViewerParameters:
+    """A class to describe MoveCountsViewer parameters."""
+
+    def __init__(self, interactive):
+        # Set renderer parameters
+        self.renderer_background = [1, 1, 1]
+
+        # Set actor_vertices parameters
+        self.actor_vertices_screen_size = 50 if interactive else 5000
+        self.actor_vertices_color = [0, 0, 0]
+        self.actor_vertices_opacity = .3 if interactive else .5
+
+        # Set actor_labels parameters
+        self.actor_labels_color = [0, 0, 0]
+        self.actor_labels_font_size = 16 if interactive else 150
+        self.actor_edges_opacity = .5 if interactive else 1
+        self.actor_edges_line_width = 2 if interactive else 15
+
+        # Set actor_arrows parameters
+        self.actor_arrows_edge_glyph_position = .5
+        self.actor_arrows_source_scale = .075
+
+        # Set actor_bar parameters
+        self.actor_bar_number_of_labels = 2
+        self.actor_bar_width = .2
+        self.actor_bar_heigth = .08
+        self.actor_bar_position = [.4, .91]
+        self.actor_bar_title_color = [0, 0, 0]
+        self.actor_bar_label_color = [0, 0, 0]
+
+        # Set window parameters
+        self.window_size_x = 600
+        self.window_size_y = 600
+
+        # Set wti (WindowToImageFilter) parameters
+        self.wti_scale = 10
 
 
 class MoveCountsViewer:
-    """ A class to describe MoveCountsViewer attributes
-    """
-    def __init__(self, n_processors: int = 0, input_file_name: str = None, input_file_suffix: str = "out",
-                 output_file_name: str = "move_counts", interactive: bool = True):
+    """MoveCountsViewer class"""
 
-        # Size of subset to which objects are initially mapped (0 = all)
-        self.n_processors = n_processors
+    def __init__(self):
+        self.__args: dict = None
+        self.__logger: Logger = get_logger()
 
-        # Input file name
-        if isinstance(input_file_name, str):
-            self.input_file_name = os.path.join(project_path, input_file_name)
-        else:
-            self.input_file_name = input_file_name
+    def __parse_args(self):
+        """Parse arguments."""
+        parser = PromptArgumentParser(allow_abbrev=False, description="MoveCountsViewer", prompt_default=True)
+        parser.add_argument("-p", "--n-processors", help="number of processors", default=8, type=int)
+        parser.add_argument("-f", "--input-file-name", help="input file name",
+                            default=os.path.join(PROJECT_PATH, "data", "nolb-data", "data"))
+        parser.add_argument("-s", "--input-file-suffix", help="input file suffix", default="vom")
+        parser.add_argument("-o", "--output-file-name", help="output file name",
+                            default=os.path.join(PROJECT_PATH, "output", "move_counts"))
+        parser.add_argument("-t", "--output-file-suffix", help="output file suffix", default=8)
+        parser.add_argument("-i", "--interactive", type=bool, help="interactive call", default=False)
+        self.__args = parser.parse_args()
 
-        # Input file suffix -- .vom by default
-        self.input_file_suffix = input_file_suffix
-
-        # Output file name
-        self.output_file_name = output_file_name
-
-        # Output file suffix -- .png by default
-        self.output_file_suffix = "png"
-
-        # Interactive call -- False by default
-        self.interactive = interactive
-
-        # Starting logger
-        self.logger = logger()
-        self.logging_level = "info"
-
-    def usage(self):
-        """ Provide online help
-        """
-
-        print("Usage:")
-
-        print("\t [-p <np>]   number of processors")
-        print("\t [-f <fn>]   input file name")
-        print("\t [-s]        input file format suffix")
-        print("\t [-o]        output file name")
-        print("\t [-t]        output file format suffix")
-        print("\t [-i]        interactive call")
-        print("\t [-h]        help: print this message and exit")
-        print("")
-
-    def parse_command_line(self):
-        """ Parse command line
-        """
-
-        # Try to hash command line with respect to allowable flags
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "p:f:s:o:t:ih")
-        except getopt.GetoptError:
-            self.logger.error("Incorrect command line arguments.")
-            self.usage()
-            return True
-
-        # Parse arguments and assign corresponding member variable values
-        for o, a in opts:
-            try:
-                i = int(a)
-            except:
-                i = None
-
-            if o == "-p":
-                if i > 0:
-                    self.n_processors = i
-            elif o == "-f":
-                self.input_file_name = a
-                # Output file name is equal to input file name by default
-                if self.output_file_name is None:
-                    self.output_file_name = a
-            elif o == "-s":
-                self.input_file_suffix = a
-            elif o == "-o":
-                self.output_file_name = a
-            elif o == "-t":
-                self.output_file_suffix = a
-            elif o == "-i":
-                self.interactive = True
-
+    def check_args(self) -> bool:
+        """Validate input arguments."""
+        if self.__args.output_file_name is None:
+            self.__args.output_file_name = self.__args.input_file_name
         # If number of processors is not provided or set to 0
-        if params.n_processors == 0:
-            self.logger.error("At least one processor needs to be defined. Exiting.")
-            self.usage()
-            return True
+        if self.__args.n_processors == 0:
+            self.__logger.error("At least one processor needs to be defined. Exiting.")
+            return False
         # If  invalid file name is provided
-        elif (not params.input_file_name.strip()
-              or params.input_file_name.strip() == "''"):
-            self.logger.error("A file name needs to be defined. Exiting.")
-            self.usage()
-            return True
+        elif (not self.__args.input_file_name.strip() or self.__args.input_file_name.strip() == "''"):
+            self.__logger.error("A file name needs to be defined. Exiting.")
+            return False
+        return True
 
-        # No line parsing error occurred
-        return False
-
-    def computeMoveCountsViewer(self):
-        """ Compute MoveCountsViewer
-        """
+    def compute_move_counts_viewer(self):
+        """Compute MoveCountsViewer."""
 
         # Instantiate MoveCountsViewerParameters
-        viewerParams = MoveCountsViewerParameters(self)
+        viewer_params = MoveCountsViewerParameters(self.__args.interactive)
 
         # Create storage for vertex values
         vertex_name = "Node ID"
@@ -133,33 +99,31 @@ class MoveCountsViewer:
         graph.GetVertexData().SetActiveScalars(vertex_name)
 
         # Populate graph vertices
-        for i in range(self.n_processors):
+        for i in range(self.__args.n_processors):
             vertex_data.InsertNextValue(i)
             graph.AddVertex()
 
         # Compute directed move counts
         directed_moves = {}
-        directed_sizes = {}
-        for i in range(self.n_processors):
+        # directed_sizes = {} (unused)
+        for i in range(self.__args.n_processors):
             # Iterate over all files
-            with open("{}.{}.{}".format(
-                    self.input_file_name,
-                    i,
-                    self.input_file_suffix), "r") as f:
+            with open(
+                f"{self.__args.input_file_name}.{i}.{self.__args.input_file_suffix}", 'r', encoding="utf-8"
+            ) as input_file:
                 # Instantiate CSV reader
-                reader = csv.reader(f, delimiter=",")
+                reader = csv.reader(input_file, delimiter=",")
 
                 # Iterate over rows of processor file
                 for row in reader:
                     # Retrieve source node ID
                     src_id = int(row[0])
-                    src_sz = float(row[2])
+                    # src_sz = float(row[2]) (unused)
 
                     # Add edge when source != destination
                     if src_id != i:
                         directed_moves[(src_id, i)] = directed_moves.get(
                             (src_id, i), 0) + 1
-
         # Compute undirected move counts
         undirected_moves = {
             (i, j): directed_moves.get((i, j), 0) + directed_moves.get(
@@ -192,7 +156,7 @@ class MoveCountsViewer:
 
         # Create renderer
         renderer = vtk.vtkRenderer()
-        renderer.SetBackground(viewerParams.renderer_background)
+        renderer.SetBackground(viewer_params.renderer_background)
         renderer.GradientBackgroundOff()
 
         # Create graph vertex layout
@@ -211,7 +175,7 @@ class MoveCountsViewer:
             gtg.SetGlyphType(v)
             gtg.SetRenderer(renderer)
             if k:
-                gtg.SetScreenSize(viewerParams.actor_vertices_screen_size)
+                gtg.SetScreenSize(viewer_params.actor_vertices_screen_size)
                 gtg.FilledOn()
             glyphs.append(gtg)
 
@@ -222,9 +186,9 @@ class MoveCountsViewer:
         actor_vertices = vtk.vtkActor()
         actor_vertices.SetMapper(mapper_vertices)
         actor_vertices.GetProperty().SetColor(
-            viewerParams.actor_vertices_color)
+            viewer_params.actor_vertices_color)
         actor_vertices.GetProperty().SetOpacity(
-            viewerParams.actor_vertices_opacity)
+            viewer_params.actor_vertices_opacity)
         renderer.AddViewProp(actor_vertices)
 
         # Vertex labels
@@ -237,8 +201,8 @@ class MoveCountsViewer:
         l_props = labels.GetLabelTextProperty()
         l_props.SetJustificationToCentered()
         l_props.SetVerticalJustificationToCentered()
-        l_props.SetColor(viewerParams.actor_labels_color)
-        l_props.SetFontSize(viewerParams.actor_labels_font_size)
+        l_props.SetColor(viewer_params.actor_labels_color)
+        l_props.SetFontSize(viewer_params.actor_labels_font_size)
         l_props.BoldOn()
         l_props.ItalicOff()
         renderer.AddViewProp(actor_labels)
@@ -255,12 +219,12 @@ class MoveCountsViewer:
         directed_edges.SetInputConnection(layout_directed_edges.GetOutputPort())
         directed_edges.EdgeGlyphOutputOn()
         directed_edges.SetEdgeGlyphPosition(
-            viewerParams.actor_arrows_edge_glyph_position)
+            viewer_params.actor_arrows_edge_glyph_position)
 
         # Arrow source and glyph
         arrow_source = vtk.vtkGlyphSource2D()
         arrow_source.SetGlyphTypeToEdgeArrow()
-        arrow_source.SetScale(viewerParams.actor_arrows_source_scale)
+        arrow_source.SetScale(viewer_params.actor_arrows_source_scale)
         arrow_glyph = vtk.vtkGlyph3D()
         arrow_glyph.SetInputConnection(0, directed_edges.GetOutputPort(1))
         arrow_glyph.SetInputConnection(1, arrow_source.GetOutputPort())
@@ -304,10 +268,11 @@ class MoveCountsViewer:
         actor_edges = vtk.vtkActor()
         actor_edges.SetMapper(mapper_edges)
         actor_edges.GetProperty().SetOpacity(
-            viewerParams.actor_edges_opacity)
+            viewer_params.actor_edges_opacity)
         actor_edges.GetProperty().SetLineWidth(
-            viewerParams.actor_edges_line_width)
+            viewer_params.actor_edges_line_width)
         renderer.AddViewProp(actor_edges)
+
         # Reset camera to set it up based on edge actor
         renderer.ResetCamera()
 
@@ -316,29 +281,29 @@ class MoveCountsViewer:
         actor_bar.SetLookupTable(mapper_edges.GetLookupTable())
         actor_bar.SetTitle("Object Moves")
         actor_bar.SetOrientationToHorizontal()
-        actor_bar.SetNumberOfLabels(viewerParams.actor_bar_number_of_labels)
-        actor_bar.SetWidth(viewerParams.actor_bar_width)
-        actor_bar.SetHeight(viewerParams.actor_bar_heigth)
+        actor_bar.SetNumberOfLabels(viewer_params.actor_bar_number_of_labels)
+        actor_bar.SetWidth(viewer_params.actor_bar_width)
+        actor_bar.SetHeight(viewer_params.actor_bar_heigth)
         actor_bar.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
         actor_bar.GetPositionCoordinate().SetValue(
-            viewerParams.actor_bar_position[0],
-            viewerParams.actor_bar_position[1])
+            viewer_params.actor_bar_position[0],
+            viewer_params.actor_bar_position[1])
         actor_bar.GetTitleTextProperty().SetColor(
-            viewerParams.actor_bar_title_color)
+            viewer_params.actor_bar_title_color)
         actor_bar.GetLabelTextProperty().SetColor(
-            viewerParams.actor_bar_label_color)
+            viewer_params.actor_bar_label_color)
         actor_bar.SetLabelFormat("%g")
         renderer.AddViewProp(actor_bar)
 
         # Render window
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
-        window.SetSize(viewerParams.window_size_x, viewerParams.window_size_y)
+        window.SetSize(viewer_params.window_size_x, viewer_params.window_size_y)
         window.SetAlphaBitPlanes(True)
         window.SetMultiSamples(0)
 
         # Run interactive MoveCountsViewer if demanded
-        if self.interactive:
+        if self.__args.interactive:
             # Render and interact
             interactor = vtk.vtkRenderWindowInteractor()
             interactor.SetRenderWindow(window)
@@ -352,36 +317,37 @@ class MoveCountsViewer:
             window.Render()
             wti.SetInput(window)
             # Set high scale for image quality
-            wti.SetScale(viewerParams.wti_scale)
+            wti.SetScale(viewer_params.wti_scale)
             # Save with alpha channel for transparency
             wti.SetInputBufferTypeToRGBA()
 
             # Write PNG image
             writer = vtk.vtkPNGWriter()
             writer.SetInputConnection(wti.GetOutputPort())
-            writer.SetFileName(f"{self.output_file_name}.{self.output_file_suffix}")
+            writer.SetFileName(
+                f"{self.__args.output_file_name}.{self.__args.output_file_suffix}")
             writer.Write()
+
+    def run(self):
+        """Run the MoveCountViewer logic."""
+        # Parse command line arguments
+        self.__parse_args()
+
+        # Print startup information
+        svi = sys.version_info
+        self.__logger.info(f"### Started with Python {svi.major}.{svi.minor}.{svi.micro}")
+
+        # Parse command line arguments
+        self.__parse_args()
+        if not self.check_args():
+            return 1
+
+        self.__logger.info("# Parsing command line arguments")
+
+        # Execute viewer
+        self.compute_move_counts_viewer()
+        return 0
 
 
 if __name__ == "__main__":
-    n_processors = 8
-    input_file_name = "data/data/lb_iter"
-    input_file_suffix = "out"
-    output_file_name = "move_counts"
-    params = MoveCountsViewer(n_processors=n_processors, input_file_name=input_file_name,
-                              input_file_suffix=input_file_suffix, output_file_name=output_file_name, interactive=False)
-
-    # Assign logger to variable
-    lgr = params.logger
-
-    # Print startup information
-    sv = sys.version_info
-    lgr.info(f"### Started with Python {sv.major}.{sv.minor}.{sv.micro}")
-
-    # Instantiate parameters and set values from command line arguments
-    lgr.info("Parsing command line arguments")
-
-    if params.parse_command_line():
-        sys.exit(1)
-
-    params.computeMoveCountsViewer()
+    MoveCountsViewer().run()

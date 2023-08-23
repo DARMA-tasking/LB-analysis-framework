@@ -1,29 +1,34 @@
-[![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/unit-tests.yml)
-[![Acceptance Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/acceptance-tests.yml)
+[![Unit Tests](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/code-quality.yml/badge.svg)](https://github.com/DARMA-tasking/LB-analysis-framework/actions/workflows/code-quality.yml)
+[![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
+[![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)
 
-## This is the repository for Load-Balancing Simulation research
+## This is the repository for Load-Balancing Analysis Framework (LBAF)
 ### It contains the following subdirectories:
 * `src`: Load-Balancing Simulator code
 * `doc`: research and papers and related documents
 * `data`: various data inputs or outputs
+* `tests`: unit tests and acceptance tests
 
 ### Please check Wiki for more details:
 [Load Balancing Analysis Framework Wikipedia](https://github.com/DARMA-tasking/LB-analysis-framework/wiki)
 
 ## Before starting
 
-The LBAF is available from source only now. It requires [Python 3.8](https://www.python.org/downloads/) to run.
+The LBAF is available from source only now.
 
-Currently, the only working version of Python is 3.8. This is due to the compatibility of used packages.
+Currently, the versions of Python are [Python 3.8](https://www.python.org/downloads/) and [Python 3.9](https://www.python.org/downloads/).
+
+The recommended version is Python 3.8. This is because configuration key `save_meshes` is not supported with Python 3.9
+
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
-Make sure you have all required Pyhon packages installed with:
+Make sure you have all required Python packages installed with:
 ```shell
-pip install -r requirements-3.8.txt
+pip install -r requirements.txt
 ```
 
-Requirements are divided into `LBAF dependencies` and `LBAF testing`. 
+Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF dependencies` are needed in order to LBAF to work.
 
@@ -69,7 +74,7 @@ from pyzoltan.core import zoltan
 
 LBAF run base of configuration file which could be find here:
 ```shell
-<project-path>/src/lbaf/Applications/conf.yaml
+<project-path>/config/conf.yaml
 ```
 
 Description of each parameter in configuration file could be found at the top of configuration file.
@@ -91,47 +96,105 @@ tox
 
 ### LBAF
 
-In order to run LBAF from main project directory:
+In order to run LBAF:
+
+```shell
+lbaf -c <config-file-name>
+```
+
+or
+
 ```shell
 cd <project-path>
-python src/lbaf/Applications/LBAF.py
+python src/lbaf/Applications/LBAF_app.py -c <config-file-name>
 ```
+
+`<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`
+If `<config-file-name>` is a relative path then the application will search from the current working directory, then from the `<project-path>/config` directory.
 
 ### JSON data files Validator
 
-JSON data files Validator validates VT data files against defined schema.
+JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
 
-Schema is defined in `<project-path>/src/lbaf/IO/schemaValidator.py`.
 
-JSON data files Validator is located in `<project-path>/src/lbaf/Utils/JSON_data_files_validator.py`.
+## Download into LBAF
+
+A command can be used to only download the data files validator without running it
+```shell
+lbaf-vt-data-files-validator-loader
+```
+or
+```shell
+cd <project-path>
+python src/lbaf/Utils/lbsJSONDataFilesValidatorLoader.py
+```
+
+The script is then saved to `<project-path>/src/lbaf/imported/JSON_data_files_validator.py`
+
+## Download and Run from LBAF
+
+it can be run with
+```shell
+lbaf-vt-data-files-validator
+```
+or
+```shell
+cd <project-path>
+python src/lbaf/imported/JSON_data_files_validator.py
+```
+This command automatically downloads the JSON_data_files_validator.py script if needed.
+
 
 Usage for single file:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --file_path=../../../data/8color-4node/data.0.json
+lbaf-vt-data-files-validator --file_path=../../../data/nolb-8color-16nodes-data/data.0.json
 
 # With absolute path
-python JSON_data_files_validator.py --file_path=<project-path>/data/8color-4node/data.0.json
+lbaf-vt-data-files-validator --file_path=<project-path>/data/nolb-8color-16nodes-data/data.0.json
 ```
 
 Usage for many files in the same directory:
 ```shell
 # With relative path
-python JSON_data_files_validator.py --dir_path=../../../data/8color-4node
+lbaf-vt-data-files-validator --dir_path=../../../data/nolb-8color-16nodes-data
 
 # With absolute path
-python JSON_data_files_validator.py --dir_path=<project-path>/data/8color-4node
+lbaf-vt-data-files-validator --dir_path=<project-path>/data/nolb-8color-16nodes-data
 
 # Optionally one could pass --file_prefix and/or --file_suffix
 # When one passes files with given prefix/suffix or both will be validated
-# When no prefix and suffix will be given validator will find most common prefix and suffix in the directory 
+# When no prefix and suffix will be given validator will find most common prefix and suffix in the directory
 # and will use them for validation process
-python JSON_data_files_validator.py --dir_path=../../data/8color-4node --file_prefix=data --file_suffix=json
+lbaf-vt-data-files-validator --dir_path=../../data/nolb-8color-16nodes-data --file_prefix=data --file_suffix=json
 ```
 
-## Getting Started with Docker
+### VT data Extractor
 
-### Example use:
+VT data Extractor extracts phases from VT stats files.
+VT data Extractor can be run using the following command:
+```shell
+lbaf-vt-data-extractor
+```
+or
+```shell
+cd <project-path>
+python src/lbaf/Utils/lbsVTDataExtractor.py
+```
+
+#### Input arguments (defined at the bottom of a file)
+
+* `input_data_dir`: str - path to dir with files to extract e.g. `"../data/<dir-with-files>"`
+* `output_data_dir`: str - path to dir where files should be saved e.g. `"../output"` (will be created when doesn't exist)
+* `phases_to_extract`: list - list of phases `[int or str]` e.g. `[0, 1, "2-4"]` will extract phases `[0, 1, 2, 3, 4]`
+* `file_prefix`: str - data file prefix e.g. if filename is `stats.0.json`, then prefix should be set to "stats"
+* `file_suffix`: str - data file suffix e.g. if filename is `stats.0.json`, then suffix should be set to "json"
+* `compressed`: bool - when True, brotli must be imported and then output data will be compressed
+* `schema_type`: str - should be `"LBDatafile"` or `"LBStatsfile"` depends on input data. Only `"LBStatsfile"` is supported
+* `check_schema`: bool - when True, validates schema (more time-consuming)
+
+
+[//]: # (## Getting Started with Docker)
 
 Replace `<in_dir>` with path to existing directory which will be mapped with `/lbaf/in` in container
 
@@ -176,4 +239,4 @@ exit
 
   - command to stay inside container, after above command is completed:
 
-    ```"/bin/bash"```
+[//]: # (    ```"/bin/bash"```)

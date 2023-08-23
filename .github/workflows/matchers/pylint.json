@@ -1,0 +1,46 @@
+{
+    "problemMatcher": [
+      {
+        "owner": "pylint-error",
+        "severity": "error",
+        "pattern": [
+          {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s([FE]\\d{4}):\\s(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 5,
+            "code": 4
+          }
+        ]
+      },
+      {
+        "owner": "pylint-warning",
+        "severity": "warning",
+        "pattern": [
+          {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s([W]\\d{4}):\\s(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 5,
+            "code": 4
+          }
+        ]
+      },
+      {
+        "owner": "pylint-notice",
+        "severity": "notice",
+        "pattern": [
+          {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s([CR]\\d{4}):\\s(.+)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 5,
+            "code": 4
+          }
+        ]
+      }
+    ]
+  }
