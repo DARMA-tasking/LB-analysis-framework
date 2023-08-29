@@ -28,11 +28,24 @@ Make sure you have all required Python packages installed with:
 pip install -r requirements.txt
 ```
 
+By default requirements installs also the lbaf package in editable mode as you can see by running `pip list`
+
 Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF dependencies` are needed in order to LBAF to work.
 
 `LBAF testing` are needed for testing purposes.
+
+## Support of multiple versions under the same python environment (at the same time)
+
+There is a particular case where you may need to manage multiple local lbaf installs on your machine at the same time.
+Since pip only supports 1 package version install, you will have to remove the pip dependency to lbaf itself by running:
+```shell
+pip uninstall lbaf
+```
+Then lbaf module will be loaded directly from the project directory.
+
+Another possibility is to create a virtual environment for each of you LBAF versions to be able to get the advantages of a keeping lbaf as a package (advantages like being able to access package commands)
 
 ## Configuration file
 
@@ -60,13 +73,12 @@ tox
 
 ### LBAF
 
-In order to run LBAF:
-
+If the lbaf package is installed you can run LBAF using the following command:
 ```shell
 lbaf -c <config-file-name>
 ```
 
-or
+Or run LBAF from source:
 
 ```shell
 cd <project-path>
@@ -83,11 +95,11 @@ JSON data files Validator validates VT data files against defined schema. It is 
 
 ## Download into LBAF
 
-A command can be used to only download the data files validator without running it
+To run using the lbaf package:
 ```shell
 lbaf-vt-data-files-validator-loader
 ```
-or
+To run from source:
 ```shell
 cd <project-path>
 python src/lbaf/Utils/lbsJSONDataFilesValidatorLoader.py
@@ -97,11 +109,11 @@ The script is then saved to `<project-path>/src/lbaf/imported/JSON_data_files_va
 
 ## Download and Run from LBAF
 
-it can be run with
+To run using the lbaf package:
 ```shell
 lbaf-vt-data-files-validator
 ```
-or
+To run from source:
 ```shell
 cd <project-path>
 python src/lbaf/imported/JSON_data_files_validator.py
@@ -136,11 +148,12 @@ lbaf-vt-data-files-validator --dir_path=../../data/nolb-8color-16nodes-data --fi
 ### VT data Extractor
 
 VT data Extractor extracts phases from VT stats files.
-VT data Extractor can be run using the following command:
+
+To run using the lbaf package:
 ```shell
 lbaf-vt-data-extractor
 ```
-or
+To run from source:
 ```shell
 cd <project-path>
 python src/lbaf/Utils/lbsVTDataExtractor.py
