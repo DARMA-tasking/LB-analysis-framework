@@ -1,13 +1,17 @@
 import os
 import sys
 import csv
-
+import importlib
 import vtk
 
+# pylint:disable=C0413:wrong-import-position
+# Use lbaf module from source if lbaf package is not installed
+if importlib.util.find_spec('lbaf') is None:
+    sys.path.insert(0, (os.path.dirname(__file__) + "/../../"))
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsLogging import get_logger, Logger
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-
+# pylint:enable=C0413:wrong-import-position
 
 class MoveCountsViewerParameters:
     """A class to describe MoveCountsViewer parameters."""
