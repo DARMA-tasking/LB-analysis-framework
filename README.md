@@ -23,29 +23,44 @@ The recommended version is Python 3.8. This is because configuration key `save_m
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
-Make sure you have all required Python packages installed with:
+### Setup virtual environment(s) *(recommended in development)*
+
+It is recommended in development mode to create and use virtual environments.
+
+To create a virtual environment for lbaf supported Python versions and activate Python3.8 the first (for example):
 ```shell
+python3.8 -m venv venv
+python3.9 -m venv venv39
+. venv/bin/activate
+```
+Please note that virtual environment names should be prefixed by 'venv' as a convention.
+Once an environment has been created and is active you can install the lbaf package using `pip install -e .` or just the requirements using `pip install -r requirements.txt`.
+
+### Install **lbaf** package
+*recommended in development except if multiple versions must run in the same environment*
+
+If you don't need to install several versions of LBAF you can install LBAF as a package from the project directory and in editable mode.
+To do so mode please run the following command: `pip install -e .` from the project directory. It will also install automatically the required dependencies.
+*Note: pip package manager does not support to host different versions of the same package in a single python environment*). 
+*Note: Although not required, it's common to locally install the project in "editable" or "develop" mode while you're working on it. This allows your project to be both installed and editable in project form.*
+
+### Install dependencies
+
+If LBAF has not been installed as a package (for example because you have multiple versions of LBAF on your machine) you will run LBAF differently and you have to install the dependencies by running the following command:
+```shell
+cd <project-path>
 pip install -r requirements.txt
 ```
 
-By default requirements installs also the lbaf package in editable mode as you can see by running `pip list`
+In general, it is often recommended during development to use python virtual environments and it is possible to have also environments dedicated to some development branches 
+(You can for example checkout a branch and run in a dedicated environment. For example a Python3.8 environment for the branch 125 could be named "venv38-branch-125" and then you could install lbaf as a package in editable mode inside this environment only)
+
 
 Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF dependencies` are needed in order to LBAF to work.
 
 `LBAF testing` are needed for testing purposes.
-
-## Support of multiple versions under the same python environment (at the same time)
-
-There is a particular case where you may need to manage multiple local lbaf installs on your machine at the same time.
-Since pip only supports 1 package version install, you will have to remove the pip dependency to lbaf itself by running:
-```shell
-pip uninstall lbaf
-```
-Then lbaf module will be loaded directly from the project directory.
-
-Another possibility is to create a virtual environment for each of you LBAF versions to be able to get the advantages of a keeping lbaf as a package (advantages like being able to access package commands)
 
 ## Configuration file
 

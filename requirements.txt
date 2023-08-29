@@ -24,9 +24,3 @@ docutils==0.19
 
 # LBAF building package
 build==0.7.0
-
-# installs lbaf in editable mode
-# Please note that it is not compatible for testing multiple versions on the same machine.
-# In that particular case please remove lbaf package using the command `pip uninstall lbaf`
-# so it will be loaded relative to the current project directory.
--e .

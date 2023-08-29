@@ -10,8 +10,7 @@ __pycache__
 /build
 /dist
 /m.css
-/venv
-/venv39
+/venv*
 output
 /src/Applications/Include
 /src/Applications/Lib
