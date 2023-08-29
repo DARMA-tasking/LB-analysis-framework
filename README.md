@@ -26,6 +26,7 @@ Please mind your platform as well as proper 32 or 64 bit version.
 ### Setup virtual environment(s) *(recommended in development)*
 
 It is recommended in development mode to create and use virtual environments.
+To be able to use virtual environments please install the virtualenv package using the command `pip install virtualenv`
 
 To create a virtual environment for lbaf supported Python versions and activate Python3.8 the first (for example):
 ```shell
@@ -41,7 +42,7 @@ Once an environment has been created and is active you can install the lbaf pack
 
 If you don't need to install several versions of LBAF you can install LBAF as a package from the project directory and in editable mode.
 To do so mode please run the following command: `pip install -e .` from the project directory. It will also install automatically the required dependencies.
-*Note: pip package manager does not support to host different versions of the same package in a single python environment*). 
+*Note: pip package manager does not support to host different versions of the same package in a single python environment*).
 *Note: Although not required, it's common to locally install the project in "editable" or "develop" mode while you're working on it. This allows your project to be both installed and editable in project form.*
 
 ### Install dependencies
@@ -52,7 +53,7 @@ cd <project-path>
 pip install -r requirements.txt
 ```
 
-In general, it is often recommended during development to use python virtual environments and it is possible to have also environments dedicated to some development branches 
+In general, it is often recommended during development to use python virtual environments and it is possible to have also environments dedicated to some development branches
 (You can for example checkout a branch and run in a dedicated environment. For example a Python3.8 environment for the branch 125 could be named "venv38-branch-125" and then you could install lbaf as a package in editable mode inside this environment only)
 
 
