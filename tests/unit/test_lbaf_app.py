@@ -1,6 +1,6 @@
 import unittest
 
-from lbaf.Applications.LBAF_app import LBAFApplication
+from src.lbaf.Applications.LBAF_app import LBAFApplication
 
 class TestLBAFApplication(unittest.TestCase):
     """Tests for LBAFApplication"""

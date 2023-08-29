@@ -2,12 +2,12 @@ import logging
 import random
 import unittest
 from unittest.mock import patch
-
-from lbaf.Model.lbsMessage import Message
-from lbaf.Model.lbsObject import Object
-from lbaf.Model.lbsRank import Rank
-from lbaf.Execution.lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
-from lbaf.Model.lbsWorkModelBase import WorkModelBase
+import tests
+from src.lbaf.Model.lbsMessage import Message
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsRank import Rank
+from src.lbaf.Execution.lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
+from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 
 class TestConfig(unittest.TestCase):
     def setUp(self):

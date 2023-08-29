@@ -7,7 +7,7 @@ from scipy import stats
 import unittest
 
 import lbaf.IO.lbsStatistics as lbsStatistics
-from lbaf.IO.lbsStatistics import Statistics
+from src.lbaf.IO.lbsStatistics import Statistics
 
 
 class TestConfig(unittest.TestCase):

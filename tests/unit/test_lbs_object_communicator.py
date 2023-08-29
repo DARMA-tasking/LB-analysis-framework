@@ -1,8 +1,8 @@
 import logging
 import unittest
 
-from lbaf.Model.lbsObject import Object
-from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 
 
 class TestConfig(unittest.TestCase):

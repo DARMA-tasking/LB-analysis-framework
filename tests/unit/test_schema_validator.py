@@ -4,10 +4,10 @@ import unittest
 
 import brotli
 
-from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
+from src.lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
 
 JSONDataFilesValidatorLoader().run(overwrite=True)
-from lbaf.imported.JSON_data_files_validator import SchemaValidator  # pylint:disable=C0413:wrong-import-position
+from src.lbaf.imported.JSON_data_files_validator import SchemaValidator  # pylint:disable=C0413:wrong-import-position
 
 
 class TestConfig(unittest.TestCase):

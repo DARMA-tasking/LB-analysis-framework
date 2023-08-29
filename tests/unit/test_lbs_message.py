@@ -1,6 +1,7 @@
 import unittest
 
-from lbaf.Model.lbsMessage import Message
+from src.lbaf.Model.lbsMessage import Message
+
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
