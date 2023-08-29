@@ -2,6 +2,7 @@
 
 import os
 import sys
+import importlib
 
 
 __version__ = "0.1.0rc1"
@@ -11,6 +12,9 @@ PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/.
 """project path (with data, config, tests)"""
 
 # pylint:disable=C0413:wrong-import-position
+# Use lbaf module from source if lbaf package is not installed
+if importlib.util.find_spec('lbaf') is None:
+    sys.path.insert(0, (os.path.dirname(__file__) + "/../"))
 from lbaf.Applications.LBAF_app import LBAFApplication
 from lbaf.Utils.lbsVTDataExtractor import VTDataExtractorRunner
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
