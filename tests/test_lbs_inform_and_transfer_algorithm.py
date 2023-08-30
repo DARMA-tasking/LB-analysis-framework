@@ -2,7 +2,7 @@ import logging
 import random
 import unittest
 from unittest.mock import patch
-import tests
+
 from src.lbaf.Model.lbsMessage import Message
 from src.lbaf.Model.lbsObject import Object
 from src.lbaf.Model.lbsRank import Rank
