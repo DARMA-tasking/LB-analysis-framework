@@ -94,13 +94,17 @@ class ConfigurationValidator:
                 Optional("communications"): bool,
                 Optional("offline_LB_compatible"): bool},
         })
-        self.__from_data = Schema(
-            {"data_stem": str,
-             "phase_ids": Or(
-                 And(list, lambda x: all([isinstance(y, int) for y in x]),
-                     error="Should be of type 'list' of 'int' types"),
-                 Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'"))
-             })
+        self.__from_data = Schema({
+            "data_stem": str,
+            "phase_ids": Or(
+                And(list, lambda x: all([isinstance(y, int) for y in x]),
+                    error="Should be of type 'list' of 'int' types"),
+                Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'")),
+            Optional("expected_ranks"): And(
+                int,
+                lambda x: x > 0,
+                error="Should be of type 'int' and > 0")
+            })
         self.__from_samplers = Schema({
             "n_ranks": And(
                 int,

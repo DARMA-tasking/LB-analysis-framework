@@ -31,7 +31,7 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True):
+    def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -40,6 +40,9 @@ class LoadReader:
 
         # Assign logger to instance variable
         self.__logger = logger
+
+        # Assign the expected ranks to get
+        self.expected_ranks = expected_ranks
 
         # Assign schema checker
         self.__check_schema = check_schema
@@ -51,20 +54,22 @@ class LoadReader:
                 sv  # pylint:disable=C0415:import-outside-toplevel
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
-        # load vt data at rank 0
-        self.__vt_data = {}
-        rank_0, vt_data_0 = self._load_vt_file(0)
-        self.__vt_data[rank_0] = vt_data_0
-
         # determine the number of ranks
         self.n_ranks = self._get_n_ranks()
         self.__logger.info(f"Number of ranks: {self.n_ranks}")
 
-        if self.n_ranks > 1:
+        # warn user if expected_ranks is set and is different from n_ranks
+        if self.expected_ranks is not None and self.expected_ranks != self.n_ranks:
+            self.__logger.warn(f"Unexpected number of ranks ({self.expected_ranks} was expected)")
+
+        # init vt data
+        self.__vt_data = {}
+
+        if self.n_ranks > 0:
             # Load vt data concurrently from rank 1 to n_ranks
             with Pool(context=get_context("fork")) as pool:
                 results = pool.imap_unordered(
-                    self._load_vt_file, range(1, self.n_ranks))
+                    self._load_vt_file, range(0, self.n_ranks))
                 for rank, decompressed_dict in results:
                     self.__vt_data[rank] = decompressed_dict
 
@@ -79,20 +84,8 @@ class LoadReader:
         """Determine the number of ranks automatically.
 
         This use the first applicable method in the following methods:
-        1. Read the first loaded vt data file metadata (applicable only if first data file has been loaded)
-        2. List all data file names matching {file_prefix}.{rank_id}.{file_suffix} pattern and return max(rank_id) + 1.
+        List all data file names matching {file_prefix}.{rank_id}.{file_suffix} pattern and return max(rank_id) + 1.
         """
-
-        if len(self.__vt_data) > 0:
-            metadata = self.__vt_data.get(0).get("metadata")
-            if metadata is not None:
-                shared_node = metadata.get("shared_node")
-                if shared_node is not None:
-                    num_nodes = shared_node.get("num_nodes")
-                    if num_nodes is not None:
-                        return num_nodes
-        else:
-            self.__logger.warn("First vt data file has not been loaded. Cannot get n_ranks from vt data")
 
         # or default detect data files with pattern
         data_dir = f"{os.sep}".join(self.__file_prefix.split(os.sep)[:-1])
