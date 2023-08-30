@@ -9,7 +9,7 @@ import yaml
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
 if importlib.util.find_spec('lbaf') is None:
-    sys.path.insert(0, (os.path.dirname(__file__) + "/../"))
+    sys.path.insert(0, (os.path.dirname(__file__) + "/../../"))
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf import PROJECT_PATH, __version__
 from lbaf.Execution.lbsRuntime import Runtime
