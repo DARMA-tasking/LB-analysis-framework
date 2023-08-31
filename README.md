@@ -104,6 +104,24 @@ python src/lbaf/Applications/LBAF_app.py -c <config-file-name>
 `<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`
 If `<config-file-name>` is a relative path then the application will search from the current working directory, then from the `<project-path>/config` directory.
 
+## Verbosity
+
+To print a list of all QOI strings supported by LBAF, add a verbosity argument to the above commands:
+
+```shell
+cd <project-path>
+lbaf -c <config-file-name> -v <verbosity-level>
+```
+
+or
+
+```shell
+cd <project-path>
+python src/lbaf/Applications/LBAF_app.py -c <config-file-name> -v <verbosity-level>
+```
+
+To output only the Rank QOI, use `-v 1`. Otherwise, to print both Rank and Object QOI, use `-v 2`.
+
 ### JSON data files Validator
 
 JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
