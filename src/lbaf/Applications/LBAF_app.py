@@ -99,6 +99,7 @@ class InternalParameters:
                 self.phase_ids = list(range(range_list[0], range_list[1] + 1))
             else:
                 self.phase_ids = from_data.get("phase_ids")
+            self.expected_ranks = from_data.get("expected_ranks")
 
         # Parse sampling parameters if present
         from_samplers = config.get("from_samplers")
@@ -445,7 +446,8 @@ class LBAFApplication:
                 file_prefix=self.__parameters.data_stem,
                 logger=self.__logger,
                 file_suffix=file_suffix if file_suffix is not None else "json",
-                check_schema=check_schema)
+                check_schema=check_schema,
+                expected_ranks=self.__parameters.expected_ranks)
             # retrieve n_ranks
             n_ranks = reader.n_ranks
 
