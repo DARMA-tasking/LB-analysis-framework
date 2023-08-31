@@ -2,8 +2,8 @@ import os
 import logging
 import unittest
 
-from lbaf import PROJECT_PATH
-from lbaf.Model.lbsWorkModelBase import WorkModelBase
+from src.lbaf import PROJECT_PATH
+from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 
 
 class TestConfig(unittest.TestCase):

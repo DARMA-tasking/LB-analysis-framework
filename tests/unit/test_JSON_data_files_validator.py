@@ -7,11 +7,11 @@ from unittest.mock import Mock
 
 from schema import SchemaError
 
-from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
+from src.lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
 loader = JSONDataFilesValidatorLoader()
 loader.run({ "overwrite": True })
 
-from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
+from src.lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 
 class TestJSONDataFilesValidator(unittest.TestCase):

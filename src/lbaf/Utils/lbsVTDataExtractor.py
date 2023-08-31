@@ -1,14 +1,21 @@
 import argparse
+import importlib
 import json
 import os
+import sys
 import time
 from multiprocessing import get_context
 from multiprocessing.pool import Pool
 from typing import Optional
 
+# pylint:disable=C0413:wrong-import-position
+# Use lbaf module from source if lbaf package is not installed
+if importlib.util.find_spec('lbaf') is None:
+    sys.path.insert(0, (os.path.dirname(__file__) + "/../../"))
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
+# pylint:disable=C0413:wrong-import-position
 
 try:
     import brotli

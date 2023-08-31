@@ -1,10 +1,17 @@
+import importlib
 import os
+import sys
 from typing import Optional
 
+# pylint:disable=C0413:wrong-import-position
+# Use lbaf module from source if lbaf package is not installed
+if importlib.util.find_spec('lbaf') is None:
+    sys.path.insert(0, (os.path.dirname(__file__) + "/../../"))
 from lbaf import PROJECT_PATH, __version__
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import Logger, get_logger
 from lbaf.Utils.lbsWeb import download
+# pylint:disable=C0413:wrong-import-position
 
 IMPORT_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"

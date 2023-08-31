@@ -3,9 +3,9 @@ import os
 import logging
 import unittest
 
-from lbaf import PROJECT_PATH
-from lbaf.IO.lbsVTDataReader import LoadReader
-from lbaf.Model.lbsPhase import Phase
+from src.lbaf import PROJECT_PATH
+from src.lbaf.IO.lbsVTDataReader import LoadReader
+from src.lbaf.Model.lbsPhase import Phase
 
 
 class TestConfig(unittest.TestCase):

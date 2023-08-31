@@ -3,10 +3,10 @@ import random
 import unittest
 from unittest.mock import patch
 
-from lbaf.Model.lbsMessage import Message
-from lbaf.Model.lbsObject import Object
-from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
-from lbaf.Model.lbsRank import Rank
+from src.lbaf.Model.lbsMessage import Message
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):

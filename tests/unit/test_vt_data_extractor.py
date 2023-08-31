@@ -11,8 +11,8 @@ import sys
 
 import brotli
 
-from lbaf.Utils.lbsVTDataExtractor import VTDataExtractor
-from lbaf.Utils.lbsLogging import get_logger
+from src.lbaf.Utils.lbsVTDataExtractor import VTDataExtractor
+from src.lbaf.Utils.lbsLogging import get_logger
 
 
 class TestVTDataExtractor(unittest.TestCase):

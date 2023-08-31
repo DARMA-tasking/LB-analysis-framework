@@ -4,10 +4,10 @@ import unittest
 
 from schema import SchemaError
 
-from lbaf.IO.lbsVTDataReader import LoadReader
-from lbaf.Model.lbsObject import Object
-from lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
-from lbaf.Model.lbsRank import Rank
+from src.lbaf.IO.lbsVTDataReader import LoadReader
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
+from src.lbaf.Model.lbsRank import Rank
 
 
 class TestConfig(unittest.TestCase):

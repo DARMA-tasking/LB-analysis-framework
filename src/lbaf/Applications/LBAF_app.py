@@ -3,9 +3,13 @@ import math
 import os
 import sys
 from typing import Any, Dict, Optional, cast
-
+import importlib
 import yaml
 
+# pylint:disable=C0413:wrong-import-position
+# Use lbaf module from source if lbaf package is not installed
+if importlib.util.find_spec('lbaf') is None:
+    sys.path.insert(0, (os.path.dirname(__file__) + "/../../"))
 import lbaf.IO.lbsStatistics as lbstats
 from lbaf import PROJECT_PATH, __version__
 from lbaf.Execution.lbsRuntime import Runtime
@@ -19,7 +23,7 @@ from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
 from lbaf.Utils.lbsLogging import Logger, get_logger
 from lbaf.Utils.lbsPath import abspath
-
+# pylint:enable=C0413:wrong-import-position
 
 class InternalParameters:
     """Represent the parameters used internally by a a LBAF Application"""
