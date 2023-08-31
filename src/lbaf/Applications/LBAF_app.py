@@ -385,6 +385,9 @@ class LBAFApplication:
         # Parse command line arguments
         self.__parse_args()
 
+        # Print list of implemented QOI (according to verbosity argument)
+        self.__print_QOI()
+
         # Warn if default configuration is used because not set as argument
         if self.__args.configuration is None:
             self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
@@ -584,9 +587,6 @@ class LBAFApplication:
                     self.__parameters.output_dir,
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
-
-        # Print list of implemented QOI (according to verbosity argument)
-        self.__print_QOI()
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
