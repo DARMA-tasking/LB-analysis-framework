@@ -11,7 +11,7 @@ from typing import Optional
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
 if importlib.util.find_spec('lbaf') is None:
-    sys.path.insert(0, (os.path.dirname(__file__) + "/../../"))
+    sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
 from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
