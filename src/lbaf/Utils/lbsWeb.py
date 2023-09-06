@@ -50,7 +50,10 @@ def download(
             os.rename(tmp_filepath, filepath)
             logger.info(f"Saved {file_title} to: {filepath}")
         else:
-            os.remove(tmp_filepath)
+            # file is downloaded but not valid content type just remove
+            if os.path.isfile(tmp_filepath):
+                os.remove(tmp_filepath)
+
             if os.path.isfile(filepath):
                 logger.error(
                     f"Unexpected Content-Type ({content_type}) for {file_title}"
