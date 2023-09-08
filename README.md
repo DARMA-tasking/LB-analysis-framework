@@ -63,15 +63,6 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 `LBAF testing` are needed for testing purposes.
 
-## Configuration file
-
-LBAF run base of configuration file which could be find here:
-```shell
-<project-path>/config/conf.yaml
-```
-
-Description of each parameter in configuration file could be found at the top of configuration file.
-
 ## Testing
 
 In order to run tests locally one needs to install test dependencies:
@@ -101,15 +92,38 @@ cd <project-path>
 python src/lbaf/Applications/LBAF_app.py -c <config-file-name>
 ```
 
-`<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set the application will consider that your configration file is named `conf.yaml`
+### Configuration file
+
+`<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set, the application will consider that your configuration file is `<project-path>/config/conf.yaml``
+
 If `<config-file-name>` is a relative path then the application will search from the current working directory, then from the `<project-path>/config` directory.
 
-### JSON data files Validator
+A description of each parameter in configuration file can be found at the top of configuration file.
+
+### Verbosity
+
+To print a list of all Quantities of Interest (QOI) supported by LBAF, add a verbosity argument to the above commands:
+
+```shell
+cd <project-path>
+lbaf -c <config-file-name> -v <verbosity-level>
+```
+
+or
+
+```shell
+cd <project-path>
+python src/lbaf/Applications/LBAF_app.py -c <config-file-name> -v <verbosity-level>
+```
+
+To output only the Rank QOI, use `-v 1`. Otherwise, to print both Rank and Object QOI, use `-v 2`.
+
+## JSON data files Validator
 
 JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
 
 
-## Download into LBAF
+### Download into LBAF
 
 To run using the lbaf package:
 ```shell
@@ -123,7 +137,7 @@ python src/lbaf/Utils/lbsJSONDataFilesValidatorLoader.py
 
 The script is then saved to `<project-path>/src/lbaf/imported/JSON_data_files_validator.py`
 
-## Download and Run from LBAF
+### Download and Run from LBAF
 
 To run using the lbaf package:
 ```shell
@@ -161,7 +175,7 @@ lbaf-vt-data-files-validator --dir_path=<project-path>/data/nolb-8color-16nodes-
 lbaf-vt-data-files-validator --dir_path=../../data/nolb-8color-16nodes-data --file_prefix=data --file_suffix=json
 ```
 
-### VT data Extractor
+## VT data Extractor
 
 VT data Extractor extracts phases from VT stats files.
 
