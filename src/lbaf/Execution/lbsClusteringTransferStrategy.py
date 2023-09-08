@@ -22,10 +22,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Call superclass init
         super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
 
-    def __cluster_objects(self, rank):
+    def __cluster_objects(self, rank, add_empty=False):
         """Cluster migratiable objects by shared block ID when available."""
         # Iterate over all migratable objects on rank
-        clusters = {}
+        clusters = {None: []} if add_empty else {}
         for o in rank.get_migratable_objects():
             # Retrieve shared block ID and skip object without one
             sb_id = o.get_shared_block_id()
@@ -102,8 +102,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             for o_src in clusters_src.values():
                 swapped_cluster = False
                 for r_try in targets:
-                    # Iterate over target clusters
-                    for o_try in self.__cluster_objects(r_try).values():
+                    # Iterate over target clusters including empty set
+                    for o_try in self.__cluster_objects(r_try, True).values():
                         # Decide whether swap is beneficial
                         if self._criterion.compute(r_src, o_src, r_try, o_try) > 0.0:
                             # Perform swap
