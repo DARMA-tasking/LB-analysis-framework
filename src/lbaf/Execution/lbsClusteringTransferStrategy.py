@@ -100,22 +100,28 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
             for o_src in clusters_src.values():
+                # Compute source cluster size
+                sz_src = sum([o.get_load() for o in o_src])
+
+                # Iterate over potential targets to try to swap clusters
                 swapped_cluster = False
                 for r_try in targets:
-                    # Iterate over target clusters including empty set
+                    # Iterate over target clusters
                     for o_try in self.__cluster_objects(r_try).values():
                         # Decide whether swap is beneficial
-                        if self._criterion.compute(r_src, o_src, r_try, o_try) > 0.0:
+                        sz_try = sum([o.get_load() for o in o_try])
+                        c_try = self._criterion.compute(r_src, o_src, r_try, o_try)
+                        if c_try > 0.0 and c_try > 0.05 * sz_src:
                             # Perform swap
                             self._logger.info(
-                                f"Swapping cluster of size {sum([o.get_load() for o in o_src])} with cluster of size {sum([o.get_load() for o in o_try])} on {r_try.get_id()}")
+                                f"Swapping cluster of size {sz_src} with cluster of size {sz_try} on {r_try.get_id()}")
                             self._n_transfers += phase.transfer_objects(
                                 r_src, o_src, r_try, o_try)
                             swapped_cluster = True
                             n_swaps += 1
                             break
 
-                    # Break out from targets loop once one swap was performed
+                    # Break out from targets loop as soon as cluster was swapped
                     if swapped_cluster:
                         break
 
@@ -160,6 +166,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
+                    self._logger.info(
+                        f"Transferring subcluster of size {sum([o.get_load() for o in o_src])} to rank {r_dst.get_id()}")
                     self._n_transfers += phase.transfer_objects(
                         r_src, o_src, r_dst)
                     break
