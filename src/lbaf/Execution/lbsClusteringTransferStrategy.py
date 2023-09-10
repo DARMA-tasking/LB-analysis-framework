@@ -101,27 +101,30 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             n_swaps = 0
             for r_try in targets if self._deterministic_transfer else random.sample(
                     targets, len(targets)):
-                # Iterate over potential targets to try to swap clusters
-                for o_src in clusters_src.values():
-                    # Compute source cluster size
-                    sz_src = sum([o.get_load() for o in o_src])
+                # Escape targets loop if at least one swap already occurred
+                if n_swaps:
+                    break
 
+                # Iterate over potential targets to try to swap clusters
+                for k_src, o_src in clusters_src.items():
                     # Iterate over target clusters
-                    for o_try in self.__cluster_objects(r_try).values():
+                    for k_try, o_try in self.__cluster_objects(r_try).items():
                         # Decide whether swap is beneficial
-                        sz_try = sum([o.get_load() for o in o_try])
                         c_try = self._criterion.compute(r_src, o_src, r_try, o_try)
-                        if c_try > 0.0 and c_try > 0.05 * sz_src:
-                            # Perform swap
-                            self._logger.info(
-                                f"Swapping cluster of size {sz_src} with cluster of size {sz_try} on {r_try.get_id()}")
-                            self._n_transfers += phase.transfer_objects(
-                                r_src, o_src, r_try, o_try)
-                            n_swaps += 1
-                            break
+                        if c_try > 0.0:
+                            # Compute source cluster size only when necessary
+                            sz_src = sum([o.get_load() for o in o_src])
+                            if  c_try > 0.05 * sz_src:
+                                # Perform swap
+                                self._logger.info(
+                                    f"Swapping cluster {k_src} of size {sz_src} with cluster {k_try} on {r_try.get_id()}")
+                                self._n_transfers += phase.transfer_objects(
+                                    r_src, o_src, r_try, o_try)
+                                n_swaps += 1
+                                break
 
                 # In non-deterministic mode break out from targets as soon as swaps occurred
-                if n_swaps and not not self._deterministic_transfer:
+                if n_swaps and not self._deterministic_transfer:
                     break
 
             # Report on swaps when some occurred
