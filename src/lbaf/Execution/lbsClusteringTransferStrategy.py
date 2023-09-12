@@ -123,10 +123,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                                 n_swaps += 1
                                 break
 
-                # In non-deterministic mode break out from targets as soon as swaps occurred
-                if n_swaps and not self._deterministic_transfer:
-                    break
-
             # Report on swaps when some occurred
             if n_swaps:
                 self._logger.info(
