@@ -2,7 +2,7 @@
 [![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
 [![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)
 
-## This is the repository for Load-Balancing Analysis Framework (LBAF)
+# This is the repository for Load-Balancing Analysis Framework (LBAF)
 ### It contains the following subdirectories:
 * `src`: Load-Balancing Simulator code
 * `doc`: research and papers and related documents
@@ -210,7 +210,6 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 * `schema_type`: str - should be `"LBDatafile"` or `"LBStatsfile"` depends on input data. Only `"LBStatsfile"` is supported
 * `check_schema`: bool - when True, validates schema (more time-consuming)
 
-***
 ## LBAF in Literature
 
 ### [Optimizing Distributed Load Balancing for Workloads with Time-Varying Imbalance](10.1109/Cluster48925.2021.00039)
