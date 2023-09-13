@@ -25,7 +25,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
     def __cluster_objects(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
         # Iterate over all migratable objects on rank
-        clusters = {}
+        clusters = {None: []}
         for o in rank.get_migratable_objects():
             # Retrieve shared block ID and skip object without one
             sb_id = o.get_shared_block_id()
@@ -56,7 +56,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             n_o = min(self._max_objects_per_transfer, len(v))
 
             # Use combinatorial exploration or law of large number based subsampling
-            j = None
+            j = 0
             for j, c in enumerate(chain.from_iterable(
                     combinations(v, p)
                     for p in range(1, n_o + 1)) if self._deterministic_transfer else (
@@ -99,23 +99,29 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Identify and perform beneficial cluster swaps
             n_swaps = 0
-            for o_src in clusters_src.values():
-                swapped_cluster = False
-                for r_try in targets:
-                    # Iterate over target clusters
-                    for o_try in self.__cluster_objects(r_try).values():
-                        # Decide whether swap is beneficial
-                        if self._criterion.compute(r_src, o_src, r_try, o_try) > 0.0:
-                            # Perform swap
-                            self._n_transfers += phase.transfer_objects(
-                                r_src, o_src, r_try, o_try)
-                            swapped_cluster = True
-                            n_swaps += 1
-                            break
+            for r_try in targets if self._deterministic_transfer else random.sample(
+                    targets, len(targets)):
+                # Escape targets loop if at least one swap already occurred
+                if n_swaps:
+                    break
 
-                    # Break out from targets loop once one swap was performed
-                    if swapped_cluster:
-                        break
+                # Iterate over potential targets to try to swap clusters
+                for k_src, o_src in clusters_src.items():
+                    # Iterate over target clusters
+                    for k_try, o_try in self.__cluster_objects(r_try).items():
+                        # Decide whether swap is beneficial
+                        c_try = self._criterion.compute(r_src, o_src, r_try, o_try)
+                        if c_try > 0.0:
+                            # Compute source cluster size only when necessary
+                            sz_src = sum([o.get_load() for o in o_src])
+                            if  c_try > 0.05 * sz_src:
+                                # Perform swap
+                                self._logger.info(
+                                    f"Swapping cluster {k_src} of size {sz_src} with cluster {k_try} on {r_try.get_id()}")
+                                self._n_transfers += phase.transfer_objects(
+                                    r_src, o_src, r_try, o_try)
+                                n_swaps += 1
+                                break
 
             # Report on swaps when some occurred
             if n_swaps:
@@ -158,6 +164,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
+                    self._logger.info(
+                        f"Transferring subcluster of size {sum([o.get_load() for o in o_src])} to rank {r_dst.get_id()}")
                     self._n_transfers += phase.transfer_objects(
                         r_src, o_src, r_dst)
                     break
