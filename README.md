@@ -201,8 +201,8 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 
 #### Input arguments (defined at the bottom of a file)
 
-* `input_data_dir`: str - path to dir with files to extract e.g. `"../data/<dir-with-files>"`
-* `output_data_dir`: str - path to dir where files should be saved e.g. `"../output"` (will be created when doesn't exist)
+* `input_data_dir`: str - path to dir with files to extract e.g. `"./data/<dir-with-files>"`
+* `output_data_dir`: str - path to dir where files should be saved e.g. `"./output"` (will be created when doesn't exist)
 * `phases_to_extract`: list - list of phases `[int or str]` e.g. `[0, 1, "2-4"]` will extract phases `[0, 1, 2, 3, 4]`
 * `file_prefix`: str - data file prefix e.g. if filename is `stats.0.json`, then prefix should be set to "stats"
 * `file_suffix`: str - data file suffix e.g. if filename is `stats.0.json`, then suffix should be set to "json"
