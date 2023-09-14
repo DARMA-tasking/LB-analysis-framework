@@ -59,10 +59,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Try to instantiate object transfer strategy
         strat_name = parameters.get("transfer_strategy")
-        cluster_swap_rtol = parameters.get("cluster_swap_rtol",0.05)
         self.__transfer_strategy = TransferStrategyBase.factory(
             strat_name.title(),
-            cluster_swap_rtol if strat_name == "Clustering" else None,
             parameters,
             self.__transfer_criterion,
             logger=self._logger)

@@ -12,7 +12,7 @@ from ..Model.lbsPhase import Phase
 class ClusteringTransferStrategy(TransferStrategyBase):
     """A concrete class for the clustering-based transfer strategy."""
 
-    def __init__(self, criterion, parameters: dict, lgr: Logger, cluster_swap_rtol: float):
+    def __init__(self, criterion, parameters: dict, lgr: Logger):
         """Class constructor.
 
         :param criterion: a CriterionBase instance.
@@ -23,7 +23,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
 
         # Initialize cluster swap relative threshold
-        self._cluster_swap_rtol = cluster_swap_rtol
+        self._cluster_swap_rtol = parameters.get("cluster_swap_rtol",0.05)
 
     def __cluster_objects(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
@@ -118,6 +118,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         if c_try > 0.0:
                             # Compute source cluster size only when necessary
                             sz_src = sum([o.get_load() for o in o_src])
+                            self._logger.warning(f"Cluster Tol: {self._cluster_swap_rtol}")
                             if  c_try > self._cluster_swap_rtol * sz_src:
                                 # Perform swap
                                 self._logger.info(
