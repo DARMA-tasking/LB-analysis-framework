@@ -12,7 +12,7 @@ from ..Model.lbsPhase import Phase
 class ClusteringTransferStrategy(TransferStrategyBase):
     """A concrete class for the clustering-based transfer strategy."""
 
-    def __init__(self, criterion, parameters: dict, lgr: Logger):
+    def __init__(self, criterion, parameters: dict, lgr: Logger, cluster_swap_rtol: float):
         """Class constructor.
 
         :param criterion: a CriterionBase instance.
@@ -21,6 +21,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """
         # Call superclass init
         super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
+
+        # Initialize cluster swap relative threshold
+        self._cluster_swap_rtol = cluster_swap_rtol
 
     def __cluster_objects(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
@@ -40,8 +43,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             k: clusters[k]
             for k in random.sample(clusters.keys(), len(clusters))}
 
-    def __find_suitable_subclusters(self, clusters, rank_load, r_tol=0.05):
+    def __find_suitable_subclusters(self, clusters, rank_load):
         """Find suitable sub-clusters to bring rank closest and above average load."""
+
         # Bail out early if no clusters are available
         if not clusters:
             self._logger.info("No migratable clusters on rank")
@@ -64,7 +68,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     for p in nr.binomial(n_o, 0.5, n_o))):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
-                if reach_load < (1.0 - r_tol) * self._average_load:
+                if reach_load < (1.0 - self._cluster_swap_rtol) * self._average_load:
                     continue
 
                 # Retain suitable subclusters with their respective distance and cluster
@@ -114,7 +118,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         if c_try > 0.0:
                             # Compute source cluster size only when necessary
                             sz_src = sum([o.get_load() for o in o_src])
-                            if  c_try > 0.05 * sz_src:
+                            if  c_try > self._cluster_swap_rtol * sz_src:
                                 # Perform swap
                                 self._logger.info(
                                     f"Swapping cluster {k_src} of size {sz_src} with cluster {k_try} on {r_try.get_id()}")

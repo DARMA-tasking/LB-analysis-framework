@@ -104,7 +104,7 @@ class ConfigurationValidator:
                 int,
                 lambda x: x > 0,
                 error="Should be of type 'int' and > 0")
-            })
+        })
         self.__from_samplers = Schema({
             "n_ranks": And(
                 int,
@@ -153,6 +153,10 @@ class ConfigurationValidator:
                          str,
                          lambda e: e in ALLOWED_TRANSFER_STRATEGIES,
                          error=f"{get_error_message(ALLOWED_TRANSFER_STRATEGIES)} must be chosen"),
+                         Optional("cluster_swap_rtol"): And(
+                            float,
+                            lambda x: x > 0.0,
+                            error="Should be of type 'float' and magnitude > 0.0"),
                      "criterion": And(
                          str,
                          lambda f: f in ALLOWED_CRITERIA,

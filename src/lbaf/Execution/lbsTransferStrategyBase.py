@@ -133,6 +133,7 @@ class TransferStrategyBase:
     @staticmethod
     def factory(
             strategy_name: str,
+            cluster_swap_rtol: float,
             parameters: dict,
             criterion: CriterionBase,
             logger: Logger):
@@ -147,7 +148,10 @@ class TransferStrategyBase:
         try:
             # Instantiate and return object
             strategy = locals()[strategy_name + "TransferStrategy"]
-            return strategy(criterion, parameters, logger)
+            if strategy_name == "Clustering":
+                return strategy(criterion, parameters, logger, cluster_swap_rtol)
+            else:
+                return strategy(criterion, parameters, logger)
         except Exception as error:
             # Otherwise, error out
             get_logger().error(f"Could not create a strategy with name {strategy_name}")
