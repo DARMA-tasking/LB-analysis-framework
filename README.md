@@ -2,7 +2,7 @@
 [![Pylint](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/pylint.svg)
 [![Coverage](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)](https://raw.githubusercontent.com/DARMA-tasking/LB-analysis-framework/deploy-badges/coverage.svg)
 
-## This is the repository for Load-Balancing Analysis Framework (LBAF)
+# This is the repository for Load-Balancing Analysis Framework (LBAF)
 ### It contains the following subdirectories:
 * `src`: Load-Balancing Simulator code
 * `doc`: research and papers and related documents
@@ -23,39 +23,49 @@ The recommended version is Python 3.8. This is because configuration key `save_m
 
 Please mind your platform as well as proper 32 or 64 bit version.
 
-### Setup virtual environment(s) *(recommended in development)*
+### Set up virtual environment(s) *(recommended in development)*
 
 It is recommended in development mode to create and use virtual environments.
-To be able to use virtual environments please install the virtualenv package using the command `pip install virtualenv`
+To be able to use virtual environments, please install the virtualenv package using the command `pip install virtualenv`.
 
-To create a virtual environment for lbaf supported Python versions and activate Python3.8 the first (for example):
+To create and activate a virtual environment for LBAF supported Python versions:
 ```shell
-python3.8 -m venv venv
+python3.8 -m venv venv38
 python3.9 -m venv venv39
-. venv/bin/activate
+. venv38/bin/activate
 ```
 Please note that virtual environment names should be prefixed by 'venv' as a convention.
-Once an environment has been created and is active you can install the lbaf package using `pip install -e .` or just the requirements using `pip install -r requirements.txt`.
+Once an environment has been created and is active you can install the LBAF package using `pip install -e .` or just the requirements using `pip install -r requirements.txt`.
 
-### Install **lbaf** package
-*recommended in development except if multiple versions must run in the same environment*
+### Install **LBAF** package
+*Recommended in development except if multiple versions must run in the same environment*
 
-If you don't need to install several versions of LBAF you can install LBAF as a package from the project directory and in editable mode.
-To do so mode please run the following command: `pip install -e .` from the project directory. It will also install automatically the required dependencies.
-*Note: pip package manager does not support to host different versions of the same package in a single python environment*).
+If you don't need to install several versions of LBAF, you can install LBAF as a package in editable mode from the project directory.
+
+From the project directory, run:
+ ```shell
+pip install -e .
+```
+
+This will automatically install the required dependencies.
+
+*Note: pip package manager does not support hosting different versions of the same package in a single python environment*.
+
 *Note: Although not required, it's common to locally install the project in "editable" or "develop" mode while you're working on it. This allows your project to be both installed and editable in project form.*
 
 ### Install dependencies
 
-If LBAF has not been installed as a package (for example because you have multiple versions of LBAF on your machine) you will run LBAF differently and you have to install the dependencies by running the following command:
+If LBAF has not been installed as a package (for example because you have multiple versions of LBAF on your machine), you will run LBAF differently.
+
+Install the dependencies by running the following command:
 ```shell
 cd <project-path>
 pip install -r requirements.txt
 ```
 
-In general, it is often recommended during development to use python virtual environments and it is possible to have also environments dedicated to some development branches
-(You can for example checkout a branch and run in a dedicated environment. For example a Python3.8 environment for the branch 125 could be named "venv38-branch-125" and then you could install lbaf as a package in editable mode inside this environment only)
+In general, it is often recommended during development to use python virtual environments and it is possible to have also environments dedicated to some development branches. For example a Python3.8 environment for the branch 125 could be named "venv38-branch-125" and then you could install lbaf as a package in editable mode inside this environment only.
 
+#### Requirements
 
 Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
@@ -65,16 +75,16 @@ Requirements are divided into `LBAF dependencies` and `LBAF testing`.
 
 ## Testing
 
-In order to run tests locally one needs to install test dependencies:
+In order to run tests locally, one needs to install test dependencies:
 ```shell
 cd <project-path>
 tox
 ```
 
-`tox` command will:
+The `tox` command will:
 - run all test defined in `tox.ini`
-- create `artifacts` directory in main project path
-- in `artifacts` directory html coverage report and pylint report could be found
+- create the `artifacts` directory in main project path
+- create an html coverage report and a pylint report within the `artifacts` directory
 
 ## Usage
 
@@ -94,9 +104,9 @@ python src/lbaf/Applications/LBAF_app.py -c <config-file-name>
 
 ### Configuration file
 
-`<config-file-name>` can be an absolute path or a relative path and can be defined using the `-c` argument. If not set, the application will consider that your configuration file is `<project-path>/config/conf.yaml``
+`<config-file-name>` can be an absolute path or a relative path to your configuration file. It is defined using the `-c` argument. If not set, the application will use `<project-path>/config/conf.yaml` as your configuration file.
 
-If `<config-file-name>` is a relative path then the application will search from the current working directory, then from the `<project-path>/config` directory.
+If `<config-file-name>` is a relative path then the application will search first from the current working directory, then from the `<project-path>/config` directory.
 
 A description of each parameter in configuration file can be found at the top of configuration file.
 
@@ -191,8 +201,8 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 
 #### Input arguments (defined at the bottom of a file)
 
-* `input_data_dir`: str - path to dir with files to extract e.g. `"../data/<dir-with-files>"`
-* `output_data_dir`: str - path to dir where files should be saved e.g. `"../output"` (will be created when doesn't exist)
+* `input_data_dir`: str - path to dir with files to extract e.g. `"./data/<dir-with-files>"`
+* `output_data_dir`: str - path to dir where files should be saved e.g. `"./output"` (will be created when doesn't exist)
 * `phases_to_extract`: list - list of phases `[int or str]` e.g. `[0, 1, "2-4"]` will extract phases `[0, 1, 2, 3, 4]`
 * `file_prefix`: str - data file prefix e.g. if filename is `stats.0.json`, then prefix should be set to "stats"
 * `file_suffix`: str - data file suffix e.g. if filename is `stats.0.json`, then suffix should be set to "json"
@@ -200,6 +210,11 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 * `schema_type`: str - should be `"LBDatafile"` or `"LBStatsfile"` depends on input data. Only `"LBStatsfile"` is supported
 * `check_schema`: bool - when True, validates schema (more time-consuming)
 
+## LBAF in Literature
+
+### [Optimizing Distributed Load Balancing for Workloads with Time-Varying Imbalance](10.1109/Cluster48925.2021.00039)
+
+"This paper explores dynamic load balancing algorithms used by asynchronous many-task (AMT), or ‘taskbased’, programming models to optimize task placement for scientific applications with dynamic workload imbalances."
 
 [//]: # (## Getting Started with Docker)
 
