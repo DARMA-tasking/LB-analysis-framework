@@ -204,6 +204,34 @@ class TestConfig(unittest.TestCase):
             ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
         self.assertEqual(err.exception.args[0], "Should be of type 'list' of 'int' types\nShould be of type 'str' like '0-100'")
 
+    def test_config_validator_correct_clustering(self):
+        with open(os.path.join(self.config_dir, "conf_correct_clustering.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+
+    def test_config_validator_correct_clustering_set_tol(self):
+        with open(os.path.join(self.config_dir, "conf_correct_clustering_set_tol.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+
+    def test_config_validator_wrong_clustering_set_tol_type(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_clustering_set_tol_type.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'float' and magnitude > 0.0")
+
+    def test_config_validator_wrong_clustering_set_tol_mag(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_clustering_set_tol_mag.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'float' and magnitude > 0.0")
+
 
 if __name__ == "__main__":
     unittest.main()
