@@ -24,6 +24,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Initialize cluster swap relative threshold
         self._cluster_swap_rtol = parameters.get("cluster_swap_rtol",0.05)
+        self._logger.info(
+            f"Relative tolerance for cluster swaps: {self._cluster_swap_rtol}")
 
     def __cluster_objects(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
@@ -118,7 +120,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         if c_try > 0.0:
                             # Compute source cluster size only when necessary
                             sz_src = sum([o.get_load() for o in o_src])
-                            self._logger.warning(f"Cluster Tol: {self._cluster_swap_rtol}")
                             if  c_try > self._cluster_swap_rtol * sz_src:
                                 # Perform swap
                                 self._logger.info(
