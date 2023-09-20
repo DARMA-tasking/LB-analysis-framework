@@ -164,7 +164,7 @@ class LoadReader:
         # Error out if desired phase was not found
         if not phase_id_found:
             self.__logger.error(
-                f"Phase {curr_phase_id} not found for rank {rank_id}")
+                f"Phase {phase_id} not found for rank {rank_id}")
             raise SystemExit(1)
 
         # Proceed with desired phase
