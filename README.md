@@ -14,9 +14,7 @@
 
 ## Before starting
 
-The LBAF is available from source only now.
-
-Currently, the versions of Python are [Python 3.8](https://www.python.org/downloads/) and [Python 3.9](https://www.python.org/downloads/).
+`LBAF` currently supports [Python 3.8](https://www.python.org/downloads/) and [Python 3.9](https://www.python.org/downloads/).
 
 The recommended version is Python 3.8. This is because configuration key `save_meshes` is not supported with Python 3.9
 
