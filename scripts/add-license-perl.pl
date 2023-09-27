@@ -23,7 +23,7 @@ sub make_header {
     open TEMP, "<$template" or die "Can't access template\n";
     for (<TEMP>) {
         if (/file-name/) {
-            print $out "#" . (" " x $lenright) . $name . "\n";
+            print $out '#' . (" " x $lenright) . $name . 'n';
         } else {
             print $out "$_";
         }

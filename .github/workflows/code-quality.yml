@@ -1,0 +1,105 @@
+name: Code Quality (Tests, Linting, Coverage)
+on: push
+concurrency:
+  group: CI-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-quality:
+    continue-on-error: false
+    strategy:
+      max-parallel: 10
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9']
+    runs-on: ${{ matrix.os }}
+    env:
+      deploy_badges_src_branch: develop
+      deploy_badges_dst_branch: deploy-badges
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y git xvfb
+
+      - name: Python Setup
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install tox-gh-actions
+
+      - name: Register Github Actions Problem matchers (pylint)
+        run: |
+          echo "::add-matcher::.github/workflows/matchers/pylint.json"
+
+      - name: Running Tests, Pylint and Coverage using TOX
+        id: run_tox
+        run: |
+          tox
+          if [ -e "./artifacts/pylint.txt" ]; then PYLINT_REPORT_EXISTS="true"; else PYLINT_REPORT_EXISTS="false"; fi
+          echo "pylint_report_exists=$PYLINT_REPORT_EXISTS" >> $GITHUB_OUTPUT
+          if [ -e "./artifacts/coverage.txt" ]; then COVERAGE_REPORT_EXISTS="true"; else COVERAGE_REPORT_EXISTS="false"; fi
+          echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
+
+      - name: Report Test results
+        uses: phoenix-actions/test-reporting@v12
+        if: success() || failure()
+        with:
+          name: Tests report (${{ matrix.os }}, ${{ matrix.python-version }})
+          path: artifacts/unittest/reports/TEST-*.xml
+          reporter: java-junit
+          output-to: step-summary
+
+      - name: Upload pylint artifact
+        if: |
+          steps.run_tox.outputs.pylint_report_exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: pylint
+          path: artifacts/pylint.txt
+          retention-days: 1
+
+      - name: Upload coverage artifact
+        if: |
+          steps.run_tox.outputs.coverage_report_exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: artifacts/coverage.txt
+          retention-days: 1
+
+      - name: Create Pylint badge
+        if: |
+          github.ref_name == env.deploy_badges_src_branch &&
+          steps.run_tox.outputs.pylint_report_exists == 'true'
+        run: |
+          mkdir -p badges
+          PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./artifacts/pylint.txt)
+          anybadge --label=Pylint --file=badges/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
+
+      - name: Create Coverage badge
+        if: |
+          github.ref_name == env.deploy_badges_src_branch &&
+          steps.run_tox.outputs.coverage_report_exists == 'true'
+        run: |
+          mkdir -p badges
+          COVERAGE_SCORE=$(sed -n '/TOTAL/,/%/p' artifacts/coverage.txt | rev | cut -d" " -f1 | rev | tr -d % )
+          anybadge --label=Coverage --file=badges/coverage.svg --value=$COVERAGE_SCORE coverage
+
+      - name: Deploy badges
+        uses: JamesIves/github-pages-deploy-action@v4
+        if: github.ref_name == env.deploy_badges_src_branch &&
+          (steps.run_tox.outputs.coverage_report_exists == 'true' || steps.run_tox.outputs.pylint_report_exists == 'true')
+        with:
+          branch: ${{ env.deploy_badges_dst_branch }}
+          folder: ./badges
+          clean: false
+          commit-message: ${{ github.event.head_commit.message }}

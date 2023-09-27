@@ -1,0 +1,1 @@
+This README.md file enables to validate that the VTDataReader does work correctly if non data files resides in the data directory.
