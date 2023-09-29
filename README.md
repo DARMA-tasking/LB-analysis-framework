@@ -210,7 +210,7 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 
 ## LBAF in Literature
 
-### [Optimizing Distributed Load Balancing for Workloads with Time-Varying Imbalance](10.1109/Cluster48925.2021.00039)
+### [Optimizing Distributed Load Balancing for Workloads with Time-Varying Imbalance](https://ieeexplore.ieee.org/document/9556089)
 
 "This paper explores dynamic load balancing algorithms used by asynchronous many-task (AMT), or ‘taskbased’, programming models to optimize task placement for scientific applications with dynamic workload imbalances."
 
