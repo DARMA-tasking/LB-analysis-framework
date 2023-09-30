@@ -100,7 +100,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         for r_src, targets in rank_targets.items():
             # Cluster migratiable objects on source rank
             clusters_src = self.__cluster_objects(r_src)
-            self._logger.info(
+            self._logger.debug(
                 f"Constructed {len(clusters_src)} migratable clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Identify and perform beneficial cluster swaps
@@ -122,7 +122,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             sz_src = sum([o.get_load() for o in o_src])
                             if  c_try > self._cluster_swap_rtol * sz_src:
                                 # Perform swap
-                                self._logger.info(
+                                self._logger.debug(
                                     f"Swapping cluster {k_src} of size {sz_src} with cluster {k_try} on {r_try.get_id()}")
                                 self._n_transfers += phase.transfer_objects(
                                     r_src, o_src, r_try, o_try)
@@ -131,7 +131,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
             # Report on swaps when some occurred
             if n_swaps:
-                self._logger.info(
+                self._logger.debug(
                     f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
                 # In non-deterministic case skip subclustering when swaps passed
                 if not self._deterministic_transfer:
