@@ -15,19 +15,23 @@ work_model:
     upper_bounds:
       max_memory_usage: 8000000000.0
 
+# # Specify algorithm
+# algorithm:
+#   name: InformAndTransfer
+#   phase_id: 0
+#   parameters:
+#     n_iterations: 4
+#     n_rounds: 2
+#     fanout: 2
+#     order_strategy: arbitrary
+#     transfer_strategy: Clustering
+#     criterion: Tempered
+#     max_objects_per_transfer: 32
+#     deterministic_transfer: true
+
 # Specify algorithm
 algorithm:
-  name: InformAndTransfer
-  phase_id: 0
-  parameters:
-    n_iterations: 4
-    n_rounds: 2
-    fanout: 2
-    order_strategy: arbitrary
-    transfer_strategy: Clustering
-    criterion: Tempered
-    max_objects_per_transfer: 32
-    deterministic_transfer: true
+  name: PhaseStepper
 
 # Specify output
 output_dir: ../output
@@ -42,7 +46,7 @@ LBAF_Viz:
   save_meshes: True
   force_continuous_object_qoi: True
 write_JSON:
-  compressed: True
+  compressed: False
   suffix: json
   communications: True
   offline_LB_compatible: True

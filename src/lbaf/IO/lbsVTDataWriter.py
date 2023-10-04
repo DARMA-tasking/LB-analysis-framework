@@ -49,17 +49,25 @@ class VTDataWriter:
 
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
-        return [{
-            "entity": {
-                "home": rank_id,
-                "id": o.get_id(),
-                "migratable": migratable,
-                "type": "object",
-            },
-            "node": rank_id,
-            "resource": "cpu",
-            "time": o.get_load()}
-            for o in objects]
+        tasks = []
+        for o in objects:
+            task_data = {
+                "entity": {
+                    "home": rank_id,
+                    "id": o.get_id(),
+                    "migratable": migratable,
+                    "type": "object",
+                },
+                "node": rank_id,
+                "resource": "cpu",
+                "time": o.get_load()
+            }
+            user_defined = o.get_user_defined()
+            if user_defined:
+                task_data["user_defined"] = user_defined
+            tasks.append(task_data)
+        return tasks
+
 
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""

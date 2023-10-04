@@ -102,6 +102,10 @@ class Object:
         """Return additional runtime memory of object."""
         return self.__overhead
 
+    def get_user_defined(self) -> dict:
+        """Return optionally defined fields"""
+        return self.__user_defined
+
     def get_sent(self) -> dict:
         """Return communications sent by object to other objects."""
         return self.__communicator.get_sent() if self.__communicator else {}
