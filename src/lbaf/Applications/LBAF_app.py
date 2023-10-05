@@ -344,7 +344,8 @@ class LBAFApplication:
         verbosity = int(self.__args.verbose)
 
         # Initialize file paths
-        target_dir = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        current_script_path = os.path.abspath(__file__)
+        target_dir = os.path.join(os.path.dirname(os.path.dirname(current_script_path)), "Model")
         rank_script_name = "lbsRank.py"
         object_script_name = "lbsObject.py"
 
