@@ -93,6 +93,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
+        n_swaps = 0
 
         # Iterate over ranks
         ranks = phase.get_ranks()
@@ -104,11 +105,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 f"Constructed {len(clusters_src)} migratable clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
             # Identify and perform beneficial cluster swaps
-            n_swaps = 0
+            n_rank_swaps = 0
             for r_try in targets if self._deterministic_transfer else random.sample(
                     targets, len(targets)):
                 # Escape targets loop if at least one swap already occurred
-                if n_swaps:
+                if n_rank_swaps:
                     break
 
                 # Iterate over potential targets to try to swap clusters
@@ -126,17 +127,22 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                                     f"Swapping cluster {k_src} of size {sz_src} with cluster {k_try} on {r_try.get_id()}")
                                 self._n_transfers += phase.transfer_objects(
                                     r_src, o_src, r_try, o_try)
-                                n_swaps += 1
+                                n_rank_swaps += 1
                                 break
 
             # Report on swaps when some occurred
-            if n_swaps:
+            if n_rank_swaps:
+                n_swaps += n_rank_swaps
                 self._logger.debug(
-                    f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_swaps} cluster swaps")
+                    f"New rank {r_src.get_id()} load: {r_src.get_load()} after {n_rank_swaps} cluster swaps")
+
                 # In non-deterministic case skip subclustering when swaps passed
                 if not self._deterministic_transfer:
                     continue
 
+            self._logger.info(
+                    f"Total number of cluster swaps: {n_swaps}")
+                
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
                     self.__cluster_objects(r_src), r_src.get_load()):
