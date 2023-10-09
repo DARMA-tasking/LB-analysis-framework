@@ -462,10 +462,6 @@ class LBAFApplication:
                     self.__logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
-                phase = Phase(
-                    self.__logger, phase_id, reader=reader)
-                phase.populate_from_log(phase_id)
-                phases[phase_id] = phase
         else:
             n_ranks = self.__parameters.n_ranks
             phase_id = 0
