@@ -70,6 +70,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # No information about peers is known initially
         self.__known_peers = {}
 
+        # Optional parameter to conclude the iteration process iff imbalance is below the target threshold
         self.__target_imbalance = parameters.get("target_imbalance", 0.0)
 
     def get_known_peers(self):
