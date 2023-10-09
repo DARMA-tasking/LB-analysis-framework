@@ -27,7 +27,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info(
             f"Relative tolerance for cluster swaps: {self._cluster_swap_rtol}")
 
-    def __cluster_objects(self, rank):
+    def __build_rank_clusters(self, rank):
         """Cluster migratiable objects by shared block ID when available."""
         # Iterate over all migratable objects on rank
         clusters = {None: []}
@@ -93,14 +93,14 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
-        n_swaps = 0
+        n_swaps, n_swap_tries = 0, 0
 
         # Iterate over ranks
         ranks = phase.get_ranks()
         rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
         for r_src, targets in rank_targets.items():
             # Cluster migratiable objects on source rank
-            clusters_src = self.__cluster_objects(r_src)
+            clusters_src = self.__build_rank_clusters(r_src)
             self._logger.debug(
                 f"Constructed {len(clusters_src)} migratable clusters on rank {r_src.get_id()} with load: {r_src.get_load()}")
 
@@ -115,9 +115,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Iterate over potential targets to try to swap clusters
                 for k_src, o_src in clusters_src.items():
                     # Iterate over target clusters
-                    for k_try, o_try in self.__cluster_objects(r_try).items():
+                    for k_try, o_try in self.__build_rank_clusters(r_try).items():
                         # Decide whether swap is beneficial
                         c_try = self._criterion.compute(r_src, o_src, r_try, o_try)
+                        n_swap_tries += 1
                         if c_try > 0.0:
                             # Compute source cluster size only when necessary
                             sz_src = sum([o.get_load() for o in o_src])
@@ -139,13 +140,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # In non-deterministic case skip subclustering when swaps passed
                 if not self._deterministic_transfer:
                     continue
-
-            self._logger.info(
-                    f"Total number of cluster swaps: {n_swaps}")
                 
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
-                    self.__cluster_objects(r_src), r_src.get_load()):
+                    self.__build_rank_clusters(r_src), r_src.get_load()):
                 # Initialize destination information
                 r_dst, c_dst = None, -math.inf
 
@@ -185,6 +183,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Report on new load and exit from rank
             self._logger.info(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
+        self._logger.info(
+            f"Performed {n_swaps} cluster swaps amongst {n_swap_tries} tries {100 * n_swap / n_swap_tries:.2f}%")
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
