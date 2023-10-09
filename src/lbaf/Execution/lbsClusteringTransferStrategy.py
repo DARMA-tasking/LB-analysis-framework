@@ -130,6 +130,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                                     r_src, o_src, r_try, o_try)
                                 n_rank_swaps += 1
                                 break
+                            else:
+                                # Reject swap
+                                self._n_rejects += len(o_src) + len(o_try)
 
             # Report on swaps when some occurred
             if n_rank_swaps:
@@ -168,9 +171,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     # Pseudo-randomly select transfer destination
                     r_dst, c_dst = self._randomly_select_target(
                         r_src, o_src, targets)
-                    if not r_dst:
-                        self._n_rejects += 1
-                        continue
 
                 # Transfer subcluster and break out if best criterion is positive
                 if c_dst > 0.0:
@@ -179,12 +179,16 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     self._n_transfers += phase.transfer_objects(
                         r_src, o_src, r_dst)
                     break
+                else:
+                    # Keep track of objects rejected for transfers
+                    self._n_rejects += len(o_src)
 
             # Report on new load and exit from rank
             self._logger.info(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
         self._logger.info(
-            f"Performed {n_swaps} cluster swaps amongst {n_swap_tries} tries {100 * n_swap / n_swap_tries:.2f}%")
+            f"Perfor
+            med {n_swaps} cluster swaps amongst {n_swap_tries} tries ({100 * n_swaps / n_swap_tries:.2f}%)")
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
