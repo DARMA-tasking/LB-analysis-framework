@@ -187,8 +187,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             self._logger.info(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
         self._logger.info(
-            f"Perfor
-            med {n_swaps} cluster swaps amongst {n_swap_tries} tries ({100 * n_swaps / n_swap_tries:.2f}%)")
+            f"Performed {n_swaps} cluster swaps amongst {n_swap_tries} tries ({100 * n_swaps / n_swap_tries:.2f}%)")
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
