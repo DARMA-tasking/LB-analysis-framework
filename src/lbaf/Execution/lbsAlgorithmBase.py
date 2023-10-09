@@ -246,3 +246,5 @@ class AlgorithmBase:
         :param: statistics: dictionary of  statistics
         :param: a_min_max: possibly empty list of optimal arrangements.
         """
+
+        pass
