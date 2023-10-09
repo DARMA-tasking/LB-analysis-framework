@@ -93,7 +93,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
+<<<<<<< HEAD
         n_swaps, n_swap_tries, n_sub_transfers, n_sub_tries = 0, 0, 0, 0
+=======
+        n_swaps, n_swap_tries = 0, 0
+>>>>>>> 88c373e043196a5f792b1801b00447e49f42ca13
 
         # Iterate over ranks
         ranks = phase.get_ranks()
@@ -195,6 +199,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Report on new load and exit from rank
             self._logger.debug(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
+        self._logger.info(
+            f"Perfor
+            med {n_swaps} cluster swaps amongst {n_swap_tries} tries ({100 * n_swaps / n_swap_tries:.2f}%)")
 
         # Report on global transfer statistics
         self._logger.info(
