@@ -1,5 +1,6 @@
 import random
 from logging import Logger
+import time
 
 from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
@@ -191,6 +192,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         for i in range(self.__n_iterations):
             self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
 
+            # Time the duration of each iteration
+            start_time = time.time()
+
             # Start with information stage
             self.__execute_information_stage()
 
@@ -237,6 +241,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             if stats.statistics["imbalance"] <= self.__target_imbalance:
                 self._logger.info(f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
                 break
+            end_time = time.time()
+
+            # Calculate the duration of the iteration
+            end_time = time.time()
+            iteration_duration = end_time - start_time
+            self._logger.info(f"Iteration {i + 1} duration: {iteration_duration:.3f} seconds")
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
