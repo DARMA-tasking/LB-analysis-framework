@@ -7,7 +7,6 @@ from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
-from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -70,6 +69,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # No information about peers is known initially
         self.__known_peers = {}
+
+        self.__target_imbalance = parameters.get("target_imbalance", 0.0)
 
     def get_known_peers(self):
         """Return all known peers."""
@@ -207,11 +208,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Compute and report iteration work statistics
-            print_function_statistics(
-                self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
-                f"iteration {i + 1} rank work",
-                self._logger)
+            stats = print_function_statistics(
+                        self._rebalanced_phase.get_ranks(),
+                        lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
+                        f"iteration {i + 1} rank work",
+                        self._logger)
 
             # Update run distributions and statistics
             self._update_distributions_and_statistics(distributions, statistics)
@@ -230,6 +231,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.info(
                     f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
+
+            # Check if the current imbalance is within the target_imbalance range
+            if stats.statistics["imbalance"] <= self.__target_imbalance:
+                self._logger.info(f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
+                break
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

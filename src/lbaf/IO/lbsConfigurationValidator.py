@@ -142,6 +142,7 @@ class ConfigurationValidator:
                  "phase_id": int,
                  "parameters": {
                      "n_iterations": int,
+                     Optional("target_imbalance"): float,
                      "n_rounds": int,
                      "fanout": int,
                      "order_strategy": And(
