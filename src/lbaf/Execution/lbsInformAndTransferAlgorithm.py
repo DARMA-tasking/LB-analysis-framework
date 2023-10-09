@@ -195,13 +195,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Then execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self.__known_peers, self._rebalanced_phase, statistics["average load"])
-            n_proposed = n_transfers + n_rejects
-            if n_proposed:
+            if (n_proposed := n_transfers + n_rejects):
                 self._logger.info(
-                    f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                    f"Transferred {n_transfers} objects amongst {n_proposed} proposed "
                     f"({100. * n_rejects / n_proposed:.4}%)")
             else:
-                self._logger.info("No transfers were proposed")
+                self._logger.info("No proposed object transfers")
 
             # Report iteration statistics
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
