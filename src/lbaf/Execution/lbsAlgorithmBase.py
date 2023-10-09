@@ -211,7 +211,8 @@ class AlgorithmBase:
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
-        # Create a rebalanced phase to preserve phase to be rebalanced
+        # Create a new phase to preserve phase to be rebalanced
+        self._logger.info(f"Creating new phase {p_id} for rebalancing")
         self._rebalanced_phase = Phase(self._logger, p_id)
 
         # Try to copy ranks from phase to be rebalanced to processd one
