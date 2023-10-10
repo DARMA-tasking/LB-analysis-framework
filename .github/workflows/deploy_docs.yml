@@ -43,6 +43,9 @@ jobs:
       - name: Deploy docs
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: deploy-doc-site
+          token: ${{ secrets.GH_PAT }}
+          branch: master
+          repository-name: DARMA-tasking/DARMA-tasking.github.io
+          target-folder: lbaf_docs
           folder: ${{ env.docs-output }}
           clean: true
