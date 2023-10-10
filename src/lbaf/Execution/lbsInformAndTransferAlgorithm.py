@@ -185,7 +185,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._rebalanced_phase)
 
-        # Retrieve totat work from computed statistics
+        # Retrieve total work from computed statistics
         total_work = statistics["total work"][-1]
 
         # Perform requested number of load-balancing iterations
@@ -214,20 +214,19 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Compute and report iteration work statistics
             stats = print_function_statistics(
-                        self._rebalanced_phase.get_ranks(),
-                        lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
-                        f"iteration {i + 1} rank work",
-                        self._logger)
+                self._rebalanced_phase.get_ranks(),
+                self._work_model.compute,
+                f"iteration {i + 1} rank work",
+                self._logger)
 
             # Update run distributions and statistics
             self._update_distributions_and_statistics(distributions, statistics)
 
             # Compute current arrangement
-            arrangement = tuple(
-                v for _, v in sorted(
-                    {o.get_id(): p.get_id()
-                     for p in self._rebalanced_phase.get_ranks()
-                     for o in p.get_objects()}.items()))
+            arrangement = tuple(sorted(
+                {o.get_id(): p.get_id()
+                for p in self._rebalanced_phase.get_ranks()
+                for o in p.get_objects()}.values()))
             self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 
             # Report minimum Hamming distance when minimax optimum is available
@@ -241,7 +240,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             if stats.statistics["imbalance"] <= self.__target_imbalance:
                 self._logger.info(f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
                 break
-            end_time = time.time()
 
             # Calculate the duration of the iteration
             end_time = time.time()
