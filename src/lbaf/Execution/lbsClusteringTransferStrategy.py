@@ -85,7 +85,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             n_inspect += j + 1
 
         # Return subclusters and cluster IDs sorted by achievable loads
-        self._logger.debug(
+        self._logger.info(
             f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
         return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
 
@@ -93,11 +93,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
-<<<<<<< HEAD
         n_swaps, n_swap_tries, n_sub_transfers, n_sub_tries = 0, 0, 0, 0
-=======
-        n_swaps, n_swap_tries = 0, 0
->>>>>>> 88c373e043196a5f792b1801b00447e49f42ca13
 
         # Iterate over ranks
         ranks = phase.get_ranks()
@@ -153,13 +149,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # In non-deterministic case skip subclustering when swaps passed
                 if not self._deterministic_transfer:
                     continue
-                
+
             # Iterate over suitable subclusters only when no swaps were possible
             for o_src in self.__find_suitable_subclusters(
                     self.__build_rank_clusters(r_src), r_src.get_load()):
                 # Initialize destination information
                 r_dst, c_dst = None, -math.inf
-
                 # Use deterministic or probabilistic transfer method
                 if self._deterministic_transfer:
                     # Initialize destination load information
@@ -199,9 +194,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Report on new load and exit from rank
             self._logger.debug(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
-        self._logger.info(
-            f"Perfor
-            med {n_swaps} cluster swaps amongst {n_swap_tries} tries ({100 * n_swaps / n_swap_tries:.2f}%)")
 
         # Report on global transfer statistics
         self._logger.info(
