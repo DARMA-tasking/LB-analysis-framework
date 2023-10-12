@@ -31,7 +31,7 @@ class Runtime:
         # If no LBS phase was provided, do not do anything
         if not phases or not isinstance(phases, dict):
             self.__logger.error(
-                "Could not create a runtime without a dictionnary of phases")
+                "Could not create a runtime without a dictionary of phases")
             raise SystemExit(1)
         self.__phases = phases
 
@@ -49,10 +49,10 @@ class Runtime:
             self.__logger,
             rank_qoi,
             object_qoi)
-        if not self.__algorithm:
-            self.__logger.error(
-                f"Could not instantiate an algorithm of type {self.__algorithm}")
-            raise SystemExit(1)
+        # if not self.__algorithm:
+        #     self.__logger.error(
+        #         f"Could not instantiate an algorithm of type {self.__algorithm}")
+        #     raise SystemExit(1)
 
         # Initialize run distributions and statistics
         phase_0 = self.__phases[min(self.__phases.keys())]

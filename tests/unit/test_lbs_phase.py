@@ -25,8 +25,6 @@ class TestConfig(unittest.TestCase):
     def test_lbs_phase_populate_from_log(self):
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         self.phase.populate_from_log(0)
-        file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
-        self.phase.populate_from_log(0)
         self.assertEqual(len(self.phase.get_object_ids()), 9)
 
     def test_lbs_phase_getters(self):
