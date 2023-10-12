@@ -30,6 +30,9 @@ jobs:
         working-directory: ${{ env.project-directory }}
         run: |
           git clone https://github.com/mosra/m.css.git
+      - name: Download JSON_data_files_validator
+        run: |
+           lbaf-vt-data-files-validator-loader
       - name: Build documentation
         working-directory: ${{ env.docs-generator }}
         run: |
