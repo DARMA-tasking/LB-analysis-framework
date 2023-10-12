@@ -2,7 +2,7 @@ name: Deploy docs
 
 on:
   push:
-    branches: [ '419-modify-deploy_docsyml-to-correctly-push-documentation' ]
+    branches: [ '297-add-automated-generated-documentation-from-LBAF' ]
 
 jobs:
   build-and-deploy-docs:
