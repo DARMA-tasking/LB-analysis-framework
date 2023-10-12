@@ -6,6 +6,8 @@ from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
 
+import tv
+
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
 if importlib.util.find_spec('lbaf') is None:
@@ -569,6 +571,13 @@ class LBAFApplication:
                 self.__parameters.work_model.get("parameters", {}).get("upper_bounds", {}).get(self.__parameters.rank_qoi),
                 self.__parameters.object_qoi
             ]
+
+            # Serialize data to JSON-formatted string
+            json_str = self.__json_writer.serialize_phases(phases)
+            print(json_str)
+
+            # Pass string to vt-tv for rendering
+            tv.process_json(json_str)
 
             # Instantiate and execute visualizer
             visualizer = Visualizer(
