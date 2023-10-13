@@ -3,7 +3,8 @@ from_data:
   data_stem: ../data/challenging_toy_hundreds_tasks/toy
   phase_ids:
     - 0
-check_schema: False
+check_schema: true
+overwrite_validator: false
 
 # Specify work model
 work_model:

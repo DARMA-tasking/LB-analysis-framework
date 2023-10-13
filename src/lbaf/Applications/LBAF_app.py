@@ -30,14 +30,16 @@ class InternalParameters:
 
     __logger: Logger
 
-    # Input options
+    # General input options
     check_schema: Optional[bool] = None
     output_dir: Optional[str] = None
     output_file_stem: Optional[str] = None
     file_suffix: Optional[str] = None
-    # - from_data options
+
+    # From data input options
     data_stem: Optional[str] = None
-    # - from_samplers options
+
+    # From samplers input options
     n_ranks: Optional[int] = None
     n_objects: Optional[int] = None
     n_mapped_ranks: Optional[int] = None
@@ -45,15 +47,13 @@ class InternalParameters:
     load_sampler: Optional[dict] = None
     volume_sampler: Optional[dict] = None
 
-    # Viz options
+    # Visualization options
     rank_qoi: Optional[str] = None
     object_qoi: Optional[str] = None
     grid_size: Optional[list] = None
 
-    # work_model options
+    # Load-balancing options
     work_model: Optional[Dict[str, dict]] = None
-
-    # algorithm options
     algorithm: Dict[str, Any]
 
     def __init__(self, config: dict, base_dir: str, logger: Logger):
@@ -173,19 +173,18 @@ class LBAFApplication:
 
     def __parse_args(self):
         """Parse arguments."""
-        parser = PromptArgumentParser(allow_abbrev=False,
-                                      description="Run a Load-Balancing Simulation with some configuration",
-                                      prompt_default=False)
-        parser.add_argument("-c", "--configuration",
-                            help="Path to the config file. If path is relative it must be resolvable from either the "
-                                 "current working directory or the config directory",
-                            default="conf.yaml",
-                            )
-        parser.add_argument("-v", "--verbose",
-                            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank "
-                                 "and object QOI.",
-                            default="0"
-                            )
+        parser = PromptArgumentParser(
+            allow_abbrev=False,
+            description="Run a Load-Balancing Simulation with some configuration",
+            prompt_default=False)
+        parser.add_argument(
+            "-c", "--configuration",
+            help="Path to the config file. If path is relative it must be resolvable from either the current working directory or the config directory",
+            default="conf.yaml")
+        parser.add_argument(
+            "-v", "--verbose",
+            help="Verbosity level. If 1, print all possible rank QOI. If 2, print all possible rank and object QOI.",
+            default="0")
         self.__args = parser.parse_args()
 
     def __read_configuration_file(self, path: str):
@@ -196,8 +195,7 @@ class LBAFApplication:
                     data = yaml.safe_load(file_io)
                     if not data.get("overwrite_validator", True):
                         self.__logger.info(
-                            f"Option 'overwrite_validator' in configuration file: {path} is set to False"
-                        )
+                            f"Option 'overwrite_validator' in configuration file: {path} is set to False")
             except yaml.MarkedYAMLError as err:
                 err_line = err.problem_mark.line if err.problem_mark is not None else -1
                 self.__logger.error(
@@ -249,15 +247,18 @@ class LBAFApplication:
             name="lbaf",
             level=lvl,
             log_to_console=config.get("log_to_console", None) is None,
-            log_to_file=None if log_to_file is None else abspath(config.get("log_to_file"), relative_to=config_dir)
+            log_to_file=None if log_to_file is None else abspath(
+                config.get("log_to_file"), relative_to=config_dir)
         )
         self.__logger.info(f"Logging level: {lvl.lower()}")
         if log_to_file is not None:
-            log_to_file_path = abspath(config.get("log_to_file"), relative_to=config_dir)
+            log_to_file_path = abspath(
+                config.get("log_to_file"), relative_to=config_dir)
             self.__logger.info(f"Logging to file: {log_to_file_path}")
 
         # Instantiate the application internal parameters
-        self.__parameters = InternalParameters(config=config, base_dir=config_dir, logger=self.__logger)
+        self.__parameters = InternalParameters(
+            config=config, base_dir=config_dir, logger=self.__logger)
 
         # Create VT writer except when explicitly turned off
         self.__json_writer = VTDataWriter(
@@ -275,7 +276,7 @@ class LBAFApplication:
 
         :raises FileNotFoundError: if configuration file cannot be found
         """
-        # search config file in the current working directory if relative
+        # Search config file in the current working directory if relative
         path = config_path
         path_list = []
         path_list.append(path)
@@ -284,19 +285,17 @@ class LBAFApplication:
             not os.path.isfile(path) and
             not os.path.isabs(config_path) and PROJECT_PATH is not None
         ):
-            # then search config file relative to the config folder
+            # Then search config file relative to the config folder
             search_dir = abspath("config", relative_to=PROJECT_PATH)
             path = search_dir + '/' + config_path
             path_list.append(path)
 
+        # Verify path correctness
         if not os.path.isfile(path):
-            error_message = "The configuration file cannot be found." \
-                            " If you provide a relative path, please verify that the file exists in the " \
-                            "current working directory or in the `<project_path>/config` directory"
-            raise FileNotFoundError(error_message)
+            raise FileNotFoundError(
+                "Configuration file not found. If a relative path was provided the file may not exist in current working directory or in the `<project_path>/config` directory")
         else:
             self.__logger.info(f"Found configuration file at path {path}")
-
         return path
 
     def __print_statistics(self, phase: Phase, phase_name: str):
@@ -345,13 +344,15 @@ class LBAFApplication:
 
         # Initialize file paths
         current_script_path = os.path.abspath(__file__)
-        target_dir = os.path.join(os.path.dirname(os.path.dirname(current_script_path)), "Model")
+        target_dir = os.path.join(
+            os.path.dirname(os.path.dirname(current_script_path)), "Model")
         rank_script_name = "lbsRank.py"
         object_script_name = "lbsObject.py"
 
         # Create list of all Rank QOI (Rank.get_*)
         r_qoi_list = ["work"]
-        lbs_rank_file = open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8")
+        lbs_rank_file = open(
+            os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8")
         lbs_rank_lines = lbs_rank_file.readlines()
         for line in lbs_rank_lines:
             if line[8:12] == "get_":
@@ -359,7 +360,8 @@ class LBAFApplication:
 
         # Create list of all Object QOI (Object.get_*)
         o_qoi_list = []
-        lbs_object_file = open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8")
+        lbs_object_file = open(
+            os.path.join(target_dir, object_script_name), 'r', encoding="utf-8")
         lbs_object_lines = lbs_object_file.readlines()
         for line in lbs_object_lines:
             if line[8:12] == "get_":
@@ -412,7 +414,7 @@ class LBAFApplication:
         # Apply configuration
         cfg = self.__configure(*config_file_list)
 
-        # Download JSON data files validator (JSON data files validator is required to continue)
+        # Download of JSON data files validator required to continue
         loader = JSONDataFilesValidatorLoader()
         if loader.run(cfg.get("overwrite_validator", True)) != 0:
             raise RuntimeError("The JSON data files validator must be loaded to run the application")
@@ -436,9 +438,8 @@ class LBAFApplication:
         # Check schema
         check_schema = True if "check_schema" not in self.__parameters.__dict__ else self.__parameters.check_schema
 
-        reader = None  # type: Optional(LoadReader)
-
-        n_ranks = None
+        # Initialize variables
+        reader, n_ranks = None, None
 
         # Populate phase depending on chosen mechanism
         if self.__parameters.data_stem:
@@ -452,7 +453,8 @@ class LBAFApplication:
                 file_suffix=file_suffix if file_suffix is not None else "json",
                 check_schema=check_schema,
                 expected_ranks=self.__parameters.expected_ranks)
-            # retrieve n_ranks
+
+            # Retrieve n_ranks
             n_ranks = reader.n_ranks
 
             # Iterate over phase IDs
@@ -488,8 +490,8 @@ class LBAFApplication:
                 self.__parameters.work_model.get("parameters", {}).get(k)
                 for k in ("alpha", "beta", "gamma")
             ]
-            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(objects, alpha, beta, gamma,
-                                                                                    n_ranks, logger=self.__logger)
+            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
+                objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
         else:
             self.__logger.info("No brute force optimization performed")
             a_min_max = []
@@ -519,7 +521,7 @@ class LBAFApplication:
                     self.__logger.warning(
                         "No rebalancing took place for offline load-balancing")
                 else:
-                    # Determine if a phase with the same index was present
+                    # Determine if a phase with same index was present
                     if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
                         # Apply object timings to rebalanced phase
                         self.__logger.info(
@@ -551,11 +553,13 @@ class LBAFApplication:
                 raise SystemExit(1)
 
             # Look for prescribed QOI bounds
-            qoi_request = [
-                self.__parameters.rank_qoi,
-                self.__parameters.work_model.get("parameters", {}).get("upper_bounds", {}).get(self.__parameters.rank_qoi),
-                self.__parameters.object_qoi
-            ]
+            qoi_request = [self.__parameters.rank_qoi]
+            qoi_request.append(
+                self.__parameters.work_model.get(
+                    "parameters").get(
+                    "upper_bounds", {}).get(
+                    self.__parameters.rank_qoi))
+            qoi_request.append(self.__parameters.object_qoi)
 
             # Instantiate and execute visualizer
             visualizer = Visualizer(
