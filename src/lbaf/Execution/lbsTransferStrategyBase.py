@@ -61,7 +61,9 @@ class TransferStrategyBase:
 
         # Initialize dictionary of traversable ranks to targets
         rank_targets = {}
-
+        assert len(ranks) > 0
+        assert len(known_peers) > 0
+        assert ranks[0].get_migratable_objects()
         # Iterate over all provided ranks
         for r_src in ranks:
             # Ignore ranks without migratable objects
@@ -76,7 +78,7 @@ class TransferStrategyBase:
             # Append rank to be traversed
             rank_targets[r_src] = targets
 
-        # Return randomized dict of rank_targets ranks
+        assert bool(rank_targets), "rank_targets should not be empty"
         return rank_targets if self._deterministic_transfer else {
             k: rank_targets[k]
             for k in random.sample(rank_targets.keys(), len(rank_targets))}

@@ -12,8 +12,8 @@ from src.lbaf.imported.JSON_data_files_validator import SchemaValidator  # pylin
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data", "schema")
-
+        self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.data_dir = os.path.join(self.test_dir, "data", "schema")
     def test_schema_validator_valid_001(self):
         with open(os.path.join(self.data_dir, "valid_schema_001.json"), "rb") as compr_json_file:
             compr_bytes = compr_json_file.read()
