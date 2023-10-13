@@ -1,13 +1,13 @@
 import random
+import time
 from logging import Logger
 
-from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
-from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
+from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -68,11 +68,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
             raise SystemExit(1)
 
-        # Optional target imbalance for early termination of iterations
-        self.__target_imbalance = parameters.get("target_imbalance", 0.0)
-
         # No information about peers is known initially
         self.__known_peers = {}
+
+        # Optional target imbalance for early termination of iterations
+        self.__target_imbalance = parameters.get("target_imbalance", 0.0)
 
     def get_known_peers(self):
         """Return all known peers."""
@@ -192,10 +192,13 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         for i in range(self.__n_iterations):
             self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
 
+            # Time the duration of each iteration
+            start_time = time.time()
+
             # Start with information stage
             self.__execute_information_stage()
 
-            # Then execute transfer stage
+            # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self.__known_peers, self._rebalanced_phase, statistics["average load"])
             if (n_proposed := n_transfers + n_rejects):
@@ -209,7 +212,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
 
             # Compute and report iteration work statistics
-            print_function_statistics(
+            stats = print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
                 lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
                 f"iteration {i + 1} rank work",
@@ -219,11 +222,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._update_distributions_and_statistics(distributions, statistics)
 
             # Compute current arrangement
-            arrangement = tuple(
-                v for _, v in sorted(
-                    {o.get_id(): p.get_id()
-                     for p in self._rebalanced_phase.get_ranks()
-                     for o in p.get_objects()}.items()))
+            arrangement = tuple(sorted(
+                {o.get_id(): p.get_id()
+                for p in self._rebalanced_phase.get_ranks()
+                for o in p.get_objects()}.values()))
             self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 
             # Report minimum Hamming distance when minimax optimum is available
@@ -232,6 +234,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.info(
                     f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
+
+            # Calculate the duration of the iteration
+            end_time = time.time()
+            iteration_duration = end_time - start_time
+            self._logger.info(
+                f"Iteration {i + 1} duration: {iteration_duration:.3f} seconds")
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
