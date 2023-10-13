@@ -63,11 +63,6 @@ class TestConfig(unittest.TestCase):
             runtime = Runtime(None, self.work_model, self.algorithm, self.arrangements, self.logger, self.rank_qoi, self.object_qoi)
         self.assertEqual(context.exception.code, 1)
 
-    # def test_lbs_runtime_no_algorithm(self):
-    #     with self.assertRaises(SystemExit) as context:
-    #         runtime = Runtime(self.phases, self.work_model, None, self.arrangements, self.logger, self.rank_qoi, self.object_qoi)
-    #     self.assertEqual(context.exception.code, 1)
-
     def test_lbs_runtime_get_distributions(self):
         assert isinstance(self.runtime.get_distributions(), dict)
 
