@@ -68,6 +68,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.error(f"Could not instantiate a transfer strategy of type {strat_name}")
             raise SystemExit(1)
 
+        # Optional target imbalance for early termination of iterations
+        self.__target_imbalance = parameters.get("target_imbalance", 0.0)
+
         # No information about peers is known initially
         self.__known_peers = {}
 
