@@ -167,7 +167,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report on known peers when requested
             for rank in rank_set:
                 self._logger.debug(
-                    f"Peers known to rank {r.get_id()}: {[r_k.get_id() for r_k in k_p]}")
+                    f"Peers known to rank {rank.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
         # Report on final know information ratio
         n_k = sum([len(k_p) for k_p in self.__known_peers.values() if k_p]) / n_r
