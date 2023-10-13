@@ -24,12 +24,15 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -e .
           pip3 install docutils jinja2 pygments
       - name: Clone documentation generator
         working-directory: ${{ env.project-directory }}
         run: |
           git clone https://github.com/mosra/m.css.git
+      - name: Download JSON_data_files_validator
+        run: |
+           lbaf-vt-data-files-validator-loader
       - name: Build documentation
         working-directory: ${{ env.docs-generator }}
         run: |
@@ -43,6 +46,9 @@ jobs:
       - name: Deploy docs
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: deploy-doc-site
+          token: ${{ secrets.GH_PAT }}
+          branch: master
+          repository-name: DARMA-tasking/DARMA-tasking.github.io
+          target-folder: lbaf_docs
           folder: ${{ env.docs-output }}
           clean: true
