@@ -185,7 +185,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._rebalanced_phase)
 
-        # Retrieve totat work from computed statistics
+        # Retrieve total work from computed statistics
         total_work = statistics["total work"][-1]
 
         # Perform requested number of load-balancing iterations
