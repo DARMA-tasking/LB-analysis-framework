@@ -462,10 +462,6 @@ class LBAFApplication:
                     self.__logger, phase_id, reader=reader)
                 phase.populate_from_log(phase_id)
                 phases[phase_id] = phase
-                phase = Phase(
-                    self.__logger, phase_id, reader=reader)
-                phase.populate_from_log(phase_id)
-                phases[phase_id] = phase
         else:
             n_ranks = self.__parameters.n_ranks
             phase_id = 0
@@ -523,7 +519,7 @@ class LBAFApplication:
                     self.__logger.warning(
                         "No rebalancing took place for offline load-balancing")
                 else:
-                    # Determine if a phase with same index was present
+                    # Determine if a phase with the same index was present
                     if _existing_phase := phases.get(p_id := rebalanced_phase.get_id()):
                         # Apply object timings to rebalanced phase
                         self.__logger.info(
@@ -555,13 +551,11 @@ class LBAFApplication:
                 raise SystemExit(1)
 
             # Look for prescribed QOI bounds
-            qoi_request = [self.__parameters.rank_qoi]
-            qoi_request.append(
-                self.__parameters.work_model.get(
-                    "parameters").get(
-                    "upper_bounds", {}).get(
-                    self.__parameters.rank_qoi))
-            qoi_request.append(self.__parameters.object_qoi)
+            qoi_request = [
+                self.__parameters.rank_qoi,
+                self.__parameters.work_model.get("parameters", {}).get("upper_bounds", {}).get(self.__parameters.rank_qoi),
+                self.__parameters.object_qoi
+            ]
 
             # Instantiate and execute visualizer
             visualizer = Visualizer(
