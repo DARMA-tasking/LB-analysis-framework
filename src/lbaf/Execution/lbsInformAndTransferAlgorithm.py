@@ -235,6 +235,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
 
+            # Check if the current imbalance is within the target_imbalance range
+            if stats.statistics["imbalance"] <= self.__target_imbalance:
+                self._logger.info(
+                    f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
+                break
+
             # Calculate the duration of the iteration
             end_time = time.time()
             iteration_duration = end_time - start_time
