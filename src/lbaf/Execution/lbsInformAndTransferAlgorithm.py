@@ -214,7 +214,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Compute and report iteration work statistics
             stats = print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
+                self._work_model.compute,
                 f"iteration {i + 1} rank work",
                 self._logger)
 
