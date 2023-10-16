@@ -1,13 +1,13 @@
 import random
-from logging import Logger
 import time
+from logging import Logger
 
-from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
+from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -71,7 +71,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # No information about peers is known initially
         self.__known_peers = {}
 
-        # Optional parameter to conclude the iteration process iff imbalance is below the target threshold
+        # Optional target imbalance for early termination of iterations
         self.__target_imbalance = parameters.get("target_imbalance", 0.0)
 
     def get_known_peers(self):
@@ -198,16 +198,15 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Start with information stage
             self.__execute_information_stage()
 
-            # Then execute transfer stage
+            # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self.__known_peers, self._rebalanced_phase, statistics["average load"])
-            n_proposed = n_transfers + n_rejects
-            if n_proposed:
+            if (n_proposed := n_transfers + n_rejects):
                 self._logger.info(
-                    f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                    f"Transferred {n_transfers} objects amongst {n_proposed} proposed "
                     f"({100. * n_rejects / n_proposed:.4}%)")
             else:
-                self._logger.info("No transfers were proposed")
+                self._logger.info("No proposed object transfers")
 
             # Report iteration statistics
             self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
@@ -238,13 +237,15 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Check if the current imbalance is within the target_imbalance range
             if stats.statistics["imbalance"] <= self.__target_imbalance:
-                self._logger.info(f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
+                self._logger.info(
+                    f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
                 break
 
             # Calculate the duration of the iteration
             end_time = time.time()
             iteration_duration = end_time - start_time
-            self._logger.info(f"Iteration {i + 1} duration: {iteration_duration:.3f} seconds")
+            self._logger.info(
+                f"Iteration {i + 1} duration: {iteration_duration:.3f} seconds")
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
