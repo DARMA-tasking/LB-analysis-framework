@@ -368,7 +368,7 @@ def summarize_statistics_tuples(var_name, stats, key_tuples: list, logger: Logge
     for key_tuples in key_tuples:
         logger.info('\t' + ' '.join([
             f"{k}: {stats.statistics[k]:.6g}" for k in key_tuples]))
-    
+
 
 def print_function_statistics(values, function, var_name, logger: Logger):
     """Compute and report descriptive statistics of function values."""
