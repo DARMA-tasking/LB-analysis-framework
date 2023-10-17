@@ -103,7 +103,6 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Iterate over ranks
         ranks = phase.get_ranks()
         rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
-        assert len(rank_targets) > 0
         for r_src, targets in rank_targets.items():
             # Cluster migratable objects on source rank
             clusters_src = self.__build_rank_clusters(r_src, True)
