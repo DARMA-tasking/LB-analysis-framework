@@ -71,7 +71,7 @@ class ConfigurationValidator:
                 lambda f: f in ALLOWED_LOGGING_LEVELS,
                 error=f"{get_error_message(ALLOWED_LOGGING_LEVELS)} must be chosen"),
             Optional("output_dir"): str,
-            Optional("LBAF_Viz"): {
+            Optional("visualization"): {
                 "x_ranks": And(
                     int, lambda x: x > 0,
                     error="Should be of type 'int' and > 0"),
@@ -85,6 +85,8 @@ class ConfigurationValidator:
                     float, lambda x: abs(x) < 1.0,
                     error="Should be of type 'float' and magnitude < 1"),
                 "rank_qoi": str,
+                "output_visualization_dir": str,
+                "output_visualization_file_stem": str,
                 Optional("object_qoi"): str,
                 Optional("force_continuous_object_qoi"): bool,
                 Optional("save_meshes"): bool},
