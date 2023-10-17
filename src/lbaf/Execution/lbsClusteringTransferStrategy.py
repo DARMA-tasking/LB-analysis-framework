@@ -1,5 +1,6 @@
 import math
 import random
+import time
 from itertools import chain, combinations
 from logging import Logger
 
@@ -52,6 +53,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         if not clusters:
             self._logger.info("No migratable clusters on rank")
             return []
+        self._logger.info(f"{len(clusters)} clusters to be inspected on rank")
+
+        # Time the duration of each search
+        start_time = time.time()
 
         # Build dict of suitable clusters with their load
         n_inspect = 0
@@ -59,7 +64,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         step = 100.0 / len(clusters)
         for i, v in enumerate(clusters.values()):
             # Determine maximum subcluster size
-            n_o = min(self._max_objects_per_transfer, len(v))
+            n_o = min(self._max_objects_per_transfer, (n_o_sub := len(v)))
+            self._logger.info(
+                f"\t{n_o_sub} objects on cluster, maximum subcluster size: {n_o}")
 
             # Use combinatorial exploration or law of large number based subsampling
             j = 0
@@ -68,6 +75,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     for p in range(1, n_o + 1)) if self._deterministic_transfer else (
                     tuple(random.sample(v, p))
                     for p in nr.binomial(n_o, 0.5, n_o))):
+
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - self._cluster_swap_rtol) * self._average_load:
@@ -86,7 +94,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
-            f"Found {len(suitable_subclusters)} suitable subclusters amongst {n_inspect} inspected")
+            f"Found {len(suitable_subclusters)} suitable among {n_inspect} subclusters in {time.time() - start_time:.3f} seconds")
         return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
 
     def execute(self, known_peers, phase: Phase, ave_load: float):

@@ -181,6 +181,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
+        print_function_statistics(
+            self._rebalanced_phase.get_ranks(),
+            self._work_model.compute,
+            "initial rank work",
+            self._logger)
 
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._rebalanced_phase)
@@ -209,7 +214,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.info("No proposed object transfers")
 
             # Report iteration statistics
-            self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
+            self._logger.info(
+                f"Iteration {i + 1} completed ({n_ignored} skipped ranks) in {time.time() - start_time:.3f} seconds")
 
             # Compute and report iteration work statistics
             stats = print_function_statistics(
@@ -240,12 +246,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.info(
                     f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
                 break
-
-            # Calculate the duration of the iteration
-            end_time = time.time()
-            iteration_duration = end_time - start_time
-            self._logger.info(
-                f"Iteration {i + 1} duration: {iteration_duration:.3f} seconds")
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

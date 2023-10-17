@@ -358,25 +358,37 @@ def compute_function_statistics(population, fct) -> Statistics:
     return Statistics(n, f_min, f_ave, f_max, f_var, f_g1, f_g2)
 
 
+def summarize_statistics_tuples(var_name, stats, key_tuples: list, logger: Logger):
+    """Print pretty summary of statistics one tuple per row."""
+
+    # Assemble and print title
+    logger.info(f"Descriptive statistics of {var_name}:")
+
+    # Print one row per tuple of keys
+    for key_tuples in key_tuples:
+        logger.info('\t' + ' '.join([
+            f"{k}: {stats.statistics[k]:.6g}" for k in key_tuples]))
+    
+
 def print_function_statistics(values, function, var_name, logger: Logger):
     """Compute and report descriptive statistics of function values."""
 
     # Compute statistics
-    logger.info(f"Descriptive statistics of {var_name}:")
     stats = compute_function_statistics(values, function)
 
-    # Print detailed load information if requested
+    # Print summary
+    summarize_statistics_tuples(
+        var_name,
+        stats,
+        [("cardinality", "sum", "imbalance"),
+         ("minimum", "average", "maximum"),
+         ("standard deviation", "variance"),
+         ("skewness", "kurtosis")],
+        logger)
+
+    # Print more detailed information if requested
     for i, v in enumerate(values):
         logger.debug(f"\t{i}: {function(v)}")
-
-    # Print summary
-    for key_tuples in [
-        ("cardinality", "sum", "imbalance"),
-        ("minimum", "average", "maximum"),
-        ("standard deviation", "variance"),
-        ("skewness", "kurtosis")]:
-        logger.info('\t' + ' '.join([
-            f"{k}: {stats.statistics[k]:.6g}" for k in key_tuples]))
 
     # Return descriptive statistics instance
     return stats
