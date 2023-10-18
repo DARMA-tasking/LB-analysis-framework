@@ -198,7 +198,7 @@ class ConfigurationValidator:
             "output": [
                 "logging_level", "log_to_file", "overwrite_validator", "terminal_background",
                 "generate_multimedia", "output_dir", "output_file_stem",
-                "LBAF_Viz", "write_JSON"
+                "visualization", "write_JSON"
             ]
         }
 
