@@ -60,14 +60,18 @@ class ConfigUpdater:
 
         if "output_dir" in config:
             output_dir = config["output_dir"]
+        else:
+            output_dir = "../output"
 
-            if "output_file_stem" in config:
+        if "output_file_stem" in config:
                 file_stem = config["output_file_stem"]
+        else:
+            file_stem = "output_file"
 
-                if "LBAF_Viz" in config:
-                    config["visualization"] = config.pop("LBAF_Viz")
-                    config["visualization"]["output_visualization_dir"] = output_dir
-                    config["visualization"]["output_visualization_file_stem"] = file_stem
+        if "LBAF_Viz" in config:
+            config["visualization"] = config.pop("LBAF_Viz")
+            config["visualization"]["output_visualization_dir"] = output_dir
+            config["visualization"]["output_visualization_file_stem"] = file_stem
 
         return config
 
@@ -123,7 +127,7 @@ class ConfigUpdater:
         self.__logger.info(f"Updating {filename}")
 
         new_config = self.__update_conf(config)
-        # self.__validate_configuration(new_config)
+        self.__validate_configuration(new_config)
         self.__write_config(new_config, output_dir, filename)
 
 if __name__ == "__main__":

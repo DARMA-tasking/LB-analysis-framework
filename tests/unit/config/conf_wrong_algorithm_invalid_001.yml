@@ -21,7 +21,7 @@ algorithm:
 
 # Specify output
 output_file_stem: output_file
-LBAF_Viz:
+visualization:
   x_ranks: 2
   y_ranks: 2
   z_ranks: 1
@@ -29,3 +29,5 @@ LBAF_Viz:
   rank_qoi: work
   object_qoi: work
   force_continuous_object_qoi: true
+  output_visualization_dir: ../output
+  output_visualization_file_stem: output_file
