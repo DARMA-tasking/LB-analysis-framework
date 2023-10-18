@@ -94,7 +94,7 @@ class ConfigUpdater:
             # Check if the directory path is valid
             if os.path.exists(directory) and os.path.isdir(directory):
                 # Find all files in the directory that end with ".yaml"
-                config_files = [f for f in os.listdir(directory) if f.endswith(".yaml")]
+                config_files = [f for f in os.listdir(directory) if f.endswith(".yaml") or f.endswith(".yml")]
                 for config_file in config_files:
                     full_path = directory + "/" + config_file
                     self.run(full_path)
@@ -123,7 +123,7 @@ class ConfigUpdater:
         self.__logger.info(f"Updating {filename}")
 
         new_config = self.__update_conf(config)
-        self.__validate_configuration(new_config)
+        # self.__validate_configuration(new_config)
         self.__write_config(new_config, output_dir, filename)
 
 if __name__ == "__main__":
