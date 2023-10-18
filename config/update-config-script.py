@@ -112,8 +112,6 @@ class ConfigUpdater:
         if filepath:
             self.run(filepath)
 
-        return
-
     def run(self, filepath: str):
         """Update configuration files"""
         # Specify output dir and filename
