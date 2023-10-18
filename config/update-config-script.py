@@ -1,8 +1,9 @@
 """Configuration Updater"""
 import os
 import sys
-import yaml
 import importlib
+from ruamel.yaml import YAML
+yaml = YAML()
 
 if importlib.util.find_spec('lbaf') is None:
     sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
@@ -49,12 +50,10 @@ class ConfigUpdater:
     def __read_configuration_file(self, config_path):
         try:
             with open(config_path, "r") as file:
-                config_dict = yaml.safe_load(file)
+                config_dict = yaml.load(file)
             return config_dict
         except FileNotFoundError:
             self.__logger.error(f"File not found: {config_path}")
-        except yaml.YAMLError as e:
-            self.__logger.error(f"Error parsing YAML in {config_path}: {e}")
         return None  # Return None in case of errors
 
     def __update_conf(self, config: dict):
@@ -79,7 +78,7 @@ class ConfigUpdater:
         output_file_path = os.path.join(output_dir, filename)
 
         with open(output_file_path, 'w') as file:
-            yaml.dump(config, file, default_flow_style=False)
+            yaml.dump(config, file)
 
         self.__logger.info(f"New configuration file written to {output_file_path}")
 
