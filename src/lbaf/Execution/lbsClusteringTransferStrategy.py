@@ -148,7 +148,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # In non-deterministic case skip subclustering when swaps passed
                 if not self._deterministic_transfer:
                     continue
-                
+
             # Iterate over subclusters only when no swaps were possible
             for o_src in self.__build_rank_subclusters(
                     self.__build_rank_clusters(r_src, False).values(), r_src.get_load()):
@@ -204,4 +204,3 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
-
