@@ -46,26 +46,23 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             k: clusters[k]
             for k in random.sample(clusters.keys(), len(clusters))}
 
-    def __find_suitable_subclusters(self, clusters, rank_load):
-        """Find suitable sub-clusters to bring rank closest and above average load."""
+    def __build_rank_subclusters(self, clusters, rank_load):
+        """Build subclusters to bring rank closest and above average load."""
 
         # Bail out early if no clusters are available
         if not clusters:
             self._logger.info("No migratable clusters on rank")
             return []
-        self._logger.info(f"{len(clusters)} clusters to be inspected on rank")
 
         # Time the duration of each search
         start_time = time.time()
 
-        # Build dict of suitable clusters with their load
-        n_inspect = 0
-        suitable_subclusters = {}
-        step = 100.0 / len(clusters)
-        for i, v in enumerate(clusters.values()):
+        # Build dict of clusters with their load
+        n_inspect, subclusters = 0, {}
+        for i, v in enumerate(clusters):
             # Determine maximum subcluster size
             n_o = min(self._max_objects_per_transfer, (n_o_sub := len(v)))
-            self._logger.info(
+            self._logger.debug(
                 f"\t{n_o_sub} objects on cluster, maximum subcluster size: {n_o}")
 
             # Use combinatorial exploration or law of large number based subsampling
@@ -74,27 +71,22 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     combinations(v, p)
                     for p in range(1, n_o + 1)) if self._deterministic_transfer else (
                     tuple(random.sample(v, p))
-                    for p in nr.binomial(n_o, 0.5, n_o))):
+                    for p in nr.binomial(n_o, 0.5, min(n_o, 10)))):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - self._cluster_swap_rtol) * self._average_load:
                     continue
 
-                # Retain suitable subclusters with their respective distance and cluster
-                suitable_subclusters[c] = reach_load
-
-                # Limit number of returned suitable clusters
-                if not self._deterministic_transfer and len(suitable_subclusters) > (
-                        i + 1) * step:
-                    break
+                # Retain subclusters with their respective distance and cluster
+                subclusters[c] = reach_load
 
             # Update number of inspected combinations
             n_inspect += j + 1
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
-            f"Found {len(suitable_subclusters)} suitable subclusters among {n_inspect} in {time.time() - start_time:.3f} seconds")
-        return sorted(suitable_subclusters.keys(), key=suitable_subclusters.get)
+            f"Built {len(subclusters)} subclusters from {len(clusters)} clusters in {time.time() - start_time:.3f} seconds")
+        return sorted(subclusters.keys(), key=subclusters.get)
 
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
@@ -157,9 +149,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 if not self._deterministic_transfer:
                     continue
                 
-            # Iterate over suitable subclusters only when no swaps were possible
-            for o_src in self.__find_suitable_subclusters(
-                    self.__build_rank_clusters(r_src, False), r_src.get_load()):
+            # Iterate over subclusters only when no swaps were possible
+            for o_src in self.__build_rank_subclusters(
+                    self.__build_rank_clusters(r_src, False).values(), r_src.get_load()):
                 # Initialize destination information
                 r_dst, c_dst = None, -math.inf
 
@@ -177,7 +169,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             continue
                         l_try = abs(r_try.get_load() + objects_load - ave_load)
                         if l_try < l_dst:
-                            c_dst, r_dst, r_dst = c_try, r_try, r_try
+                            c_dst, r_dst, l_dst = c_try, r_try, l_try
                         elif l_try == l_dst and c_try > c_dst:
                             c_dst, r_dst = c_try, r_try
                 else:
@@ -189,8 +181,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 n_sub_tries += 1
                 if c_dst > 0.0:
                     # Transfer subcluster and break out
-                    self._logger.debug(
-                        f"Transferring subcluster of size {sum([o.get_load() for o in o_src])} to rank {r_dst.get_id()}")
+                    self._logger.info(
+                        f"Transferring subcluster with {len(o_src)} objects to rank {r_dst.get_id()}")
                     self._n_transfers += phase.transfer_objects(
                         r_src, o_src, r_dst)
                     n_sub_transfers += 1
@@ -212,3 +204,4 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
+
