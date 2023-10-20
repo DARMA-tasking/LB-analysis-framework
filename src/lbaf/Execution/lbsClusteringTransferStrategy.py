@@ -92,7 +92,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
-        n_swaps, n_swap_tries, n_sub_transfers, n_sub_tries = 0, 0, 0, 0
+        n_swaps, n_swap_tries, n_sub_transfers, n_sub_tries = 0, 1, 0, 0
 
         # Iterate over ranks
         ranks = phase.get_ranks()
@@ -176,6 +176,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     # Pseudo-randomly select transfer destination
                     r_dst, c_dst = self._randomly_select_target(
                         r_src, o_src, targets)
+                    l_dst = r_dst.get_load()
 
                 #  Decide whether transfer is beneficial
                 n_sub_tries += 1

@@ -28,7 +28,7 @@ algorithm:
     transfer_strategy: Clustering
     criterion: Tempered
     max_objects_per_transfer: 100
-    deterministic_transfer: True
+    deterministic_transfer: true
 
 # Specify output
 output_dir: ../output
