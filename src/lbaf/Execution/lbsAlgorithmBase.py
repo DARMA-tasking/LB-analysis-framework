@@ -118,7 +118,7 @@ class AlgorithmBase:
                     for o in self._rebalanced_phase.get_objects()})
             except AttributeError as err:
                 self.__print_QOI("obj")
-                self._logger.error(f"Invalid object_qoi name \"{object_qoi_name}\"")
+                self._logger.error(f"Invalid object_qoi name '{object_qoi_name}'")
                 raise SystemExit(1) from err
 
         # Create or update distributions of rank quantities of interest
@@ -131,7 +131,7 @@ class AlgorithmBase:
                     for p in self._rebalanced_phase.get_ranks()])
             except AttributeError as err:
                 self.__print_QOI("rank")
-                self._logger.error(f"Invalid rank_qoi name \"{rank_qoi_name}\"")
+                self._logger.error(f"Invalid rank_qoi name '{rank_qoi_name}'")
                 raise SystemExit(1) from err
         distributions.setdefault("rank work", []).append(
             [self._work_model.compute(p) for p in self._rebalanced_phase.get_ranks()])
@@ -157,7 +157,8 @@ class AlgorithmBase:
         if rank_or_obj == "rank":
             # Create list of all Rank QOI (lbsRank.get_*)
             r_qoi_list = ["work"]
-            lbsRank_file = open(os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r', encoding="utf-8")
+            lbsRank_file = open(
+                os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r', encoding="utf-8")
             lbsRank_lines = lbsRank_file.readlines()
             for line in lbsRank_lines:
                 if line[8:12] == "get_":

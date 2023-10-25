@@ -127,8 +127,9 @@ class TransferStrategyBase:
             cmf[k] /= sum_p
         self._logger.debug(f"CMF = {cmf}")
 
-        # Return selected target and criterion value
-        return inverse_transform_sample(cmf), c_values[r_dst]
+        # Return selected target and corresponding criterion value
+        r_dst = inverse_transform_sample(cmf)
+        return r_dst, c_values[r_dst]
 
     @staticmethod
     def factory(
