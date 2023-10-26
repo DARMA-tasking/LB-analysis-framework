@@ -90,7 +90,7 @@ class ConfigUpdater:
         self.__logger.info(f"New configuration file written to {output_file_path}")
 
     def initialize(self):
-        """Obtain configuration files to be updated""""
+        """Obtain configuration files to be updated"""
         # Parse command line arguments
         self.__parse_args()
         directory = str(self.__args.directory)
