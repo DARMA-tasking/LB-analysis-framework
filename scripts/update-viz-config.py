@@ -2,8 +2,14 @@
 import os
 import sys
 import importlib
-from ruamel.yaml import YAML
-yaml = YAML()
+try:
+    from ruamel.yaml import YAML
+    yaml = YAML()
+except ModuleNotFoundError as err:
+    raise ModuleNotFoundError(
+        "\n====================================================================\n"
+        "\t\tModule 'ruamel.yaml' is not installed"
+        "\n====================================================================") from err
 
 if importlib.util.find_spec('lbaf') is None:
     sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
@@ -15,6 +21,12 @@ from lbaf.Utils.lbsLogging import Logger, get_logger
 
 
 class ConfigUpdater:
+    """
+    Makes the following changes to a configuration file (or directory of configuration files):
+        - Changes "LBAF_Viz" to "visualization"
+        - Adds output_visualization_dir (usually same as output_dir)
+        - Adds output_visualization_file_stem (usually same as output_file_stem)
+    """
 
     def __init__(self):
         self.__args: Optional[dict] = None
@@ -55,7 +67,7 @@ class ConfigUpdater:
             return config_dict
         except FileNotFoundError:
             self.__logger.error(f"File not found: {config_path}")
-        return None  # Return None in case of errors
+        return None
 
     def __update_conf(self, config: dict):
         """Make new changes to LBAF_Viz parameters"""
