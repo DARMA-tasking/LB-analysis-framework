@@ -1,8 +1,8 @@
 # Specify input
 from_data:
-  data_stem: "../data/challenging_toy_fewer_tasks/toy"
+  data_stem: ../data/challenging_toy_fewer_tasks/toy
   phase_ids:
-    - 0
+  - 0
 check_schema: true
 overwrite_validator: false
 
@@ -33,7 +33,7 @@ algorithm:
 # Specify output
 output_dir: ../output
 output_file_stem: output_file
-LBAF_Viz:
+visualization:
   x_ranks: 4
   y_ranks: 4
   z_ranks: 1
@@ -41,4 +41,6 @@ LBAF_Viz:
   #rank_qoi: homed_blocks_ratio
   rank_qoi: max_memory_usage
   object_qoi: shared_block_id
-  save_meshes: False
+  save_meshes: false
+  output_visualization_dir: ../output
+  output_visualization_file_stem: output_file

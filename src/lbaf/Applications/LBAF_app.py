@@ -112,7 +112,7 @@ class InternalParameters:
             self.volume_sampler = from_samplers.get("volume_sampler")
 
         # Parse visualizer parameters when available
-        if (viz := config.get("LBAF_Viz")) is not None:
+        if (viz := config.get("visualization")) is not None:
             # Retrieve mandatory visualization parameters
             try:
                 self.grid_size = []
@@ -123,7 +123,7 @@ class InternalParameters:
                 self.object_qoi = viz.get("object_qoi")
             except Exception as e:
                 self.__logger.error(
-                    f"Missing LBAF-Viz configuration parameter(s): {e}")
+                    f"Missing visualization configuration parameter(s): {e}")
                 raise SystemExit(1) from e
 
             # Retrieve optional parameters
