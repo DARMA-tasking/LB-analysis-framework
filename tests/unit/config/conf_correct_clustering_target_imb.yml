@@ -19,11 +19,11 @@ algorithm:
   phase_id: 0
   parameters:
     n_iterations: 4
+    target_imbalance: 0.05
     n_rounds: 2
     fanout: 2
     order_strategy: arbitrary
     transfer_strategy: Clustering
-    cluster_swap_rtol: 1
     criterion: Tempered
     max_objects_per_transfer: 32
     deterministic_transfer: true

@@ -19,7 +19,7 @@ anybadge==1.9.0
 
 # LBAF documentation
 Jinja2==3.1.2
-Pygments==2.13.0
+Pygments==2.15.0
 docutils==0.19
 
 # LBAF building package

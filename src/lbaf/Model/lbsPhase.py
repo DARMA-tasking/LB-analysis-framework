@@ -447,12 +447,8 @@ class Phase:
             b_dst.attach_object_id(o_id)
             o.set_shared_block(b_dst)
 
-    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = None):
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = []):
         """Transfer list of objects between source and destination ranks."""
-
-        if not o_dst:
-            o_dst = []
-
         # Transfer objects from source to destination
         for o in o_src:
             self.transfer_object(r_src, o, r_dst)

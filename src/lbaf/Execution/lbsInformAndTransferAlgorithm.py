@@ -1,13 +1,13 @@
 import random
+import time
 from logging import Logger
 
-from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 from .lbsAlgorithmBase import AlgorithmBase
 from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
-from ..IO.lbsStatistics import print_function_statistics, min_Hamming_distance
+from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -70,6 +70,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # No information about peers is known initially
         self.__known_peers = {}
+
+        # Optional target imbalance for early termination of iterations
+        self.__target_imbalance = parameters.get("target_imbalance", 0.0)
 
     def get_known_peers(self):
         """Return all known peers."""
@@ -167,7 +170,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Report on known peers when requested
             for rank in rank_set:
                 self._logger.debug(
-                    f"Peers known to rank {r.get_id()}: {[r_k.get_id() for r_k in k_p]}")
+                    f"Peers known to rank {rank.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
         # Report on final know information ratio
         n_k = sum([len(k_p) for k_p in self.__known_peers.values() if k_p]) / n_r
@@ -178,38 +181,46 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
+        print_function_statistics(
+            self._rebalanced_phase.get_ranks(),
+            self._work_model.compute,
+            "initial rank work",
+            self._logger)
 
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._rebalanced_phase)
 
-        # Retrieve totat work from computed statistics
+        # Retrieve total work from computed statistics
         total_work = statistics["total work"][-1]
 
         # Perform requested number of load-balancing iterations
         for i in range(self.__n_iterations):
             self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
 
+            # Time the duration of each iteration
+            start_time = time.time()
+
             # Start with information stage
             self.__execute_information_stage()
 
-            # Then execute transfer stage
+            # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self.__known_peers, self._rebalanced_phase, statistics["average load"])
-            n_proposed = n_transfers + n_rejects
-            if n_proposed:
+            if (n_proposed := n_transfers + n_rejects):
                 self._logger.info(
-                    f"{n_proposed} proposed transfers, {n_transfers} occurred, {n_rejects} rejected "
+                    f"Transferred {n_transfers} objects amongst {n_proposed} proposed "
                     f"({100. * n_rejects / n_proposed:.4}%)")
             else:
-                self._logger.info("No transfers were proposed")
+                self._logger.info("No proposed object transfers")
 
             # Report iteration statistics
-            self._logger.info(f"Iteration complete ({n_ignored} skipped ranks)")
+            self._logger.info(
+                f"Iteration {i + 1} completed ({n_ignored} skipped ranks) in {time.time() - start_time:.3f} seconds")
 
             # Compute and report iteration work statistics
-            print_function_statistics(
+            stats = print_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                lambda x: self._work_model.compute(x),  # pylint:disable=W0108:unnecessary-lambda
+                self._work_model.compute,
                 f"iteration {i + 1} rank work",
                 self._logger)
 
@@ -217,11 +228,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._update_distributions_and_statistics(distributions, statistics)
 
             # Compute current arrangement
-            arrangement = tuple(
-                v for _, v in sorted(
-                    {o.get_id(): p.get_id()
-                     for p in self._rebalanced_phase.get_ranks()
-                     for o in p.get_objects()}.items()))
+            arrangement = tuple(sorted(
+                {o.get_id(): p.get_id()
+                for p in self._rebalanced_phase.get_ranks()
+                for o in p.get_objects()}.values()))
             self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
 
             # Report minimum Hamming distance when minimax optimum is available
@@ -230,6 +240,12 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.info(
                     f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
                 statistics["minimum Hamming distance to optimum"].append(hd_min)
+
+            # Check if the current imbalance is within the target_imbalance range
+            if stats.statistics["imbalance"] <= self.__target_imbalance:
+                self._logger.info(
+                    f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
+                break
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
