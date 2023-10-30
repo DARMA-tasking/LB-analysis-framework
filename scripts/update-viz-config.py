@@ -12,12 +12,11 @@ except ModuleNotFoundError as err:
         "\n====================================================================") from err
 
 if importlib.util.find_spec('lbaf') is None:
-    sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
-from lbaf import PROJECT_PATH, __version__
-from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
-from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
-from lbaf.Utils.lbsPath import abspath
-from lbaf.Utils.lbsLogging import Logger, get_logger
+    sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-2]))
+from src.lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
+from src.lbaf.Utils.lbsArgumentParser import PromptArgumentParser
+from src.lbaf.Utils.lbsPath import abspath
+from src.lbaf.Utils.lbsLogging import Logger, get_logger
 
 
 class ConfigUpdater:
