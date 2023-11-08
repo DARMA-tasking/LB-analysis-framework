@@ -148,9 +148,11 @@ class AlgorithmBase:
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
     def __print_QOI(self,rank_or_obj):
-        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+        """Print list of implemented QOI when invalid QOI is given."""
         # Initialize file paths
-        TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
+        CURRENT_PATH = os.path.abspath(__file__)
+        TARGET_DIR = os.path.join(
+            os.path.dirname(os.path.dirname(CURRENT_PATH)), "Model")
         RANK_SCRIPT_NAME = "lbsRank.py"
         OBJECT_SCRIPT_NAME = "lbsObject.py"
 
