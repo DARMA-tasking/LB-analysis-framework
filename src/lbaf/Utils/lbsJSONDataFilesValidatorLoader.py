@@ -13,7 +13,10 @@ from lbaf.Utils.lbsLogging import Logger, get_logger
 from lbaf.Utils.lbsWeb import download
 # pylint:disable=C0413:wrong-import-position
 
-IMPORT_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "imported")
+CURRENT_PATH = os.path.abspath(__file__)
+IMPORT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(CURRENT_PATH)),
+    "imported")
 TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
 SCRIPT_URL = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
 SCRIPT_TITLE = "JSON data files validator"
