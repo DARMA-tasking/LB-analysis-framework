@@ -5,7 +5,7 @@ import sys
 import importlib
 
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 """lbaf module version"""
 
 PROJECT_PATH = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
@@ -38,7 +38,11 @@ def vt_data_files_validator_loader() -> int:
 
 def vt_data_files_validator():
     """Run vt_data_validator instance."""
-    JSONDataFilesValidatorLoader().run(overwrite=True)
+    # If using the lbaf package, don't overwrite
+    if importlib.util.find_spec('lbaf'):
+        JSONDataFilesValidatorLoader().run(overwrite=False)
+    else:
+        JSONDataFilesValidatorLoader().run(overwrite=True)
     from lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator #pylint:disable=C0415:import-outside-toplevel
     JSONDataFilesValidator().main()
 
