@@ -585,6 +585,14 @@ class LBAFApplication:
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
+        # Report the statistics of the following rank QOIs when LBAF terminates
+        if rebalanced_phase:
+            for r in rebalanced_phase.get_ranks():
+                if r.get_shared_memory():
+                    self.__logger.info(f"Rank {r.get_id()}:")
+                    self.__logger.info(f"\thomed_blocks_ratio: {r.get_homed_blocks_ratio():.2f}")
+                    self.__logger.info(f"\tnumber_of_uprooted_blocks: {r.get_number_of_uprooted_blocks()}")
+
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
         return 0
