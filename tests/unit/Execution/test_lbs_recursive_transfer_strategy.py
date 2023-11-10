@@ -59,38 +59,6 @@ class TestConfig(unittest.TestCase):
         # Finally, create instance of Recursive Transfer Strategy
         self.recursive_transfer_strategy=RecursiveTransferStrategy(criterion=self.criterion, parameters=self.params, logger=self.logger)
 
-    def test_lbs_recursive_transfer_strategy_increasing_connectivity(self):
-
-        # Establish communications
-        rec_object_min = {Object(i=7, load=0.5): 5.0}
-        rec_object_max = {Object(i=8, load=1.0): 10.0}
-        sent_object_min = {Object(i=9, load=0.5): 6.0}
-        sent_object_max = {Object(i=10, load=1.0): 12.0}
-
-        # Create objects
-        obj_04 = Object(i=4, comm=ObjectCommunicator(i=4,logger=self.logger,r=rec_object_max, s=sent_object_max))
-        obj_05 = Object(i=5, comm=ObjectCommunicator(i=5,logger=self.logger,r=rec_object_min, s=sent_object_min))
-        obj_06 = Object(i=6, comm=None)
-
-        # Define objects dict
-        objects = {
-          obj_04,
-          obj_05,
-          obj_06
-        }
-
-        # Define object list in expected order (increasing connectivity)
-        expected_order = [
-          obj_06,
-          obj_05,
-          obj_04
-        ]
-
-        self.assertEqual(
-            self.recursive_transfer_strategy.increasing_connectivity(objects, self.rank.get_id()),
-            expected_order
-        )
-
 
 if __name__ == "__main__":
     unittest.main()

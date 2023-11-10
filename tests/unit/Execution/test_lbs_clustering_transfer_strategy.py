@@ -67,14 +67,11 @@ class TestConfig(unittest.TestCase):
           ]
         }
         self.assertCountEqual(
-          self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_clusters(self.rank, with_nullset=True),
-          expected_output)
+            self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_clusters(self.rank, with_nullset=True),
+            expected_output)
 
     def test_lbs_clustering_transfer_strategy_build_rank_subclusters(self):
         clusters = self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_clusters(self.rank, with_nullset=False).values()
-        print(clusters)
-        for i, v in enumerate(clusters):
-          print(f"i: {i}, v: {v}")
         rank_load = self.rank.get_load()
 
         # Functionality is tested with execute()
