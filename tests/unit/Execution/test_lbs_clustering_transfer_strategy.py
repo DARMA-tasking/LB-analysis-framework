@@ -3,14 +3,6 @@ import sys
 import logging
 import unittest
 
-# Get the path to the project's root directory
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-# Add the project's root directory to sys.path
-sys.path.append(project_root)
-
-print(sys.path)
-
 from src.lbaf.Model.lbsRank import Rank
 from src.lbaf.Model.lbsPhase import Phase
 from src.lbaf.Model.lbsBlock import Block
@@ -65,15 +57,13 @@ class TestConfig(unittest.TestCase):
         self.clustering_transfer_strategy=ClusteringTransferStrategy(criterion=self.criterion, parameters={}, lgr=self.logger)
 
     def test_lbs_clustering_transfer_strategy_build_rank_clusters(self):
-        print(f"\nSELF.BLOCK ID: {self.block.get_id()}")
-        print(f"OBJECT BLOCK ID: {list(self.migratable_objects)[0].get_shared_block_id()}\n")
         expected_output = {
-          None: [],
-          self.block.get_id(): [
-              Object(i=0, load=1.0),
-              Object(i=1, load=0.5),
-              Object(i=2, load=0.5),
-              Object(i=3, load=0.5),
+        None: [],
+        self.block.get_id(): [
+            Object(i=0, load=1.0),
+            Object(i=1, load=0.5),
+            Object(i=2, load=0.5),
+            Object(i=3, load=0.5),
           ]
         }
         self.assertCountEqual(

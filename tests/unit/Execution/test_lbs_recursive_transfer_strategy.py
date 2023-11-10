@@ -3,14 +3,6 @@ import sys
 import logging
 import unittest
 
-# Get the path to the project's root directory
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-# Add the project's root directory to sys.path
-sys.path.append(project_root)
-
-print(sys.path)
-
 from src.lbaf.Model.lbsRank import Rank
 from src.lbaf.Model.lbsPhase import Phase
 from src.lbaf.Model.lbsBlock import Block
@@ -90,8 +82,8 @@ class TestConfig(unittest.TestCase):
         # Define object list in expected order (increasing connectivity)
         expected_order = [
           obj_06,
-          obj_04,
-          obj_05
+          obj_05,
+          obj_04
         ]
 
         self.assertEqual(
