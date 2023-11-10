@@ -317,7 +317,7 @@ class LBAFApplication:
             lambda x: x.get_size(),
             f"{phase_name} rank working memory",
             self.__logger)
-        lbstats.print_function_statistics(
+        shared_memory_stats = lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             f"{phase_name} rank shared memory",
@@ -327,6 +327,17 @@ class LBAFApplication:
             lambda x: x.get_max_memory_usage(),
             f"{phase_name} maximum memory usage",
             self.__logger)
+        if shared_memory_stats.get_maximum():
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
+                lambda x: x.get_homed_blocks_ratio(),
+                f"{phase_name} homed_blocks_ratio",
+                self.__logger)
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
+                lambda x: x.get_number_of_uprooted_blocks(),
+                f"{phase_name} number_of_uprooted_blocks",
+                self.__logger)
 
         # Print edge statistics
         lbstats.print_function_statistics(
