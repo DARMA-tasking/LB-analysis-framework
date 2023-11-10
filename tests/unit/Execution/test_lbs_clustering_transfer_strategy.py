@@ -64,7 +64,7 @@ class TestConfig(unittest.TestCase):
         # Finally, create instance of Clustering Transfer Strategy
         self.clustering_transfer_strategy=ClusteringTransferStrategy(criterion=self.criterion, parameters={}, lgr=self.logger)
 
-    def test_lbs_clustering_transfer_strategy_cluster_objects(self):
+    def test_lbs_clustering_transfer_strategy_build_rank_clusters(self):
         print(f"\nSELF.BLOCK ID: {self.block.get_id()}")
         print(f"OBJECT BLOCK ID: {list(self.migratable_objects)[0].get_shared_block_id()}\n")
         expected_output = {
@@ -77,16 +77,19 @@ class TestConfig(unittest.TestCase):
           ]
         }
         self.assertCountEqual(
-          self.clustering_transfer_strategy._ClusteringTransferStrategy__cluster_objects(self.rank),
+          self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_clusters(self.rank, with_nullset=True),
           expected_output)
 
-    def test_lbs_clustering_transfer_strategy_find_suitable_subclusters(self):
-        clusters = self.clustering_transfer_strategy._ClusteringTransferStrategy__cluster_objects(self.rank)
+    def test_lbs_clustering_transfer_strategy_build_rank_subclusters(self):
+        clusters = self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_clusters(self.rank, with_nullset=False).values()
+        print(clusters)
+        for i, v in enumerate(clusters):
+          print(f"i: {i}, v: {v}")
         rank_load = self.rank.get_load()
 
         # Functionality is tested with execute()
         assert isinstance(
-          self.clustering_transfer_strategy._ClusteringTransferStrategy__find_suitable_subclusters(clusters, rank_load),
+          self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_subclusters(clusters, rank_load),
           list
         )
 
@@ -94,7 +97,7 @@ class TestConfig(unittest.TestCase):
         clusters = None
         rank_load = self.rank.get_load()
         self.assertEqual(
-          self.clustering_transfer_strategy._ClusteringTransferStrategy__find_suitable_subclusters(clusters, rank_load),
+          self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_subclusters(clusters, rank_load),
           []
         )
 
@@ -118,27 +121,6 @@ class TestConfig(unittest.TestCase):
                                                   ave_load=ave_load),
         (0,len(rank_list) - 1,0)
       )
-
-    # def test_lbs_clustering_transfer_strategy_execute_iterate_subclusters(self):
-
-    #   # Establish known_peers
-    #   rank_list = [self.rank] # Make rank aware of itself
-
-    #   # Populate self.known_peers
-    #   for i in range(4):
-    #     rank_list.append(Rank(r_id=i, logger=self.logger))
-    #   self.known_peers = {self.rank: set(rank_list)}
-
-    #   # Define ave_load (2.5 / 4)
-    #   ave_load = 0.6
-
-    #   # Assertions
-    #   self.assertEqual(
-    #     self.clustering_transfer_strategy.execute(known_peers=self.known_peers,
-    #                                               phase=self.phase,
-    #                                               ave_load=ave_load),
-    #     (0,len(rank_list),0)
-    #   )
 
 
 if __name__ == "__main__":

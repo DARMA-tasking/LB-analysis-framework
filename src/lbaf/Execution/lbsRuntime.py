@@ -49,10 +49,10 @@ class Runtime:
             self.__logger,
             rank_qoi,
             object_qoi)
-        # if not self.__algorithm:
-        #     self.__logger.error(
-        #         f"Could not instantiate an algorithm of type {self.__algorithm}")
-        #     raise SystemExit(1)
+        if not self.__algorithm:
+            self.__logger.error(
+                f"Could not instantiate an algorithm of type {self.__algorithm}")
+            raise SystemExit(1)
 
         # Initialize run distributions and statistics
         phase_0 = self.__phases[min(self.__phases.keys())]
