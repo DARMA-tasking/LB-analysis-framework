@@ -317,7 +317,7 @@ class LBAFApplication:
             lambda x: x.get_size(),
             f"{phase_name} rank working memory",
             self.__logger)
-        lbstats.print_function_statistics(
+        shared_memory = lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             f"{phase_name} rank shared memory",
@@ -327,6 +327,17 @@ class LBAFApplication:
             lambda x: x.get_max_memory_usage(),
             f"{phase_name} maximum memory usage",
             self.__logger)
+        if shared_memory.get_maximum():
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
+                lambda x: x.get_homed_blocks_ratio(),
+                f"{phase_name} homed_blocks_ratio",
+                self.__logger)
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
+                lambda x: x.get_number_of_uprooted_blocks(),
+                f"{phase_name} number_of_uprooted_blocks",
+                self.__logger)
 
         # Print edge statistics
         lbstats.print_function_statistics(
@@ -584,14 +595,6 @@ class LBAFApplication:
                     self.__parameters.output_dir,
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
-
-        # Report the statistics of the following rank QOIs when LBAF terminates
-        if rebalanced_phase:
-            for r in rebalanced_phase.get_ranks():
-                if r.get_shared_memory():
-                    self.__logger.info(f"Rank {r.get_id()}:")
-                    self.__logger.info(f"\thomed_blocks_ratio: {r.get_homed_blocks_ratio():.2f}")
-                    self.__logger.info(f"\tnumber_of_uprooted_blocks: {r.get_number_of_uprooted_blocks()}")
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
