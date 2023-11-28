@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
 
-import tv
+import vttv
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -573,11 +573,26 @@ class LBAFApplication:
             ]
 
             # Serialize data to JSON-formatted string
-            json_str = self.__json_writer.serialize_phases(phases)
-            print(json_str)
+            ranks_json_str = self.__json_writer.serialize(phases)
 
             # Pass string to vt-tv for rendering
-            tv.process_json(json_str)
+            print("============ CALL TO VISUALIZER ============")
+
+            vttv_params = {
+                "x_ranks": self.__parameters.grid_size[0],
+                "y_ranks": self.__parameters.grid_size[1],
+                "z_ranks": self.__parameters.grid_size[2],
+                "object_jitter": self.__parameters.object_jitter,
+                "rank_qoi": self.__parameters.rank_qoi,
+                "object_qoi": self.__parameters.object_qoi,
+                "save_meshes": self.__parameters.save_meshes,
+                "force_continuous_object_qoi": self.__parameters.continuous_object_qoi,
+                "output_visualization_dir": self.__parameters.output_dir,
+                "output_visualization_file_stem": self.__parameters.output_file_stem
+            }
+            num_ranks = self.__parameters.grid_size[0] * self.__parameters.grid_size[1] * self.__parameters.grid_size[2]
+            vttv.tv_from_json(ranks_json_str, str(vttv_params), num_ranks)
+            sys.exit(0)
 
             # Instantiate and execute visualizer
             visualizer = Visualizer(
