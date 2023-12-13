@@ -36,6 +36,10 @@ class VTDataWriter:
         self.__phases = None
         self.__moved_objs_dicts = []
 
+        # Set up mp manager
+        manager = mp.Manager()
+        self.__moved_objs_dicts = manager.list()
+
         # Assign internals
         self.__file_stem = stem
         if output_dir is not None:
@@ -59,7 +63,8 @@ class VTDataWriter:
                     "home": rank_id,
                     "id": o.get_id(),
                     "migratable": migratable,
-                    "type": "object"},
+                    "type": "object",
+                },
                 "node": rank_id,
                 "resource": "cpu",
                 "time": o.get_load()
@@ -88,7 +93,6 @@ class VTDataWriter:
 
         # Get all objects on current rank
         rank_objects = rank.get_object_ids()
-        print(f"Rank {rank.get_id()} objects: {rank_objects}")
 
         # Initialize final communications
         communications = []
@@ -97,24 +101,17 @@ class VTDataWriter:
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
                 if comm_dict["from"]["id"] in rank_objects:
-                    print(f"appending id {comm_dict['from']['id']}")
                     communications.append(comm_dict)
                 else:
-                    print(f"moved comm_dict: {comm_dict} because {comm_dict['from']['id']} not in {rank_objects}")
                     self.__moved_objs_dicts.append(comm_dict)
-
-        print(f"self.__moved_objs_dicts after rank {rank.get_id()}: {self.__moved_objs_dicts}")
 
         # Loop through any moved objects to find the correct rank
         if self.__moved_objs_dicts:
             to_remove = []
             for moved_dict in self.__moved_objs_dicts:
                 if moved_dict["from"]["id"] in rank_objects:
-                    print(f"append id {moved_dict['from']['id']} to rank {rank.get_id()}")
                     communications.append(moved_dict)
                     to_remove.append(moved_dict)
-
-        print(f"\ncommunications for phase {phase.get_id()}, rank {rank.get_id()}: {communications}\n")
 
         return communications
 
@@ -149,30 +146,28 @@ class VTDataWriter:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
         r_id, r_phases = rank_phases_double
-        # assert isinstance(r, Rank)
-        # assert isinstance(p, Phase)
 
-        # Create shared_node_data
-        # shared_node_data = {
-        #     "id": r.get_shared_block_ids(),
-        #     "num_nodes": r.get_number_of_shared_blocks(),
-        #     "rank": r_id,
-        #     "size": r.get_size()
-        # }
+        # Get current phase
+        for p_id, rank in r_phases.items():
+            current_phase = self.__phases.get(p_id)
+
+        # Get metadata
+        if current_phase.get_metadata()[r_id]:
+            metadata = current_phase.get_metadata()[r_id]
+        else:
+            metadata = {
+                "rank": r_id,
+                "type": "LBDataFile"
+            }
 
         # Initialize output dict
         output = {
-            "metadata": {
-                "type": "LBDatafile",
-                "rank": r_id,
-                # "shared_node": shared_node_data}, # CWS added
-            },
+            "metadata": metadata,
             "phases": []}
 
         # Iterate over phases
         for p_id, rank in r_phases.items():
             # Create data to be outputted for current phase
-            current_phase = [p for p in self.__phases.values() if p.get_id() == p_id][0]
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data= {"communications": self.__get_communications(current_phase, rank),
                          "id": p_id,

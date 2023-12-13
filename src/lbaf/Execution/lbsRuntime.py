@@ -104,7 +104,14 @@ class Runtime:
         # Retrieve possibly null rebalanced phase and return it
         if (pp := self.__algorithm.get_rebalanced_phase()):
             pp.set_id((pp_id := pp.get_id() + phase_increment))
+
+            # Share initial communication with new phase
             initial_communications = self.__algorithm.get_initial_communications()
             pp.set_communications(initial_communications)
+
+            # Share original metadata with new phase
+            metadata = self.__algorithm.get_metadata()
+            pp.set_metadata(metadata)
+
             self.__logger.info(f"Created rebalanced phase {pp_id}")
         return pp

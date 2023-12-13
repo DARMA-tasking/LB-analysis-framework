@@ -58,6 +58,9 @@ class AlgorithmBase:
         # Save the initial communications data
         self._initial_communications = {}
 
+        # Save initial phase metadata
+        self._metadata = {}
+
         # Map global statistical QOIs to their computation methods
         self.__statistics = {
             ("ranks", lambda x: x.get_load()): {
@@ -82,6 +85,10 @@ class AlgorithmBase:
     def get_initial_communications(self):
         """Return the initial phase communications."""
         return self._initial_communications
+
+    def get_metadata(self):
+        """Return the metadata from the original JSON."""
+        return self._metadata
 
     @staticmethod
     def factory(
@@ -219,6 +226,7 @@ class AlgorithmBase:
             raise SystemExit(1)
 
         self._initial_communications[p_id] = phases[p_id].get_communications()
+        self._metadata = phases[p_id].get_metadata()
 
         # Create a new phase to preserve phase to be rebalanced
         self._logger.info(f"Creating new phase {p_id} for rebalancing")

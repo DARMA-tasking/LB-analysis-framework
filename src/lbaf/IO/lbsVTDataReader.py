@@ -4,6 +4,7 @@ import re
 from logging import Logger
 from multiprocessing import get_context
 from multiprocessing.pool import Pool
+from multiprocessing import Manager
 
 import brotli
 
@@ -49,6 +50,10 @@ class LoadReader:
 
         # Save initial communications array from every rank
         self.__communications_dict = {}
+
+        # Save metadata dict
+        manager = Manager()
+        self.__metadata = manager.dict()
 
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
@@ -131,6 +136,9 @@ class LoadReader:
                     "JSON data is missing 'type' key")
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
+
+        # Save metadata
+        self.__metadata[rank_id] = metadata
 
         # Checking Schema from configuration
         if self.__check_schema:
@@ -277,8 +285,6 @@ class LoadReader:
                 o.set_shared_block(block)
         phase_rank.set_shared_blocks(shared_blocks)
 
-        print(f"Original communications array (rank {rank_id})\n{communications}\n")
-        print(f"Saved array:\n{self.__communications_dict[rank_id]}")
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
 
@@ -325,13 +331,9 @@ class LoadReader:
                         rank_objects_dict.get(c.get("from")): c.get("bytes")
                         for c in obj_comm.get("received")
                         if rank_objects_dict.get(c.get("from"))}
-
-                    print(f"Rank {r.get_id()}, Object {obj_id}")
-                    print(f"sent: {sent}")
-                    print(f"received: {received}\n")
                     o.set_communicator(
                         ObjectCommunicator(
                             i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
-        return ranks, self.__communications_dict
+        return ranks, self.__communications_dict, self.__metadata
