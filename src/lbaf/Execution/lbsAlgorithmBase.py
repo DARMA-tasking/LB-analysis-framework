@@ -225,7 +225,7 @@ class AlgorithmBase:
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
-        self._initial_communications[p_id] = phases[p_id].get_communications()
+        self._initial_communications = phases[p_id].get_communications()
         self._metadata = phases[p_id].get_metadata()
 
         # Create a new phase to preserve phase to be rebalanced

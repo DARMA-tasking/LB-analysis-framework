@@ -185,8 +185,8 @@ class LoadReader:
         # Add communications to the object
         rank_comm = {}
         communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
-        self.__communications_dict[rank_id] = communications
         if communications:
+            self.__communications_dict[phase_id] = {rank_id: communications}
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
                 c_type = comm.get("type")

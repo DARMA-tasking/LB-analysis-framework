@@ -69,8 +69,8 @@ class VTDataWriter:
                 "resource": "cpu",
                 "time": o.get_load()
             }
-            for k,v in unused_params:
-                task_data["entity"][k] = v
+            if unused_params:
+                task_data["entity"].update(unused_params)
 
             user_defined = o.get_user_defined()
             if user_defined:
@@ -87,31 +87,40 @@ class VTDataWriter:
     def __get_communications(self, phase, rank): # CWS: in progress
         """Create communication entries to be outputted to JSON."""
 
-        # Get initial communications
+        # Get initial communications (if any)
         initial_communications_dict = phase.get_communications() # this holds all communications (all data files)
-        initial_on_rank_communications = initial_communications_dict[phase.get_id()][rank.get_id()] # this holds only the communication on the current rank (or file)
+        if initial_communications_dict:
+            phase_communications_dict = initial_communications_dict[phase.get_id()]
 
-        # Get all objects on current rank
-        rank_objects = rank.get_object_ids()
+            # Add empty entries for ranks with no initial communication
+            if rank.get_id() not in phase_communications_dict.keys():
+                phase_communications_dict[rank.get_id()] = {}
 
-        # Initialize final communications
-        communications = []
+            initial_on_rank_communications = phase_communications_dict[rank.get_id()] # this holds only the communication on the current rank (or file)
 
-        # Ensure all objects are on the correct rank
-        if initial_on_rank_communications:
-            for comm_dict in initial_on_rank_communications:
-                if comm_dict["from"]["id"] in rank_objects:
-                    communications.append(comm_dict)
-                else:
-                    self.__moved_objs_dicts.append(comm_dict)
+            # Get all objects on current rank
+            rank_objects = rank.get_object_ids()
 
-        # Loop through any moved objects to find the correct rank
-        if self.__moved_objs_dicts:
-            to_remove = []
-            for moved_dict in self.__moved_objs_dicts:
-                if moved_dict["from"]["id"] in rank_objects:
-                    communications.append(moved_dict)
-                    to_remove.append(moved_dict)
+            # Initialize final communications
+            communications = []
+
+            # Ensure all objects are on the correct rank
+            if initial_on_rank_communications:
+                for comm_dict in initial_on_rank_communications:
+                    if comm_dict["from"]["id"] in rank_objects:
+                        communications.append(comm_dict)
+                    else:
+                        self.__moved_objs_dicts.append(comm_dict)
+
+            # Loop through any moved objects to find the correct rank
+            if self.__moved_objs_dicts:
+                to_remove = []
+                for moved_dict in self.__moved_objs_dicts:
+                    if moved_dict["from"]["id"] in rank_objects:
+                        communications.append(moved_dict)
+                        to_remove.append(moved_dict)
+        else:
+            communications = None
 
         return communications
 
@@ -154,11 +163,13 @@ class VTDataWriter:
         # Get metadata
         if current_phase.get_metadata()[r_id]:
             metadata = current_phase.get_metadata()[r_id]
+            print(f"phase.get_metadata(): {metadata}")
         else:
             metadata = {
-                "rank": r_id,
-                "type": "LBDataFile"
+                "type": "LBDatafile",
+                "rank": r_id
             }
+            print(metadata)
 
         # Initialize output dict
         output = {
@@ -169,14 +180,19 @@ class VTDataWriter:
         for p_id, rank in r_phases.items():
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
-            phase_data= {"communications": self.__get_communications(current_phase, rank),
-                         "id": p_id,
+            phase_data= {"id": p_id,
                          "tasks":
                             self.__create_tasks(
                                 r_id, rank.get_migratable_objects(), migratable=True) +
                             self.__create_tasks(
                                 r_id, rank.get_sentinel_objects(), migratable=False),
             }
+
+            # Add communication data (if present)
+            communications = self.__get_communications(current_phase, rank)
+            if communications:
+                phase_data["communications"] = communications
+
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
