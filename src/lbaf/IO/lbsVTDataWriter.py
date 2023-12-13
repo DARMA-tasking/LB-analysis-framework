@@ -33,6 +33,8 @@ class VTDataWriter:
 
         # Useful fields
         self.__rank_phases = None
+        self.__phases = None
+        self.__moved_objs_dicts = []
 
         # Assign internals
         self.__file_stem = stem
@@ -51,23 +53,140 @@ class VTDataWriter:
         """Create per-object entries to be outputted to JSON."""
         tasks = []
         for o in objects:
+            unused_params = o.get_unused_params()
             task_data = {
                 "entity": {
                     "home": rank_id,
                     "id": o.get_id(),
                     "migratable": migratable,
-                    "type": "object",
-                },
+                    "type": "object"},
                 "node": rank_id,
                 "resource": "cpu",
                 "time": o.get_load()
             }
+            for k,v in unused_params:
+                task_data["entity"][k] = v
+
             user_defined = o.get_user_defined()
             if user_defined:
                 task_data["user_defined"] = user_defined
+
+            subphases = o.get_subphases()
+            if subphases:
+                task_data["subphases"] = subphases
+
             tasks.append(task_data)
+
         return tasks
 
+    def __get_communications(self, phase, rank): # CWS: in progress
+        """Create communication entries to be outputted to JSON."""
+
+        # Get initial communications
+        initial_communications_dict = phase.get_communications() # this holds all communications (all data files)
+        initial_on_rank_communications = initial_communications_dict[phase.get_id()][rank.get_id()] # this holds only the communication on the current rank (or file)
+
+        # Get all objects on current rank
+        rank_objects = rank.get_object_ids()
+        print(f"Rank {rank.get_id()} objects: {rank_objects}")
+
+        # Initialize final communications
+        communications = []
+
+        # Ensure all objects are on the correct rank
+        if initial_on_rank_communications:
+            for comm_dict in initial_on_rank_communications:
+                if comm_dict["from"]["id"] in rank_objects:
+                    print(f"appending id {comm_dict['from']['id']}")
+                    communications.append(comm_dict)
+                else:
+                    print(f"moved comm_dict: {comm_dict} because {comm_dict['from']['id']} not in {rank_objects}")
+                    self.__moved_objs_dicts.append(comm_dict)
+
+        print(f"self.__moved_objs_dicts after rank {rank.get_id()}: {self.__moved_objs_dicts}")
+
+        # Loop through any moved objects to find the correct rank
+        if self.__moved_objs_dicts:
+            to_remove = []
+            for moved_dict in self.__moved_objs_dicts:
+                if moved_dict["from"]["id"] in rank_objects:
+                    print(f"append id {moved_dict['from']['id']} to rank {rank.get_id()}")
+                    communications.append(moved_dict)
+                    to_remove.append(moved_dict)
+
+        print(f"\ncommunications for phase {phase.get_id()}, rank {rank.get_id()}: {communications}\n")
+
+        return communications
+
+    def serialize(self, phases: dict) -> list:
+        """ Create list of serialized JSON per """
+
+        # Ensure that provided phases is a dictionary of Phase instances
+        if not isinstance(phases, dict) or not all(
+                [isinstance(p, Phase) for p in phases.values()]):
+            self.__logger.error(
+                "serialize must be passed a dictionary of phases")
+            raise SystemExit(1)
+
+        self.__phases = phases
+
+        # Assemble mapping from ranks to their phases
+        rank_phases = {}
+        for p in phases.values():
+            for r in p.get_ranks():
+                rank_phases.setdefault(r, {})
+                rank_phases[r.get_id()][p.get_id()] = r
+
+        # Serialize each rank's data
+        serialized_data_list = []
+        for rank_phases_double in rank_phases.items():
+            serialized_data = self._json_serializer(rank_phases_double)
+            serialized_data_list.append(serialized_data)
+
+        return serialized_data_list
+
+    def _json_serializer(self, rank_phases_double) -> str:
+        """Write one JSON per rank for list of phase instances."""
+        # Unpack received double
+        r_id, r_phases = rank_phases_double
+        # assert isinstance(r, Rank)
+        # assert isinstance(p, Phase)
+
+        # Create shared_node_data
+        # shared_node_data = {
+        #     "id": r.get_shared_block_ids(),
+        #     "num_nodes": r.get_number_of_shared_blocks(),
+        #     "rank": r_id,
+        #     "size": r.get_size()
+        # }
+
+        # Initialize output dict
+        output = {
+            "metadata": {
+                "type": "LBDatafile",
+                "rank": r_id,
+                # "shared_node": shared_node_data}, # CWS added
+            },
+            "phases": []}
+
+        # Iterate over phases
+        for p_id, rank in r_phases.items():
+            # Create data to be outputted for current phase
+            current_phase = [p for p in self.__phases.values() if p.get_id() == p_id][0]
+            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
+            phase_data= {"communications": self.__get_communications(current_phase, rank),
+                         "id": p_id,
+                         "tasks":
+                            self.__create_tasks(
+                                r_id, rank.get_migratable_objects(), migratable=True) +
+                            self.__create_tasks(
+                                r_id, rank.get_sentinel_objects(), migratable=False),
+            }
+            output["phases"].append(phase_data)
+
+        # Serialize and possibly compress JSON payload
+        serial_json = json.dumps(output, separators=(',', ':'))
+        return serial_json
 
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
@@ -78,25 +197,9 @@ class VTDataWriter:
         file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
         self.__logger.debug(f"Writing {file_name}")
 
-        # Initialize output dict
-        output = {
-            "metadata": {
-                "type": "LBDatafile",
-                "rank": r_id},
-            "phases": []}
-
-        # Iterate over phases
-        for p_id, rank in r_phases.items():
-            # Create data to be outputted for current phase
-            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
-            phase_data = {"id": p_id}
-            phase_data["tasks"] = self.__create_tasks(
-                r_id, rank.get_migratable_objects(), migratable=True) + self.__create_tasks(
-                r_id, rank.get_sentinel_objects(), migratable=False)
-            output["phases"].append(phase_data)
-
         # Serialize and possibly compress JSON payload
-        serial_json = json.dumps(output, separators=(',', ':'))
+        serial_json = self._json_serializer(rank_phases_double)
+
         if self.__compress:
             serial_json = brotli.compress(
                 string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
@@ -115,6 +218,8 @@ class VTDataWriter:
             self.__logger.error(
                 "JSON writer must be passed a dictionary of phases")
             raise SystemExit(1)
+
+        self.__phases = phases
 
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}

@@ -47,6 +47,9 @@ class LoadReader:
         # Assign schema checker
         self.__check_schema = check_schema
 
+        # Save initial communications array from every rank
+        self.__communications_dict = {}
+
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
             from ..imported.JSON_data_files_validator import \
@@ -174,6 +177,7 @@ class LoadReader:
         # Add communications to the object
         rank_comm = {}
         communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
+        self.__communications_dict[rank_id] = communications
         if communications:
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
@@ -221,6 +225,8 @@ class LoadReader:
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
+            collection_id = task_entity.get("collection_id")
+            index = task_entity.get("index")
 
             # Instantiate object with retrieved parameters
             o = Object(
@@ -244,6 +250,14 @@ class LoadReader:
             else:
                 phase_rank.add_sentinel_object(o)
 
+            # Add dict of currently unused parameters
+            unused_params = {}
+            if collection_id:
+                unused_params["collection_id"] = collection_id
+            if index:
+                unused_params["index"] = index
+            o.set_unused_params(unused_params)
+
             # Print debug information when requested
             self.__logger.debug(
                 f"Added object {task_id}, load: {task_load} to phase {curr_phase_id}")
@@ -263,6 +277,8 @@ class LoadReader:
                 o.set_shared_block(block)
         phase_rank.set_shared_blocks(shared_blocks)
 
+        print(f"Original communications array (rank {rank_id})\n{communications}\n")
+        print(f"Saved array:\n{self.__communications_dict[rank_id]}")
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
 
@@ -309,9 +325,13 @@ class LoadReader:
                         rank_objects_dict.get(c.get("from")): c.get("bytes")
                         for c in obj_comm.get("received")
                         if rank_objects_dict.get(c.get("from"))}
+
+                    print(f"Rank {r.get_id()}, Object {obj_id}")
+                    print(f"sent: {sent}")
+                    print(f"received: {received}\n")
                     o.set_communicator(
                         ObjectCommunicator(
                             i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
-        return ranks
+        return ranks, self.__communications_dict
