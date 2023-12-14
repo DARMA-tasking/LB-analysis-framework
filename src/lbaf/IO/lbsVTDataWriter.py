@@ -84,7 +84,7 @@ class VTDataWriter:
 
         return tasks
 
-    def __get_communications(self, phase, rank): # CWS: in progress
+    def __get_communications(self, phase, rank):
         """Create communication entries to be outputted to JSON."""
 
         # Get initial communications (if any)

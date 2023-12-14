@@ -2,9 +2,8 @@ import json
 import os
 import re
 from logging import Logger
-from multiprocessing import get_context
+from multiprocessing import get_context, Manager
 from multiprocessing.pool import Pool
-from multiprocessing import Manager
 
 import brotli
 
