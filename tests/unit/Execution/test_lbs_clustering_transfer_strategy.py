@@ -8,6 +8,7 @@ from src.lbaf.Model.lbsPhase import Phase
 from src.lbaf.Model.lbsBlock import Block
 from src.lbaf.Model.lbsObject import Object
 from src.lbaf.IO.lbsVTDataReader import LoadReader
+from src.lbaf.IO.lbsVTDataWriter import VTDataWriter
 from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
 from src.lbaf.Execution.lbsCriterionBase import CriterionBase
 from src.lbaf.Execution.lbsClusteringTransferStrategy import ClusteringTransferStrategy
@@ -153,6 +154,18 @@ class TestConfig(unittest.TestCase):
         phase = Phase(self.logger, p_id=1, reader=self.reader)
         phase.set_ranks([r for r in known_peers])
 
+        # Find testing output dir
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output", "subclustering_test")
+
+        # Create writer
+        writer = VTDataWriter(
+            self.logger,
+            output_dir,
+            "subclustering",
+            {"json_output_suffix" : "json",
+             "compressed": False}
+        )
+
         # Create criterion
         criterion = CriterionBase.factory(
             "Tempered",
@@ -181,6 +194,8 @@ class TestConfig(unittest.TestCase):
             (0,1,2)
         )
 
+        # If successful, write out problem to JSON
+        writer.write({phase.get_id(): phase})
 
 if __name__ == "__main__":
     unittest.main()
