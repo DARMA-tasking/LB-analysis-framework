@@ -163,13 +163,11 @@ class VTDataWriter:
         # Get metadata
         if current_phase.get_metadata()[r_id]:
             metadata = current_phase.get_metadata()[r_id]
-            print(f"phase.get_metadata(): {metadata}")
         else:
             metadata = {
                 "type": "LBDatafile",
                 "rank": r_id
             }
-            print(metadata)
 
         # Initialize output dict
         output = {
