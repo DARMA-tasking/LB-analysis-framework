@@ -65,8 +65,8 @@ class TransferStrategyBase:
         # Iterate over all provided ranks
         for r_src in ranks:
             # Ignore ranks without migratable objects
-            if not r_src.get_migratable_objects():
-                continue
+            #if not r_src.get_migratable_objects():
+            #    continue
 
             # Retrieve potential targets
             targets = known_peers.get(r_src, set()).difference({r_src})

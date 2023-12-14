@@ -98,7 +98,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         ranks = phase.get_ranks()
         rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
         for r_src, targets in rank_targets.items():
-            # Cluster migratiable objects on source rank
+            # Cluster migratable objects on source rank
             clusters_src = self.__build_rank_clusters(r_src, True)
             self._logger.debug(
                 f"Constructed {len(clusters_src)} migratable clusters on source rank {r_src.get_id()}")
@@ -116,7 +116,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 self._logger.debug(
                     f"Constructed {len(clusters_try)} migratable clusters on target rank {r_try.get_id()}")
 
-                # Iterate over potential targets to try to swap clusters
+                # Iterate over source clusters
                 for k_src, o_src in clusters_src.items():
                     # Iterate over target clusters
                     for k_try, o_try in clusters_try.items():
