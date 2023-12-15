@@ -106,11 +106,11 @@ class Runtime:
             pp.set_id((pp_id := pp.get_id() + phase_increment))
 
             # Share initial communication with new phase
-            initial_communications = self.__algorithm.get_initial_communications()
+            initial_communications = self.__algorithm.get_initial_communications()[pp.get_id()]
             pp.set_communications(initial_communications)
 
             # Share original metadata with new phase
-            metadata = self.__algorithm.get_metadata()
+            metadata = self.__algorithm.get_metadata()[pp.get_id()]
             pp.set_metadata(metadata)
 
             self.__logger.info(f"Created rebalanced phase {pp_id}")
