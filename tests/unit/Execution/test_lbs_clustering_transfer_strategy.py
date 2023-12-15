@@ -55,7 +55,7 @@ class TestConfig(unittest.TestCase):
         self.criterion.set_phase(self.phase)
 
         # Finally, create instance of Clustering Transfer Strategy
-        self.clustering_transfer_strategy=ClusteringTransferStrategy(criterion=self.criterion, parameters={"deterministic_transfer": True}, lgr=self.logger)
+        self.clustering_transfer_strategy = ClusteringTransferStrategy(criterion=self.criterion, parameters={"deterministic_transfer": True}, lgr=self.logger)
 
     def test_lbs_clustering_transfer_strategy_build_rank_clusters(self):
         expected_output = {
@@ -177,22 +177,33 @@ class TestConfig(unittest.TestCase):
         params = {
             "deterministic_transfer": True,
             "fanout": 1,
-            "n_rounds": 1
-        }
+            "n_rounds": 1}
+        non_det_params = {
+            "deterministic_transfer": False,
+            "fanout": 1,
+            "n_rounds": 1}
 
         # Define ave_load
         ave_load = 100
 
         # Create instance of Clustering Transfer Strategy
         clustering_transfer_strategy=ClusteringTransferStrategy(criterion=criterion, parameters=params, lgr=self.logger)
+        clustering_transfer_strategy_non_det=ClusteringTransferStrategy(criterion=criterion, parameters=non_det_params, lgr=self.logger)
 
-        # Test execute function
-        self.assertEqual(
-            clustering_transfer_strategy.execute(known_peers=known_peers,
+        # Test that non deterministic execute function runs
+        assert isinstance(
+            clustering_transfer_strategy_non_det.execute(known_peers=known_peers,
                                                  phase=phase,
                                                  ave_load=ave_load),
-            (0,1,2)
-        )
+            tuple)
+
+        # Test that deterministic execute function is as expected
+        self.assertEqual(
+            clustering_transfer_strategy.execute(
+                                                 known_peers=known_peers,
+                                                 phase=phase,
+                                                 ave_load=ave_load),
+            (0,1,2))
 
         # If successful, write out problem to JSON
         writer.write({phase.get_id(): phase})
