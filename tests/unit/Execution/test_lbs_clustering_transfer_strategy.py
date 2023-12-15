@@ -43,14 +43,8 @@ class TestConfig(unittest.TestCase):
         self.rank.set_shared_blocks(self.block_set)
         self.known_peers = {}
 
-        # Instantiate the reader
-        self.test_dir = os.path.dirname(os.path.dirname(__file__))
-        self.data_dir = os.path.join(self.test_dir, "data")
-        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
-        self.reader = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
-
-        # Instantiate the phase
-        self.phase = Phase(self.logger, 0, reader=self.reader)
+       # Instantiate the phase
+        self.phase = Phase(lgr=self.logger, p_id=0)
         self.phase.set_ranks([self.rank])
         self.criterion.set_phase(self.phase)
 
@@ -151,7 +145,7 @@ class TestConfig(unittest.TestCase):
             known_peers[r] = set(rank_list)
 
         # Instantiate the phase
-        phase = Phase(self.logger, p_id=1, reader=self.reader)
+        phase = Phase(lgr=self.logger, p_id=1)
         phase.set_ranks([r for r in known_peers])
 
         # Find testing output dir
