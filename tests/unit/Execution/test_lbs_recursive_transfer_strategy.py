@@ -45,14 +45,8 @@ class TestConfig(unittest.TestCase):
         self.rank.set_shared_blocks(self.block_set)
         self.known_peers = {}
 
-        # Instantiate the reader
-        self.test_dir = os.path.dirname(os.path.dirname(__file__))
-        self.data_dir = os.path.join(self.test_dir, "data")
-        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
-        self.reader = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
-
         # Instantiate the phase
-        self.phase = Phase(self.logger, 0, reader=self.reader)
+        self.phase = Phase(self.logger)
         self.phase.set_ranks([self.rank])
         self.criterion.set_phase(self.phase)
 
@@ -61,14 +55,14 @@ class TestConfig(unittest.TestCase):
 
     def test_recursive_transfer_strategy_orderings(self):
 
-        # Set up all order strategies
+        # Define all order strategies
         order_strategy_list = ["arbitrary", "element_id", "decreasing_loads", "increasing_loads",
                                "increasing_connectivity", "fewest_migrations", "small_objects"]
 
+        # Initialize empty parameter dict
         param_dict = {}
 
-        # Set up objects
-        # Establish communications
+        # Set up received and sent objects
         rec_object_min = {Object(i=7, load=0.5): 5.0}
         rec_object_max = {Object(i=8, load=1.0): 10.0}
         sent_object_min = {Object(i=9, load=0.5): 6.0}
@@ -86,60 +80,23 @@ class TestConfig(unittest.TestCase):
           obj_06
         ]
 
-        objects_reverse = [
-            obj_06,
-            obj_05,
-            obj_04
-        ]
-
+        # Set expected orders
         expected_order_dict = {
-            "arbitrary": list(objects),
-            "element_id": list(objects),
-            "decreasing_loads": list(objects),
-            "increasing_loads": list(objects_reverse),
-            "increasing_connectivity": list(objects_reverse),
-            "fewest_migrations": list(objects),
-            "small_objects": list(objects)
+            "arbitrary": objects,
+            "element_id": objects,
+            "decreasing_loads": objects,
+            "increasing_loads": objects[::-1],
+            "increasing_connectivity": objects[::-1],
+            "fewest_migrations": objects,
+            "small_objects": objects
         }
 
+        # Test every order strategy
         for order_strategy in order_strategy_list:
             param_dict["order_strategy"] = order_strategy
             recursive_strat = RecursiveTransferStrategy(criterion=self.criterion, parameters=param_dict, logger=self.logger)
             self.assertEqual(f"{order_strategy}: {getattr(recursive_strat, order_strategy)(objects, 0)}",
-                             f"{order_strategy}: {expected_order_dict[f'{order_strategy}']}")
+                             f"{order_strategy}: {expected_order_dict[order_strategy]}")
 
 if __name__ == "__main__":
     unittest.main()
-
-
-    # def test_lbs_recursive_transfer_strategy_increasing_connectivity(self):
-
-    #     # Establish communications
-    #     rec_object_min = {Object(i=7, load=0.5): 5.0}
-    #     rec_object_max = {Object(i=8, load=1.0): 10.0}
-    #     sent_object_min = {Object(i=9, load=0.5): 6.0}
-    #     sent_object_max = {Object(i=10, load=1.0): 12.0}
-
-    #     # Create objects
-    #     obj_04 = Object(i=4, comm=ObjectCommunicator(i=4,logger=self.logger,r=rec_object_max, s=sent_object_max))
-    #     obj_05 = Object(i=5, comm=ObjectCommunicator(i=5,logger=self.logger,r=rec_object_min, s=sent_object_min))
-    #     obj_06 = Object(i=6, comm=None)
-
-    #     # Define objects dict
-    #     objects = {
-    #       obj_04,
-    #       obj_05,
-    #       obj_06
-    #     }
-
-    #     # Define object list in expected order (increasing connectivity)
-    #     expected_order = [
-    #       obj_06,
-    #       obj_05,
-    #       obj_04
-    #     ]
-
-    #     self.assertEqual(
-    #         self.recursive_transfer_strategy.increasing_connectivity(objects, self.rank.get_id()),
-    #         expected_order
-    #     )
