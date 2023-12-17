@@ -97,7 +97,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
-        n_swaps, n_swap_tries, n_sub_transfers, n_sub_tries = 0, 0, 0, 0
+        n_swaps, n_swap_tries = 0, 0
+        n_sub_skipped, n_sub_transfers, n_sub_tries = 0, 0, 0
 
         # Iterate over ranks
         ranks = phase.get_ranks()
@@ -152,6 +153,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                 # In non-deterministic case skip subclustering when swaps passed
                 if not self._deterministic_transfer:
+                    n_sub_skipped += 1
                     continue
 
             # Iterate over subclusters only when no swaps were possible
@@ -207,6 +209,9 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         if n_sub_tries:
             self._logger.info(
                 f"Transferred {n_sub_transfers} subcluster amongst {n_sub_tries} tries ({100 * n_sub_transfers / n_sub_tries:.2f}%)")
+        if n_sub_skipped:
+            self._logger.info(
+                f"Skipped subclustering for {n_sub_skipped} ranks ({100 * n_sub_skipped / len(ranks):.2f}%)")
 
         # Return object transfer counts
         return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
