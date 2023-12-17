@@ -26,6 +26,8 @@ algorithm:
     fanout: 4
     order_strategy: arbitrary
     transfer_strategy: Clustering
+    max_subclusters: 10
+    cluster_swap_rtol: 0.05
     criterion: Tempered
     max_objects_per_transfer: 500
     deterministic_transfer: false

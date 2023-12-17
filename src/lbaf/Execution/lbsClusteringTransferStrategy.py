@@ -23,6 +23,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Call superclass init
         super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
 
+        # Initialize maximum number of subclusters
+        self._max_subclusters = parameters.get("max_subclusters", math.inf)
+        self._logger.info(
+            f"Maximum number of visited subclusters: {self._max_subclusters}")
+
         # Initialize cluster swap relative threshold
         self._cluster_swap_rtol = parameters.get("cluster_swap_rtol",0.05)
         self._logger.info(
@@ -71,7 +76,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     combinations(v, p)
                     for p in range(1, n_o + 1)) if self._deterministic_transfer else (
                     tuple(random.sample(v, p))
-                    for p in nr.binomial(n_o, 0.5, min(n_o, 16)))):
+                    for p in nr.binomial(n_o, 0.5, min(n_o, self._max_subclusters)))):
                 # Reject subclusters overshooting within relative tolerance
                 reach_load = rank_load - sum([o.get_load() for o in c])
                 if reach_load < (1.0 - self._cluster_swap_rtol) * self._average_load:
