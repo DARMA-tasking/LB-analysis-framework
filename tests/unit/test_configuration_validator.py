@@ -238,5 +238,27 @@ class TestConfig(unittest.TestCase):
             configuration = yaml.safe_load(yaml_str)
         ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
 
+    def test_config_validator_wrong_max_subclusters_type(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_max_subclusters_type.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'int' and > 0")
+
+    def test_config_validator_wrong_max_subclusters_mag(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_max_subclusters_mag.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'int' and > 0")
+
+    def test_config_validator_correct_clustering_target_imb(self):
+        with open(os.path.join(self.config_dir, "conf_correct_clustering_target_imb.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+
 if __name__ == "__main__":
     unittest.main()
