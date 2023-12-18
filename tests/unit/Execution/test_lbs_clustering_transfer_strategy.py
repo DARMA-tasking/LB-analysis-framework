@@ -149,10 +149,13 @@ class TestConfig(unittest.TestCase):
         phase = Phase(lgr=self.logger, p_id=1)
         phase.set_ranks([r for r in known_peers])
 
-        # Find testing output dir
-        # output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output", "subclustering_test")
+        # Uncommment the following lines in order to write out the test case to JSON.
+        # You may have to create the tests/unit/output/subclustering dir before running.
 
-        # Create writer
+        # # Find testing output dir
+        # output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output", "subclustering")
+
+        # # Create writer
         # writer = VTDataWriter(
         #     self.logger,
         #     output_dir,
@@ -160,6 +163,9 @@ class TestConfig(unittest.TestCase):
         #     {"json_output_suffix" : "json",
         #      "compressed": False}
         # )
+
+        # # Write problem to JSON
+        # writer.write({phase.get_id(): phase})
 
         # Create criterion
         criterion = CriterionBase.factory(
@@ -199,8 +205,6 @@ class TestConfig(unittest.TestCase):
                                                  ave_load=ave_load)[2],
             len(rank_list))
 
-        # Write out problem to JSON
-        # writer.write({phase.get_id(): phase})
 
 if __name__ == "__main__":
     unittest.main()
