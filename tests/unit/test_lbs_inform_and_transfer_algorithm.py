@@ -24,6 +24,7 @@ class TestConfig(unittest.TestCase):
                 "order_strategy": "element_id",
                 "transfer_strategy": "Recursive",
                 "criterion": "Tempered",
+                "max_subclusters": 15,
                 "max_objects_per_transfer": 8,
                 "deterministic_transfer": True
             },
