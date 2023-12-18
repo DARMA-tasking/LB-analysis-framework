@@ -76,6 +76,7 @@ class TransferStrategyBase:
             # Append rank to be traversed
             rank_targets[r_src] = targets
 
+        # Return randomized dict of rank_targets ranks
         return rank_targets if self._deterministic_transfer else {
             k: rank_targets[k]
             for k in random.sample(rank_targets.keys(), len(rank_targets))}

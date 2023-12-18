@@ -61,11 +61,11 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_cpoa_execute(self):
         self.cpoa.execute(
-                self.phase.get_id(),
-                self.phases,
-                self.distributions,
-                self.statistics,
-                1
+            self.phase.get_id(),
+            self.phases,
+            self.distributions,
+            self.statistics,
+            1
         )
         new_phase = self.cpoa.get_rebalanced_phase()
         self.assertEqual(
