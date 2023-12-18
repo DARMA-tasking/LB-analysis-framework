@@ -28,7 +28,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             "element_id": self.element_id,
             "decreasing_loads": self.decreasing_loads,
             "increasing_loads": self.increasing_loads,
-            "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
         o_s = parameters.get("order_strategy")
@@ -153,32 +152,6 @@ class RecursiveTransferStrategy(TransferStrategyBase):
     def increasing_loads(objects: set, _):
         """Order objects by increasing object loads."""
         return sorted(objects, key=lambda x: x.get_load())
-
-    @staticmethod
-    def increasing_connectivity(objects: set, src_id):
-        """Order objects by increasing local communication volume."""
-        # Initialize list with all objects without a communicator
-        no_comm = [
-            o for o in objects
-            if not isinstance(o.get_communicator(), ObjectCommunicator)]
-
-        # Order objects with a communicator
-        with_comm = {}
-        for o in objects:
-            # Skip objects without a communicator
-            comm = o.get_communicator()
-            if not isinstance(o.get_communicator(), ObjectCommunicator):
-                continue
-
-            # Update dict of objects with maximum local communication
-            with_comm[o] = max(
-                sum([v for k, v in comm.get_received().items()
-                     if k.get_rank_id() == src_id]),
-                sum([v for k, v in comm.get_sent().items()
-                     if k.get_rank_id() == src_id]))
-
-        # Return list of objects order by increased local connectivity
-        return no_comm + sorted(with_comm, key=with_comm.get)
 
     @staticmethod
     def sorted_ascending(objects: Union[set, list]):

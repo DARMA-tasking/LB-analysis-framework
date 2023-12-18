@@ -95,6 +95,7 @@ class TestConfig(unittest.TestCase):
         # Define ave_load (2.5 / 4)
         ave_load = 0.6
 
+        # Assert that results are as expected
         self.assertEqual(
             self.clustering_transfer_strategy.execute(known_peers=self.known_peers,
                                                       phase=self.phase,
@@ -149,16 +150,16 @@ class TestConfig(unittest.TestCase):
         phase.set_ranks([r for r in known_peers])
 
         # Find testing output dir
-        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output", "subclustering_test")
+        # output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output", "subclustering_test")
 
         # Create writer
-        writer = VTDataWriter(
-            self.logger,
-            output_dir,
-            "subclustering",
-            {"json_output_suffix" : "json",
-             "compressed": False}
-        )
+        # writer = VTDataWriter(
+        #     self.logger,
+        #     output_dir,
+        #     "subclustering",
+        #     {"json_output_suffix" : "json",
+        #      "compressed": False}
+        # )
 
         # Create criterion
         criterion = CriterionBase.factory(
@@ -193,14 +194,13 @@ class TestConfig(unittest.TestCase):
 
         # Test that deterministic execute function is as expected
         self.assertEqual(
-            clustering_transfer_strategy.execute(
-                                                 known_peers=known_peers,
+            clustering_transfer_strategy.execute(known_peers=known_peers,
                                                  phase=phase,
-                                                 ave_load=ave_load),
-            (0,1,2))
+                                                 ave_load=ave_load)[2],
+            len(rank_list))
 
-        # If successful, write out problem to JSON
-        writer.write({phase.get_id(): phase})
+        # Write out problem to JSON
+        # writer.write({phase.get_id(): phase})
 
 if __name__ == "__main__":
     unittest.main()

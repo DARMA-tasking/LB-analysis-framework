@@ -56,8 +56,8 @@ class TestConfig(unittest.TestCase):
     def test_recursive_transfer_strategy_orderings(self):
 
         # Define all order strategies
-        order_strategy_list = ["arbitrary", "element_id", "decreasing_loads", "increasing_loads",
-                               "increasing_connectivity", "fewest_migrations", "small_objects"]
+        order_strategy_list = ["arbitrary", "element_id", "decreasing_loads",
+                               "increasing_loads", "fewest_migrations", "small_objects"]
 
         # Initialize empty parameter dict
         param_dict = {}
@@ -86,7 +86,6 @@ class TestConfig(unittest.TestCase):
             "element_id": objects,
             "decreasing_loads": objects,
             "increasing_loads": objects[::-1],
-            "increasing_connectivity": objects[::-1],
             "fewest_migrations": objects,
             "small_objects": objects
         }
