@@ -159,7 +159,11 @@ class ConfigurationValidator:
                          Optional("cluster_swap_rtol"): And(
                             float,
                             lambda x: x > 0.0,
-                            error="Should be of type 'float' and magnitude > 0.0"),
+                            error="Should be of type 'float' and > 0.0"),
+                         Optional("max_subclusters"): And(
+                            int,
+                            lambda x: x > 0.0,
+                            error="Should be of type 'int' and > 0"),
                      "criterion": And(
                          str,
                          lambda f: f in ALLOWED_CRITERIA,
