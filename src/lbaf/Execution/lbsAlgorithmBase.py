@@ -1,7 +1,6 @@
 import abc
 import os
 
-from ..import PROJECT_PATH
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
@@ -95,8 +94,6 @@ class AlgorithmBase:
         # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
-        algorithm = locals()[algorithm_name + "Algorithm"]
-        return algorithm(work_model, parameters, logger, rank_qoi, object_qoi)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
