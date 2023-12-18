@@ -222,7 +222,7 @@ class TestConfig(unittest.TestCase):
             configuration = yaml.safe_load(yaml_str)
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
-        self.assertEqual(err.exception.args[0], "Should be of type 'float' and magnitude > 0.0")
+        self.assertEqual(err.exception.args[0], "Should be of type 'float' and > 0.0")
 
     def test_config_validator_wrong_clustering_set_tol_mag(self):
         with open(os.path.join(self.config_dir, "conf_wrong_clustering_set_tol_mag.yml"), "rt", encoding="utf-8") as config_file:
@@ -230,7 +230,7 @@ class TestConfig(unittest.TestCase):
             configuration = yaml.safe_load(yaml_str)
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
-        self.assertEqual(err.exception.args[0], "Should be of type 'float' and magnitude > 0.0")
+        self.assertEqual(err.exception.args[0], "Should be of type 'float' and > 0.0")
 
     def test_config_validator_correct_clustering_target_imb(self):
         with open(os.path.join(self.config_dir, "conf_correct_clustering_target_imb.yml"), "rt", encoding="utf-8") as config_file:
