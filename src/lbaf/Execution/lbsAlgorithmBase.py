@@ -1,7 +1,6 @@
 import abc
 import os
 
-from ..import PROJECT_PATH
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
