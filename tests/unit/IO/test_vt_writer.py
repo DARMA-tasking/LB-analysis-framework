@@ -21,6 +21,8 @@ class TestVTDataWriter(unittest.TestCase):
     """Test class for VTDataWriter class"""
 
     def setUp(self):
+        self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.config_dir = os.path.join(self.test_dir, "config")
         return
 
     def tearDown(self):
@@ -113,8 +115,6 @@ class TestVTDataWriter(unittest.TestCase):
         """
 
         # run LBAF
-        self.test_dir = os.path.dirname(os.path.dirname(__file__))
-        self.config_dir = os.path.join(self.test_dir, "config")
         config_file = os.path.join(self.config_dir, "conf_vt_writer_stepper_test.yml")
         proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
         self.assertEqual(0, proc.returncode)
@@ -189,7 +189,7 @@ class TestVTDataWriter(unittest.TestCase):
         """Tests that LBAF writes out the correct communications data."""
 
         # run LBAF
-        config_file = os.path.join(os.path.dirname(__file__), "config", "conf_vt_writer_communications_test.yaml")
+        config_file = os.path.join(self.config_dir, "conf_vt_writer_communications_test.yaml")
         proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
         self.assertEqual(0, proc.returncode)
 

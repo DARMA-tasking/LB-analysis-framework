@@ -87,40 +87,37 @@ class VTDataWriter:
     def __get_communications(self, phase, rank):
         """Create communication entries to be outputted to JSON."""
 
-        # Get initial communications (if any)
-        initial_communications_dict = phase.get_communications() # this holds all communications (all data files)
-        if initial_communications_dict:
-            phase_communications_dict = initial_communications_dict[phase.get_id()]
+        # Get initial communications (if any) for current phase
+        phase_communications_dict = phase.get_communications()
 
-            # Add empty entries for ranks with no initial communication
-            if rank.get_id() not in phase_communications_dict.keys():
-                phase_communications_dict[rank.get_id()] = {}
+        # Add empty entries for ranks with no initial communication
+        if rank.get_id() not in phase_communications_dict.keys():
+            phase_communications_dict[rank.get_id()] = {}
 
-            initial_on_rank_communications = phase_communications_dict[rank.get_id()] # this holds only the communication on the current rank (or file)
+        # Get original communications on current rank
+        initial_on_rank_communications = phase_communications_dict[rank.get_id()]
 
-            # Get all objects on current rank
-            rank_objects = rank.get_object_ids()
+        # Get all objects on current rank
+        rank_objects = rank.get_object_ids()
 
-            # Initialize final communications
-            communications = []
+        # Initialize final communications
+        communications = []
 
-            # Ensure all objects are on the correct rank
-            if initial_on_rank_communications:
-                for comm_dict in initial_on_rank_communications:
-                    if comm_dict["from"]["id"] in rank_objects:
-                        communications.append(comm_dict)
-                    else:
-                        self.__moved_objs_dicts.append(comm_dict)
+        # Ensure all objects are on the correct rank
+        if initial_on_rank_communications:
+            for comm_dict in initial_on_rank_communications:
+                if comm_dict["from"]["id"] in rank_objects:
+                    communications.append(comm_dict)
+                else:
+                    self.__moved_objs_dicts.append(comm_dict)
 
-            # Loop through any moved objects to find the correct rank
-            if self.__moved_objs_dicts:
-                to_remove = []
-                for moved_dict in self.__moved_objs_dicts:
-                    if moved_dict["from"]["id"] in rank_objects:
-                        communications.append(moved_dict)
-                        to_remove.append(moved_dict)
-        else:
-            communications = None
+        # Loop through any moved objects to find the correct rank
+        if self.__moved_objs_dicts:
+            to_remove = []
+            for moved_dict in self.__moved_objs_dicts:
+                if moved_dict["from"]["id"] in rank_objects:
+                    communications.append(moved_dict)
+                    to_remove.append(moved_dict)
 
         return communications
 
