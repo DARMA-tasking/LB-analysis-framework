@@ -11,7 +11,6 @@ ALLOWED_ORDER_STRATEGIES = (
     "element_id",
     "increasing_loads",
     "decreasing_loads",
-    "increasing_connectivity",
     "fewest_migrations",
     "small_objects")
 ALLOWED_TRANSFER_STRATEGIES = (

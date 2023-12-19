@@ -24,7 +24,7 @@ Parameters
       * **deterministic_transfer [bool]**: (default: False) for deterministic transfer
       * **n_rounds [int]**: number of information rounds
       * **fanout [int]**: information fanout index
-      * **order_strategy [str]**: ordering of objects for transfer in `arbitrary` (default), `element_id`, `increasing_times`, `decreasing_times`, `increasing_connectivity`, `fewest_migrations`, `small_objects`
+      * **order_strategy [str]**: ordering of objects for transfer in `arbitrary` (default), `element_id`, `increasing_times`, `decreasing_times`, `fewest_migrations`, `small_objects`
 
     * **`BruteForce`**:
 

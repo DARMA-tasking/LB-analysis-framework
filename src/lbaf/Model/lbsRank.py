@@ -34,7 +34,7 @@ class Rank:
         self.__size = 0.0
 
         # Start with empty shared block information
-        self.__shared_blocks = {}
+        self.__shared_blocks = set()
 
     def copy(self, rank):
         """Specialized copy method."""
