@@ -17,7 +17,8 @@ from src.lbaf.Utils.lbsLogging import get_logger
 
 class TestVTDataExtractor(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(os.path.join(os.path.dirname(__file__), "data", "VTDataExtractor"))
+        self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.data_dir = os.path.join(self.test_dir, "data", "VTDataExtractor")
         self.compr_data_dir = os.path.join(self.data_dir, "compressed_data_to_extract")
         self.uncompr_data_dir = os.path.join(self.data_dir, "uncompressed_data_to_extract")
         self.output_data_dir = os.path.join(os.path.join(os.path.dirname(__file__), "output"))
