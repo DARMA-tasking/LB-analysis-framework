@@ -424,7 +424,7 @@ class Phase:
             # Perform sanity check
             if b_id not in r_src.get_shared_block_ids():
                 self.__logger.error(
-                f"block {b_id} not present on in {r_src.get_shared_blocks()}")
+                f"block {b_id} not present in {r_src.get_shared_block_ids()}")
                 raise SystemExit(1)
 
             if not block.detach_object_id(o_id):

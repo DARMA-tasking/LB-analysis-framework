@@ -31,7 +31,7 @@ class Runtime:
         # If no LBS phase was provided, do not do anything
         if not phases or not isinstance(phases, dict):
             self.__logger.error(
-                "Could not create a runtime without a dictionnary of phases")
+                "Could not create a runtime without a dictionary of phases")
             raise SystemExit(1)
         self.__phases = phases
 

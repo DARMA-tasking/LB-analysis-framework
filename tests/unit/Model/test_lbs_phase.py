@@ -11,7 +11,8 @@ from src.lbaf.Model.lbsPhase import Phase
 class TestConfig(unittest.TestCase):
 
     def setUp(self):
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.data_dir = os.path.join(self.test_dir, "data")
         self.logger = logging.getLogger()
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         self.reader = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
@@ -23,8 +24,6 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.phase._Phase__edges, None)
 
     def test_lbs_phase_populate_from_log(self):
-        file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
-        self.phase.populate_from_log(0)
         file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
         self.phase.populate_from_log(0)
         self.assertEqual(len(self.phase.get_object_ids()), 9)
