@@ -572,11 +572,11 @@ class LBAFApplication:
                 self.__parameters.object_qoi
             ]
 
+            # Call vttv visualization
+            self.__logger.info("Calling vt-tv")
+
             # Serialize data to JSON-formatted string
             ranks_json_str = self.__json_writer.serialize(phases)
-
-            # Pass string to vt-tv for rendering
-            print("============ CALL TO VISUALIZER ============")
 
             vttv_params = {
                 "x_ranks": self.__parameters.grid_size[0],
@@ -592,23 +592,6 @@ class LBAFApplication:
             }
             num_ranks = self.__parameters.grid_size[0] * self.__parameters.grid_size[1] * self.__parameters.grid_size[2]
             vttv.tv_from_json(ranks_json_str, str(vttv_params), num_ranks)
-            sys.exit(0)
-
-            # Instantiate and execute visualizer
-            visualizer = Visualizer(
-                self.__logger,
-                qoi_request,
-                self.__parameters.continuous_object_qoi,
-                phases,
-                self.__parameters.grid_size,
-                self.__parameters.object_jitter,
-                self.__parameters.output_dir,
-                self.__parameters.output_file_stem,
-                runtime.get_distributions(),
-                runtime.get_statistics())
-            visualizer.generate(
-                self.__parameters.save_meshes,
-                not self.__parameters.rank_qoi is None)
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
