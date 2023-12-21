@@ -31,7 +31,6 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         for p_id, self._rebalanced_phase in phases.items():
             # Step through current phase
             self._logger.info(f"Stepping through phase {p_id}")
-            self._logger.info(f"Stepping through phase {p_id}")
 
             # Compute and report phase rank work statistics
             print_function_statistics(

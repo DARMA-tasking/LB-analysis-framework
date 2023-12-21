@@ -185,7 +185,10 @@ class LoadReader:
         rank_comm = {}
         communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
         if communications:
-            self.__communications_dict[rank_id] = communications
+            if phase_id in self.__communications_dict:
+                self.__communications_dict[phase_id][rank_id] = communications
+            else:
+                self.__communications_dict[phase_id] = {rank_id: communications}
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
                 c_type = comm.get("type")
@@ -220,6 +223,7 @@ class LoadReader:
 
         # Instantiante rank for current phase
         phase_rank = Rank(self.__logger, rank_id)
+        phase_rank.set_metadata(self.__metadata[rank_id])
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}
@@ -335,4 +339,4 @@ class LoadReader:
                             i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
-        return ranks, self.__communications_dict, self.__metadata
+        return ranks, self.__communications_dict[phase_id]

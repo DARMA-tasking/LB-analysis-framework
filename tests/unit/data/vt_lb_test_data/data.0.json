@@ -1,0 +1,4475 @@
+{
+  "metadata": {
+    "rank": 0,
+    "shared_node": {
+      "id": 0,
+      "num_nodes": 1,
+      "rank": 0,
+      "size": 4
+    },
+    "type": "LBDatafile"
+  },
+  "phases": [
+    {
+      "communications": [
+        {
+          "bytes": 112.0,
+          "from": {
+            "home": 0,
+            "id": 0,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 2,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 112.0,
+          "from": {
+            "home": 0,
+            "id": 0,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 2,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1096.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 19,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1096.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 19,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 64.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 1,
+          "to": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 0,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1263000033068238e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1333999964335817e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1196000059499056e-05
+            }
+          ],
+          "time": 3.379300005690311e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1653000001388136e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1435000033088727e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1435000033088727e-05
+            }
+          ],
+          "time": 3.452300006756559e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.7811999896366615e-05
+            },
+            {
+              "id": 1,
+              "time": 1.8287999864696758e-05
+            },
+            {
+              "id": 2,
+              "time": 1.7329999991488876e-05
+            }
+          ],
+          "time": 5.342999975255225e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012135783000076117
+            },
+            {
+              "id": 1,
+              "time": 0.011445064000099592
+            },
+            {
+              "id": 2,
+              "time": 0.013830105999886655
+            }
+          ],
+          "time": 0.037410953000062364
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1395999990782002e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1267999980191234e-05
+            },
+            {
+              "id": 2,
+              "time": 1.142099995377066e-05
+            }
+          ],
+          "time": 3.40849999247439e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.00025406699933228083
+            }
+          ],
+          "time": 0.00025406699933228083
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3208000154918409e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2013999821647303e-05
+            },
+            {
+              "id": 2,
+              "time": 1.164800005426514e-05
+            }
+          ],
+          "time": 3.687000003083085e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01717029800011005
+            },
+            {
+              "id": 1,
+              "time": 0.01329956199992921
+            },
+            {
+              "id": 2,
+              "time": 0.013931906999914645
+            }
+          ],
+          "time": 0.04440176699995391
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1455000048954389e-05
+            },
+            {
+              "id": 1,
+              "time": 1.137499998549174e-05
+            },
+            {
+              "id": 2,
+              "time": 2.8864000114481314e-05
+            }
+          ],
+          "time": 5.1694000148927444e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012835011999868584
+            },
+            {
+              "id": 1,
+              "time": 0.011345321999897351
+            },
+            {
+              "id": 2,
+              "time": 0.011688463999917076
+            }
+          ],
+          "time": 0.03586879799968301
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.243699989572633e-05
+            },
+            {
+              "id": 1,
+              "time": 1.0962000033032382e-05
+            },
+            {
+              "id": 2,
+              "time": 1.0952999900837312e-05
+            }
+          ],
+          "time": 3.4351999829596025e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014611307999985002
+            },
+            {
+              "id": 1,
+              "time": 0.011596255000085876
+            },
+            {
+              "id": 2,
+              "time": 0.012203061000036541
+            }
+          ],
+          "time": 0.03841062400010742
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2453999943318195e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1266999990766635e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1582000070120557e-05
+            }
+          ],
+          "time": 3.530300000420539e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013287562999948932
+            },
+            {
+              "id": 1,
+              "time": 0.011629410000068674
+            },
+            {
+              "id": 2,
+              "time": 0.011434323000003133
+            }
+          ],
+          "time": 0.03635129600002074
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01328959800002849
+            },
+            {
+              "id": 1,
+              "time": 0.012586304000024029
+            },
+            {
+              "id": 2,
+              "time": 0.012439846000006582
+            }
+          ],
+          "time": 0.0383157480000591
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012713138999970397
+            },
+            {
+              "id": 1,
+              "time": 0.012018785999998727
+            },
+            {
+              "id": 2,
+              "time": 0.012984786000060922
+            }
+          ],
+          "time": 0.037716711000030045
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012798881999970035
+            },
+            {
+              "id": 1,
+              "time": 0.01177073200005907
+            },
+            {
+              "id": 2,
+              "time": 0.011668005000046833
+            }
+          ],
+          "time": 0.03623761900007594
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1456.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 26,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1456.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 26,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 1,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 3.207300005669822e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1347999816280208e-05
+            },
+            {
+              "id": 2,
+              "time": 1.169400002254406e-05
+            }
+          ],
+          "time": 5.658399982166884e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3647000059791026e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1320000112391426e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1517999837451498e-05
+            }
+          ],
+          "time": 3.787500008911593e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.8260999897611327e-05
+            },
+            {
+              "id": 1,
+              "time": 2.139399998668523e-05
+            },
+            {
+              "id": 2,
+              "time": 2.4569000061092083e-05
+            }
+          ],
+          "time": 7.545199991909612e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013263736999988396
+            },
+            {
+              "id": 1,
+              "time": 0.013395983999998862
+            },
+            {
+              "id": 2,
+              "time": 0.014478222999969148
+            }
+          ],
+          "time": 0.04114147499990395
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3226999953985796e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1318999895593151e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1252000149397645e-05
+            }
+          ],
+          "time": 3.975300001002324e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.0002677599998150981
+            }
+          ],
+          "time": 0.0002677599998150981
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.4005999901200994e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3610999985758099e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1327000038363622e-05
+            }
+          ],
+          "time": 4.151000007368566e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013313475999893853
+            },
+            {
+              "id": 1,
+              "time": 0.0129409730000134
+            },
+            {
+              "id": 2,
+              "time": 0.014646807999952216
+            }
+          ],
+          "time": 0.040902534999759155
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3264000017443323e-05
+            },
+            {
+              "id": 1,
+              "time": 1.130600003307336e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1384999879737734e-05
+            }
+          ],
+          "time": 3.7073999919812195e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013442894000036176
+            },
+            {
+              "id": 1,
+              "time": 0.014160143000026437
+            },
+            {
+              "id": 2,
+              "time": 0.013968384999998307
+            }
+          ],
+          "time": 0.041572582000071634
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 8.663600010549999e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3038999895798042e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1036000159947434e-05
+            }
+          ],
+          "time": 0.00013308699999470264
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013466773000118337
+            },
+            {
+              "id": 1,
+              "time": 0.013756762999946659
+            },
+            {
+              "id": 2,
+              "time": 0.012846082999885766
+            }
+          ],
+          "time": 0.04007089900005667
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.329099995928118e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3131000059729558e-05
+            },
+            {
+              "id": 2,
+              "time": 1.120499996432045e-05
+            }
+          ],
+          "time": 4.2018999920401257e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01331102400013151
+            },
+            {
+              "id": 1,
+              "time": 0.01355237699999634
+            },
+            {
+              "id": 2,
+              "time": 0.011638640000001033
+            }
+          ],
+          "time": 0.03850376300010794
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013358540999888646
+            },
+            {
+              "id": 1,
+              "time": 0.012807006999992154
+            },
+            {
+              "id": 2,
+              "time": 0.013079802999982348
+            }
+          ],
+          "time": 0.039248502999953416
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013209169999981896
+            },
+            {
+              "id": 1,
+              "time": 0.014141537000114113
+            },
+            {
+              "id": 2,
+              "time": 0.012815103000093586
+            }
+          ],
+          "time": 0.040167336000195064
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 8.358000059160986e-06
+            }
+          ],
+          "time": 8.358000059160986e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012924904000101378
+            },
+            {
+              "id": 1,
+              "time": 0.012263890999975047
+            },
+            {
+              "id": 2,
+              "time": 0.013286632000017562
+            }
+          ],
+          "time": 0.038476590000072974
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1288.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 23,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1288.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 23,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 2,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2738000123135862e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1436000022513326e-05
+            },
+            {
+              "id": 2,
+              "time": 1.118099999075639e-05
+            }
+          ],
+          "time": 3.6866000073132454e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3451999848257401e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1465999932624982e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1385999869162333e-05
+            }
+          ],
+          "time": 3.73019997823576e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.692399993975414e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2637000054382952e-05
+            },
+            {
+              "id": 2,
+              "time": 1.4423000038732425e-05
+            }
+          ],
+          "time": 5.5989000202316674e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01302885200016135
+            },
+            {
+              "id": 1,
+              "time": 0.011140804999968168
+            },
+            {
+              "id": 2,
+              "time": 0.011143128999947294
+            }
+          ],
+          "time": 0.03531501399993431
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3208000154918409e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2664999985645409e-05
+            },
+            {
+              "id": 2,
+              "time": 1.184200004900049e-05
+            }
+          ],
+          "time": 3.886500007865834e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.0002602630004275852
+            }
+          ],
+          "time": 0.0002602630004275852
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3362999879973358e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3316999911694438e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1350000022503082e-05
+            }
+          ],
+          "time": 4.196199984107807e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015159556999833512
+            },
+            {
+              "id": 1,
+              "time": 0.013344824000114386
+            },
+            {
+              "id": 2,
+              "time": 0.012729680999882476
+            }
+          ],
+          "time": 0.04123558899982527
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.273399993806379e-05
+            },
+            {
+              "id": 1,
+              "time": 2.7326999997967505e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1221000022487715e-05
+            }
+          ],
+          "time": 5.2964999895266374e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013407750999931523
+            },
+            {
+              "id": 1,
+              "time": 0.011493512000015471
+            },
+            {
+              "id": 2,
+              "time": 0.01166658100009954
+            }
+          ],
+          "time": 0.03656975200010493
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 8.264500002042041e-05
+            },
+            {
+              "id": 1,
+              "time": 1.279600019188365e-05
+            },
+            {
+              "id": 2,
+              "time": 1.0963000022456981e-05
+            }
+          ],
+          "time": 0.0001174350002202118
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015538076999973782
+            },
+            {
+              "id": 1,
+              "time": 0.012458989999913683
+            },
+            {
+              "id": 2,
+              "time": 0.012939388000177132
+            }
+          ],
+          "time": 0.040937479000149324
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2489000027926522e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2643999980355147e-05
+            },
+            {
+              "id": 2,
+              "time": 1.118199998018099e-05
+            }
+          ],
+          "time": 3.840299996227259e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014141193000114072
+            },
+            {
+              "id": 1,
+              "time": 0.012680075999924156
+            },
+            {
+              "id": 2,
+              "time": 0.011292222000065522
+            }
+          ],
+          "time": 0.038116471000194
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.011973100000204795
+            },
+            {
+              "id": 1,
+              "time": 0.013109084000006987
+            },
+            {
+              "id": 2,
+              "time": 0.011939592999851811
+            }
+          ],
+          "time": 0.03702433199987354
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01349759599997924
+            },
+            {
+              "id": 1,
+              "time": 0.012846610999986297
+            },
+            {
+              "id": 2,
+              "time": 0.012192292999998244
+            }
+          ],
+          "time": 0.038538068999969255
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 4.237999974066042e-06
+            }
+          ],
+          "time": 4.237999974066042e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013382446999912645
+            },
+            {
+              "id": 1,
+              "time": 0.011518686000044909
+            },
+            {
+              "id": 2,
+              "time": 0.012687144999972588
+            }
+          ],
+          "time": 0.03758975300002021
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1400.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 25,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1400.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 25,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 3,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1325000059514423e-05
+            },
+            {
+              "id": 1,
+              "time": 3.178300016770663e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1463999953775783e-05
+            }
+          ],
+          "time": 5.561600028158864e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1807999953816761e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2814000001526438e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1385999869162333e-05
+            }
+          ],
+          "time": 3.698399973472988e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.6692999906808836e-05
+            },
+            {
+              "id": 1,
+              "time": 4.5438999904945376e-05
+            },
+            {
+              "id": 2,
+              "time": 1.9350000002305023e-05
+            }
+          ],
+          "time": 8.240999977715546e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013297282000166888
+            },
+            {
+              "id": 1,
+              "time": 0.012697454000090147
+            },
+            {
+              "id": 2,
+              "time": 0.012643059000083667
+            }
+          ],
+          "time": 0.038640259000203514
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1549999953786028e-05
+            },
+            {
+              "id": 1,
+              "time": 4.47059999260091e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1425000138842734e-05
+            }
+          ],
+          "time": 6.939200011402136e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.0020719340009236475
+            }
+          ],
+          "time": 0.0020719340009236475
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3030999980401248e-05
+            },
+            {
+              "id": 1,
+              "time": 3.096699992966023e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1311999969620956e-05
+            }
+          ],
+          "time": 5.9438999869598774e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013460668999869085
+            },
+            {
+              "id": 1,
+              "time": 0.016113513999926
+            },
+            {
+              "id": 2,
+              "time": 0.013188821000085227
+            }
+          ],
+          "time": 0.04276460099981705
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1512000128277577e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2014000049020979e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1425999900893657e-05
+            }
+          ],
+          "time": 3.6351000062495586e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012403900999970574
+            },
+            {
+              "id": 1,
+              "time": 0.012733255000057397
+            },
+            {
+              "id": 2,
+              "time": 0.012130471999853398
+            }
+          ],
+          "time": 0.03729055899998457
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.590799999779847e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1574999916774686e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1059999906137818e-05
+            }
+          ],
+          "time": 5.8128999853579444e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012210163999952783
+            },
+            {
+              "id": 1,
+              "time": 0.01291338100008943
+            },
+            {
+              "id": 2,
+              "time": 0.01288692599996466
+            }
+          ],
+          "time": 0.03801152000005459
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2190999996164464e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1663000123007805e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1801000027844566e-05
+            }
+          ],
+          "time": 3.757600006792927e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014387738000095851
+            },
+            {
+              "id": 1,
+              "time": 0.012370364999924277
+            },
+            {
+              "id": 2,
+              "time": 0.011778523999964818
+            }
+          ],
+          "time": 0.03855413400015095
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013870577000034245
+            },
+            {
+              "id": 1,
+              "time": 0.014034989000037967
+            },
+            {
+              "id": 2,
+              "time": 0.013828160000002754
+            }
+          ],
+          "time": 0.04173491100004867
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013303500000120039
+            },
+            {
+              "id": 1,
+              "time": 0.01298425999993924
+            },
+            {
+              "id": 2,
+              "time": 0.01271742699987044
+            }
+          ],
+          "time": 0.0390069099998982
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 3.857000137941213e-06
+            }
+          ],
+          "time": 3.857000137941213e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014377588999877844
+            },
+            {
+              "id": 1,
+              "time": 0.016316691999918476
+            },
+            {
+              "id": 2,
+              "time": 0.012348237000196605
+            }
+          ],
+          "time": 0.043043509999961316
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1232.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 22,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1232.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 22,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 4,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3351000006878166e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1402999916754197e-05
+            },
+            {
+              "id": 2,
+              "time": 1.152400000137277e-05
+            }
+          ],
+          "time": 3.728799993041321e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3724000154979876e-05
+            },
+            {
+              "id": 1,
+              "time": 1.163300021289615e-05
+            },
+            {
+              "id": 2,
+              "time": 1.2607000144271296e-05
+            }
+          ],
+          "time": 3.890100038006494e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.8590000056283316e-05
+            },
+            {
+              "id": 1,
+              "time": 1.8149999959859997e-05
+            },
+            {
+              "id": 2,
+              "time": 4.6427000143012265e-05
+            }
+          ],
+          "time": 9.408300002178294e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01314711800000623
+            },
+            {
+              "id": 1,
+              "time": 0.01255147200004103
+            },
+            {
+              "id": 2,
+              "time": 0.012167367999836642
+            }
+          ],
+          "time": 0.03786792899995817
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3398999954006285e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1916999937966466e-05
+            },
+            {
+              "id": 2,
+              "time": 4.9223999894820736e-05
+            }
+          ],
+          "time": 7.6409999792304e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.00024517499991816294
+            }
+          ],
+          "time": 0.00024517499991816294
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3180999985706876e-05
+            },
+            {
+              "id": 1,
+              "time": 1.4721000070494483e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1459000006652786e-05
+            }
+          ],
+          "time": 4.374200011625362e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014091880000023593
+            },
+            {
+              "id": 1,
+              "time": 0.013628175999883752
+            },
+            {
+              "id": 2,
+              "time": 0.01749480700004824
+            }
+          ],
+          "time": 0.045216759999902933
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3223999985711998e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1392000033083605e-05
+            },
+            {
+              "id": 2,
+              "time": 2.7757999987443327e-05
+            }
+          ],
+          "time": 5.3780000143888174e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012805462999949668
+            },
+            {
+              "id": 1,
+              "time": 0.012705186999937723
+            },
+            {
+              "id": 2,
+              "time": 0.01198388700004216
+            }
+          ],
+          "time": 0.03749551600003542
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 3.152899989800062e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2919000027977745e-05
+            },
+            {
+              "id": 2,
+              "time": 1.0931000133496127e-05
+            }
+          ],
+          "time": 6.66099999762082e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013776075999885506
+            },
+            {
+              "id": 1,
+              "time": 0.013158003000171448
+            },
+            {
+              "id": 2,
+              "time": 0.01307405700003983
+            }
+          ],
+          "time": 0.0400094030001128
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2876000027972623e-05
+            },
+            {
+              "id": 1,
+              "time": 1.4290000081018661e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1431999837441253e-05
+            }
+          ],
+          "time": 4.108499979338376e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015777264999996987
+            },
+            {
+              "id": 1,
+              "time": 0.013422217999959685
+            },
+            {
+              "id": 2,
+              "time": 0.011981525999999576
+            }
+          ],
+          "time": 0.04118258500011507
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013267266000184463
+            },
+            {
+              "id": 1,
+              "time": 0.013495324999894365
+            },
+            {
+              "id": 2,
+              "time": 0.01307893500006685
+            }
+          ],
+          "time": 0.039843414000188204
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013401520999877903
+            },
+            {
+              "id": 1,
+              "time": 0.013206610999986879
+            },
+            {
+              "id": 2,
+              "time": 0.013384857999881206
+            }
+          ],
+          "time": 0.03999488999966161
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 4.51300002168864e-06
+            }
+          ],
+          "time": 4.51300002168864e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013142926000000443
+            },
+            {
+              "id": 1,
+              "time": 0.01343580100001418
+            },
+            {
+              "id": 2,
+              "time": 0.012998050000078365
+            }
+          ],
+          "time": 0.03957783999999265
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1288.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 23,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1288.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 23,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 5,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1574999916774686e-05
+            },
+            {
+              "id": 1,
+              "time": 1.319099987995287e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1347000054229284e-05
+            }
+          ],
+          "time": 3.700299976117094e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1872999948536744e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3524999985747854e-05
+            },
+            {
+              "id": 2,
+              "time": 1.149099989561364e-05
+            }
+          ],
+          "time": 3.8017999941075686e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.604899987090903e-05
+            },
+            {
+              "id": 1,
+              "time": 2.685300000848656e-05
+            },
+            {
+              "id": 2,
+              "time": 2.2642999965682975e-05
+            }
+          ],
+          "time": 7.636999976057268e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013983951999989586
+            },
+            {
+              "id": 1,
+              "time": 0.01310891499997524
+            },
+            {
+              "id": 2,
+              "time": 0.013344388999939838
+            }
+          ],
+          "time": 0.040439094000021214
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1718999985532719e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3219000038589002e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1557000107131898e-05
+            }
+          ],
+          "time": 3.8519000099768164e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.0002935210002306121
+            }
+          ],
+          "time": 0.0002935210002306121
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2901999980385881e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2208000043756329e-05
+            },
+            {
+              "id": 2,
+              "time": 1.3334000186659978e-05
+            }
+          ],
+          "time": 4.294200016374816e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01647633099992163
+            },
+            {
+              "id": 1,
+              "time": 0.014345187999879272
+            },
+            {
+              "id": 2,
+              "time": 0.013523729999860734
+            }
+          ],
+          "time": 0.04434773999969366
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2129000197091955e-05
+            },
+            {
+              "id": 1,
+              "time": 1.350799993815599e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1574999916774686e-05
+            }
+          ],
+          "time": 6.084200003897422e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01308439400008865
+            },
+            {
+              "id": 1,
+              "time": 0.01299513900016791
+            },
+            {
+              "id": 2,
+              "time": 0.012793085000112114
+            }
+          ],
+          "time": 0.03887382400034767
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.728699996623618e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1581000080695958e-05
+            },
+            {
+              "id": 2,
+              "time": 1.2862999938079156e-05
+            }
+          ],
+          "time": 6.13089998751093e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014645882000195343
+            },
+            {
+              "id": 1,
+              "time": 0.014650694000010844
+            },
+            {
+              "id": 2,
+              "time": 0.012880653000138409
+            }
+          ],
+          "time": 0.04217865100031304
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.7937000140809687e-05
+            },
+            {
+              "id": 1,
+              "time": 3.209199985576561e-05
+            },
+            {
+              "id": 2,
+              "time": 1.3195999827075866e-05
+            }
+          ],
+          "time": 7.53039998926397e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015702860999908808
+            },
+            {
+              "id": 1,
+              "time": 0.012289077000104953
+            },
+            {
+              "id": 2,
+              "time": 0.01309722100018007
+            }
+          ],
+          "time": 0.04109098900016761
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013624179999851549
+            },
+            {
+              "id": 1,
+              "time": 0.013122818000056213
+            },
+            {
+              "id": 2,
+              "time": 0.012883665999879668
+            }
+          ],
+          "time": 0.03965440999991188
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012043287000096825
+            },
+            {
+              "id": 1,
+              "time": 0.01316712700008793
+            },
+            {
+              "id": 2,
+              "time": 0.012471733999973367
+            }
+          ],
+          "time": 0.03768403100002615
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 4.416000138007803e-06
+            }
+          ],
+          "time": 4.416000138007803e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013213475999918955
+            },
+            {
+              "id": 1,
+              "time": 0.013411174999873765
+            },
+            {
+              "id": 2,
+              "time": 0.01332460000003266
+            }
+          ],
+          "time": 0.03995036999981494
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1344.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 24,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1344.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 24,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 6,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1368000059519545e-05
+            },
+            {
+              "id": 1,
+              "time": 1.133800014940789e-05
+            },
+            {
+              "id": 2,
+              "time": 1.3019000107306056e-05
+            }
+          ],
+          "time": 3.662700032691646e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1494999853312038e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1521000033098971e-05
+            },
+            {
+              "id": 2,
+              "time": 1.3502999991032993e-05
+            }
+          ],
+          "time": 3.779400003622868e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.091600003950589e-05
+            },
+            {
+              "id": 1,
+              "time": 1.834099998632155e-05
+            },
+            {
+              "id": 2,
+              "time": 2.6799000124810846e-05
+            }
+          ],
+          "time": 6.709200010845962e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012488207999922452
+            },
+            {
+              "id": 1,
+              "time": 0.012360307999870201
+            },
+            {
+              "id": 2,
+              "time": 0.013644410999859247
+            }
+          ],
+          "time": 0.038495042999784346
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1286000017207698e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1629999789875e-05
+            },
+            {
+              "id": 2,
+              "time": 1.3261000049169525e-05
+            }
+          ],
+          "time": 3.8615999756075325e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.0002424509996217239
+            }
+          ],
+          "time": 0.0002424509996217239
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2557999980344903e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1537000091266236e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1603999837461743e-05
+            }
+          ],
+          "time": 4.0321999904335826e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015233588999990388
+            },
+            {
+              "id": 1,
+              "time": 0.016358154000045033
+            },
+            {
+              "id": 2,
+              "time": 0.013997248999885414
+            }
+          ],
+          "time": 0.0455910099999528
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.1482999980216846e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1468000138847856e-05
+            },
+            {
+              "id": 2,
+              "time": 1.3377999948716024e-05
+            }
+          ],
+          "time": 3.755900002033741e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01344777300005262
+            },
+            {
+              "id": 1,
+              "time": 0.012236521000204448
+            },
+            {
+              "id": 2,
+              "time": 0.013443552000126147
+            }
+          ],
+          "time": 0.03912899900024058
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 2.0753999933731393e-05
+            },
+            {
+              "id": 1,
+              "time": 1.0948999943138915e-05
+            },
+            {
+              "id": 2,
+              "time": 1.0993000159942312e-05
+            }
+          ],
+          "time": 5.1785000096060685e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015532984999936161
+            },
+            {
+              "id": 1,
+              "time": 0.012524342999995497
+            },
+            {
+              "id": 2,
+              "time": 0.014436995000096431
+            }
+          ],
+          "time": 0.04249566099997537
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.2338000033196295e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1240000048928778e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1280000080660102e-05
+            }
+          ],
+          "time": 3.6966000152460765e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.015190218000043387
+            },
+            {
+              "id": 1,
+              "time": 0.011908351999863953
+            },
+            {
+              "id": 2,
+              "time": 0.012042187000133708
+            }
+          ],
+          "time": 0.03914204400007293
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013884609000115233
+            },
+            {
+              "id": 1,
+              "time": 0.0134593909999694
+            },
+            {
+              "id": 2,
+              "time": 0.014711545999944065
+            }
+          ],
+          "time": 0.042057107000118776
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.01371691400004238
+            },
+            {
+              "id": 1,
+              "time": 0.012384576000158631
+            },
+            {
+              "id": 2,
+              "time": 0.013048808999883477
+            }
+          ],
+          "time": 0.03915209199999481
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 4.318000037528691e-06
+            }
+          ],
+          "time": 4.318000037528691e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.012946118999934697
+            },
+            {
+              "id": 1,
+              "time": 0.012382524999793532
+            },
+            {
+              "id": 2,
+              "time": 0.013929620999988401
+            }
+          ],
+          "time": 0.03925949899985426
+        }
+      ]
+    },
+    {
+      "communications": [
+        {
+          "bytes": 1344.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 24,
+          "to": {
+            "home": 1,
+            "id": 5,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        },
+        {
+          "bytes": 1344.0,
+          "from": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "messages": 24,
+          "to": {
+            "home": 2,
+            "id": 9,
+            "migratable": false,
+            "type": "object"
+          },
+          "type": "SendRecv"
+        }
+      ],
+      "id": 7,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3407875,
+            "index": [
+              12
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3324000065040309e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1277000112386304e-05
+            },
+            {
+              "id": 2,
+              "time": 1.129100019170437e-05
+            }
+          ],
+          "time": 3.691400024763425e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3145731,
+            "index": [
+              11
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.464899992242863e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1790999906224897e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1406999874452595e-05
+            }
+          ],
+          "time": 3.908699977728247e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2359299,
+            "index": [
+              8
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 3.3321000046271365e-05
+            },
+            {
+              "id": 1,
+              "time": 1.4116000102148973e-05
+            },
+            {
+              "id": 2,
+              "time": 1.2794999975085375e-05
+            }
+          ],
+          "time": 6.172300004436693e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097155,
+            "index": [
+              7
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013255122999908053
+            },
+            {
+              "id": 1,
+              "time": 0.012840286999789896
+            },
+            {
+              "id": 2,
+              "time": 0.011398968999856152
+            }
+          ],
+          "time": 0.03749663399958081
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2883587,
+            "index": [
+              10
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3600000102087506e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1389000064809807e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1510999911479303e-05
+            }
+          ],
+          "time": 3.843000013148412e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 1,
+            "migratable": false,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.00018627699978424062
+            }
+          ],
+          "time": 0.00018627699978424062
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3932163,
+            "index": [
+              14
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3474000070345937e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3726000133829075e-05
+            },
+            {
+              "id": 2,
+              "time": 1.170100017588993e-05
+            }
+          ],
+          "time": 4.4140000454717665e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524291,
+            "index": [
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013114867000012964
+            },
+            {
+              "id": 1,
+              "time": 0.012395729999980176
+            },
+            {
+              "id": 2,
+              "time": 0.013107516999980362
+            }
+          ],
+          "time": 0.03862049899998965
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              9
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3657999943461618e-05
+            },
+            {
+              "id": 1,
+              "time": 1.1482999980216846e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1505000202305382e-05
+            }
+          ],
+          "time": 3.7937000115562114e-05
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 4194316,
+            "migratable": false,
+            "objgroup_id": 1048579,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 0.0
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1835011,
+            "index": [
+              6
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013434443000051033
+            },
+            {
+              "id": 1,
+              "time": 0.01262670000005528
+            },
+            {
+              "id": 2,
+              "time": 0.011842742999988332
+            }
+          ],
+          "time": 0.0379052270000102
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 4194307,
+            "index": [
+              15
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 3.1560999786961474e-05
+            },
+            {
+              "id": 1,
+              "time": 1.2905999938084278e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1088999826824875e-05
+            }
+          ],
+          "time": 6.585299956896051e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786435,
+            "index": [
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013180827000041972
+            },
+            {
+              "id": 1,
+              "time": 0.012219563999906313
+            },
+            {
+              "id": 2,
+              "time": 0.013475759999892034
+            }
+          ],
+          "time": 0.03887747899966598
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 3670019,
+            "index": [
+              13
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 1.3127000102031161e-05
+            },
+            {
+              "id": 1,
+              "time": 1.3029999990976648e-05
+            },
+            {
+              "id": 2,
+              "time": 1.1163999943164526e-05
+            }
+          ],
+          "time": 4.000300009465718e-05
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 262147,
+            "index": [
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013104878999911307
+            },
+            {
+              "id": 1,
+              "time": 0.012886859999980516
+            },
+            {
+              "id": 2,
+              "time": 0.011723947000064072
+            }
+          ],
+          "time": 0.03771746699999312
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1048579,
+            "index": [
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013610874000050899
+            },
+            {
+              "id": 1,
+              "time": 0.014637511000046288
+            },
+            {
+              "id": 2,
+              "time": 0.012813103000098636
+            }
+          ],
+          "time": 0.04106314200021188
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310723,
+            "index": [
+              4
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.014061995000020033
+            },
+            {
+              "id": 1,
+              "time": 0.012454372000092917
+            },
+            {
+              "id": 2,
+              "time": 0.01612738999983776
+            }
+          ],
+          "time": 0.042646233999903416
+        },
+        {
+          "entity": {
+            "home": 0,
+            "id": 3145740,
+            "migratable": false,
+            "objgroup_id": 786435,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 4.481000132727786e-06
+            }
+          ],
+          "time": 4.481000132727786e-06
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1572867,
+            "index": [
+              5
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "subphases": [
+            {
+              "id": 0,
+              "time": 0.013455210999836709
+            },
+            {
+              "id": 1,
+              "time": 0.0116946299999654
+            },
+            {
+              "id": 2,
+              "time": 0.01172174500015899
+            }
+          ],
+          "time": 0.03687369400017815
+        }
+      ]
+    }
+  ]
+}

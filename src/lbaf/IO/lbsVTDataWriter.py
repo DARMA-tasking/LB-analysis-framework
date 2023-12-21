@@ -34,11 +34,11 @@ class VTDataWriter:
         # Useful fields
         self.__rank_phases = None
         self.__phases = None
-        self.__moved_objs_dicts = []
 
         # Set up mp manager
         manager = mp.Manager()
-        self.__moved_objs_dicts = manager.list()
+        self.__moved_comms = manager.list()
+        self.__to_remove = manager.list()
 
         # Assign internals
         self.__file_stem = stem
@@ -91,7 +91,7 @@ class VTDataWriter:
         phase_communications_dict = phase.get_communications()
 
         # Add empty entries for ranks with no initial communication
-        if rank.get_id() not in phase_communications_dict.keys():
+        if rank.get_id() not in phase_communications_dict:
             phase_communications_dict[rank.get_id()] = {}
 
         # Get original communications on current rank
@@ -103,21 +103,42 @@ class VTDataWriter:
         # Initialize final communications
         communications = []
 
+        print_condition = True if phase.get_id() == 0 else False
+
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
+            if print_condition:
+                print(f"WRITER (pre ): rank {rank.get_id()} phase {phase.get_id()}: {len(initial_on_rank_communications)}")
             for comm_dict in initial_on_rank_communications:
                 if comm_dict["from"]["id"] in rank_objects:
                     communications.append(comm_dict)
                 else:
-                    self.__moved_objs_dicts.append(comm_dict)
+                    self.__moved_comms.append(comm_dict)
+                    if print_condition:
+                        print(f"Rank {rank.get_id()} moved a communication.")
+
+        if print_condition:
+            print(f"len moved_comms: {len(self.__moved_comms)}")
+            print(f"moved_comms: {self.__moved_comms}")
 
         # Loop through any moved objects to find the correct rank
-        if self.__moved_objs_dicts:
-            to_remove = []
-            for moved_dict in self.__moved_objs_dicts:
+        if self.__moved_comms:
+            for moved_dict in self.__moved_comms:
+                # if print_condition:
+                #     print(f"\ncurrent obj id: {moved_dict['from']['id']}")
+                #     print(f"rank {rank.get_id()} objects: {rank_objects}\n")
                 if moved_dict["from"]["id"] in rank_objects:
+                    if print_condition:
+                        print(f"Rank {rank.get_id()} received a communication.")
                     communications.append(moved_dict)
-                    to_remove.append(moved_dict)
+                    self.__to_remove.append(moved_dict)
+
+            if self.__to_remove:
+                for removable_dict in self.__to_remove:
+                    self.__moved_comms.remove(removable_dict)
+
+        if print_condition:
+            print(f"WRITER (post): rank {rank.get_id()} phase {phase.get_id()}: {len(communications)}\n")
 
         return communications
 
@@ -153,13 +174,14 @@ class VTDataWriter:
         # Unpack received double
         r_id, r_phases = rank_phases_double
 
-        # Get current phase
+        # Get current rank
         for p_id, rank in r_phases.items():
-            current_phase = self.__phases.get(p_id)
+            if rank.get_id() == r_id:
+                current_rank = rank
 
         # Get metadata
-        if current_phase.get_metadata()[r_id]:
-            metadata = current_phase.get_metadata()[r_id]
+        if current_rank.get_metadata():
+            metadata = current_rank.get_metadata()
         else:
             metadata = {
                 "type": "LBDatafile",
@@ -173,6 +195,9 @@ class VTDataWriter:
 
         # Iterate over phases
         for p_id, rank in r_phases.items():
+            # Get current phase
+            current_phase = self.__phases.get(p_id)
+
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data= {"id": p_id,

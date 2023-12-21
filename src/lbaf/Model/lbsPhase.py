@@ -208,14 +208,6 @@ class Phase:
         """Return the phase communications dict."""
         return self.__communications
 
-    def get_metadata(self):
-        """Return the metadata dict."""
-        return self.__metadata
-
-    def set_metadata(self, metadata: dict):
-        """Assign the metadata dict."""
-        self.__metadata = metadata
-
     def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
         """Convenience method to update or create directed edge with given volume."""
         # Create undidrected edge index and try to retrieve edge
@@ -401,7 +393,7 @@ class Phase:
     def populate_from_log(self, phase_id):
         """Populate this phase by reading in a load profile from log files."""
         # Populate phase with JSON reader output
-        self.__ranks, self.__communications, self.__metadata = self.__reader.populate_phase(phase_id)
+        self.__ranks, self.__communications = self.__reader.populate_phase(phase_id)
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())
