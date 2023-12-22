@@ -144,7 +144,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return number of swaps performed from rank
         n_rank_swaps = 0
-    
+
     def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: dict) -> None:
         """Perform feasible subcluster transfers from given rank to possible targets."""
         # Iterate over source subclusters
@@ -189,7 +189,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Reject subcluster transfer
                 self._n_rejects += len(o_src)
 
-        
+
     def execute(self, known_peers, phase: Phase, ave_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
