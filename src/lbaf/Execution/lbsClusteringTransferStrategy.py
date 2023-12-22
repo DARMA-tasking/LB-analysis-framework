@@ -145,7 +145,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Return number of swaps performed from rank
         n_rank_swaps = 0
 
-    def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: dict) -> None:
+    def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: dict, ave_load: float) -> None:
         """Perform feasible subcluster transfers from given rank to possible targets."""
         # Iterate over source subclusters
         for o_src in self.__build_rank_subclusters(r_src):
@@ -196,8 +196,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._initialize_transfer_stage(ave_load)
 
         # Iterate over ranks
-        ranks = phase.get_ranks()
-        rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
+        rank_targets = self._get_ranks_to_traverse(phase.get_ranks(), known_peers)
         for r_src, targets in rank_targets.items():
             # Cluster migratable objects on source rank
             clusters_src = self.__build_rank_clusters(r_src, True)
@@ -217,13 +216,14 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     continue
 
             # Perform feasible subcluster swaps from given rank to possible targets
-            self.__transfer_subclusters(phase, r_src, targets)
+            self.__transfer_subclusters(phase, r_src, targets, ave_load)
 
             # Report on new load and exit from rank
             self._logger.debug(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
 
         # Report on global transfer statistics
+        n_ranks = len(phase.get_ranks())
         self._logger.info(
             f"Swapped {self.__n_swaps} cluster pairs amongst {self.__n_swap_tries} tries ({100 * self.__n_swaps / self.__n_swap_tries:.2f}%)")
         if self.__n_sub_tries:
@@ -231,7 +231,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 f"Transferred {self.__n_sub_transfers} subcluster amongst {self.__n_sub_tries} tries ({100 * self.__n_sub_transfers / self.__n_sub_tries:.2f}%)")
         if self.__n_sub_skipped:
             self._logger.info(
-                f"Skipped subclustering for {self.__n_sub_skipped} ranks ({100 * self.__n_sub_skipped / len(ranks):.2f}%)")
+                f"Skipped subclustering for {self.__n_sub_skipped} ranks ({100 * self.__n_sub_skipped / n_ranks:.2f}%)")
 
         # Return object transfer counts
-        return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
+        return n_ranks - len(rank_targets), self._n_transfers, self._n_rejects
