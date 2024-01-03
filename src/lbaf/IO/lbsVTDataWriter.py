@@ -38,7 +38,7 @@ class VTDataWriter:
         # Set up mp manager
         manager = mp.Manager()
         self.__moved_comms = manager.list()
-        self.__to_remove = manager.list()
+        # self.__to_remove = manager.list()
 
         # Assign internals
         self.__file_stem = stem
@@ -118,12 +118,6 @@ class VTDataWriter:
             for moved_dict in self.__moved_comms:
                 if moved_dict["from"]["id"] in rank_objects:
                     communications.append(moved_dict)
-                    self.__to_remove.append(moved_dict)
-
-            # Remove dicts from  __moved_comms once they are placed
-            if self.__to_remove:
-                for removable_dict in self.__to_remove:
-                    self.__moved_comms.remove(removable_dict)
 
         return communications
 
