@@ -261,5 +261,13 @@ class TestConfig(unittest.TestCase):
             configuration = yaml.safe_load(yaml_str)
         ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
 
+    def test_config_validator_wrong_separate_subclustering(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_separate_subclustering.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Key 'parameters' error:\nKey 'separate_subclustering' error:\n'incorrect' should be instance of 'bool'")
+
 if __name__ == "__main__":
     unittest.main()

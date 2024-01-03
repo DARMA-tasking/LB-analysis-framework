@@ -25,6 +25,7 @@ algorithm:
     transfer_strategy: Clustering
     criterion: Tempered
     max_objects_per_transfer: 32
+    separate_subclustering: true
     deterministic_transfer: true
 
 # Specify output
