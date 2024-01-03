@@ -276,7 +276,8 @@ class TestVTDataWriter(unittest.TestCase):
                 # Make sure all communicating objects belong on this rank
                 for comm_dict in output_communication_data:
                     comm_obj = comm_dict["from"]["id"]
-                    self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
+                    if comm_dict["from"]["migratable"]: # ignore sentinel objects
+                        self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
 
         # make sure no communications were lost
         print(f"\nINPUT TOTAL: {input_communication_count}")

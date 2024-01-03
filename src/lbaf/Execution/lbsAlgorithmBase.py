@@ -225,7 +225,7 @@ class AlgorithmBase:
         self._logger.info(f"Creating new phase {p_id} for rebalancing")
         self._rebalanced_phase = Phase(self._logger, p_id)
 
-        # Try to copy ranks from phase to be rebalanced to processd one
+        # Try to copy ranks from phase to be rebalanced to processed one
         try:
             new_ranks = []
             for r in phases[p_id].get_ranks():

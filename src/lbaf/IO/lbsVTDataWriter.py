@@ -103,42 +103,27 @@ class VTDataWriter:
         # Initialize final communications
         communications = []
 
-        print_condition = True if phase.get_id() == 0 else False
-
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
-            if print_condition:
-                print(f"WRITER (pre ): rank {rank.get_id()} phase {phase.get_id()}: {len(initial_on_rank_communications)}")
             for comm_dict in initial_on_rank_communications:
-                if comm_dict["from"]["id"] in rank_objects:
+                if not comm_dict["from"]["migratable"]: # object is sentinel
+                    communications.append(comm_dict)
+                elif comm_dict["from"]["id"] in rank_objects:
                     communications.append(comm_dict)
                 else:
                     self.__moved_comms.append(comm_dict)
-                    if print_condition:
-                        print(f"Rank {rank.get_id()} moved a communication.")
-
-        if print_condition:
-            print(f"len moved_comms: {len(self.__moved_comms)}")
-            print(f"moved_comms: {self.__moved_comms}")
 
         # Loop through any moved objects to find the correct rank
         if self.__moved_comms:
             for moved_dict in self.__moved_comms:
-                # if print_condition:
-                #     print(f"\ncurrent obj id: {moved_dict['from']['id']}")
-                #     print(f"rank {rank.get_id()} objects: {rank_objects}\n")
                 if moved_dict["from"]["id"] in rank_objects:
-                    if print_condition:
-                        print(f"Rank {rank.get_id()} received a communication.")
                     communications.append(moved_dict)
                     self.__to_remove.append(moved_dict)
 
+            # Remove dicts from  __moved_comms once they are placed
             if self.__to_remove:
                 for removable_dict in self.__to_remove:
                     self.__moved_comms.remove(removable_dict)
-
-        if print_condition:
-            print(f"WRITER (post): rank {rank.get_id()} phase {phase.get_id()}: {len(communications)}\n")
 
         return communications
 

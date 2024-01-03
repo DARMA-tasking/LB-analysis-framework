@@ -19,7 +19,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         super(PhaseStepperAlgorithm, self).__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, _, phases: list, distributions: dict, statistics: dict, __):
-        """Execute brute force optimization algorithm on all phases."""
+        """Steps through all phases."""
 
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(

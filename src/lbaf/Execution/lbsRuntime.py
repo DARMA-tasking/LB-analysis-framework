@@ -89,7 +89,7 @@ class Runtime:
         return self.__statistics
 
     def execute(self, p_id: int, phase_increment=0):
-        """Execute runtime for single phase with given ID or all (-1)."""
+        """Execute runtime for single phase with given ID or multiple phases in selected range."""
         # Execute balancing algorithm
         self.__logger.info(
             f"Executing {type(self.__algorithm).__name__} for "
