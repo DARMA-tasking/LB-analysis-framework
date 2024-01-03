@@ -107,83 +107,83 @@ class TestVTDataWriter(unittest.TestCase):
                 decompressed_dict = json.loads(compr_bytes.decode("utf-8"))  # , object_pairs_hook=OrderedDict
         return decompressed_dict
 
-    # def test_vt_writer_required_fields_output(self):
-    #     """Run LBAF using a PhaseStepper algorithm and test that output is same than input data files
-    #     (required fields only).
-    #     Note that the dictionary keys and list of elements can be ordered differently in the input and in the output
-    #     data.
-    #     """
+    def test_vt_writer_required_fields_output(self):
+        """Run LBAF using a PhaseStepper algorithm and test that output is same than input data files
+        (required fields only).
+        Note that the dictionary keys and list of elements can be ordered differently in the input and in the output
+        data.
+        """
 
-    #     # run LBAF
-    #     config_file = os.path.join(self.config_dir, "conf_vt_writer_stepper_test.yml")
-    #     proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
-    #     self.assertEqual(0, proc.returncode)
+        # run LBAF
+        config_file = os.path.join(self.config_dir, "conf_vt_writer_stepper_test.yml")
+        proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
+        self.assertEqual(0, proc.returncode)
 
-    #     # LBAF config useful information
-    #     with open(config_file, "rt", encoding="utf-8") as file_io:
-    #         config = yaml.safe_load(file_io)
-    #     data_stem = config.get("from_data").get("data_stem")
+        # LBAF config useful information
+        with open(config_file, "rt", encoding="utf-8") as file_io:
+            config = yaml.safe_load(file_io)
+        data_stem = config.get("from_data").get("data_stem")
 
-    #     # input information
-    #     input_dir = abspath(f"{os.sep}".join(data_stem.split(os.sep)[:-1]), os.path.dirname(config_file))
-    #     input_file_prefix = data_stem.split(os.sep)[-1]
-    #     n_ranks = len([name for name in os.listdir(input_dir)])
+        # input information
+        input_dir = abspath(f"{os.sep}".join(data_stem.split(os.sep)[:-1]), os.path.dirname(config_file))
+        input_file_prefix = data_stem.split(os.sep)[-1]
+        n_ranks = len([name for name in os.listdir(input_dir)])
 
-    #     # output information
-    #     output_dir = abspath(config.get("output_dir", '.'), os.path.dirname(config_file))
-    #     output_file_prefix = config.get("output_file_stem")
+        # output information
+        output_dir = abspath(config.get("output_dir", '.'), os.path.dirname(config_file))
+        output_file_prefix = config.get("output_file_stem")
 
-    #     # compare input/output files (at each rank)
-    #     for i in range(0, n_ranks):
-    #         input_file_name = f"{input_file_prefix}.{i}.json"
-    #         input_file = os.path.join(input_dir, input_file_name)
-    #         output_file_name = f"{output_file_prefix}.{i}.json"
-    #         output_file = os.path.join(output_dir, output_file_name)
+        # compare input/output files (at each rank)
+        for i in range(0, n_ranks):
+            input_file_name = f"{input_file_prefix}.{i}.json"
+            input_file = os.path.join(input_dir, input_file_name)
+            output_file_name = f"{output_file_prefix}.{i}.json"
+            output_file = os.path.join(output_dir, output_file_name)
 
-    #         print(f"[{__loader__.name}] Compare input file ({input_file_name}) and output file ({output_file_name})...")
+            print(f"[{__loader__.name}] Compare input file ({input_file_name}) and output file ({output_file_name})...")
 
-    #         # validate that output file exists at rank i
-    #         self.assertTrue(
-    #             os.path.isfile(output_file),
-    #             f"File {output_file} not generated at {output_dir}"
-    #         )
+            # validate that output file exists at rank i
+            self.assertTrue(
+                os.path.isfile(output_file),
+                f"File {output_file} not generated at {output_dir}"
+            )
 
-    #         # read input and output files
-    #         input_data = self.__read_data_file(input_file)
-    #         output_data = self.__read_data_file(output_file)
+            # read input and output files
+            input_data = self.__read_data_file(input_file)
+            output_data = self.__read_data_file(output_file)
 
-    #         # validate output against the JSON schema validator
-    #         schema_validator = SchemaValidator(schema_type="LBDatafile")
-    #         self.assertTrue(
-    #             schema_validator.validate(output_data),
-    #             f"Schema not valid for generated file at {output_file_name}"
-    #         )
+            # validate output against the JSON schema validator
+            schema_validator = SchemaValidator(schema_type="LBDatafile")
+            self.assertTrue(
+                schema_validator.validate(output_data),
+                f"Schema not valid for generated file at {output_file_name}"
+            )
 
-    #         # compare input & output data
-    #         # > find optional nodes
-    #         opt_keys = self.__list_optional_keys_recursive(schema_validator.valid_schema.schema)
-    #         # > remove optional nodes from input and output data
-    #         self.__remove_optional_keys_recursive(input_data, opt_keys)
-    #         self.__remove_optional_keys_recursive(output_data, opt_keys)
-    #         # > sort dictionaries and lists of elements by id
-    #         input_data = self.__sort_data_recursive(input_data)
-    #         output_data = self.__sort_data_recursive(output_data)
-    #         # > sort phases by inner entity id
-    #         self.__sort_phases_by_entity_id(input_data)
-    #         self.__sort_phases_by_entity_id(output_data)
+            # compare input & output data
+            # > find optional nodes
+            opt_keys = self.__list_optional_keys_recursive(schema_validator.valid_schema.schema)
+            # > remove optional nodes from input and output data
+            self.__remove_optional_keys_recursive(input_data, opt_keys)
+            self.__remove_optional_keys_recursive(output_data, opt_keys)
+            # > sort dictionaries and lists of elements by id
+            input_data = self.__sort_data_recursive(input_data)
+            output_data = self.__sort_data_recursive(output_data)
+            # > sort phases by inner entity id
+            self.__sort_phases_by_entity_id(input_data)
+            self.__sort_phases_by_entity_id(output_data)
 
-    #         # uncomment to see complete data file contents (uncompressed)
-    #         # print(f"-------------------------------{input_file_name}-----------------------------------")
-    #         # print(json.dumps(input_data, indent=4))
-    #         # print(f"-------------------------------{output_file_name}----------------------------------")
-    #         # print(json.dumps(output_data, indent=4))
-    #         # print("-----------------------------------------------------------------------")
+            # uncomment to see complete data file contents (uncompressed)
+            # print(f"-------------------------------{input_file_name}-----------------------------------")
+            # print(json.dumps(input_data, indent=4))
+            # print(f"-------------------------------{output_file_name}----------------------------------")
+            # print(json.dumps(output_data, indent=4))
+            # print("-----------------------------------------------------------------------")
 
-    #         self.maxDiff = None  # to remove diff limit if self.assertDictEqual returns large diffs
-    #         self.assertDictEqual(input_data, output_data)
+            self.maxDiff = None  # to remove diff limit if self.assertDictEqual returns large diffs
+            self.assertDictEqual(input_data, output_data)
 
-    #         # the following is an assert alternative to compare json encoded data instead of dictionaries
-    #         # self.assertEqual(json.dumps(input_data, indent=4), json.dumps(output_data, indent=4))
+            # the following is an assert alternative to compare json encoded data instead of dictionaries
+            # self.assertEqual(json.dumps(input_data, indent=4), json.dumps(output_data, indent=4))
 
     def test_vt_writer_communications_output(self):
         """Tests that LBAF writes out the correct communications data."""
@@ -258,13 +258,11 @@ class TestVTDataWriter(unittest.TestCase):
             # increment the input communication counter
             if "communications" in input_phase_dict:
                 input_communication_data = input_phase_dict["communications"]
-                print(f"INPUT: rank {r_id} phase {p_id} input comm length: {len(input_communication_data)}")
                 input_communication_count += len(input_communication_data)
 
             # increment the output communication counter
             if "communications" in output_phase_dict:
                 output_communication_data = output_phase_dict["communications"]
-                print(f"FINAL: rank {r_id} phase {p_id} output comm length: {len(output_communication_data)}")
                 output_communication_count += len(output_communication_data)
 
                 # get list of all objects on this rank
@@ -280,8 +278,6 @@ class TestVTDataWriter(unittest.TestCase):
                         self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
 
         # make sure no communications were lost
-        print(f"\nINPUT TOTAL: {input_communication_count}")
-        print(f"OUTPUT TOTAL: {output_communication_count}")
         self.assertEqual(input_communication_count, output_communication_count)
 
 if __name__ == "__main__":
