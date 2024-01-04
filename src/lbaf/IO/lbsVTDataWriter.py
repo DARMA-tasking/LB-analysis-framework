@@ -106,7 +106,7 @@ class VTDataWriter:
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
-                if not comm_dict["from"]["migratable"]: # object is sentinel
+                if "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
                     communications.append(comm_dict)
                 elif comm_dict["from"]["id"] in rank_objects:
                     communications.append(comm_dict)
