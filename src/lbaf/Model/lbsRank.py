@@ -36,6 +36,9 @@ class Rank:
         # Start with empty shared block information
         self.__shared_blocks = set()
 
+        # Start with empty metadata
+        self.__metadata = {}
+
     def copy(self, rank):
         """Specialized copy method."""
         # Copy all flat member variables
@@ -68,6 +71,14 @@ class Rank:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
+
+    def get_metadata(self) -> dict:
+        """Return original metadata."""
+        return self.__metadata
+
+    def set_metadata(self, metadata: dict):
+        """Set rank's metadata."""
+        self.__metadata = metadata
 
     def get_shared_block_ids(self) -> set:
         """Return IDs of shared blocks."""

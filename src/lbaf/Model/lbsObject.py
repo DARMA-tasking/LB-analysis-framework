@@ -51,6 +51,9 @@ class Object:
         self.__overhead = 0.0
         self.__shared_block = None
 
+        # Initialize currently unused parameters (for writing back out)
+        self.__unused_params = {}
+
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
@@ -163,3 +166,11 @@ class Object:
     def get_subphases(self) -> list:
         """Return subphases of this object."""
         return self.__subphases
+
+    def set_unused_params(self, unused_params: dict):
+        """Assign any extraneous parameters."""
+        self.__unused_params = unused_params
+
+    def get_unused_params(self) -> dict:
+        """Return all current unused parameters."""
+        return self.__unused_params

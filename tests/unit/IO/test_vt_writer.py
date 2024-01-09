@@ -21,6 +21,8 @@ class TestVTDataWriter(unittest.TestCase):
     """Test class for VTDataWriter class"""
 
     def setUp(self):
+        self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.config_dir = os.path.join(self.test_dir, "config")
         return
 
     def tearDown(self):
@@ -113,8 +115,6 @@ class TestVTDataWriter(unittest.TestCase):
         """
 
         # run LBAF
-        self.test_dir = os.path.dirname(os.path.dirname(__file__))
-        self.config_dir = os.path.join(self.test_dir, "config")
         config_file = os.path.join(self.config_dir, "conf_vt_writer_stepper_test.yml")
         proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
         self.assertEqual(0, proc.returncode)
@@ -185,6 +185,100 @@ class TestVTDataWriter(unittest.TestCase):
             # the following is an assert alternative to compare json encoded data instead of dictionaries
             # self.assertEqual(json.dumps(input_data, indent=4), json.dumps(output_data, indent=4))
 
+    def test_vt_writer_communications_output(self):
+        """Tests that LBAF writes out the correct communications data."""
+
+        # run LBAF
+        config_file = os.path.join(self.config_dir, "conf_vt_writer_communications_test.yaml")
+        proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
+        self.assertEqual(0, proc.returncode)
+
+        # LBAF config useful information
+        with open(config_file, "rt", encoding="utf-8") as file_io:
+            config = yaml.safe_load(file_io)
+        data_stem = config.get("from_data").get("data_stem")
+
+        # input information
+        input_dir = abspath(f"{os.sep}".join(data_stem.split(os.sep)[:-1]), os.path.dirname(config_file))
+        input_file_prefix = data_stem.split(os.sep)[-1]
+        n_ranks = len([name for name in os.listdir(input_dir)])
+
+        # output information
+        output_dir = abspath(config.get("output_dir", '.'), os.path.dirname(config_file))
+        output_file_prefix = config.get("output_file_stem")
+
+        # count total communications
+        input_communication_count = 0
+        output_communication_count = 0
+
+        # compare input/output files (at each rank)
+        for r_id in range(0, n_ranks):
+            input_file_name = f"{input_file_prefix}.{r_id}.json"
+            input_file = os.path.join(input_dir, input_file_name)
+            output_file_name = f"{output_file_prefix}.{r_id}.json"
+            output_file = os.path.join(output_dir, output_file_name)
+
+            # print(f"[{__loader__.name}] Compare input file ({input_file_name}) and output file ({output_file_name})...")
+
+            # validate that output file exists at rank i
+            self.assertTrue(
+                os.path.isfile(output_file),
+                f"File {output_file} not generated at {output_dir}"
+            )
+
+            # read input and output files
+            input_data = self.__read_data_file(input_file)
+            output_data = self.__read_data_file(output_file)
+
+            # validate output against the JSON schema validator
+            schema_validator = SchemaValidator(schema_type="LBDatafile")
+            self.assertTrue(
+                schema_validator.validate(output_data),
+                f"Schema not valid for generated file at {output_file_name}"
+            )
+
+            # ensure that input and output have same number of phases
+            self.assertEqual(len(input_data["phases"]), len(output_data["phases"]))
+
+            # get current phase
+            p_id = config.get("algorithm")["phase_id"]
+
+            # Find index of current phase
+            idx = 0
+            for phase_dict in input_data["phases"]:
+                if phase_dict["id"] == p_id:
+                    break
+                else:
+                    idx += 1
+
+            # Isolate phase dicts
+            input_phase_dict = input_data["phases"][idx]
+            output_phase_dict = output_data["phases"][idx]
+
+            # increment the input communication counter
+            if "communications" in input_phase_dict:
+                input_communication_data = input_phase_dict["communications"]
+                input_communication_count += len(input_communication_data)
+
+            # increment the output communication counter
+            if "communications" in output_phase_dict:
+                output_communication_data = output_phase_dict["communications"]
+                output_communication_count += len(output_communication_data)
+
+                # get list of all objects on this rank
+                rank_objs = []
+                tasks = output_phase_dict["tasks"]
+                for task in tasks:
+                    rank_objs.append(task["entity"].get("id"))
+
+                # Make sure all communicating objects belong on this rank
+                for comm_dict in output_communication_data:
+                    comm_obj = comm_dict["from"]["id"]
+                    if comm_dict["from"]["migratable"]: # ignore sentinel objects
+                        self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
+
+        # make sure no communications were lost
+        self.assertEqual(input_communication_count, output_communication_count)
 
 if __name__ == "__main__":
     unittest.main()

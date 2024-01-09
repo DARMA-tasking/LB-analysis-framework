@@ -173,7 +173,7 @@ class TestConfig(unittest.TestCase):
         self.assertIn(err.exception.args[0], list_of_err_msg)
 
     def test_lbs_vt_data_reader_populate_phase(self):
-        rank_list = self.lr.populate_phase(0)
+        rank_list, comm_dict = self.lr.populate_phase(0)
         for rank_real, rank_mock in zip(rank_list, self.rank_list):
             generated_list = sorted(list(rank_real.get_migratable_objects()), key=lambda x: x.get_id())
             prepared_list = sorted(list(rank_mock.get_migratable_objects()), key=lambda x: x.get_id())
