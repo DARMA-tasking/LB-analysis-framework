@@ -37,6 +37,12 @@ class Phase:
         # Initialize empty list of ranks
         self.__ranks = []
 
+        # Initialize phase communication dict
+        self.__communications = {}
+
+        # Initialize metadata dict
+        self.__metadata = {}
+
         # Start with null set of edges
         self.__edges = None
 
@@ -193,6 +199,14 @@ class Phase:
 
         # Return maximum values at edges
         return [max(v) for v in self.__edges.values()]
+
+    def set_communications(self, communications: dict):
+        """Set the phase communications dict."""
+        self.__communications = communications
+
+    def get_communications(self):
+        """Return the phase communications dict."""
+        return self.__communications
 
     def __update_or_create_directed_edge(self, from_id: int, to_id: int, v: float):
         """Convenience method to update or create directed edge with given volume."""
@@ -379,7 +393,7 @@ class Phase:
     def populate_from_log(self, phase_id):
         """Populate this phase by reading in a load profile from log files."""
         # Populate phase with JSON reader output
-        self.__ranks = self.__reader.populate_phase(phase_id)
+        self.__ranks, self.__communications = self.__reader.populate_phase(phase_id)
         objects = set()
         for p in self.__ranks:
             objects = objects.union(p.get_objects())

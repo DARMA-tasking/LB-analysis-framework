@@ -2,7 +2,7 @@ import json
 import os
 import re
 from logging import Logger
-from multiprocessing import get_context
+from multiprocessing import get_context, Manager
 from multiprocessing.pool import Pool
 
 import brotli
@@ -46,6 +46,13 @@ class LoadReader:
 
         # Assign schema checker
         self.__check_schema = check_schema
+
+        # Save initial communications array from every rank
+        self.__communications_dict = {}
+
+        # Save metadata dict
+        manager = Manager()
+        self.__metadata = manager.dict()
 
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
@@ -129,6 +136,9 @@ class LoadReader:
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
+        # Save metadata
+        self.__metadata[rank_id] = metadata
+
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
@@ -175,6 +185,10 @@ class LoadReader:
         rank_comm = {}
         communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
         if communications:
+            if phase_id in self.__communications_dict:
+                self.__communications_dict[phase_id][rank_id] = communications
+            else:
+                self.__communications_dict[phase_id] = {rank_id: communications}
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
                 c_type = comm.get("type")
@@ -209,6 +223,7 @@ class LoadReader:
 
         # Instantiante rank for current phase
         phase_rank = Rank(self.__logger, rank_id)
+        phase_rank.set_metadata(self.__metadata[rank_id])
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}
@@ -221,6 +236,8 @@ class LoadReader:
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
+            collection_id = task_entity.get("collection_id")
+            index = task_entity.get("index")
 
             # Instantiate object with retrieved parameters
             o = Object(
@@ -243,6 +260,14 @@ class LoadReader:
                 phase_rank.add_migratable_object(o)
             else:
                 phase_rank.add_sentinel_object(o)
+
+            # Add dict of currently unused parameters
+            unused_params = {}
+            if collection_id:
+                unused_params["collection_id"] = collection_id
+            if index:
+                unused_params["index"] = index
+            o.set_unused_params(unused_params)
 
             # Print debug information when requested
             self.__logger.debug(
@@ -314,4 +339,4 @@ class LoadReader:
                             i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
-        return ranks
+        return ranks, self.__communications_dict[phase_id]
