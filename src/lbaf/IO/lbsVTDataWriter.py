@@ -121,33 +121,6 @@ class VTDataWriter:
 
         return communications
 
-    def serialize(self, phases: dict) -> list:
-        """ Create list of serialized JSON per """
-
-        # Ensure that provided phases is a dictionary of Phase instances
-        if not isinstance(phases, dict) or not all(
-                [isinstance(p, Phase) for p in phases.values()]):
-            self.__logger.error(
-                "serialize must be passed a dictionary of phases")
-            raise SystemExit(1)
-
-        self.__phases = phases
-
-        # Assemble mapping from ranks to their phases
-        rank_phases = {}
-        for p in phases.values():
-            for r in p.get_ranks():
-                rank_phases.setdefault(r, {})
-                rank_phases[r.get_id()][p.get_id()] = r
-
-        # Serialize each rank's data
-        serialized_data_list = []
-        for rank_phases_double in rank_phases.items():
-            serialized_data = self._json_serializer(rank_phases_double)
-            serialized_data_list.append(serialized_data)
-
-        return serialized_data_list
-
     def _json_serializer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
