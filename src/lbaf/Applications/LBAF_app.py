@@ -517,11 +517,11 @@ class LBAFApplication:
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
-        # Execute runtime for specified phases, -1 for all phases
+        # Execute runtime for specified phases
         offline_LB_compatible = self.__parameters.json_params.get(  # pylint:disable=C0103:invalid-name;not lowercase
             "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
-            self.__parameters.algorithm.get("phase_id", -1),
+            self.__parameters.algorithm.get("phase_id", 0),
             offline_LB_compatible)
 
         # Instantiate phase to VT file writer when requested

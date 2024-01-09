@@ -55,6 +55,9 @@ class AlgorithmBase:
         # Initially no phase is assigned for processing
         self._rebalanced_phase = None
 
+        # Save the initial communications data
+        self._initial_communications = {}
+
         # Map global statistical QOIs to their computation methods
         self.__statistics = {
             ("ranks", lambda x: x.get_load()): {
@@ -75,6 +78,10 @@ class AlgorithmBase:
     def get_rebalanced_phase(self):
         """Return phased assigned for processing by algoritm."""
         return self._rebalanced_phase
+
+    def get_initial_communications(self):
+        """Return the initial phase communications."""
+        return self._initial_communications
 
     @staticmethod
     def factory(
@@ -211,11 +218,14 @@ class AlgorithmBase:
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
+        # Set initial communications for given rank
+        self._initial_communications[p_id] = phases[p_id].get_communications()
+
         # Create a new phase to preserve phase to be rebalanced
         self._logger.info(f"Creating new phase {p_id} for rebalancing")
         self._rebalanced_phase = Phase(self._logger, p_id)
 
-        # Try to copy ranks from phase to be rebalanced to processd one
+        # Try to copy ranks from phase to be rebalanced to processed one
         try:
             new_ranks = []
             for r in phases[p_id].get_ranks():

@@ -33,6 +33,12 @@ class VTDataWriter:
 
         # Useful fields
         self.__rank_phases = None
+        self.__phases = None
+
+        # Set up mp manager
+        manager = mp.Manager()
+        self.__moved_comms = manager.list()
+        # self.__to_remove = manager.list()
 
         # Assign internals
         self.__file_stem = stem
@@ -51,6 +57,7 @@ class VTDataWriter:
         """Create per-object entries to be outputted to JSON."""
         tasks = []
         for o in objects:
+            unused_params = o.get_unused_params()
             task_data = {
                 "entity": {
                     "home": rank_id,
@@ -62,12 +69,107 @@ class VTDataWriter:
                 "resource": "cpu",
                 "time": o.get_load()
             }
+            if unused_params:
+                task_data["entity"].update(unused_params)
+
             user_defined = o.get_user_defined()
             if user_defined:
                 task_data["user_defined"] = user_defined
+
+            subphases = o.get_subphases()
+            if subphases:
+                task_data["subphases"] = subphases
+
             tasks.append(task_data)
+
         return tasks
 
+    def __get_communications(self, phase, rank):
+        """Create communication entries to be outputted to JSON."""
+
+        # Get initial communications (if any) for current phase
+        phase_communications_dict = phase.get_communications()
+
+        # Add empty entries for ranks with no initial communication
+        if rank.get_id() not in phase_communications_dict:
+            phase_communications_dict[rank.get_id()] = {}
+
+        # Get original communications on current rank
+        initial_on_rank_communications = phase_communications_dict[rank.get_id()]
+
+        # Get all objects on current rank
+        rank_objects = rank.get_object_ids()
+
+        # Initialize final communications
+        communications = []
+
+        # Ensure all objects are on the correct rank
+        if initial_on_rank_communications:
+            for comm_dict in initial_on_rank_communications:
+                if "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
+                    communications.append(comm_dict)
+                elif comm_dict["from"]["id"] in rank_objects:
+                    communications.append(comm_dict)
+                else:
+                    self.__moved_comms.append(comm_dict)
+
+        # Loop through any moved objects to find the correct rank
+        if self.__moved_comms:
+            for moved_dict in self.__moved_comms:
+                if moved_dict["from"]["id"] in rank_objects:
+                    communications.append(moved_dict)
+
+        return communications
+
+    def _json_serializer(self, rank_phases_double) -> str:
+        """Write one JSON per rank for list of phase instances."""
+        # Unpack received double
+        r_id, r_phases = rank_phases_double
+
+        # Get current rank
+        for p_id, rank in r_phases.items():
+            if rank.get_id() == r_id:
+                current_rank = rank
+
+        # Get metadata
+        if current_rank.get_metadata():
+            metadata = current_rank.get_metadata()
+        else:
+            metadata = {
+                "type": "LBDatafile",
+                "rank": r_id
+            }
+
+        # Initialize output dict
+        output = {
+            "metadata": metadata,
+            "phases": []}
+
+        # Iterate over phases
+        for p_id, rank in r_phases.items():
+            # Get current phase
+            current_phase = self.__phases.get(p_id)
+
+            # Create data to be outputted for current phase
+            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
+            phase_data= {"id": p_id,
+                         "tasks":
+                            self.__create_tasks(
+                                r_id, rank.get_migratable_objects(), migratable=True) +
+                            self.__create_tasks(
+                                r_id, rank.get_sentinel_objects(), migratable=False),
+            }
+
+            # Add communication data (if present)
+            communications = self.__get_communications(current_phase, rank)
+            if communications:
+                phase_data["communications"] = communications
+
+            output["phases"].append(phase_data)
+
+        # Serialize and possibly compress JSON payload
+        serial_json = json.dumps(output, separators=(',', ':'))
+        return serial_json
 
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
@@ -78,25 +180,9 @@ class VTDataWriter:
         file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
         self.__logger.debug(f"Writing {file_name}")
 
-        # Initialize output dict
-        output = {
-            "metadata": {
-                "type": "LBDatafile",
-                "rank": r_id},
-            "phases": []}
-
-        # Iterate over phases
-        for p_id, rank in r_phases.items():
-            # Create data to be outputted for current phase
-            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
-            phase_data = {"id": p_id}
-            phase_data["tasks"] = self.__create_tasks(
-                r_id, rank.get_migratable_objects(), migratable=True) + self.__create_tasks(
-                r_id, rank.get_sentinel_objects(), migratable=False)
-            output["phases"].append(phase_data)
-
         # Serialize and possibly compress JSON payload
-        serial_json = json.dumps(output, separators=(',', ':'))
+        serial_json = self._json_serializer(rank_phases_double)
+
         if self.__compress:
             serial_json = brotli.compress(
                 string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
@@ -115,6 +201,8 @@ class VTDataWriter:
             self.__logger.error(
                 "JSON writer must be passed a dictionary of phases")
             raise SystemExit(1)
+
+        self.__phases = phases
 
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
