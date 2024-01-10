@@ -66,20 +66,16 @@ class TestConfig(unittest.TestCase):
             expected_output)
 
     def test_lbs_clustering_transfer_strategy_build_rank_subclusters(self):
-        clusters = self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_clusters(self.rank, with_nullset=False).values()
-        rank_load = self.rank.get_load()
-
         # Functionality is tested with execute()
         assert isinstance(
-            self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_subclusters(clusters, rank_load),
+            self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_subclusters(self.rank),
             list
         )
 
     def test_lbs_clustering_transfer_strategy_no_suitable_subclusters(self):
-        clusters = None
-        rank_load = self.rank.get_load()
+        rank = Rank(r_id=1, logger=self.logger)
         self.assertEqual(
-            self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_subclusters(clusters, rank_load),
+            self.clustering_transfer_strategy._ClusteringTransferStrategy__build_rank_subclusters(rank),
             []
         )
 
