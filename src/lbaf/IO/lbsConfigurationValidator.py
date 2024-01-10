@@ -163,6 +163,7 @@ class ConfigurationValidator:
                             int,
                             lambda x: x > 0.0,
                             error="Should be of type 'int' and > 0"),
+                         Optional("separate_subclustering"): bool,
                      "criterion": And(
                          str,
                          lambda f: f in ALLOWED_CRITERIA,

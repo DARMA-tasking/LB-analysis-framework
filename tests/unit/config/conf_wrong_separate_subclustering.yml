@@ -25,19 +25,9 @@ algorithm:
     transfer_strategy: Clustering
     criterion: Tempered
     max_objects_per_transfer: 32
-    separate_subclustering: true
+    separate_subclustering: incorrect
     deterministic_transfer: true
 
 # Specify output
 output_dir: ../output
 output_file_stem: output_file
-visualization:
-  x_ranks: 2
-  y_ranks: 2
-  z_ranks: 1
-  object_jitter: 0.5
-  rank_qoi: load
-  object_qoi: load
-  force_continuous_object_qoi: true
-  output_visualization_dir: ../output
-  output_visualization_file_stem: output_file
