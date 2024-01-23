@@ -1,6 +1,7 @@
 import os
 import logging
 import unittest
+import subprocess
 
 from schema import SchemaError
 
@@ -13,8 +14,10 @@ from src.lbaf.Model.lbsRank import Rank
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.test_dir = os.path.dirname(os.path.dirname(__file__))
-        self.data_dir = os.path.join(self.test_dir, "data")
-        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
+        self.project_dir = os.path.dirname(os.path.dirname(self.test_dir))
+        self.config_dir = os.path.join(self.project_dir, "config")
+        self.test_data_dir = os.path.join(self.test_dir, "data")
+        self.file_prefix = os.path.join(self.test_data_dir, "synthetic_lb_data", "data")
         self.file_suffix = "json"
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix=self.file_suffix)
@@ -114,7 +117,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_id_list, gen_id_list)
 
     def test_lbs_vt_data_reader_read_compressed(self):
-        file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
+        file_prefix = os.path.join(self.test_data_dir, "synthetic_lb_data_compressed", "data")
         lr = LoadReader(
             file_prefix=file_prefix, logger=self.logger, file_suffix=self.file_suffix)
         for rank_id in range(4):
@@ -144,29 +147,29 @@ class TestConfig(unittest.TestCase):
         ])
 
     def test_lbs_vt_data_reader_read_wrong_schema(self):
-        file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_wrong_schema", "data")
+        file_prefix = os.path.join(self.test_data_dir, "synthetic_lb_data_wrong_schema", "data")
         with self.assertRaises(SchemaError) as err:
             LoadReader(
                 file_prefix=file_prefix,
                 logger=self.logger, file_suffix=self.file_suffix)._populate_rank(0, 0)
         list_of_err_msg = []
         with open(os.path.join(
-            self.data_dir,
+            self.test_data_dir,
             "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt", encoding="utf-8") as se:
             err_msg_0 = se.read()
         list_of_err_msg.append(err_msg_0)
         with open(os.path.join(
-            self.data_dir,
+            self.test_data_dir,
             "synthetic_lb_data_wrong_schema", "schema_error_1.txt"), "rt", encoding="utf-8") as se:
             err_msg_1 = se.read()
         list_of_err_msg.append(err_msg_1)
         with open(os.path.join(
-            self.data_dir,
+            self.test_data_dir,
             "synthetic_lb_data_wrong_schema", "schema_error_2.txt"), "rt", encoding="utf-8") as se:
             err_msg_2 = se.read()
         list_of_err_msg.append(err_msg_2)
         with open(os.path.join(
-            self.data_dir,
+            self.test_data_dir,
             "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt", encoding="utf-8") as se:
             err_msg_3 = se.read()
         list_of_err_msg.append(err_msg_3)
@@ -214,6 +217,11 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_comm_rcv_load_list, gen_comm_rcv_load_list)
             self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
 
+    def test_lbs_vt_data_reader_missing_communications(self):
+        # run LBAF with no communications
+        config_file = os.path.join(self.config_dir, "user-defined-memory-toy-problem.yaml")
+        proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
+        self.assertEqual(0, proc.returncode)
 
 if __name__ == "__main__":
     unittest.main()
