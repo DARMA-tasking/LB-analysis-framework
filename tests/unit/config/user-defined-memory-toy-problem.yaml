@@ -1,0 +1,39 @@
+# Specify input
+from_data:
+  data_stem: ../data/user-defined-memory-toy-problem/toy_mem
+  phase_ids:
+  - 0
+check_schema: false
+
+# Specify work model
+work_model:
+  name: AffineCombination
+  parameters:
+    alpha: 1.0
+    beta: 0.0
+    gamma: 0.0
+    upper_bounds:
+      max_memory_usage: 8000000000.0
+
+# Specify algorithm
+algorithm:
+  name: InformAndTransfer
+  phase_id: 0
+  parameters:
+    n_iterations: 4
+    n_rounds: 2
+    fanout: 2
+    order_strategy: arbitrary
+    transfer_strategy: Clustering
+    criterion: Tempered
+    max_objects_per_transfer: 32
+    deterministic_transfer: true
+
+# Specify output
+output_dir: ../output
+output_file_stem: output_file
+write_JSON:
+  compressed: true
+  suffix: json
+  communications: true
+  offline_LB_compatible: true
