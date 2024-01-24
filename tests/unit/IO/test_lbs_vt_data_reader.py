@@ -1,6 +1,7 @@
 import os
 import logging
 import unittest
+import subprocess
 
 from schema import SchemaError
 
@@ -13,6 +14,7 @@ from src.lbaf.Model.lbsRank import Rank
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.config_dir = os.path.join(self.test_dir, "config")
         self.data_dir = os.path.join(self.test_dir, "data")
         self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
         self.file_suffix = "json"
@@ -214,6 +216,11 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(prep_comm_rcv_load_list, gen_comm_rcv_load_list)
             self.assertEqual(prep_comm_rcv_id_list, gen_comm_rcv_id_list)
 
+    def test_lbs_vt_data_reader_missing_communications(self):
+        # run LBAF with no communications
+        config_file = os.path.join(self.config_dir, "user-defined-memory-toy-problem.yaml")
+        proc = subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
+        self.assertEqual(0, proc.returncode)
 
 if __name__ == "__main__":
     unittest.main()
