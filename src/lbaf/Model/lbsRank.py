@@ -1,5 +1,6 @@
 import copy
 import math
+from numbers import Number
 from logging import Logger
 
 from .lbsBlock import Block
