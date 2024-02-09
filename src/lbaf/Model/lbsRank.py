@@ -60,14 +60,14 @@ class Rank:
         """Return rank ID."""
         return self.__index
 
-    def get_size(self) -> float:
+    def get_size(self) -> Number:
         """Return object size."""
         return self.__size
 
-    def set_size(self, size: float):
+    def set_size(self, size: Number):
         """Set rank working memory, called size."""
         # Nonnegative size required for memory footprint of this rank
-        if not isinstance(size, float) or size < 0.0:
+        if not isinstance(size, Number) or size < 0.0:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = size
