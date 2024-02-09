@@ -2,6 +2,7 @@ from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
+from numbers import Number
 
 
 class Object:
@@ -62,7 +63,7 @@ class Object:
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
-                size := user_defined.get("task_footprint_bytes")), float) or size < 0.0:
+                size := user_defined.get("task_footprint_bytes")), Number) or size < 0.0:
                 raise TypeError(
                     f"size: incorrect type {type(size)} or value: {size}")
             else:
@@ -70,7 +71,7 @@ class Object:
 
             # Object overhead is by definition its additional working memory
             if not isinstance((
-                overhead := user_defined.get("task_working_bytes")), float) or overhead < 0.0:
+                overhead := user_defined.get("task_working_bytes")), Number) or overhead < 0.0:
                 raise TypeError(
                     f"overhead: incorrect type {type(overhead)} or value: {overhead}")
             else:
