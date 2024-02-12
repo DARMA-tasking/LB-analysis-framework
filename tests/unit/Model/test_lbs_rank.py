@@ -60,6 +60,15 @@ class TestConfig(unittest.TestCase):
     def test_lbs_rank_get_sentinel_load(self):
         self.assertEqual(self.rank.get_sentinel_load(), 7.0)
 
+    def test_lbs_rank_set_size(self):
+        self.rank.set_size(3.0)
+        self.assertEqual(self.rank.get_size(), 3.0)
+        self.rank.set_size(3)
+        self.assertEqual(self.rank.get_size(), 3.0)
+        with self.assertRaises(TypeError) as err:
+            self.rank.set_size(True)
+        self.assertEqual(err.exception.args[0], "size: incorrect type <class 'bool'> or value: True")
+
     def test_lbs_rank_get_received_volume_001(self):
         sent_objects = {Object(i=123, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
                         Object(i=3, load=0.5): 1.5}
