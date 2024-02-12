@@ -24,16 +24,16 @@ class Object:
         self.__index = i
 
         # Nonnegative load required to perform the work of this object
-        if not isinstance(load, float) or load < 0.0:
+        if not isinstance(load, (int, float)) or isinstance(load, bool) or load < 0.0:
             raise TypeError(
                 f"load: incorrect type {type(load)} or value: {load}")
-        self.__load = load
+        self.__load = float(load)
 
         # Nonnegative size required to for memory footprint of this object
-        if not isinstance(size, float) or size < 0.0:
+        if not isinstance(size, (int, float)) or isinstance(size, bool) or size < 0.0:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
-        self.__size = size
+        self.__size = float(size)
 
         # Rank to which object is currently assigned if defined
         if not(r_id is None or isinstance(r_id, int)) or isinstance(r_id, bool):
@@ -62,19 +62,19 @@ class Object:
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
-                size := user_defined.get("task_footprint_bytes")), float) or size < 0.0:
+                size := user_defined.get("task_footprint_bytes")), (int, float)) or isinstance(size, bool) or size < 0.0:
                 raise TypeError(
                     f"size: incorrect type {type(size)} or value: {size}")
             else:
-                self.__size = size
+                self.__size = float(size)
 
             # Object overhead is by definition its additional working memory
             if not isinstance((
-                overhead := user_defined.get("task_working_bytes")), float) or overhead < 0.0:
+                overhead := user_defined.get("task_working_bytes")), (int, float)) or isinstance(overhead, bool) or overhead < 0.0:
                 raise TypeError(
                     f"overhead: incorrect type {type(overhead)} or value: {overhead}")
             else:
-                self.__overhead = overhead
+                self.__overhead = float(overhead)
 
         # Sub-phases
         if isinstance(subphases, list) or subphases is None:
