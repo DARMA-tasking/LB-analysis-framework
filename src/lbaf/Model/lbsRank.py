@@ -1,6 +1,5 @@
 import copy
 import math
-from numbers import Number
 from logging import Logger
 
 from .lbsBlock import Block
@@ -61,17 +60,17 @@ class Rank:
         """Return rank ID."""
         return self.__index
 
-    def get_size(self) -> Number:
+    def get_size(self) -> float:
         """Return object size."""
         return self.__size
 
-    def set_size(self, size: Number):
+    def set_size(self, size):
         """Set rank working memory, called size."""
         # Nonnegative size required for memory footprint of this rank
-        if not isinstance(size, Number) or size < 0.0:
+        if not isinstance(size, (int, float)) or isinstance(size, bool) or size < 0.0:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
-        self.__size = size
+        self.__size = float(size)
 
     def get_metadata(self) -> dict:
         """Return original metadata."""
