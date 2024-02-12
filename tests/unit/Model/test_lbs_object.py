@@ -19,7 +19,7 @@ class TestConfig(unittest.TestCase):
         self.simple_obj_001 = Object(i=1, load=2.5, subphases=self.subphases)
         self.simple_obj_002 = Object(i=2, load=4.5, r_id=0)
         self.oc = ObjectCommunicator(i=3, logger=self.logger)
-        self.simple_obj_003 = Object(i=3, load=3.5, r_id=2, comm=self.oc)
+        self.simple_obj_003 = Object(i=3, load=3, r_id=2, comm=self.oc)
         self.sent_objects = {Object(i=0, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
                              Object(i=3, load=0.5): 1.5}
         self.received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
@@ -39,14 +39,14 @@ class TestConfig(unittest.TestCase):
 
     def test_object_initialization_003(self):
         self.assertEqual(self.simple_obj_003._Object__index, 3)
-        self.assertEqual(self.simple_obj_003._Object__load, 3.5)
+        self.assertEqual(self.simple_obj_003._Object__load, 3.0)
         self.assertEqual(self.simple_obj_003._Object__rank_id, 2)
         self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
 
     def test_object_repr(self):
         self.assertEqual(str(self.simple_obj_001), "Object id: 1, load: 2.5")
         self.assertEqual(str(self.simple_obj_002), "Object id: 2, load: 4.5")
-        self.assertEqual(str(self.simple_obj_003), "Object id: 3, load: 3.5")
+        self.assertEqual(str(self.simple_obj_003), "Object id: 3, load: 3.0")
 
     def test_object_get_id(self):
         self.assertEqual(self.simple_obj_001.get_id(), 1)
@@ -56,7 +56,7 @@ class TestConfig(unittest.TestCase):
     def test_object_get_load(self):
         self.assertEqual(self.simple_obj_001.get_load(), 2.5)
         self.assertEqual(self.simple_obj_002.get_load(), 4.5)
-        self.assertEqual(self.simple_obj_003.get_load(), 3.5)
+        self.assertEqual(self.simple_obj_003.get_load(), 3.0)
 
     def test_object_set_rank_id(self):
         self.simple_obj_001.set_rank_id(15)
@@ -96,10 +96,6 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(TypeError) as err:
             Object(i=1, load="2.5")
         self.assertEqual(err.exception.args[0], "load: incorrect type <class 'str'> or value: 2.5")
-
-        with self.assertRaises(TypeError) as err:
-            Object(i=2, load=3)
-        self.assertEqual(err.exception.args[0], "load: incorrect type <class 'int'> or value: 3")
 
         with self.assertRaises(TypeError) as err:
             Object(i=3, load=True)
