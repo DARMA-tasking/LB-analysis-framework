@@ -16,7 +16,6 @@ import lbaf.IO.lbsStatistics as lbstats
 from lbaf import PROJECT_PATH, __version__
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
-from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
@@ -576,7 +575,15 @@ class LBAFApplication:
             self.__logger.info("Calling vt-tv")
 
             # Serialize data to JSON-formatted string
-            ranks_json_str = self.__json_writer.serialize(phases)
+            self.__rank_phases = {}
+            for p in phases.values():
+                for r in p.get_ranks():
+                    self.__rank_phases.setdefault(r.get_id(), {})
+                    self.__rank_phases[r.get_id()][p.get_id()] = r
+
+            ranks_json_str = []
+            for i in range(len(self.__rank_phases.items())):
+                ranks_json_str.append(self.__json_writer._json_serializer((i, self.__rank_phases[i])))
 
             vttv_params = {
                 "x_ranks": self.__parameters.grid_size[0],
