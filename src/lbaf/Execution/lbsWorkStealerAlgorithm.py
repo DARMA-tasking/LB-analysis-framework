@@ -31,20 +31,10 @@ class WorkStealerAlgorithm(AlgorithmBase):
         super(WorkStealerAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
 
-        # Determine whether subclustering is performed immediately after swapping
-        self.__separate_subclustering = parameters.get("separate_subclustering", False)
-        self._logger.info(
-            f"Enter subclustering immediately after cluster swapping: {self.__separate_subclustering}")
-
         # Initialize cluster swap relative threshold
         self.__cluster_swap_rtol = parameters.get("cluster_swap_rtol", 0.05)
         self._logger.info(
             f"Relative tolerance for cluster swaps: {self.__cluster_swap_rtol}")
-
-        # Initialize maximum number of subclusters
-        self.__max_subclusters = parameters.get("max_subclusters", math.inf)
-        self._logger.info(
-            f"Maximum number of visited subclusters: {self.__max_subclusters}")
 
         # Initialize global cluster swapping counters
         self.__n_swaps, self.__n_swap_tries = 0, 0
