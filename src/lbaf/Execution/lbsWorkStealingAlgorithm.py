@@ -10,7 +10,7 @@ from ..Model.lbsMessage import Message
 from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 
 
-class WorkStealerAlgorithm(AlgorithmBase):
+class WorkStealingAlgorithm(AlgorithmBase):
     """A concrete class simulating execution."""
 
     def __init__(
@@ -28,7 +28,7 @@ class WorkStealerAlgorithm(AlgorithmBase):
         :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super(WorkStealerAlgorithm, self).__init__(
+        super(WorkStealingAlgorithm, self).__init__(
             work_model, parameters, lgr, rank_qoi, object_qoi)
 
         # Initialize cluster swap relative threshold

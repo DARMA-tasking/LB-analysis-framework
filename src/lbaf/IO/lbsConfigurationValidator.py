@@ -23,7 +23,8 @@ ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
     "CentralizedPrefixOptimizer",
-    "PhaseStepper")
+    "PhaseStepper",
+    "WorkStealing")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
