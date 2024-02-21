@@ -179,7 +179,19 @@ class ConfigurationValidator:
                 {"name": "CentralizedPrefixOptimizer",
                  Optional("parameters"): {"do_second_stage": bool}}),
             "PhaseStepper": Schema(
-                {"name": "PhaseStepper"})}
+                {"name": "PhaseStepper"}),
+            "WorkStealing": Schema(
+                {"name": "WorkStealing",
+                "parameters": {
+                    "criterion": And(
+                        str,
+                        lambda f: f in ALLOWED_CRITERIA,
+                        error=f"{get_error_message(ALLOWED_CRITERIA)} must be chosen"),
+                    "discretion_interval": float,
+                    Optional("cluster_swap_rtol"): And(
+                                float,
+                                lambda x: x > 0.0,
+                                error="Should be of type 'float' and > 0.0")}})}
         self.__logger = logger
 
     @staticmethod
