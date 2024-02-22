@@ -96,9 +96,6 @@ class RankWorker(object):
                     self.algorithm.rank_queues[target_rank_id].append(steal_request)
                     yield self.env.timeout(self.algorithm.steal_time)
 
-            # Update algorithm queue
-            self.algorithm.update_rank_queue(self.rank_id, self.algorithm.rank_queues[self.rank_id])
-
     def __get_total_work(self):
         """Returns the total work on the rank."""
         total_work = 0.
@@ -211,10 +208,6 @@ class WorkStealingAlgorithm(AlgorithmBase):
             if self.has_work(r):
                 return True
         return False
-
-    def update_rank_queue(self, rank_id, queue: deque):
-        """Syncs the algorithm's dict of each rank's queue with the RankWorker's queue."""
-        self.rank_queues[rank_id] = queue
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
         """Performs the simulation and returns the average time to complete all tasks."""
