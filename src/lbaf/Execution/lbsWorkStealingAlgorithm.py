@@ -199,7 +199,7 @@ class WorkStealingAlgorithm(AlgorithmBase):
             # If back of queue is a list (i.e. a cluster), allow steal
             if isinstance(self.rank_queues[r_rcv.get_id()][-1], list):
                 cluster = self.rank_queues[r_rcv.get_id()].pop()
-                self.rank_queues[r_snd.get_id()].append(item)
+                self.rank_queues[r_snd.get_id()].append(cluster)
 
     def has_work(self, rank):
         """Determines if a given rank has an object, cluster, or StealRequest in its deque."""
