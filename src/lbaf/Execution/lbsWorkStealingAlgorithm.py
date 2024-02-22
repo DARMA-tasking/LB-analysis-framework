@@ -43,7 +43,7 @@ class RankWorker:
 
         # Output initial information
         initial_work = self.__get_total_work()
-        self.__logger.info(f"Rank {self.rank_id}: total initial work={initial_work}, initial size={len(self.algorithm.rank_queues[self.rank_id])}")
+        self.__logger.info(f"  Rank {self.rank_id}: total initial work={initial_work}, initial size={len(self.algorithm.rank_queues[self.rank_id])}")
 
     def run(self):
         """Defines the process that will run within the simpy environment."""
@@ -95,7 +95,7 @@ class RankWorker:
                 if self.algorithm.has_work(target_rank):
                     steal_request = StealRequest(requesting_rank, target_rank)
                     # Place steal request in target's queue
-                    self.algorithm.rank_queues[target_rank_id].append(steal_request)
+                    self.algorithm.rank_queues[target_rank_id].appendleft(steal_request)
                     yield self.env.timeout(self.algorithm.steal_time)
 
     def __get_total_work(self):
@@ -118,7 +118,7 @@ class RankWorker:
     def __simulate_task(self, task: Object):
         """Simulates the execution of a task"""
         self.algorithm.increment_task_count()
-        self.__logger.info(f"  Rank {self.rank_id}: executing task {task.get_id()} (load {task.get_load()}) at time {self.env.now} ({self.algorithm.get_task_count()}/{self.algorithm.get_total_task_count()})")
+        self.__logger.info(f"    Rank {self.rank_id}: executing task {task.get_id()} (sb_id {task.get_shared_block_id()}, load {task.get_load()}) at time {self.env.now} ({self.algorithm.get_task_count()}/{self.algorithm.get_total_task_count()})")
         yield self.env.timeout(task.get_load())
 
 
@@ -158,9 +158,11 @@ class WorkStealingAlgorithm(AlgorithmBase):
         self.num_ranks = 0
         self.rank_queues = {}
 
-        # Initialize total task count
+        # Initialize task and steal counts
         self.__task_count = 0
         self.__total_task_count = 0
+        self.__steal_count = 0
+        self.__attempted_steal_count = 0
 
         # Initialize the number of experiments and experiment times
         self.__num_experiments = parameters.get("num_experiments", 10)
@@ -201,24 +203,43 @@ class WorkStealingAlgorithm(AlgorithmBase):
         # Initialize algorithm
         self.__task_count = 0
         self.__total_task_count = 0
+        self.__steal_count = 0
+        self.__attempted_steal_count = 0
         ranks_list = self._rebalanced_phase.get_ranks()
         self.ranks = {rank.get_id(): rank for rank in ranks_list}
         self.num_ranks = len(self.ranks)
         self.__initialize_rank_queues()
 
+    def __has_stealable_cluster(self, rank):
+        """Asserts that a given rank has a stealable cluster."""
+        stealable = False
+        # Make sure rank is not empty
+        if self.has_work(rank):
+
+            # Make sure the last item in the queue is a cluster
+            if isinstance(self.rank_queues[rank.get_id()][-1], list):
+
+                # Make sure that the rank will not then be empty (prevent stealing back and forth)
+                if len(self.rank_queues[rank.get_id()]) > 1:
+                    stealable = True
+
+        return stealable
+
     def respond_to_steal_request(self, steal_request: StealRequest):
         '''Resolves steal requests; if there is a cluster at the back of the receiving rank's queue, it is relocated to the sending rank's queue.'''
         # Get both ranks
-        r_snd = steal_request.get_requesting_rank()
-        r_rcv = steal_request.get_target_rank()
+        self.__attempted_steal_count += 1
+        r_requesting = steal_request.get_requesting_rank()
+        r_target = steal_request.get_target_rank()
 
-        # Check that r_rcv still has work
-        if self.has_work(r_rcv):
+        # Check that r_target has a cluster to steal
+        if self.__has_stealable_cluster(r_target):
 
-            # If back of queue is a list (i.e. a cluster), allow steal
-            if isinstance(self.rank_queues[r_rcv.get_id()][-1], list):
-                cluster = self.rank_queues[r_rcv.get_id()].pop()
-                self.rank_queues[r_snd.get_id()].append(cluster)
+            # Perform steal
+            cluster = self.rank_queues[r_target.get_id()].pop()
+            print(f"Performing steal of shared block {cluster[0].get_shared_block_id()} (from {r_target.get_id()} to {r_requesting.get_id()})")
+            self.rank_queues[r_requesting.get_id()].append(cluster)
+            self.__steal_count += 1
 
     def get_task_count(self):
         """Returns number of tasks that have been simulated."""
@@ -251,6 +272,10 @@ class WorkStealingAlgorithm(AlgorithmBase):
         # Run over multiple experiments
         for exp in range(self.__num_experiments):
 
+            # Print out current experiment
+            self.__logger.info(f"Experiment {exp}")
+
+            # Set up problem
             random.seed()
             workers = []
 
@@ -264,9 +289,10 @@ class WorkStealingAlgorithm(AlgorithmBase):
             # Run the environment
             env.run()
 
-            # Report elapsed time
+            # Report elapsed time and steals
             end_time = env.now
-            self.__logger.info(f"simulation finished at time {end_time}")
+            self.__logger.info(f"  simulation finished at time {end_time}")
+            self.__logger.info(f"  {self.__steal_count} steals ({self.__attempted_steal_count} attempted).")
             experiment_times.append(end_time)
 
             # Reset algorithm (re-initialize counts and queues)
