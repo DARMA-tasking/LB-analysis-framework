@@ -76,9 +76,10 @@ class RankWorker(object):
                     task = self.algorithm.rank_queues[self.rank_id].popleft()
                     yield self.env.process(self.__simulate_task(task))
 
-                # If item is a Steal Request, look for clusters to give up
+                # If item is a StealRequest, look for clusters to give up
                 elif isinstance(item, StealRequest):
                     self.algorithm.respond_to_steal_request(item)
+                    print(f"Rank {self.rank_id} responded to steal request")
                     yield self.env.timeout(self.algorithm.steal_time) # is self.algorithm.steal_time right here?
 
                 # Catch any errors
@@ -115,12 +116,13 @@ class RankWorker(object):
 
     def __simulate_task(self, task: Object):
         """Simulates the execution of a task"""
-        self.__logger.info(f"Rank {self.rank_id}: executing task {task.get_id()} (load {task.get_load()}) at time {self.env.now}")
+        self.algorithm.increment_task_count()
+        self.__logger.info(f"Rank {self.rank_id}: executing task {task.get_id()} (load {task.get_load()}) at time {self.env.now} ({self.algorithm.get_task_count()}/{self.algorithm.get_total_task_count()})")
         yield self.env.timeout(task.get_load())
 
 
 #################################################
-########        Algorithm class        ########
+#########        Algorithm class        #########
 #################################################
 
 
@@ -155,6 +157,10 @@ class WorkStealingAlgorithm(AlgorithmBase):
         self.num_ranks = 0
         self.rank_queues = {}
 
+        # Initialize total task count
+        self.__task_count = 0
+        self.__total_task_count = 0
+
         # Initialize the number of experiments and experiment times
         self.__num_experiments = parameters.get("num_experiments", 10)
         self.__experiment_times = []
@@ -163,26 +169,31 @@ class WorkStealingAlgorithm(AlgorithmBase):
         self.do_stealing = parameters.get("do_stealing", True)
 
     def __build_rank_clusters(self, rank: Rank, with_nullset) -> dict:
-        """Cluster migratiable objects by shared block ID when available."""
+        """Cluster migratable objects by shared block ID when available."""
         # Iterate over all migratable objects on rank
         clusters = {None: []} if with_nullset else {}
+        non_clustered_tasks = []
         for o in rank.get_migratable_objects():
             # Retrieve shared block ID and skip object without one
             sb = o.get_shared_block()
             if sb is None:
-                continue
+                non_clustered_tasks.append(o)
+                self.__total_task_count += 1
 
-            # Add current object to its block ID cluster
-            clusters.setdefault(sb.get_id(), []).append(o)
+            else:
+                # Add current object to its block ID cluster
+                clusters.setdefault(sb.get_id(), []).append(o)
+                self.__total_task_count += 1
 
         # Return dict of computed object clusters possibly randomized
-        return {k: clusters[k] for k in random.sample(clusters.keys(), len(clusters))}
+        return {k: clusters[k] for k in random.sample(clusters.keys(), len(clusters))}, non_clustered_tasks
 
     def __initialize_rank_queues(self):
         """Populates every rank's deque with all initial clusters."""
         for r in self.ranks.values():
-            rank_clusters = self.__build_rank_clusters(r, False)
+            rank_clusters, loose_tasks = self.__build_rank_clusters(r, False)
             self.rank_queues[r.get_id()] = deque(cluster for cluster in rank_clusters.values())
+            self.rank_queues[r.get_id()].extend(o for o in loose_tasks)
 
     def respond_to_steal_request(self, steal_request: StealRequest):
         '''Resolves steal requests; if there is a cluster at the back of the receiving rank's queue, it is relocated to the sending rank's queue.'''
@@ -197,6 +208,18 @@ class WorkStealingAlgorithm(AlgorithmBase):
             if isinstance(self.rank_queues[r_rcv.get_id()][-1], list):
                 cluster = self.rank_queues[r_rcv.get_id()].pop()
                 self.rank_queues[r_snd.get_id()].append(cluster)
+
+    def get_task_count(self):
+        """Returns number of tasks that have been simulated."""
+        return self.__task_count
+
+    def increment_task_count(self):
+        """Increments the number of tasks that have been simulated."""
+        self.__task_count += 1
+
+    def get_total_task_count(self):
+        """Returns the total number of tasks that need to be simualted."""
+        return self.__total_task_count
 
     def has_work(self, rank):
         """Determines if a given rank has an object, cluster, or StealRequest in its deque."""
@@ -237,4 +260,3 @@ class WorkStealingAlgorithm(AlgorithmBase):
             experiment_times.append(end_time)
 
         self.__logger.info(f"Average time: {sum(experiment_times)/len(experiment_times)}")
-
