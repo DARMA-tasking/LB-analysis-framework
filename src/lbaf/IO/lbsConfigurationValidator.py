@@ -184,6 +184,9 @@ class ConfigurationValidator:
                 {"name": "WorkStealing",
                 "parameters": {
                     "discretion_interval": float,
+                    Optional("do_stealing"): And(
+                             bool,
+                             error="Should be of type 'bool'"),
                     Optional("steal_time"): And(
                               float,
                               lambda x: x>=0.0,

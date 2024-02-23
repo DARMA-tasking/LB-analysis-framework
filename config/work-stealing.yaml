@@ -22,7 +22,7 @@ algorithm:
   parameters:
     discretion_interval: 0.010
     steal_time: 0.2
-    num_experiments: 20
+    num_experiments: 10
 
 # Specify output
 output_dir: ../output
