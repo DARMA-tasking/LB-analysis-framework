@@ -78,7 +78,7 @@ class RankWorker:
                 # If item is a StealRequest, look for clusters to give up
                 elif isinstance(item, StealRequest):
                     self.algorithm.respond_to_steal_request(item)
-                    yield self.env.timeout(self.algorithm.steal_time) # is self.algorithm.steal_time right here?
+                    yield self.env.timeout(self.algorithm.steal_time)
 
                 # Catch any errors
                 else:
@@ -89,12 +89,13 @@ class RankWorker:
                 target_rank_id = random.randrange(0, self.algorithm.num_ranks)
                 requesting_rank = self.rank
                 target_rank = self.algorithm.ranks[target_rank_id]
-                if self.algorithm.has_work(target_rank):
+                if self.algorithm.has_stealable_cluster(target_rank):
                     steal_request = StealRequest(requesting_rank, target_rank)
                     # Place steal request in target's queue
                     self.algorithm.rank_queues[target_rank_id].appendleft(steal_request)
                     self.pending_steal_request = True
-                    yield self.env.timeout(self.algorithm.steal_time) # double counting steal time here
+                    print(f"Rank {self.rank_id} wants to steal from {target_rank_id}")
+                    yield self.env.timeout(self.algorithm.steal_time) # double counting steal time here (line 81)
 
             else:
                 # this rank is awaiting the fulfillment of a steal request
@@ -113,15 +114,18 @@ class RankWorker:
         return total_work
 
     def __has_work(self):
-        """Returns True if the rank has an object or cluster in its queue."""
+        """Returns True if the rank has a cluster in its queue."""
         return self.algorithm.has_work(self.rank)
 
     def __check_for_steal_requests(self):
         """Checks next item in queue; if it's a steal request, responds accordingly."""
         rank_queue = self.algorithm.rank_queues[self.rank_id]
         if len(rank_queue) > 0 and isinstance(rank_queue[0], StealRequest):
-            self.algorithm.respond_to_steal_request(rank_queue[0])
+            steal_request = rank_queue.popleft()
+            self.algorithm.respond_to_steal_request(steal_request)
             yield self.env.timeout((self.algorithm.steal_time))
+        else:
+            pass
 
     def __simulate_task(self, task: Object):
         """Simulates the execution of a task"""
@@ -224,7 +228,7 @@ class WorkStealingAlgorithm(AlgorithmBase):
         self.num_ranks = len(self.ranks)
         self.__initialize_rank_queues()
 
-    def __has_stealable_cluster(self, rank):
+    def has_stealable_cluster(self, rank):
         """Asserts that a given rank has a stealable cluster."""
         stealable = False
         rank_queue = self.rank_queues[rank.get_id()]
@@ -245,14 +249,17 @@ class WorkStealingAlgorithm(AlgorithmBase):
         # set false as we are responding, either by putting work or doing nothing
         self.workers[r_requesting.get_id()].pending_steal_request = False
 
-        # Check that r_target has a cluster to steal
-        if self.__has_stealable_cluster(r_target):
+        # Double check that r_target still has a cluster to steal
+        if self.has_stealable_cluster(r_target):
 
             # Perform steal
             cluster = self.rank_queues[r_target.get_id()].pop()
             self.__logger.info(f"    Performing steal of shared block {cluster[0].get_shared_block_id()} (from {r_target.get_id()} to {r_requesting.get_id()})")
             self.rank_queues[r_requesting.get_id()].append(cluster)
             self.__steal_count += 1
+
+        else:
+            self.__logger.info(f"    Ignoring steal request from {r_requesting.get_id()} ({r_target.get_id()} has no stealable clusters) ")
 
     def get_task_count(self):
         """Returns number of tasks that have been simulated."""
