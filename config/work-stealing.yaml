@@ -23,6 +23,7 @@ algorithm:
     discretion_interval: 0.010
     steal_time: 0.2
     num_experiments: 10
+    max_memory_usage: 5.0e+9
 
 # Specify output
 output_dir: ../output

@@ -191,6 +191,10 @@ class ConfigurationValidator:
                               float,
                               lambda x: x>=0.0,
                               error="Should be of type 'float' and >= 0.0"),
+                    Optional("max_memory_usage"): And(
+                              float,
+                              lambda x: x>=0.0,
+                              error="Should be of type 'float' and >= 0.0"),
                     Optional("num_experiments"): And(
                               int,
                               lambda x: x > 0,
