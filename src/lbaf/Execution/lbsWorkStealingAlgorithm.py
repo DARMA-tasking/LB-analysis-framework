@@ -48,21 +48,21 @@ class RankWorker:
         self.running = True
 
         # Initialize memory
-        self.rank_memory = 0.
+        self.rank_memory = self.rank.get_size()
 
         # Initialize current cluster (if a rank is currently working through a cluster)
         self.current_cluster = None
         self.new_clusters = False
 
         # Output initial information
-        self.__logger.info(f"  Rank {self.rank_id} Initial Info: work={self.__get_total_work()}, n_tasks={self.rank.get_number_of_objects()}, n_clusters={self.rank.get_number_of_shared_blocks()}")
+        self.__logger.info(f"  Rank {self.rank_id} Initial Info: work={self.__get_total_work()}, memory={self.rank_memory}, n_tasks={self.rank.get_number_of_objects()}, n_clusters={self.rank.get_number_of_shared_blocks()}")
 
     def run(self):
         """Defines the process that will run within the simpy environment."""
-        # Continue if the rank has clusters left. If stealing is on, also continue if any other ranks have stealable clusters.
+        # Continue if the rank has work and memory left
         while self.__continue_condition():
 
-            # Check if rank is currently executing a cluster
+            # Check if rank has a cluster lined up
             if self.current_cluster is not None:
 
                 # Execute all tasks on the cluster
