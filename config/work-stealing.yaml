@@ -24,6 +24,7 @@ algorithm:
     steal_time: 0.2
     num_experiments: 10
     max_memory_usage: 8.0e+9
+    sort_clusters: False
 
 # Specify output
 output_dir: ../output

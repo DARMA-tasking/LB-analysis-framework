@@ -185,8 +185,8 @@ class ConfigurationValidator:
                 "parameters": {
                     "discretion_interval": float,
                     Optional("do_stealing"): And(
-                             bool,
-                             error="Should be of type 'bool'"),
+                              bool,
+                              error="Should be of type 'bool'"),
                     Optional("steal_time"): And(
                               float,
                               lambda x: x>=0.0,
@@ -195,6 +195,9 @@ class ConfigurationValidator:
                               float,
                               lambda x: x>=0.0,
                               error="Should be of type 'float' and >= 0.0"),
+                    Optional("sort_clusters"): And(
+                              bool,
+                              error="Should be of type 'bool'"),
                     Optional("num_experiments"): And(
                               int,
                               lambda x: x > 0,
