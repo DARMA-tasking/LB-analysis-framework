@@ -23,7 +23,8 @@ ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
     "CentralizedPrefixOptimizer",
-    "PhaseStepper")
+    "PhaseStepper",
+    "WorkStealing")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
@@ -178,7 +179,29 @@ class ConfigurationValidator:
                 {"name": "CentralizedPrefixOptimizer",
                  Optional("parameters"): {"do_second_stage": bool}}),
             "PhaseStepper": Schema(
-                {"name": "PhaseStepper"})}
+                {"name": "PhaseStepper"}),
+            "WorkStealing": Schema(
+                {"name": "WorkStealing",
+                "parameters": {
+                    "discretion_interval": float,
+                    Optional("do_stealing"): And(
+                              bool,
+                              error="Should be of type 'bool'"),
+                    Optional("steal_time"): And(
+                              float,
+                              lambda x: x>=0.0,
+                              error="Should be of type 'float' and >= 0.0"),
+                    Optional("max_memory_usage"): And(
+                              float,
+                              lambda x: x>=0.0,
+                              error="Should be of type 'float' and >= 0.0"),
+                    Optional("sort_clusters"): And(
+                              bool,
+                              error="Should be of type 'bool'"),
+                    Optional("num_experiments"): And(
+                              int,
+                              lambda x: x > 0,
+                              error="Should be of type 'int' and > 0")}})}
         self.__logger = logger
 
     @staticmethod

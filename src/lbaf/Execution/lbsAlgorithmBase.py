@@ -98,6 +98,7 @@ class AlgorithmBase:
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
         from .lbsCentralizedPrefixOptimizerAlgorithm import CentralizedPrefixOptimizerAlgorithm
+        from .lbsWorkStealingAlgorithm import WorkStealingAlgorithm
         # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
