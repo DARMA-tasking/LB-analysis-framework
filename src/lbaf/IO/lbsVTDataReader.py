@@ -221,7 +221,7 @@ class LoadReader:
                         for k, v in comm.items():
                             self.__logger.debug(f"{k}: {v}")
         else:
-            self.__communications_dict[phase_id][rank_id] = {}
+            self.__communications_dict.setdefault(phase_id, {rank_id: {}})
 
         # Instantiante rank for current phase
         phase_rank = Rank(self.__logger, rank_id)
