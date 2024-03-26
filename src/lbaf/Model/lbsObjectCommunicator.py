@@ -56,6 +56,15 @@ class ObjectCommunicator:
         """Return the volume of a message received from an object if any."""
         return self.__sent.get(o)
 
+    def get_max_volume(self):
+        """Return the maximum bytes received or sent at this communicator."""
+        max_received, max_sent = 0., 0.
+        if len(self.__sent) > 0:
+            max_sent = max(self.__sent.values())
+        if len(self.__received) > 0:
+            max_received = max(self.__received.values())
+        return max(max_received, max_sent)
+
     def summarize(self) -> tuple:
         """Summarize communicator properties and check for errors."""
         # Summarize sent communications
