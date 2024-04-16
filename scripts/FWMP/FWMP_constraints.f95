@@ -1,23 +1,23 @@
 !                           DARMA Toolkit v. 1.0.0
-! 
+!
 ! Copyright 2024 National Technology & Engineering Solutions of Sandia, LLC
 ! (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
 ! Government retains certain rights in this software.
-! 
+!
 ! Redistribution and use in source and binary forms, with or without
 ! modification, are permitted provided that the following conditions are met:
-! 
+!
 ! * Redistributions of source code must retain the above copyright notice,
 !   this list of conditions and the following disclaimer.
-! 
+!
 ! * Redistributions in binary form must reproduce the above copyright notice,
 !   this list of conditions and the following disclaimer in the documentation
 !   and/or other materials provided with the distribution.
-! 
+!
 ! * Neither the name of the copyright holder nor the names of its
 !   contributors may be used to endorse or promote products derived from this
 !   software without specific prior written permission.
-! 
+!
 ! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 ! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -29,9 +29,9 @@
 ! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ! POSSIBILITY OF SUCH DAMAGE.
-! 
+!
 ! Questions? Contact darma@sandia.gov
-! 
+!
 
 program FWMP_constraints
   implicit none
@@ -142,7 +142,7 @@ program FWMP_constraints
   call print_logical_matrix("phi", phi_l)
   call print_integer_matrix("phi", phi_i)
   print *
-  
+
   ! compute and print communication-rank tensors
   psi_i = merge(1, 0, psi_l)
   do mm = 1, M
@@ -175,11 +175,11 @@ program FWMP_constraints
               ! iterate over to task indices
               do kk = 1, K
                  ! update sums
-                 sums(1) = sums(1) + chi_i(ii,kk) * chi_i(jj,ll) * w_i(kk,ll,mm) 
-                 sums(2) = sums(2) + chi_i(ii,kk) * w_i(kk,ll,mm) 
-                 sums(3) = sums(3) + chi_i(jj,ll) * w_i(kk,ll,mm) 
+                 sums(1) = sums(1) + chi_i(ii,kk) * chi_i(jj,ll) * w_i(kk,ll,mm)
+                 sums(2) = sums(2) + chi_i(ii,kk) * w_i(kk,ll,mm)
+                 sums(3) = sums(3) + chi_i(jj,ll) * w_i(kk,ll,mm)
                  sums(4) = sums(4) + (chi_i(ii,kk) + chi_i(jj,ll)) * w_i(kk,ll,mm)
-                 
+
                  ! print innermost loop results
                  print "(I2,I4,I4,I4,I4,I4,I4,I4,I4)", &
                       & mm, jj, ii, ll, kk, w_i(kk,ll,mm), chi_i(ii,kk), chi_i(jj,ll), &
@@ -198,7 +198,7 @@ program FWMP_constraints
      end do ! ii
      print *, "   --------------------------------------------------"
   end do ! mm
-  
+
   ! print tensor bounds
   do mm = 1, M
      call print_integer_matrix("psi_lb::"//trim(int_to_str(mm)), psi_lb_i(:,:,mm))
@@ -275,7 +275,7 @@ contains
        if (ios /= 0) exit
        if (i > 0 .and. i <= n_rows .and. j > 0 .and. j <= n_cols) mat(i,j) = .TRUE.
     end do
-    
+
     ! close file
     close(1)
 
@@ -325,7 +325,7 @@ contains
        m = m + 1
        if (k > 0 .and. k <= n_slices .and. l > 0 .and. l <= n_slices) ten(k,l,m) = .TRUE.
     end do
-    
+
     ! close file
     close(1)
 
@@ -377,4 +377,3 @@ contains
   end function int_to_str
 
 end program FWMP_constraints
-  
