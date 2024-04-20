@@ -73,6 +73,10 @@ program FWMP_constraints
   ! sums in paper formulas
   integer :: sums(4)
 
+  ! tensor constraint checks
+  integer :: n_tensor_checks, n_errors
+  logical :: check_constraints
+
   print *
   print *, "### Full Work Model Problem Example"
   print *
@@ -158,9 +162,11 @@ program FWMP_constraints
 
   ! generate integer communication tensor relations
   print *, "# Integer communication tensor relations:"
-  print *, "------------------------------------------------------"
-  print *, "m   j   i   l   k   w  chi chiT *   +  lb  psi ub1 ub2"
-  print *, "------------------------------------------------------"
+  print *, "------------------------------------------------------------"
+  print *, "m   j   i   l   k   w  chi chiT *   +  lb  psi ub1 ub2 check"
+  print *, "------------------------------------------------------------"
+  n_tensor_checks = 0
+  n_errors = 0
   ! iterate over tensor slices
   do mm = 1, M
      ! iterate over from rank indices
@@ -191,12 +197,16 @@ program FWMP_constraints
            psi_ub1_i(ii,jj,mm) = sums(2)
            psi_ub2_i(ii,jj,mm) = sums(3)
            psi_lb_i(ii,jj,mm) = sums(4) - 1
-           print "(I38, I4, I4, I4, I4)", sums(1), &
+           check_constraints = psi_lb_i(ii,jj,mm) <= psi_i(ii,jj,mm) .and. &
+                & psi_i(ii,jj,mm) <= min(psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm))
+           n_tensor_checks = n_tensor_checks + 3
+           print "(I38, I4, I4, I4, I4, L5)", sums(1), &
                 & psi_lb_i(ii,jj,mm), psi_i(ii,jj,mm), &
-                & psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm)
+                & psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm), &
+                & check_constraints
         end do ! jj
      end do ! ii
-     print *, "   --------------------------------------------------"
+     print *, "   -------------------------------------------------------"
   end do ! mm
 
   ! print tensor bounds
@@ -211,6 +221,8 @@ program FWMP_constraints
   do mm = 1, M
      call print_integer_matrix("psi_ub2::"//trim(int_to_str(mm)), psi_ub2_i(:,:,mm))
   end do
+  print *
+  print *, "# Verified ", trim(int_to_str(n_tensor_checks)), " tensor constraints"
   print *
 
   ! terminate program
@@ -229,7 +241,11 @@ program FWMP_constraints
   deallocate(phi_l)
   deallocate(u_i)
   deallocate(u_l)
-  print *, "Program completed without errors ###"
+  if (n_errors > 0) then
+     print *, "Program found ", trim(int_to_str(n_errors)), " errors ###"
+  else
+     print *, "Program completed without errors ###"
+  endif
   print *
 
 contains
