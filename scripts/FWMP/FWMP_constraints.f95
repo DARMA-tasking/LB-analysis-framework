@@ -177,7 +177,7 @@ program FWMP_constraints
      end do ! nn
   end do ! ii
   print *
-  
+
   ! compute and print communication-rank tensors
   psi_i = merge(1, 0, psi_l)
   do mm = 1, M
