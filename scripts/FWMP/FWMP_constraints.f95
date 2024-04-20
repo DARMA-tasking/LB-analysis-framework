@@ -71,7 +71,7 @@ program FWMP_constraints
   integer, allocatable :: psi_ub2_i(:,:,:)
 
   ! sums in paper formulas
-  integer :: sums(4)
+  integer :: matrix_prod, matrix_sum, tensor_prod, tensor_sums(4)
 
   ! tensor constraint checks
   integer :: n_tensor_checks, n_errors
@@ -147,6 +147,37 @@ program FWMP_constraints
   call print_integer_matrix("phi", phi_i)
   print *
 
+  ! generate integer block matrix relations
+  print *, "# Integer block matrix relations:"
+  print *, "------------------------------------"
+  print *, "i   n   k   u  chi  *  +  phi check"
+  print *, "------------------------------------"
+  n_tensor_checks = 0
+  n_errors = 0
+  ! iterate over tensor slices
+  do ii = 1, I
+     ! iterate over from rank indices
+     do nn = 1, N
+        ! initialize sum
+        matrix_sum = 0
+
+        ! iterate over to task indices
+        do kk = 1, K
+           ! update sum
+           matrix_prod = u_i(kk,nn) * chi_i(ii,kk)
+           matrix_sum = matrix_sum + matrix_prod
+
+           ! print innermost loop results
+           print "(I2,I4,I4,I4,I4,I4)", &
+                & ii, nn, kk, u_i(kk,nn), chi_i(ii,kk), matrix_prod
+        end do ! kk
+        ! store and print results aggregated at i,n level
+        print "(I25, I4, L5)", matrix_sum, phi_i(ii,nn), &
+             & phi_i(ii,nn) <= matrix_sum
+     end do ! nn
+  end do ! ii
+  print *
+  
   ! compute and print communication-rank tensors
   psi_i = merge(1, 0, psi_l)
   do mm = 1, M
@@ -160,8 +191,8 @@ program FWMP_constraints
   end do
   print *
 
-  ! generate integer communication tensor relations
-  print *, "# Integer communication tensor relations:"
+  ! generate integer communication tensor constraints
+  print *, "# Integer communication tensor constraints:"
   print *, "------------------------------------------------------------"
   print *, "m   j   i   l   k   w  chi chiT *   +  lb  psi ub1 ub2 check"
   print *, "------------------------------------------------------------"
@@ -174,33 +205,34 @@ program FWMP_constraints
         ! iterate over to rank indices
         do ii = 1, I
            ! initialize sums
-           sums = 0
+           tensor_sums = 0
 
            ! iterate over from task indices
            do ll = 1, K
               ! iterate over to task indices
               do kk = 1, K
                  ! update sums
-                 sums(1) = sums(1) + chi_i(ii,kk) * chi_i(jj,ll) * w_i(kk,ll,mm)
-                 sums(2) = sums(2) + chi_i(ii,kk) * w_i(kk,ll,mm)
-                 sums(3) = sums(3) + chi_i(jj,ll) * w_i(kk,ll,mm)
-                 sums(4) = sums(4) + (chi_i(ii,kk) + chi_i(jj,ll)) * w_i(kk,ll,mm)
+                 tensor_prod = chi_i(ii,kk) * chi_i(jj,ll) * w_i(kk,ll,mm)
+                 tensor_sums(1) = tensor_sums(1) + tensor_prod
+                 tensor_sums(2) = tensor_sums(2) + chi_i(ii,kk) * w_i(kk,ll,mm)
+                 tensor_sums(3) = tensor_sums(3) + chi_i(jj,ll) * w_i(kk,ll,mm)
+                 tensor_sums(4) = tensor_sums(4) + (chi_i(ii,kk) + chi_i(jj,ll)) * w_i(kk,ll,mm)
 
                  ! print innermost loop results
                  print "(I2,I4,I4,I4,I4,I4,I4,I4,I4)", &
                       & mm, jj, ii, ll, kk, w_i(kk,ll,mm), chi_i(ii,kk), chi_i(jj,ll), &
-                      & chi_i(ii,kk) * chi_i(jj,ll) * w_i(kk,ll,mm)
+                      & tensor_prod
               end do ! kk
            end do ! ll
 
-           ! store and print results aggregated at i,j level
-           psi_ub1_i(ii,jj,mm) = sums(2)
-           psi_ub2_i(ii,jj,mm) = sums(3)
-           psi_lb_i(ii,jj,mm) = sums(4) - 1
+           ! store and print results aggregated at i,j,m level
+           psi_ub1_i(ii,jj,mm) = tensor_sums(2)
+           psi_ub2_i(ii,jj,mm) = tensor_sums(3)
+           psi_lb_i(ii,jj,mm) = tensor_sums(4) - 1
            check_constraints = psi_lb_i(ii,jj,mm) <= psi_i(ii,jj,mm) .and. &
                 & psi_i(ii,jj,mm) <= min(psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm))
            n_tensor_checks = n_tensor_checks + 3
-           print "(I38, I4, I4, I4, I4, L5)", sums(1), &
+           print "(I38, I4, I4, I4, I4, L5)", tensor_sums(1), &
                 & psi_lb_i(ii,jj,mm), psi_i(ii,jj,mm), &
                 & psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm), &
                 & check_constraints
