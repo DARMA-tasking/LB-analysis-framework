@@ -73,8 +73,8 @@ program FWMP_constraints
   ! sums in paper formulas
   integer :: matrix_prod, matrix_sum, tensor_prod, tensor_sums(4)
 
-  ! tensor constraint checks
-  integer :: n_tensor_checks, n_errors
+  ! constraint checks
+  integer :: n_checks, n_errors
   logical :: check_constraints
 
   print *
@@ -152,7 +152,7 @@ program FWMP_constraints
   print *, "-----------------------------------"
   print *, "i   n   k   u  chi  *  +  phi check"
   print *, "-----------------------------------"
-  n_tensor_checks = 0
+  n_checks = 0
   n_errors = 0
   ! iterate over tensor slices
   do ii = 1, I
@@ -167,15 +167,28 @@ program FWMP_constraints
            matrix_prod = u_i(kk,nn) * chi_i(ii,kk)
            matrix_sum = matrix_sum + matrix_prod
 
-           ! print innermost loop results
-           print "(I2,I4,I4,I4,I4,I4)", &
-                & ii, nn, kk, u_i(kk,nn), chi_i(ii,kk), matrix_prod
+           ! check and print innermost loop results
+           check_constraints = phi_i(ii,nn) >= matrix_prod
+           n_checks = n_checks + 1
+           if (.not. check_constraints) then
+              n_errors = n_errors + 1
+           endif
+           print "(I2,I4,I4,I4,I4,I4,L12)", &
+                & ii, nn, kk, u_i(kk,nn), chi_i(ii,kk), matrix_prod, &
+                & check_constraints
         end do ! kk
-        ! store and print results aggregated at i,n level
+
+        ! store and check results aggregated at i,n level
+        check_constraints = phi_i(ii,nn) <= matrix_sum
+        n_checks = n_checks + 1
+        if (.not. check_constraints) then
+           n_errors = n_errors + 1
+        endif
         print "(I25, I4, L5)", matrix_sum, phi_i(ii,nn), &
-             & phi_i(ii,nn) <= matrix_sum
+             & check_constraints
      end do ! nn
   end do ! ii
+  print *, "-----------------------------------"
   print *
 
   ! compute and print communication-rank tensors
@@ -196,7 +209,6 @@ program FWMP_constraints
   print *, "------------------------------------------------------------"
   print *, "m   j   i   l   k   w  chi chiT *   +  lb  psi ub1 ub2 check"
   print *, "------------------------------------------------------------"
-  n_tensor_checks = 0
   n_errors = 0
   ! iterate over tensor slices
   do mm = 1, M
@@ -225,13 +237,25 @@ program FWMP_constraints
               end do ! kk
            end do ! ll
 
-           ! store and print results aggregated at i,j,m level
+           ! store and check  results aggregated at i,j,m level
            psi_ub1_i(ii,jj,mm) = tensor_sums(2)
+           check_constraints = psi_i(ii,jj,mm) <= psi_ub1_i(ii,jj,mm)
+           n_checks = n_checks + 1
+           if (.not. check_constraints) then
+              n_errors = n_errors + 1
+           endif
            psi_ub2_i(ii,jj,mm) = tensor_sums(3)
+           check_constraints = check_constraints .and. psi_i(ii,jj,mm) <= psi_ub1_i(ii,jj,mm)
+           n_checks = n_checks + 1
+           if (.not. check_constraints) then
+              n_errors = n_errors + 1
+           endif
            psi_lb_i(ii,jj,mm) = tensor_sums(4) - 1
-           check_constraints = psi_lb_i(ii,jj,mm) <= psi_i(ii,jj,mm) .and. &
-                & psi_i(ii,jj,mm) <= min(psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm))
-           n_tensor_checks = n_tensor_checks + 3
+           check_constraints = check_constraints .and. psi_lb_i(ii,jj,mm) <= psi_i(ii,jj,mm)
+           n_checks = n_checks + 1
+           if (.not. check_constraints) then
+              n_errors = n_errors + 1
+           endif
            print "(I38, I4, I4, I4, I4, L5)", tensor_sums(1), &
                 & psi_lb_i(ii,jj,mm), psi_i(ii,jj,mm), &
                 & psi_ub1_i(ii,jj,mm), psi_ub2_i(ii,jj,mm), &
@@ -255,7 +279,7 @@ program FWMP_constraints
      call print_integer_matrix("psi_ub2::"//trim(int_to_str(mm)), psi_ub2_i(:,:,mm))
   end do
   print *
-  print *, "# Verified ", trim(int_to_str(n_tensor_checks)), " tensor constraints"
+  print *, "# Verified ", trim(int_to_str(n_checks)), " integer constraints"
   print *
 
   ! terminate program
