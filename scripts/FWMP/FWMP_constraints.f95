@@ -149,9 +149,9 @@ program FWMP_constraints
 
   ! generate integer block matrix relations
   print *, "# Integer block matrix relations:"
-  print *, "------------------------------------"
+  print *, "-----------------------------------"
   print *, "i   n   k   u  chi  *  +  phi check"
-  print *, "------------------------------------"
+  print *, "-----------------------------------"
   n_tensor_checks = 0
   n_errors = 0
   ! iterate over tensor slices
@@ -240,6 +240,7 @@ program FWMP_constraints
      end do ! ii
      print *, "   -------------------------------------------------------"
   end do ! mm
+  print *
 
   ! print tensor bounds
   do mm = 1, M
