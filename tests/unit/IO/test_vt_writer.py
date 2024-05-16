@@ -140,7 +140,7 @@ class TestVTDataWriter(unittest.TestCase):
             output_file_name = f"{output_file_prefix}.{i}.json"
             output_file = os.path.join(output_dir, output_file_name)
 
-            print(f"[{__loader__.name}] Compare input file ({input_file_name}) and output file ({output_file_name})...")
+            # print(f"[{__loader__.name}] Compare input file ({input_file_name}) and output file ({output_file_name})...")
 
             # validate that output file exists at rank i
             self.assertTrue(
