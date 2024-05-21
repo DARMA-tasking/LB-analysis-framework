@@ -6,6 +6,12 @@ from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
 
+try:
+    import vttv
+    using_vttv = True
+except ModuleNotFoundError:
+    using_vttv = False
+
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
 if importlib.util.find_spec('lbaf') is None:
@@ -14,7 +20,6 @@ import lbaf.IO.lbsStatistics as lbstats
 from lbaf import PROJECT_PATH, __version__
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
-from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
@@ -113,6 +118,11 @@ class InternalParameters:
 
         # Parse visualizer parameters when available
         if (viz := config.get("visualization")) is not None:
+
+            # Ensure that vttv module was found
+            if not using_vttv:
+                self.__logger.warning("Visualization enabled but vttv not found. No visualization will be generated.")
+
             # Retrieve mandatory visualization parameters
             try:
                 self.grid_size = []
@@ -570,21 +580,35 @@ class LBAFApplication:
                 self.__parameters.object_qoi
             ]
 
-            # Instantiate and execute visualizer
-            visualizer = Visualizer(
-                self.__logger,
-                qoi_request,
-                self.__parameters.continuous_object_qoi,
-                phases,
-                self.__parameters.grid_size,
-                self.__parameters.object_jitter,
-                self.__parameters.output_dir,
-                self.__parameters.output_file_stem,
-                runtime.get_distributions(),
-                runtime.get_statistics())
-            visualizer.generate(
-                self.__parameters.save_meshes,
-                not self.__parameters.rank_qoi is None)
+            # Call vttv visualization
+            if using_vttv:
+                self.__logger.info("Calling vt-tv")
+
+                # Serialize data to JSON-formatted string
+                self.__rank_phases = {}
+                for p in phases.values():
+                    for r in p.get_ranks():
+                        self.__rank_phases.setdefault(r.get_id(), {})
+                        self.__rank_phases[r.get_id()][p.get_id()] = r
+
+                ranks_json_str = []
+                for i in range(len(self.__rank_phases.items())):
+                    ranks_json_str.append(self.__json_writer._json_serializer((i, self.__rank_phases[i])))
+
+                vttv_params = {
+                    "x_ranks": self.__parameters.grid_size[0],
+                    "y_ranks": self.__parameters.grid_size[1],
+                    "z_ranks": self.__parameters.grid_size[2],
+                    "object_jitter": self.__parameters.object_jitter,
+                    "rank_qoi": self.__parameters.rank_qoi,
+                    "object_qoi": self.__parameters.object_qoi,
+                    "save_meshes": self.__parameters.save_meshes,
+                    "force_continuous_object_qoi": self.__parameters.continuous_object_qoi,
+                    "output_visualization_dir": self.__parameters.output_dir,
+                    "output_visualization_file_stem": self.__parameters.output_file_stem
+                }
+                num_ranks = self.__parameters.grid_size[0] * self.__parameters.grid_size[1] * self.__parameters.grid_size[2]
+                vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
         # Report on rebalanced phase when available
         if rebalanced_phase:

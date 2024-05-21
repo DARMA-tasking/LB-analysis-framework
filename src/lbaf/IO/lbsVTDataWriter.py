@@ -209,7 +209,7 @@ class VTDataWriter:
         for p in phases.values():
             for r in p.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
-                self.__rank_phases[r.get_id()][p.get_id()]= r
+                self.__rank_phases[r.get_id()][p.get_id()] = r
 
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
