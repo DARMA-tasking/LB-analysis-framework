@@ -13,7 +13,10 @@ from .lbsGridStreamer import GridStreamer
 
 
 class Visualizer:
-    """A class to visualize LBAF results via mesh files and VTK views."""
+    """A class to visualize LBAF results via mesh files and VTK views.
+
+    lbsVisualizer has been deprecated in favor of vt-tv. This module will be removed
+    in a future release."""
 
     def __init__(
         self,
@@ -39,6 +42,9 @@ class Visualizer:
             distributions: a dictionary of per-phase QOI distributions
             statistics: a dictionary of per-phase global statistics
             resolution: grid_resolution value."""
+
+        # Throw deprecation error immediately
+        raise DeprecationWarning("LBAF's Visualizer has been deprecated and will be removed in a future release. Visualizations should be generated with DARMA/vt-tv.")
 
         # Assign logger to instance variable
         self.__logger = logger

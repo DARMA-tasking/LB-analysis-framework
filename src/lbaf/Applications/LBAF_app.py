@@ -573,13 +573,6 @@ class LBAFApplication:
                     "Grid size: {self.__parameters.grid_size} < {n_ranks}")
                 raise SystemExit(1)
 
-            # Look for prescribed QOI bounds
-            qoi_request = [
-                self.__parameters.rank_qoi,
-                self.__parameters.work_model.get("parameters", {}).get("upper_bounds", {}).get(self.__parameters.rank_qoi),
-                self.__parameters.object_qoi
-            ]
-
             # Call vttv visualization
             if using_vttv:
                 self.__logger.info("Calling vt-tv")
