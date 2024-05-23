@@ -1,15 +1,8 @@
 # Specify input
 from_data:
-  data_stem: /home/pierrelp/Develop/NGA/vt-tv/source/tests/unit/lb_test_data/data
+  data_stem: ../data/synthetic_lb_data/data
   phase_ids:
     - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
 check_schema: False
 
 # Specify work model
