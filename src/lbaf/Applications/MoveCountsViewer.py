@@ -2,7 +2,11 @@ import os
 import sys
 import csv
 import importlib
-import vtk
+try:
+    import vtk
+    using_vtk = True
+except ModuleNotFoundError:
+    using_vtk = False
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -333,6 +337,10 @@ class MoveCountsViewer:
             writer.Write()
 
     def run(self):
+        # Raise error if vtk is not installed
+        if not using_vtk:
+            raise ModuleNotFoundError("Could not find vtk module, which is required for the MoveCountsViewer.")
+
         """Run the MoveCountViewer logic."""
         # Parse command line arguments
         self.__parse_args()
