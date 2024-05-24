@@ -22,7 +22,7 @@ class TestVizDeprecation(unittest.TestCase):
         config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "conf_wrong_visualization.yml")
         pipes = subprocess.Popen(["python", "src/lbaf", "-c", config_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         std_err = pipes.communicate()[1].decode("utf-8")
-        assert "Visualization enabled but vttv not found. No visualization will be generated." in std_err
+        assert "Visualization enabled but vt-tv module not found." in std_err
 
 if __name__ == "__main__":
     unittest.main()
