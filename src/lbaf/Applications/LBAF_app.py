@@ -121,7 +121,7 @@ class InternalParameters:
 
             # Ensure that vttv module was found
             if not using_vttv:
-                self.__logger.warning("Visualization enabled but vttv not found. No visualization will be generated.")
+                raise ModuleNotFoundError("Visualization enabled but vt-tv module not found.")
 
             # Retrieve mandatory visualization parameters
             try:
