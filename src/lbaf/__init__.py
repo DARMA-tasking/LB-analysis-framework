@@ -2,7 +2,7 @@
 
 import os
 import sys
-import importlib
+import importlib.util
 
 
 __version__ = "1.0.2"
