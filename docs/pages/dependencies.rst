@@ -23,6 +23,8 @@ Application dependencies
    * - `Brotli <https://pypi.org/project/Brotli/>`__
      - MIT License (MIT) **Python bindings for the Brotli compression library**
    * - `schema <https://pypi.org/project/schema/>`__
+     - MIT License (MIT) **Simple data validation library**
+   * - `scikit-learn <https://pypi.org/project/scikit-learn/>`__
      - OSI Approved (new BSD) **A set of python modules for machine learning and data mining**
    * - `colorama <https://pypi.org/project/colorama/>`__
      - BSD License (BSD) **Cross-platform colored terminal text**
