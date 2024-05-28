@@ -7,11 +7,11 @@ schema==0.7.7
 colorama==0.4.6
 
 # LBAF testing
-tox==4.6.0
-coverage==6.3.2
-pylint==2.12.2
-pytest==7.1.1
-anybadge==1.9.0
+tox==4.15.0
+coverage==7.5.3
+pylint==3.2.2
+pytest==8.2.1
+anybadge==1.14.0
 
 # LBAF documentation
 Jinja2==3.1.2
