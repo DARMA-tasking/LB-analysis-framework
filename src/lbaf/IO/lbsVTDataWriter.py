@@ -125,6 +125,7 @@ class VTDataWriter:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
         r_id, r_phases = rank_phases_double
+        current_rank = None
 
         # Get current rank
         for p_id, rank in r_phases.items():

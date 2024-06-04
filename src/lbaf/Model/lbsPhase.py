@@ -325,7 +325,7 @@ class Phase:
                     logger=self.__logger,
                     r={},
                     s={o: volume_sampler() for o in rnd.sample(
-                        objects.difference([obj]), degree_sampler())},
+                        list(objects.difference([obj])), degree_sampler())},
                 ))
 
             # Create symmetric received communications
