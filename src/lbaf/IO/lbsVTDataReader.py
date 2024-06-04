@@ -142,13 +142,13 @@ class LoadReader:
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
-            if LoadReader.SCHEMA_VALIDATOR_CLASS(
+            if LoadReader.SCHEMA_VALIDATOR_CLASS(    # pylint:disable=E1102:not-callable
                 schema_type=schema_type).is_valid(
                 schema_to_validate=decompressed_dict):
                 self.__logger.info(f"Valid JSON schema in {file_name}")
             else:
                 self.__logger.error(f"Invalid JSON schema in {file_name}")
-                LoadReader.SCHEMA_VALIDATOR_CLASS(
+                LoadReader.SCHEMA_VALIDATOR_CLASS(   # pylint:disable=E1102:not-callable
                     schema_type=schema_type).validate(
                     schema_to_validate=decompressed_dict)
 

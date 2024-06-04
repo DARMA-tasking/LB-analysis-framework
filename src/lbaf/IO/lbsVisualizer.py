@@ -5,11 +5,14 @@ import random
 import sys
 from logging import Logger
 
-import matplotlib.pyplot as plt
-import vtk
+try:
+    import matplotlib.pyplot as plt
+    import vtk
+    from .lbsGridStreamer import GridStreamer
+except ModuleNotFoundError:
+    pass
 
 from ..Model.lbsPhase import Phase
-from .lbsGridStreamer import GridStreamer
 
 
 class Visualizer:

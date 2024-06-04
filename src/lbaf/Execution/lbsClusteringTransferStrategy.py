@@ -61,7 +61,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Return dict of computed object clusters possibly randomized
         return clusters if self._deterministic_transfer else {
             k: clusters[k]
-            for k in random.sample(clusters.keys(), len(clusters))}
+            for k in random.sample(list(clusters.keys()), len(clusters))}
 
     def __build_rank_subclusters(self, r_src: Rank) -> set:
         """Build subclusters to bring rank closest and above average load."""
@@ -108,13 +108,13 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             f"Built {len(subclusters)} subclusters from {len(clusters)} clusters in {time.time() - start_time:.3f} seconds")
         return sorted(subclusters.keys(), key=subclusters.get)
 
-    def __swap_clusters(self, phase: Phase, r_src: Rank, clusters_src:dict, targets: dict) -> int:
+    def __swap_clusters(self, phase: Phase, r_src: Rank, clusters_src:dict, targets: set) -> int:
         """Perform feasible cluster swaps from given rank to possible targets."""
         # Initialize return variable
         n_rank_swaps = 0
 
         # Iterate over targets to identify and perform beneficial cluster swaps
-        for r_try in targets if self._deterministic_transfer else random.sample(targets, len(targets)):
+        for r_try in targets if self._deterministic_transfer else random.sample(list(targets), len(targets)):
             # Escape targets loop if at least one swap already occurred
             if n_rank_swaps:
                 break
@@ -150,7 +150,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Return number of swaps performed from rank
         n_rank_swaps = 0
 
-    def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: dict, ave_load: float) -> None:
+    def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: set, ave_load: float) -> None:
         """Perform feasible subcluster transfers from given rank to possible targets."""
         # Iterate over source subclusters
         for o_src in self.__build_rank_subclusters(r_src):
