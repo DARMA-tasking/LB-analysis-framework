@@ -29,6 +29,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info(
             f"Enter subclustering immediately after cluster swapping: {self.__separate_subclustering}")
 
+        # Initialize percentage of maximum load required for subclustering
+        self.pct_of_max_load = 0.1
+
+        # Initialize fraction of local imbalance that must be resolved by subcluster
+        self.minimum_fraction_of_local_imbalance = 0.1
+
         # Initialize cluster swap relative threshold
         self.__cluster_swap_rtol = parameters.get("cluster_swap_rtol", 0.05)
         self._logger.info(
@@ -150,7 +156,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Return number of swaps performed from rank
         n_rank_swaps = 0
 
-    def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: set, ave_load: float) -> None:
+    def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: set, ave_load: float, max_load: float) -> None:
         """Perform feasible subcluster transfers from given rank to possible targets."""
         # Iterate over source subclusters
         for o_src in self.__build_rank_subclusters(r_src):
@@ -167,8 +173,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 for r_try in targets:
                     c_try = self._criterion.compute(
                         r_src, o_src, r_try)
-                    if c_try <= 0.0:
+
+                    # Additional filters prior to subclustering
+                    if c_try <= self.minimum_fraction_of_local_imbalance * r_src.get_load() or \
+                       r_src.get_load() < self.pct_of_max_load * max_load[0]:
                         continue
+
                     l_try = abs(r_try.get_load() + objects_load - ave_load)
                     if l_try < l_dst:
                         c_dst, r_dst, l_dst = c_try, r_try, l_try
@@ -194,8 +204,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Reject subcluster transfer
                 self._n_rejects += len(o_src)
 
-
-    def execute(self, known_peers, phase: Phase, ave_load: float):
+    def execute(self, known_peers, phase: Phase, ave_load: float, max_load: float):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
@@ -225,7 +234,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     continue
 
             # Perform feasible subcluster swaps from given rank to possible targets
-            self.__transfer_subclusters(phase, r_src, targets, ave_load)
+            self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
 
             # Report on new load and exit from rank
             self._logger.debug(
@@ -240,7 +249,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                 # Iterate over ranks
                 for r_src, targets in rank_targets.items():
                     # Perform feasible subcluster swaps from given rank to possible targets
-                    self.__transfer_subclusters(phase, r_src, targets, ave_load)
+                    self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
 
                     # Report on new load and exit from rank
                     self._logger.debug(

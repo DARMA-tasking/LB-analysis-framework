@@ -97,7 +97,8 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(
             self.clustering_transfer_strategy.execute(known_peers=self.known_peers,
                                                       phase=self.phase,
-                                                      ave_load=ave_load),
+                                                      ave_load=ave_load,
+                                                      max_load=2.5),
             (0,len(rank_list) - 1,0)
         )
 
@@ -193,14 +194,16 @@ class TestConfig(unittest.TestCase):
         assert isinstance(
             clustering_transfer_strategy_non_det.execute(known_peers=known_peers,
                                                  phase=phase,
-                                                 ave_load=ave_load),
+                                                 ave_load=ave_load,
+                                                 max_load=101),
             tuple)
 
         # Test that deterministic execute function is as expected
         self.assertEqual(
             clustering_transfer_strategy.execute(known_peers=known_peers,
                                                  phase=phase,
-                                                 ave_load=ave_load)[2],
+                                                 ave_load=ave_load,
+                                                 max_load=101)[2],
             len(rank_list))
 
 

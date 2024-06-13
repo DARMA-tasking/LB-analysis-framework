@@ -205,7 +205,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
-                self.__known_peers, self._rebalanced_phase, statistics["average load"])
+                self.__known_peers, self._rebalanced_phase, statistics["average load"], statistics["maximum load"])
             if (n_proposed := n_transfers + n_rejects):
                 self._logger.info(
                     f"Transferred {n_transfers} objects amongst {n_proposed} proposed "
