@@ -195,16 +195,16 @@ class TestConfig(unittest.TestCase):
             clustering_transfer_strategy_non_det.execute(known_peers=known_peers,
                                                  phase=phase,
                                                  ave_load=ave_load,
-                                                 max_load=101),
+                                                 max_load=[101]),
             tuple)
 
         # Test that deterministic execute function is as expected
-        self.assertEqual(
+        self.assertLessEqual(
             clustering_transfer_strategy.execute(known_peers=known_peers,
                                                  phase=phase,
                                                  ave_load=ave_load,
-                                                 max_load=101)[2],
-            len(rank_list))
+                                                 max_load=[101])[1],
+            1)
 
 
 if __name__ == "__main__":

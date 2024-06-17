@@ -30,10 +30,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             f"Enter subclustering immediately after cluster swapping: {self.__separate_subclustering}")
 
         # Initialize percentage of maximum load required for subclustering
-        self.pct_of_max_load = 0.1
+        self.pct_of_max_load = 0.0
 
         # Initialize fraction of local imbalance that must be resolved by subcluster
-        self.minimum_fraction_of_local_imbalance = 0.1
+        self.minimum_fraction_of_local_imbalance = 0.0
 
         # Initialize cluster swap relative threshold
         self.__cluster_swap_rtol = parameters.get("cluster_swap_rtol", 0.05)
