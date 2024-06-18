@@ -21,6 +21,7 @@ from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoa
 from lbaf.Applications.MoveCountsViewer import MoveCountsViewer
 from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
 from lbaf.Utils.lbsDataStatFilesUpdater import DataStatFilesUpdater
+from lbaf.Utils.lbsJSONDatasetMaker import JSONDatasetMaker
 # pylint:enable=C0413:wrong-import-position
 
 # lbaf functions to expose as lbaf package console commands (see setup.cfg)
@@ -57,6 +58,10 @@ def csv_2_json_converter() -> int:
 def vt_data_stat_files_updater() -> int:
     """Run a DataStatFilesUpdater instance."""
     return DataStatFilesUpdater().run()
+
+def json_dataset_maker() -> int:
+    """Run a JSONDatasetMaker instance."""
+    return JSONDatasetMaker().run()
 
 # set default behaviour if calling this module to run the LBAF application
 if __name__ == "__main__":
