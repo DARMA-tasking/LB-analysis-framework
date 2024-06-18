@@ -8,7 +8,8 @@ import importlib.util
 import json
 import os
 import sys
-from typing import Optional
+from typing import Optional, List
+from ..Model.lbsObject import Object
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -32,13 +33,14 @@ class JSONDatasetMaker():
 
     def __init__(self, logger: Optional[Logger] = None):
         self.__args: dict = None
+        self.__prompt = PromptArgumentParser(allow_abbrev=False,
+                                      description="Reads VT data and saves chosen phases from it.",
+                                      prompt_default=True)
         self.__logger = logger if logger is not None else get_logger()
 
     def __parse_args(self):
         """Parse arguments."""
-        parser = PromptArgumentParser(allow_abbrev=False,
-                                      description="Reads VT data and saves chosen phases from it.",
-                                      prompt_default=True)
+        parser = self.__prompt
         parser.add_argument("--output-file-name", help="The absolute path to the output JSON file",
                             default=os.path.join(PROJECT_PATH, "output", "build", "data.json"))
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
@@ -57,11 +59,46 @@ class JSONDatasetMaker():
         if not os.path.exists(output_dir): # create folders if not exists
             os.makedirs(output_dir)
 
-        # TODO: ask user for
-        # - tasks to create (on which rank)
-        # - communications between tasks
-        # - shared block appartenance (and if applicable shared block size) (shared_id and shared_bytes)
-        config: dict = []
+        # Logic: ask user for
+        # 1. create tasks + shared blocks (+ shared block size) (shared_id, shared_bytes in user_defined data)
+        # 2. create communications between tasks
+        # 3. build config dictionary
+        # 4. JSON file output
+        config: dict = {}
+        action: str = 'Add Task'
+        r_id = 1
+
+        tasks: List[Object] = []
+        # communications: List[?] = []
+        while action != 'Build JSON file':
+            action = self.__prompt.prompt(
+                'What kind of action ?',
+                choices=['Add Task', 'Add Communication', 'Build JSON file'],
+                default=action,
+                required=True
+            )
+
+            if action == 'Add Task':
+                # Task information
+                i = len(tasks) + 1
+                r_id = self.__prompt.prompt(
+                    f'Task #{i} : rank id. (Optional)',
+                    default=r_id
+                )
+                user_defined: dict = {}
+
+                # ask for possible shared block appartenance (TODO)
+
+                task = Object(i, r_id, user_defined=user_defined)
+                tasks.append(task)
+                continue
+            elif action == 'Add Communication':
+                # prompt from task (id) and to task (id) (TODO)
+                continue
+            else:
+                break
+
+        # build config dictionary (TODO)
 
         # Convert dict to json
         json_str = json.dumps(config, separators=(',', ':'))
