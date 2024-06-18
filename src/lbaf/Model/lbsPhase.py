@@ -406,6 +406,11 @@ class Phase:
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
+    def populate_from_specification(self, specification: dict):
+        """Populate this phase using a specification listing phases, ranks, tasks and communications."""
+        self.__ranks = [Rank(self.__logger, r_id) for r_id in specification.get("rank_ids", [])]
+        raise NotImplementedError('implementation in progress')
+
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""
 
