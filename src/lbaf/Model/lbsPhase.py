@@ -4,12 +4,12 @@ from typing import Optional
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
+from ..Execution.lbsDatasetSpecification import DatasetSpecification
 from ..Utils.lbsLogging import get_logger
 from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsObjectCommunicator import ObjectCommunicator
 from .lbsRank import Rank
-
 
 class Phase:
     """A class representing a phase of objects distributed across ranks."""
@@ -406,9 +406,31 @@ class Phase:
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
-    def populate_from_specification(self, specification: dict):
+    def populate_from_specification(self, specification: DatasetSpecification):
         """Populate this phase using a specification listing phases, ranks, tasks and communications."""
-        self.__ranks = [Rank(self.__logger, r_id) for r_id in specification.get("rank_ids", [])]
+
+        # This method is inspired by the VTDataReader but with a DatasetSpecification input
+
+        # Load ranks distributions
+        if len(specification['ranks'].keys()) == 0:
+            raise RuntimeError('Missing rank distributions')
+        self.__ranks = [Rank(self.__logger, r_id) for r_id in specification.get("ranks", []).keys()]
+
+        # validate that there is at leat 1 rank
+
+        # Load tasks specifications
+        tasks = specification['tasks']
+        if isinstance(tasks, list):
+            tasks = {i:specification['tasks'][i] for i in range(len(specification['tasks']))}
+
+        # Validate that a task in only in 1 rank (TODO)
+
+        # Load objects
+        objects = []
+        for t_id, load in tasks:
+            o = Object(t_id, load=load)
+            objects.append(o)
+
         raise NotImplementedError('implementation in progress')
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
