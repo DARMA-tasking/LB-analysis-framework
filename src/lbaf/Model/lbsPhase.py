@@ -475,12 +475,12 @@ class Phase:
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
-                o.get_user_defined()['shared_id'] = b.get_id()
-                o.get_user_defined()['shared_bytes'] = b.get_size()
-                o.get_user_defined()['task_footprint_bytes'] = 1024.0
-                o.get_user_defined()['task_serialized_bytes'] = 1024.0
-                o.get_user_defined()['task_working_bytes'] = 110000000.0
-                o.get_user_defined()['rank_working_bytes'] = 980000000.0
+                o.get_user_defined()["shared_id"] = b.get_id()
+                o.get_user_defined()["shared_bytes"] = b.get_size()
+                o.get_user_defined()["task_footprint_bytes"] = 1024.0
+                o.get_user_defined()["task_serialized_bytes"] = 1024.0
+                o.get_user_defined()["task_working_bytes"] = 110000000.0
+                o.get_user_defined()["rank_working_bytes"] = 980000000.0
 
         # transform spec to communication dict
         communications = {comm_id:{
