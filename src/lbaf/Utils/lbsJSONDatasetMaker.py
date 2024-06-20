@@ -38,7 +38,7 @@ class JSONDatasetMaker():
         """Parse arguments."""
         parser = self.__prompt
         parser.add_argument("--data-stem", help="The data stem",
-                            default=os.path.join(PROJECT_PATH, "data", "generated",
+                            default=os.path.join(PROJECT_PATH, "output", "maker", "data",
                             self.__datetime.strftime("%y%m%d%H%M%S"), "data"))
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
         self.__args = parser.parse_args()
@@ -57,7 +57,7 @@ class JSONDatasetMaker():
         # Specification of the phase to make
         specs: PhaseSpecification = { "tasks": [], "shared_blocks": [], "communications": [], "ranks": {} }
 
-        action: str = "New Sample"
+        action: str = "New Sample" # default action is a sample
         while action != "Build JSON file":
             action = self.__prompt.prompt(
                 "What kind of action ?",
@@ -156,15 +156,15 @@ class JSONDatasetMaker():
                 }
 
                 uniq_id = self.__datetime.strftime("%y%m%d%H%M%S")
-                output_dir = os.path.join(PROJECT_PATH, "config", "generated", uniq_id)
+                output_dir = os.path.join(PROJECT_PATH, "output", "maker", "config", uniq_id)
                 if not os.path.isdir(output_dir):
                     os.makedirs(output_dir)
 
                 with open(os.path.join(output_dir, f"{name}.yaml"), "wt", encoding="utf-8") as file:
                     yaml.dump(local_conf, file)
 
-                self.__logger.info(f"Configuration generated at config/generated/{uniq_id}/{name}.yaml")
-                self.__logger.info(f"To run just exit and run `lbaf --configuration=config/generated/{uniq_id}/{name}.yaml`")
+                self.__logger.info(f"Configuration generated at output/maker/config/{uniq_id}/{name}.yaml")
+                self.__logger.info(f"To run just exit and run `lbaf --configuration=output/maker/config/{uniq_id}/{name}.yaml`")
                 action="Exit"
             elif action == "Exit":
                 break
