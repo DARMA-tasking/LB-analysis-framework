@@ -1,10 +1,10 @@
 import random as rnd
 from logging import Logger
-from typing import Optional
+from typing import Optional, Dict
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
-from ..Execution.lbsDatasetSpecification import DatasetSpecification
+from ..Execution.lbsPhaseSpecification import PhaseSpecification
 from ..Utils.lbsLogging import get_logger
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -406,32 +406,81 @@ class Phase:
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
-    def populate_from_specification(self, specification: DatasetSpecification):
+    def populate_from_specification(self, spec: PhaseSpecification):
         """Populate this phase using a specification listing phases, ranks, tasks and communications."""
 
         # This method is inspired by the VTDataReader but with a DatasetSpecification input
 
-        # Load ranks distributions
-        if len(specification['ranks'].keys()) == 0:
-            raise RuntimeError('Missing rank distributions')
-        self.__ranks = [Rank(self.__logger, r_id) for r_id in specification.get("ranks", []).keys()]
+        # Auto-generate ids for Lists (If dictionary then ids are the keys)
+        if isinstance(spec["tasks"], list):
+            spec["tasks"] = {i:spec["tasks"][i] for i in range(len(spec["tasks"]))}
+        if isinstance(spec["shared_blocks"], list):
+            spec["shared_blocks"] = {i:spec["shared_blocks"][i] for i in range(len(spec["shared_blocks"]))}
+        if isinstance(spec["communications"], list):
+            spec["communications"] = {i:spec["communications"][i] for i in range(len(spec["communications"]))}
 
-        # validate that there is at leat 1 rank
+        # Load ranks
+        if len(spec["ranks"].keys()) == 0:
+            raise RuntimeError("Missing rank distributions")
 
-        # Load tasks specifications
-        tasks = specification['tasks']
-        if isinstance(tasks, list):
-            tasks = {i:specification['tasks'][i] for i in range(len(specification['tasks']))}
+        self.__ranks = [Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()]
 
-        # Validate that a task in only in 1 rank (TODO)
+        task_ranks: dict = {} # keep rank id for each task id
+        objects: Dict[Object] = {} # objects by ids
+        for rank_id, task_ids in spec["ranks"].items():
+            for task_id in task_ids:
+                task_user_defined = {}
+                time = spec["tasks"][task_id]
 
-        # Load objects
-        objects = []
-        for t_id, load in tasks:
-            o = Object(t_id, load=load)
-            objects.append(o)
+                # Check: task must be in 1 rank
+                if task_id in task_ranks:
+                    raise RuntimeError(f"Task already in rank f{task_ranks[task_id]}")
 
-        raise NotImplementedError('implementation in progress')
+                task_ranks[task_id] = rank_id
+
+                o = Object(
+                    task_id,
+                    r_id=rank_id,
+                    load=time,
+                    user_defined=task_user_defined)
+
+                objects[task_id] = o
+                self.__ranks[rank_id].add_migratable_object(o)
+
+        shared_blocks_ranks: Dict[int,int] = {}
+        for shared_id, shared_block in spec["shared_blocks"].items():
+            for task_id in shared_block["tasks"]:
+                # Check: shared block not on multiple ranks
+                if shared_id in shared_blocks_ranks and shared_blocks_ranks[shared_id] != task_ranks[task_id]:
+                    raise RuntimeError("A block can only be shared inside the same rank."
+                                        f"Please fix shared block associated tasks for block with id {shared_id} !")
+
+                rank_id = task_ranks[task_id]
+                # Create the shared block
+                b: Block = None
+                if not shared_id in shared_blocks_ranks:
+                    b = Block(b_id=shared_id, h_id=rank_id, size=shared_block["size"], o_ids=shared_block["tasks"])
+                    self.__ranks[rank_id].add_shared_block(b)
+                    shared_blocks_ranks[shared_id] = rank_id
+                else:
+                    b = self.__ranks[rank_id].get_shared_block_with_id(shared_id)
+
+                # set shared block for object
+                objects[task_id].set_shared_block(b)
+
+                # set user defined
+                objects[task_id].get_user_defined()['shared_id'] = b.get_id()
+                objects[task_id].get_user_defined()['shared_bytes'] = b.get_size()
+                objects[task_id].get_user_defined()['task_footprint_bytes'] = 1024.0
+                objects[task_id].get_user_defined()['task_working_bytes'] = 110000000.0
+
+                # Example of user_defined data
+                # "rank_working_bytes": 980000000.0,
+                # "shared_bytes": 1600000000.0,
+                # "shared_id": 10,
+                # "task_footprint_bytes": 1024.0,
+                # "task_serialized_bytes": 1024.0,
+                # "task_working_bytes": 110000000.0
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""
