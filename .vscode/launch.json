@@ -42,6 +42,16 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [ ]
-        }
+        },
+        {
+            "name": "LBAF: Dataset Maker",
+            "python": "${workspaceFolder}/venv311/bin/python",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/lbaf/Utils/lbsJSONDatasetMaker.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": []
+        },
     ]
 }
