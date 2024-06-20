@@ -13,6 +13,12 @@ class CommunicationSpecification(TypedDict):
     from_: int
     to: int
 
+class RankSpecification(TypedDict):
+    # The task ids
+    tasks: Set[int]
+    # The communication ids
+    communications: Set[int]
+
 class PhaseSpecification(TypedDict):
     """Dictionary representing specification for a simple dataset"""
     # List of tasks times as a list (index considered as the id) or as a dict { id => time1, id => time2 })
@@ -29,7 +35,7 @@ class PhaseSpecification(TypedDict):
     communications: Union[List[CommunicationSpecification],Dict[int,CommunicationSpecification]]
 
     # Rank distributions / tasks ids per rank id
-    ranks: Dict[int,Set[int]]
+    ranks: Dict[int,RankSpecification]
 
     @staticmethod
     def create_sample():
@@ -71,8 +77,8 @@ class PhaseSpecification(TypedDict):
                 }
             ],
             "ranks": {
-                0: { 0, 1 },
-                1: { 2 }
+                0: { "tasks": { 0, 1 }, "communications": {0, 3}},
+                1: { "tasks": { 2 }, "communications": {1, 2} }
             }
         })
 

@@ -419,24 +419,23 @@ class Phase:
         if isinstance(spec["communications"], list):
             spec["communications"] = {i:spec["communications"][i] for i in range(len(spec["communications"]))}
 
-        # Load ranks
+        ranks: Dict[int,Rank] = {r_id:Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()}
+        objects: Dict[int,Object] = {} # set of all objects (tasks)
+        shared_blocks: Dict[int,Block] = {}
+        
         if len(spec["ranks"].keys()) == 0:
             raise RuntimeError("Missing rank distributions")
 
-        self.__ranks = [Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()]
-
-        task_ranks: dict = {} # keep rank id for each task id
-        objects: Dict[Object] = {} # objects by ids
-        for rank_id, task_ids in spec["ranks"].items():
+        # Load objects
+        for rank_id, rank_specs in spec["ranks"].items():
+            task_ids = rank_specs["tasks"]
             for task_id in task_ids:
                 task_user_defined = {}
                 time = spec["tasks"][task_id]
 
-                # Check: task must be in 1 rank
-                if task_id in task_ranks:
-                    raise RuntimeError(f"Task already in rank f{task_ranks[task_id]}")
-
-                task_ranks[task_id] = rank_id
+                # Check: task must be only in 1 rank
+                if task_id in objects:
+                    raise RuntimeError(f"Task already in rank f{objects[task_id].get_rank_id()}")
 
                 o = Object(
                     task_id,
@@ -445,42 +444,114 @@ class Phase:
                     user_defined=task_user_defined)
 
                 objects[task_id] = o
-                self.__ranks[rank_id].add_migratable_object(o)
 
-        shared_blocks_ranks: Dict[int,int] = {}
-        for shared_id, shared_block in spec["shared_blocks"].items():
-            for task_id in shared_block["tasks"]:
-                # Check: shared block not on multiple ranks
-                if shared_id in shared_blocks_ranks and shared_blocks_ranks[shared_id] != task_ranks[task_id]:
+                # set as migratable
+                ranks[rank_id].add_migratable_object(o)
+
+        # Load rank shared blocks
+        for shared_id, shared_block_spec in spec["shared_blocks"].items():
+            for task_id in shared_block_spec["tasks"]:
+                o = objects[task_id]
+                rank_id = o.get_rank_id()
+
+                # Check: shared block cannot be shared by multiple ranks - 1 rank only is possible
+                if shared_id in shared_blocks and shared_blocks[shared_id].get_home_id() != rank_id:
                     raise RuntimeError("A block can only be shared inside the same rank."
                                         f"Please fix shared block associated tasks for block with id {shared_id} !")
 
-                rank_id = task_ranks[task_id]
-                # Create the shared block
+                # Initialize or find the shared block
                 b: Block = None
-                if not shared_id in shared_blocks_ranks:
-                    b = Block(b_id=shared_id, h_id=rank_id, size=shared_block["size"], o_ids=shared_block["tasks"])
-                    self.__ranks[rank_id].add_shared_block(b)
-                    shared_blocks_ranks[shared_id] = rank_id
+                if not shared_id in shared_blocks:
+                    b = Block(b_id=shared_id, h_id=rank_id, size=shared_block_spec["size"],
+                              o_ids=shared_block_spec["tasks"])
+                    # Index the shared block for next loops checks
+                    shared_blocks[shared_id] = b
+                    # Associate shared block with rank
+                    ranks[rank_id].add_shared_block(b)
                 else:
-                    b = self.__ranks[rank_id].get_shared_block_with_id(shared_id)
+                    b = ranks[rank_id].get_shared_block_with_id(shared_id)
 
-                # set shared block for object
-                objects[task_id].set_shared_block(b)
+                # Associate shared block with object
+                o.set_shared_block(b)
 
-                # set user defined
-                objects[task_id].get_user_defined()['shared_id'] = b.get_id()
-                objects[task_id].get_user_defined()['shared_bytes'] = b.get_size()
-                objects[task_id].get_user_defined()['task_footprint_bytes'] = 1024.0
-                objects[task_id].get_user_defined()['task_working_bytes'] = 110000000.0
+                # Initialize object user defined data
+                o.get_user_defined()['shared_id'] = b.get_id()
+                o.get_user_defined()['shared_bytes'] = b.get_size()
+                o.get_user_defined()['task_footprint_bytes'] = 1024.0
+                o.get_user_defined()['task_serialized_bytes'] = 1024.0
+                o.get_user_defined()['task_working_bytes'] = 110000000.0
+                o.get_user_defined()['rank_working_bytes'] = 980000000.0
 
-                # Example of user_defined data
-                # "rank_working_bytes": 980000000.0,
-                # "shared_bytes": 1600000000.0,
-                # "shared_id": 10,
-                # "task_footprint_bytes": 1024.0,
-                # "task_serialized_bytes": 1024.0,
-                # "task_working_bytes": 110000000.0
+        # transform spec to communication dict
+        communications = {comm_id:{
+            "type": "SendRecv",
+            "to": {
+                "type": "object",
+                "id": comm_spec["to"]
+            },
+            "messages": 1,
+            "from": {
+                "type": "object",
+                "id": comm_spec["from_"]
+            },
+            "bytes": comm_spec["size"]
+        } for comm_id, comm_spec in spec["communications"].items()}
+
+        rank_comm = {}
+        for com_id, communication in communications.items():
+            c_bytes: float = communication["bytes"]
+            sender_obj_id = communication["from"]["id"]
+            receiver_obj_id = communication["to"]["id"]
+
+            # Create receiver if it does not exist
+            rank_comm.setdefault(receiver_obj_id, {"sent": [], "received": []})
+            # Create sender if it does not exist
+            rank_comm.setdefault(sender_obj_id, {"sent": [], "received": []})
+
+            # Create communication edges
+            rank_comm[receiver_obj_id]["received"].append({"from": sender_obj_id, "bytes": c_bytes})
+            rank_comm[sender_obj_id]["sent"].append({"to": receiver_obj_id, "bytes": c_bytes})
+            self.__logger.debug(f"Added communication {com_id} to phase 0")
+
+        # self communications must be indexed by rank id
+        phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
+        for rank_id in ranks:
+            for comm_id in spec["ranks"][rank_id].get("communications", []):
+                phase_communications[rank_id].append(communications[comm_id])
+
+        # Merge rank communication with existing ones
+        sent_received = {}
+        for k, v in rank_comm.items():
+            if k in sent_received:
+                c = sent_received[k]
+                c.get("sent").extend(v.get("sent"))
+                c.get("received").extend(v.get("received"))
+            else:
+                sent_received[k] = v
+
+        # Iterate over ranks
+        communicators: Dict[int, ObjectCommunicator] = {}
+        for r_id, r in ranks.items():
+            # Iterate over objects in rank
+            for o in r.get_objects():
+                obj_id = o.get_id()
+                # Check if there is any communication for the object
+                obj_comm = sent_received.get(obj_id)
+                if obj_comm:
+                    sent = {
+                        objects.get(c.get("to")): c.get("bytes")
+                        for c in obj_comm.get("sent")
+                        if objects.get(c.get("to"))}
+                    received = {
+                        objects.get(c.get("from")): c.get("bytes")
+                        for c in obj_comm.get("received")
+                        if objects.get(c.get("from"))}
+                    communicators[obj_id] = obj_id
+                    o.set_communicator(ObjectCommunicator(i=obj_id, logger=self.__logger, r=received, s=sent))
+
+        # self.__communications = communications
+        self.set_ranks(ranks.values())
+        self.set_communications(phase_communications) # 0 for phase id
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""

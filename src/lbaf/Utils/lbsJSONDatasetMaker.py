@@ -64,6 +64,7 @@ class JSONDatasetMaker():
                 choices=[
                     "New Task",
                     "New Communication",
+                    "New Shared Block",
                     "New Sample",
                     "Build",
                     "Create Run Configuration",
@@ -84,6 +85,9 @@ class JSONDatasetMaker():
                 continue
             elif action == "New Communication":
                 # prompt from communication size (TODO)
+                continue
+            elif action == "New Shared Block":
+                # prompt from Shared Block size (TODO)
                 continue
             elif action == "New Rank":
                 # prompt from rank tasks (space separated)
@@ -146,19 +150,21 @@ class JSONDatasetMaker():
                             "deterministic_transfer": True
                         }
                     },
+                    "logging_level": "debug",
                     "output_dir": f"{PROJECT_PATH}/output",
                     "output_file_stem": "output_file"
                 }
 
-                output_dir = os.path.join(PROJECT_PATH, "config", "generated", self.__datetime.strftime("%y%m%d%H%M%S"))
+                uniq_id = self.__datetime.strftime("%y%m%d%H%M%S")
+                output_dir = os.path.join(PROJECT_PATH, "config", "generated", uniq_id)
                 if not os.path.isdir(output_dir):
                     os.makedirs(output_dir)
 
                 with open(os.path.join(output_dir, f"{name}.yaml"), "wt", encoding="utf-8") as file:
                     yaml.dump(local_conf, file)
 
-                self.__logger.info(f"Configuration generated at config/{name}")
-                self.__logger.info(f"To run just exit and run `lbaf --configuration=config/{name}`")
+                self.__logger.info(f"Configuration generated at config/generated/{uniq_id}/{name}.yaml")
+                self.__logger.info(f"To run just exit and run `lbaf --configuration=config/generated/{uniq_id}/{name}.yaml`")
                 action="Exit"
             elif action == "Exit":
                 break
