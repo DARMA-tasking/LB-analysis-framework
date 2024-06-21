@@ -18,7 +18,7 @@ jobs:
       deploy_badges_src_branch: develop
       deploy_badges_dst_branch: deploy-badges
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install packages
         run: |
@@ -50,7 +50,7 @@ jobs:
           echo "coverage_report_exists=$COVERAGE_REPORT_EXISTS" >> $GITHUB_OUTPUT
 
       - name: Report Test results
-        uses: phoenix-actions/test-reporting@v12
+        uses: phoenix-actions/test-reporting@v15
         if: success() || failure()
         with:
           name: Tests report (${{ matrix.os }}, ${{ matrix.python-version }})
