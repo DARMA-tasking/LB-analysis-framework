@@ -522,7 +522,7 @@ class Phase:
             # Iterate over objects in rank
             for o in rank.get_objects():
                 obj_id = o.get_id()
-                # Check if there is any communication edge for the object 
+                # Check if there is any communication edge for the object
                 # If yes then create a communicator for that object
                 comm_edge = comm_edges.get(obj_id)
                 if comm_edge:
@@ -546,9 +546,8 @@ class Phase:
         # Assign ranks (list) to this phase
         self.set_ranks(ranks.values())
 
-        # Index communications by rank and assign to this phase
+        # Index communications by rank and add to this phase
         # This is needed by the VTDataWriter
-        
         for rank_id in ranks:
             for comm_id in spec["ranks"][rank_id].get("communications", []):
                 phase_communications[rank_id].append(communications[comm_id])

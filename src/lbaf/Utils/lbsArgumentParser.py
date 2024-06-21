@@ -9,7 +9,7 @@ from itertools import repeat
 from os import linesep
 from typing import Optional, Union
 
-from .lbsColors import blue, green, white_on_red, yellow
+from .lbsColors import blue, green, white_on_red, white_on_green, yellow
 
 
 class PromptArgumentParser(argparse.ArgumentParser):
@@ -96,10 +96,9 @@ class PromptArgumentParser(argparse.ArgumentParser):
                         raw_response = choice
 
             if required is True and raw_response is None:
-                print(white_on_red(f"{linesep}{linesep} [ERROR] Value is required{linesep}") + linesep)
+                self.print_error(f"Value is required{linesep}")
             elif choices is not None and raw_response not in choices and raw_response is not None:
-                print(white_on_red(
-                    f"{linesep}{linesep} [ERROR] Value \"{raw_response}\" is invalid{linesep}") + linesep)
+                self.print_error(f"Value \"{raw_response}\" is invalid")
                 raw_response = None
             # In case the None response is correct we break the loop
             elif required is False and raw_response is None:
@@ -110,6 +109,14 @@ class PromptArgumentParser(argparse.ArgumentParser):
             if callable(value_type):
                 response = value_type(raw_response)
         return response
+
+    def print_error(self, msg: str):
+        """Prints an error to the console"""
+        print(white_on_red(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
+
+    def print_success(self, msg: str):
+        """Prints an error to the console"""
+        print(white_on_green(f"{linesep}{linesep} [SUCCESS] {msg}{linesep}") + linesep)
 
     def set_args(self, args: dict, namespace=None):
         """This method init updates a namespace with the default values and with the given arguments.

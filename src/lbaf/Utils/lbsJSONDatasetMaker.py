@@ -1,8 +1,22 @@
 """
-Utility to create and export a data file supporting shared blocks
-To call this script either call package console script `lbaf-json-dataset-maker`
-or call python src/lbaf/Utils/lbsJSONDatasetMaker.py
+Utility to create and export a data set supporting shared blocks by using a specification file.
+
+To call this script either call script with
+- `lbaf-json-dataset-maker` or
+- `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
+
+Run examples: 
+`lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1.json` --data-stem=/home/john/data-maker/dataset1
+`lbaf-json-dataset-maker --interactive`
+
+Note: `lbaf-json-dataset-maker` is the console script name.
+      It is also possible to run by calling `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
+
+A sample specification can be generated in the interactive mode and be printed as an example in
+either Yaml or JSON format.
+
 """
+from argparse import RawTextHelpFormatter
 from datetime import datetime
 import importlib
 import importlib.util
@@ -60,9 +74,16 @@ class JSONDatasetMaker():
         self.__args: dict = None
         """The input arguments"""
 
-        self.__prompt = PromptArgumentParser(allow_abbrev=False,
-                                      description="Create a VT Dataset and output the dataset using the VTDataWriter.",
-                                      prompt_default=False)
+        self.__prompt = PromptArgumentParser(
+            allow_abbrev=False,
+            description=(
+                "Utility to create and export a data set supporting shared blocks by using a specification file.\n" +
+                "Note: a sample specification can be generated in the interactive mode and be printed\n" +
+                "as an example in either Yaml or JSON format."),
+            prompt_default=False,
+            formatter_class=RawTextHelpFormatter
+        )
+
         """The argument parser and prompter"""
 
         self.__logger = logger if logger is not None else get_logger()
@@ -75,9 +96,13 @@ class JSONDatasetMaker():
         """Parse arguments."""
 
         parser = self.__prompt
+        parser.add_argument("--interactive", help="Set True to enter the interactive mode", default=False, nargs='?', type=bool)
+        parser.add_argument("--spec-file", help="The path to the specification file", default=None)
         parser.add_argument("--data-stem", help="The data stem", required=False)
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
-        parser.add_argument("--output-config-file", help="To config file output path", default=None)
+        parser.add_argument("--output-config-file", help="The path to generate a default LBAF config file",
+                            default=None)
+
         self.__args = parser.parse_args()
 
     def build(self, specs):
@@ -98,10 +123,10 @@ class JSONDatasetMaker():
 
         writer = VTDataWriter(self.__logger, None, self.__args.data_stem, writer_parameters)
         writer.write({ phase.get_id(): phase })
-        self.__logger.info("Dataset has been generated.\n")
+        self.__prompt.print_success("Dataset has been generated.")
 
-    def get_local_run_conf(self):
-        """Returns a local configuration fiel for the LBAF application for the generated dataset"""
+    def get_run_configuration_sample(self):
+        """Return a local configuration fiel for the LBAF application for the generated dataset"""
         return {
             "from_data": {
                 "data_stem": self.__args.data_stem,
@@ -135,8 +160,8 @@ class JSONDatasetMaker():
             "output_file_stem": "output_file"
         }
 
-    def create_sample_spec(self) -> PhaseSpecification:
-        """Creates a new sample specification as represented by diagram specified in issue #506"""
+    def create_spec_from_sample(self) -> PhaseSpecification:
+        """Create a new sample specification as represented by diagram specified in issue #506"""
 
         specs = PhaseSpecification({
             'tasks': [2.0, 3.5, 5.0],
@@ -182,11 +207,76 @@ class JSONDatasetMaker():
 
         return specs
 
+    def create_spec_from_file(self, file_path) -> PhaseSpecification:
+        """Create a new specification by loading from a file"""
+        spec = PhaseSpecification()
+        with open(file_path, "r", encoding="utf-8") as file_stream:
+            if file_path.endswith(".json"):
+                spec_dict = json.load(file_stream, object_hook=json_denormalize)
+                # in json keys are strings (int not supported by the JSON format) so apply casts as needed
+                if "ranks" in spec_dict:
+                    spec_dict["ranks"] = { int(rank_id):data for rank_id,data in spec_dict["ranks"].items() }
+            else:
+                spec_dict = yaml.safe_load(file_stream)
+        spec = cast(PhaseSpecification, spec_dict)
+        return spec
+
+    def create_run_configuration_sample(self, output_path):
+        """Write some sample configuration to the specified path to run LBAF using the generated data set"""
+
+        local_conf = self.get_run_configuration_sample()
+
+        output_dir = f"{os.sep}".join(output_path.split(os.sep)[:-1])
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+
+        with open(output_path, "wt", encoding="utf-8") as file:
+            yaml.dump(local_conf, file)
+
+        self.__logger.info(f"Configuration generated at ${output_path}")
+
+    def print(self, spec: PhaseSpecification, output_format: str="json"):
+        """print a specification to the console"""
+
+        if output_format == "json":
+            print ("----------- BEGIN JSON -----------")
+            print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': '), default=json_normalize))
+            print ("----------- END JSON -------------")
+        else:
+            print ("----------- BEGIN YAML -----------")
+            print(yaml.dump(spec, indent=4, Dumper=YamlSpecificationDumper))
+            print ("----------- END YAML -------------")
+
+
+    def run_non_interactive(self):
+        """Builds data directly by using the input arguments values"""
+
+        if self.__args.data_stem is None:
+            self.__prompt.print_error("The `data-stem` argument is required")
+            self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
+            raise SystemExit(1)
+
+        if self.__args.spec_file is None:
+            self.__prompt.print_error("The `spec-file` argument is required")
+            self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
+            raise SystemExit(1)
+
+        spec = self.create_spec_from_file(self.__args.spec_file)
+        self.build(spec)
+        # Optionally create a config file to run LBAF with the generated data
+        if self.__args.output_config_file is not None:
+            self.create_run_configuration_sample(self.__args.output_config_file)
+
     def run(self):
         """Run the JSONDatasetMaker"""
 
         # Parse command line arguments
         self.__parse_args()
+
+        # if --no-prompt explicit and all required elements run immediately
+        if self.__args.interactive is False:
+            self.run_non_interactive()
+            return
 
         # Logic: ask user for
         # 1. create tasks + shared blocks (+ shared block size) (shared_id, shared_bytes in user_defined data)
@@ -203,11 +293,12 @@ class JSONDatasetMaker():
                 "What kind of action ?",
                 choices=[
                     "Load specification from file",
-                    "Load sample specification",
+                    "Load specification from sample",
                     "Create Run Configuration",
                     "Build",
                     "Run",
-                    "Dump",
+                    "Print (JSON)",
+                    "Print (YAML)",
                     "Exit"
                 ],
                 default=action,
@@ -215,33 +306,21 @@ class JSONDatasetMaker():
             )
             if action == "Load specification from file":
                 file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
-                spec = PhaseSpecification()
-                with open(file_path, "r", encoding="utf-8") as file_stream:
-                    if file_path.endswith(".json"):
-                        spec_dict = json.load(file_stream, object_hook=json_denormalize)
-                        # in json keys are strings (int not supported by the JSON format) so apply casts as needed
-                        if "ranks" in spec_dict:
-                            spec_dict["ranks"] = { int(rank_id):data for rank_id,data in spec_dict["ranks"].items() }
-                    else:
-                        spec_dict = yaml.safe_load(file_stream)
-                spec = cast(PhaseSpecification, spec_dict)
-            elif action == "Load sample specification":
-                spec = self.create_sample_spec()
+                spec = self.create_spec_from_file(file_path)
+            elif action == "Load specification from sample":
+                spec = self.create_spec_from_sample()
                 action = "Build"
-            elif action == "Dump":
-                print ("----------- BEGIN JSON -----------")
-                print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': '), default=json_normalize))
-                print ("----------- END JSON -------------")
-                print("")
-                print ("----------- BEGIN YAML -----------")
-                print(yaml.dump(spec, indent=4, Dumper=YamlSpecificationDumper))
-                print ("----------- END YAML -------------")
+            elif action == "Print (JSON)":
+                self.print(spec, "json")
+            elif action == "Print (YAML)":
+                self.print(spec, "yaml")
             elif action == "Build":
-                # enable user to choose data stem only when building
-                if self.__args.data_stem is None:
-                    self.__args.data_stem = self.__prompt.prompt("Data stem ?",
-                        default=os.path.join(PROJECT_PATH, "output", "maker", "data",
-                                             self.__datetime.strftime("%y%m%d%H%M%S"), "data"))
+                self.__args.data_stem = self.__prompt.prompt(
+                    "Data stem ?",
+                    default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
+                                            self.__datetime.strftime("%y%m%d%H%M%S"), "data")
+                    ) if self.__args.data_stem is None else self.__args.data_stem
+                )
                 try:
                     self.build(spec)
                     action="Create Run Configuration"
@@ -252,24 +331,16 @@ class JSONDatasetMaker():
                     self.__logger.error("Please build or set data-stem argument")
                     continue
 
-                name =  self.__args.data_stem.split(os.sep)[-1]
-                # enable user to choose data stem only when building
-                if self.__args.output_config_file is None:
-                    self.__args.output_config_file = self.__prompt.prompt("Output configration file path ?",
-                        default=os.path.join(PROJECT_PATH, "output", "maker", "config",
-                                            self.__datetime.strftime("%y%m%d%H%M%S"), f"{name}.yaml"),
-                        required=True)
+                dataset_name = self.__args.data_stem.split(os.sep)[-1]
+                self.__args.output_config_file = self.__prompt.prompt(
+                    "Output configration file path ?",
+                    default=(os.path.join(PROJECT_PATH, "output", "maker", "config",
+                                          self.__datetime.strftime("%y%m%d%H%M%S"), f"{dataset_name}.yaml")
+                    ) if self.__args.output_config_file is None else self.__args.output_config_file,
+                    required=True
+                )
 
-                local_conf = self.get_local_run_conf()
-
-                output_dir = f"{os.sep}".join(self.__args.output_config_file.split(os.sep)[:-1])
-                if not os.path.isdir(output_dir):
-                    os.makedirs(output_dir)
-
-                with open(self.__args.output_config_file, "wt", encoding="utf-8") as file:
-                    yaml.dump(local_conf, file)
-
-                self.__logger.info(f"Configuration generated at ${self.__args.output_config_file}")
+                self.create_run_configuration_sample(self.__args.output_config_file)
                 action="Run"
             elif action == "Run":
                 if self.__args.output_config_file is None:
