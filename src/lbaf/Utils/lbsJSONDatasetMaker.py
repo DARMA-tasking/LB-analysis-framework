@@ -26,13 +26,15 @@ from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
 # pylint:disable=C0413:wrong-import-position
 
-def json_set_serializer(obj):
-    """Serialize a python set for json"""
+def json_normalize(obj):
+    """Normalize a python set to a json compatible representation"""
+
     if isinstance(obj, set):
         return dict({ "__python_set": list(obj) })
 
-def json_set_deserializer(dct):
-    """Deserialize a python set for json"""
+def json_denormalize(dct):
+    """Denormalize a python set from a json compatible representation"""
+
     if '__python_set' in dct:
         return set(dct['__python_set'])
     return dct
@@ -216,7 +218,7 @@ class JSONDatasetMaker():
                 spec = PhaseSpecification()
                 with open(file_path, "r", encoding="utf-8") as file_stream:
                     if file_path.endswith(".json"):
-                        spec_dict = json.load(file_stream, object_hook=json_set_deserializer)
+                        spec_dict = json.load(file_stream, object_hook=json_denormalize)
                         # in json keys are strings (int not supported by the JSON format) so apply casts as needed
                         if "ranks" in spec_dict:
                             spec_dict["ranks"] = { int(rank_id):data for rank_id,data in spec_dict["ranks"].items() }
@@ -228,7 +230,7 @@ class JSONDatasetMaker():
                 action = "Build"
             elif action == "Dump":
                 print ("----------- BEGIN JSON -----------")
-                print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': '), default=json_set_serializer))
+                print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': '), default=json_normalize))
                 print ("----------- END JSON -------------")
                 print("")
                 print ("----------- BEGIN YAML -----------")
