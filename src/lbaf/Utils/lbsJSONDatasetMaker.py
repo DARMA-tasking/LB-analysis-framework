@@ -14,7 +14,8 @@ import json
 import yaml
 from lbaf.Model.lbsPhase import Phase
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.Execution.lbsPhaseSpecification import PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification
+from lbaf.Execution.lbsPhaseSpecification import (
+    PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification)
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -45,9 +46,15 @@ class YamlSpecificationDumper(yaml.Dumper):
 
 
 class JSONDatasetMaker():
-    """Create and export a dataset containing shared blocks."""
+    """Provides generation tools for VT Data using phase specification input.
+    It internally use 
+    - the `populate_from_specification` method from the Phase class for building the phase instance
+    - the VTDataWriter to write data files
+    """
 
     def __init__(self, logger: Optional[Logger] = None):
+        """Initializes an instance of the JSONDatasetMaker utility class"""
+
         self.__args: dict = None
         """The input arguments"""
 
@@ -64,6 +71,7 @@ class JSONDatasetMaker():
 
     def __parse_args(self):
         """Parse arguments."""
+
         parser = self.__prompt
         parser.add_argument("--data-stem", help="The data stem", required=False)
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
@@ -72,6 +80,7 @@ class JSONDatasetMaker():
 
     def build(self, specs):
         """Build the data set"""
+
         # create and populate phase
         phase = Phase(self.__logger, 0)
         phase.populate_from_specification(specs)
@@ -126,6 +135,7 @@ class JSONDatasetMaker():
 
     def create_sample_spec(self) -> PhaseSpecification:
         """Creates a new sample specification as represented by diagram specified in issue #506"""
+
         specs = PhaseSpecification({
             'tasks': [2.0, 3.5, 5.0],
             'communications': [
@@ -172,6 +182,7 @@ class JSONDatasetMaker():
 
     def run(self):
         """Run the JSONDatasetMaker"""
+
         # Parse command line arguments
         self.__parse_args()
 
@@ -234,9 +245,7 @@ class JSONDatasetMaker():
                     action="Create Run Configuration"
                 except RuntimeError as e:
                     self.__logger.error(e.args[0])
-                
             elif action == "Create Run Configuration":
-
                 if self.__args.data_stem is None:
                     self.__logger.error("Please build or set data-stem argument")
                     continue
