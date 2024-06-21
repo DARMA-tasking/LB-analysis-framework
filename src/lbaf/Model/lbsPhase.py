@@ -411,7 +411,8 @@ class Phase:
 
         # This method is inspired by the VTDataReader but with a DatasetSpecification input
 
-        # Auto-generate ids for Lists (If dictionary then ids are the keys)
+        # Auto-generate ids for Lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
+        # and communications
         if isinstance(spec["tasks"], list):
             spec["tasks"] = {i:spec["tasks"][i] for i in range(len(spec["tasks"]))}
         if isinstance(spec["shared_blocks"], list):
@@ -420,13 +421,13 @@ class Phase:
             spec["communications"] = {i:spec["communications"][i] for i in range(len(spec["communications"]))}
 
         ranks: Dict[int,Rank] = {r_id:Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()}
-        objects: Dict[int,Object] = {} # set of all objects (tasks)
-        shared_blocks: Dict[int,Block] = {}
-        
+        objects: Dict[int,Object] = {} # set of objects (tasks)
+        shared_blocks: Dict[int,Block] = {} # set of objects (tasks)
+
         if len(spec["ranks"].keys()) == 0:
             raise RuntimeError("Missing rank distributions")
 
-        # Load objects
+        # Load objects set
         for rank_id, rank_specs in spec["ranks"].items():
             task_ids = rank_specs["tasks"]
             for task_id in task_ids:
@@ -448,7 +449,7 @@ class Phase:
                 # set as migratable
                 ranks[rank_id].add_migratable_object(o)
 
-        # Load rank shared blocks
+        # Load rank shared blocks set
         for shared_id, shared_block_spec in spec["shared_blocks"].items():
             for task_id in shared_block_spec["tasks"]:
                 o = objects[task_id]
@@ -477,12 +478,12 @@ class Phase:
                 # Initialize object user defined data
                 o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
-                o.get_user_defined()["task_footprint_bytes"] = 1024.0
-                o.get_user_defined()["task_serialized_bytes"] = 1024.0
-                o.get_user_defined()["task_working_bytes"] = 110000000.0
-                o.get_user_defined()["rank_working_bytes"] = 980000000.0
+                o.get_user_defined()["task_footprint_bytes"] = 1024.0 # arbitrary value
+                o.get_user_defined()["task_serialized_bytes"] = 1024.0 # arbitrary value
+                o.get_user_defined()["task_working_bytes"] = 110000000.0 # arbitrary value
+                o.get_user_defined()["rank_working_bytes"] = 980000000.0 # arbitrary value
 
-        # transform spec to communication dict
+        # Normalize communications as communications dictionaries
         communications = {comm_id:{
             "type": "SendRecv",
             "to": {
@@ -492,66 +493,66 @@ class Phase:
             "messages": 1,
             "from": {
                 "type": "object",
-                "id": comm_spec["from_"]
+                "id": comm_spec["from"]
             },
             "bytes": comm_spec["size"]
         } for comm_id, comm_spec in spec["communications"].items()}
 
-        rank_comm = {}
+        # Compute communication edges
+        comm_edges = {}
         for com_id, communication in communications.items():
             c_bytes: float = communication["bytes"]
             sender_obj_id = communication["from"]["id"]
             receiver_obj_id = communication["to"]["id"]
 
             # Create receiver if it does not exist
-            rank_comm.setdefault(receiver_obj_id, {"sent": [], "received": []})
+            comm_edges.setdefault(receiver_obj_id, {"sent": [], "received": []})
             # Create sender if it does not exist
-            rank_comm.setdefault(sender_obj_id, {"sent": [], "received": []})
+            comm_edges.setdefault(sender_obj_id, {"sent": [], "received": []})
 
-            # Create communication edges
-            rank_comm[receiver_obj_id]["received"].append({"from": sender_obj_id, "bytes": c_bytes})
-            rank_comm[sender_obj_id]["sent"].append({"to": receiver_obj_id, "bytes": c_bytes})
+            # Create communication edges (send/received bytes from/to indexed by task id)
+            comm_edges[receiver_obj_id]["received"].append({"from": sender_obj_id, "bytes": c_bytes})
+            comm_edges[sender_obj_id]["sent"].append({"to": receiver_obj_id, "bytes": c_bytes})
             self.__logger.debug(f"Added communication {com_id} to phase 0")
-
-        # self communications must be indexed by rank id
-        phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
-        for rank_id in ranks:
-            for comm_id in spec["ranks"][rank_id].get("communications", []):
-                phase_communications[rank_id].append(communications[comm_id])
-
-        # Merge rank communication with existing ones
-        sent_received = {}
-        for k, v in rank_comm.items():
-            if k in sent_received:
-                c = sent_received[k]
-                c.get("sent").extend(v.get("sent"))
-                c.get("received").extend(v.get("received"))
-            else:
-                sent_received[k] = v
 
         # Iterate over ranks
         communicators: Dict[int, ObjectCommunicator] = {}
-        for r_id, r in ranks.items():
+        phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
+        for rank_id, rank in ranks.items():
             # Iterate over objects in rank
-            for o in r.get_objects():
+            for o in rank.get_objects():
                 obj_id = o.get_id()
-                # Check if there is any communication for the object
-                obj_comm = sent_received.get(obj_id)
-                if obj_comm:
+                # Check if there is any communication edge for the object 
+                # If yes then create a communicator for that object
+                comm_edge = comm_edges.get(obj_id)
+                if comm_edge:
                     sent = {
                         objects.get(c.get("to")): c.get("bytes")
-                        for c in obj_comm.get("sent")
+                        for c in comm_edge.get("sent")
                         if objects.get(c.get("to"))}
                     received = {
                         objects.get(c.get("from")): c.get("bytes")
-                        for c in obj_comm.get("received")
+                        for c in comm_edge.get("received")
                         if objects.get(c.get("from"))}
                     communicators[obj_id] = obj_id
                     o.set_communicator(ObjectCommunicator(i=obj_id, logger=self.__logger, r=received, s=sent))
 
-        # self.__communications = communications
+            # Iterate over communications in rank
+            for comm_id in spec["ranks"][rank_id].get("communications", []):
+                if not comm_id in communications:
+                    raise RuntimeError(f"Communication #{comm_id} in rank #{rank_id} has not been defined")
+                phase_communications[rank_id].append(communications[comm_id])
+
+        # Assign ranks (list) to this phase
         self.set_ranks(ranks.values())
-        self.set_communications(phase_communications) # 0 for phase id
+
+        # Index communications by rank and assign to this phase
+        # This is needed by the VTDataWriter
+        
+        for rank_id in ranks:
+            for comm_id in spec["ranks"][rank_id].get("communications", []):
+                phase_communications[rank_id].append(communications[comm_id])
+        self.set_communications(phase_communications)
 
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""
