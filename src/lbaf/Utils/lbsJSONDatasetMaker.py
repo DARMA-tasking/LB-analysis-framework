@@ -325,10 +325,10 @@ class JSONDatasetMaker():
                     self.build(spec)
                     action="Create Run Configuration"
                 except RuntimeError as e:
-                    self.__logger.error(e.args[0])
+                    self.__prompt.print_error(e.args[0])
             elif action == "Create Run Configuration":
                 if self.__args.data_stem is None:
-                    self.__logger.error("Please build or set data-stem argument")
+                    self.__prompt.print_error("Please build or set data-stem argument")
                     continue
 
                 dataset_name = self.__args.data_stem.split(os.sep)[-1]
@@ -344,10 +344,10 @@ class JSONDatasetMaker():
                 action="Run"
             elif action == "Run":
                 if self.__args.output_config_file is None:
-                    self.__logger.error("Run configuration is not defined. Please create it !")
+                    self.__prompt.print_error("Run configuration is not defined. Please create a run configuration !")
                     continue
                 elif not os.path.exists(self.__args.output_config_file):
-                    self.__logger.error(f"Run configuration does not exist at {self.__args.output_config_file}." \
+                    self.__prompt.print_error(f"Run configuration does not exist at {self.__args.output_config_file}." \
                                         "Please create the run configuration.")
 
                 subprocess.run(["python", "src/lbaf", "-c", self.__args.output_config_file], check=True)
