@@ -5,7 +5,7 @@ To call this script either call script with
 - `lbaf-json-dataset-maker` or
 - `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
 
-Run examples: 
+Run examples:
 `lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1.json` --data-stem=/home/john/data-maker/dataset1
 `lbaf-json-dataset-maker --interactive`
 
@@ -63,7 +63,7 @@ class YamlSpecificationDumper(yaml.Dumper):
 
 class JSONDatasetMaker():
     """Provides generation tools for VT Data using phase specification input.
-    It internally use 
+    It internally use
     - the `populate_from_specification` method from the Phase class for building the phase instance
     - the VTDataWriter to write data files
     """
