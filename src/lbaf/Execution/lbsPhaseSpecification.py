@@ -1,4 +1,4 @@
-from typing import List, Dict, TypedDict, Union, Self, Set, Callable, Optional, cast
+from typing import List, Dict, TypedDict, Union, Set, Callable, Optional, cast
 
 class SharedBlockSpecification(TypedDict):
     # The shared block size
@@ -36,17 +36,6 @@ class PhaseSpecification(TypedDict):
 
     # Rank distributions / tasks ids per rank id
     ranks: Dict[int,RankSpecification]
-
-    @staticmethod
-    def create_empty()-> Self:
-        """Creates an empty specification"""
-
-        return PhaseSpecification({
-            "tasks": [],
-            "shared_blocks": [],
-            "communications": [],
-            "ranks": {}
-        })
 
 class PhaseSpecificationNormalizer:
     """Provides normalization and denormalization for PhaseSpecification
@@ -98,8 +87,6 @@ class PhaseSpecificationNormalizer:
     def denormalize(self, data: dict)-> PhaseSpecification:
         """Creates a phase specification using a definition where sets are represented as lists
         """
-
-        # TODO: cast as either list or dict of SharedBlockSpecification, CommunicationSpecification, RankSpecification
 
         return PhaseSpecification({
             "tasks": self.__normalize_member(data.get("tasks", [])),

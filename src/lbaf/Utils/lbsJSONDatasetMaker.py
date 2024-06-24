@@ -22,7 +22,7 @@ import importlib
 import importlib.util
 import os
 import sys
-from typing import Optional, cast
+from typing import Optional
 import subprocess
 import json
 import yaml
@@ -41,20 +41,6 @@ from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
 # pylint:disable=C0413:wrong-import-position
-
-
-def json_normalize(obj):
-    """Normalize a python set to a json compatible representation"""
-
-    if isinstance(obj, set):
-        return dict({ "__python_set": list(obj) })
-
-def json_denormalize(dct):
-    """Denormalize a python set from a json compatible representation"""
-
-    if '__python_set' in dct:
-        return set(dct['__python_set'])
-    return dct
 
 
 class YamlSpecificationDumper(yaml.Dumper):
@@ -99,7 +85,8 @@ class JSONDatasetMaker():
         """Parse arguments."""
 
         parser = self.__prompt
-        parser.add_argument("--interactive", help="Set True to enter the interactive mode", default=False, nargs='?', type=bool)
+        parser.add_argument("--interactive", help="Set True to enter the interactive mode", default=False, nargs='?',
+                                             type=bool)
         parser.add_argument("--spec-file", help="The path to the specification file", default=None)
         parser.add_argument("--data-stem", help="The data stem", required=False)
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
@@ -215,7 +202,7 @@ class JSONDatasetMaker():
         spec = PhaseSpecification()
         with open(file_path, "r", encoding="utf-8") as file_stream:
             if file_path.endswith(".json"):
-                spec_dict = json.load(file_stream, object_hook=json_denormalize)
+                spec_dict = json.load(file_stream)
                 # in json keys are strings (int not supported by the JSON format) so apply casts as needed
                 if "ranks" in spec_dict:
                     spec_dict["ranks"] = { int(rank_id):data for rank_id,data in spec_dict["ranks"].items() }
@@ -244,7 +231,7 @@ class JSONDatasetMaker():
 
         if output_format == "json":
             print ("----------- BEGIN JSON -----------")
-            print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': '), default=json_normalize))
+            print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': ')))
             print ("----------- END JSON -------------")
         else:
             print ("----------- BEGIN YAML -----------")
@@ -289,7 +276,7 @@ class JSONDatasetMaker():
         # 4. JSON file output
 
         # Specification of the phase to make
-        spec: PhaseSpecification = PhaseSpecification.create_empty()
+        spec: PhaseSpecification = PhaseSpecification({"tasks": [], "shared_blocks": [], "communications": [], "ranks": {}})
 
         action: str = "Load sample specification" # default action is a sample
         while action != "Build JSON file":
