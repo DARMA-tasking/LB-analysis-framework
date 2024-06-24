@@ -67,13 +67,13 @@ class PhaseSpecificationNormalizer:
     def normalize(self, spec: PhaseSpecification)-> dict:
         """Normalize a phase specification to represent inner sets as lists
         
-        Note: the sets converted to lists are 
+        Note: the sets converted to lists are
         - `self.shared_blocks.tasks`
         - `self.ranks.tasks`
         - `self.ranks.communications`
 
         This method should be called before json or yaml serialization.
-        Denormalization should be executed using the static method json_denormalize 
+        Denormalization should be executed using the static method json_denormalize
         """
 
         return {
@@ -90,7 +90,7 @@ class PhaseSpecificationNormalizer:
                 spec.get("ranks", {}),
                 lambda r: {
                     "tasks": list(r.get("tasks", {})),
-                    "communications": list(r.get("communications", {}))  
+                    "communications": list(r.get("communications", {}))
                 }
             )
         }
@@ -118,7 +118,7 @@ class PhaseSpecificationNormalizer:
                 data.get("ranks", []),
                 lambda r: RankSpecification({
                     "tasks": set(r.get("tasks", [])),
-                    "communications": set(r.get("communications", {}))  
+                    "communications": set(r.get("communications", {}))
                 })
             )
         })
