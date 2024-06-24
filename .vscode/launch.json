@@ -51,7 +51,7 @@
             "program": "${workspaceFolder}/src/lbaf/Utils/lbsJSONDatasetMaker.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": []
+            "args": ["--interactive"]
         },
     ]
 }

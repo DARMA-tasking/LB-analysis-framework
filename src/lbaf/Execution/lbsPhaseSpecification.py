@@ -1,4 +1,4 @@
-from typing import List, Dict, TypedDict, Union, Set
+from typing import List, Dict, TypedDict, Union, Self, Set, Callable, Optional, cast
 
 class SharedBlockSpecification(TypedDict):
     # The shared block size
@@ -36,3 +36,89 @@ class PhaseSpecification(TypedDict):
 
     # Rank distributions / tasks ids per rank id
     ranks: Dict[int,RankSpecification]
+
+    @staticmethod
+    def create_empty()-> Self:
+        """Creates an empty specification"""
+
+        return PhaseSpecification({
+            "tasks": [],
+            "shared_blocks": [],
+            "communications": [],
+            "ranks": {}
+        })
+
+class PhaseSpecificationNormalizer:
+    """Provides normalization and denormalization for PhaseSpecification
+    where inner sets are represented as lists to improve readability in JSON or YAML
+    """
+
+    def __normalize_member(self, data: Union[dict,list], transform: Optional[Callable] = None) -> Union[dict,list]:
+        """Normalize a member that can be represented as a dict where key is the item key or as a list
+        where id is the index in the list"""
+
+        if isinstance(data, list):
+            return [ transform(o) for o in data ] if transform is not None else data # pylint: disable=E1133 (not-an-iterable)
+        elif isinstance(data, dict):
+            return { o_id:transform(o) for o_id, o in data.items() } if transform is not None else data # pylint: disable=E1101 (no-member)
+        else:
+            raise RuntimeError("data must be list or dict")
+
+    def normalize(self, spec: PhaseSpecification)-> dict:
+        """Normalize a phase specification to represent inner sets as lists
+        
+        Note: the sets converted to lists are 
+        - `self.shared_blocks.tasks`
+        - `self.ranks.tasks`
+        - `self.ranks.communications`
+
+        This method should be called before json or yaml serialization.
+        Denormalization should be executed using the static method json_denormalize 
+        """
+
+        return {
+            "tasks": self.__normalize_member(spec.get("tasks", [])),
+            "shared_blocks": self.__normalize_member(
+                spec.get("shared_blocks", []),
+                lambda b: {
+                    "size": b.get("size"),
+                    "tasks": list(b.get("tasks", {}))
+                }
+            ),
+            "communications": self.__normalize_member(spec.get("communications", [])),
+            "ranks": self.__normalize_member(
+                spec.get("ranks", {}),
+                lambda r: {
+                    "tasks": list(r.get("tasks", {})),
+                    "communications": list(r.get("communications", {}))  
+                }
+            )
+        }
+
+    def denormalize(self, data: dict)-> PhaseSpecification:
+        """Creates a phase specification using a definition where sets are represented as lists
+        """
+
+        # TODO: cast as either list or dict of SharedBlockSpecification, CommunicationSpecification, RankSpecification
+
+        return PhaseSpecification({
+            "tasks": self.__normalize_member(data.get("tasks", [])),
+            "shared_blocks": self.__normalize_member(
+                data.get("shared_blocks", []),
+                lambda b: SharedBlockSpecification({
+                    "size": b.get("size", 0.0),
+                    "tasks": set(b.get("tasks", []))
+                })
+            ),
+            "communications": self.__normalize_member(
+                data.get("communications", []),
+                lambda c: cast(CommunicationSpecification, c)
+            ),
+            "ranks": self.__normalize_member(
+                data.get("ranks", []),
+                lambda r: RankSpecification({
+                    "tasks": set(r.get("tasks", [])),
+                    "communications": set(r.get("communications", {}))  
+                })
+            )
+        })

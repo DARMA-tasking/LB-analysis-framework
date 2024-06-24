@@ -29,7 +29,9 @@ import yaml
 from lbaf.Model.lbsPhase import Phase
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Execution.lbsPhaseSpecification import (
-    PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification)
+    PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification,
+    PhaseSpecificationNormalizer
+)
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -39,6 +41,7 @@ from lbaf import PROJECT_PATH
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
 # pylint:disable=C0413:wrong-import-position
+
 
 def json_normalize(obj):
     """Normalize a python set to a json compatible representation"""
@@ -218,7 +221,8 @@ class JSONDatasetMaker():
                     spec_dict["ranks"] = { int(rank_id):data for rank_id,data in spec_dict["ranks"].items() }
             else:
                 spec_dict = yaml.safe_load(file_stream)
-        spec = cast(PhaseSpecification, spec_dict)
+
+        spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
         return spec
 
     def create_run_configuration_sample(self, output_path):
@@ -244,7 +248,7 @@ class JSONDatasetMaker():
             print ("----------- END JSON -------------")
         else:
             print ("----------- BEGIN YAML -----------")
-            print(yaml.dump(spec, indent=4, Dumper=YamlSpecificationDumper))
+            print(yaml.dump(spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
             print ("----------- END YAML -------------")
 
 
@@ -285,7 +289,7 @@ class JSONDatasetMaker():
         # 4. JSON file output
 
         # Specification of the phase to make
-        spec: PhaseSpecification = { "tasks": [], "shared_blocks": [], "communications": [], "ranks": {} }
+        spec: PhaseSpecification = PhaseSpecification.create_empty()
 
         action: str = "Load sample specification" # default action is a sample
         while action != "Build JSON file":
@@ -311,9 +315,9 @@ class JSONDatasetMaker():
                 spec = self.create_spec_from_sample()
                 action = "Build"
             elif action == "Print (JSON)":
-                self.print(spec, "json")
+                self.print(PhaseSpecificationNormalizer().normalize(spec), "json")
             elif action == "Print (YAML)":
-                self.print(spec, "yaml")
+                self.print(PhaseSpecificationNormalizer().normalize(spec), "yaml")
             elif action == "Build":
                 self.__args.data_stem = self.__prompt.prompt(
                     "Data stem ?",
