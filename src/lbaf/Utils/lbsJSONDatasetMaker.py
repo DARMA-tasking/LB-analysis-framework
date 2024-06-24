@@ -22,7 +22,7 @@ import importlib
 import importlib.util
 import os
 import sys
-from typing import Optional
+from typing import Optional, Union, Callable
 import subprocess
 import json
 import yaml
@@ -150,7 +150,7 @@ class JSONDatasetMaker():
             "output_file_stem": "output_file"
         }
 
-    def create_spec_from_sample(self) -> PhaseSpecification:
+    def create_spec_from_sample(self, use_explicit_keys: bool=False) -> PhaseSpecification:
         """Create a new sample specification as represented by diagram specified in issue #506"""
 
         specs = PhaseSpecification({
@@ -195,6 +195,11 @@ class JSONDatasetMaker():
             }
         })
 
+        if use_explicit_keys:
+            specs["tasks"] = {comm_id: comm for comm_id, comm in enumerate(specs["tasks"])}
+            specs["communications"] = {task_id: task for task_id, task in enumerate(specs["communications"])}
+            specs["shared_blocks"] = {block_id: block for block_id, block in enumerate(specs["shared_blocks"])}
+
         return specs
 
     def create_spec_from_file(self, file_path) -> PhaseSpecification:
@@ -212,7 +217,7 @@ class JSONDatasetMaker():
         spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
         return spec
 
-    def create_run_configuration_sample(self, output_path):
+    def create_run_configuration_sample(self, output_path: str):
         """Write some sample configuration to the specified path to run LBAF using the generated data set"""
 
         local_conf = self.get_run_configuration_sample()
@@ -231,7 +236,7 @@ class JSONDatasetMaker():
 
         if output_format == "json":
             print ("----------- BEGIN JSON -----------")
-            print(json.dumps(spec, sort_keys=True, indent=4, separators=(',', ': ')))
+            print(json.dumps(spec, sort_keys=True, indent=2, separators=(',', ': ')))
             print ("----------- END JSON -------------")
         else:
             print ("----------- BEGIN YAML -----------")
@@ -258,6 +263,81 @@ class JSONDatasetMaker():
         if self.__args.output_config_file is not None:
             self.create_run_configuration_sample(self.__args.output_config_file)
 
+    def create_or_update_object(self, parent: Union[list,dict], object_type_name: str, default, update: Callable):
+        """Create an object in parent list or dict for interactive input of tasks, communications and shared blocks"""
+
+        if isinstance(parent, dict):
+            choices = [str(i) for i in parent.keys()]
+        else:
+            choices = [str(i) for i in range(0, len(parent))]
+        choices.append(f"*New {object_type_name}")
+
+        object_choice = self.__prompt.prompt("Choose task", choices=choices, value_type=str, required=True,
+                                                        default=f"*New {object_type_name}")
+        # retrieve current value
+        object_value = (default if object_choice == "*New task" else (
+                            parent[int(object_choice)]
+                            if isinstance(parent, dict)
+                            else parent[int(object_choice)]
+                        )
+                    )
+        object_value = update(object_value)
+
+        object_id = None
+        if object_choice == f"*New {object_type_name}":
+            if isinstance(parent, dict):
+                object_id = max(parent.keys(), default=-1) + 1
+                object_id = self.__prompt.prompt(
+                    f"{object_type_name.capitalize()} id ?", required=True, value_type=int, default=object_id,
+                                validate= lambda t_id: f"{object_type_name.capitalize()} id already used"
+                                          if t_id in parent.keys()
+                                          else None)
+        else:
+            object_id = int(object_choice)
+
+        # append or update object in or to the parent list or dict
+        if isinstance(parent, dict):
+            parent[object_id] = object_value
+        else:
+            if object_id:
+                parent[object_id] = object_value # update
+            else:
+                parent.append(object_value) # create
+
+
+    def create_or_update_task(self, spec: PhaseSpecification):
+        """Creates or updates a task interactive mode"""
+
+        self.create_or_update_object(
+            spec.get("tasks"),
+            "task",
+            default=0.0,
+            update=lambda time: (self.__prompt.prompt("Task time ?", required=True, value_type=float, default=time)),
+        )
+
+    def create_or_update_communication(self, spec: PhaseSpecification):
+        """Creates or updates a communication in interactive mode"""
+
+        # TODO: WIP here
+        self.create_or_update_object(
+            spec.get("communications"),
+            "communication",
+            default=0.0,
+            update=lambda comm: ( # TODO: find how how to run callback if not lambda in python
+                comm["size"] = self.__prompt.prompt("Communication size ?", required=True, value_type=float),
+                comm["from"] = self.__prompt.prompt("From (task id or index) ?", required=True, value_type=int,
+                    validate= lambda v: (
+                        raise NotImplementedError("TODO: check unique not equal to from + task id exist")
+                    )
+                )
+                comm["to"] = self.__prompt.prompt("To (task id or index) ?", required=True, value_type=int,
+                    validate= lambda v: (
+                        raise NotImplementedError("TODO: check unique not equal to from + task id exist")
+                    )
+                )
+            )            
+        )
+
     def run(self):
         """Run the JSONDatasetMaker"""
 
@@ -276,15 +356,24 @@ class JSONDatasetMaker():
         # 4. JSON file output
 
         # Specification of the phase to make
-        spec: PhaseSpecification = PhaseSpecification({"tasks": [], "shared_blocks": [], "communications": [], "ranks": {}})
+        spec: PhaseSpecification = PhaseSpecification({
+            "tasks": [],
+            "shared_blocks": [],
+            "communications": [],
+            "ranks": {}
+        })
 
         action: str = "Load sample specification" # default action is a sample
         while action != "Build JSON file":
             action = self.__prompt.prompt(
                 "What kind of action ?",
                 choices=[
-                    "Load specification from file",
-                    "Load specification from sample",
+                    "Specification: load file",
+                    "Specification: load sample",
+                    "Task: create or update",
+                    "Communication: add",
+                    "Add shared block",
+                    "Define rank",
                     "Create Run Configuration",
                     "Build",
                     "Run",
@@ -295,12 +384,40 @@ class JSONDatasetMaker():
                 default=action,
                 required=True
             )
-            if action == "Load specification from file":
+            if action == "Specification: load file":
                 file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
                 spec = self.create_spec_from_file(file_path)
-            elif action == "Load specification from sample":
-                spec = self.create_spec_from_sample()
+            elif action == "Specification: load sample":
+                spec = self.create_spec_from_sample(use_explicit_keys=True)
                 action = "Build"
+            elif action == "Task: create or update":
+                self.create_or_update_task(spec)
+            elif action == "Communication: create or update":
+                self.create_or_update_communication(spec)
+            elif action == "Add shared block":
+                block_id = None
+                if isinstance(spec.get("tasks", []), dict):
+                    block_id = self.__prompt.prompt("Shared block id ?", required=True, value_type=int)
+                task_ids = self.__prompt.prompt("Shared block tasks (ids or indices) ?", required=True, value_type=str)
+                task_ids = [int(t_id) for t_id in task_ids.split(',')]
+                block = SharedBlockSpecification({
+                    "size": self.__prompt.prompt("Shared block size ?", required=True, value_type=float),
+                    "tasks": task_ids,
+                })
+                if block_id is not None:
+                    spec["shared_blocks"][block_id] = block
+                else:
+                    spec["shared_blocks"].append(block)
+            elif action == "Define rank":
+                rank_id = self.__prompt.prompt("Rank id ?", required=True, value_type=int)
+                task_ids = self.__prompt.prompt("Rank tasks (comma separated) ?", required=True, value_type=str)
+                task_ids = [int(t_id) for t_id in task_ids.split(',')]
+                com_ids = self.__prompt.prompt("Rank communications (comma separated) ?", required=True, value_type=str)
+                com_ids = [int(t_id) for t_id in task_ids.split(',')]
+                spec["ranks"][rank_id] = RankSpecification({
+                    "tasks": task_ids,
+                    "communications": com_ids
+                })
             elif action == "Print (JSON)":
                 self.print(PhaseSpecificationNormalizer().normalize(spec), "json")
             elif action == "Print (YAML)":

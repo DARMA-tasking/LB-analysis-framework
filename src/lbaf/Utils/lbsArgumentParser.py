@@ -7,7 +7,7 @@ import argparse
 import sys
 from itertools import repeat
 from os import linesep
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 
 from .lbsColors import blue, green, white_on_red, white_on_green, yellow
 
@@ -56,7 +56,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
         print(''.join(list(repeat(' ', length))))
 
     def prompt(self, question: str, value_type: Optional[str] = None, default: Optional[Union[str, int, float]] = None,
-               required: bool = False, choices: Optional[list] = None):
+               required: bool = False, choices: Optional[list] = None, validate: Optional[Callable] = None):
         """Asks a question"""
         msg = green(question)
         if default is not None:
@@ -103,6 +103,11 @@ class PromptArgumentParser(argparse.ArgumentParser):
             # In case the None response is correct we break the loop
             elif required is False and raw_response is None:
                 break
+            elif validate is not None:
+                error = validate(raw_response)
+                if error:
+                    self.print_error(f"{error}{linesep}")
+                    raw_response = None
 
         response = raw_response
         if value_type is not None:
