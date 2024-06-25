@@ -49,7 +49,7 @@ class Object:
 
         # Initialize other instance variables
         self.__overhead = 0.0
-        self.__shared_block = None
+        self.__shared_block: Optional[Block] = None
 
         # Initialize currently unused parameters (for writing back out)
         self.__unused_params = {}
@@ -138,19 +138,19 @@ class Object:
         """Return ID of rank to which object is currently assigned."""
         return self.__rank_id
 
-    def set_shared_block(self, b: Block) -> None:
+    def set_shared_block(self, b: Optional[Block]) -> None:
         """Assign shared memory block when necessary."""
-        if not isinstance(b, Block):
+        if b is not None and not isinstance(b, Block):
             raise TypeError(f"shared block: incorrect type {type(b)}")
         self.__shared_block = b
 
-    def get_shared_block(self) -> int:
+    def get_shared_block(self) -> Optional[Block]:
         """Return shared memory block assigned to object."""
         return self.__shared_block
 
-    def get_shared_block_id(self) -> int:
+    def get_shared_block_id(self) -> Optional[int]:
         """Return ID of shared memory block assigned to object."""
-        return self.__shared_block.get_id()
+        return self.__shared_block.get_id() if self.__shared_block is not None else None
 
     def has_communicator(self) -> bool:
         """Return whether the object has communication graph data."""
