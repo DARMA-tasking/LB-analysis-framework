@@ -20,8 +20,8 @@ Scrip usage:
 Note: `lbaf-json-dataset-maker` is the console script name of the `lbaf` package.
       It is also possible to run by calling `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
 
-A sample specification can be generated in the interactive mode and be printed as an example in
-either Yaml or JSON format.
+A sample specification can be loaded in the interactive mode and be printed as an example in
+either YAML or JSON format.
 
 """
 from argparse import RawTextHelpFormatter
@@ -75,8 +75,8 @@ class JSONDatasetMaker():
             allow_abbrev=False,
             description=(
                 "Utility to create and export a data set supporting shared blocks by using a specification file.\n" +
-                "Note: a sample specification can be generated in the interactive mode and be printed\n" +
-                "as an example in either Yaml or JSON format."),
+                "Note: a sample specification can be loaded in the interactive mode and be printed\n" +
+                "as an example in either YAML or JSON format."),
             prompt_default=False,
             formatter_class=RawTextHelpFormatter
         )
@@ -103,6 +103,41 @@ class JSONDatasetMaker():
 
         self.__args = parser.parse_args()
 
+    def process_args(self) -> PhaseSpecification:
+        """Process input arguments and initialize a working PhaseSpecification instance"""
+
+        # In non interactive mode data-stem and spec-file arguments are required
+        if self.__args.interactive is False:
+            if self.__args.data_stem is None:
+                self.__prompt.print_error("The `data-stem` argument is required")
+                self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
+                raise SystemExit(1)
+
+            if self.__args.spec_file is None:
+                self.__prompt.print_error("The `spec-file` argument is required")
+                self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
+                raise SystemExit(1)
+
+        spec = None
+        if self.__args.spec_file:
+            spec = self.create_spec_from_file(self.__args.spec_file)
+        else:
+            spec: PhaseSpecification = PhaseSpecification({
+                "tasks": [],
+                "shared_blocks": [],
+                "communications": [],
+                "ranks": {}
+            })
+
+        # Build immediately in non interactive mode
+        if self.__args.interactive is False:
+            self.build(spec)
+        # Optionally create a config file to run LBAF with the generated data
+        if self.__args.output_config_file is not None:
+            self.create_run_config_file(self.__args.output_config_file)
+
+        return spec
+
     def build(self, specs):
         """Build the data set"""
 
@@ -123,7 +158,7 @@ class JSONDatasetMaker():
         writer.write({phase.get_id(): phase})
         self.__prompt.print_success("Dataset has been generated.")
 
-    def get_run_configuration_sample(self):
+    def create_run_config(self):
         """Return a local configuration for the LBAF application for the generated dataset"""
         return {
             "from_data": {
@@ -161,7 +196,21 @@ class JSONDatasetMaker():
             "output_file_stem": "output_file"
         }
 
-    def create_spec_from_sample(self, use_explicit_keys: bool = False) -> PhaseSpecification:
+    def create_run_config_file(self, output_path: str):
+        """Write some sample configuration to the specified path to run LBAF using the generated data set"""
+
+        local_conf = self.create_run_config()
+
+        output_dir = f"{os.sep}".join(output_path.split(os.sep)[:-1])
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+
+        with open(output_path, "wt", encoding="utf-8") as file:
+            yaml.dump(local_conf, file)
+
+        self.__logger.info(f"Configuration generated at {output_path}")
+
+    def create_spec_sample(self, use_explicit_keys: bool = False) -> PhaseSpecification:
         """Create a new sample specification as represented by diagram specified in issue #506"""
 
         specs = PhaseSpecification({
@@ -228,20 +277,6 @@ class JSONDatasetMaker():
         spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
         return spec
 
-    def create_run_configuration_sample(self, output_path: str):
-        """Write some sample configuration to the specified path to run LBAF using the generated data set"""
-
-        local_conf = self.get_run_configuration_sample()
-
-        output_dir = f"{os.sep}".join(output_path.split(os.sep)[:-1])
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-
-        with open(output_path, "wt", encoding="utf-8") as file:
-            yaml.dump(local_conf, file)
-
-        self.__logger.info(f"Configuration generated at {output_path}")
-
     def print(self, spec: PhaseSpecification, output_format: str = "json"):
         """print a specification to the console"""
 
@@ -253,25 +288,6 @@ class JSONDatasetMaker():
             print("----------- BEGIN YAML -----------")
             print(yaml.dump(spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
             print("----------- END YAML -------------")
-
-    def run_non_interactive(self):
-        """Builds data directly by using the input arguments values"""
-
-        if self.__args.data_stem is None:
-            self.__prompt.print_error("The `data-stem` argument is required")
-            self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
-            raise SystemExit(1)
-
-        if self.__args.spec_file is None:
-            self.__prompt.print_error("The `spec-file` argument is required")
-            self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
-            raise SystemExit(1)
-
-        spec = self.create_spec_from_file(self.__args.spec_file)
-        self.build(spec)
-        # Optionally create a config file to run LBAF with the generated data
-        if self.__args.output_config_file is not None:
-            self.create_run_configuration_sample(self.__args.output_config_file)
 
     def ask_object_choice(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
                           question: str = None, validate: Optional[Callable] = None, default=None):
@@ -296,7 +312,7 @@ class JSONDatasetMaker():
         else:
             return "*New"
 
-    def define_object_interactive(self, parent: Union[list, dict], object_type_name: str, default, update: Callable):
+    def make_object_interactive(self, parent: Union[list, dict], object_type_name: str, default, update: Callable):
         """Create or update an object in a a list (id is the index) or in a dict (id is the key) for interactive input
         of tasks, communications and shared blocks"""
 
@@ -330,7 +346,7 @@ class JSONDatasetMaker():
     def define_task_interactive(self, spec: PhaseSpecification):
         """Creates or updates a task in interactive mode"""
 
-        self.define_object_interactive(
+        self.make_object_interactive(
             spec.get("tasks"),
             "task",
             default=0.0,
@@ -359,7 +375,7 @@ class JSONDatasetMaker():
     def define_communication_interactive(self, spec: PhaseSpecification):
         """Creates or updates a communication in interactive mode"""
 
-        self.define_object_interactive(
+        self.make_object_interactive(
             spec.get("communications"),
             "communication",
             default=CommunicationSpecification({"size": 0.0}),
@@ -398,7 +414,7 @@ class JSONDatasetMaker():
     def define_shared_block(self, spec: PhaseSpecification):
         """Creates or updates a communication in interactive mode"""
 
-        self.define_object_interactive(
+        self.make_object_interactive(
             spec.get("shared_blocks"),
             "shared block",
             default=SharedBlockSpecification({"size": 0.0}),
@@ -411,25 +427,11 @@ class JSONDatasetMaker():
         # Parse command line arguments
         self.__parse_args()
 
-        # if --no-prompt explicit and all required elements run immediately
+        spec: PhaseSpecification = self.process_args()
         if self.__args.interactive is False:
-            self.run_non_interactive()
             return
 
-        # Logic: ask user for
-        # 1. create tasks + shared blocks (+ shared block size) (shared_id, shared_bytes in user_defined data)
-        # 2. create communications between tasks
-        # 3. build config dictionary
-        # 4. JSON file output
-
-        # Specification of the phase to make
-        spec: PhaseSpecification = PhaseSpecification({
-            "tasks": [],
-            "shared_blocks": [],
-            "communications": [],
-            "ranks": {}
-        })
-
+        # Loop on interactive mode available actions
         action: str = "Specification: load sample"  # default action is a sample
         while action != "Build JSON file":
             action = self.__prompt.prompt(
@@ -455,7 +457,7 @@ class JSONDatasetMaker():
                 file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
                 spec = self.create_spec_from_file(file_path)
             elif action == "Specification: load sample":
-                spec = self.create_spec_from_sample(use_explicit_keys=True)
+                spec = self.create_spec_sample(use_explicit_keys=True)
                 action = "Build"
             elif action == "Specification: print":
                 frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json"], required=True, default="yaml")
@@ -520,7 +522,7 @@ class JSONDatasetMaker():
                     required=True
                 )
 
-                self.create_run_configuration_sample(self.__args.output_config_file)
+                self.create_run_config_file(self.__args.output_config_file)
                 action = "Run"
             elif action == "Run":
                 if self.__args.output_config_file is None:
