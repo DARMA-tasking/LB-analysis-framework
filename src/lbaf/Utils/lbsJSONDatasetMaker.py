@@ -5,11 +5,19 @@ To call this script either call script with
 - `lbaf-json-dataset-maker` or
 - `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
 
-Run examples:
-`lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1.json` --data-stem=/home/john/data-maker/dataset1
+Scrip usage:
+
+- Generate dataset from specification file
+`lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1`
+
+- Generate dataset from specification file and sample configuration file configured tonuse the generated data stem
+`lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --output-config-file=/home/thomas/data-maker/dataset1-config.yaml`
+
+- Generate dataset from specification defined interactively in CLI
 `lbaf-json-dataset-maker --interactive`
 
-Note: `lbaf-json-dataset-maker` is the console script name.
+
+Note: `lbaf-json-dataset-maker` is the console script name of the `lbaf` package.
       It is also possible to run by calling `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
 
 A sample specification can be generated in the interactive mode and be printed as an example in
@@ -232,7 +240,7 @@ class JSONDatasetMaker():
         with open(output_path, "wt", encoding="utf-8") as file:
             yaml.dump(local_conf, file)
 
-        self.__logger.info(f"Configuration generated at ${output_path}")
+        self.__logger.info(f"Configuration generated at {output_path}")
 
     def print(self, spec: PhaseSpecification, output_format: str = "json"):
         """print a specification to the console"""
@@ -429,6 +437,8 @@ class JSONDatasetMaker():
                 choices=[
                     "Specification: load file",
                     "Specification: load sample",
+                    "Specification: print",
+                    "Specification: save",
                     "Task: create or update",
                     "Communication: create or update",
                     "Shared block: create or update",
@@ -436,8 +446,6 @@ class JSONDatasetMaker():
                     "Build",
                     "Create Run Configuration",
                     "Run",
-                    "Print (JSON)",
-                    "Print (YAML)",
                     "Exit"
                 ],
                 default=action,
@@ -449,6 +457,25 @@ class JSONDatasetMaker():
             elif action == "Specification: load sample":
                 spec = self.create_spec_from_sample(use_explicit_keys=True)
                 action = "Build"
+            elif action == "Specification: print":
+                frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json"], required=True, default="yaml")
+                self.print(PhaseSpecificationNormalizer().normalize(spec), frmt)
+            elif action == "Specification: save":
+                frmt = None
+                while frmt is None:
+                    path = self.__prompt.prompt("Path ?", required=True)
+                    output_dir = f"{os.sep}".join(path.split(os.sep)[:-1])
+                    frmt = "json" if path.endswith(".json") \
+                            else "yaml" if path.endswith(".yaml") or path.endswith(".yml") \
+                            else None
+                    if frmt is None:
+                        self.__prompt.print_error("Specification file path must end with either .json, .yml, .yaml")
+
+                if not os.path.isdir(output_dir):
+                    os.makedirs(output_dir)
+
+                with open(path, "wt", encoding="utf-8") as o_file:
+                    o_file.write(PhaseSpecificationNormalizer().normalize(spec), frmt)
             elif action == "Task: create or update":
                 self.define_task_interactive(spec)
             elif action == "Communication: create or update":
@@ -467,10 +494,6 @@ class JSONDatasetMaker():
                 spec["ranks"][rank_id] = RankSpecification({
                     "tasks": task_ids
                 })
-            elif action == "Print (JSON)":
-                self.print(PhaseSpecificationNormalizer().normalize(spec), "json")
-            elif action == "Print (YAML)":
-                self.print(PhaseSpecificationNormalizer().normalize(spec), "yaml")
             elif action == "Build":
                 self.__args.data_stem = self.__prompt.prompt(
                     "Data stem ?",
