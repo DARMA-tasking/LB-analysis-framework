@@ -110,8 +110,8 @@ class PromptArgumentParser(argparse.ArgumentParser):
                     raw_response = None
 
         response = raw_response
-        if value_type is not None:
-            if callable(value_type):
+        if value_type is not None and raw_response is not None:
+            if callable(value_type) and not isinstance(raw_response, value_type):
                 response = value_type(raw_response)
         return response
 
