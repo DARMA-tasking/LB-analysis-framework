@@ -44,11 +44,11 @@
             "args": [ ]
         },
         {
-            "name": "LBAF: Dataset Maker",
+            "name": "LBAF: Data Files Maker",
             "python": "${workspaceFolder}/venv311/bin/python",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/lbaf/Utils/lbsJSONDatasetMaker.py",
+            "program": "${workspaceFolder}/src/lbaf/Utils/lbsJSONDataFilesMaker.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["--interactive"]

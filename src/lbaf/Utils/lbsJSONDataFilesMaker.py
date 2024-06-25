@@ -2,25 +2,21 @@
 Utility to create and export a data set supporting shared blocks by using a specification file.
 
 To call this script either call script with
-- `lbaf-json-dataset-maker` or
+- `lbaf-vt-data-files-maker` if lbaf package is installed or
 - `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
 
-Scrip usage:
+Script usage examples:
 
 - Generate dataset from specification file
-`lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1`
+`lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1`
 
 - Generate dataset from specification file and sample configuration file configured tonuse the generated data stem
-`lbaf-json-dataset-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --output-config-file=/home/thomas/data-maker/dataset1-config.yaml`
+`lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --output-config-file=/home/thomas/data-maker/dataset1-config.yaml`
 
 - Generate dataset from specification defined interactively in CLI
-`lbaf-json-dataset-maker --interactive`
+`lbaf-vt-data-files-maker --interactive`
 
-
-Note: `lbaf-json-dataset-maker` is the console script name of the `lbaf` package.
-      It is also possible to run by calling `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
-
-A sample specification can be loaded in the interactive mode and be printed as an example in
+Sample specification: a sample specification can be loaded in the interactive mode and be printed as an example in
 either YAML or JSON format.
 
 """
@@ -58,7 +54,7 @@ class YamlSpecificationDumper(yaml.Dumper):
         return super(YamlSpecificationDumper, self).increase_indent(flow, False)
 
 
-class JSONDatasetMaker():
+class JSONDataFilesMaker():
     """Provides generation tools for VT Data using phase specification input.
     It internally use
     - the `populate_from_specification` method from the Phase class for building the phase instance
@@ -538,4 +534,4 @@ class JSONDatasetMaker():
 
 
 if __name__ == "__main__":
-    JSONDatasetMaker().run()
+    JSONDataFilesMaker().run()
