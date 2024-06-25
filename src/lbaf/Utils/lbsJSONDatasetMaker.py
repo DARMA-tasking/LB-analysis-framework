@@ -433,8 +433,8 @@ class JSONDatasetMaker():
                     "Communication: create or update",
                     "Shared block: create or update",
                     "Define rank",
-                    "Create Run Configuration",
                     "Build",
+                    "Create Run Configuration",
                     "Run",
                     "Print (JSON)",
                     "Print (YAML)",
@@ -507,7 +507,7 @@ class JSONDatasetMaker():
                     self.__prompt.print_error(f"Run configuration does not exist at {self.__args.output_config_file}."
                                               "Please create the run configuration.")
 
-                subprocess.run(["python", "src/lbaf", "-c", self.__args.output_config_file], check=True)
+                subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.output_config_file], check=True)
             elif action == "Exit":
                 break
 

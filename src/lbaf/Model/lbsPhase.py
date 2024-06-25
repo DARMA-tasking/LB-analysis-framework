@@ -500,6 +500,7 @@ class Phase:
 
         # Compute communication edges
         comm_edges = {}
+        phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
         for com_id, communication in communications.items():
             c_bytes: float = communication["bytes"]
             sender_obj_id = communication["from"]["id"]
@@ -515,9 +516,13 @@ class Phase:
             comm_edges[sender_obj_id]["sent"].append({"to": receiver_obj_id, "bytes": c_bytes})
             self.__logger.debug(f"Added communication {com_id} to phase 0")
 
+            # Index by rank id for the phase communications dictionary
+            rank_id = objects[sender_obj_id].get_rank_id()
+            phase_communications[rank_id].append(communication)
+
         # Iterate over ranks
         communicators: Dict[int, ObjectCommunicator] = {}
-        phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
+
         for rank_id, rank in ranks.items():
             # Iterate over objects in rank
             for o in rank.get_objects():
@@ -537,12 +542,8 @@ class Phase:
                     communicators[obj_id] = obj_id
                     o.set_communicator(ObjectCommunicator(i=obj_id, logger=self.__logger, r=received, s=sent))
 
-            # Iterate over communications in rank
-            for comm_id in spec["ranks"][rank_id].get("communications", []):
-                if not comm_id in communications:
-                    raise RuntimeError(f"Communication #{comm_id} in rank #{rank_id} has not been defined")
-                phase_communications[rank_id].append(communications[comm_id])
-
+        # Assign communications dictionary
+        self.set_communications(phase_communications)
         # Assign ranks (list) to this phase
         self.set_ranks(ranks.values())
 
