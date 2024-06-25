@@ -116,7 +116,7 @@ class JSONDatasetMaker():
         self.__prompt.print_success("Dataset has been generated.")
 
     def get_run_configuration_sample(self):
-        """Return a local configuration fiel for the LBAF application for the generated dataset"""
+        """Return a local configuration for the LBAF application for the generated dataset"""
         return {
             "from_data": {
                 "data_stem": self.__args.data_stem,
@@ -126,22 +126,25 @@ class JSONDatasetMaker():
             "work_model": {
                 "name": "AffineCombination",
                 "parameters": {
-                    "alpha": 0.0,
-                    "beta": 1.0,
-                    "gamma": 0.0
+                    "alpha": 1.0,
+                    "beta": 0.0,
+                    "gamma": 0.0,
+                    "upper_bounds": {
+                        "max_memory_usage": 8000000000.0
+                    }
                 }
             },
             "algorithm": {
                 "name": "InformAndTransfer",
                 "phase_id": 0,
                 "parameters": {
-                    "n_iterations": 8,
+                    "n_iterations": 4,
                     "n_rounds": 2,
-                    "fanout": 1,
+                    "fanout": 2,
                     "order_strategy": "arbitrary",
-                    "transfer_strategy": "Recursive",
+                    "transfer_strategy": "Clustering",
                     "criterion": "Tempered",
-                    "max_objects_per_transfer": 8,
+                    "max_objects_per_transfer": 2,
                     "deterministic_transfer": True
                 }
             },
@@ -273,9 +276,12 @@ class JSONDatasetMaker():
         if can_add:
             choices.append(f"*New {object_type_name}")
 
-        choice = self.__prompt.prompt(f"Choose {object_type_name}" if question is None else question,
-                                    choices=choices, value_type=str, required=True,
-                                    default=f"*New {object_type_name}" if can_add and default is None else default, validate=validate)
+        choice = self.__prompt.prompt(
+            f"Choose {object_type_name}" if question is None else question,
+            choices=choices,
+            value_type=str,
+            required=True,
+            default=f"*New {object_type_name}" if can_add and default is None else default, validate=validate)
 
         if choice != f"*New {object_type_name}":
             return int(choice)
@@ -376,7 +382,7 @@ class JSONDatasetMaker():
             for t in task_ids:
                 if not t in allowed_task_ids:
                     tasks_valid = False
-                    self.__prompt.print_error(f"Invalid task id {t}")    
+                    self.__prompt.print_error(f"Invalid task id {t}")
         block["tasks"] = task_ids
 
         return block
@@ -446,25 +452,13 @@ class JSONDatasetMaker():
             elif action == "Task: create or update":
                 self.define_task_interactive(spec)
             elif action == "Communication: create or update":
-                if (isinstance(spec["tasks"], dict) and len(spec["tasks"]) < 2) or (isinstance(spec["tasks"], list) and len(spec["tasks"]) < 2):
+                if (isinstance(spec["tasks"], dict) and len(spec["tasks"]) < 2) or (
+                    isinstance(spec["tasks"], list) and len(spec["tasks"]) < 2):
                     self.__prompt.print_error("To create a communication please create at least 2 tasks")
                     action = "Task: create or update"
                 else:
                     self.define_communication_interactive(spec)
             elif action == "Shared block: create or update":
-                # block_id = None
-                # if isinstance(spec.get("tasks", []), dict):
-                #     block_id = self.__prompt.prompt("Shared block id ?", required=True, value_type=int)
-                # task_ids = self.__prompt.prompt("Shared block tasks (ids or indices) ?", required=True, value_type=str)
-                # task_ids = [int(t_id) for t_id in task_ids.split(',')]
-                # block = SharedBlockSpecification({
-                #     "size": self.__prompt.prompt("Shared block size ?", required=True, value_type=float),
-                #     "tasks": task_ids,
-                # })
-                # if block_id is not None:
-                #     spec["shared_blocks"][block_id] = block
-                # else:
-                #     spec["shared_blocks"].append(block)
                 self.define_shared_block(spec)
             elif action == "Define rank":
                 rank_id = self.__prompt.prompt("Rank id ?", required=True, value_type=int)
