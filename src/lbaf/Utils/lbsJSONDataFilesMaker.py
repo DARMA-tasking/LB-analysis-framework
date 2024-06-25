@@ -96,6 +96,8 @@ class JSONDataFilesMaker():
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
         parser.add_argument("--output-config-file", help="The path to generate a default LBAF config file",
                             default=None)
+        parser.add_argument("--multiple-sharing", help="Allow tasks to share more than one block",
+                            default=False, nargs='?', type=bool)
 
         self.__args = parser.parse_args()
 
@@ -117,7 +119,8 @@ class JSONDataFilesMaker():
         spec = None
         if self.__args.spec_file:
             spec = self.create_spec_from_file(self.__args.spec_file)
-        else:
+
+        if spec is None:
             spec: PhaseSpecification = PhaseSpecification({
                 "tasks": [],
                 "shared_blocks": [],
@@ -128,6 +131,7 @@ class JSONDataFilesMaker():
         # Build immediately in non interactive mode
         if self.__args.interactive is False:
             self.build(spec)
+
         # Optionally create a config file to run LBAF with the generated data
         if self.__args.output_config_file is not None:
             self.create_run_config_file(self.__args.output_config_file)
@@ -258,8 +262,8 @@ class JSONDataFilesMaker():
 
         return specs
 
-    def create_spec_from_file(self, file_path) -> PhaseSpecification:
-        """Create a new specification by loading from a file"""
+    def create_spec_from_file(self, file_path) -> Optional[PhaseSpecification]:
+        """Create a new specification by loading from a file and returns None if data contain errors"""
         spec = PhaseSpecification()
         with open(file_path, "r", encoding="utf-8") as file_stream:
             if file_path.endswith(".json"):
@@ -271,6 +275,15 @@ class JSONDataFilesMaker():
                 spec_dict = yaml.safe_load(file_stream)
 
         spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
+        try:
+            Phase(self.__logger, 0).populate_from_specification(spec, self.__args.multiple_sharing is not False)
+            self.__logger.info("Specification is valid !")
+        except RuntimeError as e:
+            self.__logger.error(f"Specification error: {e}")
+            spec = None
+            if self.__args.interactive is False:
+                raise SystemExit()
+
         return spec
 
     def print(self, spec: PhaseSpecification, output_format: str = "json"):
@@ -451,7 +464,8 @@ class JSONDataFilesMaker():
             )
             if action == "Specification: load file":
                 file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
-                spec = self.create_spec_from_file(file_path)
+                if s:= self.create_spec_from_file(file_path) is not None:
+                    spec = s
             elif action == "Specification: load sample":
                 spec = self.create_spec_sample(use_explicit_keys=True)
                 action = "Build"

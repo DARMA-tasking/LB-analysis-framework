@@ -1,3 +1,4 @@
+import os
 import random as rnd
 from logging import Logger
 from typing import Optional, Dict
@@ -406,7 +407,7 @@ class Phase:
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
-    def populate_from_specification(self, spec: PhaseSpecification):
+    def populate_from_specification(self, spec: PhaseSpecification, multiple_sharing: bool = False):
         """Populate this phase using a specification listing phases, ranks, tasks and communications."""
 
         # This method is inspired by the VTDataReader but with a DatasetSpecification input
@@ -457,7 +458,7 @@ class Phase:
 
                 # Check: shared block cannot be shared by multiple ranks - 1 rank only is possible
                 if shared_id in shared_blocks and shared_blocks[shared_id].get_home_id() != rank_id:
-                    raise RuntimeError("A block can only be shared inside the same rank."
+                    raise RuntimeError(f"A block can only be shared inside the same rank.{os.linesep}"
                                         f"Please fix shared block associated tasks for block with id {shared_id} !")
 
                 # Initialize or find the shared block
@@ -473,15 +474,16 @@ class Phase:
                     b = ranks[rank_id].get_shared_block_with_id(shared_id)
 
                 # Associate shared block with object
+                if not multiple_sharing and o.get_shared_block_id() is not None and o.get_shared_block_id() != shared_id:
+                    raise RuntimeError(f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
+                # TODO: remove other user defined keys than shared_* and add shared_home key for rank
+                o.get_user_defined()["rank_working_bytes"] = 980000000.0 # arbitrary value
                 o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
-                o.get_user_defined()["task_footprint_bytes"] = 1024.0 # arbitrary value
-                o.get_user_defined()["task_serialized_bytes"] = 1024.0 # arbitrary value
-                o.get_user_defined()["task_working_bytes"] = 110000000.0 # arbitrary value
-                o.get_user_defined()["rank_working_bytes"] = 980000000.0 # arbitrary value
+                o.get_user_defined()["shared_home_id"] = b.get_home_id()
 
         # Normalize communications as communications dictionaries
         communications = {comm_id:{
