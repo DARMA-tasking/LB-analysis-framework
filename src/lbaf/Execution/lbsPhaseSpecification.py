@@ -53,7 +53,7 @@ class PhaseSpecificationNormalizer:
 
     def normalize(self, spec: PhaseSpecification)-> dict:
         """Normalize a phase specification to represent inner sets as lists
-        
+
         Note: the sets converted to lists are
         - `self.shared_blocks.tasks`
         - `self.ranks.tasks`
