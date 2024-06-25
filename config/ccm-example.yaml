@@ -1,6 +1,6 @@
 # Specify input
 from_data:
-  data_stem: ../data/ccm_example/data
+  data_stem: ../data/ccm_example_data/data
   phase_ids:
   - 0
 check_schema: false
