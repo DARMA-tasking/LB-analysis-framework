@@ -210,8 +210,8 @@ class JSONDataFilesMaker():
         """Create a new sample specification as represented by diagram specified in issue #506"""
 
         specs = PhaseSpecification({
-            'tasks': [2.0, 3.5, 5.0],
-            'communications': [
+            "tasks": [2.0, 3.5, 5.0],
+            "communications": [
                 CommunicationSpecification({
                     "size": 10000.0,  # c1 (size)
                     "from": 0,  # from t1
@@ -236,13 +236,13 @@ class JSONDataFilesMaker():
             "shared_blocks": [
                 # S1
                 SharedBlockSpecification({
-                    'size': 10000.0,
-                    'tasks': {0, 1}
+                    "size": 10000.0,
+                    "tasks": {0, 1}
                 }),
                 # S2
                 SharedBlockSpecification({
-                    'size': 15000.0,
-                    'tasks': {2}
+                    "size": 15000.0,
+                    "tasks": {2}
                 })
             ],
             "ranks": {
@@ -278,7 +278,7 @@ class JSONDataFilesMaker():
 
         if output_format == "json":
             print("----------- BEGIN JSON -----------")
-            print(json.dumps(spec, sort_keys=True, indent=2, separators=(',', ': ')))
+            print(json.dumps(spec, sort_keys=True, indent=2, separators=(',', ": ")))
             print("----------- END JSON -------------")
         else:
             print("----------- BEGIN YAML -----------")

@@ -446,7 +446,7 @@ class Phase:
 
                 objects[task_id] = o
 
-                # set as migratable
+                # Set migratable
                 ranks[rank_id].add_migratable_object(o)
 
         # Load rank shared blocks set
