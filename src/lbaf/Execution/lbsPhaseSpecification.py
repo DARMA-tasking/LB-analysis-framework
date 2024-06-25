@@ -15,8 +15,6 @@ CommunicationSpecification = TypedDict('CommunicationSpecification', {
 class RankSpecification(TypedDict):
     # The task ids
     tasks: Set[int]
-    # The communication ids
-    communications: Set[int]
 
 class PhaseSpecification(TypedDict):
     """Dictionary representing a phase specification"""
@@ -78,8 +76,7 @@ class PhaseSpecificationNormalizer:
             "ranks": self.__normalize_member(
                 spec.get("ranks", {}),
                 lambda r: {
-                    "tasks": list(r.get("tasks", {})),
-                    "communications": list(r.get("communications", {}))
+                    "tasks": list(r.get("tasks", {}))
                 }
             )
         }
@@ -104,8 +101,7 @@ class PhaseSpecificationNormalizer:
             "ranks": self.__normalize_member(
                 data.get("ranks", []),
                 lambda r: RankSpecification({
-                    "tasks": set(r.get("tasks", [])),
-                    "communications": set(r.get("communications", {}))
+                    "tasks": set(r.get("tasks", []))
                 })
             )
         })

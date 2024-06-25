@@ -546,13 +546,6 @@ class Phase:
         # Assign ranks (list) to this phase
         self.set_ranks(ranks.values())
 
-        # Index communications by rank and add to this phase
-        # This is needed by the VTDataWriter
-        for rank_id in ranks:
-            for comm_id in spec["ranks"][rank_id].get("communications", []):
-                phase_communications[rank_id].append(communications[comm_id])
-        self.set_communications(phase_communications)
-
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""
 

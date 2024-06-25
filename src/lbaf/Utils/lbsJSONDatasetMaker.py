@@ -190,8 +190,8 @@ class JSONDatasetMaker():
                 })
             ],
             "ranks": {
-                0: RankSpecification({"tasks": {0, 1}, "communications": {0, 3}}),
-                1: RankSpecification({"tasks": {2}, "communications": {1, 2}})
+                0: RankSpecification({"tasks": {0, 1}}),
+                1: RankSpecification({"tasks": {2}})
             }
         })
 
@@ -470,11 +470,8 @@ class JSONDatasetMaker():
                 rank_id = self.__prompt.prompt("Rank id ?", required=True, value_type=int)
                 task_ids = self.__prompt.prompt("Rank tasks (comma separated) ?", required=True, value_type=str)
                 task_ids = [int(t_id) for t_id in task_ids.split(',')]
-                com_ids = self.__prompt.prompt("Rank communications (comma separated) ?", required=True, value_type=str)
-                com_ids = [int(t_id) for t_id in task_ids.split(',')]
                 spec["ranks"][rank_id] = RankSpecification({
-                    "tasks": task_ids,
-                    "communications": com_ids
+                    "tasks": task_ids
                 })
             elif action == "Print (JSON)":
                 self.print(PhaseSpecificationNormalizer().normalize(spec), "json")
