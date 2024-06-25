@@ -62,7 +62,7 @@ class Object:
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
-                size := user_defined.get("task_footprint_bytes")), (int, float)) or isinstance(size, bool) or size < 0.0:
+                size := user_defined.get("task_footprint_bytes", 0.0)), (int, float)) or isinstance(size, bool) or size < 0.0:
                 raise TypeError(
                     f"size: incorrect type {type(size)} or value: {size}")
             else:
@@ -70,7 +70,7 @@ class Object:
 
             # Object overhead is by definition its additional working memory
             if not isinstance((
-                overhead := user_defined.get("task_working_bytes")), (int, float)) or isinstance(overhead, bool) or overhead < 0.0:
+                overhead := user_defined.get("task_working_bytes", 0.0)), (int, float)) or isinstance(overhead, bool) or overhead < 0.0:
                 raise TypeError(
                     f"overhead: incorrect type {type(overhead)} or value: {overhead}")
             else:
