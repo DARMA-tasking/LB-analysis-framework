@@ -479,11 +479,10 @@ class Phase:
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
-                # TODO: remove other user defined keys than shared_* and add shared_home key for rank
                 o.get_user_defined()["rank_working_bytes"] = 980000000.0 # arbitrary value
                 o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
-                o.get_user_defined()["shared_home_id"] = b.get_home_id()
+                o.get_user_defined()["home"] = b.get_home_id()
 
         # Normalize communications as communications dictionaries
         communications = {comm_id:{
