@@ -452,14 +452,16 @@ class Phase:
 
         # Load rank shared blocks set
         for shared_id, shared_block_spec in spec["shared_blocks"].items():
+            if not shared_block_spec["tasks"]:
+                self.__logger.warning(f"No tasks linked to shared block {shared_id} !")
             for task_id in shared_block_spec["tasks"]:
                 o = objects[task_id]
                 rank_id = o.get_rank_id()
 
                 # Check: shared block cannot be shared by multiple ranks - 1 rank only is possible
                 if shared_id in shared_blocks and shared_blocks[shared_id].get_home_id() != rank_id:
-                    raise RuntimeError(f"A block can only be shared inside the same rank.{os.linesep}"
-                                        f"Please fix shared block associated tasks for block with id {shared_id} !")
+                    raise RuntimeError(f"A block can only be shared by tasks in the same rank.{os.linesep}"
+                                        f"Invalid block {shared_id} !")
 
                 # Initialize or find the shared block
                 b: Block = None
@@ -474,12 +476,12 @@ class Phase:
                     b = ranks[rank_id].get_shared_block_with_id(shared_id)
 
                 # Associate shared block with object
+                # Check: task must share 0 or 1 block
                 if not multiple_sharing and o.get_shared_block_id() is not None and o.get_shared_block_id() != shared_id:
                     raise RuntimeError(f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
-                o.get_user_defined()["rank_working_bytes"] = 980000000.0 # arbitrary value
                 o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
                 o.get_user_defined()["home"] = b.get_home_id()
