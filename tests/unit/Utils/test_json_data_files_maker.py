@@ -30,6 +30,7 @@ class TestVTDataFilesMaker(unittest.TestCase):
 
         with self.assertRaises(SystemExit) as err:
             JSONDataFilesMaker().run()
+        self.assertEqual(err.exception.__context__.args[0], "Task already in rank 0")
 
     @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
         spec_file=os.path.join(config_dir, "phase_spec_02_wrong.yaml"),
@@ -40,7 +41,9 @@ class TestVTDataFilesMaker(unittest.TestCase):
 
         with self.assertRaises(SystemExit) as err:
             JSONDataFilesMaker().run()
-        self.assertEqual(err.exception.__context__.args[0], "Task already in rank 0")
+        self.assertEqual(err.exception.__context__.args[0],
+            "Task 0 already shared block 0 and cannot share additional block 2. Only 0 or 1 allowed"
+        )
 
     @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
         spec_file=os.path.join(config_dir, "phase_spec_03_valid.yaml"),

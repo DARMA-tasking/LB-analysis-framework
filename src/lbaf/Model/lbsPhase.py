@@ -461,7 +461,7 @@ class Phase:
                 # Initialize or find the shared block
                 b: Block = None
                 if not shared_id in shared_blocks:
-                    b = Block(b_id=shared_id, h_id=rank_id, size=shared_block_spec["size"],
+                    b = Block(b_id=shared_id, h_id=shared_block_spec["home"], size=shared_block_spec["size"],
                               o_ids=shared_block_spec["tasks"])
                     # Index the shared block for next loops checks
                     shared_blocks[shared_id] = b

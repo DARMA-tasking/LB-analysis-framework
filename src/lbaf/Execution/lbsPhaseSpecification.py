@@ -3,6 +3,8 @@ from typing import List, Dict, TypedDict, Union, Set, Callable, Optional, cast
 class SharedBlockSpecification(TypedDict):
     # The shared block size
     size: float
+    # The ID of the unique rank to which a shared block ultimately belong
+    home: int
     # The set of tasks accessing this shared block
     tasks: Set[int]
 
@@ -69,7 +71,8 @@ class PhaseSpecificationNormalizer:
                 spec.get("shared_blocks", []),
                 lambda b: {
                     "size": b.get("size"),
-                    "tasks": list(b.get("tasks", {}))
+                    "tasks": list(b.get("tasks", {})),
+                    "home": b.get("home"),
                 }
             ),
             "communications": self.__normalize_member(spec.get("communications", [])),
@@ -91,7 +94,8 @@ class PhaseSpecificationNormalizer:
                 data.get("shared_blocks", []),
                 lambda b: SharedBlockSpecification({
                     "size": b.get("size", 0.0),
-                    "tasks": set(b.get("tasks", []))
+                    "tasks": set(b.get("tasks", [])),
+                    "home": b.get("home")
                 })
             ),
             "communications": self.__normalize_member(

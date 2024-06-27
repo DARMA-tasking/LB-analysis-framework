@@ -241,11 +241,13 @@ class JSONDataFilesMaker():
                 # S1
                 SharedBlockSpecification({
                     "size": 10000.0,
+                    "home": 0,
                     "tasks": {0, 1}
                 }),
                 # S2
                 SharedBlockSpecification({
                     "size": 15000.0,
+                    "home": 1,
                     "tasks": {2}
                 })
             ],
@@ -391,7 +393,7 @@ class JSONDataFilesMaker():
             update=lambda comm: self.define_communication_prms_interactive(comm, spec["tasks"])
         )
 
-    def define_shared_block_prms_interactive(self, block, tasks: Union[dict, list]):
+    def define_shared_block_prms_interactive(self, block, tasks: Union[dict, list], ranks: dict):
         """Ask for shared block size, and tasks in interactive mode"""
 
         block["size"], = self.__prompt.prompt(
@@ -418,6 +420,22 @@ class JSONDataFilesMaker():
                     self.__prompt.print_error(f"Invalid task id {t}")
         block["tasks"] = task_ids
 
+        # Try to find some default home as the first task ranks
+        default_home = block.get("home", None)
+        if task_ids and default_home is None:
+            for rank_id, rank_spec in ranks.items():
+                # If any ranks task id in ranks tasks set default home to that rank
+                for ranks_task_id in rank_spec["tasks"]:
+                    if ranks_task_id in task_ids:
+                        default_home = rank_id
+                        break
+
+                if default_home:
+                    break
+
+        block["home"], = self.__prompt.prompt(
+            "Home (rank id) ?", required=True, value_type=int, default=block.get("home", default_home)),
+
         return block
 
     def define_shared_block(self, spec: PhaseSpecification):
@@ -427,7 +445,7 @@ class JSONDataFilesMaker():
             spec.get("shared_blocks"),
             "shared block",
             default=SharedBlockSpecification({"size": 0.0}),
-            update=lambda block: self.define_shared_block_prms_interactive(block, spec["tasks"])
+            update=lambda block: self.define_shared_block_prms_interactive(block, spec["tasks"], spec["ranks"])
         )
 
     def run(self):
