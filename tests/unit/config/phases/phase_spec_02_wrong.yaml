@@ -1,4 +1,4 @@
-# Invalid specification test config: tasks 0 and 1 are sharing 2 blocks
+# Test config: error: tasks 0 and 1 are sharing 2 blocks
 communications:
   - {from: 0, size: 10000.0, to: 2}
   - {from: 1, size: 15000.0, to: 2}

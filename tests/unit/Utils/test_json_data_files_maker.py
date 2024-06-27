@@ -28,7 +28,7 @@ class TestVTDataFilesMaker(unittest.TestCase):
     def test_make_data_files_from_spec_wrong_01(self, namespace: argparse.Namespace):
         """Test that invalid phase configuration 01 generates no dataset and fire error"""
 
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(SystemExit) as err:
             JSONDataFilesMaker().run()
 
     @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
@@ -38,8 +38,9 @@ class TestVTDataFilesMaker(unittest.TestCase):
     def test_make_data_files_from_spec_wrong_02(self, namespace: argparse.Namespace):
         """Test that invalid phase configuration 02 generates no dataset and fire error"""
 
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(SystemExit) as err:
             JSONDataFilesMaker().run()
+        self.assertEqual(err.exception.__context__.args[0], "Task already in rank 0")
 
     @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
         spec_file=os.path.join(config_dir, "phase_spec_03_valid.yaml"),
@@ -47,6 +48,16 @@ class TestVTDataFilesMaker(unittest.TestCase):
     ))
     def test_make_data_files_from_spec_valid_03(self, namespace: argparse.Namespace):
         """Test that valid phase configuration correctly generates a dataset"""
+
+        print(namespace)
+        JSONDataFilesMaker().run()
+
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
+        spec_file=os.path.join(config_dir, "phase_spec_04_valid.yaml"),
+        data_stem=os.path.join(output_dir, "dataset04")
+    ))
+    def test_make_data_files_from_spec_valid_04(self, namespace: argparse.Namespace):
+        """Test that valid phase configuration with tasks from different ranks shared same block correctly generates a dataset"""
 
         print(namespace)
         JSONDataFilesMaker().run()

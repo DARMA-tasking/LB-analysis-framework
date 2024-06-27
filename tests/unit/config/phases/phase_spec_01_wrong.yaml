@@ -1,4 +1,4 @@
-# Invalid specification test config: task 1 is defined on 2 ranks
+# Test config: error: task 1 is defined on 2 ranks
 communications:
   - {from: 0, size: 10000.0, to: 2}
   - {from: 1, size: 15000.0, to: 2}

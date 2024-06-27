@@ -437,7 +437,7 @@ class Phase:
 
                 # Check: task must be only in 1 rank
                 if task_id in objects:
-                    raise RuntimeError(f"Task already in rank f{objects[task_id].get_rank_id()}")
+                    raise RuntimeError(f"Task already in rank {objects[task_id].get_rank_id()}")
 
                 o = Object(
                     task_id,
@@ -458,11 +458,6 @@ class Phase:
                 o = objects[task_id]
                 rank_id = o.get_rank_id()
 
-                # Check: shared block cannot be shared by multiple ranks - 1 rank only is possible
-                if shared_id in shared_blocks and shared_blocks[shared_id].get_home_id() != rank_id:
-                    raise RuntimeError(f"A block can only be shared by tasks in the same rank.{os.linesep}"
-                                        f"Invalid block {shared_id} !")
-
                 # Initialize or find the shared block
                 b: Block = None
                 if not shared_id in shared_blocks:
@@ -474,6 +469,10 @@ class Phase:
                     ranks[rank_id].add_shared_block(b)
                 else:
                     b = ranks[rank_id].get_shared_block_with_id(shared_id)
+                    # If block on a rank but not on this ranks (tasks from several ranks are sharing the same block)
+                    if b is None:
+                        b = shared_blocks[shared_id]
+                        ranks[rank_id].add_shared_block(b)
 
                 # Associate shared block with object
                 # Check: task must share 0 or 1 block

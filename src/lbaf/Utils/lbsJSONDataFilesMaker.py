@@ -282,7 +282,7 @@ class JSONDataFilesMaker():
             self.__logger.error(f"Specification error: {e}")
             spec = None
             if self.__args.interactive is False:
-                raise SystemExit()
+                raise SystemExit() from e
 
         return spec
 

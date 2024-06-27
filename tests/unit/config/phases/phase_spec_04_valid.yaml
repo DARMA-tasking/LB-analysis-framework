@@ -1,4 +1,4 @@
-# Test config: ok: ccm_example
+# Test config: ok: tasks on different ranks (1 and 2) sharing same block
 communications:
   - {from: 0, size: 10000.0, to: 2}
   - {from: 1, size: 15000.0, to: 2}
@@ -11,7 +11,7 @@ ranks:
     tasks: [2]
 shared_blocks:
   - size: 10000.0
-    tasks: [0, 1]
+    tasks: [0]
   - size: 15000.0
-    tasks: [2]
+    tasks: [1, 2]
 tasks: [2.0, 3.5, 5.0]
