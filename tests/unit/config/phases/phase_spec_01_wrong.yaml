@@ -1,0 +1,19 @@
+# Invalid specification test config: task 1 is defined on 2 ranks
+communications:
+  - {from: 0, size: 10000.0, to: 2}
+  - {from: 1, size: 15000.0, to: 2}
+  - {from: 2, size: 20000.0, to: 1}
+  - {from: 0, size: 25000.0, to: 1}
+ranks:
+  0:
+    tasks: [0, 1]
+  1:
+    tasks: [2]
+shared_blocks:
+  - size: 10000.0
+    tasks: [0, 1]
+  - size: 12000.0
+    tasks: [0, 1]
+  - size: 15000.0
+    tasks: [2]
+tasks: [2.0, 3.5, 5.0]
