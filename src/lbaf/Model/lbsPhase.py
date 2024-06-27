@@ -450,29 +450,24 @@ class Phase:
                 # Set migratable
                 ranks[rank_id].add_migratable_object(o)
 
-        # Load rank shared blocks set
+        # Load shared blocks
         for shared_id, shared_block_spec in spec["shared_blocks"].items():
             if not shared_block_spec["tasks"]:
                 self.__logger.warning(f"No tasks linked to shared block {shared_id} !")
+
+            # Browse tasks
             for task_id in shared_block_spec["tasks"]:
                 o = objects[task_id]
-                rank_id = o.get_rank_id()
 
-                # Initialize or find the shared block
+                # Find shared block and create if not already created in memory
                 b: Block = None
                 if not shared_id in shared_blocks:
                     b = Block(b_id=shared_id, h_id=shared_block_spec["home"], size=shared_block_spec["size"],
                               o_ids=shared_block_spec["tasks"])
                     # Index the shared block for next loops checks
                     shared_blocks[shared_id] = b
-                    # Associate shared block with rank
-                    ranks[rank_id].add_shared_block(b)
                 else:
-                    b = ranks[rank_id].get_shared_block_with_id(shared_id)
-                    # If block on a rank but not on this ranks (tasks from several ranks are sharing the same block)
-                    if b is None:
-                        b = shared_blocks[shared_id]
-                        ranks[rank_id].add_shared_block(b)
+                    b = shared_blocks[shared_id]
 
                 # Associate shared block with object
                 # Check: task must share 0 or 1 block
