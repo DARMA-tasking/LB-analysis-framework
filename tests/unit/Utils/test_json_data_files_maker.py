@@ -6,7 +6,7 @@ from typing import Callable, Any
 
 from src.lbaf.Utils.lbsJSONDataFilesMaker import JSONDataFilesMaker
 
-class TestVTDataFilesMaker(unittest.TestCase):
+class TestJsonDataFilesMaker(unittest.TestCase):
 
     test_dir: str = os.path.dirname(os.path.dirname(__file__))
     config_dir: str = os.path.join(test_dir, "config", "phases")
