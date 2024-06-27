@@ -3,7 +3,7 @@ Utility to create and export a data set supporting shared blocks by using a spec
 
 To call this script either call script with
 - `lbaf-vt-data-files-maker` if lbaf package is installed or
-- `python src/lbaf/Utils/lbsJSONDatasetMaker.py`
+- `python src/lbaf/Utils/lbsJSONDataFilesMaker.py`
 
 Script usage examples:
 
