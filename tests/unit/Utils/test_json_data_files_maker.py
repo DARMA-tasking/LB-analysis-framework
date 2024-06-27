@@ -46,7 +46,7 @@ class TestVTDataFilesMaker(unittest.TestCase):
         data_stem=os.path.join(output_dir, "dataset03")
     ))
     def test_make_data_files_from_spec_valid_03(self, namespace: argparse.Namespace):
-        """Test that valid phase configuration correctly generates a dataset""" 
+        """Test that valid phase configuration correctly generates a dataset"""
 
         print(namespace)
         JSONDataFilesMaker().run()
