@@ -12,7 +12,7 @@ class TestJsonDataFilesMaker(unittest.TestCase):
     config_dir: str = os.path.join(test_dir, "config", "phases")
     output_dir: str = os.path.join(test_dir, "output", "JSON_data_files_maker")
 
-    argparse_args: Callable[Any, argparse.Namespace] = lambda **kwargs: argparse.Namespace(
+    argparse_args: Callable[list, argparse.Namespace] = lambda **kwargs: argparse.Namespace(
         spec_file=kwargs.get("spec_file"),
         data_stem=kwargs.get("data_stem"),
         interactive=kwargs.get("interactive", False),
