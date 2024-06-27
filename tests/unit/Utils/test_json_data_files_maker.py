@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 import argparse
-from typing import Callable, Any
+from typing import Callable
 
 from src.lbaf.Utils.lbsJSONDataFilesMaker import JSONDataFilesMaker
 
