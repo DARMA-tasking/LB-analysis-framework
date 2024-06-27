@@ -2,7 +2,8 @@ import os
 import unittest
 from unittest.mock import patch
 import argparse
-from typing import Callable
+from typing import Callable, ParamSpecKwargs
+
 
 from src.lbaf.Utils.lbsJSONDataFilesMaker import JSONDataFilesMaker
 
@@ -12,7 +13,7 @@ class TestJsonDataFilesMaker(unittest.TestCase):
     config_dir: str = os.path.join(test_dir, "config", "phases")
     output_dir: str = os.path.join(test_dir, "output", "JSON_data_files_maker")
 
-    argparse_args: Callable[list, argparse.Namespace] = lambda **kwargs: argparse.Namespace(
+    argparse_args: Callable[ParamSpecKwargs, argparse.Namespace] = lambda **kwargs: argparse.Namespace(
         spec_file=kwargs.get("spec_file"),
         data_stem=kwargs.get("data_stem"),
         interactive=kwargs.get("interactive", False),
