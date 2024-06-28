@@ -95,7 +95,7 @@ class PhaseSpecificationNormalizer:
     def denormalize(self, data: dict)-> PhaseSpecification:
         """Create a phase specification from a normalized specification where some lists must
         be converted to sets.
-        
+
         Detail: the following lists will be converted to sets to ensure each element is unique
         - `data.shared_blocks.tasks`
         - `data.ranks.tasks`
