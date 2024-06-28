@@ -1,5 +1,5 @@
 """
-Utility to create and export a data set supporting shared blocks by using a specification file.
+Utility to generate a data set supporting shared blocks by using a specification file.
 
 To call this script either call script with
 - `lbaf-vt-data-files-maker` if lbaf package is installed or
@@ -18,6 +18,7 @@ Script usage examples:
 
 Sample specification: a sample specification can be loaded in the interactive mode and be printed as an example in
 either YAML or JSON format.
+Other examples can be found as unit tests configuration files in the the tests/unit/config/phases directory
 
 """
 from argparse import RawTextHelpFormatter
@@ -72,7 +73,7 @@ class JSONDataFilesMaker():
         self.__prompt = PromptArgumentParser(
             allow_abbrev=False,
             description=(
-                "Utility to create and export a data set supporting shared blocks by using a specification file.\n" +
+                "Utility to generate a data set supporting shared blocks by using a specification file.\n" +
                 "Note: a sample specification can be loaded in the interactive mode and be printed\n" +
                 "as an example in either YAML or JSON format."),
             prompt_default=False,
@@ -91,15 +92,15 @@ class JSONDataFilesMaker():
         """Parse arguments."""
 
         parser = self.__prompt
-        parser.add_argument("--interactive", help="Set True to enter the interactive mode", default=False, nargs='?',
-                            type=bool)
-        parser.add_argument("--spec-file", help="The path to the specification file", default=None)
-        parser.add_argument("--data-stem", help="The data stem", required=False)
+        parser.add_argument("--spec-file", help="The path to the specification file. Required.", default=None)
+        parser.add_argument("--data-stem", help="Required. The data stem.", required=False)
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
-        parser.add_argument("--output-config-file", help="The path to generate a default LBAF config file",
+        parser.add_argument("--output-config-file", help="The path to generate a minimalist LBAF config file to run using the generated dataset",
                             default=None)
-        parser.add_argument("--multiple-sharing", help="Allow tasks to share more than one block",
+        parser.add_argument("--multiple-sharing", help="Allow specification to define tasks that share more than one block",
                             default=False, nargs='?', type=bool)
+        parser.add_argument("--interactive", help="Add this argument to enter the interactive mode. Required arguments might then also be defined in CLI", default=False, nargs='?',
+                            type=bool)
 
         self.__args = parser.parse_args()
 
