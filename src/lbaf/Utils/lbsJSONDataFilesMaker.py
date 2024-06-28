@@ -30,18 +30,20 @@ from typing import Optional, Union, Callable
 import subprocess
 import json
 import yaml
-from lbaf.Model.lbsPhase import Phase
-from lbaf.IO.lbsVTDataWriter import VTDataWriter
-from lbaf.Execution.lbsPhaseSpecification import (
-    PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification,
-    PhaseSpecificationNormalizer
-)
+
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
 if importlib.util.find_spec("lbaf") is None:
     sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
+
 from lbaf import PROJECT_PATH
+from lbaf.IO.lbsVTDataWriter import VTDataWriter
+from lbaf.Model.lbsPhase import Phase
+from lbaf.Execution.lbsPhaseSpecification import (
+    PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification,
+    PhaseSpecificationNormalizer
+)
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
 # pylint:disable=C0413:wrong-import-position
