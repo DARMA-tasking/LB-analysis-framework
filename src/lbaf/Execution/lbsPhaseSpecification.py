@@ -49,7 +49,8 @@ class PhaseSpecificationNormalizer:
 
     def __normalize_member(self, data: Union[dict,list], transform: Optional[Callable] = None) -> Union[dict,list]:
         """Normalize a member that can be represented as a dict where key is the item key or as a list
-        where id is the index in the list"""
+        where id is the index in the list
+        """
 
         if isinstance(data, list):
             return [ transform(o) for o in data ] if transform is not None else data
@@ -67,7 +68,9 @@ class PhaseSpecificationNormalizer:
         - `self.ranks.communications`
 
         This method should be called before json or yaml serialization.
-        Denormalization should be executed using the static method json_denormalize
+        Denormalization should be executed using the method denormalize
+
+        Note: the normalized specification data is easier to read and edit in json or yaml.
         """
 
         return {
@@ -90,7 +93,17 @@ class PhaseSpecificationNormalizer:
         }
 
     def denormalize(self, data: dict)-> PhaseSpecification:
-        """Create a phase specification using a definition where sets are represented as lists"""
+        """Create a phase specification from a normalized specification where some lists must
+        be converted to sets.
+        
+        Detail: the following lists will be converted to sets to ensure each element is unique
+        - `data.shared_blocks.tasks`
+        - `data.ranks.tasks`
+        - `data.ranks.communications`
+
+        This method should be called after json or yaml deserialization.
+        This is the reverse implementation of the normalize method.
+        """
 
         return PhaseSpecification({
             "tasks": self.__normalize_member(data.get("tasks", [])),
