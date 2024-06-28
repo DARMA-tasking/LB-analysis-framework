@@ -21,21 +21,26 @@ class RankSpecification(TypedDict):
 class PhaseSpecification(TypedDict):
     """Dictionary representing a phase specification"""
 
-    # List of tasks times as a list (index considered as the id) or as a dict { id => time1, id => time2 })
-    tasks: Union[List[float],Dict[int,float]]
+    # Tasks specifications
+    tasks: Union[
+        List[float], # Tasks volumes as a list (element index=task id)
+        Dict[int,float] # Tasks volumes as a dictionary (dictionary key=task id)
+    ]
 
-    # List of shared blocks sizes as
-    # - a dict { shared_block_1_id => shared_block_1, shared_block_2_id => shared_block_2 })
-    # - a list (shared block id is the index in the list)
-    shared_blocks: Union[List[SharedBlockSpecification],Dict[int,SharedBlockSpecification]]
+    # Shared blocks specifications
+    shared_blocks: Union[
+        List[SharedBlockSpecification], # where index = shared block id
+        Dict[int,SharedBlockSpecification] # where dictionary key = shared block id
+    ]
 
-    # List of communications volumes as
-    # - a dict { com1_id => com1, com2_id => com2 })
-    # - a list (communication id is the index in the list)
-    communications: Union[List[CommunicationSpecification],Dict[int,CommunicationSpecification]]
+    # Communications specifications
+    communications: Union[
+        List[CommunicationSpecification],  # where index = communication id
+        Dict[int,CommunicationSpecification] # where dictionary key = communication id
+    ]
 
-    # Rank distributions / tasks ids per rank id
-    ranks: Dict[int,RankSpecification]
+    # Rank distributions
+    ranks: Dict[int,RankSpecification] # where index = rank id
 
 class PhaseSpecificationNormalizer:
     """Provides normalization and denormalization for PhaseSpecification
@@ -47,7 +52,7 @@ class PhaseSpecificationNormalizer:
         where id is the index in the list"""
 
         if isinstance(data, list):
-            return [ transform(o) for o in data ] if transform is not None else data # pylint: disable=E1133 (not-an-iterable)
+            return [ transform(o) for o in data ] if transform is not None else data
         elif isinstance(data, dict):
             return { o_id:transform(o) for o_id, o in data.items() } if transform is not None else data # pylint: disable=E1101 (no-member)
         else:
@@ -85,8 +90,7 @@ class PhaseSpecificationNormalizer:
         }
 
     def denormalize(self, data: dict)-> PhaseSpecification:
-        """Creates a phase specification using a definition where sets are represented as lists
-        """
+        """Create a phase specification using a definition where sets are represented as lists"""
 
         return PhaseSpecification({
             "tasks": self.__normalize_member(data.get("tasks", [])),

@@ -12,14 +12,15 @@ from .lbsObject import Object
 from .lbsObjectCommunicator import ObjectCommunicator
 from .lbsRank import Rank
 
+
 class Phase:
     """A class representing a phase of objects distributed across ranks."""
 
     def __init__(
-        self,
-        lgr: Logger,
-        p_id: int = 0,
-        reader: LoadReader = None):
+            self,
+            lgr: Logger,
+            p_id: int = 0,
+            reader: LoadReader = None):
         """Class constructor
             logger: a Logger instance
             id: an integer indexing the phase ID
@@ -153,7 +154,7 @@ class Phase:
                     # Create or update an inter-rank directed edge
                     ij = frozenset([i, j])
                     self.__edges.setdefault(ij, [0., 0.])
-                    if i < j :
+                    if i < j:
                         self.__edges[ij][0] += volume
                     else:
                         self.__edges[ij][1] += volume
@@ -258,7 +259,7 @@ class Phase:
             oth_id = k.get_rank_id()
             self.__logger.debug(
                 f"\tvolume {v} {src_id} --> {oth_id} becomes {dst_id} --> {oth_id}")
-            if oth_id  == src_id:
+            if oth_id == src_id:
                 # Local src communication becomes off-node dst to src
                 self.__update_or_create_directed_edge(dst_id, src_id, +v)
             elif oth_id == dst_id:
@@ -415,15 +416,19 @@ class Phase:
         # Auto-generate ids for Lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
         # and communications
         if isinstance(spec["tasks"], list):
-            spec["tasks"] = {i:spec["tasks"][i] for i in range(len(spec["tasks"]))}
+            spec["tasks"] = {
+                i: spec["tasks"][i] for i in range(len(spec["tasks"]))}
         if isinstance(spec["shared_blocks"], list):
-            spec["shared_blocks"] = {i:spec["shared_blocks"][i] for i in range(len(spec["shared_blocks"]))}
+            spec["shared_blocks"] = {
+                i: spec["shared_blocks"][i] for i in range(len(spec["shared_blocks"]))}
         if isinstance(spec["communications"], list):
-            spec["communications"] = {i:spec["communications"][i] for i in range(len(spec["communications"]))}
+            spec["communications"] = {
+                i: spec["communications"][i] for i in range(len(spec["communications"]))}
 
-        ranks: Dict[int,Rank] = {r_id:Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()}
-        objects: Dict[int,Object] = {} # set of objects (tasks)
-        shared_blocks: Dict[int,Block] = {} # set of objects (tasks)
+        ranks: Dict[int, Rank] = {
+            r_id: Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()}
+        objects: Dict[int, Object] = {}  # set of objects (tasks)
+        shared_blocks: Dict[int, Block] = {}  # set of objects (tasks)
 
         if len(spec["ranks"].keys()) == 0:
             raise RuntimeError("Missing rank distributions")
@@ -472,7 +477,8 @@ class Phase:
                 # Associate shared block with object
                 # Check: task must share 0 or 1 block
                 if not multiple_sharing and o.get_shared_block_id() is not None and o.get_shared_block_id() != shared_id:
-                    raise RuntimeError(f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
+                    raise RuntimeError(
+                        f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
@@ -481,7 +487,7 @@ class Phase:
                 o.get_user_defined()["home"] = b.get_home_id()
 
         # Normalize communications as communications dictionaries
-        communications = {comm_id:{
+        communications = {comm_id: {
             "type": "SendRecv",
             "to": {
                 "type": "object",
@@ -576,7 +582,7 @@ class Phase:
             # Perform sanity check
             if b_id not in r_src.get_shared_block_ids():
                 self.__logger.error(
-                f"block {b_id} not present in {r_src.get_shared_block_ids()}")
+                    f"block {b_id} not present in {r_src.get_shared_block_ids()}")
                 raise SystemExit(1)
 
             if not block.detach_object_id(o_id):
@@ -610,7 +616,7 @@ class Phase:
 
         # Transfer objects back from destination to source
         for o in o_dst:
-            self.transfer_object(r_dst, o, r_src) # pylint:disable=W1114:arguments-out-of-order
+            self.transfer_object(r_dst, o, r_src)  # pylint:disable=W1114:arguments-out-of-order
         n_transfers += (n_reverse := len(o_dst))
         if n_reverse:
             self.__logger.debug(
