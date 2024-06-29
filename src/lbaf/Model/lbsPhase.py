@@ -427,8 +427,8 @@ class Phase:
 
         ranks: Dict[int, Rank] = {
             r_id: Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()}
-        objects: Dict[int, Object] = {}  # set of objects (tasks)
-        shared_blocks: Dict[int, Block] = {}  # set of objects (tasks)
+        objects: Dict[int, Object] = {}  # object instances (indexed by id)
+        shared_blocks: Dict[int, Block] = {}  # shared blocks instances (indexed by id)
 
         if len(spec["ranks"].keys()) == 0:
             raise RuntimeError("Missing rank distributions")
@@ -440,9 +440,12 @@ class Phase:
                 task_user_defined = {}
                 time = spec["tasks"][task_id]
 
-                # Check: task must be only in 1 rank
+                # Check: task cannot reside in more than 1 rank at the same time
                 if task_id in objects:
-                    raise RuntimeError(f"Task already in rank {objects[task_id].get_rank_id()}")
+                    raise RuntimeError(
+                        f"Cannot assign task {task_id} to rank {rank_id}: "
+                        f"already assigned to rank {objects[task_id].get_rank_id()}"
+                    )
 
                 o = Object(
                     task_id,
