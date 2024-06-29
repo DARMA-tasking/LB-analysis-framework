@@ -11,7 +11,7 @@ Script usage examples:
 `lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1`
 
 - Generate dataset from specification file and sample configuration file configured tonuse the generated data stem
-`lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --output-config-file=/home/thomas/data-maker/dataset1-config.yaml`
+`lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --config-file=/home/thomas/data-maker/dataset1-config.yaml`
 
 - Generate dataset from specification defined interactively in CLI
 `lbaf-vt-data-files-maker --interactive`
@@ -95,7 +95,7 @@ class JSONDataFilesMaker():
         parser.add_argument("--spec-file", help="The path to the specification file. Required.", default=None)
         parser.add_argument("--data-stem", help="Required. The data stem.", required=False)
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
-        parser.add_argument("--output-config-file", help="The path to generate a minimalist LBAF config file to run using the generated dataset",
+        parser.add_argument("--config-file", help="The path to the LBAF config file to run using the generated dataset",
                             default=None)
         parser.add_argument("--multiple-sharing", help="Allow specification to define tasks that share more than one block",
                             default=False, nargs='?', type=bool)
@@ -135,10 +135,6 @@ class JSONDataFilesMaker():
         if self.__args.interactive is False:
             self.build(spec)
 
-        # Optionally create a config file to run LBAF with the generated data
-        if self.__args.output_config_file is not None:
-            self.create_run_config_file(self.__args.output_config_file)
-
         return spec
 
     def build(self, specs):
@@ -160,58 +156,6 @@ class JSONDataFilesMaker():
         writer = VTDataWriter(self.__logger, None, self.__args.data_stem, writer_parameters)
         writer.write({phase.get_id(): phase})
         self.__prompt.print_success("Dataset has been generated.")
-
-    def create_run_config(self):
-        """Return a local configuration for the LBAF application for the generated dataset"""
-        return {
-            "from_data": {
-                "data_stem": self.__args.data_stem,
-                "phase_ids": [0]
-            },
-            "check_schema": True,
-            "work_model": {
-                "name": "AffineCombination",
-                "parameters": {
-                    "alpha": 1.0,
-                    "beta": 0.0,
-                    "gamma": 0.0,
-                    "upper_bounds": {
-                        "max_memory_usage": 8000000000.0
-                    }
-                }
-            },
-            "algorithm": {
-                "name": "InformAndTransfer",
-                "phase_id": 0,
-                "parameters": {
-                    "n_iterations": 4,
-                    "n_rounds": 2,
-                    "fanout": 2,
-                    "order_strategy": "arbitrary",
-                    "transfer_strategy": "Clustering",
-                    "criterion": "Tempered",
-                    "max_objects_per_transfer": 2,
-                    "deterministic_transfer": True
-                }
-            },
-            "logging_level": "debug",
-            "output_dir": f"{PROJECT_PATH}/output",
-            "output_file_stem": "output_file"
-        }
-
-    def create_run_config_file(self, output_path: str):
-        """Write some sample configuration to the specified path to run LBAF using the generated data set"""
-
-        local_conf = self.create_run_config()
-
-        output_dir = f"{os.sep}".join(output_path.split(os.sep)[:-1])
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-
-        with open(output_path, "wt", encoding="utf-8") as file:
-            yaml.dump(local_conf, file)
-
-        self.__logger.info(f"Configuration generated at {output_path}")
 
     def create_spec_sample(self, use_explicit_keys: bool = False) -> PhaseSpecification:
         """Create a new sample specification as represented by diagram specified in issue #506"""
@@ -476,7 +420,6 @@ class JSONDataFilesMaker():
                     "Shared block: create or update",
                     "Define rank",
                     "Build",
-                    "Create Run Configuration",
                     "Run",
                     "Exit"
                 ],
@@ -536,34 +479,21 @@ class JSONDataFilesMaker():
                 )
                 try:
                     self.build(spec)
-                    action = "Create Run Configuration"
+                    action = "Run"
                 except RuntimeError as e:
                     self.__prompt.print_error(e.args[0])
-            elif action == "Create Run Configuration":
-                if self.__args.data_stem is None:
-                    self.__prompt.print_error("Please build or set data-stem argument")
-                    continue
-
-                dataset_name = self.__args.data_stem.split(os.sep)[-1]
-                self.__args.output_config_file = self.__prompt.prompt(
-                    "Output configration file path ?",
-                    default=(os.path.join(PROJECT_PATH, "output", "maker", "config",
-                                          self.__datetime.strftime("%y%m%d%H%M%S"), f"{dataset_name}.yaml")
-                             ) if self.__args.output_config_file is None else self.__args.output_config_file,
-                    required=True
+            elif action == "Run":
+                if self.__args.config_file is None:
+                    self.__args.config_file  = self.__prompt.prompt(
+                    "LBAF Configuration file ?", required=True
                 )
 
-                self.create_run_config_file(self.__args.output_config_file)
-                action = "Run"
-            elif action == "Run":
-                if self.__args.output_config_file is None:
-                    self.__prompt.print_error("Run configuration is not defined. Please create a run configuration !")
-                    continue
-                elif not os.path.exists(self.__args.output_config_file):
-                    self.__prompt.print_error(f"Run configuration does not exist at {self.__args.output_config_file}."
+                if not os.path.exists(self.__args.config_file):
+                    self.__prompt.print_error(f"Run configuration does not exist at {self.__args.config_file}."
                                               "Please create the run configuration.")
+                    continue
 
-                subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.output_config_file], check=True)
+                subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.config_file], check=True)
             elif action == "Exit":
                 break
 
