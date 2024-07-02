@@ -252,9 +252,9 @@ class JSONDataFilesMaker():
         """Request user to select a choice in a list of dict keys or list indices"""
         choices = []
         if isinstance(objects, dict):
-            choices = [str(i) for i in objects.keys()]
+            choices = [i for i in objects.keys()]
         else:
-            choices = [str(i) for i in range(0, len(objects))]
+            choices = [i for i in range(0, len(objects))]
         if can_add:
             choices.append(f"*New {object_type_name}")
 
@@ -296,7 +296,7 @@ class JSONDataFilesMaker():
         if isinstance(parent, dict):
             parent[object_id] = object_data
         else:
-            if object_id:
+            if object_id is not None:
                 parent[object_id] = object_data  # update
             else:
                 parent.append(object_data)  # create
@@ -346,25 +346,29 @@ class JSONDataFilesMaker():
         block["size"], = self.__prompt.prompt(
             "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0)),
 
-        task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False, value_type=str)
-        if task_ids is None or task_ids == '':
-            block["tasks"] = {} if isinstance(block.get("tasks", []), dict) else []
-            return block
+        tasks_validation_passed = False
+        while not tasks_validation_passed:
+            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False, value_type=str)
+            if task_ids is None or task_ids == '':
+                block["tasks"] = {} if isinstance(block.get("tasks", []), dict) else []
+                return block
 
-        task_ids = [int(t_id) for t_id in task_ids.split(',')]
-        tasks_valid = False
-        while not tasks_valid:
+            task_ids = [int(t_id) for t_id in task_ids.split(',')]
+
             n_tasks = len(task_ids)
             task_ids = list(dict.fromkeys(task_ids)) # unique values
             if len(task_ids) < n_tasks:
                 self.__logger.warning("Duplicated task(s) found and removed")
 
-            tasks_valid = True
-            allowed_task_ids = tasks.keys() if isinstance(tasks, dict) else tasks
+            allowed_task_ids = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
             for t in task_ids:
                 if not t in allowed_task_ids:
-                    tasks_valid = False
+                    tasks_validation_passed = False
                     self.__prompt.print_error(f"Invalid task id {t}")
+                    break
+
+            tasks_validation_passed = True
+
         block["tasks"] = task_ids
 
         # Try to find some default home as the first task ranks

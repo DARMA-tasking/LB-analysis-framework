@@ -72,11 +72,11 @@ class PromptArgumentParser(argparse.ArgumentParser):
             print(msg)
             if choices is not None:
                 for index, choice in enumerate(choices):
-                    print(" [" + yellow(index) + "]" + ' ' + (blue("None") if choice is None else choice))
+                    print(" [" + yellow(str(index)) + "]" + ' ' + (blue("None") if choice is None else str(choice)))
 
             raw_response = input("> ")
             # Empty reponse but default value set default
-            if raw_response == '' and default:
+            if raw_response == '' and default is not None:
                 raw_response = default
             # Empty response but no default value set None
             elif raw_response == '' or raw_response == "None":
