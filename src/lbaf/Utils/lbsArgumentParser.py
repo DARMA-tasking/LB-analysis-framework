@@ -56,7 +56,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
         print(''.join(list(repeat(' ', length))))
 
     def prompt(self, question: str, value_type: Optional[str] = None, default: Optional[Union[str, int, float]] = None,
-               required: bool = False, choices: Optional[list] = None, validate: Optional[Callable] = None):
+               required: bool = False, choices: Optional[Union[dict,list]] = None, validate: Optional[Callable] = None):
         """Asks a question"""
         msg = green(question)
         if default is not None:
@@ -68,11 +68,15 @@ class PromptArgumentParser(argparse.ArgumentParser):
         raw_response = None
 
         # Ask user until the response value is correct
-        while raw_response is None:
+        while raw_response is None or raw_response == "#error":
             print(msg)
+
             if choices is not None:
-                for index, choice in enumerate(choices):
+                choices_dict = {index:choice for index, choice in enumerate(choices)} if isinstance(choices, list) else choices
+                for index, choice in choices_dict.items():
                     print(" [" + yellow(str(index)) + "]" + ' ' + (blue("None") if choice is None else str(choice)))
+            else:
+                choices_dict = None
 
             raw_response = input("> ")
             # Empty reponse but default value set default
@@ -83,23 +87,29 @@ class PromptArgumentParser(argparse.ArgumentParser):
                 raw_response = None
             # Expected bool
             elif value_type == bool:
-                raw_response = value_type in ["TRUE", "True", "true", "1"]
+                raw_response = True if raw_response in ["TRUE", "True", "true", "1"] else False
             # Else cast if type set
-            elif value_type is not None and value_type != str:
-                raw_response = value_type(raw_response)
+            elif value_type is not None and value_type != str and callable(value_type) and not isinstance(raw_response, value_type):
+                try:
+                    raw_response = value_type(raw_response)
+                except ValueError as ex:
+                    self.print_error(f"Input error: {ex.args[0]}")
+                    raw_response = "#error"
 
             # Look for choice by choice index or value as input
-            if choices is not None:
-                for index, choice in enumerate(choices):
-                    if raw_response == str(index) or raw_response == choice or \
+            if choices_dict is not None:
+                for key, choice in choices_dict.items():
+                    if raw_response == str(key) or raw_response == choice or \
                             (choice is None and raw_response == "None"):
                         raw_response = choice
 
             if required is True and raw_response is None:
                 self.print_error(f"Value is required{linesep}")
-            elif choices is not None and raw_response not in choices and raw_response is not None:
-                self.print_error(f"Value \"{raw_response}\" is invalid")
-                raw_response = None
+            elif choices is not None and raw_response is not None:
+                valid_choices = [i for i in choices_dict.values()]
+                if raw_response not in valid_choices:
+                    self.print_error(f"Value \"{raw_response}\" is invalid")
+                    raw_response = None
             # In case the None response is correct we break the loop
             elif required is False and raw_response is None:
                 break
@@ -110,9 +120,6 @@ class PromptArgumentParser(argparse.ArgumentParser):
                     raw_response = None
 
         response = raw_response
-        if value_type is not None and raw_response is not None:
-            if callable(value_type) and not isinstance(raw_response, value_type):
-                response = value_type(raw_response)
         return response
 
     def print_error(self, msg: str):

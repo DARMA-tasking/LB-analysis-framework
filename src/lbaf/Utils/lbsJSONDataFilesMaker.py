@@ -97,9 +97,13 @@ class JSONDataFilesMaker():
         parser.add_argument("--compressed", help="To compress output data using brotli", default=False, type=bool)
         parser.add_argument("--config-file", help="The path to the LBAF config file to run using the generated dataset",
                             default=None)
-        parser.add_argument("--multiple-sharing", help="Allow specification to define tasks that share more than one block",
+        parser.add_argument("--multiple-sharing", help="Allow specification to define tasks that share more than one"
+                                                       "block",
                             default=False, nargs='?', type=bool)
-        parser.add_argument("--interactive", help="Add this argument to enter the interactive mode. Required arguments might then also be defined in CLI", default=False, nargs='?',
+        parser.add_argument("--interactive",
+                                help="Add this argument to enter the interactive mode."
+                                      "Required arguments might then also be defined in CLI",
+                                default=False, nargs='?',
                             type=bool)
 
         self.__args = parser.parse_args()
@@ -158,7 +162,9 @@ class JSONDataFilesMaker():
         self.__prompt.print_success("Dataset has been generated.")
 
     def create_spec_sample(self, use_explicit_keys: bool = False) -> PhaseSpecification:
-        """Create a new sample specification as represented by diagram specified in issue #506"""
+        """Create a new sample specification as represented by diagram specified in issue #506
+        This method implementation indicates also how to cfreate a specification from Python code
+        """
 
         specs = PhaseSpecification({
             "tasks": [2.0, 3.5, 5.0],
@@ -248,7 +254,7 @@ class JSONDataFilesMaker():
             print("----------- END YAML -------------")
 
     def ask_object_choice(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
-                          question: str = None, validate: Optional[Callable] = None, default=None):
+                          can_go_back=False, question: str = None, validate: Optional[Callable] = None, default=None, ):
         """Request user to select a choice in a list of dict keys or list indices"""
         choices = []
         if isinstance(objects, dict):
@@ -257,6 +263,8 @@ class JSONDataFilesMaker():
             choices = [i for i in range(0, len(objects))]
         if can_add:
             choices.append(f"*New {object_type_name}")
+        if can_go_back:
+            choices.append("*Back")
 
         choice = self.__prompt.prompt(
             f"Choose {object_type_name}" if question is None else question,
@@ -265,6 +273,8 @@ class JSONDataFilesMaker():
             required=True,
             default=f"*New {object_type_name}" if can_add and default is None else default, validate=validate)
 
+        if choice == "*Back":
+            return "*Back"
         if choice != f"*New {object_type_name}":
             return int(choice)
         else:
@@ -274,7 +284,11 @@ class JSONDataFilesMaker():
         """Create or update an object in a a list (id is the index) or in a dict (id is the key) for interactive input
         of tasks, communications and shared blocks"""
 
-        object_id = self.ask_object_choice(parent, object_type_name, True)
+        object_id = self.ask_object_choice(parent, object_type_name, True, can_go_back=True)
+
+        if object_id == "*Back":
+            return
+
 
         # retrieve current value
         object_data = (default if object_id == "*New" else (
@@ -314,13 +328,14 @@ class JSONDataFilesMaker():
     def define_communication_prms_interactive(self, comm, tasks: Union[dict, list]):
         """Ask for communicaton size, from and to in interactive mode"""
 
-        comm["size"], = self.__prompt.prompt(
+        comm["size"] = self.__prompt.prompt(
             "Communication size ?", required=True, value_type=float, default=comm.get("size", 0.0)),
         comm["from"] = self.ask_object_choice(
             tasks,
             object_type_name="task",
             question="From (task id) ?",
-            default=comm.get("from", None))
+            default=comm.get("from", None)
+        )
         comm["to"] = self.ask_object_choice(
             tasks,
             object_type_name="task",
@@ -346,28 +361,33 @@ class JSONDataFilesMaker():
         block["size"], = self.__prompt.prompt(
             "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0)),
 
-        tasks_validation_passed = False
-        while not tasks_validation_passed:
-            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False, value_type=str)
+        tasks_valid = False
+        while not tasks_valid:
+            tasks_valid = True
+            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?",
+                                                required=False, value_type=str,default=str.join(',', block["tasks"]))
             if task_ids is None or task_ids == '':
                 block["tasks"] = {} if isinstance(block.get("tasks", []), dict) else []
                 return block
 
-            task_ids = [int(t_id) for t_id in task_ids.split(',')]
+            try:
+                task_ids = [int(t_id) for t_id in task_ids.split(',')]
+            except ValueError as ex:
+                self.__prompt.print_error(f"Input error: {ex.args[0]}")
+                tasks_valid = False
+                continue
 
             n_tasks = len(task_ids)
             task_ids = list(dict.fromkeys(task_ids)) # unique values
             if len(task_ids) < n_tasks:
                 self.__logger.warning("Duplicated task(s) found and removed")
 
-            allowed_task_ids = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
+            all_tasks = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
             for t in task_ids:
-                if not t in allowed_task_ids:
-                    tasks_validation_passed = False
-                    self.__prompt.print_error(f"Invalid task id {t}")
+                if not t in all_tasks:
+                    tasks_valid = False
+                    self.__prompt.print_error(f"Task {t} not found")
                     break
-
-            tasks_validation_passed = True
 
         block["tasks"] = task_ids
 
@@ -384,8 +404,8 @@ class JSONDataFilesMaker():
                 if default_home:
                     break
 
-        block["home_rank"], = self.__prompt.prompt(
-            "Home rank ?", required=True, value_type=int, default=block.get("home_rank", default_home)),
+        block["home_rank"] = self.__prompt.prompt(
+            "Home rank ?", required=True, value_type=int, default=block.get("home_rank", default_home))
 
         return block
 
@@ -399,6 +419,105 @@ class JSONDataFilesMaker():
             update=lambda block: self.define_shared_block_prms_interactive(block, spec["tasks"], spec["ranks"])
         )
 
+    def run_extra_action(self, action: str, spec: PhaseSpecification):
+        """Run an extra action"""
+
+        if action == "Extra: load sample":
+            spec = self.create_spec_sample(use_explicit_keys=True)
+            action = "Build"
+        elif action == "Extra: print":
+            frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json"], required=True, default="yaml")
+            self.print(PhaseSpecificationNormalizer().normalize(spec), frmt)
+        elif action == "Extra: save":
+            frmt = None
+            while frmt is None:
+                path = self.__prompt.prompt("Path ?", required=True)
+                output_dir = f"{os.sep}".join(path.split(os.sep)[:-1])
+                frmt = "json" if path.endswith(".json") \
+                        else "yaml" if path.endswith(".yaml") or path.endswith(".yml") \
+                        else None
+                if frmt is None:
+                    self.__prompt.print_error("Specification file path must end with either .json, .yml, .yaml")
+
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir)
+
+            with open(path, "wt", encoding="utf-8") as o_file:
+                o_file.write(PhaseSpecificationNormalizer().normalize(spec), frmt)
+
+    def run_action(self, action: str, spec: PhaseSpecification):
+        """Run an action"""
+
+        if action == "Make Task":
+            self.define_task_interactive(spec)
+        elif action == "Make Shared block":
+            self.define_shared_block(spec)
+        elif action == "Make Communication":
+            if (isinstance(spec["tasks"], dict) and len(spec["tasks"]) < 2) or (
+                isinstance(spec["tasks"], list) and len(spec["tasks"]) < 2):
+                self.__prompt.print_error("To create a communication please create at least 2 tasks")
+                action = "Make Task"
+            else:
+                self.define_communication_interactive(spec)
+        elif action == "Make Rank":
+            rank_id = self.__prompt.prompt("Rank id ?", required=True, value_type=int)
+            all_tasks = spec["tasks"].keys() if isinstance(spec["tasks"], dict) else list(range(len(spec["tasks"])))
+            valid = False
+            while not valid:
+                valid = True
+                task_ids = self.__prompt.prompt("Rank tasks (comma separated) ?", required=False, value_type=str)
+                try:
+                    task_ids = [int(t_id) for t_id in task_ids.split(',')] if task_ids is not None else []
+                except ValueError as ex:
+                    self.__prompt.print_error(f"Input error: {ex.args[0]}")
+                    valid = False
+                    continue
+                for t in task_ids:
+                    if not t in all_tasks:
+                        self.__prompt.print_error(f"Task {t} not found")
+                        valid = False
+                        break
+                    for r_id, r in spec["ranks"].items():
+                        if r != r_id and t in r["tasks"]:
+                            self.__prompt.print_error(f"Task {t} already defined on rank {r_id}")
+                            valid = False
+                            break
+                    if not valid:
+                        break
+
+            spec["ranks"][rank_id] = RankSpecification({
+                "tasks": task_ids
+            })
+        elif action == "Build":
+            self.__args.data_stem = self.__prompt.prompt(
+                "Data stem ?",
+                default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
+                                        self.__datetime.strftime("%y%m%d%H%M%S"), "data")
+                            ) if self.__args.data_stem is None else self.__args.data_stem
+            )
+            try:
+                self.build(spec)
+                action = "Extra: run"
+            except RuntimeError as e:
+                self.__prompt.print_error(e.args[0])
+        elif action == "Extra: load file":
+            file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
+            if s:= self.create_spec_from_file(file_path) is not None:
+                spec = s
+        elif action == "Extra: Run":
+            if self.__args.config_file is None:
+                self.__args.config_file  = self.__prompt.prompt(
+                "LBAF Configuration file ?", required=True
+            )
+
+            if not os.path.exists(self.__args.config_file):
+                self.__prompt.print_error(f"Run configuration does not exist at {self.__args.config_file}."
+                                            "Please create the run configuration.")
+            else:
+                subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.config_file], check=True)
+        else:
+            self.run_extra_action(action, spec)
+
     def run(self):
         """Run the JSONDatasetMaker"""
 
@@ -410,96 +529,31 @@ class JSONDataFilesMaker():
             return
 
         # Loop on interactive mode available actions
-        action: str = "Specification: load sample"  # default action is a sample
+        action: str = "Make Task"  # default action is a sample
         while action != "Build JSON file":
             action = self.__prompt.prompt(
                 "What kind of action ?",
                 choices=[
-                    "Specification: load file",
-                    "Specification: load sample",
-                    "Specification: print",
-                    "Specification: save",
-                    "Task: create or update",
-                    "Communication: create or update",
-                    "Shared block: create or update",
-                    "Define rank",
+                    "Make Task",
+                    "Make Shared block",
+                    "Make Communication",
+                    "Make Rank",
                     "Build",
-                    "Run",
+                    "Extra: load file",
+                    "Extra: run",
+                    "Extra: load sample",
+                    "Extra: print",
+                    "Extra: save",
                     "Exit"
                 ],
                 default=action,
                 required=True
             )
-            if action == "Specification: load file":
-                file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
-                if s:= self.create_spec_from_file(file_path) is not None:
-                    spec = s
-            elif action == "Specification: load sample":
-                spec = self.create_spec_sample(use_explicit_keys=True)
-                action = "Build"
-            elif action == "Specification: print":
-                frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json"], required=True, default="yaml")
-                self.print(PhaseSpecificationNormalizer().normalize(spec), frmt)
-            elif action == "Specification: save":
-                frmt = None
-                while frmt is None:
-                    path = self.__prompt.prompt("Path ?", required=True)
-                    output_dir = f"{os.sep}".join(path.split(os.sep)[:-1])
-                    frmt = "json" if path.endswith(".json") \
-                            else "yaml" if path.endswith(".yaml") or path.endswith(".yml") \
-                            else None
-                    if frmt is None:
-                        self.__prompt.print_error("Specification file path must end with either .json, .yml, .yaml")
-
-                if not os.path.isdir(output_dir):
-                    os.makedirs(output_dir)
-
-                with open(path, "wt", encoding="utf-8") as o_file:
-                    o_file.write(PhaseSpecificationNormalizer().normalize(spec), frmt)
-            elif action == "Task: create or update":
-                self.define_task_interactive(spec)
-            elif action == "Communication: create or update":
-                if (isinstance(spec["tasks"], dict) and len(spec["tasks"]) < 2) or (
-                    isinstance(spec["tasks"], list) and len(spec["tasks"]) < 2):
-                    self.__prompt.print_error("To create a communication please create at least 2 tasks")
-                    action = "Task: create or update"
-                else:
-                    self.define_communication_interactive(spec)
-            elif action == "Shared block: create or update":
-                self.define_shared_block(spec)
-            elif action == "Define rank":
-                rank_id = self.__prompt.prompt("Rank id ?", required=True, value_type=int)
-                task_ids = self.__prompt.prompt("Rank tasks (comma separated) ?", required=True, value_type=str)
-                task_ids = [int(t_id) for t_id in task_ids.split(',')]
-                spec["ranks"][rank_id] = RankSpecification({
-                    "tasks": task_ids
-                })
-            elif action == "Build":
-                self.__args.data_stem = self.__prompt.prompt(
-                    "Data stem ?",
-                    default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
-                                          self.__datetime.strftime("%y%m%d%H%M%S"), "data")
-                             ) if self.__args.data_stem is None else self.__args.data_stem
-                )
-                try:
-                    self.build(spec)
-                    action = "Run"
-                except RuntimeError as e:
-                    self.__prompt.print_error(e.args[0])
-            elif action == "Run":
-                if self.__args.config_file is None:
-                    self.__args.config_file  = self.__prompt.prompt(
-                    "LBAF Configuration file ?", required=True
-                )
-
-                if not os.path.exists(self.__args.config_file):
-                    self.__prompt.print_error(f"Run configuration does not exist at {self.__args.config_file}."
-                                              "Please create the run configuration.")
-                    continue
-
-                subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.config_file], check=True)
-            elif action == "Exit":
+            
+            if action == "Exit":
                 break
+            else:
+                self.run_action(action, spec)
 
 
 if __name__ == "__main__":
