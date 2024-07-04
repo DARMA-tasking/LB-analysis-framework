@@ -253,7 +253,7 @@ class JSONDataFilesMaker():
             print(yaml.dump(spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
             print("----------- END YAML -------------")
 
-    def ask_object_choice(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
+    def ask_object(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
                           can_go_back=False, question: str = None, validate: Optional[Callable] = None, default=None, ):
         """Request user to select a choice in a list of dict keys or list indices"""
         choices = []
@@ -280,11 +280,11 @@ class JSONDataFilesMaker():
         else:
             return "*New"
 
-    def make_object_interactive(self, parent: Union[list, dict], object_type_name: str, default, update: Callable):
+    def make_object(self, parent: Union[list, dict], object_type_name: str, default, update: Callable):
         """Create or update an object in a a list (id is the index) or in a dict (id is the key) for interactive input
         of tasks, communications and shared blocks"""
 
-        object_id = self.ask_object_choice(parent, object_type_name, True, can_go_back=True)
+        object_id = self.ask_object(parent, object_type_name, True, can_go_back=True)
 
         if object_id == "*Back":
             return
@@ -293,7 +293,7 @@ class JSONDataFilesMaker():
         # retrieve current value
         object_data = (default if object_id == "*New" else (
             parent[object_id] if isinstance(parent, dict) else parent[object_id]))
-        object_data = update(object_data)
+        object_data = update(object_data, None if object_id == "*New" else object_id)
 
         if object_id == "*New":
             if isinstance(parent, dict):
@@ -315,28 +315,28 @@ class JSONDataFilesMaker():
             else:
                 parent.append(object_data)  # create
 
-    def define_task_interactive(self, spec: PhaseSpecification):
+    def make_task(self, spec: PhaseSpecification):
         """Creates or updates a task in interactive mode"""
 
-        self.make_object_interactive(
+        self.make_object(
             spec.get("tasks"),
             "task",
             default=0.0,
-            update=lambda time: (self.__prompt.prompt("Task time ?", required=True, value_type=float, default=time)),
+            update=lambda time, t_id: (self.__prompt.prompt("Task time ?", required=True, value_type=float, default=time)),
         )
 
-    def define_communication_prms_interactive(self, comm, tasks: Union[dict, list]):
+    def update_communication(self, comm, tasks: Union[dict, list]):
         """Ask for communicaton size, from and to in interactive mode"""
 
         comm["size"] = self.__prompt.prompt(
             "Communication size ?", required=True, value_type=float, default=comm.get("size", 0.0)),
-        comm["from"] = self.ask_object_choice(
+        comm["from"] = self.ask_object(
             tasks,
             object_type_name="task",
             question="From (task id) ?",
             default=comm.get("from", None)
         )
-        comm["to"] = self.ask_object_choice(
+        comm["to"] = self.ask_object(
             tasks,
             object_type_name="task",
             question="To (task id) ?",
@@ -345,17 +345,17 @@ class JSONDataFilesMaker():
         )
         return comm
 
-    def define_communication_interactive(self, spec: PhaseSpecification):
+    def make_communication(self, spec: PhaseSpecification):
         """Creates or updates a communication in interactive mode"""
 
-        self.make_object_interactive(
+        self.make_object(
             spec.get("communications"),
             "communication",
             default=CommunicationSpecification({"size": 0.0}),
-            update=lambda comm: self.define_communication_prms_interactive(comm, spec["tasks"])
+            update=lambda comm, comm_id: self.update_communication(comm, spec["tasks"])
         )
 
-    def define_shared_block_prms_interactive(self, block, tasks: Union[dict, list], ranks: dict):
+    def update_shared_block(self, block, tasks: Union[dict, list], ranks: dict):
         """Ask for shared block size, and tasks in interactive mode"""
 
         block["size"], = self.__prompt.prompt(
@@ -364,10 +364,11 @@ class JSONDataFilesMaker():
         tasks_valid = False
         while not tasks_valid:
             tasks_valid = True
+            tasks_csv_default = str.join(",", block["tasks"]) if len(block["tasks"]) > 0 else None
             task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?",
-                                                required=False, value_type=str,default=str.join(',', block["tasks"]))
+                                                required=False, value_type=str,default=tasks_csv_default)
             if task_ids is None or task_ids == '':
-                block["tasks"] = {} if isinstance(block.get("tasks", []), dict) else []
+                block["tasks"] = []
                 return block
 
             try:
@@ -409,14 +410,62 @@ class JSONDataFilesMaker():
 
         return block
 
-    def define_shared_block(self, spec: PhaseSpecification):
+    def make_shared_block(self, spec: PhaseSpecification):
         """Creates or updates a communication in interactive mode"""
 
-        self.make_object_interactive(
+        self.make_object(
             spec.get("shared_blocks"),
             "shared block",
-            default=SharedBlockSpecification({"size": 0.0}),
-            update=lambda block: self.define_shared_block_prms_interactive(block, spec["tasks"], spec["ranks"])
+            default=SharedBlockSpecification({"size": 0.0, "tasks": [], "home_rank": None}),
+            update=lambda block, block_id: self.update_shared_block(block, spec["tasks"], spec["ranks"])
+        )
+
+    def update_rank(self, rank: RankSpecification, spec: PhaseSpecification):
+        """Ask for rank id (if new) and tasks in interactive mode"""
+
+        all_tasks = spec["tasks"].keys() if isinstance(spec["tasks"], dict) else list(range(len(spec["tasks"])))
+        valid = False
+        while not valid:
+            valid = True
+            tasks_csv_default = str.join(",", rank["tasks"]) if len(rank["tasks"]) > 0 else None
+            task_ids_csv = self.__prompt.prompt("Rank tasks (comma separated) ?",
+                                            required=False, value_type=str, default=tasks_csv_default)
+            try:
+                task_ids = [int(t_id) for t_id in task_ids_csv.split(',')] if task_ids_csv is not None else []
+            except ValueError as ex:
+                self.__prompt.print_error(f"Input error: {ex.args[0]}")
+                valid = False
+                continue
+
+            n_tasks = len(task_ids)
+            task_ids = list(dict.fromkeys(task_ids)) # unique values
+            if len(task_ids) < n_tasks:
+                self.__logger.warning("Duplicated task(s) found and removed")
+
+            for t in task_ids:
+                if not t in all_tasks:
+                    self.__prompt.print_error(f"Task {t} not found")
+                    valid = False
+                    break
+                for r_id, r in spec["ranks"].items():
+                    if r != r_id and t in r["tasks"]:
+                        self.__prompt.print_error(f"Task {t} already defined on rank {r_id}")
+                        valid = False
+                        break
+                if not valid:
+                    break
+
+            rank["tasks"] = task_ids
+        return rank
+
+    def make_rank(self, spec: PhaseSpecification):
+        """Creates or updates a rank in interactive mode"""
+
+        self.make_object(
+            spec.get("ranks"),
+            "rank",
+            default=RankSpecification({"tasks": []}),
+            update=lambda rank, rank_id: self.update_rank(rank, spec)
         )
 
     def run_extra_action(self, action: str, spec: PhaseSpecification):
@@ -449,45 +498,18 @@ class JSONDataFilesMaker():
         """Run an action"""
 
         if action == "Make Task":
-            self.define_task_interactive(spec)
+            self.make_task(spec)
         elif action == "Make Shared block":
-            self.define_shared_block(spec)
+            self.make_shared_block(spec)
         elif action == "Make Communication":
             if (isinstance(spec["tasks"], dict) and len(spec["tasks"]) < 2) or (
                 isinstance(spec["tasks"], list) and len(spec["tasks"]) < 2):
                 self.__prompt.print_error("To create a communication please create at least 2 tasks")
                 action = "Make Task"
             else:
-                self.define_communication_interactive(spec)
+                self.make_communication(spec)
         elif action == "Make Rank":
-            rank_id = self.__prompt.prompt("Rank id ?", required=True, value_type=int)
-            all_tasks = spec["tasks"].keys() if isinstance(spec["tasks"], dict) else list(range(len(spec["tasks"])))
-            valid = False
-            while not valid:
-                valid = True
-                task_ids = self.__prompt.prompt("Rank tasks (comma separated) ?", required=False, value_type=str)
-                try:
-                    task_ids = [int(t_id) for t_id in task_ids.split(',')] if task_ids is not None else []
-                except ValueError as ex:
-                    self.__prompt.print_error(f"Input error: {ex.args[0]}")
-                    valid = False
-                    continue
-                for t in task_ids:
-                    if not t in all_tasks:
-                        self.__prompt.print_error(f"Task {t} not found")
-                        valid = False
-                        break
-                    for r_id, r in spec["ranks"].items():
-                        if r != r_id and t in r["tasks"]:
-                            self.__prompt.print_error(f"Task {t} already defined on rank {r_id}")
-                            valid = False
-                            break
-                    if not valid:
-                        break
-
-            spec["ranks"][rank_id] = RankSpecification({
-                "tasks": task_ids
-            })
+            self.make_rank(spec)
         elif action == "Build":
             self.__args.data_stem = self.__prompt.prompt(
                 "Data stem ?",
