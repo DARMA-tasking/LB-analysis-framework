@@ -26,18 +26,19 @@ class TestJsonDataFilesMaker(unittest.TestCase):
         spec_file=os.path.join(config_dir, "phase_spec_01_wrong.yaml"),
         data_stem=os.path.join(output_dir, "dataset01")
     ))
-    def test_make_data_files_from_spec_wrong_01(self, namespace: argparse.Namespace):
+    def test_make_data_files_from_spec_wrong_01(self, _namespace: argparse.Namespace):
         """Test that invalid phase configuration 01 generates no dataset and fire error"""
 
         with self.assertRaises(SystemExit) as err:
             JSONDataFilesMaker().run()
-        self.assertEqual(err.exception.__context__.args[0], "Task already in rank 0")
+        self.assertEqual(err.exception.__context__.args[0],
+            "Cannot assign task 1 to rank 1. It is already assigned to rank 0")
 
     @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
         spec_file=os.path.join(config_dir, "phase_spec_02_wrong.yaml"),
         data_stem=os.path.join(output_dir, "dataset02")
     ))
-    def test_make_data_files_from_spec_wrong_02(self, namespace: argparse.Namespace):
+    def test_make_data_files_from_spec_wrong_02(self, _namespace: argparse.Namespace):
         """Test that invalid phase configuration 02 generates no dataset and fire error"""
 
         with self.assertRaises(SystemExit) as err:
