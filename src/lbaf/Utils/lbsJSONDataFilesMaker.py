@@ -571,12 +571,15 @@ class JSONDataFilesMaker():
                 default=action,
                 required=True
             )
-            
+
             if action == "Exit":
                 break
             else:
-                self.run_action(action, spec)
-
+                try:
+                    self.run_action(action, spec)
+                # Catch any exception so that only the user can choose to exit the script (interactive) loop
+                except Exception as err: # pylint:disable=W0718:broad-exception-caught
+                    self.__prompt.print_error(err.args[0])
 
 if __name__ == "__main__":
     JSONDataFilesMaker().run()
