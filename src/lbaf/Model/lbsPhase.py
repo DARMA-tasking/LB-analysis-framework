@@ -443,8 +443,8 @@ class Phase:
                 # Check: task cannot reside in more than 1 rank at the same time
                 if task_id in objects:
                     raise RuntimeError(
-                        f"Cannot assign task {task_id} to rank {rank_id}: "
-                        f"already assigned to rank {objects[task_id].get_rank_id()}"
+                        f"Cannot assign task {task_id} to rank {rank_id}. "
+                        f"It is already assigned to rank {objects[task_id].get_rank_id()}"
                     )
 
                 o = Object(
@@ -470,7 +470,7 @@ class Phase:
                 # Find shared block and create if not already created in memory
                 b: Block = None
                 if not shared_id in shared_blocks:
-                    b = Block(b_id=shared_id, h_id=shared_block_spec["home"], size=shared_block_spec["size"],
+                    b = Block(b_id=shared_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
                               o_ids=shared_block_spec["tasks"])
                     # Index the shared block for next loops checks
                     shared_blocks[shared_id] = b
@@ -487,7 +487,7 @@ class Phase:
                 # Initialize object user defined data
                 o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
-                o.get_user_defined()["home"] = b.get_home_id()
+                o.get_user_defined()["home_rank"] = b.get_home_id()
 
         # Normalize communications as communications dictionaries
         communications = {comm_id: {

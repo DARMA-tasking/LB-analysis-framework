@@ -188,13 +188,13 @@ class JSONDataFilesMaker():
                 # S1
                 SharedBlockSpecification({
                     "size": 10000.0,
-                    "home": 0,
+                    "home_rank": 0,
                     "tasks": {0, 1}
                 }),
                 # S2
                 SharedBlockSpecification({
                     "size": 15000.0,
-                    "home": 1,
+                    "home_rank": 1,
                     "tasks": {2}
                 })
             ],
@@ -372,7 +372,7 @@ class JSONDataFilesMaker():
         block["tasks"] = task_ids
 
         # Try to find some default home as the first task ranks
-        default_home = block.get("home", None)
+        default_home = block.get("home_rank", None)
         if task_ids and default_home is None:
             for rank_id, rank_spec in ranks.items():
                 # If any ranks task id in ranks tasks set default home to that rank
@@ -384,8 +384,8 @@ class JSONDataFilesMaker():
                 if default_home:
                     break
 
-        block["home"], = self.__prompt.prompt(
-            "Home (rank id) ?", required=True, value_type=int, default=block.get("home", default_home)),
+        block["home_rank"], = self.__prompt.prompt(
+            "Home rank ?", required=True, value_type=int, default=block.get("home_rank", default_home)),
 
         return block
 
