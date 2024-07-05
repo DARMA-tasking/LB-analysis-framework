@@ -74,7 +74,7 @@ class PhaseSpecificationNormalizer:
         """
 
         return {
-            "tasks": self.__normalize_member(spec.get("tasks", [])),
+            "tasks": self.__normalize_member(spec.get("tasks", {})),
             "shared_blocks": self.__normalize_member(
                 spec.get("shared_blocks", []),
                 lambda b: {
@@ -111,7 +111,7 @@ class PhaseSpecificationNormalizer:
                 data.get("shared_blocks", []),
                 lambda b: SharedBlockSpecification({
                     "size": b.get("size", 0.0),
-                    "tasks": set(b.get("tasks", [])),
+                    "tasks": set(b.get("tasks", {})),
                     "home_rank": b.get("home_rank")
                 })
             ),

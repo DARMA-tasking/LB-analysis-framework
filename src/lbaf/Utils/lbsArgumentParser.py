@@ -132,7 +132,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
 
     def print_info(self, msg: str):
         """Prints an info message to the console"""
-        print(cyan(f"{linesep}{linesep} [INFO] {msg.replace(linesep, linesep + ' ' * 8)}{linesep}") + linesep)
+        print(cyan(f"{linesep}[INFO] {msg.replace(linesep, linesep + ' ' * 8)}{linesep}"))
 
     def print_success(self, msg: str):
         """Prints a success message to the console"""

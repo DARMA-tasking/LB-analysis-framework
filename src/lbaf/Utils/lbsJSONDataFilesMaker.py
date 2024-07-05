@@ -27,7 +27,7 @@ import importlib
 import importlib.util
 import os
 import sys
-from typing import Optional, Union, Callable, List
+from typing import Optional, Union, Callable, Set, Tuple
 import subprocess
 import json
 import yaml
@@ -87,14 +87,14 @@ class Util:
         return list(items.keys()) if isinstance(items, dict) else list(range(len(items)))
 
     @staticmethod
-    def list_to_csv(items: List[Union[int, str, float]], sep=',', empty_as_none=True) -> str:
+    def set_to_csv(items: Set[Union[int, str, float]], sep=',', empty_as_none=True) -> str:
         """join elements as a single string with some separator"""
 
         return (str.join(sep, [str(t_id) for t_id in items]) if len(items) > 0
                 else (None if empty_as_none else ''))
 
     @staticmethod
-    def csv_to_list(items: Optional[str], sep=',', item_type=None, empty_as_none=False) -> list:
+    def csv_to_set(items: Optional[str], sep=',', item_type=None, empty_as_none=False) -> Tuple[set,str]:
         """join elements as a single string with some separator"""
 
         items_list = []
@@ -103,7 +103,14 @@ class Util:
             if item_type is not None:
                 items_list = [item_type(item) for item in items_list]
 
-        return items_list if len(items_list) > 0 else (None if empty_as_none else [])
+        # unique values
+        n_items = len(items_list)
+        unique_items = list(dict.fromkeys(items_list))
+        warning = None
+        if len(unique_items) < n_items:
+            warning = "Some duplicated elements have been removed"
+
+        return set(unique_items) if len(unique_items) > 0 else (None if empty_as_none else set()), warning
 
 
 class JSONDataFilesMaker():
@@ -193,6 +200,15 @@ class JSONDataFilesMaker():
     def build(self, specs):
         """Build the data set"""
 
+        data_stem = self.__args.data_stem
+        if self.__args.interactive:
+            data_stem = self.__prompt.prompt(
+                "Data stem ?",
+                default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
+                                      self.__datetime.strftime("%y%m%d%H%M%S"), "data")
+                         ) if self.__args.data_stem is None else self.__args.data_stem
+            )
+
         # create and populate phase
         phase = Phase(self.__logger, 0)
         phase.populate_from_specification(specs)
@@ -209,6 +225,8 @@ class JSONDataFilesMaker():
         writer = VTDataWriter(self.__logger, None, self.__args.data_stem, writer_parameters)
         writer.write({phase.get_id(): phase})
         self.__prompt.print_success("Dataset has been generated.")
+
+        self.__args.data_stem = data_stem
 
     def create_spec_sample(self, use_explicit_keys: bool = False) -> PhaseSpecification:
         """Create a new sample specification as represented by diagram specified in issue #506
@@ -296,10 +314,12 @@ class JSONDataFilesMaker():
             print("----------- BEGIN JSON -----------")
             print(json.dumps(spec, sort_keys=True, indent=2, separators=(',', ": ")))
             print("----------- END JSON -------------")
-        else:
+        elif output_format == "yaml":
             print("----------- BEGIN YAML -----------")
             print(yaml.dump(spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
             print("----------- END YAML -------------")
+        else:
+            print(spec)
 
     def ask_object(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
                    can_go_back=False, question: str = None, validate: Optional[Callable] = None, default=None, ):
@@ -419,22 +439,19 @@ class JSONDataFilesMaker():
         while not tasks_valid:
             tasks_valid = True
             task_ids = self.__prompt.prompt("Shared block tasks ids (comma separated) ?", required=False,
-                                            value_type=str, default=Util.list_to_csv(block_task_ids))
+                                            value_type=str, default=Util.set_to_csv(block_task_ids))
             if task_ids is None or task_ids == '':
                 block["tasks"] = []
                 return block
 
             try:
-                task_ids = Util.csv_to_list(task_ids, item_type=int)
+                task_ids, warning = Util.csv_to_set(task_ids, item_type=int)
+                if warning is not None:
+                    self.__prompt.print_warning(warning)
             except ValueError as ex:
                 self.__prompt.print_error(f"Input error: {ex.args[0]}")
                 tasks_valid = False
                 continue
-
-            n_tasks = len(task_ids)
-            task_ids = list(dict.fromkeys(task_ids))  # unique values
-            if len(task_ids) < n_tasks:
-                self.__prompt.print_warning("Duplicated task(s) found and removed")
 
             for t in task_ids:
                 if not t in all_tasks:
@@ -476,22 +493,20 @@ class JSONDataFilesMaker():
         """Ask for rank id (if new) and tasks in interactive mode"""
 
         all_tasks = Util.keys(spec["tasks"])
-        rank_task_ids = Util.keys(rank["tasks"])
+        rank_task_ids = rank["tasks"]
         valid = False
         while not valid:
             valid = True
             task_ids_csv = self.__prompt.prompt("Rank tasks (comma separated) ?",
-                                                required=False, value_type=str, default=Util.list_to_csv(rank_task_ids))
+                                                required=False, value_type=str, default=Util.set_to_csv(rank_task_ids))
             try:
-                task_ids = Util.csv_to_list(task_ids_csv, item_type=int)
+                task_ids, warning = Util.csv_to_set(task_ids_csv, item_type=int)
+                if warning is not None:
+                    self.__prompt.print_warning(warning)
             except ValueError as ex:
                 self.__prompt.print_error(f"Input error: {ex.args[0]}")
                 valid = False
                 continue
-
-            unique_task_ids = list(dict.fromkeys(task_ids))  # unique values
-            if len(unique_task_ids) < len(task_ids):
-                self.__prompt.print_warning("Duplicated task(s) found and removed")
 
             for t in task_ids:
                 if not t in all_tasks:
@@ -580,11 +595,10 @@ class JSONDataFilesMaker():
 
         messages = []
         # Prevent rank removal if a task is still in that rank
-        if len(choice["tasks"]) > 0:
-            self.__prompt.print_error(
-                f"Tasks with ids {t_id for t_id in Util.keys(spec['tasks'])} still belong to this rank. "
-                "Please first move these tasks to another rank by calling 'Make Rank' for the desired rank")
-            return
+        rank_tasks = spec["ranks"][choice]["tasks"]
+        if len(rank_tasks) > 0:
+            messages.append(
+                f"Tasks with ids { Util.set_to_csv(rank_tasks, sep=', ') } no more belong to a rank")
 
         # Prevent rank removal if a shared block home rank is that rank
         if len(spec["shared_blocks"]) > 0:
@@ -593,9 +607,8 @@ class JSONDataFilesMaker():
                 if block["home_rank"] == choice:
                     b_ids.append(b_id)
             if len(b_ids) > 0:
-                self.__prompt.print_error(f"Shared block(s) with ids {b_ids.join(os.sep + ' ')} still use this"
-                                           "rank as home rank. Please first change the home rank for that block(s).")
-                return
+                messages.append(f"Shared block(s) with ids {Util.set_to_csv(b_ids, sep=', ')} "
+                                "home rank will no longer be valid")
 
         if len(messages) > 0:
             self.__prompt.print_warning(str.join(f"{os.linesep}", messages))
@@ -648,7 +661,7 @@ class JSONDataFilesMaker():
             spec = self.create_spec_sample(use_explicit_keys=True)
             action = "Build"
         elif action == "Extra: print":
-            frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json"], required=True, default="yaml")
+            frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json", "python (debug)"], required=True, default="yaml")
             self.print(PhaseSpecificationNormalizer().normalize(spec), frmt)
         elif action == "Extra: save":
             frmt = None
@@ -685,12 +698,6 @@ class JSONDataFilesMaker():
         elif action == "Remove Element":
             self.remove_element(spec)
         elif action == "Build":
-            self.__args.data_stem = self.__prompt.prompt(
-                "Data stem ?",
-                default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
-                                      self.__datetime.strftime("%y%m%d%H%M%S"), "data")
-                         ) if self.__args.data_stem is None else self.__args.data_stem
-            )
             try:
                 self.build(spec)
                 action = "Extra: run"
@@ -725,7 +732,7 @@ class JSONDataFilesMaker():
         action: str = "Make Task"  # default action is a sample
         while action != "Build JSON file":
             action = self.__prompt.prompt(
-                "What kind of action ?",
+                "Choose an action ?",
                 choices=[
                     "Make Task",
                     "Make Rank",
@@ -751,7 +758,7 @@ class JSONDataFilesMaker():
                     self.run_action(action, spec)
                 # Catch any exception so that only the user can choose to exit the script (interactive) loop
                 except Exception as err:  # pylint:disable=W0718:broad-exception-caught
-                    self.__prompt.print_error(err.args[0] if len(err.args) > 0
+                    self.__prompt.print_error(str(err.args[0]) if len(err.args) > 0
                                               else f"An error of type {type(err).__name__} has occured")
 
 
