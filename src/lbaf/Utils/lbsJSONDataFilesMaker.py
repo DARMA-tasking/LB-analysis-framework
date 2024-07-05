@@ -359,7 +359,7 @@ class JSONDataFilesMaker():
     def update_shared_block(self, block, tasks: Union[dict, list], ranks: dict):
         """Ask for shared block size, and tasks in interactive mode"""
 
-        block["size"], = self.__prompt.prompt(
+        block["size"] = self.__prompt.prompt(
             "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0))
 
         tasks_valid = False
