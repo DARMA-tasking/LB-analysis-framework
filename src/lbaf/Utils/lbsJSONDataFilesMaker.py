@@ -528,10 +528,8 @@ class JSONDataFilesMaker():
             if s:= self.create_spec_from_file(file_path) is not None:
                 spec = s
         elif action == "Extra: run":
-            if self.__args.config_file is None:
-                self.__args.config_file  = self.__prompt.prompt(
-                "LBAF Configuration file ?", required=True
-            )
+            self.__args.config_file  = self.__prompt.prompt("LBAF Configuration file ?", required=True,
+                                                            default=self.__args.config_file)
 
             if not os.path.exists(self.__args.config_file):
                 self.__prompt.print_error(f"File not found at {self.__args.config_file}.")
