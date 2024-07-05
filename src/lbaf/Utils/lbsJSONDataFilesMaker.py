@@ -27,7 +27,7 @@ import importlib
 import importlib.util
 import os
 import sys
-from typing import Optional, Union, Callable
+from typing import Optional, Union, Callable, List
 import subprocess
 import json
 import yaml
@@ -55,6 +55,54 @@ class YamlSpecificationDumper(yaml.Dumper):
 
     def increase_indent(self, flow=False, indentless=False):
         return super(YamlSpecificationDumper, self).increase_indent(flow, False)
+
+class Util:
+    """Utility class with common useful static methods for the maker"""
+
+    @staticmethod
+    def cast(value: Union[float,str,int], value_type: Union[float,str,int]):
+        """Cast from and to a simple type. If object is already the correct target type it is returned as is"""
+
+        if value_type is not None and not isinstance(value, value_type):
+            return value_type(value)
+
+    @staticmethod
+    def to_dict(items: Union[dict,list], element_type=None):
+        """Get elements as a dict with optional element type conversion"""
+
+        if isinstance(items, dict) and element_type is None:
+            return items
+
+        return { (object_id if element_type is None else Util.cast(element, element_type)): element
+                    for object_id, element in (
+                        items.items() if isinstance(items, dict)
+                        else enumerate(items)
+                    )}
+
+    @staticmethod
+    def keys( items: Union[dict,list]) -> list:
+        """Get element keys or list indices."""
+
+        return list(items.keys()) if isinstance(items, dict) else list(range(len(items)))
+
+    @staticmethod
+    def list_to_csv(items: List[Union[int,str,float]], sep = ',', empty_as_none=True) -> str:
+        """join elements as a single string with some separator"""
+
+        return (str.join(sep, [str(t_id) for t_id in items]) if len(items) > 0
+                    else (None if empty_as_none else ''))
+
+    @staticmethod
+    def csv_to_list(items: Optional[str], sep = ',', item_type=None, empty_as_none=False) -> list:
+        """join elements as a single string with some separator"""
+
+        items_list = []
+        if items is not None:
+            items_list = items.split(sep)
+            if item_type is not None:
+                items_list = [item_type(item) for item in items_list]
+
+        return items_list if len(items_list) > 0 else (None if empty_as_none else [])
 
 
 class JSONDataFilesMaker():
@@ -255,11 +303,8 @@ class JSONDataFilesMaker():
     def ask_object(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
                           can_go_back=False, question: str = None, validate: Optional[Callable] = None, default=None, ):
         """Request user to select a choice in a list of dict keys or list indices"""
-        choices = []
-        if isinstance(objects, dict):
-            choices = [i for i in objects.keys()]
-        else:
-            choices = [i for i in range(0, len(objects))]
+
+        choices = Util.keys(objects)
         if can_add:
             choices.append(f"*New {object_type_name}")
         if can_go_back:
@@ -290,20 +335,23 @@ class JSONDataFilesMaker():
 
 
         # retrieve current value
-        object_data = (default if object_id == "*New" else (
-            parent[object_id] if isinstance(parent, dict) else parent[object_id]))
+        object_data = (default if object_id == "*New" else parent[object_id])
         object_data = update(object_data, None if object_id == "*New" else object_id)
 
+        is_new = False
         if object_id == "*New":
+            is_new = True
             if isinstance(parent, dict):
+                # default is for new object is max key + 1
                 object_id = max(parent.keys(), default=-1) + 1
                 object_id = self.__prompt.prompt(
                     f"{object_type_name.capitalize()} id ?", required=True, value_type=int, default=object_id,
-                    validate=lambda t_id: f"{object_type_name.capitalize()} id already used"
+                    validate=lambda t_id: f"{object_type_name.capitalize()} with id already exists. Please choose another id !"
                     if t_id in parent.keys()
                     else None)
             else:
-                object_id = None # if list do not use explicit ids
+                # no explicit id for list item as index is used
+                object_id = None
 
         # append or update object in or to the parent list or dict
         if isinstance(parent, dict):
@@ -312,7 +360,11 @@ class JSONDataFilesMaker():
             if object_id is not None:
                 parent[object_id] = object_data  # update
             else:
+                object_id = len(parent)
                 parent.append(object_data)  # create
+
+        self.__prompt.print_info(f"{object_type_name.capitalize()} with id {object_id} has been "
+                                 f"{'added' if is_new else 'updated'} succesfully")
 
     def make_task(self, spec: PhaseSpecification):
         """Creates or updates a task in interactive mode"""
@@ -362,19 +414,18 @@ class JSONDataFilesMaker():
             "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0))
 
         tasks_valid = False
-        all_tasks = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
-        block_tasks = block["tasks"]
+        all_tasks = Util.keys(tasks)
+        block_task_ids = Util.keys(block["tasks"])
         while not tasks_valid:
             tasks_valid = True
-            tasks_csv_default = str.join(",", [str(t_id) for t_id in block_tasks]) if len(block_tasks) > 0 else None
-            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False,
-                                            value_type=str,default=tasks_csv_default)
+            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separated) ?", required=False,
+                                            value_type=str,default=Util.list_to_csv(block_task_ids))
             if task_ids is None or task_ids == '':
                 block["tasks"] = []
                 return block
 
             try:
-                task_ids = [int(t_id) for t_id in task_ids.split(',')]
+                task_ids = Util.csv_to_list(task_ids, item_type=int)
             except ValueError as ex:
                 self.__prompt.print_error(f"Input error: {ex.args[0]}")
                 tasks_valid = False
@@ -421,27 +472,25 @@ class JSONDataFilesMaker():
             update=lambda block, block_id: self.update_shared_block(block, spec["tasks"], spec["ranks"])
         )
 
-    def update_rank(self, rank: RankSpecification, spec: PhaseSpecification):
+    def update_rank(self, rank: RankSpecification, rank_id, spec: PhaseSpecification):
         """Ask for rank id (if new) and tasks in interactive mode"""
 
-        all_tasks = spec["tasks"].keys() if isinstance(spec["tasks"], dict) else list(range(len(spec["tasks"])))
-        rank_tasks = rank["tasks"]
+        all_tasks = Util.keys(spec["tasks"])
+        rank_task_ids = Util.keys(rank["tasks"])
         valid = False
         while not valid:
             valid = True
-            tasks_csv_default = str.join(",", [str(t_id) for t_id in rank_tasks]) if len(rank_tasks) > 0 else None
             task_ids_csv = self.__prompt.prompt("Rank tasks (comma separated) ?",
-                                            required=False, value_type=str, default=tasks_csv_default)
+                                            required=False, value_type=str, default=Util.list_to_csv(rank_task_ids))
             try:
-                task_ids = [int(t_id) for t_id in task_ids_csv.split(',')] if task_ids_csv is not None else []
+                task_ids = Util.csv_to_list(task_ids_csv, item_type=int)
             except ValueError as ex:
                 self.__prompt.print_error(f"Input error: {ex.args[0]}")
                 valid = False
                 continue
 
-            n_tasks = len(task_ids)
-            task_ids = list(dict.fromkeys(task_ids)) # unique values
-            if len(task_ids) < n_tasks:
+            unique_task_ids = list(dict.fromkeys(task_ids)) # unique values
+            if len(unique_task_ids) < len(task_ids):
                 self.__prompt.print_warning("Duplicated task(s) found and removed")
 
             for t in task_ids:
@@ -450,7 +499,7 @@ class JSONDataFilesMaker():
                     valid = False
                     break
                 for r_id, r in spec["ranks"].items():
-                    if r != r_id and t in r["tasks"]:
+                    if rank_id != r_id and t in r["tasks"]:
                         self.__prompt.print_error(f"Task {t} already defined on rank {r_id}")
                         valid = False
                         break
@@ -467,8 +516,91 @@ class JSONDataFilesMaker():
             spec.get("ranks"),
             "rank",
             default=RankSpecification({"tasks": []}),
-            update=lambda rank, rank_id: self.update_rank(rank, spec)
+            update=lambda rank, rank_id: self.update_rank(rank, rank_id, spec)
         )
+
+    def remove_task(self, spec: PhaseSpecification):
+        """Remove a task in interactive mode"""
+
+        choice = self.ask_object(spec["tasks"], "task", False, can_go_back=True)
+        if choice == "*Back":
+            return
+
+        # List communications from/to the task
+        communications: dict = {}
+        for c_id, communication in Util.to_dict(spec["communications"]).items():
+            if communication["from"] == choice or communication["to"] == choice:
+                communications[c_id] = communication
+
+        # Find task rank
+        t_rank_id = None
+        for r_id, rank in spec["ranks"].items():
+            if choice in rank["tasks"]:
+                t_rank_id = r_id
+
+        messages = []
+        if t_rank_id is not None:
+            messages.append(f"Task will be removed from rank {t_rank_id}.")
+        if len(communications) > 0:
+            messages.append("The following communications will be removed: " + str(communications))
+
+        if len(messages) > 0:
+            self.__prompt.print_warning(f"Impact: {os.linesep}" + str.join(f"{os.linesep}", messages))
+
+        confirm_choice = self.__prompt.prompt("Are you sure ?",
+                                            choices=["Yes", "No"],
+                                            required=True, default="No")
+
+        if confirm_choice == "Yes":
+            # Delete communications
+            for c in communications:
+                del spec["communications"][c]
+            # Remove from rank
+            if t_rank_id is not None:
+                spec["ranks"][t_rank_id]["tasks"] = list(filter(lambda item: item != choice, spec["ranks"][t_rank_id]["tasks"]))
+            # Delete task
+            del spec["tasks"][int(choice)]
+
+    def remove_rank(self, spec: PhaseSpecification):
+        """Remove a shared block in interactive mode"""
+
+        choice = self.ask_object(spec["ranks"], "rank", False, can_go_back=True)
+        if choice == "*Back":
+            return
+        raise NotImplementedError
+
+    def remove_shared_block(self, spec: PhaseSpecification):
+        """Remove a shared block in interactive mode"""
+
+        choice = self.ask_object(spec["shared_blocks"], "shared block", False, can_go_back=True)
+        if choice == "*Back":
+            return
+        raise NotImplementedError
+
+    def remove_communication(self, spec: PhaseSpecification):
+        """Remove a communication in interactive mode"""
+
+        choice = self.ask_object(spec["communications"], "communication", False, can_go_back=True)
+        if choice == "*Back":
+            return
+        raise NotImplementedError
+
+    def remove_element(self, spec: PhaseSpecification):
+        """Remove element (task, rank, shared block or communication) in interactive mode"""
+
+        element_type = self.__prompt.prompt("Choose Type ?",
+                                            choices=["Task", "Rank", "Shared Block", "Communication", "*Back"],
+                                            required=True, default=None)
+        if element_type == "*Back":
+            return
+        elif element_type == "Task":
+            self.remove_task(spec)
+        elif element_type == "Rank":
+            self.remove_rank(spec)
+        elif element_type == "Shared Block":
+            self.remove_shared_block(spec)
+        elif element_type == "Communication":
+            self.remove_shared_block(spec)
 
     def run_extra_action(self, action: str, spec: PhaseSpecification):
         """Run an extra action"""
@@ -506,12 +638,13 @@ class JSONDataFilesMaker():
         elif action == "Make Shared block":
             self.make_shared_block(spec)
         elif action == "Make Communication":
-            if (isinstance(spec["tasks"], dict) and len(spec["tasks"]) < 2) or (
-                isinstance(spec["tasks"], list) and len(spec["tasks"]) < 2):
+            if len(spec["tasks"]) < 2:
                 self.__prompt.print_error("To create a communication please create at least 2 tasks")
                 action = "Make Task"
             else:
                 self.make_communication(spec)
+        elif action == "Remove Element":
+            self.remove_element(spec)
         elif action == "Build":
             self.__args.data_stem = self.__prompt.prompt(
                 "Data stem ?",
@@ -559,6 +692,7 @@ class JSONDataFilesMaker():
                     "Make Rank",
                     "Make Shared block",
                     "Make Communication",
+                    "Remove Element",
                     "Build",
                     "Extra: load file",
                     "Extra: run",
@@ -578,7 +712,8 @@ class JSONDataFilesMaker():
                     self.run_action(action, spec)
                 # Catch any exception so that only the user can choose to exit the script (interactive) loop
                 except Exception as err: # pylint:disable=W0718:broad-exception-caught
-                    self.__prompt.print_error(err.args[0])
+                    self.__prompt.print_error(err.args[0] if len(err.args) > 0
+                                              else f"An error of type {type(err).__name__} has occured")
 
 if __name__ == "__main__":
     JSONDataFilesMaker().run()

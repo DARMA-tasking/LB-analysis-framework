@@ -124,19 +124,19 @@ class PromptArgumentParser(argparse.ArgumentParser):
 
     def print_error(self, msg: str):
         """Prints an error message to the console"""
-        print(white_on_red(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
+        print(white_on_red(f"{linesep}{linesep} [ERROR] {msg.replace(linesep, linesep + ' ' * 9)}{linesep}") + linesep)
 
     def print_warning(self, msg: str):
         """Prints a warning message to the console"""
-        print(white_on_cyan(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
+        print(white_on_cyan(f"{linesep}{linesep} [WARNING] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
 
     def print_info(self, msg: str):
         """Prints an info message to the console"""
-        print(cyan(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
+        print(cyan(f"{linesep}{linesep} [INFO] {msg.replace(linesep, linesep + ' ' * 8)}{linesep}") + linesep)
 
     def print_success(self, msg: str):
         """Prints a success message to the console"""
-        print(white_on_green(f"{linesep}{linesep} [SUCCESS] {msg}{linesep}") + linesep)
+        print(white_on_green(f"{linesep}{linesep} [SUCCESS] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
 
     def set_args(self, args: dict, namespace=None):
         """This method init updates a namespace with the default values and with the given arguments.
