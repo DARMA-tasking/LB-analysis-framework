@@ -322,14 +322,15 @@ class JSONDataFilesMaker():
             spec.get("tasks"),
             "task",
             default=0.0,
-            update=lambda time, t_id: (self.__prompt.prompt("Task time ?", required=True, value_type=float, default=time)),
+            update=lambda time, t_id: (self.__prompt.prompt("Task time ?", required=True, value_type=float,
+                                        default=time))
         )
 
     def update_communication(self, comm, tasks: Union[dict, list]):
         """Ask for communicaton size, from and to in interactive mode"""
 
         comm["size"] = self.__prompt.prompt(
-            "Communication size ?", required=True, value_type=float, default=comm.get("size", 0.0)),
+            "Communication size ?", required=True, value_type=float, default=comm.get("size", 0.0))
         comm["from"] = self.ask_object(
             tasks,
             object_type_name="task",
@@ -359,14 +360,14 @@ class JSONDataFilesMaker():
         """Ask for shared block size, and tasks in interactive mode"""
 
         block["size"], = self.__prompt.prompt(
-            "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0)),
+            "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0))
 
         tasks_valid = False
         while not tasks_valid:
             tasks_valid = True
             tasks_csv_default = str.join(",", block["tasks"]) if len(block["tasks"]) > 0 else None
-            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?",
-                                                required=False, value_type=str,default=tasks_csv_default)
+            task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False,
+                                            value_type=str,default=tasks_csv_default)
             if task_ids is None or task_ids == '':
                 block["tasks"] = []
                 return block
