@@ -363,9 +363,10 @@ class JSONDataFilesMaker():
             "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0))
 
         tasks_valid = False
+        all_tasks = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
         while not tasks_valid:
             tasks_valid = True
-            tasks_csv_default = str.join(",", block["tasks"]) if len(block["tasks"]) > 0 else None
+            tasks_csv_default = str.join(",", [str(t_id) for t_id in all_tasks]) if len(all_tasks) > 0 else None
             task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False,
                                             value_type=str,default=tasks_csv_default)
             if task_ids is None or task_ids == '':
@@ -384,7 +385,6 @@ class JSONDataFilesMaker():
             if len(task_ids) < n_tasks:
                 self.__logger.warning("Duplicated task(s) found and removed")
 
-            all_tasks = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
             for t in task_ids:
                 if not t in all_tasks:
                     tasks_valid = False
@@ -428,7 +428,7 @@ class JSONDataFilesMaker():
         valid = False
         while not valid:
             valid = True
-            tasks_csv_default = str.join(",", rank["tasks"]) if len(rank["tasks"]) > 0 else None
+            tasks_csv_default = str.join(",", [str(t_id) for t_id in all_tasks]) if len(all_tasks) > 0 else None
             task_ids_csv = self.__prompt.prompt("Rank tasks (comma separated) ?",
                                             required=False, value_type=str, default=tasks_csv_default)
             try:
