@@ -527,15 +527,14 @@ class JSONDataFilesMaker():
             file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
             if s:= self.create_spec_from_file(file_path) is not None:
                 spec = s
-        elif action == "Extra: Run":
+        elif action == "Extra: run":
             if self.__args.config_file is None:
                 self.__args.config_file  = self.__prompt.prompt(
                 "LBAF Configuration file ?", required=True
             )
 
             if not os.path.exists(self.__args.config_file):
-                self.__prompt.print_error(f"Run configuration does not exist at {self.__args.config_file}."
-                                            "Please create the run configuration.")
+                self.__prompt.print_error(f"File not found at {self.__args.config_file}.")
             else:
                 subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.config_file], check=True)
         else:
