@@ -115,12 +115,12 @@ class JSONDataFilesMaker():
         if self.__args.interactive is False:
             if self.__args.data_stem is None:
                 self.__prompt.print_error("The `data-stem` argument is required")
-                self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
+                self.__prompt.print_info("You can also enter the interactive mode by adding the --interactive argument")
                 raise SystemExit(1)
 
             if self.__args.spec_file is None:
                 self.__prompt.print_error("The `spec-file` argument is required")
-                self.__logger.info("You can also enter the interactive mode by adding the --interactive argument")
+                self.__prompt.print_info("You can also enter the interactive mode by adding the --interactive argument")
                 raise SystemExit(1)
 
         spec = None
@@ -232,9 +232,8 @@ class JSONDataFilesMaker():
         spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
         try:
             Phase(self.__logger, 0).populate_from_specification(spec, self.__args.multiple_sharing is not False)
-            self.__logger.info("Specification is valid !")
         except RuntimeError as e:
-            self.__logger.error(f"Specification error: {e}")
+            self.__logger.print_error(f"Specification error: {e}")
             spec = None
             if self.__args.interactive is False:
                 raise SystemExit() from e
@@ -304,7 +303,7 @@ class JSONDataFilesMaker():
                     if t_id in parent.keys()
                     else None)
             else:
-                object_id = None
+                object_id = None # if list do not use explicit ids
 
         # append or update object in or to the parent list or dict
         if isinstance(parent, dict):
@@ -364,9 +363,10 @@ class JSONDataFilesMaker():
 
         tasks_valid = False
         all_tasks = tasks.keys() if isinstance(tasks, dict) else list(range(len(tasks)))
+        block_tasks = block["tasks"]
         while not tasks_valid:
             tasks_valid = True
-            tasks_csv_default = str.join(",", [str(t_id) for t_id in all_tasks]) if len(all_tasks) > 0 else None
+            tasks_csv_default = str.join(",", [str(t_id) for t_id in block_tasks]) if len(block_tasks) > 0 else None
             task_ids = self.__prompt.prompt("Shared block tasks ids (comma separatated) ?", required=False,
                                             value_type=str,default=tasks_csv_default)
             if task_ids is None or task_ids == '':
@@ -383,7 +383,7 @@ class JSONDataFilesMaker():
             n_tasks = len(task_ids)
             task_ids = list(dict.fromkeys(task_ids)) # unique values
             if len(task_ids) < n_tasks:
-                self.__logger.warning("Duplicated task(s) found and removed")
+                self.__prompt.print_warning("Duplicated task(s) found and removed")
 
             for t in task_ids:
                 if not t in all_tasks:
@@ -425,10 +425,11 @@ class JSONDataFilesMaker():
         """Ask for rank id (if new) and tasks in interactive mode"""
 
         all_tasks = spec["tasks"].keys() if isinstance(spec["tasks"], dict) else list(range(len(spec["tasks"])))
+        rank_tasks = rank["tasks"]
         valid = False
         while not valid:
             valid = True
-            tasks_csv_default = str.join(",", [str(t_id) for t_id in all_tasks]) if len(all_tasks) > 0 else None
+            tasks_csv_default = str.join(",", [str(t_id) for t_id in rank_tasks]) if len(rank_tasks) > 0 else None
             task_ids_csv = self.__prompt.prompt("Rank tasks (comma separated) ?",
                                             required=False, value_type=str, default=tasks_csv_default)
             try:
@@ -441,7 +442,7 @@ class JSONDataFilesMaker():
             n_tasks = len(task_ids)
             task_ids = list(dict.fromkeys(task_ids)) # unique values
             if len(task_ids) < n_tasks:
-                self.__logger.warning("Duplicated task(s) found and removed")
+                self.__prompt.print_warning("Duplicated task(s) found and removed")
 
             for t in task_ids:
                 if not t in all_tasks:
@@ -500,6 +501,8 @@ class JSONDataFilesMaker():
 
         if action == "Make Task":
             self.make_task(spec)
+        elif action == "Make Rank":
+            self.make_rank(spec)
         elif action == "Make Shared block":
             self.make_shared_block(spec)
         elif action == "Make Communication":
@@ -509,8 +512,6 @@ class JSONDataFilesMaker():
                 action = "Make Task"
             else:
                 self.make_communication(spec)
-        elif action == "Make Rank":
-            self.make_rank(spec)
         elif action == "Build":
             self.__args.data_stem = self.__prompt.prompt(
                 "Data stem ?",
@@ -555,9 +556,9 @@ class JSONDataFilesMaker():
                 "What kind of action ?",
                 choices=[
                     "Make Task",
+                    "Make Rank",
                     "Make Shared block",
                     "Make Communication",
-                    "Make Rank",
                     "Build",
                     "Extra: load file",
                     "Extra: run",

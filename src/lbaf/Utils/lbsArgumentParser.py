@@ -9,7 +9,7 @@ from itertools import repeat
 from os import linesep
 from typing import Optional, Union, Callable
 
-from .lbsColors import blue, green, white_on_red, white_on_green, yellow
+from .lbsColors import blue, green, white_on_red, white_on_green, yellow, white_on_cyan, cyan
 
 
 class PromptArgumentParser(argparse.ArgumentParser):
@@ -104,7 +104,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
                         raw_response = choice
 
             if required is True and raw_response is None:
-                self.print_error(f"Value is required{linesep}")
+                self.print_error(f"Value is required")
             elif choices is not None and raw_response is not None:
                 valid_choices = [i for i in choices_dict.values()]
                 if raw_response not in valid_choices:
@@ -116,18 +116,26 @@ class PromptArgumentParser(argparse.ArgumentParser):
             elif validate is not None:
                 error = validate(raw_response)
                 if error:
-                    self.print_error(f"{error}{linesep}")
+                    self.print_error(f"{error}")
                     raw_response = None
 
         response = raw_response
         return response
 
     def print_error(self, msg: str):
-        """Prints an error to the console"""
+        """Prints an error message to the console"""
         print(white_on_red(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
 
+    def print_warning(self, msg: str):
+        """Prints a warning message to the console"""
+        print(white_on_cyan(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
+
+    def print_info(self, msg: str):
+        """Prints an info message to the console"""
+        print(cyan(f"{linesep}{linesep} [ERROR] {msg}{linesep}") + linesep)
+
     def print_success(self, msg: str):
-        """Prints an error to the console"""
+        """Prints a success message to the console"""
         print(white_on_green(f"{linesep}{linesep} [SUCCESS] {msg}{linesep}") + linesep)
 
     def set_args(self, args: dict, namespace=None):
