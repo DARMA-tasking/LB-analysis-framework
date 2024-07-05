@@ -593,9 +593,8 @@ class JSONDataFilesMaker():
                 if block["home_rank"] == choice:
                     b_ids.append(b_id)
             if len(b_ids) > 0:
-                self.__prompt.print_error(f"Shared block(s) with ids {b_ids.join(os.sep . '')}"
-                                           "still use this rank as home rank. Please first change the home rank for that "
-                                           "block(s).")
+                self.__prompt.print_error(f"Shared block(s) with ids {b_ids.join(os.sep + ' ')} still use this"
+                                           "rank as home rank. Please first change the home rank for that block(s).")
                 return
 
         if len(messages) > 0:
