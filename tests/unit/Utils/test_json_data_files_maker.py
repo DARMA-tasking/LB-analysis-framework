@@ -67,5 +67,16 @@ class TestJsonDataFilesMaker(unittest.TestCase):
         print(namespace)
         JSONDataFilesMaker().run()
 
+    @patch('argparse.ArgumentParser.parse_args', return_value=argparse_args(
+        spec_file=os.path.join(config_dir, "phase_spec_05_valid.yaml"),
+        data_stem=os.path.join(output_dir, "dataset05")
+    ))
+    def test_make_data_files_from_spec_valid_05(self, namespace: argparse.Namespace):
+        """Test that valid phase configuration using dict and not lists correctly generates a dataset"""
+
+        print(namespace)
+        JSONDataFilesMaker().run()
+        
+
 if __name__ == "__main__":
     unittest.main()
