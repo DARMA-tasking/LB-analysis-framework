@@ -76,7 +76,7 @@ class TestJsonDataFilesMaker(unittest.TestCase):
 
         print(namespace)
         JSONDataFilesMaker().run()
-        
+
 
 if __name__ == "__main__":
     unittest.main()
