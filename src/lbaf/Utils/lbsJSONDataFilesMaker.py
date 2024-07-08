@@ -294,7 +294,7 @@ class JSONDataFilesMaker():
 
     def load_spec_from_file(self, file_path) ->bool:
         """Load a specification from a file (Yaml or Json)
-        
+
         Return True on success or False on failure.
         Exit the program if specification file is invalid in non-interactive mode
         """
