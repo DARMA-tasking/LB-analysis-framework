@@ -315,7 +315,7 @@ class JSONDataFilesMaker():
             # try load phase to validate input file
             Phase(self.__logger, 0).populate_from_specification(spec, self.__args.multiple_sharing is not False)
         except RuntimeError as e:
-            self.__logger.print_error(f"Specification error: {e}")
+            self.__prompt.print_error(f"Input specification error: {e}")
             if self.__args.interactive is False:
                 raise SystemExit(-1) from e
             return False
