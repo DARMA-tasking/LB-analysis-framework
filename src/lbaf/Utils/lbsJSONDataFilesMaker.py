@@ -126,6 +126,14 @@ class JSONDataFilesMaker():
         self.__args: dict = None
         """The input arguments"""
 
+        self.spec: PhaseSpecification = PhaseSpecification({
+                "tasks": [],
+                "shared_blocks": [],
+                "communications": [],
+                "ranks": {}
+            })
+        """The specification to edit"""
+
         self.__prompt = PromptArgumentParser(
             allow_abbrev=False,
             description=(
@@ -181,7 +189,7 @@ class JSONDataFilesMaker():
 
         spec = None
         if self.__args.spec_file:
-            spec = self.create_spec_from_file(self.__args.spec_file)
+            self.load_spec_from_file(self.__args.spec_file)
 
         if spec is None:
             spec: PhaseSpecification = PhaseSpecification({
@@ -193,11 +201,11 @@ class JSONDataFilesMaker():
 
         # Build immediately in non interactive mode
         if self.__args.interactive is False:
-            self.build(spec)
+            self.build()
 
         return spec
 
-    def build(self, specs):
+    def build(self):
         """Build the data set"""
 
         data_stem = self.__args.data_stem
@@ -211,7 +219,7 @@ class JSONDataFilesMaker():
 
         # create and populate phase
         phase = Phase(self.__logger, 0)
-        phase.populate_from_specification(specs)
+        phase.populate_from_specification(self.spec)
         # Save
         writer_parameters: dict = {
             "compressed": self.__args.compressed,
@@ -228,12 +236,12 @@ class JSONDataFilesMaker():
 
         self.__args.data_stem = data_stem
 
-    def create_spec_sample(self, use_explicit_keys: bool = False) -> PhaseSpecification:
+    def load_sample(self, use_explicit_keys: bool = False):
         """Create a new sample specification as represented by diagram specified in issue #506
         This method implementation indicates also how to cfreate a specification from Python code
         """
 
-        specs = PhaseSpecification({
+        spec = PhaseSpecification({
             "tasks": [2.0, 3.5, 5.0],
             "communications": [
                 CommunicationSpecification({
@@ -278,14 +286,19 @@ class JSONDataFilesMaker():
         })
 
         if use_explicit_keys:
-            specs["tasks"] = {comm_id: comm for comm_id, comm in enumerate(specs["tasks"])}
-            specs["communications"] = {task_id: task for task_id, task in enumerate(specs["communications"])}
-            specs["shared_blocks"] = {block_id: block for block_id, block in enumerate(specs["shared_blocks"])}
+            spec["tasks"] = {comm_id: comm for comm_id, comm in enumerate(spec["tasks"])}
+            spec["communications"] = {task_id: task for task_id, task in enumerate(spec["communications"])}
+            spec["shared_blocks"] = {block_id: block for block_id, block in enumerate(spec["shared_blocks"])}
 
-        return specs
+        self.spec = spec
 
-    def create_spec_from_file(self, file_path) -> Optional[PhaseSpecification]:
-        """Create a new specification by loading from a file and returns None if data contain errors"""
+    def load_spec_from_file(self, file_path) ->bool:
+        """Load a specification from a file (Yaml or Json)
+        
+        Return True on success or False on failure.
+        Exit the program if specification file is invalid in non-interactive mode
+        """
+
         spec = PhaseSpecification()
         with open(file_path, "r", encoding="utf-8") as file_stream:
             if file_path.endswith(".json"):
@@ -297,29 +310,35 @@ class JSONDataFilesMaker():
                 spec_dict = yaml.safe_load(file_stream)
 
         spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
+
         try:
+            # try load phase to validate input file
             Phase(self.__logger, 0).populate_from_specification(spec, self.__args.multiple_sharing is not False)
         except RuntimeError as e:
             self.__logger.print_error(f"Specification error: {e}")
-            spec = None
             if self.__args.interactive is False:
-                raise SystemExit() from e
+                raise SystemExit(-1) from e
+            return False
 
-        return spec
 
-    def print(self, spec: PhaseSpecification, output_format: str = "json"):
+        self.spec = spec
+        return True
+
+    def print(self, output_format: str = "json"):
         """print a specification to the console"""
+
+        normalized_spec = PhaseSpecificationNormalizer().normalize(self.spec)
 
         if output_format == "json":
             print("----------- BEGIN JSON -----------")
-            print(json.dumps(spec, sort_keys=True, indent=2, separators=(',', ": ")))
+            print(json.dumps(normalized_spec, sort_keys=True, indent=2, separators=(',', ": ")))
             print("----------- END JSON -------------")
         elif output_format == "yaml":
             print("----------- BEGIN YAML -----------")
-            print(yaml.dump(spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
+            print(yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
             print("----------- END YAML -------------")
         else:
-            print(spec)
+            print(self.spec)
 
     def ask_object(self, objects: Union[dict, list], object_type_name: str, can_add: bool = False,
                    can_go_back=False, question: str = None, validate: Optional[Callable] = None, default=None, ):
@@ -386,19 +405,21 @@ class JSONDataFilesMaker():
         self.__prompt.print_info(f"{object_type_name.capitalize()} with id {object_id} has been "
                                  f"{'added' if is_new else 'updated'} succesfully")
 
-    def make_task(self, spec: PhaseSpecification):
+    def make_task(self):
         """Creates or updates a task in interactive mode"""
 
         self.make_object(
-            spec.get("tasks"),
+            self.spec.get("tasks"),
             "task",
             default=0.0,
             update=lambda time, t_id: (self.__prompt.prompt("Task time ?", required=True, value_type=float,
                                                             default=time))
         )
 
-    def update_communication(self, comm, tasks: Union[dict, list]):
+    def update_communication(self, comm):
         """Ask for communicaton size, from and to in interactive mode"""
+
+        tasks: Union[dict, list] = self.spec["tasks"]
 
         comm["size"] = self.__prompt.prompt(
             "Communication size ?", required=True, value_type=float, default=comm.get("size", 0.0))
@@ -417,19 +438,21 @@ class JSONDataFilesMaker():
         )
         return comm
 
-    def make_communication(self, spec: PhaseSpecification):
+    def make_communication(self):
         """Creates or updates a communication in interactive mode"""
 
         self.make_object(
-            spec.get("communications"),
+            self.spec.get("communications"),
             "communication",
             default=CommunicationSpecification({"size": 0.0}),
-            update=lambda comm, comm_id: self.update_communication(comm, spec["tasks"])
+            update=lambda comm, comm_id: self.update_communication(comm)
         )
 
-    def update_shared_block(self, block, tasks: Union[dict, list], ranks: dict):
+    def update_shared_block(self, block):
         """Ask for shared block size, and tasks in interactive mode"""
 
+        tasks = self.spec["tasks"]
+        ranks = self.spec["ranks"]
         block["size"] = self.__prompt.prompt(
             "Shared block size ?", required=True, value_type=float, default=block.get("size", 0.0))
 
@@ -479,20 +502,20 @@ class JSONDataFilesMaker():
 
         return block
 
-    def make_shared_block(self, spec: PhaseSpecification):
+    def make_shared_block(self):
         """Creates or updates a communication in interactive mode"""
 
         self.make_object(
-            spec.get("shared_blocks"),
+            self.spec.get("shared_blocks"),
             "shared block",
             default=SharedBlockSpecification({"size": 0.0, "tasks": [], "home_rank": None}),
-            update=lambda block, block_id: self.update_shared_block(block, spec["tasks"], spec["ranks"])
+            update=lambda block, block_id: self.update_shared_block(block)
         )
 
-    def update_rank(self, rank: RankSpecification, rank_id, spec: PhaseSpecification):
+    def update_rank(self, rank: RankSpecification, rank_id: Optional[int]):
         """Ask for rank id (if new) and tasks in interactive mode"""
 
-        all_tasks = Util.keys(spec["tasks"])
+        all_tasks = Util.keys(self.spec["tasks"])
         rank_task_ids = rank["tasks"]
         valid = False
         while not valid:
@@ -513,7 +536,7 @@ class JSONDataFilesMaker():
                     self.__prompt.print_error(f"Task {t} not found")
                     valid = False
                     break
-                for r_id, r in spec["ranks"].items():
+                for r_id, r in self.spec["ranks"].items():
                     if rank_id != r_id and t in r["tasks"]:
                         self.__prompt.print_error(f"Task {t} already defined on rank {r_id}")
                         valid = False
@@ -524,38 +547,38 @@ class JSONDataFilesMaker():
             rank["tasks"] = task_ids
         return rank
 
-    def make_rank(self, spec: PhaseSpecification):
+    def make_rank(self):
         """Creates or updates a rank in interactive mode"""
 
         self.make_object(
-            spec.get("ranks"),
+            self.spec["ranks"],
             "rank",
             default=RankSpecification({"tasks": []}),
-            update=lambda rank, rank_id: self.update_rank(rank, rank_id, spec)
+            update=self.update_rank
         )
 
-    def remove_task(self, spec: PhaseSpecification):
+    def remove_task(self):
         """Remove a task in interactive mode"""
 
-        choice = self.ask_object(spec["tasks"], "task", False, can_go_back=True)
+        choice = self.ask_object(self.spec["tasks"], "task", False, can_go_back=True)
         if choice == "*Back":
             return
 
         # List communications from/to the task
         t_communications: dict = {}
-        for c_id, communication in Util.to_dict(spec["communications"]).items():
+        for c_id, communication in Util.to_dict(self.spec["communications"]).items():
             if communication["from"] == choice or communication["to"] == choice:
                 t_communications[c_id] = communication
 
         # Find task shared block(s)
         t_orphan_shared_blocks: dict = {}
-        for b_id, block in Util.to_dict(spec["shared_blocks"]).items():
+        for b_id, block in Util.to_dict(self.spec["shared_blocks"]).items():
             if choice in block["tasks"] and len(block["tasks"]) == 1:
                 t_orphan_shared_blocks[b_id] = block
 
         # Find task rank
         t_rank_id = None
-        for r_id, rank in spec["ranks"].items():
+        for r_id, rank in self.spec["ranks"].items():
             if choice in rank["tasks"]:
                 t_rank_id = r_id
 
@@ -578,32 +601,32 @@ class JSONDataFilesMaker():
         if confirm_choice == "Yes":
             # Delete communications
             for c in t_communications:
-                del spec["communications"][c]
+                del self.spec["communications"][c]
             # Remove from rank
             if t_rank_id is not None:
-                spec["ranks"][t_rank_id]["tasks"] = list(filter(lambda item: item != choice,
-                                                                spec["ranks"][t_rank_id]["tasks"]))
+                self.spec["ranks"][t_rank_id]["tasks"] = list(filter(lambda item: item != choice,
+                                                                self.spec["ranks"][t_rank_id]["tasks"]))
             # Delete task
-            del spec["tasks"][int(choice)]
+            del self.spec["tasks"][int(choice)]
 
-    def remove_rank(self, spec: PhaseSpecification):
+    def remove_rank(self):
         """Remove a shared block in interactive mode"""
 
-        choice = self.ask_object(spec["ranks"], "rank", False, can_go_back=True)
+        choice = self.ask_object(self.spec["ranks"], "rank", False, can_go_back=True)
         if choice == "*Back":
             return
 
         messages = []
         # Prevent rank removal if a task is still in that rank
-        rank_tasks = spec["ranks"][choice]["tasks"]
+        rank_tasks = self.spec["ranks"][choice]["tasks"]
         if len(rank_tasks) > 0:
             messages.append(
                 f"Tasks with ids { Util.set_to_csv(rank_tasks, sep=', ') } no more belong to a rank")
 
         # Prevent rank removal if a shared block home rank is that rank
-        if len(spec["shared_blocks"]) > 0:
+        if len(self.spec["shared_blocks"]) > 0:
             b_ids = []
-            for b_id, block in Util.to_dict(spec["shared_blocks"]).items():
+            for b_id, block in Util.to_dict(self.spec["shared_blocks"]).items():
                 if block["home_rank"] == choice:
                     b_ids.append(b_id)
             if len(b_ids) > 0:
@@ -619,25 +642,48 @@ class JSONDataFilesMaker():
 
         if confirm_choice == "Yes":
             # Delete task
-            del spec["ranks"][int(choice)]
+            del self.spec["ranks"][int(choice)]
 
-    def remove_shared_block(self, spec: PhaseSpecification):
+    def remove_shared_block(self):
         """Remove a shared block in interactive mode"""
 
-        choice = self.ask_object(spec["shared_blocks"], "shared block", False, can_go_back=True)
+        choice = self.ask_object(self.spec["shared_blocks"], "shared block", False, can_go_back=True)
         if choice == "*Back":
             return
-        raise NotImplementedError
 
-    def remove_communication(self, spec: PhaseSpecification):
+        shared_block = Util.to_dict(self.spec["shared_blocks"])[choice]
+
+        messages = []
+        if len(shared_block['tasks']) > 0:
+            messages.append(f"Tasks with ids {Util.set_to_csv(shared_block['tasks'], sep=', ')} are sharing that block.")
+
+        if len(messages) > 0:
+            self.__prompt.print_warning(str.join(f"{os.linesep}", messages))
+
+        confirm_choice = self.__prompt.prompt("Are you sure ?",
+                                              choices=["Yes", "No"],
+                                              required=True, default="No")
+
+        if confirm_choice == "Yes":
+            # Delete chared block
+            del self.spec["shared_blocks"][int(choice)]
+
+    def remove_communication(self):
         """Remove a communication in interactive mode"""
 
-        choice = self.ask_object(spec["communications"], "communication", False, can_go_back=True)
+        choice = self.ask_object(self.spec["communications"], "communication", False, can_go_back=True)
         if choice == "*Back":
             return
-        raise NotImplementedError
 
-    def remove_element(self, spec: PhaseSpecification):
+        confirm_choice = self.__prompt.prompt("Are you sure ?",
+                                              choices=["Yes", "No"],
+                                              required=True, default="No")
+
+        if confirm_choice == "Yes":
+            # Delete chared block
+            del self.spec["communications"][int(choice)]
+
+    def remove_element(self):
         """Remove element (task, rank, shared block or communication) in interactive mode"""
 
         element_type = self.__prompt.prompt("Choose Type ?",
@@ -646,23 +692,23 @@ class JSONDataFilesMaker():
         if element_type == "*Back":
             return
         elif element_type == "Task":
-            self.remove_task(spec)
+            self.remove_task()
         elif element_type == "Rank":
-            self.remove_rank(spec)
+            self.remove_rank()
         elif element_type == "Shared Block":
-            self.remove_shared_block(spec)
+            self.remove_shared_block()
         elif element_type == "Communication":
-            self.remove_shared_block(spec)
+            self.remove_communication()
 
-    def run_extra_action(self, action: str, spec: PhaseSpecification):
+    def run_extra_action(self, action: str):
         """Run an extra action"""
 
         if action == "Extra: load sample":
-            spec = self.create_spec_sample(use_explicit_keys=True)
+            self.load_sample(use_explicit_keys=True)
             action = "Build"
         elif action == "Extra: print":
             frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json", "python (debug)"], required=True, default="yaml")
-            self.print(PhaseSpecificationNormalizer().normalize(spec), frmt)
+            self.print(frmt)
         elif action == "Extra: save":
             frmt = None
             while frmt is None:
@@ -680,33 +726,32 @@ class JSONDataFilesMaker():
             with open(path, "wt", encoding="utf-8") as o_file:
                 o_file.write(PhaseSpecificationNormalizer().normalize(spec), frmt)
 
-    def run_action(self, action: str, spec: PhaseSpecification):
+    def run_action(self, action: str):
         """Run an action"""
 
         if action == "Make Task":
-            self.make_task(spec)
+            self.make_task()
         elif action == "Make Rank":
-            self.make_rank(spec)
+            self.make_rank()
         elif action == "Make Shared block":
-            self.make_shared_block(spec)
+            self.make_shared_block()
         elif action == "Make Communication":
-            if len(spec["tasks"]) < 2:
+            if len(self.spec["tasks"]) < 2:
                 self.__prompt.print_error("To create a communication please create at least 2 tasks")
                 action = "Make Task"
             else:
-                self.make_communication(spec)
+                self.make_communication()
         elif action == "Remove Element":
-            self.remove_element(spec)
+            self.remove_element()
         elif action == "Build":
             try:
-                self.build(spec)
+                self.build()
                 action = "Extra: run"
             except RuntimeError as e:
                 self.__prompt.print_error(e.args[0])
         elif action == "Extra: load file":
             file_path = self.__prompt.prompt("File path (Yaml or Json) ?", required=True)
-            if s := self.create_spec_from_file(file_path) is not None:
-                spec = s
+            self.load_spec_from_file(file_path)
         elif action == "Extra: run":
             self.__args.config_file = self.__prompt.prompt("LBAF Configuration file ?", required=True,
                                                            default=self.__args.config_file)
@@ -716,7 +761,7 @@ class JSONDataFilesMaker():
             else:
                 subprocess.run(["python", f"{PROJECT_PATH}/src/lbaf", "-c", self.__args.config_file], check=True)
         else:
-            self.run_extra_action(action, spec)
+            self.run_extra_action(action)
 
     def run(self):
         """Run the JSONDatasetMaker"""
@@ -755,7 +800,7 @@ class JSONDataFilesMaker():
                 break
             else:
                 try:
-                    self.run_action(action, spec)
+                    self.run_action(action)
                 # Catch any exception so that only the user can choose to exit the script (interactive) loop
                 except Exception as err:  # pylint:disable=W0718:broad-exception-caught
                     self.__prompt.print_error(str(err.args[0]) if len(err.args) > 0
