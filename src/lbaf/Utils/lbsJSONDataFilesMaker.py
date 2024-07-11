@@ -238,7 +238,7 @@ class JSONDataFilesMaker():
 
     def load_sample(self, use_explicit_keys: bool = False):
         """Create a new sample specification as represented by diagram specified in issue #506
-        This method implementation indicates also how to cfreate a specification from Python code
+        This method implementation indicates also how to create a specification from Python code
         """
 
         spec = PhaseSpecification({
@@ -365,7 +365,7 @@ class JSONDataFilesMaker():
             return "*New"
 
     def make_object(self, parent: Union[list, dict], object_type_name: str, default, update: Callable):
-        """Create or update an object in a a list (id is the index) or in a dict (id is the key) for interactive input
+        """Create or update an object in a list (id is the index) or in a dict (id is the key) for interactive input
         of tasks, communications and shared blocks"""
 
         object_id = self.ask_object(parent, object_type_name, True, can_go_back=True)
