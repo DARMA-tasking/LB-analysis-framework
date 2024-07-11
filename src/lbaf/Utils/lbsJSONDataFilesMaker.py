@@ -769,7 +769,7 @@ class JSONDataFilesMaker():
         # Parse command line arguments
         self.__parse_args()
 
-        spec: PhaseSpecification = self.process_args()
+        self.spec = self.process_args()
         if self.__args.interactive is False:
             return
 
