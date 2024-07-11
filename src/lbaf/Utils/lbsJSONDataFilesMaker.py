@@ -10,7 +10,7 @@ Script usage examples:
 - Generate dataset from specification file
 `lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1`
 
-- Generate dataset from specification file and sample configuration file configured tonuse the generated data stem
+- Generate dataset from specification file and sample configuration file configured to use the generated data stem
 `lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --config-file=/home/thomas/data-maker/dataset1-config.yaml`
 
 - Generate dataset from specification defined interactively in CLI
