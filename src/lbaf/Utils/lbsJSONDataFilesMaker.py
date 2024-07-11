@@ -724,7 +724,7 @@ class JSONDataFilesMaker():
                 os.makedirs(output_dir)
 
             with open(path, "wt", encoding="utf-8") as o_file:
-                o_file.write(PhaseSpecificationNormalizer().normalize(spec), frmt)
+                o_file.write(PhaseSpecificationNormalizer().normalize(self.spec), frmt)
 
     def run_action(self, action: str):
         """Run an action"""
