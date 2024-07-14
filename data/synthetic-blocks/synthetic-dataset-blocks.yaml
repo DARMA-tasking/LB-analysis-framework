@@ -1,0 +1,30 @@
+# config: synthetic data set with blocks
+tasks: [1.0, 0.5, 0.5, 0.5, 0.5, 2.0, 1.0, 0.5, 1.5]
+communications:
+  - {from: 0, size: 2.0, to: 5}
+  - {from: 1, size: 1.0, to: 4}
+  - {from: 3, size: 1.0, to: 2}
+  - {from: 3, size: 0.5, to: 8}
+  - {from: 4, size: 2.0, to: 1}
+  - {from: 5, size: 2.0, to: 8}
+  - {from: 7, size: 1.0, to: 6}
+  - {from: 8, size: 1.5, to: 6}
+ranks:
+  0:
+    tasks: [0, 1, 2, 3]
+  1:
+    tasks: [4, 5, 6, 7]
+  2:
+    tasks: [8]
+  3:
+    tasks: []
+shared_blocks:
+  - size: 9.0
+    tasks: [0, 1, 2, 3]
+    home_rank: 0
+  - size: 9.0
+    tasks: [4, 5, 6, 7]
+    home_rank: 1
+  - size: 9.0
+    tasks: [8]
+    home_rank: 2
