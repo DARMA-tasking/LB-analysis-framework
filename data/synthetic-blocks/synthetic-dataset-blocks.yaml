@@ -20,10 +20,16 @@ ranks:
     tasks: []
 shared_blocks:
   - size: 9.0
-    tasks: [0, 1, 2, 3]
+    tasks: [0, 1]
     home_rank: 0
   - size: 9.0
-    tasks: [4, 5, 6, 7]
+    tasks: [2, 3]
+    home_rank: 0
+  - size: 9.0
+    tasks: [4, 5]
+    home_rank: 1
+  - size: 9.0
+    tasks: [6, 7]
     home_rank: 1
   - size: 9.0
     tasks: [8]
