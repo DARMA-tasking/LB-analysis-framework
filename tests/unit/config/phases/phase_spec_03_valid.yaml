@@ -1,0 +1,19 @@
+# Test config: ok: ccm_example
+communications:
+  - {from: 0, size: 10000.0, to: 2}
+  - {from: 1, size: 15000.0, to: 2}
+  - {from: 2, size: 20000.0, to: 1}
+  - {from: 0, size: 25000.0, to: 1}
+ranks:
+  0:
+    tasks: [0, 1]
+  1:
+    tasks: [2]
+shared_blocks:
+  - size: 10000.0
+    tasks: [0, 1]
+    home_rank: 0
+  - size: 15000.0
+    tasks: [2]
+    home_rank: 1
+tasks: [2.0, 3.5, 5.0]
