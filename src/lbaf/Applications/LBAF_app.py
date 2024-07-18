@@ -31,7 +31,7 @@ from lbaf.Utils.lbsPath import abspath
 # pylint:enable=C0413:wrong-import-position
 
 class InternalParameters:
-    """Represent the parameters used internally by a a LBAF Application"""
+    """Represent the parameters used internally by a LBAF Application"""
 
     __logger: Logger
 

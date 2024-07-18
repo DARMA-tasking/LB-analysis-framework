@@ -1,9 +1,11 @@
+import os
 import random as rnd
 from logging import Logger
-from typing import Optional
+from typing import Optional, Dict
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
+from ..Execution.lbsPhaseSpecification import PhaseSpecification
 from ..Utils.lbsLogging import get_logger
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -15,10 +17,10 @@ class Phase:
     """A class representing a phase of objects distributed across ranks."""
 
     def __init__(
-        self,
-        lgr: Logger,
-        p_id: int = 0,
-        reader: LoadReader = None):
+            self,
+            lgr: Logger,
+            p_id: int = 0,
+            reader: LoadReader = None):
         """Class constructor
             logger: a Logger instance
             id: an integer indexing the phase ID
@@ -152,7 +154,7 @@ class Phase:
                     # Create or update an inter-rank directed edge
                     ij = frozenset([i, j])
                     self.__edges.setdefault(ij, [0., 0.])
-                    if i < j :
+                    if i < j:
                         self.__edges[ij][0] += volume
                     else:
                         self.__edges[ij][1] += volume
@@ -257,7 +259,7 @@ class Phase:
             oth_id = k.get_rank_id()
             self.__logger.debug(
                 f"\tvolume {v} {src_id} --> {oth_id} becomes {dst_id} --> {oth_id}")
-            if oth_id  == src_id:
+            if oth_id == src_id:
                 # Local src communication becomes off-node dst to src
                 self.__update_or_create_directed_edge(dst_id, src_id, +v)
             elif oth_id == dst_id:
@@ -406,6 +408,151 @@ class Phase:
         print_function_statistics(
             objects, lambda x: x.get_overhead(), "object overheads", self.__logger)
 
+    def populate_from_specification(self, spec: PhaseSpecification, multiple_sharing: bool = False):
+        """Populate this phase using a specification listing phases, ranks, tasks and communications."""
+
+        # This method is inspired by the VTDataReader but with a DatasetSpecification input
+
+        # Auto-generate ids for Lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
+        # and communications
+        if isinstance(spec["tasks"], list):
+            spec["tasks"] = {
+                i: spec["tasks"][i] for i in range(len(spec["tasks"]))}
+        if isinstance(spec["shared_blocks"], list):
+            spec["shared_blocks"] = {
+                i: spec["shared_blocks"][i] for i in range(len(spec["shared_blocks"]))}
+        if isinstance(spec["communications"], list):
+            spec["communications"] = {
+                i: spec["communications"][i] for i in range(len(spec["communications"]))}
+
+        ranks: Dict[int, Rank] = {
+            r_id: Rank(self.__logger, r_id) for r_id in spec.get("ranks", []).keys()}
+        objects: Dict[int, Object] = {}  # object instances (indexed by id)
+        shared_blocks: Dict[int, Block] = {}  # shared blocks instances (indexed by id)
+
+        if len(spec["ranks"].keys()) == 0:
+            raise RuntimeError("Missing rank distributions")
+
+        # Load objects set
+        for rank_id, rank_specs in spec["ranks"].items():
+            task_ids = rank_specs["tasks"]
+            for task_id in task_ids:
+                task_user_defined = {}
+                time = spec["tasks"][task_id]
+
+                # Check: task cannot reside in more than 1 rank at the same time
+                if task_id in objects:
+                    raise RuntimeError(
+                        f"Cannot assign task {task_id} to rank {rank_id}. "
+                        f"It is already assigned to rank {objects[task_id].get_rank_id()}"
+                    )
+
+                o = Object(
+                    task_id,
+                    r_id=rank_id,
+                    load=time,
+                    user_defined=task_user_defined)
+
+                objects[task_id] = o
+
+                # Set migratable
+                ranks[rank_id].add_migratable_object(o)
+
+        # Load shared blocks
+        for shared_id, shared_block_spec in spec["shared_blocks"].items():
+            if not shared_block_spec["tasks"]:
+                self.__logger.warning(f"No tasks linked to shared block {shared_id} !")
+
+            # Browse tasks
+            for task_id in shared_block_spec["tasks"]:
+                o = objects[task_id]
+
+                # Find shared block and create if not already created in memory
+                b: Block = None
+                if not shared_id in shared_blocks:
+                    b = Block(b_id=shared_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
+                              o_ids=shared_block_spec["tasks"])
+                    # Index the shared block for next loops checks
+                    shared_blocks[shared_id] = b
+                else:
+                    b = shared_blocks[shared_id]
+
+                # Associate shared block with object
+                # Check: task must share 0 or 1 block
+                if not multiple_sharing and o.get_shared_block_id() is not None and o.get_shared_block_id() != shared_id:
+                    raise RuntimeError(
+                        f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
+                o.set_shared_block(b)
+
+                # Initialize object user defined data
+                o.get_user_defined()["shared_id"] = b.get_id()
+                o.get_user_defined()["shared_bytes"] = b.get_size()
+                o.get_user_defined()["home_rank"] = b.get_home_id()
+
+        # Normalize communications as communications dictionaries
+        communications = {comm_id: {
+            "type": "SendRecv",
+            "to": {
+                "type": "object",
+                "id": comm_spec["to"]
+            },
+            "messages": 1,
+            "from": {
+                "type": "object",
+                "id": comm_spec["from"]
+            },
+            "bytes": comm_spec["size"]
+        } for comm_id, comm_spec in spec["communications"].items()}
+
+        # Compute communication edges
+        comm_edges = {}
+        phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
+        for com_id, communication in communications.items():
+            c_bytes: float = communication["bytes"]
+            sender_obj_id = communication["from"]["id"]
+            receiver_obj_id = communication["to"]["id"]
+
+            # Create receiver if it does not exist
+            comm_edges.setdefault(receiver_obj_id, {"sent": [], "received": []})
+            # Create sender if it does not exist
+            comm_edges.setdefault(sender_obj_id, {"sent": [], "received": []})
+
+            # Create communication edges (send/received bytes from/to indexed by task id)
+            comm_edges[receiver_obj_id]["received"].append({"from": sender_obj_id, "bytes": c_bytes})
+            comm_edges[sender_obj_id]["sent"].append({"to": receiver_obj_id, "bytes": c_bytes})
+            self.__logger.debug(f"Added communication {com_id} to phase 0")
+
+            # Index by rank id for the phase communications dictionary
+            rank_id = objects[sender_obj_id].get_rank_id()
+            phase_communications[rank_id].append(communication)
+
+        # Iterate over ranks
+        communicators: Dict[int, ObjectCommunicator] = {}
+
+        for rank_id, rank in ranks.items():
+            # Iterate over objects in rank
+            for o in rank.get_objects():
+                obj_id = o.get_id()
+                # Check if there is any communication edge for the object
+                # If yes then create a communicator for that object
+                comm_edge = comm_edges.get(obj_id)
+                if comm_edge:
+                    sent = {
+                        objects.get(c.get("to")): c.get("bytes")
+                        for c in comm_edge.get("sent")
+                        if objects.get(c.get("to"))}
+                    received = {
+                        objects.get(c.get("from")): c.get("bytes")
+                        for c in comm_edge.get("received")
+                        if objects.get(c.get("from"))}
+                    communicators[obj_id] = obj_id
+                    o.set_communicator(ObjectCommunicator(i=obj_id, logger=self.__logger, r=received, s=sent))
+
+        # Assign communications dictionary
+        self.set_communications(phase_communications)
+        # Assign ranks (list) to this phase
+        self.set_ranks(ranks.values())
+
     def transfer_object(self, r_src: Rank, o: Object, r_dst: Rank):
         """Transfer object from source to destination rank."""
 
@@ -438,7 +585,7 @@ class Phase:
             # Perform sanity check
             if b_id not in r_src.get_shared_block_ids():
                 self.__logger.error(
-                f"block {b_id} not present in {r_src.get_shared_block_ids()}")
+                    f"block {b_id} not present in {r_src.get_shared_block_ids()}")
                 raise SystemExit(1)
 
             if not block.detach_object_id(o_id):
@@ -472,7 +619,7 @@ class Phase:
 
         # Transfer objects back from destination to source
         for o in o_dst:
-            self.transfer_object(r_dst, o, r_src) # pylint:disable=W1114:arguments-out-of-order
+            self.transfer_object(r_dst, o, r_src)  # pylint:disable=W1114:arguments-out-of-order
         n_transfers += (n_reverse := len(o_dst))
         if n_reverse:
             self.__logger.debug(
