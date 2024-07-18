@@ -33,5 +33,7 @@ light_white = __make_colorizer(colorama.Fore.LIGHTWHITE_EX)
 light_black = __make_colorizer(colorama.Fore.LIGHTBLACK_EX)
 
 white_on_red = __make_colorizer(colorama.Fore.WHITE, colorama.Back.RED)
+white_on_green = __make_colorizer(colorama.Fore.WHITE, colorama.Back.GREEN)
+white_on_cyan = __make_colorizer(colorama.Fore.CYAN, colorama.Back.CYAN)
 
 colorama.init()

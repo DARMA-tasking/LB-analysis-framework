@@ -7,9 +7,9 @@ import argparse
 import sys
 from itertools import repeat
 from os import linesep
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 
-from .lbsColors import blue, green, white_on_red, yellow
+from .lbsColors import blue, green, white_on_red, white_on_green, yellow, white_on_cyan, cyan
 
 
 class PromptArgumentParser(argparse.ArgumentParser):
@@ -56,7 +56,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
         print(''.join(list(repeat(' ', length))))
 
     def prompt(self, question: str, value_type: Optional[str] = None, default: Optional[Union[str, int, float]] = None,
-               required: bool = False, choices: Optional[list] = None):
+               required: bool = False, choices: Optional[Union[dict,list]] = None, validate: Optional[Callable] = None):
         """Asks a question"""
         msg = green(question)
         if default is not None:
@@ -68,48 +68,75 @@ class PromptArgumentParser(argparse.ArgumentParser):
         raw_response = None
 
         # Ask user until the response value is correct
-        while raw_response is None:
+        while raw_response is None or raw_response == "#error":
             print(msg)
+
             if choices is not None:
-                for index, choice in enumerate(choices):
-                    print(" [" + yellow(index) + "]" + ' ' + (blue("None") if choice is None else choice))
+                choices_dict = {index:choice for index, choice in enumerate(choices)} if isinstance(choices, list) else choices
+                for index, choice in choices_dict.items():
+                    print(" [" + yellow(str(index)) + "]" + ' ' + (blue("None") if choice is None else str(choice)))
+            else:
+                choices_dict = None
 
             raw_response = input("> ")
             # Empty reponse but default value set default
-            if raw_response == '' and default:
+            if raw_response == '' and default is not None:
                 raw_response = default
             # Empty response but no default value set None
             elif raw_response == '' or raw_response == "None":
                 raw_response = None
             # Expected bool
             elif value_type == bool:
-                raw_response = value_type in ["TRUE", "True", "true", "1"]
+                raw_response = True if raw_response in ["TRUE", "True", "true", "1"] else False
             # Else cast if type set
-            elif value_type is not None and value_type != str:
-                raw_response = value_type(raw_response)
+            elif value_type is not None and value_type != str and callable(value_type) and not isinstance(raw_response, value_type):
+                try:
+                    raw_response = value_type(raw_response)
+                except ValueError as ex:
+                    self.print_error(f"Input error: {ex.args[0]}")
+                    raw_response = "#error"
 
             # Look for choice by choice index or value as input
-            if choices is not None:
-                for index, choice in enumerate(choices):
-                    if raw_response == str(index) or raw_response == choice or \
+            if choices_dict is not None:
+                for key, choice in choices_dict.items():
+                    if raw_response == str(key) or raw_response == choice or \
                             (choice is None and raw_response == "None"):
                         raw_response = choice
 
             if required is True and raw_response is None:
-                print(white_on_red(f"{linesep}{linesep} [ERROR] Value is required{linesep}") + linesep)
-            elif choices is not None and raw_response not in choices and raw_response is not None:
-                print(white_on_red(
-                    f"{linesep}{linesep} [ERROR] Value \"{raw_response}\" is invalid{linesep}") + linesep)
-                raw_response = None
+                self.print_error(f"Value is required")
+            elif choices is not None and raw_response is not None:
+                valid_choices = [i for i in choices_dict.values()]
+                if raw_response not in valid_choices:
+                    self.print_error(f"Value \"{raw_response}\" is invalid")
+                    raw_response = None
             # In case the None response is correct we break the loop
             elif required is False and raw_response is None:
                 break
+            elif validate is not None:
+                error = validate(raw_response)
+                if error:
+                    self.print_error(f"{error}")
+                    raw_response = None
 
         response = raw_response
-        if value_type is not None:
-            if callable(value_type):
-                response = value_type(raw_response)
         return response
+
+    def print_error(self, msg: str):
+        """Prints an error message to the console"""
+        print(white_on_red(f"{linesep}{linesep} [ERROR] {msg.replace(linesep, linesep + ' ' * 9)}{linesep}") + linesep)
+
+    def print_warning(self, msg: str):
+        """Prints a warning message to the console"""
+        print(white_on_cyan(f"{linesep}{linesep} [WARNING] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
+
+    def print_info(self, msg: str):
+        """Prints an info message to the console"""
+        print(cyan(f"{linesep}[INFO] {msg.replace(linesep, linesep + ' ' * 8)}{linesep}"))
+
+    def print_success(self, msg: str):
+        """Prints a success message to the console"""
+        print(white_on_green(f"{linesep}{linesep} [SUCCESS] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
 
     def set_args(self, args: dict, namespace=None):
         """This method init updates a namespace with the default values and with the given arguments.

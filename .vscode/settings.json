@@ -1,31 +1,31 @@
 {
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.pylintPath": "${workspaceFolder}/venv/bin/pylint",
-    "python.linting.ignorePatterns": [
-        "**/site-packages/**/*.py",
-        ".vscode/*.py"
-    ],
+    // Linting (with PyLint) configuration for VSCode
     "pylint.args": [
         "--rcfile=${workspaceFolder}/.pylintrc"
     ],
+    "pylint.ignorePatterns": [
+        "**/site-packages/**/*.py",
+        ".vscode/*.py"
+    ],
+    "pylint.path": [
+        "${workspaceFolder}/venv/bin/pylint"
+    ],
     "pylint.importStrategy": "fromEnvironment",
     "python.testing.unittestArgs": [
-        "-v",
+        "discover",
         "-s",
         "./tests",
         "-p",
-        "test_*.py"
+        "test_*.py",
+        "-t",
+        "./",
+        "-v",
     ],
-
-    "python.testing.unittestEnabled": true,
-    "python.testing.pytestEnabled": false,
+    // Unit Tests (with unittest) configuration for VSCode
+    "python.testing.pytestEnabled": false, // disable pytest lib
+    "python.testing.unittestEnabled": true, // enable unitest lib
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8"
     },
-    "python.formatting.provider": "none",
-    "python.formatting.autopep8Args": [
-        "--max-line-length",
-        "120"
-    ],
+    "autopep8.args": ["--max-line-length","120"]
 }

@@ -3,6 +3,7 @@ import multiprocessing as mp
 import os
 import sys
 from logging import Logger
+from typing import Optional
 
 import brotli
 
@@ -19,7 +20,7 @@ class VTDataWriter:
     def __init__(
         self,
         logger: Logger,
-        output_dir: str,
+        output_dir: Optional[str],
         stem: str,
         parameters: dict):
         """Class constructor
