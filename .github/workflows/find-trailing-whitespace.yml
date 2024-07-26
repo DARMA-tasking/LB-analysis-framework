@@ -10,4 +10,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DARMA-tasking/find-trailing-whitespace@master
         with:
-          exclude: "doc" # ; separated path to exclude
+          exclude: "doc;.png$" # ; separated path to exclude
