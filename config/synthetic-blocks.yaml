@@ -10,12 +10,22 @@ work_model:
   name: AffineCombination
   parameters:
     alpha: 1.0
-    beta: 1.0
-    gamma: 1.0
+    beta: 0.0
+    gamma: 0.0
 
 # Specify algorithm
 algorithm:
-  name: PhaseStepper
+  name: InformAndTransfer
+  phase_id: 0
+  parameters:
+    n_iterations: 8
+    n_rounds: 2
+    fanout: 2
+    order_strategy: arbitrary
+    transfer_strategy: Recursive
+    criterion: Tempered
+    max_objects_per_transfer: 8
+    deterministic_transfer: true
 
 # Specify output
 output_dir: ../output
