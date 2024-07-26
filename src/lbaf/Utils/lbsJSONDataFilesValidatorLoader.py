@@ -7,7 +7,6 @@ from typing import Optional
 # Use lbaf module from source if lbaf package is not installed
 if importlib.util.find_spec('lbaf') is None:
     sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
-from lbaf import PROJECT_PATH, __version__
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import Logger, get_logger
 from lbaf.Utils.lbsWeb import download
@@ -17,10 +16,6 @@ CURRENT_PATH = os.path.abspath(__file__)
 IMPORT_DIR = os.path.join(
     os.path.dirname(os.path.dirname(CURRENT_PATH)),
     "imported")
-TARGET_SCRIPT_NAME = "JSON_data_files_validator.py"
-SCRIPT_URL = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{TARGET_SCRIPT_NAME}"
-SCRIPT_TITLE = "JSON data files validator"
-
 
 class JSONDataFilesValidatorLoader:
     """Data Files Validator Loader application class."""
@@ -28,6 +23,7 @@ class JSONDataFilesValidatorLoader:
     def __init__(self):
         self.__args: dict = None
         self.__logger: Logger = get_logger()
+        self.__scripts = ["JSON_data_files_validator.py", "LBDatafile_schema.py"]
 
     def __parse_args(self):
         """Parse arguments."""
@@ -40,13 +36,12 @@ class JSONDataFilesValidatorLoader:
                             default=True)
         self.__args = parser.parse_args()
 
-    def run(self, overwrite: Optional[bool] = None) -> int:
-        """Downloads the VT Data validator script named self.TARGET_SCRIPT_NAME from the VT repository.
+    def __run(self, script_name, overwrite: Optional[bool] = None) -> int:
+        script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
+        script_title = script_name.replace(".py", "").replace("_"," ")
 
-        :param overwrite: None to parse arg from cli. True to overwrite the script if exists.
-        :returns: False if the script cannot be loaded.
-        """
-        exists = self.is_loaded()
+        exists = self.__is_loaded(script_name)
+
         # Parse command line arguments
         if overwrite is None:
             self.__parse_args()
@@ -56,19 +51,36 @@ class JSONDataFilesValidatorLoader:
             self.__logger.info("Overwrite JSON data files validator")
 
         if overwrite or not exists:
-            download(SCRIPT_URL, IMPORT_DIR, logger=self.__logger, file_title=SCRIPT_TITLE)
+            download(script_url, IMPORT_DIR, logger=self.__logger, file_title=script_title)
             if not self.is_loaded():
-                self.__logger.warning("The JSON data files validator cannot be loaded")
+                self.__logger.warning(f"{script_title} cannot be loaded")
         elif exists:
-            self.__logger.info("The JSON data files is ready to be used")
-        return 0 if os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME)) else 1
+            self.__logger.info(f"{script_title} is ready to be used")
+        return 0 if os.path.isfile(os.path.join(IMPORT_DIR, script_name)) else 1
+
+    def __is_loaded(self, script_name) -> bool:
+        return os.path.isfile(os.path.join(IMPORT_DIR, script_name))
+
+    def run(self, overwrite: Optional[bool] = None) -> int:
+        """Downloads the VT Data validator script named script_name from the VT repository.
+
+        :param overwrite: None to parse arg from cli. True to overwrite the script if exists.
+        :returns: False if the script cannot be loaded.
+        """
+        for script_name in self.__scripts:
+            if self.__run(script_name, overwrite=overwrite) == 1:
+                return 1
+        return 0
 
     def is_loaded(self) -> bool:
         """Verify if the data files validator module has been downloaded.
 
-        :returns: True if the module has been downloaded to lbsDataFilesValidatorLoaderApplication.IMPORT_DIR
+        :returns: True if the module has been downloaded to IMPORT_DIR
         """
-        return os.path.isfile(os.path.join(IMPORT_DIR, TARGET_SCRIPT_NAME))
+        for script_name in self.__scripts:
+            if not self.__is_loaded(script_name):
+                return False
+        return True
 
 
 if __name__ == "__main__":
