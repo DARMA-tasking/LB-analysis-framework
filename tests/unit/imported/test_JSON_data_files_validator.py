@@ -193,6 +193,25 @@ class TestJSONDataFilesValidator(unittest.TestCase):
             err_msg = se.read()
         self.assertEqual(err.exception.args[0], err_msg)
 
+    def test_json_data_files_validate_comm_links(self):
+        argparse.ArgumentParser.parse_args = Mock()
+        argparse.ArgumentParser.parse_args.return_value = argparse.Namespace(file_path=self.file_path,
+                                                                             dir_path=None,
+                                                                             file_prefix=None,
+                                                                             file_suffix=None,
+                                                                             validate_comm_links=True,
+                                                                             debug=False)
+        JSONDataFilesValidator().main()
+
+    def test_json_data_files_debug(self):
+        argparse.ArgumentParser.parse_args = Mock()
+        argparse.ArgumentParser.parse_args.return_value = argparse.Namespace(file_path=self.file_path,
+                                                                             dir_path=None,
+                                                                             file_prefix=None,
+                                                                             file_suffix=None,
+                                                                             validate_comm_links=False,
+                                                                             debug=True)
+        JSONDataFilesValidator().main()
 
 if __name__ == "__main__":
     unittest.main()
