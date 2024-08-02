@@ -19,6 +19,7 @@ class TestJSONDataFilesValidator(unittest.TestCase):
         self.test_dir = os.path.dirname(os.path.dirname(__file__))
         self.data_dir = os.path.join(self.test_dir, "data")
         self.file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.json")
+        self.comm_links_file_path = os.path.join(self.data_dir, "JSON_data_file_validator_comm_links", "data.0.json")
         self.wrong_file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.jso")
         self.wrong_file_schema = os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "data.0.json")
         self.stats_file_001 = os.path.join(self.data_dir, "JSON_data_file_validator_stats", "vt_lb_statistics_001.json")
@@ -195,7 +196,7 @@ class TestJSONDataFilesValidator(unittest.TestCase):
 
     def test_json_data_files_validate_comm_links(self):
         argparse.ArgumentParser.parse_args = Mock()
-        argparse.ArgumentParser.parse_args.return_value = argparse.Namespace(file_path=self.file_path,
+        argparse.ArgumentParser.parse_args.return_value = argparse.Namespace(file_path=self.comm_links_file_path,
                                                                              dir_path=None,
                                                                              file_prefix=None,
                                                                              file_suffix=None,
