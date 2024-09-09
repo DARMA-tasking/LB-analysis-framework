@@ -8,6 +8,8 @@ from typing import Optional
 import brotli
 
 from ..Model.lbsPhase import Phase
+from ..Model.lbsRank import Rank
+from ..Model.lbsObject import Object
 
 
 class VTDataWriter:
@@ -85,7 +87,7 @@ class VTDataWriter:
 
         return tasks
 
-    def __get_communications(self, phase, rank):
+    def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
 
         # Get initial communications (if any) for current phase
@@ -107,6 +109,16 @@ class VTDataWriter:
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
+                # Copy object information to the communication node
+                from_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["from"]["id"]][0]
+                from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == from_obj.get_rank_id()][0]
+                comm_dict["from"]["home"] = from_obj.get_rank_id()
+                comm_dict["from"]["migratable"] = from_rank.is_migratable(from_obj)
+
+                to_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["id"]][0]
+                comm_dict["to"]["home"] = to_obj.get_rank_id()
+                comm_dict["to"]["migratable"] = rank.is_migratable(to_obj)
+
                 if "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
                     communications.append(comm_dict)
                 elif comm_dict["from"]["id"] in rank_objects:

@@ -180,6 +180,10 @@ class Rank:
         """Return IDs of sentinel objects assigned to rank."""
         return [o.get_id() for o in self.__sentinel_objects]
 
+    def is_migratable(self, o: Object) -> list:
+        """Return whether given object is migratable."""
+        return (o in self.__migratable_objects)
+
     def is_sentinel(self, o: Object) -> list:
         """Return whether given object is sentinel of rank."""
         return (o in self.__sentinel_objects)
