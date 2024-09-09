@@ -494,12 +494,16 @@ class Phase:
             "type": "SendRecv",
             "to": {
                 "type": "object",
-                "id": comm_spec["to"]
+                "seq_id": comm_spec["to"],
+                "migratable": True,
+                "home": objects[comm_spec["to"]].get_rank_id()
             },
             "messages": 1,
             "from": {
                 "type": "object",
-                "id": comm_spec["from"]
+                "seq_id": comm_spec["from"],
+                "migratable": True,
+                "home": objects[comm_spec["to"]].get_rank_id()
             },
             "bytes": comm_spec["size"]
         } for comm_id, comm_spec in spec["communications"].items()}
