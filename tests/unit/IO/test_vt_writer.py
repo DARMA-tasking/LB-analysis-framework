@@ -56,7 +56,8 @@ class TestVTDataWriter(unittest.TestCase):
                 self.__remove_optional_keys_recursive(value, optional_keys, dot_path + key + ".")
             elif isinstance(value, list):
                 for item in value:
-                    self.__remove_optional_keys_recursive(item, optional_keys, dot_path + key + ".")
+                    if item is dict:
+                        self.__remove_optional_keys_recursive(item, optional_keys, dot_path + key + ".")
 
         for k in to_delete:
             del data[k]
@@ -265,11 +266,11 @@ class TestVTDataWriter(unittest.TestCase):
                 rank_objs = []
                 tasks = output_phase_dict["tasks"]
                 for task in tasks:
-                    rank_objs.append(task["entity"].get("id"))
+                    rank_objs.append(task["entity"].get("seq_id"))
 
                 # Make sure all communicating objects belong on this rank
                 for comm_dict in output_communication_data:
-                    comm_obj = comm_dict["from"]["id"]
+                    comm_obj = comm_dict["from"]["seq_id"]
                     if comm_dict["from"]["migratable"]: # ignore sentinel objects
                         self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
 
