@@ -64,7 +64,7 @@ class VTDataWriter:
             task_data = {
                 "entity": {
                     "home": rank_id,
-                    "id": o.get_id(),
+                    "seq_id": o.get_id(),
                     "migratable": migratable,
                     "type": "object",
                 },
@@ -110,18 +110,18 @@ class VTDataWriter:
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
                 # Copy object information to the communication node
-                from_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["from"]["id"]][0]
+                from_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["from"]["seq_id"]][0]
                 from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == from_obj.get_rank_id()][0]
                 comm_dict["from"]["home"] = from_obj.get_rank_id()
                 comm_dict["from"]["migratable"] = from_rank.is_migratable(from_obj)
 
-                to_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["id"]][0]
+                to_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["seq_id"]][0]
                 comm_dict["to"]["home"] = to_obj.get_rank_id()
                 comm_dict["to"]["migratable"] = rank.is_migratable(to_obj)
 
                 if "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
                     communications.append(comm_dict)
-                elif comm_dict["from"]["id"] in rank_objects:
+                elif comm_dict["from"]["seq_id"] in rank_objects:
                     communications.append(comm_dict)
                 else:
                     self.__moved_comms.append(comm_dict)
@@ -129,7 +129,7 @@ class VTDataWriter:
         # Loop through any moved objects to find the correct rank
         if self.__moved_comms:
             for moved_dict in self.__moved_comms:
-                if moved_dict["from"]["id"] in rank_objects:
+                if moved_dict["from"]["seq_id"] in rank_objects:
                     communications.append(moved_dict)
 
         return communications

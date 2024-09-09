@@ -234,7 +234,7 @@ class LoadReader:
         for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
             # Retrieve required values
             task_entity = task.get("entity")
-            task_id = task_entity.get("id")
+            task_id = task_entity.get("seq_id")
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
