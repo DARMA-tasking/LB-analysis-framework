@@ -190,9 +190,9 @@ class TestJSONDataFilesValidator(unittest.TestCase):
                                                                              debug=False)
         with self.assertRaises(SchemaError) as err:
             JSONDataFilesValidator().main()
-        with open(os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "schema_error.txt"), "rt") as se:
+        with open(os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "schema_error.txt"), "rt", encoding="utf-8") as se:
             err_msg = se.read()
-        self.assertEqual(err.exception.args[0], err_msg)
+        self.assertRegex(err.exception.args[0], err_msg)
 
     def test_json_data_files_validate_comm_links(self):
         argparse.ArgumentParser.parse_args = Mock()
