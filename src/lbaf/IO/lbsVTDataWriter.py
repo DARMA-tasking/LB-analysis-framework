@@ -109,15 +109,23 @@ class VTDataWriter:
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
-                # Copy object information to the communication node
-                from_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["from"]["seq_id"]][0]
-                from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == from_obj.get_rank_id()][0]
-                comm_dict["from"]["home"] = from_obj.get_rank_id()
-                comm_dict["from"]["migratable"] = from_rank.is_migratable(from_obj)
+                # Copy object information to the communication node               
+                sender_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["from"]["seq_id"]]
+                if len(sender_obj) == 1:
+                    sender_obj = sender_obj[0]
+                    from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
+                    comm_dict["from"]["home"] = sender_obj.get_rank_id()
+                    comm_dict["from"]["migratable"] = from_rank.is_migratable(sender_obj)
+                else:
+                    self.__logger.warn(f"Communication sender not found (id={comm_dict['from']['seq_id']})")
 
-                to_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["seq_id"]][0]
-                comm_dict["to"]["home"] = to_obj.get_rank_id()
-                comm_dict["to"]["migratable"] = rank.is_migratable(to_obj)
+                receiver_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["seq_id"]]
+                if len(receiver_obj) == 1:
+                    receiver_obj = receiver_obj[0]
+                    comm_dict["to"]["home"] = receiver_obj.get_rank_id()
+                    comm_dict["to"]["migratable"] = rank.is_migratable(receiver_obj)
+                else:
+                    self.__logger.warn(f"Communication receiver not found (id={comm_dict['to']['seq_id']})")
 
                 if "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
                     communications.append(comm_dict)
