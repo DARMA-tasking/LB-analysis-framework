@@ -206,16 +206,16 @@ class LoadReader:
                             receiver_obj_id, {"sent": [], "received": []})
 
                         # Create sender if it does not exist
-                        sender_obj_id = c_from.get("id")
+                        sender_obj_id = c_from.get("seq_id")
                         rank_comm.setdefault(
                             sender_obj_id, {"sent": [], "received": []})
 
                         # Create communication edges
                         rank_comm[receiver_obj_id]["received"].append(
-                            {"from": c_from.get("id"),
+                            {"from": c_from.get("seq_id"),
                              "bytes": c_bytes})
                         rank_comm[sender_obj_id]["sent"].append(
-                            {"to": c_to.get("id"), "bytes": c_bytes})
+                            {"to": c_to.get("seq_id"), "bytes": c_bytes})
                         self.__logger.debug(
                             f"Added communication {num} to phase {curr_phase_id}")
                         for k, v in comm.items():
@@ -235,6 +235,11 @@ class LoadReader:
             # Retrieve required values
             task_entity = task.get("entity")
             task_id = task_entity.get("seq_id")
+            # Temporary in issue #527 until all files are rewritten with key seq_id instead of id
+            if task_id is None:
+                task_id = task_entity.get("id")
+                print(f'ERROR: obsolete key `id` found for entity {task_id} for rank {rank_id}. Please replace key by `seq_id`')
+                
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
