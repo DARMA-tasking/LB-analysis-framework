@@ -201,21 +201,31 @@ class LoadReader:
                     # Check whether both are objects
                     if c_to.get("type") == "object" and c_from.get("type") == "object":
                         # Create receiver if it does not exist
-                        receiver_obj_id = c_to.get("id")
+                        receiver_obj_id = c_to.get("seq_id")
+                        if receiver_obj_id is None:
+                            receiver_obj_id = c_to.get("id")
+                            c_to["seq_id"] = c_to.pop("id")
+                            print(f'ERROR: obsolete key `id` found for communication to {receiver_obj_id}. Please replace key by `seq_id`')
+
                         rank_comm.setdefault(
                             receiver_obj_id, {"sent": [], "received": []})
 
                         # Create sender if it does not exist
-                        sender_obj_id = c_from.get("seq_id")
+                        sender_obj_id = c_from.get("seq_id", None)
+                        if sender_obj_id is None:
+                            sender_obj_id = c_from.get("id")
+                            c_from["seq_id"] = c_from.pop("id")
+                            print(f'ERROR: obsolete key `id` found for communication from {sender_obj_id}. Please replace key by `seq_id`')
+
                         rank_comm.setdefault(
                             sender_obj_id, {"sent": [], "received": []})
-
+                        
                         # Create communication edges
                         rank_comm[receiver_obj_id]["received"].append(
-                            {"from": c_from.get("seq_id"),
+                            {"from": sender_obj_id,
                              "bytes": c_bytes})
                         rank_comm[sender_obj_id]["sent"].append(
-                            {"to": c_to.get("seq_id"), "bytes": c_bytes})
+                            {"to": receiver_obj_id, "bytes": c_bytes})
                         self.__logger.debug(
                             f"Added communication {num} to phase {curr_phase_id}")
                         for k, v in comm.items():
@@ -234,12 +244,12 @@ class LoadReader:
         for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
             # Retrieve required values
             task_entity = task.get("entity")
-            task_id = task_entity.get("seq_id")
-            # Temporary in issue #527 until all files are rewritten with key seq_id instead of id
+            task_id = task_entity.get("seq_id", None)
             if task_id is None:
                 task_id = task_entity.get("id")
+                task_entity["seq_id"] = task_entity.pop("id")
                 print(f'ERROR: obsolete key `id` found for entity {task_id} for rank {rank_id}. Please replace key by `seq_id`')
-                
+
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
