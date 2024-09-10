@@ -93,7 +93,7 @@ class TestVTDataWriter(unittest.TestCase):
             for phase in phases:
                 tasks = phase.get("tasks")
                 if phase.get("tasks") is not None:
-                    phase["tasks"] = sorted(tasks, key=lambda item: item.get("entity").get("id"))
+                    phase["tasks"] = sorted(tasks, key=lambda item: item.get("entity").get("seq_id"))
             data["phases"] = phases
 
     def __read_data_file(self, file_path):
