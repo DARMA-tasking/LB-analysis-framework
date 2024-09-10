@@ -24,7 +24,7 @@ algorithm:
     order_strategy: element_id
     transfer_strategy: Recursive
     criterion: Tempered
-    max_objects_per_transfer: 8
+    max_objects_per_transfer: 1
     deterministic_transfer: true
 
 # Specify output
