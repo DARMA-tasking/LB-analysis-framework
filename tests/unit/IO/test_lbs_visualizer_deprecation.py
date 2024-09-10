@@ -2,6 +2,7 @@ import os
 import logging
 import unittest
 import subprocess
+import importlib
 from src.lbaf.IO.lbsVisualizer import Visualizer
 
 class TestVizDeprecation(unittest.TestCase):
@@ -22,7 +23,12 @@ class TestVizDeprecation(unittest.TestCase):
         config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "conf_wrong_visualization.yml")
         pipes = subprocess.Popen(["python", "src/lbaf", "-c", config_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         std_err = pipes.communicate()[1].decode("utf-8")
-        assert "Visualization enabled but vt-tv module not found." in std_err
+        vttv = importlib.util.find_spec('vttv')
+        if vttv is None:
+            assert "Visualization enabled but vt-tv module not found." in std_err
+        else:
+            assert "Visualization enabled but vt-tv module not found." not in std_err
+        assert pipes.returncode != 0 # error because missing json parameters required to run vt tv
 
 if __name__ == "__main__":
     unittest.main()
