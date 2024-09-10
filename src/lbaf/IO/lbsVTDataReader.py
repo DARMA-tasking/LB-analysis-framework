@@ -254,6 +254,7 @@ class LoadReader:
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
             collection_id = task_entity.get("collection_id")
+            objgroup_id  = task_entity.get("objgroup_id")
             index = task_entity.get("index")
 
             # Instantiate object with retrieved parameters
@@ -284,6 +285,8 @@ class LoadReader:
                 unused_params["collection_id"] = collection_id
             if index:
                 unused_params["index"] = index
+            if objgroup_id:
+                unused_params["objgroup_id"] = objgroup_id
             o.set_unused_params(unused_params)
 
             # Print debug information when requested
