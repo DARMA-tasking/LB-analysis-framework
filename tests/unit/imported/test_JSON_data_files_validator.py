@@ -190,7 +190,7 @@ class TestJSONDataFilesValidator(unittest.TestCase):
                                                                              debug=False)
         with self.assertRaises(SchemaError) as err:
             JSONDataFilesValidator().main()
-        with open(os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "schema_error.txt"), "rt", encoding="utf-8") as se:
+        with open(os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "schema_error.regex.txt"), "rt", encoding="utf-8") as se:
             err_msg = se.read()
         self.assertRegex(err.exception.args[0], err_msg)
 
