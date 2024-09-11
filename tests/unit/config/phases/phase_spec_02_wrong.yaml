@@ -19,4 +19,7 @@ shared_blocks:
   - size: 12000.0
     tasks: [0]
     home_rank: 0
-tasks: [2.0, 3.5, 5.0]
+tasks:
+  - { time: 2.0 }
+  - { time: 3.5 }
+  - { time: 5.0 }
