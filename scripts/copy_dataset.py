@@ -7,7 +7,6 @@ Usage:
 import sys
 import os
 import json
-import re
 
 import brotli
 
@@ -15,7 +14,6 @@ def copy_dataset(src_dir: str, dst_dir: str, compress: bool = False)-> int:
     """Copy JSON data files from a source directory to a destination directory with optional compression"""
     print("----------------")
     print("Copy dataset:")
-    print(f"Source dir: {src_dir}")
     print(f"Dest dir: {dst_dir}")
     print(f"compress: {compress}")
     print("----------------")
@@ -40,7 +38,8 @@ def copy_dataset(src_dir: str, dst_dir: str, compress: bool = False)-> int:
 
             json_str = json.dumps(decompressed_dict, separators=(',', ':'))
 
-            # Issue 527: replace `id` by seq_id in tasks entities and communication nodes
+            # Issue #527: replace `id` by seq_id in tasks entities and communication nodes
+            # keep these lines commented as a doc to help for another possible future key renaming
             # json_str = re.sub(r'"home":([0-9]+),"id":([0-9]+)', r'"home":\1,"seq_id":\2', json_str)
             # json_str = re.sub(r'"id":([0-9]+),"home":([0-9]+)', r'"seq_id":\1,"home":\2', json_str)
             # json_str = re.sub(r'"entity":\{"id":([0-9]+),', r'"entity":{"seq_id":\1,', json_str)
