@@ -43,7 +43,7 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsPhaseSpecification import (
     PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification,
-    PhaseSpecificationNormalizer
+    TaskSpecification, PhaseSpecificationNormalizer
 )
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
@@ -199,17 +199,13 @@ class JSONDataFilesMaker():
                 "ranks": {}
             })
 
-        # Build immediately in non interactive mode
-        if self.__args.interactive is False:
-            self.build()
-
         return spec
 
     def build(self):
         """Build the data set"""
 
         data_stem = self.__args.data_stem
-        if self.__args.interactive:
+        if self.__args.interactive is not False:
             data_stem = self.__prompt.prompt(
                 "Data stem ?",
                 default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
@@ -226,11 +222,11 @@ class JSONDataFilesMaker():
             "json_output_suffix": "json",
         }
 
-        output_dir = f"{os.sep}".join(self.__args.data_stem.split(os.sep)[:-1])
+        output_dir = f"{os.sep}".join(data_stem.split(os.sep)[:-1])
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
 
-        writer = VTDataWriter(self.__logger, None, self.__args.data_stem, writer_parameters)
+        writer = VTDataWriter(self.__logger, None, data_stem, writer_parameters)
         writer.write({phase.get_id(): phase})
         self.__prompt.print_success("Dataset has been generated.")
 
@@ -242,7 +238,24 @@ class JSONDataFilesMaker():
         """
 
         spec = PhaseSpecification({
-            "tasks": [2.0, 3.5, 5.0],
+            "tasks": [
+                TaskSpecification({
+                    "time": 2.0,
+                    "collection_id": 7
+                }),
+                TaskSpecification({
+                    "time": 2.0,
+                    "collection_id": 7
+                }),
+                TaskSpecification({
+                    "time": 3.5,
+                    "collection_id": 7
+                }),
+                TaskSpecification({
+                    "time": 5.0,
+                    "collection_id": 7
+                })
+            ],
             "communications": [
                 CommunicationSpecification({
                     "size": 10000.0,  # c1 (size)
@@ -411,13 +424,27 @@ class JSONDataFilesMaker():
         self.make_object(
             self.spec.get("tasks"),
             "task",
-            default=0.0,
-            update=lambda time, t_id: (self.__prompt.prompt("Task time ?", required=True, value_type=float,
-                                                            default=time))
+            default=TaskSpecification({"time":0.0}),
+            update=lambda task, t_id: self.update_task(task)
         )
 
+    def update_task(self, task: TaskSpecification):
+        """Ask for task time, collection_id in interactive mode"""
+
+        task["time"] = self.__prompt.prompt("Task time ?", required=True, value_type=float,
+                                                            default=task.get("time", 0.0))
+        collection_id = self.__prompt.prompt("Collection id (or 'None') ?", required=False, value_type=int,
+                                                            default=task.get("collection_id", None))
+
+        if collection_id is not None and collection_id != -1:
+            task["collection_id"] = collection_id
+        else:
+            if "collection_id" in task.keys():
+                del task["collection_id"]
+        return task
+
     def update_communication(self, comm):
-        """Ask for communicaton size, from and to in interactive mode"""
+        """Ask for communication size, from and to in interactive mode"""
 
         tasks: Union[dict, list] = self.spec["tasks"]
 
@@ -770,8 +797,16 @@ class JSONDataFilesMaker():
         self.__parse_args()
 
         self.spec = self.process_args()
+
+        # Build immediately in non interactive mode
+        if self.__args.interactive is False:
+            self.build()
+
         if self.__args.interactive is False:
             return
+
+        # Consider False value as True (e.g. None) for interactive mode
+        self.__args.interactive = True
 
         # Loop on interactive mode available actions
         action: str = "Make Task"  # default action is a sample

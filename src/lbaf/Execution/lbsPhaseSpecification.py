@@ -1,4 +1,18 @@
+import sys
+
 from typing import List, Dict, TypedDict, Union, Set, Callable, Optional, cast
+
+if sys.version_info >= (3, 10):
+    from typing import NotRequired
+else:
+    from typing_extensions import NotRequired
+
+class TaskSpecification(TypedDict):
+    # The task time
+    time: float
+    # The optional collection id
+    collection_id: NotRequired[int]
+
 
 class SharedBlockSpecification(TypedDict):
     # The shared block size
@@ -23,8 +37,8 @@ class PhaseSpecification(TypedDict):
 
     # Tasks specifications
     tasks: Union[
-        List[float], # Tasks volumes as a list (element index=task id)
-        Dict[int,float] # Tasks volumes as a dictionary (dictionary key=task id)
+        List[TaskSpecification], # where index = task id
+        Dict[int,TaskSpecification] # where dictionary key = task id
     ]
 
     # Shared blocks specifications
@@ -106,7 +120,12 @@ class PhaseSpecificationNormalizer:
         """
 
         return PhaseSpecification({
-            "tasks": self.__normalize_member(data.get("tasks", [])),
+            "tasks": self.__normalize_member(
+                data.get("tasks", []),
+                lambda b: TaskSpecification({
+                    "collection_id": b.get("collection_id", None)
+                })
+            ),
             "shared_blocks": self.__normalize_member(
                 data.get("shared_blocks", []),
                 lambda b: SharedBlockSpecification({

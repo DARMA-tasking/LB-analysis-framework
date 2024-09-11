@@ -438,7 +438,7 @@ class Phase:
             task_ids = rank_specs["tasks"]
             for task_id in task_ids:
                 task_user_defined = {}
-                time = spec["tasks"][task_id]
+                task_spec = spec["tasks"][task_id]
 
                 # Check: task cannot reside in more than 1 rank at the same time
                 if task_id in objects:
@@ -450,8 +450,13 @@ class Phase:
                 o = Object(
                     task_id,
                     r_id=rank_id,
-                    load=time,
+                    load=task_spec["time"],
                     user_defined=task_user_defined)
+
+                if "collection_id" in task_spec:
+                    o.set_unused_params({
+                        "collection_id": task_spec["collection_id"]
+                    })
 
                 objects[task_id] = o
 
