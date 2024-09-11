@@ -37,9 +37,7 @@ class JSONDataFilesValidatorLoader:
         self.__args = parser.parse_args()
 
     def __run(self, script_name, overwrite: Optional[bool] = None) -> int:
-        # TODO: remove after VT PR 2343 #2342 merge
-        script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/4741dc8e8988a3ee96afa669ec661eb42c69f62a/scripts/{script_name}"
-        # script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
+        script_url = f"https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/{script_name}"
         script_title = script_name.replace(".py", "").replace("_"," ")
 
         exists = self.__is_loaded(script_name)
