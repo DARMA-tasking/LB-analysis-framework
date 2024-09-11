@@ -4,6 +4,7 @@ import re
 from logging import Logger
 from multiprocessing import get_context, Manager
 from multiprocessing.pool import Pool
+from typing import List, Tuple
 
 import brotli
 
@@ -155,7 +156,7 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def _populate_rank(self, phase_id: int, rank_id: int) -> tuple:
+    def _populate_rank(self, phase_id: int, rank_id: int) -> Tuple[Rank,dict]:
         """ Populate rank and its communicator in phase using the JSON content."""
 
         # Seek phase with given ID
@@ -202,24 +203,14 @@ class LoadReader:
                     if c_to.get("type") == "object" and c_from.get("type") == "object":
                         # Create receiver if it does not exist
                         receiver_obj_id = c_to.get("seq_id")
-                        if receiver_obj_id is None:
-                            receiver_obj_id = c_to.get("id")
-                            c_to["seq_id"] = c_to.pop("id")
-                            print(f'ERROR: obsolete key `id` found for communication to {receiver_obj_id}. Please replace key by `seq_id`')
-
                         rank_comm.setdefault(
                             receiver_obj_id, {"sent": [], "received": []})
 
                         # Create sender if it does not exist
                         sender_obj_id = c_from.get("seq_id", None)
-                        if sender_obj_id is None:
-                            sender_obj_id = c_from.get("id")
-                            c_from["seq_id"] = c_from.pop("id")
-                            print(f'ERROR: obsolete key `id` found for communication from {sender_obj_id}. Please replace key by `seq_id`')
-
                         rank_comm.setdefault(
                             sender_obj_id, {"sent": [], "received": []})
-                        
+
                         # Create communication edges
                         rank_comm[receiver_obj_id]["received"].append(
                             {"from": sender_obj_id,
@@ -245,11 +236,6 @@ class LoadReader:
             # Retrieve required values
             task_entity = task.get("entity")
             task_id = task_entity.get("seq_id", None)
-            if task_id is None:
-                task_id = task_entity.get("id")
-                task_entity["seq_id"] = task_entity.pop("id")
-                print(f'ERROR: obsolete key `id` found for entity {task_id} for rank {rank_id}. Please replace key by `seq_id`')
-
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
@@ -311,11 +297,11 @@ class LoadReader:
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
 
-    def populate_phase(self, phase_id: int) -> list:
+    def populate_phase(self, phase_id: int) -> List[Rank]:
         """ Populate phase using the JSON content."""
 
         # Create storage for ranks
-        ranks = [None] * self.n_ranks
+        ranks: List[Rank] = [None] * self.n_ranks
         communications = {}
 
         # Iterate over all ranks
