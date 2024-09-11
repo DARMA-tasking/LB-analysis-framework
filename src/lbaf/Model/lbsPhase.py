@@ -430,7 +430,7 @@ class Phase:
         objects: Dict[int, Object] = {}  # object instances (indexed by id)
         shared_blocks: Dict[int, Block] = {}  # shared blocks instances (indexed by id)
 
-        if len(spec["ranks"].keys()) == 0:
+        if not spec["ranks"]:
             raise RuntimeError("Missing rank distributions")
 
         # Load objects set

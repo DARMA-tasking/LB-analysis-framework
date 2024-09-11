@@ -189,17 +189,12 @@ class JSONDataFilesMaker():
 
         spec = None
         if self.__args.spec_file:
-            self.load_spec_from_file(self.__args.spec_file)
+            spec = self.load_spec_from_file(self.__args.spec_file)
 
-        if spec is None:
-            spec: PhaseSpecification = PhaseSpecification({
-                "tasks": [],
-                "shared_blocks": [],
-                "communications": [],
-                "ranks": {}
-            })
+        if spec:
+            self.spec = spec
 
-        return spec
+        return self.spec
 
     def build(self):
         """Build the data set"""
@@ -305,12 +300,15 @@ class JSONDataFilesMaker():
 
         self.spec = spec
 
-    def load_spec_from_file(self, file_path) ->bool:
+    def load_spec_from_file(self, file_path) -> Optional[PhaseSpecificationNormalizer]:
         """Load a specification from a file (Yaml or Json)
 
-        Return True on success or False on failure.
+        Return a PhaseSpecificationNormalizer instance on success or None on failure.
         Exit the program if specification file is invalid in non-interactive mode
         """
+
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError("File not found")
 
         spec = PhaseSpecification()
         with open(file_path, "r", encoding="utf-8") as file_stream:
@@ -322,20 +320,17 @@ class JSONDataFilesMaker():
             else:
                 spec_dict = yaml.safe_load(file_stream)
 
-        spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
-
         try:
+            spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
             # try load phase to validate input file
             Phase(self.__logger, 0).populate_from_specification(spec, self.__args.multiple_sharing is not False)
         except RuntimeError as e:
             self.__prompt.print_error(f"Input specification error: {e}")
             if self.__args.interactive is False:
                 raise SystemExit(-1) from e
-            return False
+            spec = None
 
-
-        self.spec = spec
-        return True
+        return spec
 
     def print(self, output_format: str = "json"):
         """print a specification to the console"""
