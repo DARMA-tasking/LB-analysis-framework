@@ -177,7 +177,6 @@ class TestVTDataWriter(unittest.TestCase):
             )
 
             # compare input & output data
-            
             # > remove optional nodes from input and output data
             self.__remove_optional_keys_recursive(input_data, opt_keys)
             self.__remove_optional_keys_recursive(output_data, opt_keys)
