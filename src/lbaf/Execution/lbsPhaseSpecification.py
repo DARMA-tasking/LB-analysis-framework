@@ -118,13 +118,17 @@ class PhaseSpecificationNormalizer:
         This method should be called after json or yaml deserialization.
         This is the reverse implementation of the normalize method.
         """
+        def dict_merge(a, b):
+            a.update(b)
+            return a
 
         return PhaseSpecification({
             "tasks": self.__normalize_member(
                 data.get("tasks", []),
-                lambda b: TaskSpecification({
-                    "collection_id": b.get("collection_id", None)
-                })
+                lambda t: TaskSpecification(dict_merge(
+                    { "time": t.get("time", 0.0) },
+                    { "collection_id": t.get("collection_id", None)} if "collection_id" in t else {}
+                ))
             ),
             "shared_blocks": self.__normalize_member(
                 data.get("shared_blocks", []),
