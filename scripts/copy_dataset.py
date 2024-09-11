@@ -40,6 +40,7 @@ def copy_dataset(src_dir: str, dst_dir: str, compress: bool = False)-> int:
 
             # Issue #527: replace `id` by seq_id in tasks entities and communication nodes
             # keep these lines commented as a doc to help for another possible future key renaming
+            # import re
             # json_str = re.sub(r'"home":([0-9]+),"id":([0-9]+)', r'"home":\1,"seq_id":\2', json_str)
             # json_str = re.sub(r'"id":([0-9]+),"home":([0-9]+)', r'"seq_id":\1,"home":\2', json_str)
             # json_str = re.sub(r'"entity":\{"id":([0-9]+),', r'"entity":{"seq_id":\1,', json_str)
