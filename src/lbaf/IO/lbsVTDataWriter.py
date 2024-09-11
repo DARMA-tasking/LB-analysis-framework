@@ -130,7 +130,7 @@ class VTDataWriter:
                     comm_dict["to"]["home"] = receiver_obj.get_rank_id()
                     comm_dict["to"]["migratable"] = rank.is_migratable(receiver_obj)
                     for k, v in receiver_obj.get_unused_params().items():
-                        comm_dict["from"][k] = v
+                        comm_dict["to"][k] = v
                 else:
                     ref_error = True
                     self.__logger.error(f"Communication receiver not found (seq_id={comm_dict['to']['seq_id']})")
