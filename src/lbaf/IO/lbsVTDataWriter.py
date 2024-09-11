@@ -118,23 +118,29 @@ class VTDataWriter:
                     from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
                     comm_dict["from"]["home"] = sender_obj.get_rank_id()
                     comm_dict["from"]["migratable"] = from_rank.is_migratable(sender_obj)
+                    for k, v in sender_obj.get_unused_params().items():
+                        comm_dict["from"][k] = v
                 else:
                     ref_error = True
-                    self.__logger.warn(f"Communication sender not found (seq_id={comm_dict['from']['seq_id']})")
+                    self.__logger.error(f"Communication sender not found (seq_id={comm_dict['from']['seq_id']})")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["seq_id"]]
                 if len(receiver_obj) == 1:
                     receiver_obj = receiver_obj[0]
                     comm_dict["to"]["home"] = receiver_obj.get_rank_id()
                     comm_dict["to"]["migratable"] = rank.is_migratable(receiver_obj)
+                    for k, v in receiver_obj.get_unused_params().items():
+                        comm_dict["from"][k] = v
                 else:
                     ref_error = True
-                    self.__logger.warn(f"Communication receiver not found (seq_id={comm_dict['to']['seq_id']})")
+                    self.__logger.error(f"Communication receiver not found (seq_id={comm_dict['to']['seq_id']})")
 
                 if ref_error:
-                    # keep invalid communication as is
+                    # keep communication with invalid entity references for the moment.
+                    # We might remove these communications in the future in the reader work to fix invalid input.
                     communications.append(comm_dict)
-                elif "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
+                elif ("migratable" in comm_dict["from"].keys() and
+                        not comm_dict["from"]["migratable"]): # object is sentinel
                     communications.append(comm_dict)
                 elif comm_dict["from"]["seq_id"] in rank_objects:
                     communications.append(comm_dict)
