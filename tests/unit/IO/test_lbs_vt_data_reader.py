@@ -52,33 +52,33 @@ class TestConfig(unittest.TestCase):
         self.rank_list = [
             Rank(r_id=0, logger=self.logger,
                  mo={Object(
-                     i=3, load=0.5, r_id=0,
+                     seq_id=3, load=0.5, r_id=0,
                      comm=ObjectCommunicator(i=3, logger=self.logger, s={Object(seq_id=2, load=0.5): 1.0, Object(seq_id=8, load=1.5): 0.5})),
                      Object(
-                         i=2, load=0.5, r_id=0,
+                         seq_id=2, load=0.5, r_id=0,
                          comm=ObjectCommunicator(i=2, logger=self.logger, r={Object(seq_id=3, load=0.5): 1.0})),
                      Object(
-                         i=0, load=1.0, r_id=0,
+                         seq_id=0, load=1.0, r_id=0,
                          comm=ObjectCommunicator(i=0, logger=self.logger, s={Object(seq_id=5, load=2.0): 2.0})),
                      Object(
-                         i=1, load=0.5, r_id=0,
+                         seq_id=1, load=0.5, r_id=0,
                          comm=ObjectCommunicator(i=1, logger=self.logger, r={Object(seq_id=4, load=0.5): 2.0}, s={Object(seq_id=4, load=0.5): 1.0}))}),
             Rank(r_id=1, logger=self.logger,
                  mo={Object(
-                     i=5, load=2.0, r_id=1,
+                     seq_id=5, load=2.0, r_id=1,
                      comm=ObjectCommunicator(i=5, logger=self.logger, r={Object(seq_id=0, load=1.0): 2.0}, s={Object(seq_id=8, load=1.5): 2.0})),
                      Object(
-                         i=7, load=0.5, r_id=1,
+                         seq_id=7, load=0.5, r_id=1,
                          comm=ObjectCommunicator(i=7, logger=self.logger, s={Object(seq_id=6, load=1.0): 1.0})),
                      Object(
-                         i=6, load=1.0, r_id=1,
+                         seq_id=6, load=1.0, r_id=1,
                          comm=ObjectCommunicator(i=6, logger=self.logger, r={Object(seq_id=7, load=0.5): 1.0, Object(seq_id=8, load=1.5): 1.5})),
                      Object(
-                         i=4, load=0.5, r_id=1,
+                         seq_id=4, load=0.5, r_id=1,
                          comm=ObjectCommunicator(i=4, logger=self.logger, r={Object(seq_id=1, load=0.5): 1.0}, s={Object(seq_id=1, load=0.5): 2.0}))}),
             Rank(r_id=2, logger=self.logger,
                  mo={Object(
-                     i=8, load=1.5, r_id=2,
+                     seq_id=8, load=1.5, r_id=2,
                      comm=ObjectCommunicator(i=8, logger=self.logger, r={Object(seq_id=3, load=0.5): 0.5, Object(seq_id=5, load=2.0): 2.0}, s={Object(seq_id=6, load=1.0): 1.5}))}),
             Rank(r_id=3, logger=self.logger)]
 

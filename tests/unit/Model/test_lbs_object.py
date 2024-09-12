@@ -26,19 +26,19 @@ class TestConfig(unittest.TestCase):
                                  Object(seq_id=8, load=1.5): 0.5}
 
     def test_object_initialization_001(self):
-        self.assertEqual(self.simple_obj_001._Object__index, 1)
+        self.assertEqual(self.simple_obj_001._Object__seq_id, 1)
         self.assertEqual(self.simple_obj_001._Object__load, 2.5)
         self.assertEqual(self.simple_obj_001._Object__rank_id, None)
         self.assertEqual(self.simple_obj_001._Object__communicator, None)
 
     def test_object_initialization_002(self):
-        self.assertEqual(self.simple_obj_002._Object__index, 2)
+        self.assertEqual(self.simple_obj_002._Object__seq_id, 2)
         self.assertEqual(self.simple_obj_002._Object__load, 4.5)
         self.assertEqual(self.simple_obj_002._Object__rank_id, 0)
         self.assertEqual(self.simple_obj_002._Object__communicator, None)
 
     def test_object_initialization_003(self):
-        self.assertEqual(self.simple_obj_003._Object__index, 3)
+        self.assertEqual(self.simple_obj_003._Object__seq_id, 3)
         self.assertEqual(self.simple_obj_003._Object__load, 3.0)
         self.assertEqual(self.simple_obj_003._Object__rank_id, 2)
         self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
@@ -82,15 +82,15 @@ class TestConfig(unittest.TestCase):
     def test_object_id_error(self):
         with self.assertRaises(TypeError) as err:
             Object(seq_id="25", load=2.5)
-        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'str'>")
+        self.assertEqual(err.exception.args[0], "seq_id: incorrect type <class 'str'>")
 
         with self.assertRaises(TypeError) as err:
             Object(seq_id=2.5, load=2.5)
-        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'float'>")
+        self.assertEqual(err.exception.args[0], "seq_id: incorrect type <class 'float'>")
 
         with self.assertRaises(TypeError) as err:
             Object(seq_id=True, load=2.5)
-        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'bool'>")
+        self.assertEqual(err.exception.args[0], "seq_id: incorrect type <class 'bool'>")
 
     def test_object_load_error(self):
         with self.assertRaises(TypeError) as err:

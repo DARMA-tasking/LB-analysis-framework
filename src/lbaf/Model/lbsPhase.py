@@ -42,7 +42,7 @@ class Phase:
         self.__communications = {}
 
         # Initialize metadata dict
-        self.__metadata = {}
+        self.__metadata = {} # pylint:disable=W0238:unused-private-member
 
         # Start with null set of edges
         self.__edges = None
@@ -447,8 +447,8 @@ class Phase:
                     )
 
                 o = Object(
-                    bit_id=None,
                     seq_id=task_id,
+                    packed_id=None,
                     r_id=rank_id,
                     load=task_spec["time"],
                     user_defined=task_user_defined)
@@ -617,8 +617,12 @@ class Phase:
             b_dst.attach_object_id(o_id)
             o.set_shared_block(b_dst)
 
-    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = []):
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = None):
         """Transfer list of objects between source and destination ranks."""
+
+        if o_dst is None:
+            o_dst = []
+
         # Transfer objects from source to destination
         for o in o_src:
             self.transfer_object(r_src, o, r_dst)
