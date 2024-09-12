@@ -518,8 +518,8 @@ class Phase:
         phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
         for com_id, communication in communications.items():
             c_bytes: float = communication["bytes"]
-            sender_obj_id = communication["from"]["seq_id"]
-            receiver_obj_id = communication["to"]["seq_id"]
+            sender_obj_id = communication["from"].get("id", communication["from"].get("seq_id"))
+            receiver_obj_id = communication["to"].get("id", communication["to"].get("seq_id"))
 
             # Create receiver if it does not exist
             comm_edges.setdefault(receiver_obj_id, {"sent": [], "received": []})

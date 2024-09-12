@@ -282,11 +282,11 @@ class TestVTDataWriter(unittest.TestCase):
                 rank_objs = []
                 tasks = output_phase_dict["tasks"]
                 for task in tasks:
-                    rank_objs.append(task["entity"].get("seq_id"))
+                    rank_objs.append(task["entity"].get("id", task["entity"].get("seq_id")))
 
                 # Make sure all communicating objects belong on this rank
                 for comm_dict in output_communication_data:
-                    comm_obj = comm_dict["from"]["seq_id"]
+                    comm_obj = comm_dict["from"].get("id", comm_dict["from"].get("seq_id"))
                     if comm_dict["from"]["migratable"]: # ignore sentinel objects
                         self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
 
