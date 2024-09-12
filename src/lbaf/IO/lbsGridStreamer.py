@@ -14,8 +14,8 @@ class GridStreamer:
 
     def __init__(
         self,
-        points: vtk.vtkPoints,
-        lines: vtk.vtkCellArray,
+        points, # vtk.vtkPoints
+        lines,  # vtk.vtkCellArry
         field_arrays: Optional[dict] = None,
         point_arrays: Optional[list] = None,
         cell_arrays: Optional[list] = None,
@@ -28,6 +28,9 @@ class GridStreamer:
             point_arrays = []
         if cell_arrays is None:
             cell_arrays = []
+
+        if not using_vtk:
+            raise ModuleNotFoundError("Could not find vtk module, which is required for the GridStreamer.")
 
         # Assign logger to instance variable
         self.__logger = logger
