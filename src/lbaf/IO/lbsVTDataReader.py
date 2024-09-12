@@ -246,8 +246,8 @@ class LoadReader:
 
             # Instantiate object with retrieved parameters
             o = Object(
-                task_id,
-                task_seq_id,
+                seq_id=task_seq_id,
+                packed_id=task_id,
                 r_id=rank_id,
                 load=task_load,
                 user_defined=task_user_defined,

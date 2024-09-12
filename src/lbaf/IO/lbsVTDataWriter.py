@@ -64,7 +64,6 @@ class VTDataWriter:
             task_data = {
                 "entity": {
                     "home": rank_id,
-                    "seq_id": o.get_id(),
                     "migratable": migratable,
                     "type": "object",
                 },
@@ -72,6 +71,13 @@ class VTDataWriter:
                 "resource": "cpu",
                 "time": o.get_load()
             }
+
+            if o.get_packed_id() is not None:
+                task_data["entity"]["id"] = o.get_packed_id()
+
+            if o.get_seq_id() is not None:
+                task_data["entity"]["seq_id"] = o.get_seq_id()
+
             if unused_params:
                 task_data["entity"].update(unused_params)
 
