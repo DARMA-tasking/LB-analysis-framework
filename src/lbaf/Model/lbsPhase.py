@@ -296,7 +296,7 @@ class Phase:
         self.__logger.info(
             f"Creating {n_objects} objects with loads sampled from {sampler_name}")
         objects = set([
-            Object(i, load=load_sampler())
+            Object(seq_id=i, load=load_sampler())
             for i in range(n_objects)])
 
         # Compute and report object load statistics
@@ -447,7 +447,8 @@ class Phase:
                     )
 
                 o = Object(
-                    task_id,
+                    bit_id=None,
+                    seq_id=task_id,
                     r_id=rank_id,
                     load=task_spec["time"],
                     user_defined=task_user_defined)

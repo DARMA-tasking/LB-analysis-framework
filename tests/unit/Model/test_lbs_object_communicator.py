@@ -8,8 +8,8 @@ from src.lbaf.Model.lbsObjectCommunicator import ObjectCommunicator
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger()
-        self.sent_object = {Object(i=0, load=1.0): 6.0}
-        self.received_object = {Object(i=1, load=2.5): 5.0}
+        self.sent_object = {Object(seq_id=0, load=1.0): 6.0}
+        self.received_object = {Object(seq_id=1, load=2.5): 5.0}
         self.oc = ObjectCommunicator(i=123, r=self.received_object, s=self.sent_object, logger=self.logger)
 
     def test_object_communicator_initialization_001(self):
@@ -39,15 +39,15 @@ class TestConfig(unittest.TestCase):
 
     def test_object_communicator_summarize_001(self):
         sent_objects = {
-            Object(i=0, load=1.0): 2.0,
-            Object(i=1, load=0.5): 1.0,
-            Object(i=4, load=0.5): 2.0,
-            Object(i=3, load=0.5): 1.5}
+            Object(seq_id=0, load=1.0): 2.0,
+            Object(seq_id=1, load=0.5): 1.0,
+            Object(seq_id=4, load=0.5): 2.0,
+            Object(seq_id=3, load=0.5): 1.5}
         received_objects = {
-            Object(i=5, load=2.0): 2.0,
-            Object(i=6, load=0.5): 1.0,
-            Object(i=2, load=0.5): 1.0,
-            Object(i=8, load=1.5): 0.5}
+            Object(seq_id=5, load=2.0): 2.0,
+            Object(seq_id=6, load=0.5): 1.0,
+            Object(seq_id=2, load=0.5): 1.0,
+            Object(seq_id=8, load=1.5): 0.5}
         oc_sum = ObjectCommunicator(
             i=154, r=received_objects, s=sent_objects, logger=self.logger)
         w_sent, w_recv = oc_sum.summarize()
@@ -65,15 +65,15 @@ class TestConfig(unittest.TestCase):
 
     def test_object_communicator_summarize_exception_003(self):
         sent_objects = {
-            Object(i=154, load=1.0): 2.0,
-            Object(i=1, load=0.5): 1.0,
-            Object(i=4, load=0.5): 2.0,
-            Object(i=3, load=0.5): 1.5}
+            Object(seq_id=154, load=1.0): 2.0,
+            Object(seq_id=1, load=0.5): 1.0,
+            Object(seq_id=4, load=0.5): 2.0,
+            Object(seq_id=3, load=0.5): 1.5}
         received_objects = {
-            Object(i=5, load=2.0): 2.0,
-            Object(i=6, load=0.5): 1.0,
-            Object(i=2, load=0.5): 1.0,
-            Object(i=8, load=1.5): 0.5}
+            Object(seq_id=5, load=2.0): 2.0,
+            Object(seq_id=6, load=0.5): 1.0,
+            Object(seq_id=2, load=0.5): 1.0,
+            Object(seq_id=8, load=1.5): 0.5}
         oc_sum = ObjectCommunicator(
             i=154, r=received_objects, s=sent_objects, logger=self.logger)
         with self.assertRaises(IndexError) as err:

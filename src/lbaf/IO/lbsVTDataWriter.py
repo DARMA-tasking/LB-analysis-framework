@@ -112,7 +112,9 @@ class VTDataWriter:
                 ref_error = False
 
                 # Copy object information to the communication node
-                sender_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["from"]["seq_id"]]
+                sender_obj: Object = [o for o in phase.get_objects() if
+                    o.get_id() is not None and o.get_id() == comm_dict["from"].get("id") or
+                    o.get_seq_id() is not None and o.get_seq_id() == comm_dict["from"].get("seq_id")]
                 if len(sender_obj) == 1:
                     sender_obj = sender_obj[0]
                     from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
@@ -124,7 +126,9 @@ class VTDataWriter:
                     ref_error = True
                     self.__logger.error(f"Communication sender not found (seq_id={comm_dict['from']['seq_id']})")
 
-                receiver_obj: Object = [o for o in phase.get_objects() if o.get_id() == comm_dict["to"]["seq_id"]]
+                receiver_obj: Object = [o for o in phase.get_objects() if
+                    o.get_id() is not None and o.get_id() == comm_dict["to"].get("id") or
+                    o.get_seq_id() is not None and o.get_seq_id() == comm_dict["to"].get("seq_id")]
                 if len(receiver_obj) == 1:
                     receiver_obj = receiver_obj[0]
                     comm_dict["to"]["home"] = receiver_obj.get_rank_id()
@@ -142,7 +146,7 @@ class VTDataWriter:
                 elif ("migratable" in comm_dict["from"].keys() and
                         not comm_dict["from"]["migratable"]): # object is sentinel
                     communications.append(comm_dict)
-                elif comm_dict["from"]["seq_id"] in rank_objects:
+                elif comm_dict["from"].get("id", comm_dict["from"].get("seq_id")) in rank_objects:
                     communications.append(comm_dict)
                 else:
                     self.__moved_comms.append(comm_dict)
@@ -150,7 +154,7 @@ class VTDataWriter:
         # Loop through any moved objects to find the correct rank
         if self.__moved_comms:
             for moved_dict in self.__moved_comms:
-                if moved_dict["from"]["seq_id"] in rank_objects:
+                if moved_dict["from"].get("id", moved_dict["from"].get("seq_id")) in rank_objects:
                     communications.append(moved_dict)
 
         return communications

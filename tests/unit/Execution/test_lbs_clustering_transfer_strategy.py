@@ -30,8 +30,8 @@ class TestConfig(unittest.TestCase):
             self.logger)
 
         # Define objects and add them to a memory block
-        self.migratable_objects = {Object(i=0, load=1.0), Object(i=1, load=0.5), Object(i=2, load=0.5), Object(i=3, load=0.5)}
-        self.sentinel_objects = {Object(i=15, load=4.5), Object(i=18, load=2.5)}
+        self.migratable_objects = {Object(seq_id=0, load=1.0), Object(seq_id=1, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=3, load=0.5)}
+        self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
         self.block = Block(b_id=0,h_id=0)
         self.block_set = {self.block}
         for o in self.migratable_objects:
@@ -55,10 +55,10 @@ class TestConfig(unittest.TestCase):
         expected_output = {
         None: [],
         self.block.get_id(): [
-            Object(i=0, load=1.0),
-            Object(i=1, load=0.5),
-            Object(i=2, load=0.5),
-            Object(i=3, load=0.5),
+            Object(seq_id=0, load=1.0),
+            Object(seq_id=1, load=0.5),
+            Object(seq_id=2, load=0.5),
+            Object(seq_id=3, load=0.5),
         ]
         }
         self.assertCountEqual(
@@ -101,12 +101,12 @@ class TestConfig(unittest.TestCase):
 
     def test_lbs_clustering_transfer_strategy_iterate_subclusters(self):
         # Create suitable objects
-        obj0 = Object(i=0, load=89.0)
-        obj1 = Object(i=1, load=1.0)
-        obj2 = Object(i=2, load=9.0)
-        obj3 = Object(i=3, load=94.0)
-        obj4 = Object(i=4, load=1.0)
-        obj5 = Object(i=5, load=6.0)
+        obj0 = Object(seq_id=0, load=89.0)
+        obj1 = Object(seq_id=1, load=1.0)
+        obj2 = Object(seq_id=2, load=9.0)
+        obj3 = Object(seq_id=3, load=94.0)
+        obj4 = Object(seq_id=4, load=1.0)
+        obj5 = Object(seq_id=5, load=6.0)
 
         # Create memory blocks
         r_id0 = 0
