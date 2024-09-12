@@ -1,6 +1,10 @@
 from typing import Optional
 
-import vtk
+try:
+    import vtk
+    using_vtk = True
+except ModuleNotFoundError:
+    using_vtk = False
 
 from ..Utils.lbsLogging import Logger, get_logger
 
