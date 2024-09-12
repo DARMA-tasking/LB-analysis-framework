@@ -2,7 +2,7 @@ name: Deploy docs
 
 on:
   push:
-    branches: [ '297-add-automated-generated-documentation-from-LBAF' ]
+    branches: [ '529-documentation-deployment-may-not-be-working' ]
 
 jobs:
   build-and-deploy-docs:
