@@ -15,7 +15,7 @@ class GridStreamer:
     def __init__(
         self,
         points, # vtk.vtkPoints
-        lines,  # vtk.vtkCellArry
+        lines,  # vtk.vtkCellArray
         field_arrays: Optional[dict] = None,
         point_arrays: Optional[list] = None,
         cell_arrays: Optional[list] = None,
