@@ -52,8 +52,8 @@ class TestVTDataWriter(unittest.TestCase):
         return opt_nodes
 
     def __remove_optional_keys_recursive(self, data: dict, optional_keys: list, dot_path: str = ''):
-        # Values that we want to test even it is optional
-        do_keep_exceptions = [ "phases.tasks.entity.seq_id" ]
+        # Values that we want to keep even it is optional (one of the 2 ids is required)
+        do_keep_exceptions = [ "phases.tasks.entity.id", "phases.tasks.entity.seq_id" ]
 
         to_delete = []
         for key, value in data.items():
