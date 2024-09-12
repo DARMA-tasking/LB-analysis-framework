@@ -202,12 +202,12 @@ class LoadReader:
                     # Check whether both are objects
                     if c_to.get("type") == "object" and c_from.get("type") == "object":
                         # Create receiver if it does not exist
-                        receiver_obj_id = c_to.get("seq_id")
+                        receiver_obj_id = c_to.get("id", c_to.get("seq_id"))
                         rank_comm.setdefault(
                             receiver_obj_id, {"sent": [], "received": []})
 
                         # Create sender if it does not exist
-                        sender_obj_id = c_from.get("seq_id", None)
+                        sender_obj_id = c_from.get("id", c_from.get("seq_id"))
                         rank_comm.setdefault(
                             sender_obj_id, {"sent": [], "received": []})
 

@@ -105,7 +105,7 @@ class Phase:
                 for k, v in comm.get_received().items():
                     entry["from"][k.get_id()] = v
             objects.append(entry)
-        objects.sort(key=lambda x: x.get("id"))
+        objects.sort(key=lambda x: x.get("id", x.get("seq_id")))
         return objects
 
     def get_object_ids(self):
