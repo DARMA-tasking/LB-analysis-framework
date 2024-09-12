@@ -109,7 +109,7 @@ class VTDataWriter:
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
-                ref_error = False
+                missing_ref = None
 
                 # Copy object information to the communication node
                 sender_obj: Object = [o for o in phase.get_objects() if
@@ -123,8 +123,8 @@ class VTDataWriter:
                     for k, v in sender_obj.get_unused_params().items():
                         comm_dict["from"][k] = v
                 else:
-                    ref_error = True
-                    self.__logger.error(f"Communication sender not found (seq_id={comm_dict['from']['seq_id']})")
+                    missing_ref = comm_dict['from'].get('id', comm_dict['from'].get('seq_id'))
+                    self.__logger.error(f"Communication sender not found ({missing_ref})")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if
                     o.get_id() is not None and o.get_id() == comm_dict["to"].get("id") or
@@ -136,10 +136,10 @@ class VTDataWriter:
                     for k, v in receiver_obj.get_unused_params().items():
                         comm_dict["to"][k] = v
                 else:
-                    ref_error = True
-                    self.__logger.error(f"Communication receiver not found (seq_id={comm_dict['to']['seq_id']})")
+                    missing_ref = comm_dict['to'].get('id', comm_dict['to'].get('seq_id'))
+                    self.__logger.error(f"Communication receiver not found ({missing_ref})")
 
-                if ref_error:
+                if missing_ref is not None:
                     # keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.
                     communications.append(comm_dict)
