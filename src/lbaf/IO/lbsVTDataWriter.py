@@ -81,13 +81,11 @@ class VTDataWriter:
             if unused_params:
                 task_data["entity"].update(unused_params)
 
+            task_data["entity"] = dict(sorted(task_data["entity"].items()))
+
             user_defined = o.get_user_defined()
             if user_defined:
-                task_data["user_defined"] = user_defined
-
-            subphases = o.get_subphases()
-            if subphases:
-                task_data["subphases"] = subphases
+                task_data["user_defined"] = dict(sorted(user_defined.items()))
 
             tasks.append(task_data)
 
@@ -128,6 +126,7 @@ class VTDataWriter:
                     comm_dict["from"]["migratable"] = from_rank.is_migratable(sender_obj)
                     for k, v in sender_obj.get_unused_params().items():
                         comm_dict["from"][k] = v
+                    comm_dict["from"] = dict(sorted(comm_dict["from"].items()))
                 else:
                     missing_ref = comm_dict['from'].get('id', comm_dict['from'].get('seq_id'))
                     self.__logger.error(f"Communication sender not found ({missing_ref})")
@@ -138,9 +137,11 @@ class VTDataWriter:
                 if len(receiver_obj) == 1:
                     receiver_obj = receiver_obj[0]
                     comm_dict["to"]["home"] = receiver_obj.get_rank_id()
-                    comm_dict["to"]["migratable"] = rank.is_migratable(receiver_obj)
+                    to_rank = [r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
+                    comm_dict["to"]["migratable"] = to_rank.is_migratable(receiver_obj)
                     for k, v in receiver_obj.get_unused_params().items():
                         comm_dict["to"][k] = v
+                    comm_dict["to"] = dict(sorted(comm_dict["to"].items()))
                 else:
                     missing_ref = comm_dict['to'].get('id', comm_dict['to'].get('seq_id'))
                     self.__logger.error(f"Communication receiver not found ({missing_ref})")
@@ -198,11 +199,12 @@ class VTDataWriter:
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data= {"id": p_id,
-                         "tasks":
+                         "tasks": sorted(
                             self.__create_tasks(
                                 r_id, rank.get_migratable_objects(), migratable=True) +
                             self.__create_tasks(
-                                r_id, rank.get_sentinel_objects(), migratable=False),
+                                r_id, rank.get_sentinel_objects(), migratable=False)
+                         , key=lambda x: x.get("entity").get("id", x.get("entity").get("seq_id")))
             }
 
             # Add communication data (if present)
