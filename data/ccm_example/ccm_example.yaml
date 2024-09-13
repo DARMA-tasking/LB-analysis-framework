@@ -19,6 +19,6 @@ shared_blocks:
     size: 15000.0
     tasks: [2]
 tasks:
-  0: {collection_id: 0, time: 2.0}
-  1: {collection_id: 0, time: 3.5}
-  2: {collection_id: 0, time: 5.0}
+  0: {collection_id: 7, time: 2.0}
+  1: {collection_id: 7, time: 3.5}
+  2: {collection_id: 7, time: 5.0}

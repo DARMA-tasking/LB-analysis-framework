@@ -410,7 +410,7 @@ class JSONDataFilesMaker():
         self.make_object(
             self.spec.get("tasks"),
             "task",
-            default=TaskSpecification({"time":0.0}),
+            default=TaskSpecification({"collection_id": 0, "time":0.0}),
             update=lambda task, t_id: self.update_task(task)
         )
 
@@ -419,14 +419,10 @@ class JSONDataFilesMaker():
 
         task["time"] = self.__prompt.prompt("Task time ?", required=True, value_type=float,
                                                             default=task.get("time", 0.0))
-        collection_id = self.__prompt.prompt("Collection id (or 'None') ?", required=False, value_type=int,
-                                                            default=task.get("collection_id", None))
+        collection_id = self.__prompt.prompt("Collection id ?", required=True, value_type=int,
+                                                            default=task.get("collection_id", 0))
+        task["collection_id"] = collection_id
 
-        if collection_id is not None and collection_id != -1:
-            task["collection_id"] = collection_id
-        else:
-            if "collection_id" in task.keys():
-                del task["collection_id"]
         return task
 
     def update_communication(self, comm):
