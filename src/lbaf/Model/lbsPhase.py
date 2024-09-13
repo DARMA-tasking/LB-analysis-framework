@@ -1,6 +1,6 @@
 import random as rnd
 from logging import Logger
-from typing import Optional, Dict
+from typing import Optional, Dict, Set
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
@@ -62,7 +62,7 @@ class Phase:
         """Retrieve number of ranks belonging to phase."""
         return len(self.__ranks)
 
-    def set_ranks(self, ranks: list):
+    def set_ranks(self, ranks: Set[Rank]):
         """ Set list of ranks for this phase."""
         self.__ranks = ranks
 
@@ -496,21 +496,21 @@ class Phase:
 
         # Normalize communications as communications dictionaries
         communications = {comm_id: {
-            "type": "SendRecv",
-            "to": {
-                "type": "object",
-                "seq_id": comm_spec["to"],
+            "bytes": comm_spec["size"],
+            "from": {
+                "home": objects[comm_spec["to"]].get_rank_id(),
                 "migratable": True,
-                "home": objects[comm_spec["to"]].get_rank_id()
+                "type": "object",
+                "seq_id": comm_spec["from"]
             },
             "messages": 1,
-            "from": {
-                "type": "object",
-                "seq_id": comm_spec["from"],
+            "type": "SendRecv",
+            "to": {
+                "home": objects[comm_spec["to"]].get_rank_id(),
                 "migratable": True,
-                "home": objects[comm_spec["to"]].get_rank_id()
-            },
-            "bytes": comm_spec["size"]
+                "type": "object",
+                "seq_id": comm_spec["to"]
+            }
         } for comm_id, comm_spec in spec["communications"].items()}
 
         # Compute communication edges
