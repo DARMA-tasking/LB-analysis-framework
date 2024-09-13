@@ -235,20 +235,13 @@ class JSONDataFilesMaker():
         spec = PhaseSpecification({
             "tasks": [
                 TaskSpecification({
-                    "time": 2.0,
-                    "collection_id": 7
+                    "time": 2.0
                 }),
                 TaskSpecification({
-                    "time": 2.0,
-                    "collection_id": 7
+                    "time": 3.5
                 }),
                 TaskSpecification({
-                    "time": 3.5,
-                    "collection_id": 7
-                }),
-                TaskSpecification({
-                    "time": 5.0,
-                    "collection_id": 7
+                    "time": 5.0
                 })
             ],
             "communications": [
@@ -265,11 +258,6 @@ class JSONDataFilesMaker():
                 CommunicationSpecification({
                     "size": 20000.0,  # c3 (size)
                     "from": 2,  # from t3
-                    "to": 1  # to t2
-                }),
-                CommunicationSpecification({
-                    "size": 25000.0,  # c4 (size)
-                    "from": 0,  # from t1
                     "to": 1  # to t2
                 })
             ],
