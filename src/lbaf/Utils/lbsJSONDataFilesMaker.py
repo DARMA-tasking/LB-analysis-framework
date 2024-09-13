@@ -235,12 +235,15 @@ class JSONDataFilesMaker():
         spec = PhaseSpecification({
             "tasks": [
                 TaskSpecification({
+                    "collection_id": 0,
                     "time": 2.0
                 }),
                 TaskSpecification({
+                    "collection_id": 0,
                     "time": 3.5
                 }),
                 TaskSpecification({
+                    "collection_id": 0,
                     "time": 5.0
                 })
             ],
