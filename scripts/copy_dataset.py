@@ -28,13 +28,21 @@ def copy_dataset(src_dir: str, dst_dir: str, compress: bool = False)-> int:
             src_path = os.path.join(src_dir, i.name)
             dst_path = os.path.join(dst_dir, i.name)
 
+            decompressed_dict = None
+
             with open(src_path, "rb") as compr_json_file:
                 compr_bytes = compr_json_file.read()
                 try:
                     decompr_bytes = brotli.decompress(compr_bytes)
                     decompressed_dict = json.loads(decompr_bytes.decode("utf-8"))
                 except brotli.error:
-                    decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
+                    try:
+                        decompressed_dict = json.loads(compr_bytes.decode("utf-8"))
+                    except json.JSONDecodeError:
+                        print(f"Invalid JSON file: {i.name}. Ignored.")
+
+            if decompressed_dict is None:
+                continue
 
             json_str = json.dumps(decompressed_dict, separators=(',', ':'))
 
