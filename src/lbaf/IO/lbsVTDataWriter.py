@@ -129,7 +129,7 @@ class VTDataWriter:
                     comm_dict["from"] = dict(sorted(comm_dict["from"].items()))
                 else:
                     missing_ref = comm_dict['from'].get('id', comm_dict['from'].get('seq_id'))
-                    self.__logger.error(f"Communication sender not found ({missing_ref})")
+                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if
                     o.get_id() is not None and o.get_id() == comm_dict["to"].get("id") or
@@ -144,7 +144,7 @@ class VTDataWriter:
                     comm_dict["to"] = dict(sorted(comm_dict["to"].items()))
                 else:
                     missing_ref = comm_dict['to'].get('id', comm_dict['to'].get('seq_id'))
-                    self.__logger.error(f"Communication receiver not found ({missing_ref})")
+                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
 
                 if missing_ref is not None:
                     # keep communication with invalid entity references for the moment.
