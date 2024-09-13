@@ -78,6 +78,9 @@ class VTDataWriter:
             if o.get_seq_id() is not None:
                 task_data["entity"]["seq_id"] = o.get_seq_id()
 
+            if o.get_collection_id() is not None:
+                task_data["entity"]["collection_id"] = o.get_collection_id()
+
             if unused_params:
                 task_data["entity"].update(unused_params)
 
