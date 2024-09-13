@@ -1,6 +1,7 @@
 import copy
 import math
 from logging import Logger
+from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -152,8 +153,15 @@ class Rank:
         """Return number of objects assigned to rank."""
         return len(self.__sentinel_objects) + len(self.__migratable_objects)
 
-    def add_migratable_object(self, o: Object) -> None:
+    def add_migratable_object(self, o: Object, fallback_collection_id: Optional[int] = 7) -> None:
         """Add object to migratable objects."""
+        if o.get_collection_id() is None:
+            if fallback_collection_id is not None:
+                o.set_collection_id(fallback_collection_id)
+            if o.get_collection_id() is None:
+                raise RuntimeError(
+                    f"`collection_id` parameter is required for object with id={o.get_id()}"
+                    " because it is migratable")
         return self.__migratable_objects.add(o)
 
     def get_migratable_objects(self) -> set:

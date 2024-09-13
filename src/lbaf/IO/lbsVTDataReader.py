@@ -251,7 +251,8 @@ class LoadReader:
                 r_id=rank_id,
                 load=task_load,
                 user_defined=task_user_defined,
-                subphases=subphases)
+                subphases=subphases,
+                collection_id=collection_id)
 
             # Update shared block information as needed
             if (shared_block_id := task_user_defined.get("shared_block_id", -1)) > -1:
@@ -261,21 +262,19 @@ class LoadReader:
                     (task_user_defined.get("shared_bytes", 0.0), set([])))
                 rank_blocks[shared_block_id][1].add(o)
 
+            # Add dict of currently unused parameters
+            unused_params = {}
+            if index is not None:
+                unused_params["index"] = index
+            if objgroup_id is not None:
+                unused_params["objgroup_id"] = objgroup_id
+            o.set_unused_params(unused_params)
+
             # Add object to rank given its type
             if task_entity.get("migratable"):
                 phase_rank.add_migratable_object(o)
             else:
                 phase_rank.add_sentinel_object(o)
-
-            # Add dict of currently unused parameters
-            unused_params = {}
-            if collection_id:
-                unused_params["collection_id"] = collection_id
-            if index:
-                unused_params["index"] = index
-            if objgroup_id:
-                unused_params["objgroup_id"] = objgroup_id
-            o.set_unused_params(unused_params)
 
             # Print debug information when requested
             self.__logger.debug(

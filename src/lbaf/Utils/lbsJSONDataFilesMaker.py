@@ -420,7 +420,7 @@ class JSONDataFilesMaker():
         task["time"] = self.__prompt.prompt("Task time ?", required=True, value_type=float,
                                                             default=task.get("time", 0.0))
         collection_id = self.__prompt.prompt("Collection id ?", required=True, value_type=int,
-                                                            default=task.get("collection_id", 0))
+                                                            default=task.get("collection_id", 7))
         task["collection_id"] = collection_id
 
         return task

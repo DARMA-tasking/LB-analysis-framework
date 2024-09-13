@@ -15,6 +15,7 @@ class Object:
     :arg comm: the communicator, defaults to None
     :arg user_defined: user defined data dict, defaults to None
     :arg subphases: list of subphases, defaults to None
+    :arg collection_id: collection id (required for migratable objects)
     """
 
     def __init__(
@@ -26,7 +27,8 @@ class Object:
         size: float=0.0,
         comm: Optional[ObjectCommunicator]=None,
         user_defined: dict=None,
-        subphases: list=None):
+        subphases: list=None,
+        collection_id: Optional[int] = None):
 
         # Check that id is provided as defined in LBDatafile schema
         if packed_id is None and seq_id is None:
@@ -76,6 +78,9 @@ class Object:
         # Initialize currently unused parameters (for writing back out)
         self.__unused_params = {}
 
+        # collection_id is not used in LBAF but is required for migratable objects in vt
+        self.__collection_id = collection_id
+
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
             self.__user_defined = user_defined
@@ -118,6 +123,14 @@ class Object:
     def get_seq_id(self) -> Optional[int]:
         """Return object seq ID."""
         return self.__seq_id
+
+    def get_collection_id(self) -> Optional[int]:
+        """Return object collection ID (required for migratable objects)."""
+        return self.__collection_id
+
+    def set_collection_id(self, collection_id: Optional[int]):
+        """ Set object collection ID (required for migratable objects)."""
+        self.__collection_id = collection_id
 
     def set_load(self, load: float):
         """ Set object load."""

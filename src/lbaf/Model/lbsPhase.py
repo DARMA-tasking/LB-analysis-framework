@@ -451,12 +451,8 @@ class Phase:
                     packed_id=None,
                     r_id=rank_id,
                     load=task_spec["time"],
-                    user_defined=task_user_defined)
-
-                if "collection_id" in task_spec:
-                    o.set_unused_params({
-                        "collection_id": task_spec["collection_id"]
-                    })
+                    user_defined=task_user_defined,
+                    collection_id=task_spec.get("collection_id"))
 
                 objects[task_id] = o
 
