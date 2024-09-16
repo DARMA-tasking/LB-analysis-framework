@@ -28,23 +28,28 @@ class TestVTDataWriter(unittest.TestCase):
     def tearDown(self):
         return
 
-    def __list_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
-        """List optional keys as some dot path notation"""
+    def __list_optional_keys_recursive(self, nodes: Union[list,dict,And], dot_path: str = ''):
+        """List optional fields recursively in a schema
+
+        :param nodes: the nodes
+        :param dot_path: the dot path of the nodes (used for internal recursion), defaults to ''
+        :return: the list of optional nodes (dot path)
+        """
         opt_nodes = []
 
+        # if nodes list
         if isinstance(nodes, list):
             for item in nodes:
                 opt_nodes += self.__list_optional_keys_recursive(item, dot_path)
             return opt_nodes
-
-        # Key & node
+        # if index-based nodes
         elif isinstance(nodes, dict):
             for key, item in nodes.items():
                 key_as_string = key if isinstance(key, str) else key.schema
                 if isinstance(key, Optional):
                     opt_nodes.append(dot_path + key_as_string)
                 opt_nodes += self.__list_optional_keys_recursive(item, dot_path + key_as_string + '.')
-
+        # if 'And' combination
         elif isinstance(nodes, And):
             for a in nodes.args:
                 opt_nodes += self.__list_optional_keys_recursive([ a ], dot_path)
