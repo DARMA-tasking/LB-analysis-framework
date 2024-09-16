@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 import unittest
-from typing import Any
+from typing import Any, Union
 
 import brotli
 import yaml
