@@ -190,6 +190,7 @@ class TestJSONDataFilesValidator(unittest.TestCase):
                                                                              debug=False)
         with self.assertRaises(SchemaError) as err:
             JSONDataFilesValidator().main()
+        self.maxDiff = None
         self.assertRegex(err.exception.args[0], r"Key 'phases' error:\n(.*)\nMissing key: 'tasks'")
 
     def test_json_data_files_validate_comm_links(self):
