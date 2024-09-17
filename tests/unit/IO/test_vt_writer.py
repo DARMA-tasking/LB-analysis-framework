@@ -52,7 +52,8 @@ class TestVTDataWriter(unittest.TestCase):
         # if 'And' combination
         elif isinstance(nodes, And):
             for a in nodes.args:
-                opt_nodes += self.__list_optional_keys_recursive([ a ], dot_path)
+                if isinstance(nodes, list) or isinstance(nodes, dict) or isinstance(nodes, And):
+                    opt_nodes += self.__list_optional_keys_recursive([ a ], dot_path)
 
         return opt_nodes
 

@@ -738,7 +738,6 @@ class JSONDataFilesMaker():
                     o_file.write(json.dumps(normalized_spec, sort_keys=True, indent=2, separators=(',', ": ")))
                 elif frmt == "yaml":
                     o_file.write(yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
-                
 
     def run_action(self, action: str):
         """Run an action"""
