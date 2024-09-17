@@ -733,7 +733,12 @@ class JSONDataFilesMaker():
                 os.makedirs(output_dir)
 
             with open(path, "wt", encoding="utf-8") as o_file:
-                o_file.write(PhaseSpecificationNormalizer().normalize(self.spec), frmt)
+                normalized_spec = PhaseSpecificationNormalizer().normalize(self.spec)
+                if frmt == "json":
+                    o_file.write(json.dumps(normalized_spec, sort_keys=True, indent=2, separators=(',', ": ")))
+                elif frmt == "yaml":
+                    o_file.write(yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
+                
 
     def run_action(self, action: str):
         """Run an action"""
