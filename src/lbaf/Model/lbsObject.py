@@ -110,7 +110,7 @@ class Object:
             raise TypeError(f"subphases: {subphases} is of type {type(subphases)} but must be <class 'list'>")
 
     def __repr__(self):
-        return f"Object id: {self.__seq_id}, load: {self.__load}"
+        return f"Object id: {self.get_id()}, load: {self.__load}"
 
     def get_id(self) -> int:
         """Return object bit-packed ID if available. Else return the object seq ID"""
