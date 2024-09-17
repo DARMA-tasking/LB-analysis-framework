@@ -51,7 +51,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         clusters = {None: []} if with_nullset else {}
         for o in rank.get_migratable_objects():
             # Retrieve shared block ID and skip object without one
-            sb_id = o.get_shared_block_id()
+            sb_id = o.get_shared_id()
             if sb_id is None:
                 continue
 

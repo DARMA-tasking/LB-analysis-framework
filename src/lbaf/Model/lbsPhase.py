@@ -460,9 +460,9 @@ class Phase:
                 ranks[rank_id].add_migratable_object(o)
 
         # Load shared blocks
-        for shared_block_id, shared_block_spec in spec["shared_blocks"].items():
+        for shared_id, shared_block_spec in spec["shared_blocks"].items():
             if not shared_block_spec["tasks"]:
-                self.__logger.warning(f"No tasks linked to shared block {shared_block_id} !")
+                self.__logger.warning(f"No tasks linked to shared block {shared_id} !")
 
             # Browse tasks
             for task_id in shared_block_spec["tasks"]:
@@ -470,23 +470,23 @@ class Phase:
 
                 # Find shared block and create if not already created in memory
                 b: Block = None
-                if not shared_block_id in shared_blocks:
-                    b = Block(b_id=shared_block_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
+                if not shared_id in shared_blocks:
+                    b = Block(b_id=shared_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
                               o_ids=shared_block_spec["tasks"])
                     # Index the shared block for next loops checks
-                    shared_blocks[shared_block_id] = b
+                    shared_blocks[shared_id] = b
                 else:
-                    b = shared_blocks[shared_block_id]
+                    b = shared_blocks[shared_id]
 
                 # Associate shared block with object
                 # Check: task must share 0 or 1 block
-                if not multiple_sharing and o.get_shared_block_id() is not None and o.get_shared_block_id() != shared_block_id:
+                if not multiple_sharing and o.get_shared_id() is not None and o.get_shared_id() != shared_id:
                     raise RuntimeError(
-                        f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_block_id}. Only 0 or 1 allowed")
+                        f"Task {o.get_id()} already shared block {o.get_shared_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
-                o.get_user_defined()["shared_block_id"] = b.get_id()
+                o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
                 o.get_user_defined()["home_rank"] = b.get_home_id()
 
@@ -588,9 +588,9 @@ class Phase:
                 f"Removing object {o_id} attachment to block {b_id} on rank {r_src.get_id()}")
 
             # Perform sanity check
-            if b_id not in r_src.get_shared_block_ids():
+            if b_id not in r_src.get_shared_ids():
                 self.__logger.error(
-                    f"block {b_id} not present in {r_src.get_shared_block_ids()}")
+                    f"block {b_id} not present in {r_src.get_shared_ids()}")
                 raise SystemExit(1)
 
             if not block.detach_object_id(o_id):

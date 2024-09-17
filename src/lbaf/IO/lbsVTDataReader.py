@@ -255,12 +255,12 @@ class LoadReader:
                 collection_id=collection_id)
 
             # Update shared block information as needed
-            if (shared_block_id := task_user_defined.get("shared_block_id", -1)) > -1:
+            if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
                 # Create or update (memory, objects) for shared block
                 rank_blocks.setdefault(
-                    shared_block_id,
+                    shared_id,
                     (task_user_defined.get("shared_bytes", 0.0), set([])))
-                rank_blocks[shared_block_id][1].add(o)
+                rank_blocks[shared_id][1].add(o)
 
             # Add dict of currently unused parameters
             unused_params = {}

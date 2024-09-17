@@ -81,7 +81,7 @@ class Rank:
         """Set rank's metadata."""
         self.__metadata = metadata
 
-    def get_shared_block_ids(self) -> set:
+    def get_shared_ids(self) -> set:
         """Return IDs of shared blocks."""
         return {b.get_id() for b in self.__shared_blocks}
 

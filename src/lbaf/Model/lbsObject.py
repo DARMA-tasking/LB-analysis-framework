@@ -191,7 +191,7 @@ class Object:
         """Return shared memory block assigned to object."""
         return self.__shared_block
 
-    def get_shared_block_id(self) -> Optional[int]:
+    def get_shared_id(self) -> Optional[int]:
         """Return ID of shared memory block assigned to object."""
         return self.__shared_block.get_id() if self.__shared_block is not None else None
 
