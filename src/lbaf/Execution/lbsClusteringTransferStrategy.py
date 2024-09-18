@@ -30,10 +30,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             f"Enter subclustering immediately after cluster swapping: {self.__separate_subclustering}")
 
         # Initialize percentage of maximum load required for subclustering
-        self.pct_of_max_load = 0.0
+        self.__subclustering_threshold = parameters.get("subclustering_threshold", 0.0)
+        self._logger.info(
+            f"Percentage of maximum load required for subclustering: {self.__subclustering_threshold}")
 
         # Initialize fraction of local imbalance that must be resolved by subcluster
-        self.minimum_fraction_of_local_imbalance = 0.0
+        self.__subclustering_minimum_improvement = parameters.get("subclustering_minimum_improvement", 0.0)
+        self._logger.info(
+            "Fraction of local imbalance that must be resolved by subcluster: "
+            f"{self.__subclustering_minimum_improvement}")
 
         # Initialize cluster swap relative threshold
         self.__cluster_swap_rtol = parameters.get("cluster_swap_rtol", 0.05)
@@ -175,8 +180,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         r_src, o_src, r_try)
 
                     # Additional filters prior to subclustering
-                    if c_try <= self.minimum_fraction_of_local_imbalance * r_src.get_load() or \
-                       r_src.get_load() < self.pct_of_max_load * max_load[0]:
+                    if c_try <= self.__subclustering_minimum_improvement * r_src.get_load() or \
+                        r_src.get_load() < self.__subclustering_threshold * max_load[0]:
                         continue
 
                     l_try = abs(r_try.get_load() + objects_load - ave_load)
