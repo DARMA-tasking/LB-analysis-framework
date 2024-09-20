@@ -1,1 +1,111 @@
-{"type":"LBDatafile","phases":[{"id":0,"tasks":[{"entity":{"seq_id":4,"home":1,"type":"object","migratable":true},"node":1,"resource":"cpu","time":0.5},{"entity":{"seq_id":5,"home":1,"type":"object","migratable":true},"node":1,"resource":"cpu","time":2.0},{"entity":{"seq_id":6,"home":1,"type":"object","migratable":true},"node":1,"resource":"cpu","time":1.0},{"entity":{"seq_id":7,"home":1,"type":"object","migratable":true},"node":1,"resource":"cpu","time":0.5}],"communications":[{"type":"SendRecv","to":{"type":"object","seq_id":1},"messages":1,"from":{"type":"object","seq_id":4},"bytes":2.0},{"type":"SendRecv","to":{"type":"object","seq_id":8},"messages":1,"from":{"type":"object","seq_id":5},"bytes":2.0},{"type":"SendRecv","to":{"type":"object","seq_id":6},"messages":1,"from":{"type":"object","seq_id":7},"bytes":1.0}]}]}
+{
+    "phases": [
+        {
+            "communications": [
+                {
+                    "bytes": 2.0,
+                    "from": {
+                        "migratable": true,
+                        "collection_id": 7,
+                        "seq_id": 4,
+                        "type": "object"
+                    },
+                    "messages": 1,
+                    "to": {
+                        "migratable": true,
+                        "collection_id": 7,
+                        "seq_id": 1,
+                        "type": "object"
+                    },
+                    "type": "SendRecv"
+                },
+                {
+                    "bytes": 2.0,
+                    "from": {
+                        "migratable": true,
+                        "collection_id": 7,
+                        "seq_id": 5,
+                        "type": "object"
+                    },
+                    "messages": 1,
+                    "to": {
+                        "migratable": true,
+                        "collection_id": 7,
+                        "seq_id": 8,
+                        "type": "object"
+                    },
+                    "type": "SendRecv"
+                },
+                {
+                    "bytes": 1.0,
+                    "from": {
+                        "migratable": true,
+                        "collection_id": 7,
+                        "seq_id": 7,
+                        "type": "object"
+                    },
+                    "messages": 1,
+                    "to": {
+                        "migratable": true,
+                        "collection_id": 7,
+                        "seq_id": 6,
+                        "type": "object"
+                    },
+                    "type": "SendRecv"
+                }
+            ],
+            "id": 0,
+            "tasks": [
+                {
+                    "entity": {
+                        "home": 1,
+                        "collection_id": 7,
+                        "migratable": true,
+                        "seq_id": 4,
+                        "type": "object"
+                    },
+                    "node": 1,
+                    "resource": "cpu",
+                    "time": 0.5
+                },
+                {
+                    "entity": {
+                        "home": 1,
+                        "collection_id": 7,
+                        "migratable": true,
+                        "seq_id": 5,
+                        "type": "object"
+                    },
+                    "node": 1,
+                    "resource": "cpu",
+                    "time": 2.0
+                },
+                {
+                    "entity": {
+                        "home": 1,
+                        "collection_id": 7,
+                        "migratable": true,
+                        "seq_id": 6,
+                        "type": "object"
+                    },
+                    "node": 1,
+                    "resource": "cpu",
+                    "time": 1.0
+                },
+                {
+                    "entity": {
+                        "home": 1,
+                        "collection_id": 7,
+                        "migratable": true,
+                        "seq_id": 7,
+                        "type": "object"
+                    },
+                    "node": 1,
+                    "resource": "cpu",
+                    "time": 0.5
+                }
+            ]
+        }
+    ],
+    "type": "LBDatafile"
+}
