@@ -120,7 +120,7 @@ A description of each parameter in the configuration file can be found [here](ht
 
 ### Visualization
 
-LBAF can optionally leverage [`vt-tv`](https://github.com/DARMA-tasking/vt-tv), a DARMA-tasking tool built off of [`VTK`](https://vtk.org/), to visualize a run's work-to-rank mappings, communications, and memory usage.
+LBAF can optionally leverage [`vt-tv`](https://github.com/DARMA-tasking/vt-tv), a DARMA-tasking tool built off of [`VTK`](https://vtk.org/), to visualize the work-to-rank mappings, communications, and memory usage of a run.
 
 To get started, you will need to build `VTK` (instructions [here](https://gitlab.kitware.com/vtk/vtk/-/blob/master/Documentation/docs/build_instructions/build.md)).
 
