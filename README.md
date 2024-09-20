@@ -88,8 +88,10 @@ Then, to run all tests locally:
 
 ```shell
 cd <project-path>
-tox
+tox -e py<x>
 ```
+
+where `<x>` is `38`, `39`, `310`, or `311`, depending on your Python version. For example, in an environment with Python 3.8: `tox -e py38`.
 
 The `tox` command will:
 - run all tests defined in `tox.ini`
