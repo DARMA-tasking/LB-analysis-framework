@@ -1,5 +1,6 @@
 import abc
 import os
+from typing import Set
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
@@ -227,12 +228,12 @@ class AlgorithmBase:
 
         # Try to copy ranks from phase to be rebalanced to processed one
         try:
-            new_ranks = []
+            new_ranks: Set[Rank] = set()
             for r in phases[p_id].get_ranks():
                 # Minimally instantiate rank and copy
                 new_r = Rank(self._logger)
                 new_r.copy(r)
-                new_ranks.append(new_r)
+                new_ranks.add(new_r)
             self._rebalanced_phase.set_ranks(new_ranks)
         except Exception as err:
             self._logger.error(f"No phase with index {p_id} is available for processing")

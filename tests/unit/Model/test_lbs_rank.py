@@ -12,8 +12,8 @@ from src.lbaf.Model.lbsRank import Rank
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.logger = logging.getLogger()
-        self.migratable_objects = {Object(i=0, load=1.0), Object(i=1, load=0.5), Object(i=2, load=0.5), Object(i=3, load=0.5)}
-        self.sentinel_objects = {Object(i=15, load=4.5), Object(i=18, load=2.5)}
+        self.migratable_objects = {Object(seq_id=0, load=1.0), Object(seq_id=1, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=3, load=0.5)}
+        self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
         self.rank = Rank(r_id=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
 
     def test_lbs_rank_initialization(self):
@@ -31,7 +31,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank.get_objects(), self.migratable_objects.union(self.sentinel_objects))
 
     def test_lbs_rank_add_migratable_object(self):
-        temp_object = Object(i=7, load=1.5)
+        temp_object = Object(seq_id=7, load=1.5)
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
@@ -70,28 +70,28 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(err.exception.args[0], "size: incorrect type <class 'bool'> or value: True")
 
     def test_lbs_rank_get_received_volume_001(self):
-        sent_objects = {Object(i=123, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
-                        Object(i=3, load=0.5): 1.5}
-        received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
-                            Object(i=8, load=1.5): 0.5}
+        sent_objects = {Object(seq_id=123, load=1.0): 2.0, Object(seq_id=1, load=0.5): 1.0, Object(seq_id=4, load=0.5): 2.0,
+                        Object(seq_id=3, load=0.5): 1.5}
+        received_objects = {Object(seq_id=5, load=2.0): 2.0, Object(seq_id=6, load=0.5): 1.0, Object(seq_id=2, load=0.5): 1.0,
+                            Object(seq_id=8, load=1.5): 0.5}
         oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
-        temp_mig_object = Object(i=123, load=1.0, comm=oc)
+        temp_mig_object = Object(seq_id=123, load=1.0, comm=oc)
         self.rank.add_migratable_object(temp_mig_object)
         self.assertEqual(self.rank.get_received_volume(), 4.5)
 
     def test_lbs_rank_get_sent_volume_001(self):
-        sent_objects = {Object(i=123, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
-                        Object(i=3, load=0.5): 1.5}
-        received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
-                            Object(i=8, load=1.5): 0.5}
+        sent_objects = {Object(seq_id=123, load=1.0): 2.0, Object(seq_id=1, load=0.5): 1.0, Object(seq_id=4, load=0.5): 2.0,
+                        Object(seq_id=3, load=0.5): 1.5}
+        received_objects = {Object(seq_id=5, load=2.0): 2.0, Object(seq_id=6, load=0.5): 1.0, Object(seq_id=2, load=0.5): 1.0,
+                            Object(seq_id=8, load=1.5): 0.5}
         oc = ObjectCommunicator(i=154, r=received_objects, s=sent_objects, logger=self.logger)
-        temp_mig_object = Object(i=123, load=1.0, comm=oc)
+        temp_mig_object = Object(seq_id=123, load=1.0, comm=oc)
         self.rank.add_migratable_object(temp_mig_object)
         self.assertEqual(self.rank.get_sent_volume(), 6.5)
 
     def test_lbs_rank_remove_migratable_object(self):
         temp_rank = Rank(r_id=1, logger=self.logger)
-        temp_object = Object(i=7, load=1.5)
+        temp_object = Object(seq_id=7, load=1.5)
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)

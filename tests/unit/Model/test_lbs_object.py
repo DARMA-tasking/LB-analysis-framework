@@ -16,29 +16,29 @@ class TestConfig(unittest.TestCase):
             {"id": 8, "time": 1.5450000034888944e-06}, {"id": 9, "time": 5.735999998535135e-06},
             {"id": 10, "time": 0.00021168499999646428}, {"id": 11, "time": 0.0007852130000003399},
             {"id": 12, "time": 1.642999997386596e-06}, {"id": 13, "time": 3.634999998780586e-06}]
-        self.simple_obj_001 = Object(i=1, load=2.5, subphases=self.subphases)
-        self.simple_obj_002 = Object(i=2, load=4.5, r_id=0)
+        self.simple_obj_001 = Object(seq_id=1, load=2.5, subphases=self.subphases)
+        self.simple_obj_002 = Object(seq_id=2, load=4.5, r_id=0)
         self.oc = ObjectCommunicator(i=3, logger=self.logger)
-        self.simple_obj_003 = Object(i=3, load=3, r_id=2, comm=self.oc)
-        self.sent_objects = {Object(i=0, load=1.0): 2.0, Object(i=1, load=0.5): 1.0, Object(i=4, load=0.5): 2.0,
-                             Object(i=3, load=0.5): 1.5}
-        self.received_objects = {Object(i=5, load=2.0): 2.0, Object(i=6, load=0.5): 1.0, Object(i=2, load=0.5): 1.0,
-                                 Object(i=8, load=1.5): 0.5}
+        self.simple_obj_003 = Object(seq_id=3, load=3, r_id=2, comm=self.oc)
+        self.sent_objects = {Object(seq_id=0, load=1.0): 2.0, Object(seq_id=1, load=0.5): 1.0, Object(seq_id=4, load=0.5): 2.0,
+                             Object(seq_id=3, load=0.5): 1.5}
+        self.received_objects = {Object(seq_id=5, load=2.0): 2.0, Object(seq_id=6, load=0.5): 1.0, Object(seq_id=2, load=0.5): 1.0,
+                                 Object(seq_id=8, load=1.5): 0.5}
 
     def test_object_initialization_001(self):
-        self.assertEqual(self.simple_obj_001._Object__index, 1)
+        self.assertEqual(self.simple_obj_001._Object__seq_id, 1)
         self.assertEqual(self.simple_obj_001._Object__load, 2.5)
         self.assertEqual(self.simple_obj_001._Object__rank_id, None)
         self.assertEqual(self.simple_obj_001._Object__communicator, None)
 
     def test_object_initialization_002(self):
-        self.assertEqual(self.simple_obj_002._Object__index, 2)
+        self.assertEqual(self.simple_obj_002._Object__seq_id, 2)
         self.assertEqual(self.simple_obj_002._Object__load, 4.5)
         self.assertEqual(self.simple_obj_002._Object__rank_id, 0)
         self.assertEqual(self.simple_obj_002._Object__communicator, None)
 
     def test_object_initialization_003(self):
-        self.assertEqual(self.simple_obj_003._Object__index, 3)
+        self.assertEqual(self.simple_obj_003._Object__seq_id, 3)
         self.assertEqual(self.simple_obj_003._Object__load, 3.0)
         self.assertEqual(self.simple_obj_003._Object__rank_id, 2)
         self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
@@ -81,85 +81,85 @@ class TestConfig(unittest.TestCase):
 
     def test_object_id_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i="25", load=2.5)
-        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'str'>")
+            Object(seq_id="25", load=2.5)
+        self.assertEqual(err.exception.args[0], "seq_id: incorrect type <class 'str'>")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=2.5, load=2.5)
-        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'float'>")
+            Object(seq_id=2.5, load=2.5)
+        self.assertEqual(err.exception.args[0], "seq_id: incorrect type <class 'float'>")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=True, load=2.5)
-        self.assertEqual(err.exception.args[0], "i: incorrect type <class 'bool'>")
+            Object(seq_id=True, load=2.5)
+        self.assertEqual(err.exception.args[0], "seq_id: incorrect type <class 'bool'>")
 
     def test_object_load_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load="2.5")
+            Object(seq_id=1, load="2.5")
         self.assertEqual(err.exception.args[0], "load: incorrect type <class 'str'> or value: 2.5")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=3, load=True)
+            Object(seq_id=3, load=True)
         self.assertEqual(err.exception.args[0], "load: incorrect type <class 'bool'> or value: True")
 
     def test_object_rank_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id="4")
+            Object(seq_id=0, load=2.5, r_id="4")
         self.assertEqual(err.exception.args[0], "r_id: incorrect type <class 'str'>")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load=5.5, r_id=4.0)
+            Object(seq_id=1, load=5.5, r_id=4.0)
         self.assertEqual(err.exception.args[0], "r_id: incorrect type <class 'float'>")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load=5.5, r_id=True)
+            Object(seq_id=1, load=5.5, r_id=True)
         self.assertEqual(err.exception.args[0], "r_id: incorrect type <class 'bool'>")
 
     def test_object_communicator_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm="communicator")
+            Object(seq_id=0, load=2.5, r_id=0, comm="communicator")
         self.assertEqual(err.exception.args[0], "comm: communicator is of type <class 'str'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load=5.5, r_id=1, comm=4)
+            Object(seq_id=1, load=5.5, r_id=1, comm=4)
         self.assertEqual(err.exception.args[0], "comm: 4 is of type <class 'int'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=2, load=4.5, r_id=2, comm=4.0)
+            Object(seq_id=2, load=4.5, r_id=2, comm=4.0)
         self.assertEqual(err.exception.args[0], "comm: 4.0 is of type <class 'float'>. Must be <class 'ObjectCommunicator'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=1, load=5.5, r_id=1, comm=True)
+            Object(seq_id=1, load=5.5, r_id=1, comm=True)
         self.assertEqual(err.exception.args[0], "comm: True is of type <class 'bool'>. Must be <class 'ObjectCommunicator'>.")
 
     def test_object_user_defined_error(self):
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=[])
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined=[])
         self.assertEqual(err.exception.args[0], "user_defined: [] is of type <class 'list'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined='a')
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined='a')
         self.assertEqual(err.exception.args[0], "user_defined: a is of type <class 'str'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=1)
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined=1)
         self.assertEqual(err.exception.args[0], "user_defined: 1 is of type <class 'int'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=1.0)
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined=1.0)
         self.assertEqual(err.exception.args[0],
                          "user_defined: 1.0 is of type <class 'float'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=set())
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined=set())
         self.assertEqual(err.exception.args[0],
                          "user_defined: set() is of type <class 'set'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=())
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined=())
         self.assertEqual(err.exception.args[0], "user_defined: () is of type <class 'tuple'>. Must be <class 'dict'>.")
 
         with self.assertRaises(TypeError) as err:
-            Object(i=0, load=2.5, r_id=0, comm=self.oc, user_defined=True)
+            Object(seq_id=0, load=2.5, r_id=0, comm=self.oc, user_defined=True)
         self.assertEqual(err.exception.args[0],
                          "user_defined: True is of type <class 'bool'>. Must be <class 'dict'>.")
 
@@ -184,14 +184,14 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.simple_obj_003.get_sent(), {})
 
     def test_object_get_sent_002(self):
-        sent_object = {Object(i=0, load=1.0): 6.0}
+        sent_object = {Object(seq_id=0, load=1.0): 6.0}
         oc = ObjectCommunicator(i=3, s=sent_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent(), sent_object)
 
     def test_object_get_sent_003(self):
         oc = ObjectCommunicator(i=23, s=self.sent_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent(), self.sent_objects)
 
     def test_object_get_received_001(self):
@@ -199,14 +199,14 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.simple_obj_003.get_received(), {})
 
     def test_object_get_received_002(self):
-        received_object = {Object(i=1, load=2.5): 5.0}
+        received_object = {Object(seq_id=1, load=2.5): 5.0}
         oc = ObjectCommunicator(i=1, r=received_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received(), received_object)
 
     def test_object_get_received_003(self):
         oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received(), self.received_objects)
 
     def test_object_get_sent_volume_001(self):
@@ -214,14 +214,14 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.simple_obj_003.get_sent_volume(), 0)
 
     def test_object_get_sent_volume_002(self):
-        sent_object = {Object(i=0, load=1.0): 6.0}
+        sent_object = {Object(seq_id=0, load=1.0): 6.0}
         oc = ObjectCommunicator(i=3, s=sent_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent_volume(), 6.0)
 
     def test_object_get_sent_volume_003(self):
         oc = ObjectCommunicator(i=23, s=self.sent_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_sent_volume(), 6.5)
 
     def test_object_get_received_volume_001(self):
@@ -229,14 +229,14 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.simple_obj_003.get_received_volume(), 0)
 
     def test_object_get_received_volume_002(self):
-        received_object = {Object(i=5, load=2.5): 7.0}
+        received_object = {Object(seq_id=5, load=2.5): 7.0}
         oc = ObjectCommunicator(i=3, r=received_object, logger=self.logger)
-        obj_with_comm = Object(i=3, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=3, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 7.0)
 
     def test_object_get_received_volume_003(self):
         oc = ObjectCommunicator(i=23, r=self.received_objects, logger=self.logger)
-        obj_with_comm = Object(i=23, load=3.5, r_id=2, comm=oc)
+        obj_with_comm = Object(seq_id=23, load=3.5, r_id=2, comm=oc)
         self.assertEqual(obj_with_comm.get_received_volume(), 4.5)
 
     def test_object_get_subphases(self):

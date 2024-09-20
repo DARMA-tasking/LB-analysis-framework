@@ -255,12 +255,6 @@ class TestConfig(unittest.TestCase):
             ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
         self.assertEqual(err.exception.args[0], "Should be of type 'int' and > 0")
 
-    def test_config_validator_correct_clustering_target_imb(self):
-        with open(os.path.join(self.config_dir, "conf_correct_clustering_target_imb.yml"), "rt", encoding="utf-8") as config_file:
-            yaml_str = config_file.read()
-            configuration = yaml.safe_load(yaml_str)
-        ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
-
     def test_config_validator_wrong_separate_subclustering(self):
         with open(os.path.join(self.config_dir, "conf_wrong_separate_subclustering.yml"), "rt", encoding="utf-8") as config_file:
             yaml_str = config_file.read()

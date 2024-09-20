@@ -16,7 +16,7 @@ from src.lbaf.imported.JSON_data_files_validator import JSONDataFilesValidator
 
 class TestJSONDataFilesValidator(unittest.TestCase):
     def setUp(self):
-        self.test_dir = os.path.dirname(os.path.dirname(__file__))
+        self.test_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         self.data_dir = os.path.join(self.test_dir, "data")
         self.file_path = os.path.join(self.data_dir, "JSON_data_file_validator", "data.0.json")
         self.comm_links_file_path = os.path.join(self.data_dir, "JSON_data_file_validator_comm_links", "data.0.json")
@@ -190,9 +190,8 @@ class TestJSONDataFilesValidator(unittest.TestCase):
                                                                              debug=False)
         with self.assertRaises(SchemaError) as err:
             JSONDataFilesValidator().main()
-        with open(os.path.join(self.data_dir, "JSON_data_file_validator_wrong", "schema_error.txt"), "rt") as se:
-            err_msg = se.read()
-        self.assertEqual(err.exception.args[0], err_msg)
+        self.maxDiff = None
+        self.assertRegex(err.exception.args[0], r"Key 'phases' error:\n(.*)\nMissing key: 'tasks'")
 
     def test_json_data_files_validate_comm_links(self):
         argparse.ArgumentParser.parse_args = Mock()

@@ -20,7 +20,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
 
         self._do_second_stage = parameters.get("do_second_stage", False)
         self._phase = None
-        self._max_shared_block_ids = None
+        self._max_shared_ids = None
 
     def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
         """ Execute centralized prefix memory-constrained optimizer"""
@@ -40,10 +40,10 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         phase_ranks = self._phase.get_ranks()
 
         # Initialize max shared ID
-        max_shared_block_ids = 0
+        max_shared_ids = 0
         for rank in phase_ranks:
-            max_shared_block_ids = max(len(rank.get_shared_block_ids()), max_shared_block_ids)
-        self._max_shared_block_ids = max_shared_block_ids + 1
+            max_shared_ids = max(len(rank.get_shared_ids()), max_shared_ids)
+        self._max_shared_ids = max_shared_ids + 1
 
 
         # Max-heap for rank's load
@@ -74,12 +74,12 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
 
             # Fill up the data structures
             for o in max_rank.get_migratable_objects():
-                if not o.get_shared_block_id() in obj_shared_map:
-                    obj_shared_map[o.get_shared_block_id()] = []
-                if not o.get_shared_block_id() in shared_map:
-                    shared_map[o.get_shared_block_id()] = 0
-                obj_shared_map[o.get_shared_block_id()].append(o)
-                shared_map[o.get_shared_block_id()] += o.get_load()
+                if not o.get_shared_id() in obj_shared_map:
+                    obj_shared_map[o.get_shared_id()] = []
+                if not o.get_shared_id() in shared_map:
+                    shared_map[o.get_shared_id()] = 0
+                obj_shared_map[o.get_shared_id()].append(o)
+                shared_map[o.get_shared_id()] += o.get_load()
 
             for sid in obj_shared_map:
                 obj_shared_map[sid].sort(reverse=True, key=lambda x: x.get_load())
@@ -166,9 +166,9 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         rank_min_heap = []
 
         # Add all ranks that could possibly take this load grouping based on memory usage
-        self._logger.info(f"tryBin size={size}, max={self._max_shared_block_ids}")
+        self._logger.info(f"tryBin size={size}, max={self._max_shared_ids}")
         for rank in ranks:
-            if sid in rank.get_shared_block_ids() or len(rank.get_shared_block_ids()) < self._max_shared_block_ids:
+            if sid in rank.get_shared_ids() or len(rank.get_shared_ids()) < self._max_shared_ids:
                 rank_min_heap.append(rank)
 
         # Create the actual min-heap
@@ -191,12 +191,12 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             selected_load = o.get_load()
 
             # If our situation is not made worse and fits under memory constraints, do the transer
-            if (sid in min_rank.get_shared_block_ids() or len(min_rank.get_shared_block_ids()) < self._max_shared_block_ids) and min_rank.get_load() + selected_load < max_rank.get_load():
+            if (sid in min_rank.get_shared_ids() or len(min_rank.get_shared_ids()) < self._max_shared_ids) and min_rank.get_load() + selected_load < max_rank.get_load():
                 self._phase.transfer_object(max_rank, o, min_rank)
                 tally_assigned += 1
             else:
                 # Put the rank back in the heap for selection next round
-                if not(len(min_rank.get_shared_block_ids()) >= self._max_shared_block_ids and not sid in min_rank.get_shared_block_ids()):
+                if not(len(min_rank.get_shared_ids()) >= self._max_shared_ids and not sid in min_rank.get_shared_ids()):
                     heapq.heappush(rank_min_heap, min_rank)
 
                 tally_rejected += 1
@@ -210,7 +210,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         common memory ID), but do not give up unless there is absolutely no
         rank that can take it"""
 
-        self._logger.info(f"tryBinFully size={size}, max={self._max_shared_block_ids}")
+        self._logger.info(f"tryBinFully size={size}, max={self._max_shared_ids}")
 
         tally_assigned, tally_rejected = 0, 0
 
@@ -221,7 +221,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             # Add all ranks that could possibly take this load grouping based on
             # memory usage
             for rank in ranks:
-                if sid in rank.get_shared_block_ids() or len(rank.get_shared_block_ids()) < self._max_shared_block_ids:
+                if sid in rank.get_shared_ids() or len(rank.get_shared_ids()) < self._max_shared_ids:
                     rank_min_heap.append(rank)
 
             # Create the actual min-heap
@@ -234,7 +234,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
                 selected_load = o.get_load()
 
                 # If our situation is not made worse and fits under memory constraints, do the transer
-                if (sid in min_rank.get_shared_block_ids() or len(min_rank.get_shared_block_ids()) < self._max_shared_block_ids) and min_rank.get_load() + selected_load < max_rank.get_load():
+                if (sid in min_rank.get_shared_ids() or len(min_rank.get_shared_ids()) < self._max_shared_ids) and min_rank.get_load() + selected_load < max_rank.get_load():
                     self._phase.transfer_object(max_rank, o, min_rank)
                     tally_assigned += 1
                     break
@@ -270,9 +270,9 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             binned = dict()
 
             for o in min_rank.get_migratable_objects():
-                if not o.get_shared_block_id() in binned:
-                    binned[o.get_shared_block_id()] = []
-                binned[o.get_shared_block_id()].append(o)
+                if not o.get_shared_id() in binned:
+                    binned[o.get_shared_id()] = []
+                binned[o.get_shared_id()].append(o)
 
             pick = -1
 

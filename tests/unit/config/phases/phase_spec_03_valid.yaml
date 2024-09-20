@@ -16,4 +16,7 @@ shared_blocks:
   - size: 15000.0
     tasks: [2]
     home_rank: 1
-tasks: [2.0, 3.5, 5.0]
+tasks:
+  - { time: 2.0, collection_id: 7 }
+  - { time: 3.5, collection_id: 6 }
+  - { time: 5.0 }

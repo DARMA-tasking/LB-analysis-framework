@@ -1,7 +1,6 @@
-import os
 import random as rnd
 from logging import Logger
-from typing import Optional, Dict
+from typing import Optional, Dict, Set
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
@@ -43,7 +42,7 @@ class Phase:
         self.__communications = {}
 
         # Initialize metadata dict
-        self.__metadata = {}
+        self.__metadata = {} # pylint:disable=W0238:unused-private-member
 
         # Start with null set of edges
         self.__edges = None
@@ -63,7 +62,7 @@ class Phase:
         """Retrieve number of ranks belonging to phase."""
         return len(self.__ranks)
 
-    def set_ranks(self, ranks: list):
+    def set_ranks(self, ranks: Set[Rank]):
         """ Set list of ranks for this phase."""
         self.__ranks = ranks
 
@@ -106,7 +105,7 @@ class Phase:
                 for k, v in comm.get_received().items():
                     entry["from"][k.get_id()] = v
             objects.append(entry)
-        objects.sort(key=lambda x: x.get("id"))
+        objects.sort(key=lambda x: x.get("id", x.get("seq_id")))
         return objects
 
     def get_object_ids(self):
@@ -297,7 +296,7 @@ class Phase:
         self.__logger.info(
             f"Creating {n_objects} objects with loads sampled from {sampler_name}")
         objects = set([
-            Object(i, load=load_sampler())
+            Object(seq_id=i, load=load_sampler())
             for i in range(n_objects)])
 
         # Compute and report object load statistics
@@ -430,7 +429,7 @@ class Phase:
         objects: Dict[int, Object] = {}  # object instances (indexed by id)
         shared_blocks: Dict[int, Block] = {}  # shared blocks instances (indexed by id)
 
-        if len(spec["ranks"].keys()) == 0:
+        if not spec["ranks"]:
             raise RuntimeError("Missing rank distributions")
 
         # Load objects set
@@ -438,7 +437,7 @@ class Phase:
             task_ids = rank_specs["tasks"]
             for task_id in task_ids:
                 task_user_defined = {}
-                time = spec["tasks"][task_id]
+                task_spec = spec["tasks"][task_id]
 
                 # Check: task cannot reside in more than 1 rank at the same time
                 if task_id in objects:
@@ -448,10 +447,12 @@ class Phase:
                     )
 
                 o = Object(
-                    task_id,
+                    seq_id=task_id,
+                    packed_id=None,
                     r_id=rank_id,
-                    load=time,
-                    user_defined=task_user_defined)
+                    load=task_spec["time"],
+                    user_defined=task_user_defined,
+                    collection_id=task_spec.get("collection_id"))
 
                 objects[task_id] = o
 
@@ -459,9 +460,9 @@ class Phase:
                 ranks[rank_id].add_migratable_object(o)
 
         # Load shared blocks
-        for shared_block_id, shared_block_spec in spec["shared_blocks"].items():
+        for shared_id, shared_block_spec in spec["shared_blocks"].items():
             if not shared_block_spec["tasks"]:
-                self.__logger.warning(f"No tasks linked to shared block {shared_block_id} !")
+                self.__logger.warning(f"No tasks linked to shared block {shared_id} !")
 
             # Browse tasks
             for task_id in shared_block_spec["tasks"]:
@@ -469,39 +470,43 @@ class Phase:
 
                 # Find shared block and create if not already created in memory
                 b: Block = None
-                if not shared_block_id in shared_blocks:
-                    b = Block(b_id=shared_block_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
+                if not shared_id in shared_blocks:
+                    b = Block(b_id=shared_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
                               o_ids=shared_block_spec["tasks"])
                     # Index the shared block for next loops checks
-                    shared_blocks[shared_block_id] = b
+                    shared_blocks[shared_id] = b
                 else:
-                    b = shared_blocks[shared_block_id]
+                    b = shared_blocks[shared_id]
 
                 # Associate shared block with object
                 # Check: task must share 0 or 1 block
-                if not multiple_sharing and o.get_shared_block_id() is not None and o.get_shared_block_id() != shared_block_id:
+                if not multiple_sharing and o.get_shared_id() is not None and o.get_shared_id() != shared_id:
                     raise RuntimeError(
-                        f"Task {o.get_id()} already shared block {o.get_shared_block_id()} and cannot share additional block {shared_block_id}. Only 0 or 1 allowed")
+                        f"Task {o.get_id()} already shared block {o.get_shared_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
-                o.get_user_defined()["shared_block_id"] = b.get_id()
+                o.get_user_defined()["shared_id"] = b.get_id()
                 o.get_user_defined()["shared_bytes"] = b.get_size()
                 o.get_user_defined()["home_rank"] = b.get_home_id()
 
         # Normalize communications as communications dictionaries
         communications = {comm_id: {
-            "type": "SendRecv",
-            "to": {
+            "bytes": comm_spec["size"],
+            "from": {
+                "home": objects[comm_spec["to"]].get_rank_id(),
+                "migratable": True,
                 "type": "object",
-                "id": comm_spec["to"]
+                "seq_id": comm_spec["from"]
             },
             "messages": 1,
-            "from": {
+            "type": "SendRecv",
+            "to": {
+                "home": objects[comm_spec["to"]].get_rank_id(),
+                "migratable": True,
                 "type": "object",
-                "id": comm_spec["from"]
-            },
-            "bytes": comm_spec["size"]
+                "seq_id": comm_spec["to"]
+            }
         } for comm_id, comm_spec in spec["communications"].items()}
 
         # Compute communication edges
@@ -509,8 +514,8 @@ class Phase:
         phase_communications = {r_id: [] for r_id in spec.get("ranks", []).keys()}
         for com_id, communication in communications.items():
             c_bytes: float = communication["bytes"]
-            sender_obj_id = communication["from"]["id"]
-            receiver_obj_id = communication["to"]["id"]
+            sender_obj_id = communication["from"].get("id", communication["from"].get("seq_id"))
+            receiver_obj_id = communication["to"].get("id", communication["to"].get("seq_id"))
 
             # Create receiver if it does not exist
             comm_edges.setdefault(receiver_obj_id, {"sent": [], "received": []})
@@ -583,9 +588,9 @@ class Phase:
                 f"Removing object {o_id} attachment to block {b_id} on rank {r_src.get_id()}")
 
             # Perform sanity check
-            if b_id not in r_src.get_shared_block_ids():
+            if b_id not in r_src.get_shared_ids():
                 self.__logger.error(
-                    f"block {b_id} not present in {r_src.get_shared_block_ids()}")
+                    f"block {b_id} not present in {r_src.get_shared_ids()}")
                 raise SystemExit(1)
 
             if not block.detach_object_id(o_id):
@@ -608,8 +613,12 @@ class Phase:
             b_dst.attach_object_id(o_id)
             o.set_shared_block(b_dst)
 
-    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = []):
+    def transfer_objects(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list] = None):
         """Transfer list of objects between source and destination ranks."""
+
+        if o_dst is None:
+            o_dst = []
+
         # Transfer objects from source to destination
         for o in o_src:
             self.transfer_object(r_src, o, r_dst)
