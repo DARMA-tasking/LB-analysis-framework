@@ -4,11 +4,11 @@ import json
 import os
 import subprocess
 import unittest
-from typing import Any
+from typing import Any, Union
 
 import brotli
 import yaml
-from schema import Optional
+from schema import Optional, And
 
 from src.lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
 from src.lbaf.Utils.lbsPath import abspath
@@ -28,35 +28,51 @@ class TestVTDataWriter(unittest.TestCase):
     def tearDown(self):
         return
 
-    def __list_optional_keys_recursive(self, nodes: Any, dot_path: str = ''):
-        """List optional keys as some dot path notation"""
+    def __list_optional_keys_recursive(self, nodes: Union[list,dict,And], dot_path: str = ''):
+        """List optional fields recursively in a schema
+
+        :param nodes: the nodes
+        :param dot_path: the dot path of the nodes (used for internal recursion), defaults to ''
+        :return: the list of optional nodes (dot path)
+        """
         opt_nodes = []
 
+        # if nodes list
         if isinstance(nodes, list):
             for item in nodes:
                 opt_nodes += self.__list_optional_keys_recursive(item, dot_path)
             return opt_nodes
-
-        # Key & node
-        if isinstance(nodes, dict):
+        # if index-based nodes
+        elif isinstance(nodes, dict):
             for key, item in nodes.items():
                 key_as_string = key if isinstance(key, str) else key.schema
                 if isinstance(key, Optional):
                     opt_nodes.append(dot_path + key_as_string)
-                else:
-                    opt_nodes += self.__list_optional_keys_recursive(item, dot_path + key_as_string + '.')
+                opt_nodes += self.__list_optional_keys_recursive(item, dot_path + key_as_string + '.')
+        # if 'And' combination
+        elif isinstance(nodes, And):
+            for a in nodes.args:
+                if isinstance(nodes, list) or isinstance(nodes, dict) or isinstance(nodes, And):
+                    opt_nodes += self.__list_optional_keys_recursive([ a ], dot_path)
+
         return opt_nodes
 
     def __remove_optional_keys_recursive(self, data: dict, optional_keys: list, dot_path: str = ''):
+        # Values that we want to keep even it is optional (one of the 2 ids is required)
+        do_keep_exceptions = [ "phases.tasks.entity.id", "phases.tasks.entity.seq_id" ]
+
         to_delete = []
         for key, value in data.items():
-            if dot_path + key in optional_keys and data.get(key) is not None:
+            child_dot_path = dot_path + key
+            if (child_dot_path in optional_keys and data.get(key) is not None and
+                not child_dot_path in do_keep_exceptions):
                 to_delete.append(key)
             elif isinstance(value, dict):
-                self.__remove_optional_keys_recursive(value, optional_keys, dot_path + key + ".")
+                self.__remove_optional_keys_recursive(value, optional_keys, child_dot_path + ".")
             elif isinstance(value, list):
                 for item in value:
-                    self.__remove_optional_keys_recursive(item, optional_keys, dot_path + key + ".")
+                    if isinstance(item, dict):
+                        self.__remove_optional_keys_recursive(item, optional_keys, child_dot_path + ".")
 
         for k in to_delete:
             del data[k]
@@ -74,9 +90,12 @@ class TestVTDataWriter(unittest.TestCase):
             for key, item in data.items():
                 data[key] = self.__sort_data_recursive(item)
         elif isinstance(data, list):
-            if isinstance(data[0], dict) and "id" in data[0]:
-                sorted_list = sorted(data, key=lambda item: item.get("id"))
-                data = sorted_list
+            if isinstance(data[0], dict):
+                for id_field in ["id", "seq_id"]:
+                    if id_field in data[0]:
+                        sorted_list = sorted(data, key=lambda item, k=id_field: item.get(k))
+                        data = sorted_list
+                        break
             # if list recursive sort children
             sorted_data = []
             for item in data:
@@ -84,15 +103,15 @@ class TestVTDataWriter(unittest.TestCase):
             data = sorted_data
         return data
 
-    def __sort_phases_by_entity_id(self, data):
+    def __sort_phases_tasks(self, data):
         """Sort phases by entity ids (required to compare input and output data files)"""
 
         phases = data.get("phases")
         if phases is not None:
             for phase in phases:
                 tasks = phase.get("tasks")
-                if phase.get("tasks") is not None:
-                    phase["tasks"] = sorted(tasks, key=lambda item: item.get("entity").get("id"))
+                if tasks is not None:
+                    phase["tasks"] = sorted(tasks, key=lambda item: item.get("entity").get("id", item.get("entity").get("seq_id")))
             data["phases"] = phases
 
     def __read_data_file(self, file_path):
@@ -113,6 +132,13 @@ class TestVTDataWriter(unittest.TestCase):
         Note that the dictionary keys and list of elements can be ordered differently in the input and in the output
         data.
         """
+
+        # JSON schema validator
+        schema_validator = SchemaValidator(schema_type="LBDatafile")
+        # > find optional nodes
+        opt_keys = self.__list_optional_keys_recursive(schema_validator.valid_schema.schema)
+        print("Ignoring optional keys: ")
+        print(opt_keys)
 
         # run LBAF
         config_file = os.path.join(self.config_dir, "conf_vt_writer_stepper_test.yml")
@@ -150,25 +176,22 @@ class TestVTDataWriter(unittest.TestCase):
             input_data = self.__read_data_file(input_file)
             output_data = self.__read_data_file(output_file)
 
-            # validate output against the JSON schema validator
-            schema_validator = SchemaValidator(schema_type="LBDatafile")
+            # validate output data against schema
             self.assertTrue(
                 schema_validator.validate(output_data),
                 f"Schema not valid for generated file at {output_file_name}"
             )
 
             # compare input & output data
-            # > find optional nodes
-            opt_keys = self.__list_optional_keys_recursive(schema_validator.valid_schema.schema)
             # > remove optional nodes from input and output data
             self.__remove_optional_keys_recursive(input_data, opt_keys)
             self.__remove_optional_keys_recursive(output_data, opt_keys)
             # > sort dictionaries and lists of elements by id
             input_data = self.__sort_data_recursive(input_data)
             output_data = self.__sort_data_recursive(output_data)
-            # > sort phases by inner entity id
-            self.__sort_phases_by_entity_id(input_data)
-            self.__sort_phases_by_entity_id(output_data)
+            # > sort phases tasks
+            self.__sort_phases_tasks(input_data)
+            self.__sort_phases_tasks(output_data)
 
             # uncomment to see complete data file contents (uncompressed)
             # print(f"-------------------------------{input_file_name}-----------------------------------")
@@ -265,11 +288,11 @@ class TestVTDataWriter(unittest.TestCase):
                 rank_objs = []
                 tasks = output_phase_dict["tasks"]
                 for task in tasks:
-                    rank_objs.append(task["entity"].get("id"))
+                    rank_objs.append(task["entity"].get("id", task["entity"].get("seq_id")))
 
                 # Make sure all communicating objects belong on this rank
                 for comm_dict in output_communication_data:
-                    comm_obj = comm_dict["from"]["id"]
+                    comm_obj = comm_dict["from"].get("id", comm_dict["from"].get("seq_id"))
                     if comm_dict["from"]["migratable"]: # ignore sentinel objects
                         self.assertIn(comm_obj, rank_objs, f"Object {comm_obj} is not on rank {r_id}")
 

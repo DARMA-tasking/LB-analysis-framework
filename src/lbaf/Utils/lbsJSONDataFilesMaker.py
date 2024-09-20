@@ -43,7 +43,7 @@ from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Execution.lbsPhaseSpecification import (
     PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification,
-    PhaseSpecificationNormalizer
+    TaskSpecification, PhaseSpecificationNormalizer
 )
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsLogging import get_logger, Logger
@@ -189,27 +189,18 @@ class JSONDataFilesMaker():
 
         spec = None
         if self.__args.spec_file:
-            self.load_spec_from_file(self.__args.spec_file)
+            spec = self.load_spec_from_file(self.__args.spec_file)
 
-        if spec is None:
-            spec: PhaseSpecification = PhaseSpecification({
-                "tasks": [],
-                "shared_blocks": [],
-                "communications": [],
-                "ranks": {}
-            })
+        if spec:
+            self.spec = spec
 
-        # Build immediately in non interactive mode
-        if self.__args.interactive is False:
-            self.build()
-
-        return spec
+        return self.spec
 
     def build(self):
         """Build the data set"""
 
         data_stem = self.__args.data_stem
-        if self.__args.interactive:
+        if self.__args.interactive is not False:
             data_stem = self.__prompt.prompt(
                 "Data stem ?",
                 default=(os.path.join(PROJECT_PATH, "output", "maker", "data",
@@ -226,11 +217,11 @@ class JSONDataFilesMaker():
             "json_output_suffix": "json",
         }
 
-        output_dir = f"{os.sep}".join(self.__args.data_stem.split(os.sep)[:-1])
+        output_dir = f"{os.sep}".join(data_stem.split(os.sep)[:-1])
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
 
-        writer = VTDataWriter(self.__logger, None, self.__args.data_stem, writer_parameters)
+        writer = VTDataWriter(self.__logger, None, data_stem, writer_parameters)
         writer.write({phase.get_id(): phase})
         self.__prompt.print_success("Dataset has been generated.")
 
@@ -242,7 +233,20 @@ class JSONDataFilesMaker():
         """
 
         spec = PhaseSpecification({
-            "tasks": [2.0, 3.5, 5.0],
+            "tasks": [
+                TaskSpecification({
+                    "collection_id": 0,
+                    "time": 2.0
+                }),
+                TaskSpecification({
+                    "collection_id": 0,
+                    "time": 3.5
+                }),
+                TaskSpecification({
+                    "collection_id": 0,
+                    "time": 5.0
+                })
+            ],
             "communications": [
                 CommunicationSpecification({
                     "size": 10000.0,  # c1 (size)
@@ -257,11 +261,6 @@ class JSONDataFilesMaker():
                 CommunicationSpecification({
                     "size": 20000.0,  # c3 (size)
                     "from": 2,  # from t3
-                    "to": 1  # to t2
-                }),
-                CommunicationSpecification({
-                    "size": 25000.0,  # c4 (size)
-                    "from": 0,  # from t1
                     "to": 1  # to t2
                 })
             ],
@@ -292,12 +291,15 @@ class JSONDataFilesMaker():
 
         self.spec = spec
 
-    def load_spec_from_file(self, file_path) ->bool:
+    def load_spec_from_file(self, file_path) -> Optional[PhaseSpecificationNormalizer]:
         """Load a specification from a file (Yaml or Json)
 
-        Return True on success or False on failure.
+        Return a PhaseSpecificationNormalizer instance on success or None on failure.
         Exit the program if specification file is invalid in non-interactive mode
         """
+
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError("File not found")
 
         spec = PhaseSpecification()
         with open(file_path, "r", encoding="utf-8") as file_stream:
@@ -309,20 +311,17 @@ class JSONDataFilesMaker():
             else:
                 spec_dict = yaml.safe_load(file_stream)
 
-        spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
-
         try:
+            spec = PhaseSpecificationNormalizer().denormalize(spec_dict)
             # try load phase to validate input file
             Phase(self.__logger, 0).populate_from_specification(spec, self.__args.multiple_sharing is not False)
         except RuntimeError as e:
             self.__prompt.print_error(f"Input specification error: {e}")
             if self.__args.interactive is False:
                 raise SystemExit(-1) from e
-            return False
+            spec = None
 
-
-        self.spec = spec
-        return True
+        return spec
 
     def print(self, output_format: str = "json"):
         """print a specification to the console"""
@@ -411,13 +410,23 @@ class JSONDataFilesMaker():
         self.make_object(
             self.spec.get("tasks"),
             "task",
-            default=0.0,
-            update=lambda time, t_id: (self.__prompt.prompt("Task time ?", required=True, value_type=float,
-                                                            default=time))
+            default=TaskSpecification({"collection_id": 0, "time":0.0}),
+            update=lambda task, t_id: self.update_task(task)
         )
 
+    def update_task(self, task: TaskSpecification):
+        """Ask for task time, collection_id in interactive mode"""
+
+        task["time"] = self.__prompt.prompt("Task time ?", required=True, value_type=float,
+                                                            default=task.get("time", 0.0))
+        collection_id = self.__prompt.prompt("Collection id ?", required=True, value_type=int,
+                                                            default=task.get("collection_id", 7))
+        task["collection_id"] = collection_id
+
+        return task
+
     def update_communication(self, comm):
-        """Ask for communicaton size, from and to in interactive mode"""
+        """Ask for communication size, from and to in interactive mode"""
 
         tasks: Union[dict, list] = self.spec["tasks"]
 
@@ -724,7 +733,11 @@ class JSONDataFilesMaker():
                 os.makedirs(output_dir)
 
             with open(path, "wt", encoding="utf-8") as o_file:
-                o_file.write(PhaseSpecificationNormalizer().normalize(self.spec), frmt)
+                normalized_spec = PhaseSpecificationNormalizer().normalize(self.spec)
+                if frmt == "json":
+                    o_file.write(json.dumps(normalized_spec, sort_keys=True, indent=2, separators=(',', ": ")))
+                elif frmt == "yaml":
+                    o_file.write(yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
 
     def run_action(self, action: str):
         """Run an action"""
@@ -770,8 +783,16 @@ class JSONDataFilesMaker():
         self.__parse_args()
 
         self.spec = self.process_args()
+
+        # Build immediately in non interactive mode
+        if self.__args.interactive is False:
+            self.build()
+
         if self.__args.interactive is False:
             return
+
+        # Consider False value as True (e.g. None) for interactive mode
+        self.__args.interactive = True
 
         # Loop on interactive mode available actions
         action: str = "Make Task"  # default action is a sample

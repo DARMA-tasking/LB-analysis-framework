@@ -42,44 +42,44 @@ class TestConfig(unittest.TestCase):
             {}
         ]
         self.ranks_iter_map = [
-            {0: Rank(r_id=0, mo={Object(i=3, load=0.5), Object(i=2, load=0.5), Object(i=0, load=1.0),
-                                                 Object(i=1, load=0.5)}, logger=self.logger)},
-                               {0: Rank(r_id=1, mo={Object(i=5, load=2.0), Object(i=7, load=0.5), Object(i=6, load=1.0),
-                                                 Object(i=4, load=0.5)}, logger=self.logger)},
-                               {0: Rank(r_id=2, mo={Object(i=8, load=1.5)}, logger=self.logger)},
+            {0: Rank(r_id=0, mo={Object(seq_id=3, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=0, load=1.0),
+                                                 Object(seq_id=1, load=0.5)}, logger=self.logger)},
+                               {0: Rank(r_id=1, mo={Object(seq_id=5, load=2.0), Object(seq_id=7, load=0.5), Object(seq_id=6, load=1.0),
+                                                 Object(seq_id=4, load=0.5)}, logger=self.logger)},
+                               {0: Rank(r_id=2, mo={Object(seq_id=8, load=1.5)}, logger=self.logger)},
                                {0: Rank(r_id=3, logger=self.logger)}]
 
         self.rank_list = [
             Rank(r_id=0, logger=self.logger,
                  mo={Object(
-                     i=3, load=0.5, r_id=0,
-                     comm=ObjectCommunicator(i=3, logger=self.logger, s={Object(i=2, load=0.5): 1.0, Object(i=8, load=1.5): 0.5})),
+                     seq_id=3, load=0.5, r_id=0,
+                     comm=ObjectCommunicator(i=3, logger=self.logger, s={Object(seq_id=2, load=0.5): 1.0, Object(seq_id=8, load=1.5): 0.5})),
                      Object(
-                         i=2, load=0.5, r_id=0,
-                         comm=ObjectCommunicator(i=2, logger=self.logger, r={Object(i=3, load=0.5): 1.0})),
+                         seq_id=2, load=0.5, r_id=0,
+                         comm=ObjectCommunicator(i=2, logger=self.logger, r={Object(seq_id=3, load=0.5): 1.0})),
                      Object(
-                         i=0, load=1.0, r_id=0,
-                         comm=ObjectCommunicator(i=0, logger=self.logger, s={Object(i=5, load=2.0): 2.0})),
+                         seq_id=0, load=1.0, r_id=0,
+                         comm=ObjectCommunicator(i=0, logger=self.logger, s={Object(seq_id=5, load=2.0): 2.0})),
                      Object(
-                         i=1, load=0.5, r_id=0,
-                         comm=ObjectCommunicator(i=1, logger=self.logger, r={Object(i=4, load=0.5): 2.0}, s={Object(i=4, load=0.5): 1.0}))}),
+                         seq_id=1, load=0.5, r_id=0,
+                         comm=ObjectCommunicator(i=1, logger=self.logger, r={Object(seq_id=4, load=0.5): 2.0}, s={Object(seq_id=4, load=0.5): 1.0}))}),
             Rank(r_id=1, logger=self.logger,
                  mo={Object(
-                     i=5, load=2.0, r_id=1,
-                     comm=ObjectCommunicator(i=5, logger=self.logger, r={Object(i=0, load=1.0): 2.0}, s={Object(i=8, load=1.5): 2.0})),
+                     seq_id=5, load=2.0, r_id=1,
+                     comm=ObjectCommunicator(i=5, logger=self.logger, r={Object(seq_id=0, load=1.0): 2.0}, s={Object(seq_id=8, load=1.5): 2.0})),
                      Object(
-                         i=7, load=0.5, r_id=1,
-                         comm=ObjectCommunicator(i=7, logger=self.logger, s={Object(i=6, load=1.0): 1.0})),
+                         seq_id=7, load=0.5, r_id=1,
+                         comm=ObjectCommunicator(i=7, logger=self.logger, s={Object(seq_id=6, load=1.0): 1.0})),
                      Object(
-                         i=6, load=1.0, r_id=1,
-                         comm=ObjectCommunicator(i=6, logger=self.logger, r={Object(i=7, load=0.5): 1.0, Object(i=8, load=1.5): 1.5})),
+                         seq_id=6, load=1.0, r_id=1,
+                         comm=ObjectCommunicator(i=6, logger=self.logger, r={Object(seq_id=7, load=0.5): 1.0, Object(seq_id=8, load=1.5): 1.5})),
                      Object(
-                         i=4, load=0.5, r_id=1,
-                         comm=ObjectCommunicator(i=4, logger=self.logger, r={Object(i=1, load=0.5): 1.0}, s={Object(i=1, load=0.5): 2.0}))}),
+                         seq_id=4, load=0.5, r_id=1,
+                         comm=ObjectCommunicator(i=4, logger=self.logger, r={Object(seq_id=1, load=0.5): 1.0}, s={Object(seq_id=1, load=0.5): 2.0}))}),
             Rank(r_id=2, logger=self.logger,
                  mo={Object(
-                     i=8, load=1.5, r_id=2,
-                     comm=ObjectCommunicator(i=8, logger=self.logger, r={Object(i=3, load=0.5): 0.5, Object(i=5, load=2.0): 2.0}, s={Object(i=6, load=1.0): 1.5}))}),
+                     seq_id=8, load=1.5, r_id=2,
+                     comm=ObjectCommunicator(i=8, logger=self.logger, r={Object(seq_id=3, load=0.5): 0.5, Object(seq_id=5, load=2.0): 2.0}, s={Object(seq_id=6, load=1.0): 1.5}))}),
             Rank(r_id=3, logger=self.logger)]
 
     def test_lbs_vt_data_reader_initialization(self):
@@ -151,28 +151,8 @@ class TestConfig(unittest.TestCase):
             LoadReader(
                 file_prefix=file_prefix,
                 logger=self.logger, file_suffix=self.file_suffix)._populate_rank(0, 0)
-        list_of_err_msg = []
-        with open(os.path.join(
-            self.data_dir,
-            "synthetic_lb_data_wrong_schema", "schema_error_0.txt"), "rt", encoding="utf-8") as se:
-            err_msg_0 = se.read()
-        list_of_err_msg.append(err_msg_0)
-        with open(os.path.join(
-            self.data_dir,
-            "synthetic_lb_data_wrong_schema", "schema_error_1.txt"), "rt", encoding="utf-8") as se:
-            err_msg_1 = se.read()
-        list_of_err_msg.append(err_msg_1)
-        with open(os.path.join(
-            self.data_dir,
-            "synthetic_lb_data_wrong_schema", "schema_error_2.txt"), "rt", encoding="utf-8") as se:
-            err_msg_2 = se.read()
-        list_of_err_msg.append(err_msg_2)
-        with open(os.path.join(
-            self.data_dir,
-            "synthetic_lb_data_wrong_schema", 'schema_error_3.txt'), "rt", encoding="utf-8") as se:
-            err_msg_3 = se.read()
-        list_of_err_msg.append(err_msg_3)
-        self.assertIn(err.exception.args[0], list_of_err_msg)
+
+        self.assertRegex(err.exception.args[0], r"Key 'phases' error:\n(.*)\nMissing key: 'tasks'")
 
     def test_lbs_vt_data_reader_populate_phase(self):
         rank_list, comm_dict = self.lr.populate_phase(0)

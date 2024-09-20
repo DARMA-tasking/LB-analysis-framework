@@ -20,8 +20,8 @@ class TestConfig(unittest.TestCase):
             self.work_model,
             self.logger
         )
-        self.migratable_objects = {Object(i=0, load=1.0), Object(i=1, load=0.5), Object(i=2, load=0.5), Object(i=3, load=0.5)}
-        self.sentinel_objects = {Object(i=15, load=4.5), Object(i=18, load=2.5)}
+        self.migratable_objects = {Object(seq_id=0, load=1.0), Object(seq_id=1, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=3, load=0.5)}
+        self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
         self.rank = Rank(r_id=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
         self.transfer_strategy=TransferStrategyBase(criterion=self.criterion, parameters={}, logger=self.logger)
 

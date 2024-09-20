@@ -1,5 +1,15 @@
 # config: synthetic data set with blocks
-tasks: [1.0, 0.5, 0.5, 0.5, 0.5, 2.0, 1.0, 0.5, 1.5]
+# this is meant to be the same case as CCM-MILP"s
+tasks:
+  - { collection_id: 7, time: 1.0 }
+  - { collection_id: 7, time: 0.5 }
+  - { collection_id: 7, time: 0.5 }
+  - { collection_id: 7, time: 0.5 }
+  - { collection_id: 7, time: 0.5 }
+  - { collection_id: 7, time: 2.0 }
+  - { collection_id: 7, time: 1.0 }
+  - { collection_id: 7, time: 0.5 }
+  - { collection_id: 7, time: 1.5 }
 communications:
   - {from: 0, size: 2.0, to: 5}
   - {from: 1, size: 1.0, to: 4}
