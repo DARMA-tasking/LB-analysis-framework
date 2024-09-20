@@ -98,12 +98,13 @@ The `tox` command will:
 
 ## Usage
 
-If the `lbaf` package is installed, you can run LBAF using the following command:
+If the `lbaf` package is installed, LBAF can be run using the following command:
+
 ```shell
 lbaf -c <config-file-path>
 ```
 
-If you installed dependencies instead, then you will run LBAF from source:
+If dependencies were installed instead, LBAF must be run from source:
 
 ```shell
 cd <project-path>
@@ -124,7 +125,7 @@ LBAF can optionally leverage [`vt-tv`](https://github.com/DARMA-tasking/vt-tv), 
 
 To get started, you will need to build `VTK` (instructions [here](https://gitlab.kitware.com/vtk/vtk/-/blob/master/Documentation/docs/build_instructions/build.md)).
 
-Then, clone the `vt-tv` repo and install the Python bindings:
+Then, clone the `vt-tv` repository and install the Python bindings:
 
 ```shell
 git clone https://github.com/DARMA-tasking/vt-tv.git
@@ -160,7 +161,7 @@ To output only the Rank QOI, use `-v 1`. Otherwise, to print both Rank and Objec
 
 <br />
 
-JSON data files Validator validates VT data files against defined schema. It is located in the VT repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
+JSON data files Validator validates vt data files against defined schema. It is located in the vt repository and can be found [here](https://raw.githubusercontent.com/DARMA-tasking/vt/develop/scripts/JSON_data_files_validator.py).
 
 #### Download into LBAF
 
@@ -198,7 +199,7 @@ _Note: This command automatically downloads the `JSON_data_files_validator.py` s
 
 #### Usage
 
-These commands assume that LBAF was installed as a package. If you are running from source, you will need to replace the run command as noted above.
+These commands assume that LBAF was installed as a package. When running from source, replace the run command as noted above.
 
 For single file:
 
@@ -228,10 +229,10 @@ lbaf-vt-data-files-validator --dir_path=../../data/nolb-8color-16nodes-data --fi
 </details>
 
 <details>
-<summary><b>VT Data Extractor</b></summary>
+<summary><b>vt Data Extractor</b></summary>
 
 <br />
-The VT Data Extractor extracts phases from VT stats files.
+The vt Data Extractor extracts phases from vt stats files.
 
 #### Usage
 
@@ -261,11 +262,11 @@ python src/lbaf/Utils/lbsVTDataExtractor.py
 </details>
 
 <details>
-<summary><b>VT Data Maker</b></summary>
+<summary><b>vt Data Maker</b></summary>
 
 <br />
 
-The VT Data Maker generates a dataset of JSON files that may be used throughout the DARMA-tasking organization. The generated files are compatible with `LBAF`, `vt-tv`, and `vt`.
+The vt Data Maker generates a dataset of JSON files that may be used throughout the DARMA-tasking organization. The generated files are compatible with `LBAF`, `vt-tv`, and `vt`.
 
 If the `lbaf` package is installed, run with:
 
@@ -291,4 +292,4 @@ Further documentation, including usage and examples, can be found within the scr
 
 ### [Optimizing Distributed Load Balancing for Workloads with Time-Varying Imbalance](https://ieeexplore.ieee.org/document/9556089)
 
-"This paper explores dynamic load balancing algorithms used by asynchronous many-task (AMT), or ‘taskbased’, programming models to optimize task placement for scientific applications with dynamic workload imbalances."
+"This paper explores dynamic load balancing algorithms used by asynchronous many-task (AMT), or ‘task-based’, programming models to optimize task placement for scientific applications with dynamic workload imbalances."
