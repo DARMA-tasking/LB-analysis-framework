@@ -8,6 +8,8 @@ from typing import Optional
 import brotli
 
 from ..Model.lbsPhase import Phase
+from ..Model.lbsRank import Rank
+from ..Model.lbsObject import Object
 
 
 class VTDataWriter:
@@ -62,7 +64,6 @@ class VTDataWriter:
             task_data = {
                 "entity": {
                     "home": rank_id,
-                    "id": o.get_id(),
                     "migratable": migratable,
                     "type": "object",
                 },
@@ -70,22 +71,30 @@ class VTDataWriter:
                 "resource": "cpu",
                 "time": o.get_load()
             }
+
+            if o.get_packed_id() is not None:
+                task_data["entity"]["id"] = o.get_packed_id()
+
+            if o.get_seq_id() is not None:
+                task_data["entity"]["seq_id"] = o.get_seq_id()
+
+            if o.get_collection_id() is not None:
+                task_data["entity"]["collection_id"] = o.get_collection_id()
+
             if unused_params:
                 task_data["entity"].update(unused_params)
 
+            task_data["entity"] = dict(sorted(task_data["entity"].items()))
+
             user_defined = o.get_user_defined()
             if user_defined:
-                task_data["user_defined"] = user_defined
-
-            subphases = o.get_subphases()
-            if subphases:
-                task_data["subphases"] = subphases
+                task_data["user_defined"] = dict(sorted(user_defined.items()))
 
             tasks.append(task_data)
 
         return tasks
 
-    def __get_communications(self, phase, rank):
+    def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
 
         # Get initial communications (if any) for current phase
@@ -107,9 +116,47 @@ class VTDataWriter:
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
             for comm_dict in initial_on_rank_communications:
-                if "migratable" in comm_dict["from"].keys() and not comm_dict["from"]["migratable"]: # object is sentinel
+                missing_ref = None
+
+                # Copy object information to the communication node
+                sender_obj: Object = [o for o in phase.get_objects() if
+                    o.get_id() is not None and o.get_id() == comm_dict["from"].get("id") or
+                    o.get_seq_id() is not None and o.get_seq_id() == comm_dict["from"].get("seq_id")]
+                if len(sender_obj) == 1:
+                    sender_obj = sender_obj[0]
+                    from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
+                    comm_dict["from"]["home"] = sender_obj.get_rank_id()
+                    comm_dict["from"]["migratable"] = from_rank.is_migratable(sender_obj)
+                    for k, v in sender_obj.get_unused_params().items():
+                        comm_dict["from"][k] = v
+                    comm_dict["from"] = dict(sorted(comm_dict["from"].items()))
+                else:
+                    missing_ref = comm_dict['from'].get('id', comm_dict['from'].get('seq_id'))
+                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
+
+                receiver_obj: Object = [o for o in phase.get_objects() if
+                    o.get_id() is not None and o.get_id() == comm_dict["to"].get("id") or
+                    o.get_seq_id() is not None and o.get_seq_id() == comm_dict["to"].get("seq_id")]
+                if len(receiver_obj) == 1:
+                    receiver_obj = receiver_obj[0]
+                    comm_dict["to"]["home"] = receiver_obj.get_rank_id()
+                    to_rank = [r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
+                    comm_dict["to"]["migratable"] = to_rank.is_migratable(receiver_obj)
+                    for k, v in receiver_obj.get_unused_params().items():
+                        comm_dict["to"][k] = v
+                    comm_dict["to"] = dict(sorted(comm_dict["to"].items()))
+                else:
+                    missing_ref = comm_dict['to'].get('id', comm_dict['to'].get('seq_id'))
+                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
+
+                if missing_ref is not None:
+                    # keep communication with invalid entity references for the moment.
+                    # We might remove these communications in the future in the reader work to fix invalid input.
                     communications.append(comm_dict)
-                elif comm_dict["from"]["id"] in rank_objects:
+                elif ("migratable" in comm_dict["from"].keys() and
+                        not comm_dict["from"]["migratable"]): # object is sentinel
+                    communications.append(comm_dict)
+                elif comm_dict["from"].get("id", comm_dict["from"].get("seq_id")) in rank_objects:
                     communications.append(comm_dict)
                 else:
                     self.__moved_comms.append(comm_dict)
@@ -117,7 +164,7 @@ class VTDataWriter:
         # Loop through any moved objects to find the correct rank
         if self.__moved_comms:
             for moved_dict in self.__moved_comms:
-                if moved_dict["from"]["id"] in rank_objects:
+                if moved_dict["from"].get("id", moved_dict["from"].get("seq_id")) in rank_objects:
                     communications.append(moved_dict)
 
         return communications
@@ -155,11 +202,12 @@ class VTDataWriter:
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data= {"id": p_id,
-                         "tasks":
+                         "tasks": sorted(
                             self.__create_tasks(
                                 r_id, rank.get_migratable_objects(), migratable=True) +
                             self.__create_tasks(
-                                r_id, rank.get_sentinel_objects(), migratable=False),
+                                r_id, rank.get_sentinel_objects(), migratable=False)
+                         , key=lambda x: x.get("entity").get("id", x.get("entity").get("seq_id")))
             }
 
             # Add communication data (if present)

@@ -4,6 +4,7 @@ import re
 from logging import Logger
 from multiprocessing import get_context, Manager
 from multiprocessing.pool import Pool
+from typing import List, Tuple
 
 import brotli
 
@@ -155,7 +156,7 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def _populate_rank(self, phase_id: int, rank_id: int) -> tuple:
+    def _populate_rank(self, phase_id: int, rank_id: int) -> Tuple[Rank,dict]:
         """ Populate rank and its communicator in phase using the JSON content."""
 
         # Seek phase with given ID
@@ -201,21 +202,21 @@ class LoadReader:
                     # Check whether both are objects
                     if c_to.get("type") == "object" and c_from.get("type") == "object":
                         # Create receiver if it does not exist
-                        receiver_obj_id = c_to.get("id")
+                        receiver_obj_id = c_to.get("id", c_to.get("seq_id"))
                         rank_comm.setdefault(
                             receiver_obj_id, {"sent": [], "received": []})
 
                         # Create sender if it does not exist
-                        sender_obj_id = c_from.get("id")
+                        sender_obj_id = c_from.get("id", c_from.get("seq_id"))
                         rank_comm.setdefault(
                             sender_obj_id, {"sent": [], "received": []})
 
                         # Create communication edges
                         rank_comm[receiver_obj_id]["received"].append(
-                            {"from": c_from.get("id"),
+                            {"from": sender_obj_id,
                              "bytes": c_bytes})
                         rank_comm[sender_obj_id]["sent"].append(
-                            {"to": c_to.get("id"), "bytes": c_bytes})
+                            {"to": receiver_obj_id, "bytes": c_bytes})
                         self.__logger.debug(
                             f"Added communication {num} to phase {curr_phase_id}")
                         for k, v in comm.items():
@@ -234,42 +235,46 @@ class LoadReader:
         for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
             # Retrieve required values
             task_entity = task.get("entity")
-            task_id = task_entity.get("id")
+            task_id = task_entity.get("id", None)
+            task_seq_id = task_entity.get("seq_id", None)
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
             collection_id = task_entity.get("collection_id")
+            objgroup_id  = task_entity.get("objgroup_id")
             index = task_entity.get("index")
 
             # Instantiate object with retrieved parameters
             o = Object(
-                task_id,
+                seq_id=task_seq_id,
+                packed_id=task_id,
                 r_id=rank_id,
                 load=task_load,
                 user_defined=task_user_defined,
-                subphases=subphases)
+                subphases=subphases,
+                collection_id=collection_id)
 
             # Update shared block information as needed
-            if (shared_block_id := task_user_defined.get("shared_block_id", -1)) > -1:
+            if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
                 # Create or update (memory, objects) for shared block
                 rank_blocks.setdefault(
-                    shared_block_id,
+                    shared_id,
                     (task_user_defined.get("shared_bytes", 0.0), set([])))
-                rank_blocks[shared_block_id][1].add(o)
+                rank_blocks[shared_id][1].add(o)
+
+            # Add dict of currently unused parameters
+            unused_params = {}
+            if index is not None:
+                unused_params["index"] = index
+            if objgroup_id is not None:
+                unused_params["objgroup_id"] = objgroup_id
+            o.set_unused_params(unused_params)
 
             # Add object to rank given its type
             if task_entity.get("migratable"):
                 phase_rank.add_migratable_object(o)
             else:
                 phase_rank.add_sentinel_object(o)
-
-            # Add dict of currently unused parameters
-            unused_params = {}
-            if collection_id:
-                unused_params["collection_id"] = collection_id
-            if index:
-                unused_params["index"] = index
-            o.set_unused_params(unused_params)
 
             # Print debug information when requested
             self.__logger.debug(
@@ -293,11 +298,11 @@ class LoadReader:
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
 
-    def populate_phase(self, phase_id: int) -> list:
+    def populate_phase(self, phase_id: int) -> List[Rank]:
         """ Populate phase using the JSON content."""
 
         # Create storage for ranks
-        ranks = [None] * self.n_ranks
+        ranks: List[Rank] = [None] * self.n_ranks
         communications = {}
 
         # Iterate over all ranks

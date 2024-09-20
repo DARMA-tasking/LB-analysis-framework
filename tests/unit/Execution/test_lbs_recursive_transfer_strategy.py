@@ -32,8 +32,8 @@ class TestConfig(unittest.TestCase):
             self.logger)
 
         # Define objects and add them to a memory block
-        self.migratable_objects = {Object(i=0, load=1.0), Object(i=1, load=0.5), Object(i=2, load=0.5), Object(i=3, load=0.5)}
-        self.sentinel_objects = {Object(i=15, load=4.5), Object(i=18, load=2.5)}
+        self.migratable_objects = {Object(seq_id=0, load=1.0), Object(seq_id=1, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=3, load=0.5)}
+        self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
         self.block = Block(b_id=0,h_id=0)
         self.block_set = {self.block}
         for o in self.migratable_objects:
@@ -63,15 +63,15 @@ class TestConfig(unittest.TestCase):
         param_dict = {}
 
         # Set up received and sent objects
-        rec_object_min = {Object(i=7, load=0.5): 5.0}
-        rec_object_max = {Object(i=8, load=1.0): 10.0}
-        sent_object_min = {Object(i=9, load=0.5): 6.0}
-        sent_object_max = {Object(i=10, load=1.0): 12.0}
+        rec_object_min = {Object(seq_id=7, load=0.5): 5.0}
+        rec_object_max = {Object(seq_id=8, load=1.0): 10.0}
+        sent_object_min = {Object(seq_id=9, load=0.5): 6.0}
+        sent_object_max = {Object(seq_id=10, load=1.0): 12.0}
 
         # Create objects
-        obj_04 = Object(i=4, load=5.0, comm=ObjectCommunicator(i=4,logger=self.logger,r=rec_object_max, s=sent_object_max))
-        obj_05 = Object(i=5, load=3.0, comm=ObjectCommunicator(i=5,logger=self.logger,r=rec_object_min, s=sent_object_min))
-        obj_06 = Object(i=6, comm=None)
+        obj_04 = Object(seq_id=4, load=5.0, comm=ObjectCommunicator(i=4,logger=self.logger,r=rec_object_max, s=sent_object_max))
+        obj_05 = Object(seq_id=5, load=3.0, comm=ObjectCommunicator(i=5,logger=self.logger,r=rec_object_min, s=sent_object_min))
+        obj_06 = Object(seq_id=6, comm=None)
 
         # Define objects set
         objects = [

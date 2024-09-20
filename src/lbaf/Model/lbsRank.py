@@ -1,6 +1,7 @@
 import copy
 import math
 from logging import Logger
+from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -80,7 +81,7 @@ class Rank:
         """Set rank's metadata."""
         self.__metadata = metadata
 
-    def get_shared_block_ids(self) -> set:
+    def get_shared_ids(self) -> set:
         """Return IDs of shared blocks."""
         return {b.get_id() for b in self.__shared_blocks}
 
@@ -152,8 +153,15 @@ class Rank:
         """Return number of objects assigned to rank."""
         return len(self.__sentinel_objects) + len(self.__migratable_objects)
 
-    def add_migratable_object(self, o: Object) -> None:
+    def add_migratable_object(self, o: Object, fallback_collection_id: Optional[int] = 7) -> None:
         """Add object to migratable objects."""
+        if o.get_collection_id() is None:
+            if fallback_collection_id is not None:
+                o.set_collection_id(fallback_collection_id)
+            if o.get_collection_id() is None:
+                raise RuntimeError(
+                    f"`collection_id` parameter is required for object with id={o.get_id()}"
+                    " because it is migratable")
         return self.__migratable_objects.add(o)
 
     def get_migratable_objects(self) -> set:
@@ -179,6 +187,10 @@ class Rank:
     def get_sentinel_object_ids(self) -> list:
         """Return IDs of sentinel objects assigned to rank."""
         return [o.get_id() for o in self.__sentinel_objects]
+
+    def is_migratable(self, o: Object) -> list:
+        """Return whether given object is migratable."""
+        return (o in self.__migratable_objects)
 
     def is_sentinel(self, o: Object) -> list:
         """Return whether given object is sentinel of rank."""

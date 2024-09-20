@@ -61,7 +61,7 @@ jobs:
       - name: Upload pylint artifact
         if: |
           steps.run_tox.outputs.pylint_report_exists == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pylint
           path: artifacts/pylint.txt
@@ -70,7 +70,7 @@ jobs:
       - name: Upload coverage artifact
         if: |
           steps.run_tox.outputs.coverage_report_exists == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: artifacts/coverage.txt
