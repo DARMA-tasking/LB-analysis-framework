@@ -3,7 +3,7 @@ LBAF Dependencies
 
 Load-Balancing-Analysis-Framework needs external Python packages in order to work.
 
-A file which contains all requirements can be found under `<project-path>/requirements-3.<x>.txt`, where `<x>` stands for python version.
+A file which contains all requirements can be found under `<project-path>/requirements.txt`.
 
 Application dependencies
 ------------------------
@@ -14,8 +14,6 @@ Application dependencies
 
    * - Package
      - License and Description
-   * - `VTK <https://pypi.org/project/vtk/>`__
-     - BSD License (BSD) **VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization**
    * - `NumPy <https://pypi.org/project/numpy/>`__
      - BSD License (BSD) **NumPy is the fundamental package for array computing with Python**
    * - `PyYAML <https://pypi.org/project/PyYAML/>`__
