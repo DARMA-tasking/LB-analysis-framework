@@ -103,7 +103,7 @@ INPUT_PAGES = [
     "../../docs/pages/index.rst",
     "../../docs/pages/configuration.rst",
     "../../docs/pages/usage.rst",
-    "../../docs/pages/before_starting.rst",
+    "../../docs/pages/getting_started.rst",
     "../../docs/pages/testing.rst",
     "../../docs/pages/utils.rst",
     "../../docs/pages/dependencies.rst",
