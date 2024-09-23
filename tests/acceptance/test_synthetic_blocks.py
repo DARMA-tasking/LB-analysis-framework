@@ -60,24 +60,24 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         # Return the path to the config file
         return tmp_cfg_file.name
 
-    def run_lb_test(self, config_file, expected_imb, test_case):
+    def run_lb_test(self, config_file, expected_w_max, test_case):
         """Compare LBAF's results to the expected imbalance."""
         # run LBAF
         subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
 
-        imbalance_file = os.path.join(os.path.dirname(__file__), "output", "imbalance.txt")
+        w_max_filepath = os.path.join(os.path.dirname(__file__), "output", "w_max.txt")
 
-        # check imbalance file exists
-        self.assertTrue(os.path.isfile(imbalance_file), f"File: {imbalance_file} does not exist!")
+        # check w_max file exists
+        self.assertTrue(os.path.isfile(w_max_filepath), f"File: {w_max_filepath} does not exist!")
 
         # validate imbalance value
-        with open(imbalance_file, 'r', encoding="utf-8") as imb_file:
-            imb_level = float(imb_file.read())
-            self.assertEqual(imb_level, expected_imb, f"@@@@@ [{test_case}] FOUND IMBALANCE: {imb_level} @@@@@")
+        with open(w_max_filepath, 'r', encoding="utf-8") as w_max_file:
+            w_max = float(w_max_file.read())
+            self.assertEqual(w_max, expected_w_max, f"@@@@@ [{test_case}] FOUND W_MAX: {w_max} @@@@@")
 
         # Delete the config and imbalance files
         os.remove(config_file)
-        os.remove(imbalance_file)
+        os.remove(w_max_filepath)
 
     def test_synthetic_blocks_lb(self):
         # Initialize test cases
@@ -86,19 +86,19 @@ class TestSyntheticBlocksLB(unittest.TestCase):
                 "alpha": 1.0,
                 "beta": 0.0,
                 "gamma": 0.0,
-                "expected_imbalance": 0.0
+                "W_max": 2.0
             },
             "off_node_communication_only": {
                 "alpha": 0.0,
                 "beta": 1.0,
                 "gamma": 0.0,
-                "expected_imbalance": 3.0
+                "W_max": 0.0
             },
             "load+off_node_communication": {
                 "alpha": 1.0,
                 "beta": 1.0,
                 "gamma": 0.0,
-                "expected_imbalance": 0.25
+                "W_max": 4.0
             }
         }
 
@@ -108,7 +108,7 @@ class TestSyntheticBlocksLB(unittest.TestCase):
                 beta=test_params["beta"],
                 gamma=test_params["gamma"]
             )
-            self.run_lb_test(cfg, test_params["expected_imbalance"], test_case)
+            self.run_lb_test(cfg, test_params["W_max"], test_case)
 
 
 if __name__ == "__main__":
