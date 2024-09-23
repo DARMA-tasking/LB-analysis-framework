@@ -55,7 +55,7 @@ THEME_COLOR = "#22272e"
 
 LINKS_NAVBAR1 = [
     ("LBAF", "pages",
-     [("Before starting", "before_starting"),
+     [("Getting started", "getting_started"),
       ("Configuration file", "configuration"),
       ("Input data", "input_data"),
       ("Usage", "usage"),
