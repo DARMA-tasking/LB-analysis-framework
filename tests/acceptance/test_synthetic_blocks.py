@@ -60,7 +60,7 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         # Return the path to the config file
         return tmp_cfg_file.name
 
-    def run_lb_test(self, config_file, expected_imb):
+    def run_lb_test(self, config_file, expected_imb, test_case):
         """Compare LBAF's results to the expected imbalance."""
         # run LBAF
         subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
@@ -73,24 +73,42 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         # validate imbalance value
         with open(imbalance_file, 'r', encoding="utf-8") as imb_file:
             imb_level = float(imb_file.read())
-            self.assertEqual(imb_level, expected_imb, f"@@@@@ FOUND IMBALANCE: {imb_level} @@@@@")
+            self.assertEqual(imb_level, expected_imb, f"@@@@@ [{test_case}] FOUND IMBALANCE: {imb_level} @@@@@")
 
         # Delete the config and imbalance files
         os.remove(config_file)
         os.remove(imbalance_file)
 
     def test_synthetic_blocks_lb(self):
-        combinations = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0)]
-        exp_imbalances = [0.00, 0.00, 0.25]
-        self.assertEqual(len(combinations), len(exp_imbalances))
-        for i in range(len(combinations)):
-            params = combinations[i]
+        # Initialize test cases
+        test_cases = {
+            "load_only": {
+                "alpha": 1.0,
+                "beta": 0.0,
+                "gamma": 0.0,
+                "expected_imbalance": 0.0
+            },
+            "off_node_communication_only": {
+                "alpha": 0.0,
+                "beta": 1.0,
+                "gamma": 0.0,
+                "expected_imbalance": 3.0
+            },
+            "load+off_node_communication": {
+                "alpha": 1.0,
+                "beta": 1.0,
+                "gamma": 0.0,
+                "expected_imbalance": 0.25
+            }
+        }
+
+        for test_case, test_params in test_cases.items():
             cfg = self.generate_configuration_file(
-                alpha=params[0],
-                beta=params[1],
-                gamma=params[2]
+                alpha=test_params["alpha"],
+                beta=test_params["beta"],
+                gamma=test_params["gamma"]
             )
-            self.run_lb_test(cfg, exp_imbalances[i])
+            self.run_lb_test(cfg, test_params["expected_imbalance"], test_case)
 
 
 if __name__ == "__main__":
