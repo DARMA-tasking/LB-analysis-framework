@@ -184,7 +184,7 @@ class DataStatFilesUpdater:
             else:
                 raise FileNotFoundError(f"Directory: {self.__args.dir_path} does NOT exist")
         else:
-            raise Exception("FILE path or DIRECTORY path has to be given")
+            raise ValueError("FILE path or DIRECTORY path has to be given")
 
 
 if __name__ == "__main__":

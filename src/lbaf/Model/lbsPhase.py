@@ -613,7 +613,7 @@ class Phase:
         self.update_edges(o, r_src, r_dst)
 
         # Remove object from migratable ones on source
-        r_src.remove_migratable_object(o, r_dst)
+        r_src.remove_migratable_object(o)
 
         # Add object to migratable ones on destination
         r_dst.add_migratable_object(o)
