@@ -97,11 +97,14 @@ class AlgorithmBase:
         # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
+        from .lbsPrescribedPermutationAlgorithm import PrescribedPermutationAlgorithm
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
         from .lbsCentralizedPrefixOptimizerAlgorithm import CentralizedPrefixOptimizerAlgorithm
         # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
+        algorithm = locals()[algorithm_name + "Algorithm"]
+        return algorithm(work_model, parameters, logger, rank_qoi, object_qoi)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]

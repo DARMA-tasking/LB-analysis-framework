@@ -68,7 +68,6 @@ class Phase:
 
     def get_ranks(self):
         """Retrieve ranks belonging to phase."""
-
         return self.__ranks
 
     def get_rank_ids(self):
