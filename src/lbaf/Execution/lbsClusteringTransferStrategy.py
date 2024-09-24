@@ -181,7 +181,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
                     # Additional filters prior to subclustering
                     if c_try <= self.__subclustering_minimum_improvement * r_src.get_load() or \
-                        r_src.get_load() < self.__subclustering_threshold * max_load[0]:
+                        r_src.get_load() < self.__subclustering_threshold * max_load:
                         continue
 
                     l_try = abs(r_try.get_load() + objects_load - ave_load)
