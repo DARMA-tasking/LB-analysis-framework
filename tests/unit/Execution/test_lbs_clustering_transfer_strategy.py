@@ -192,18 +192,20 @@ class TestConfig(unittest.TestCase):
 
         # Test that non deterministic execute function runs
         assert isinstance(
-            clustering_transfer_strategy_non_det.execute(known_peers=known_peers,
-                                                 phase=phase,
-                                                 ave_load=ave_load,
-                                                 max_load=[101]),
+            clustering_transfer_strategy_non_det.execute(
+                known_peers=known_peers,
+                phase=phase,
+                ave_load=ave_load,
+                max_load=101),
             tuple)
 
         # Test that deterministic execute function is as expected
         self.assertLessEqual(
-            clustering_transfer_strategy.execute(known_peers=known_peers,
-                                                 phase=phase,
-                                                 ave_load=ave_load,
-                                                 max_load=[101])[1],
+            clustering_transfer_strategy.execute(
+                known_peers=known_peers,
+                phase=phase,
+                ave_load=ave_load,
+                max_load=101)[1],
             1)
 
 

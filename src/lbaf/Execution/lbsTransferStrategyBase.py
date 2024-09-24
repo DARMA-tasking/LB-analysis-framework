@@ -155,10 +155,11 @@ class TransferStrategyBase:
             raise SystemExit(1) from error
 
     @abc.abstractmethod
-    def execute(self, phase, known_peers: dict, ave_load: float):
+    def execute(self, known_peers: dict, phase, ave_load: float, max_load: float):
         """Execute transfer strategy on Phase instance
-        :param phase: a Phase instance
         :param known_peers: a dictionary of sets of known rank peers
+        :param phase: a Phase instance
         :param ave_load: average load in current phase.
+        :param max_load: maximum load across current phase.
         """
         # Must be implemented by concrete subclass
