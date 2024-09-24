@@ -32,12 +32,12 @@ class TestSyntheticBlocksLB(unittest.TestCase):
                     "gamma": gamma
                 }
             },
-            "brute_force_optimization": True,
+            "brute_force_optimization": False,
             "algorithm": {
                 "name": "InformAndTransfer",
                 "phase_id": 0,
                 "parameters": {
-                    "n_iterations": 8,
+                    "n_iterations": 10,
                     "n_rounds": 2,
                     "fanout": 2,
                     "order_strategy": "element_id",
