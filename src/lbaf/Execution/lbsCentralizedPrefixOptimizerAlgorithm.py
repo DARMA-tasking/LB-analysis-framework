@@ -57,8 +57,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             qoi_name: a quantity of interest."""
 
         # Call superclass init
-        super(CentralizedPrefixOptimizerAlgorithm, self).__init__(
-            work_model, parameters, lgr, qoi_name, obj_qoi)
+        super().__init__(work_model, parameters, lgr, qoi_name, obj_qoi)
 
         self._do_second_stage = parameters.get("do_second_stage", False)
         self._phase = None
@@ -123,11 +122,11 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
                 obj_shared_map[o.get_shared_id()].append(o)
                 shared_map[o.get_shared_id()] += o.get_load()
 
-            for sid in obj_shared_map:
-                obj_shared_map[sid].sort(reverse=True, key=lambda x: x.get_load())
+            for sid, value in obj_shared_map.items():
+                value.sort(reverse=True, key=lambda x: x.get_load())
 
-            for sid in shared_map:
-                groupings.append((shared_map[sid],sid))
+            for sid, value in shared_map.items():
+                groupings.append((value, sid))
 
             # Sort the groupings so we can compute the prefix sum
             groupings.sort()
@@ -146,7 +145,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             # The range should be sufficiently large enough to get us down to
             # the average
             pick_upper = 0
-            while (groupings_sum[pick_upper] < diff):
+            while groupings_sum[pick_upper] < diff:
                 pick_upper += 1
             if pick_upper-1 >= 0 and groupings_sum[pick_upper-1] >= diff * 1.05:
                 pick_upper -= 1
@@ -159,17 +158,15 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             made_assignment = False
 
             if made_no_assignments and self._do_second_stage:
-                for i in range(0,len(groupings)):
-                    size = groupings[i][0]
-                    sid = groupings[i][1]
-                    ret = self._considerSwaps(phase_ranks, max_rank, i, size, sid, diff, obj_shared_map)
+                for i, (size, sid) in enumerate(groupings):
+                    ret = self._consider_swaps(phase_ranks, max_rank, i, size, sid, diff, obj_shared_map)
                     made_assignment = made_assignment or ret
                     if ret:
                         break
                 # for i in reversed(range(0,len(groupings))):
                 #     size = groupings[i][0]
                 #     sid = groupings[i][1]
-                #     ret = self._tryBinFully(phase_ranks, max_rank, i, size, sid, obj_shared_map)
+                #     ret = self._try_bin_fully(phase_ranks, max_rank, i, size, sid, obj_shared_map)
                 #     made_assignment = made_assignment or ret
                 #     if made_assignment:
                 #         made_no_assignments = 0
@@ -179,7 +176,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
                 for i in range(pick_lower+1,pick_upper+1):
                     size = groupings[i][0]
                     sid = groupings[i][1]
-                    ret = self._tryBin(phase_ranks, max_rank, i, size, sid, obj_shared_map)
+                    ret = self._try_bin(phase_ranks, max_rank, i, size, sid, obj_shared_map)
                     made_assignment = made_assignment or ret
 
             # Add max rank back to the heap
@@ -191,7 +188,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
                 # Compute and report iteration work statistics
                 print_function_statistics(
                     self._phase.get_ranks(),
-                    lambda x: self._work_model.compute(x),
+                    self._work_model.compute,
                     f"iteration {i + 1} rank work",
                     self._logger)
 
@@ -201,7 +198,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
 
-    def _tryBin(self, ranks, max_rank, tbin, size, sid, objs):
+    def _try_bin(self, ranks, max_rank, tbin, size, sid, objs):
         """Try to find a rank to offload a bin (load grouping that shares a common memory ID)"""
 
         # Min-heap of ranks
@@ -233,21 +230,25 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             selected_load = o.get_load()
 
             # If our situation is not made worse and fits under memory constraints, do the transer
-            if (sid in min_rank.get_shared_ids() or len(min_rank.get_shared_ids()) < self._max_shared_ids) and min_rank.get_load() + selected_load < max_rank.get_load():
+            if (sid in min_rank.get_shared_ids() or \
+                len(min_rank.get_shared_ids()) < self._max_shared_ids) and \
+                min_rank.get_load() + selected_load < max_rank.get_load():
                 self._phase.transfer_object(max_rank, o, min_rank)
                 tally_assigned += 1
             else:
                 # Put the rank back in the heap for selection next round
-                if not(len(min_rank.get_shared_ids()) >= self._max_shared_ids and not sid in min_rank.get_shared_ids()):
+                if not(len(min_rank.get_shared_ids()) >= self._max_shared_ids and \
+                   not sid in min_rank.get_shared_ids()):
                     heapq.heappush(rank_min_heap, min_rank)
 
                 tally_rejected += 1
 
-        self._logger.info(f"tryBin: {tbin}, size={size}, id={sid}; assigned={tally_assigned}, rejected={tally_rejected}")
+        self._logger.info(
+            f"tryBin: {tbin}, size={size}, id={sid}; assigned={tally_assigned}, rejected={tally_rejected}")
 
         return tally_assigned > 0
 
-    def _tryBinFully(self, ranks, max_rank, tbin, size, sid, objs):
+    def _try_bin_fully(self, ranks, max_rank, tbin, size, sid, objs):
         """Try to find a rank to offload a bin (load grouping that shares a
         common memory ID), but do not give up unless there is absolutely no
         rank that can take it"""
@@ -276,19 +277,22 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
                 selected_load = o.get_load()
 
                 # If our situation is not made worse and fits under memory constraints, do the transer
-                if (sid in min_rank.get_shared_ids() or len(min_rank.get_shared_ids()) < self._max_shared_ids) and min_rank.get_load() + selected_load < max_rank.get_load():
+                if (sid in min_rank.get_shared_ids() or \
+                    len(min_rank.get_shared_ids()) < self._max_shared_ids) and \
+                    min_rank.get_load() + selected_load < max_rank.get_load():
                     self._phase.transfer_object(max_rank, o, min_rank)
                     tally_assigned += 1
                     break
-                else:
-                    tally_rejected += 1
 
-        self._logger.info(f"tryBinFully: {tbin}, size={size}, id={sid}; assigned={tally_assigned}, rejected={tally_rejected}")
+                tally_rejected += 1
+
+        self._logger.info(
+            f"tryBinFully: {tbin}, size={size}, id={sid}; assigned={tally_assigned}, rejected={tally_rejected}")
 
         return tally_assigned > 0
 
-    def _considerSwaps(self, ranks, max_rank, tbin, size, sid, diff, objs):
-        if (size > diff*0.3):
+    def _consider_swaps(self, ranks, max_rank, tbin, size, sid, diff, objs):
+        if size > diff * 0.3:
             self._logger.info(f"considerSwaps: bin={tbin}, size={size}, diff={diff}")
         else:
             return False
@@ -309,7 +313,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
             if min_rank == max_rank:
                 continue
 
-            binned = dict()
+            binned = {}
 
             for o in min_rank.get_migratable_objects():
                 if not o.get_shared_id() in binned:
@@ -318,17 +322,25 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
 
             pick = -1
 
-            for y in binned:
+            for y, objects in binned.items():
                 load_sum = 0.0
-                for x in binned[y]:
+                for x in objects:
                     load_sum += x.get_load()
 
                 cur_max = max_rank.get_load()
 
                 if min_rank.get_load() + size - load_sum < cur_max and max_rank.get_load() - size + load_sum < cur_max:
-                    self._logger.info(f"considerSwaps: continue testing: {cur_max}, new min={min_rank.get_load() + size - load_sum}, new max={max_rank.get_load() - size + load_sum}")
+                    self._logger.info(
+                        f"considerSwaps: continue testing: {cur_max}, "
+                        f"new min={min_rank.get_load() + size - load_sum}, "
+                        f"new max={max_rank.get_load() - size + load_sum}"
+                    )
                 else:
-                    self._logger.info(f"considerSwaps: would make situation worse: {cur_max}, new min={min_rank.get_load() + size - load_sum}, new max={max_rank.get_load() - size + load_sum}")
+                    self._logger.info(
+                        f"considerSwaps: would make situation worse: {cur_max}, "
+                        f"new min={min_rank.get_load() + size - load_sum}, "
+                        f"new max={max_rank.get_load() - size + load_sum}"
+                    )
                     continue
 
                 if load_sum*1.1 < diff:
