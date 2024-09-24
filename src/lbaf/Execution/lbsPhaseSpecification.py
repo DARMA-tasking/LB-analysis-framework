@@ -98,7 +98,8 @@ class PhaseSpecification(TypedDict):
     ranks: Dict[int,RankSpecification] # where index = rank id
 
 class PhaseSpecificationNormalizer:
-    """Provides normalization and denormalization for PhaseSpecification
+    """
+    Provides normalization and denormalization for PhaseSpecification
     where inner sets are represented as lists to improve readability in JSON or YAML
     """
 
@@ -109,10 +110,9 @@ class PhaseSpecificationNormalizer:
 
         if isinstance(data, list):
             return [ transform(o) for o in data ] if transform is not None else data
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return { o_id:transform(o) for o_id, o in data.items() } if transform is not None else data # pylint: disable=E1101 (no-member)
-        else:
-            raise RuntimeError("data must be list or dict")
+        raise RuntimeError("data must be list or dict")
 
     def normalize(self, spec: PhaseSpecification)-> dict:
         """Normalize a phase specification to represent inner sets as lists
