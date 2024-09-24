@@ -118,7 +118,7 @@ class Phase:
 
     def get_number_of_objects(self):
         """Return number of objects."""
-        return sum([r.get_number_of_objects() for r in self.__ranks])
+        return sum(r.get_number_of_objects() for r in self.__ranks)
 
     def get_objects(self):
         """Return all objects belonging to phase."""
@@ -336,9 +336,9 @@ class Phase:
         # Create n_objects objects with uniformly distributed loads in given range
         self.__logger.info(
             f"Creating {n_objects} objects with loads sampled from {sampler_name}")
-        objects = set([
+        objects = set(
             Object(seq_id=i, load=load_sampler())
-            for i in range(n_objects)])
+            for i in range(n_objects))
 
         # Compute and report object load statistics
         print_function_statistics(
@@ -523,7 +523,8 @@ class Phase:
                 # Check: task must share 0 or 1 block
                 if not multiple_sharing and o.get_shared_id() is not None and o.get_shared_id() != shared_id:
                     raise RuntimeError(
-                        f"Task {o.get_id()} already shared block {o.get_shared_id()} and cannot share additional block {shared_id}. Only 0 or 1 allowed")
+                        f"Task {o.get_id()} already shared block {o.get_shared_id()} "
+                        f"and cannot share additional block {shared_id}. Only 0 or 1 allowed")
                 o.set_shared_block(b)
 
                 # Initialize object user defined data
