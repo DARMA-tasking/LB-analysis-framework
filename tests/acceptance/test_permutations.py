@@ -5,6 +5,8 @@ import unittest
 import tempfile
 import yaml
 
+from src.lbaf.Applications.LBAF_app import LBAFApplication
+
 class TestPermutations(unittest.TestCase):
     """Class to run acceptance tests"""
 
@@ -14,7 +16,7 @@ class TestPermutations(unittest.TestCase):
     def tearDown(self):
         return
 
-    def generate_configuration_file(self, alpha, beta, gamma, permutation):
+    def generate_configuration(self, alpha, beta, gamma, permutation):
         """Creates and returns the path to a YAML configuration file."""
         # Determine filepaths
         acceptance_dir = os.path.dirname(__file__)
@@ -48,21 +50,20 @@ class TestPermutations(unittest.TestCase):
             "output_file_stem": "output_file"
         }
 
-        # Write out the configuration to a temporary file
-        tmp_cfg_file = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml", mode="w")
-        with tmp_cfg_file as f:
-            yaml.dump(config, f)
-
         # Return the path to the config file
-        return tmp_cfg_file.name
+        return config
 
-    def run_test(self, config_file, test_case, expected_w_max):
+    def run_test(self, config, test_case, expected_w_max):
         """Compare LBAF's results to the expected W_max."""
+        # Determine current directory
+        acceptance_dir = os.path.dirname(__file__)
+
         # Run LBAF
-        subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
+        lbaf = LBAFApplication()
+        lbaf.run(cfg=config, cfg_dir=acceptance_dir)
 
         # Check w_max file exists
-        output_dir = os.path.join(os.path.dirname(__file__), "output")
+        output_dir = os.path.join(acceptance_dir, "output")
         imbalance_filepath = os.path.join(output_dir, "imbalance.txt")
         w_max_filepath = os.path.join(output_dir, "w_max.txt")
         self.assertTrue(os.path.isfile(w_max_filepath), f"File: {w_max_filepath} does not exist!")
@@ -73,7 +74,6 @@ class TestPermutations(unittest.TestCase):
             self.assertEqual(w_max, expected_w_max, f"@@@@@ [{test_case}] FOUND W_MAX: {w_max} @@@@@")
 
         # Clean up
-        os.remove(config_file)
         os.remove(w_max_filepath)
         os.remove(imbalance_filepath)
 
@@ -98,7 +98,7 @@ class TestPermutations(unittest.TestCase):
 
         # Run each test case
         for test_case, test_params in test_cases.items():
-            cfg = self.generate_configuration_file(
+            cfg = self.generate_configuration(
                 alpha=test_params["alpha"],
                 beta=test_params["beta"],
                 gamma=test_params["gamma"],

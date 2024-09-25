@@ -414,36 +414,44 @@ class LBAFApplication:
             for o_qoi in o_qoi_list:
                 self.__logger.info(f"\t\t{o_qoi}")
 
-    def run(self):
+    def run(self, cfg=None, cfg_dir=None):
         """Run the LBAF application."""
-        # Parse command line arguments
-        self.__parse_args()
+        # If no configuration was passed directly, look for the file(s)
+        if cfg is None:
+            # Parse command line arguments
+            self.__parse_args()
 
-        # Print list of implemented QOI (according to verbosity argument)
-        self.__print_QOI()
+            # Print list of implemented QOI (according to verbosity argument)
+            self.__print_QOI()
 
-        # Warn if default configuration is used because not set as argument
-        if self.__args.configuration is None:
-            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
-                                  "working directory or in the project config directory !")
-            self.__args.configuration = "conf.yaml"
+            # Warn if default configuration is used because not set as argument
+            if self.__args.configuration is None:
+                self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+                                    "working directory or in the project config directory !")
+                self.__args.configuration = "conf.yaml"
 
-        # Find configuration files
-        config_file_list = []
-        # Global configuration (optional)
-        try:
-            config_file_list.append(self.__resolve_config_path("global.yaml"))
-        except FileNotFoundError:
-            pass
-        # Local/Specialized configuration (required)
-        try:
-            config_file_list.append(self.__resolve_config_path(self.__args.configuration))
-        except(FileNotFoundError) as err:
-            self.__logger.error(err)
-            raise SystemExit(-1) from err
+            # Find configuration files
+            config_file_list = []
 
-        # Apply configuration
-        cfg = self.__configure(*config_file_list)
+            # Global configuration (optional)
+            try:
+                config_file_list.append(self.__resolve_config_path("global.yaml"))
+            except FileNotFoundError:
+                pass
+
+            # Local/Specialized configuration (required)
+            try:
+                config_file_list.append(self.__resolve_config_path(self.__args.configuration))
+            except(FileNotFoundError) as err:
+                self.__logger.error(err)
+                raise SystemExit(-1) from err
+
+            # Apply configuration
+            cfg = self.__configure(*config_file_list)
+
+        else:
+            self.__parameters = InternalParameters(
+                config=cfg, base_dir=cfg_dir, logger=self.__logger)
 
         # Download of JSON data files validator required to continue
         loader = JSONDataFilesValidatorLoader()
