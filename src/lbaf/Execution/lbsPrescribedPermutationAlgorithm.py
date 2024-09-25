@@ -40,7 +40,8 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
         """ Apply prescribed permutation to phase objects."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, distributions, statistics)
-        if (l_p := len(self.__permutation)) != len(self._rebalanced_phase.get_objects()):
+        objects = self._rebalanced_phase.get_objects()
+        if (l_p := len(self.__permutation)) != len(objects):
             self._logger.error(
                 f"Permutation length ({l_p}) does not match number"
                 f" of objects in phase ({len(self.__permutation)})")
@@ -55,22 +56,22 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
         ranks = {r.get_id(): r for r in self._rebalanced_phase.get_ranks()}
         n_r = len(ranks)
 
-        # Iterate over ranks
-        for r_src in ranks.values():
-            # Iterate over objects on rank
-            for o in r_src.get_objects():
-                # Verify existence of assignment for object
-                o_id = o.get_id()
-                if (dst_id := self.__permutation.get(
-                        o_id, -1)) < 0 or dst_id >= n_r:
-                    self._logger.error(
-                        f"Invalid assignment of object {o_id} to rank {dst_id}")
-                    raise SystemExit(1)
+        # Iterate over objects
+        for o in objects:
+            # Verify existence of assignment for object
+            o_id = o.get_id()
+            if (dst_id := self.__permutation.get(
+                    o_id, -1)) < 0 or dst_id >= n_r:
+                self._logger.error(
+                    f"Invalid assignment of object {o_id} to rank {dst_id}")
+                raise SystemExit(1)
 
-                # Transfer object to prescribed rank
-                print(o_id, ":", r_src.get_id(), "|->", dst_id)
-                self._rebalanced_phase.transfer_object(
-                    r_src, o, ranks.get(dst_id))
+            # Transfer object to prescribed rank
+            r_src = ranks[o.get_rank_id()]
+            self._logger.debug(
+                f"object {o_id}: rank {r_src.get_id()} |-> rank {dst_id}")
+            self._rebalanced_phase.transfer_object(
+                r_src, o, ranks.get(dst_id))
 
         # Compute and report post-permutation work statistics
         stats = print_function_statistics(
@@ -81,6 +82,6 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
 
         # Update run distributions and statistics
         self._update_distributions_and_statistics(distributions, statistics)
-        print(statistics)
+
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
