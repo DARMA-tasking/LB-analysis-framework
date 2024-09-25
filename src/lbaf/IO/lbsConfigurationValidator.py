@@ -23,6 +23,7 @@ ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
     "CentralizedPrefixOptimizer",
+    "PrescribedPermutation",
     "PhaseStepper")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
