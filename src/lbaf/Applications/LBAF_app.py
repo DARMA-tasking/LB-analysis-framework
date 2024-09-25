@@ -23,6 +23,7 @@ from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
+from lbaf.Model.lbsWorkModelBase import WorkModelBase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
@@ -308,7 +309,7 @@ class LBAFApplication:
             self.__logger.info(f"Found configuration file at path {path}")
         return path
 
-    def __print_statistics(self, phase: Phase, phase_name: str):
+    def __print_statistics(self, phase: Phase, phase_name: str, work_model: WorkModelBase = None):
         """Print a set of rank and edge statistics"""
 
         # Print rank statistics
@@ -356,8 +357,17 @@ class LBAFApplication:
             f"{phase_name} sent volumes",
             self.__logger)
 
-        # Return rank load statistics
-        return l_stats
+        if work_model is not None:
+            w_stats = lbstats.print_function_statistics(
+                phase.get_ranks(),
+                work_model.compute,
+                f"{phase_name} rank work",
+                self.__logger)
+        else:
+            w_stats = None
+
+        # Return rank load and work statistics
+        return l_stats, w_stats
 
     def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name # not snake case
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
@@ -514,6 +524,7 @@ class LBAFApplication:
             _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
                 objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
         else:
+            self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
         # Instantiate runtime
@@ -604,13 +615,20 @@ class LBAFApplication:
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
-            l_stats = self.__print_statistics(rebalanced_phase, "rebalanced")
+            l_stats, w_stats = self.__print_statistics(rebalanced_phase, "rebalanced", runtime.get_work_model())
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
+
+            with open(
+                "w_max.txt" if self.__parameters.output_dir is None
+                else os.path.join(
+                    self.__parameters.output_dir,
+                    "w_max.txt"), 'w', encoding="utf-8") as w_max_file:
+                w_max_file.write(f"{w_stats.get_maximum()}")
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
