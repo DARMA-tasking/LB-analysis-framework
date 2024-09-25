@@ -9,23 +9,16 @@ check_schema: false
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 0.0
+    alpha: 1.0
     beta: 1.0
     gamma: 0.0
 
 # Specify algorithm
 algorithm:
-  name: InformAndTransfer
+  name: PrescribedPermutation
   phase_id: 0
   parameters:
-    n_iterations: 8
-    n_rounds: 2
-    fanout: 2
-    order_strategy: arbitrary
-    transfer_strategy: Recursive
-    criterion: Tempered
-    max_objects_per_transfer: 8
-    deterministic_transfer: true
+    permutation: {0: 3, 1: 3, 2: 0, 3: 0, 4: 3, 5: 2, 6: 0, 7: 0, 8: 1}
 
 # Specify output
 output_dir: ../output
