@@ -54,7 +54,7 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
         # Index set of ranks
         ranks = {r.get_id(): r for r in self._rebalanced_phase.get_ranks()}
         n_r = len(ranks)
-        
+
         # Iterate over ranks
         for r_src in ranks.values():
             # Iterate over objects on rank
@@ -71,7 +71,7 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
                 print(o_id, ":", r_src.get_id(), "|->", dst_id)
                 self._rebalanced_phase.transfer_object(
                     r_src, o, ranks.get(dst_id))
-        
+
         # Compute and report post-permutation work statistics
         stats = print_function_statistics(
             self._rebalanced_phase.get_ranks(),
