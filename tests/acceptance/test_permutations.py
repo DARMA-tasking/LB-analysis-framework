@@ -1,9 +1,5 @@
 import os
-import sys
-import subprocess
 import unittest
-import tempfile
-import yaml
 
 from src.lbaf.Applications.LBAF_app import LBAFApplication
 
