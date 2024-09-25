@@ -524,7 +524,6 @@ class LBAFApplication:
             _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
                 objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
         else:
-            self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
         # Instantiate runtime
