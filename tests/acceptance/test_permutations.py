@@ -46,7 +46,7 @@ class TestPermutations(unittest.TestCase):
             "output_file_stem": "output_file"
         }
 
-        # Return the path to the config file
+        # Return the configuration
         return config
 
     def run_test(self, config, test_case, expected_w_max):
