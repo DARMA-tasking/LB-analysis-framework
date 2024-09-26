@@ -65,6 +65,7 @@ from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
+from lbaf.Model.lbsWorkModelBase import WorkModelBase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
@@ -350,7 +351,7 @@ class LBAFApplication:
             self.__logger.info(f"Found configuration file at path {path}")
         return path
 
-    def __print_statistics(self, phase: Phase, phase_name: str):
+    def __print_statistics(self, phase: Phase, phase_name: str, work_model: WorkModelBase = None):
         """Print a set of rank and edge statistics"""
 
         # Print rank statistics
@@ -398,8 +399,17 @@ class LBAFApplication:
             f"{phase_name} sent volumes",
             self.__logger)
 
-        # Return rank load statistics
-        return l_stats
+        if work_model is not None:
+            w_stats = lbstats.print_function_statistics(
+                phase.get_ranks(),
+                work_model.compute,
+                f"{phase_name} rank work",
+                self.__logger)
+        else:
+            w_stats = None
+
+        # Return rank load and work statistics
+        return l_stats, w_stats
 
     def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name # not snake case
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
@@ -446,36 +456,44 @@ class LBAFApplication:
             for o_qoi in o_qoi_list:
                 self.__logger.info(f"\t\t{o_qoi}")
 
-    def run(self):
+    def run(self, cfg=None, cfg_dir=None):
         """Run the LBAF application."""
-        # Parse command line arguments
-        self.__parse_args()
+        # If no configuration was passed directly, look for the file(s)
+        if cfg is None:
+            # Parse command line arguments
+            self.__parse_args()
 
-        # Print list of implemented QOI (according to verbosity argument)
-        self.__print_QOI()
+            # Print list of implemented QOI (according to verbosity argument)
+            self.__print_QOI()
 
-        # Warn if default configuration is used because not set as argument
-        if self.__args.configuration is None:
-            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
-                                  "working directory or in the project config directory !")
-            self.__args.configuration = "conf.yaml"
+            # Warn if default configuration is used because not set as argument
+            if self.__args.configuration is None:
+                self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+                                    "working directory or in the project config directory !")
+                self.__args.configuration = "conf.yaml"
 
-        # Find configuration files
-        config_file_list = []
-        # Global configuration (optional)
-        try:
-            config_file_list.append(self.__resolve_config_path("global.yaml"))
-        except FileNotFoundError:
-            pass
-        # Local/Specialized configuration (required)
-        try:
-            config_file_list.append(self.__resolve_config_path(self.__args.configuration))
-        except(FileNotFoundError) as err:
-            self.__logger.error(err)
-            raise SystemExit(-1) from err
+            # Find configuration files
+            config_file_list = []
 
-        # Apply configuration
-        cfg = self.__configure(*config_file_list)
+            # Global configuration (optional)
+            try:
+                config_file_list.append(self.__resolve_config_path("global.yaml"))
+            except FileNotFoundError:
+                pass
+
+            # Local/Specialized configuration (required)
+            try:
+                config_file_list.append(self.__resolve_config_path(self.__args.configuration))
+            except(FileNotFoundError) as err:
+                self.__logger.error(err)
+                raise SystemExit(-1) from err
+
+            # Apply configuration
+            cfg = self.__configure(*config_file_list)
+
+        else:
+            self.__parameters = InternalParameters(
+                config=cfg, base_dir=cfg_dir, logger=self.__logger)
 
         # Download of JSON data files validator required to continue
         loader = JSONDataFilesValidatorLoader()
@@ -646,13 +664,20 @@ class LBAFApplication:
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
-            l_stats = self.__print_statistics(rebalanced_phase, "rebalanced")
+            l_stats, w_stats = self.__print_statistics(rebalanced_phase, "rebalanced", runtime.get_work_model())
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
+
+            with open(
+                "w_max.txt" if self.__parameters.output_dir is None
+                else os.path.join(
+                    self.__parameters.output_dir,
+                    "w_max.txt"), 'w', encoding="utf-8") as w_max_file:
+                w_max_file.write(f"{w_stats.get_maximum()}")
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
