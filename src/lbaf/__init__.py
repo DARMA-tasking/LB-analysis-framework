@@ -60,7 +60,6 @@ if importlib.util.find_spec('lbaf') is None:
 from lbaf.Applications.LBAF_app import LBAFApplication
 from lbaf.Utils.lbsVTDataExtractor import VTDataExtractorRunner
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoader
-from lbaf.Applications.MoveCountsViewer import MoveCountsViewer
 from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
 from lbaf.Utils.lbsDataStatFilesUpdater import DataStatFilesUpdater
 from lbaf.Utils.lbsJSONDataFilesMaker import JSONDataFilesMaker
@@ -92,10 +91,6 @@ def vt_data_files_validator():
 def vt_data_files_maker() -> int:
     """Run a JSONDataFilesMaker instance."""
     return JSONDataFilesMaker().run()
-
-def move_counts_viewer():
-    """Run a MoveCountsViewer instance."""
-    return MoveCountsViewer().run()
 
 def csv_2_json_converter() -> int:
     """Run a Csv2JsonConverter instance."""
