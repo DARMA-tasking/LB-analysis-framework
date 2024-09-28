@@ -66,12 +66,6 @@ LINKS_NAVBAR1 = [
 PLUGINS = ["m.code", "m.components", "m.dox"]
 
 INPUT_MODULES = [
-    lbaf.Model,
-    lbaf.Applications,
-    lbaf.Execution,
-    lbaf.imported,
-    lbaf.IO,
-    lbaf.Utils,
     AffineCombinationWorkModel,
     LoadOnlyWorkModel,
     Object,
