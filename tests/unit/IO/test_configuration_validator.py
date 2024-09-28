@@ -305,5 +305,27 @@ class TestConfig(unittest.TestCase):
             ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
         self.assertEqual(err.exception.args[0], "Key 'parameters' error:\nKey 'separate_subclustering' error:\n'incorrect' should be instance of 'bool'")
 
+    def test_config_validator_correct_subclustering_filters(self):
+        with open(os.path.join(self.config_dir, "conf_correct_subclustering_filters.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+
+    def test_config_validator_wrong_subclustering_minimum_improvement(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_subclustering_minimum_improvement.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'float' and >= 0.0")
+
+    def test_config_validator_wrong_subclustering_threshold(self):
+        with open(os.path.join(self.config_dir, "conf_wrong_subclustering_threshold.yml"), "rt", encoding="utf-8") as config_file:
+            yaml_str = config_file.read()
+            configuration = yaml.safe_load(yaml_str)
+        with self.assertRaises(SchemaError) as err:
+            ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
+        self.assertEqual(err.exception.args[0], "Should be of type 'float' and >= 0.0")
+
 if __name__ == "__main__":
     unittest.main()
