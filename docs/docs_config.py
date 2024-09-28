@@ -30,8 +30,6 @@ import lbaf.imported.JSON_data_files_validator as JSONDataFilesValidator
 # IO
 import lbaf.IO.lbsConfigurationValidator as ConfigurationValidator
 import lbaf.IO.lbsConfigurationUpgrader as configurationUpgrader
-import lbaf.IO.lbsGridStreamer as GridStreamer
-import lbaf.IO.lbsVisualizer as Visualizer
 import lbaf.IO.lbsStatistics as lbsStatistics
 import lbaf.IO.lbsVTDataReader as LoadReader
 import lbaf.IO.lbsVTDataWriter as VTDataWriter
@@ -88,8 +86,6 @@ INPUT_MODULES = [
     TemperedCriterion,
     JSONDataFilesValidator,
     ConfigurationValidator,
-    GridStreamer,
-    Visualizer,
     lbsStatistics,
     LoadReader,
     VTDataWriter,

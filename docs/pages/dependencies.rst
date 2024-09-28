@@ -37,15 +37,15 @@ Testing dependencies
    * - Package
      - License and Description
    * - `tox <https://pypi.org/project/tox/>`__
-     - BSD License (BSD) **VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization**
+     - MIT License (MIT) **tox is a generic virtualenv management and test command line tool**
    * - `coverage <https://pypi.org/project/coverage/>`__
-     - BSD License (BSD) **NumPy is the fundamental package for array computing with Python**
+     - Apache Software License (Apache-2.0) **Code coverage measurement for Python**
    * - `pylint <https://pypi.org/project/pylint/>`__
-     - MIT License (MIT) **YAML parser and emitter for Python**
+     - GNU General Public License (GPLv2) **Python code static checker**
    * - `pytest <https://pypi.org/project/pytest/>`__
-     - MIT License (MIT) **Python bindings for the Brotli compression library**
+     - MIT License (MIT) **pytest: simple powerful testing with Python**
    * - `anybadge <https://pypi.org/project/anybadge/>`__
-     - MIT License (MIT) **Simple data validation library**
+     - MIT License (MIT) **Simple, flexible badge generator for project badges.**
 
 Documentation dependencies
 --------------------------
@@ -57,7 +57,7 @@ Documentation dependencies
    * - Package
      - License and Description
    * - `Jinja2 <https://pypi.org/project/Jinja2/>`__
-     - BSD License (BSD) **VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization**
+     - BSD License (BSD) **A very fast and expressive template engine.**
    * - `Pygments <https://pypi.org/project/Pygments/>`__
      - BSD License (BSD) **Pygments is a syntax highlighting package written in Python**
    * - `docutils <https://pypi.org/project/docutils/>`__
