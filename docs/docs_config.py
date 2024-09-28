@@ -67,8 +67,6 @@ LINKS_NAVBAR1 = [
 PLUGINS = ["m.code", "m.components", "m.dox"]
 
 INPUT_MODULES = [
-    AffineCombinationWorkModel,
-    LoadOnlyWorkModel,
     Object,
     Message,
     ObjectCommunicator,
@@ -79,6 +77,8 @@ INPUT_MODULES = [
     AlgorithmBase,
     BruteForceAlgorithm,
     CriterionBase,
+    AffineCombinationWorkModel,
+    LoadOnlyWorkModel,
     InformAndTransferAlgorithm,
     PhaseStepperAlgorithm,
     Runtime,
