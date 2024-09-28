@@ -101,7 +101,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             # Succeed when criterion is satisfied
             return True
 
-    def execute(self, known_peers, phase: Phase, ave_load: float):
+    def execute(self, known_peers, phase: Phase, ave_load: float, _):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
