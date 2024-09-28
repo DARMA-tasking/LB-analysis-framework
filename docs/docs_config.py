@@ -4,7 +4,6 @@
 import lbaf.Applications.LBAF_app as LBAF
 
 # Model
-
 import lbaf.Model.lbsAffineCombinationWorkModel as AffineCombinationWorkModel
 import lbaf.Model.lbsLoadOnlyWorkModel as LoadOnlyWorkModel
 import lbaf.Model.lbsObject as Object
@@ -67,6 +66,14 @@ LINKS_NAVBAR1 = [
 PLUGINS = ["m.code", "m.components", "m.dox"]
 
 INPUT_MODULES = [
+    lbaf.Model,
+    lbaf.Applications,
+    lbaf.Execution,
+    lbaf.imported,
+    lbaf.IO,
+    lbaf.Utils,
+    AffineCombinationWorkModel,
+    LoadOnlyWorkModel,
     Object,
     Message,
     ObjectCommunicator,
@@ -77,8 +84,6 @@ INPUT_MODULES = [
     AlgorithmBase,
     BruteForceAlgorithm,
     CriterionBase,
-    AffineCombinationWorkModel,
-    LoadOnlyWorkModel,
     InformAndTransferAlgorithm,
     PhaseStepperAlgorithm,
     Runtime,
