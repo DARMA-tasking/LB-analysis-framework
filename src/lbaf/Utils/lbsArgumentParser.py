@@ -75,9 +75,9 @@ class PromptArgumentParser(argparse.ArgumentParser):
         if parents is None:
             parents = []
 
-        super(PromptArgumentParser, self).__init__(prog, usage, description, epilog, parents, formatter_class,
-                                                   prefix_chars, fromfile_prefix_chars, argument_default,
-                                                   conflict_handler, add_help, allow_abbrev)
+        super().__init__(prog, usage, description, epilog, parents, formatter_class,
+                         prefix_chars, fromfile_prefix_chars, argument_default,
+                         conflict_handler, add_help, allow_abbrev)
 
         self._prompt_default = prompt_default
 
@@ -97,8 +97,9 @@ class PromptArgumentParser(argparse.ArgumentParser):
         print(blue(''.join(list(repeat('-', length)))))
         print(''.join(list(repeat(' ', length))))
 
-    def prompt(self, question: str, value_type: Optional[str] = None, default: Optional[Union[str, int, float]] = None,
-               required: bool = False, choices: Optional[Union[dict,list]] = None, validate: Optional[Callable] = None):
+    def prompt(self, question: str, value_type: Optional[str] = None,
+               default: Optional[Union[str, int, float]] = None, required: bool = False,
+               choices: Optional[Union[dict,list]] = None, validate: Optional[Callable] = None):
         """Asks a question"""
         msg = green(question)
         if default is not None:
@@ -114,7 +115,7 @@ class PromptArgumentParser(argparse.ArgumentParser):
             print(msg)
 
             if choices is not None:
-                choices_dict = {index:choice for index, choice in enumerate(choices)} if isinstance(choices, list) else choices
+                choices_dict = dict(enumerate(choices)) if isinstance(choices, list) else choices
                 for index, choice in choices_dict.items():
                     print(" [" + yellow(str(index)) + "]" + ' ' + (blue("None") if choice is None else str(choice)))
             else:
@@ -125,13 +126,14 @@ class PromptArgumentParser(argparse.ArgumentParser):
             if raw_response == '' and default is not None:
                 raw_response = default
             # Empty response but no default value set None
-            elif raw_response == '' or raw_response == "None":
+            elif raw_response in ('', 'None'):
                 raw_response = None
             # Expected bool
             elif value_type == bool:
-                raw_response = True if raw_response in ["TRUE", "True", "true", "1"] else False
+                raw_response = raw_response.lower() in ("true", "1")
             # Else cast if type set
-            elif value_type is not None and value_type != str and callable(value_type) and not isinstance(raw_response, value_type):
+            elif value_type is not None and value_type != str and \
+                 callable(value_type) and not isinstance(raw_response, value_type):
                 try:
                     raw_response = value_type(raw_response)
                 except ValueError as ex:
@@ -146,9 +148,9 @@ class PromptArgumentParser(argparse.ArgumentParser):
                         raw_response = choice
 
             if required is True and raw_response is None:
-                self.print_error(f"Value is required")
+                self.print_error("Value is required")
             elif choices is not None and raw_response is not None:
-                valid_choices = [i for i in choices_dict.values()]
+                valid_choices = list(choices_dict.values())
                 if raw_response not in valid_choices:
                     self.print_error(f"Value \"{raw_response}\" is invalid")
                     raw_response = None
@@ -166,11 +168,13 @@ class PromptArgumentParser(argparse.ArgumentParser):
 
     def print_error(self, msg: str):
         """Prints an error message to the console"""
-        print(white_on_red(f"{linesep}{linesep} [ERROR] {msg.replace(linesep, linesep + ' ' * 9)}{linesep}") + linesep)
+        print(white_on_red(
+            f"{linesep}{linesep} [ERROR] {msg.replace(linesep, linesep + ' ' * 9)}{linesep}") + linesep)
 
     def print_warning(self, msg: str):
         """Prints a warning message to the console"""
-        print(white_on_cyan(f"{linesep}{linesep} [WARNING] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
+        print(white_on_cyan(
+                f"{linesep}{linesep} [WARNING] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
 
     def print_info(self, msg: str):
         """Prints an info message to the console"""
@@ -178,7 +182,8 @@ class PromptArgumentParser(argparse.ArgumentParser):
 
     def print_success(self, msg: str):
         """Prints a success message to the console"""
-        print(white_on_green(f"{linesep}{linesep} [SUCCESS] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
+        print(white_on_green(
+            f"{linesep}{linesep} [SUCCESS] {msg.replace(linesep, linesep + ' ' * 11)}{linesep}") + linesep)
 
     def set_args(self, args: dict, namespace=None):
         """This method init updates a namespace with the default values and with the given arguments.
@@ -217,33 +222,33 @@ class PromptArgumentParser(argparse.ArgumentParser):
 
         if isinstance(args, dict):
             return self.set_args(args, namespace)
-        else:
-            # check if help is requested then output and exit
-            help_requested = "-h" in sys.argv or "--help" in sys.argv
-            if help_requested:
-                self.print_help()
-                raise SystemExit(1)
 
-            # check if prompt is explicitly requested to determine if parsing is needed
-            prompt = self._prompt_default
-            if prompt is False and "--prompt" in sys.argv:
-                prompt = True
-            elif prompt is True and "--no-prompt" in sys.argv:
-                prompt = False
+        # check if help is requested then output and exit
+        help_requested = "-h" in sys.argv or "--help" in sys.argv
+        if help_requested:
+            self.print_help()
+            raise SystemExit(1)
 
-            if prompt:
-                # if prompt
-                if self.description is not None:
-                    self.__print_description()
-                for action in self._actions:
-                    if action.dest != "help" and action.dest != "prompt" and action.dest != "no_prompt":
-                        question = action.dest + " "
-                        question += ":str" if action.type is None else f":{action.type.__name__}"
-                        question += ": " + action.help
-                        values = self.prompt(question, action.type, action.default, action.required, action.choices)
-                        # call the action
-                        action(self, namespace, values)
-                return namespace, args
-            else:
-                # if not help requested nor prompt requested just parse cli
-                return super(PromptArgumentParser, self).parse_known_args(args, namespace)
+        # check if prompt is explicitly requested to determine if parsing is needed
+        prompt = self._prompt_default
+        if prompt is False and "--prompt" in sys.argv:
+            prompt = True
+        elif prompt is True and "--no-prompt" in sys.argv:
+            prompt = False
+
+        if prompt:
+            # if prompt
+            if self.description is not None:
+                self.__print_description()
+            for action in self._actions:
+                if action.dest not in ('help', 'prompt', 'no_prompt'):
+                    question = action.dest + " "
+                    question += ":str" if action.type is None else f":{action.type.__name__}"
+                    question += ": " + action.help
+                    values = self.prompt(question, action.type, action.default, action.required, action.choices)
+                    # call the action
+                    action(self, namespace, values)
+            return namespace, args
+
+        # if not help requested nor prompt requested just parse cli
+        return super().parse_known_args(args, namespace)

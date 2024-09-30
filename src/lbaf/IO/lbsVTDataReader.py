@@ -74,7 +74,8 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
+    def __init__(
+        self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -99,9 +100,10 @@ class LoadReader:
 
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
+            # pylint:disable=import-outside-toplevel
             from ..imported.JSON_data_files_validator import \
                 SchemaValidator as \
-                sv  # pylint:disable=C0415:import-outside-toplevel
+                sv
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
         # determine the number of ranks
@@ -146,8 +148,7 @@ class LoadReader:
             match_result = pattern.search(path)
             if match_result:
                 rank_id = int(match_result.group(1))
-                if rank_id > highest_rank:
-                    highest_rank = rank_id
+                highest_rank = max(highest_rank, rank_id)
         return highest_rank + 1
 
     def _get_rank_file_name(self, rank_id: int):
@@ -209,10 +210,9 @@ class LoadReader:
                 self.__logger.debug(
                     f"Ignored phase {curr_phase_id} for rank {rank_id}")
                 continue
-            else:
-                # Desired phase was found
-                phase_id_found = True
-                break
+            # Desired phase was found
+            phase_id_found = True
+            break
 
         # Error out if desired phase was not found
         if not phase_id_found:

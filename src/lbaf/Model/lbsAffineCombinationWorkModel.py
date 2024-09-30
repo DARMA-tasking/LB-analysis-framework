@@ -65,7 +65,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         self.__upper_bounds = parameters.get("upper_bounds", {})
 
         # Call superclass init
-        super(AffineCombinationWorkModel, self).__init__(parameters)
+        super().__init__(parameters)
         self.__logger.info(
             f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
         for k, v in self.__upper_bounds.items():

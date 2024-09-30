@@ -70,8 +70,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super(InformAndTransferAlgorithm, self).__init__(
-            work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
@@ -166,7 +165,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 messages.setdefault(r_rcv, []).append(msg)
 
         # Sanity check prior to forwarding iterations
-        if (n_m := sum([len(m) for m in messages.values()])) != (n_c := n_r * self.__fanout):
+        if (n_m := sum(len(m) for m in messages.values())) != (n_c := n_r * self.__fanout):
             self._logger.error(
                 f"Incorrect number of initial messages: {n_m} <> {n_c}")
         self._logger.info(
@@ -214,8 +213,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.debug(
                     f"Peers known to rank {rank.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
-        # Report on final know information ratio
-        n_k = sum([len(k_p) for k_p in self.__known_peers.values() if k_p]) / n_r
+        # Report on final known information ratio
+        n_k = sum(len(k_p) for k_p in self.__known_peers.values() if k_p) / n_r
         self._logger.info(
             f"Average number of peers known to ranks: {n_k} ({100 * n_k / n_r:.2f}% of {n_r})")
 

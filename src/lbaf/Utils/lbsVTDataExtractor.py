@@ -158,7 +158,7 @@ class VTDataExtractor():
                     uncompr_str = uncompr_json_file.read()
                     decompressed_dict = json.loads(uncompr_str)
             except UnicodeDecodeError as err:
-                raise Exception(
+                raise RuntimeError(
                     "\n============================================================\n"
                     "\t\tCan not read compressed data without Brotli."
                     "\n============================================================") from err

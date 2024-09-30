@@ -58,14 +58,14 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         :param object_qoi: object QOI to track
         """
         # Call superclass init
-        super(PhaseStepperAlgorithm, self).__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
     def execute(self, _, phases: list, distributions: dict, statistics: dict, __):
         """Steps through all phases."""
 
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
-                [isinstance(p, Phase) for p in phases.values()]):
+                isinstance(p, Phase) for p in phases.values()):
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 

@@ -94,12 +94,12 @@ class Csv2JsonConverter:
 
         if os.path.isdir(dir_path):
             return dir_path
+
         if os.path.isdir(os.path.join(PROJECT_PATH, dir_path)):
             return os.path.join(PROJECT_PATH, dir_path)
-        else:
-            get_logger().error(
-                f"Can not find dir {dir_path}")
-            raise SystemExit(1)
+
+        get_logger().error(f"Can not find dir {dir_path}")
+        raise SystemExit(1)
 
     def _get_files_for_conversion(self) -> list:
         """Return list of tuples as follows (file_to_convert_path, converted_file_path)."""
@@ -171,7 +171,7 @@ class Csv2JsonConverter:
     def _get_data_phase_sorted(data: list) -> dict:
         """Sort data with respect to the phase. Return dict with phases as keys."""
         # Create temporary dict so rows are sorted by phase_id
-        temp_dict = dict()
+        temp_dict = {}
         for dict_ in data:
             phase_id = dict_.get("phase_id", None)
             obj_id = dict_.get("obj_id", None)

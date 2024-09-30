@@ -64,7 +64,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         :param lgr: a Logger instance.
         """
         # Call superclass init
-        super(ClusteringTransferStrategy, self).__init__(criterion, parameters, lgr)
+        super().__init__(criterion, parameters, lgr)
 
         # Determine whether subclustering is performed immediately after swapping
         self.__separate_subclustering = parameters.get("separate_subclustering", False)
@@ -132,7 +132,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Build dict of clusters with their load
         n_inspect, subclusters = 0, {}
-        for i, v in enumerate(clusters):
+        for v in clusters:
             # Determine maximum subcluster size
             n_o = min(self._max_objects_per_transfer, (n_o_sub := len(v)))
             self._logger.debug(
@@ -146,7 +146,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     tuple(random.sample(v, p))
                     for p in nr.binomial(n_o, 0.5, min(n_o, self.__max_subclusters)))):
                 # Reject subclusters overshooting within relative tolerance
-                reach_load = src_load - sum([o.get_load() for o in c])
+                reach_load = src_load - sum(o.get_load() for o in c)
                 if reach_load < (1.0 - self.__cluster_swap_rtol) * self._average_load:
                     continue
 
@@ -158,7 +158,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         # Return subclusters and cluster IDs sorted by achievable loads
         self._logger.info(
-            f"Built {len(subclusters)} subclusters from {len(clusters)} clusters in {time.time() - start_time:.3f} seconds")
+            f"Built {len(subclusters)} subclusters from {len(clusters)} "
+            f"clusters in {time.time() - start_time:.3f} seconds")
         return sorted(subclusters.keys(), key=subclusters.get)
 
     def __swap_clusters(self, phase: Phase, r_src: Rank, clusters_src:dict, targets: set) -> int:
@@ -186,7 +187,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     self.__n_swap_tries += 1
                     if c_try > 0.0:
                         # Compute source cluster size only when necessary
-                        sz_src = sum([o.get_load() for o in o_src])
+                        sz_src = sum(o.get_load() for o in o_src)
                         if  c_try > self.__cluster_swap_rtol * sz_src:
                             # Perform swap
                             self._logger.debug(
@@ -196,9 +197,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                             del clusters_try[k_try]
                             n_rank_swaps += 1
                             break
-                        else:
-                            # Reject swap
-                            self._n_rejects += len(o_src) + len(o_try)
+                        # Reject swap
+                        self._n_rejects += len(o_src) + len(o_try)
 
         # Return number of swaps performed from rank
         n_rank_swaps = 0
@@ -213,7 +213,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             # Use deterministic or probabilistic transfer method
             if self._deterministic_transfer:
                 # Initialize destination load information
-                objects_load = sum([o.get_load() for o in o_src])
+                objects_load = sum(o.get_load() for o in o_src)
                 l_dst = math.inf
 
                 # Select best destination with respect to criterion
@@ -247,9 +247,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     r_src, o_src, r_dst)
                 self.__n_sub_transfers += 1
                 break
-            else:
-                # Reject subcluster transfer
-                self._n_rejects += len(o_src)
+            # Reject subcluster transfer
+            self._n_rejects += len(o_src)
 
     def execute(self, known_peers, phase: Phase, ave_load: float, max_load: float):
         """Perform object transfer stage."""
@@ -305,13 +304,16 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         # Report on global transfer statistics
         n_ranks = len(phase.get_ranks())
         self._logger.info(
-            f"Swapped {self.__n_swaps} cluster pairs amongst {self.__n_swap_tries} tries ({100 * self.__n_swaps / self.__n_swap_tries:.2f}%)")
+            f"Swapped {self.__n_swaps} cluster pairs amongst {self.__n_swap_tries} tries "
+            f"({100 * self.__n_swaps / self.__n_swap_tries:.2f}%)")
         if self.__n_sub_tries:
             self._logger.info(
-                f"Transferred {self.__n_sub_transfers} subcluster amongst {self.__n_sub_tries} tries ({100 * self.__n_sub_transfers / self.__n_sub_tries:.2f}%)")
+                f"Transferred {self.__n_sub_transfers} subcluster amongst {self.__n_sub_tries} tries "
+                f"({100 * self.__n_sub_transfers / self.__n_sub_tries:.2f}%)")
         if self.__n_sub_skipped:
             self._logger.info(
-                f"Skipped subclustering for {self.__n_sub_skipped} ranks ({100 * self.__n_sub_skipped / n_ranks:.2f}%)")
+                f"Skipped subclustering for {self.__n_sub_skipped} ranks "
+                f"({100 * self.__n_sub_skipped / n_ranks:.2f}%)")
 
         # Return object transfer counts
         return n_ranks - len(rank_targets), self._n_transfers, self._n_rejects

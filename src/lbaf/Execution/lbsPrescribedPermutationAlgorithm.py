@@ -1,10 +1,6 @@
-import random
-import time
 from logging import Logger
 
 from .lbsAlgorithmBase import AlgorithmBase
-from ..Model.lbsRank import Rank
-from ..Model.lbsMessage import Message
 from ..IO.lbsStatistics import print_function_statistics
 
 
@@ -26,8 +22,7 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
         :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super(PrescribedPermutationAlgorithm, self).__init__(
-            work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
         # Retrieve mandatory parameters
         self.__permutation = parameters.get("permutation")
@@ -74,10 +69,10 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
                 r_src, o, ranks.get(dst_id))
 
         # Compute and report post-permutation work statistics
-        stats = print_function_statistics(
+        _ = print_function_statistics(
             self._rebalanced_phase.get_ranks(),
             self._work_model.compute,
-            f"post-permutation rank work",
+            "post-permutation rank work",
             self._logger)
 
         # Update run distributions and statistics
