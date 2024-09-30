@@ -5,7 +5,7 @@ use File::Find::Rule;
 use strict;
 use warnings;
 
-my ($path, $template, $extension) = ($ARGV[0], "license-template", "*.*");
+my ($path, $template, $extension) = ($ARGV[0], "license-template", ["*.py"]);
 
 $template  = $ARGV[1] if (@ARGV > 1);
 $extension = $ARGV[2] if (@ARGV > 2);
@@ -19,11 +19,11 @@ sub make_header {
     my @name2= split /\//, $file;
     my $name = $name2[@name2-1];
     my $lenname = length($name);
-    my $lenright = int((80 - 1 - $lenname)/2);
+    my $lenright = int((80 - 2 - $lenname)/2);
     open TEMP, "<$template" or die "Can't access template\n";
     for (<TEMP>) {
         if (/file-name/) {
-            print $out '#' . (" " x $lenright) . $name . 'n';
+            print $out "#" . (" " x $lenright) . $name . "\n";
         } else {
             print $out "$_";
         }
@@ -79,4 +79,3 @@ for my $file (@files) {
     print `mv $temp $file`;
     #print "EXECUTE: mv $temp $file\n";
 }
-

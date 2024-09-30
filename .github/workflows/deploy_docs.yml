@@ -1,8 +1,6 @@
 name: Deploy docs
 
-on:
-  push:
-    branches: [ '297-add-automated-generated-documentation-from-LBAF' ]
+on: push
 
 jobs:
   build-and-deploy-docs:
@@ -12,12 +10,12 @@ jobs:
       docs-directory: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs
       docs-output: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs/output
       docs-generator: /home/runner/work/LB-analysis-framework/LB-analysis-framework/m.css/documentation
-      python-version: '3.8'
+      python-version: '3.11'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ env.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.python-version }}
           architecture: 'x64'
@@ -43,7 +41,9 @@ jobs:
         working-directory: ${{ env.docs-output }}
         run: touch .nojekyll
       # This action moves the content of `generated_docs` to the `deploy-doc-site` branch
+      # It only runs on pushes to main and develop
       - name: Deploy docs
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GH_PAT }}

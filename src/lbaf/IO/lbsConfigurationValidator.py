@@ -1,3 +1,45 @@
+#
+#@HEADER
+###############################################################################
+#
+#                         lbsConfigurationValidator.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 """LBAF Configuration validator."""
 from logging import Logger
 from typing import Union, Dict, List
@@ -11,7 +53,6 @@ ALLOWED_ORDER_STRATEGIES = (
     "element_id",
     "increasing_loads",
     "decreasing_loads",
-    "increasing_connectivity",
     "fewest_migrations",
     "small_objects")
 ALLOWED_TRANSFER_STRATEGIES = (
@@ -24,6 +65,7 @@ ALLOWED_ALGORITHMS = (
     "InformAndTransfer",
     "BruteForce",
     "CentralizedPrefixOptimizer",
+    "PrescribedPermutation",
     "PhaseStepper")
 ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
@@ -53,7 +95,7 @@ class ConfigurationValidator:
                     "gamma": float,
                     Optional("upper_bounds"): And(
                         dict,
-                        lambda x: all([isinstance(y, float) for y in x.values()]))}},
+                        lambda x: all(isinstance(y, float) for y in x.values()))}},
             "algorithm": {
                 "name": And(
                     str,
@@ -99,7 +141,7 @@ class ConfigurationValidator:
         self.__from_data = Schema({
             "data_stem": str,
             "phase_ids": Or(
-                And(list, lambda x: all([isinstance(y, int) for y in x]),
+                And(list, lambda x: all(isinstance(y, int) for y in x),
                     error="Should be of type 'list' of 'int' types"),
                 Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'")),
             Optional("expected_ranks"): And(
@@ -156,10 +198,23 @@ class ConfigurationValidator:
                          str,
                          lambda e: e in ALLOWED_TRANSFER_STRATEGIES,
                          error=f"{get_error_message(ALLOWED_TRANSFER_STRATEGIES)} must be chosen"),
+                         Optional("subclustering_threshold"): And(
+                            float,
+                            lambda x: x >= 0.0,
+                            error="Should be of type 'float' and >= 0.0"),
+                         Optional("subclustering_minimum_improvement"): And(
+                            float,
+                            lambda x: x >= 0.0,
+                            error="Should be of type 'float' and >= 0.0"),
                          Optional("cluster_swap_rtol"): And(
                             float,
                             lambda x: x > 0.0,
-                            error="Should be of type 'float' and magnitude > 0.0"),
+                            error="Should be of type 'float' and > 0.0"),
+                         Optional("max_subclusters"): And(
+                            int,
+                            lambda x: x > 0.0,
+                            error="Should be of type 'int' and > 0"),
+                         Optional("separate_subclustering"): bool,
                      "criterion": And(
                          str,
                          lambda f: f in ALLOWED_CRITERIA,
@@ -202,14 +257,14 @@ class ConfigurationValidator:
             ]
         }
 
-        if not group:
-            keys_flat = []
-            for section in sections.items():
-                for key in section[1]:
-                    keys_flat.append(key)
-            return keys_flat
-        else:
+        if group:
             return sections
+
+        keys_flat = []
+        for section in sections.items():
+            for key in section[1]:
+                keys_flat.append(key)
+        return keys_flat
 
     def main(self):
         """Main routine for the config validation."""

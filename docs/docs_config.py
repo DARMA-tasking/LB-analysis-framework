@@ -1,47 +1,5 @@
 """Configuration to generate the documentation."""
-
-# Applications
-import lbaf.Applications.LBAF_app as LBAF
-
-# Model
-
-import lbaf.Model.lbsAffineCombinationWorkModel as AffineCombinationWorkModel
-import lbaf.Model.lbsLoadOnlyWorkModel as LoadOnlyWorkModel
-import lbaf.Model.lbsObject as Object
-import lbaf.Model.lbsMessage as Message
-import lbaf.Model.lbsObjectCommunicator as ObjectCommunicator
-import lbaf.Model.lbsPhase as Phase
-import lbaf.Model.lbsRank as Rank
-import lbaf.Model.lbsWorkModelBase as WorkModelBase
-
-# Execution
-import lbaf.Execution.lbsAlgorithmBase as AlgorithmBase
-import lbaf.Execution.lbsBruteForceAlgorithm as BruteForceAlgorithm
-import lbaf.Execution.lbsCriterionBase as CriterionBase
-import lbaf.Execution.lbsInformAndTransferAlgorithm as InformAndTransferAlgorithm
-import lbaf.Execution.lbsPhaseStepperAlgorithm as PhaseStepperAlgorithm
-import lbaf.Execution.lbsRuntime as Runtime
-import lbaf.Execution.lbsStrictLocalizingCriterion as StrictLocalizingCriterion
-import lbaf.Execution.lbsTemperedCriterion as TemperedCriterion
-
-# Imported
-import lbaf.imported.JSON_data_files_validator as JSONDataFilesValidator
-
-# IO
-import lbaf.IO.lbsConfigurationValidator as ConfigurationValidator
-import lbaf.IO.lbsConfigurationUpgrader as configurationUpgrader
-import lbaf.IO.lbsGridStreamer as GridStreamer
-import lbaf.IO.lbsVisualizer as Visualizer
-import lbaf.IO.lbsStatistics as lbsStatistics
-import lbaf.IO.lbsVTDataReader as LoadReader
-import lbaf.IO.lbsVTDataWriter as VTDataWriter
-
-# Utilities
-import lbaf.Utils.lbsCsv2JsonDataConverter as Csv2JsonConverter
-import lbaf.Utils.lbsDataStatFilesUpdater as DataStatFilesUpdater
-import lbaf.Utils.lbsLogging as logger
-import lbaf.Utils.lbsVTDataExtractor as VTDataExtractor
-
+import lbaf
 
 PROJECT_TITLE = "LBAF (Load Balancing Analysis Framework)"
 INPUT = "../src/lbaf"
@@ -55,7 +13,7 @@ THEME_COLOR = "#22272e"
 
 LINKS_NAVBAR1 = [
     ("LBAF", "pages",
-     [("Before starting", "before_starting"),
+     [("Getting started", "getting_started"),
       ("Configuration file", "configuration"),
       ("Input data", "input_data"),
       ("Usage", "usage"),
@@ -68,42 +26,13 @@ LINKS_NAVBAR1 = [
 
 PLUGINS = ["m.code", "m.components", "m.dox"]
 
-INPUT_MODULES = [
-    AffineCombinationWorkModel,
-    LoadOnlyWorkModel,
-    Object,
-    Message,
-    ObjectCommunicator,
-    Phase,
-    Rank,
-    WorkModelBase,
-    LBAF,
-    AlgorithmBase,
-    BruteForceAlgorithm,
-    CriterionBase,
-    InformAndTransferAlgorithm,
-    PhaseStepperAlgorithm,
-    Runtime,
-    StrictLocalizingCriterion,
-    TemperedCriterion,
-    JSONDataFilesValidator,
-    ConfigurationValidator,
-    GridStreamer,
-    Visualizer,
-    lbsStatistics,
-    LoadReader,
-    VTDataWriter,
-    Csv2JsonConverter,
-    DataStatFilesUpdater,
-    logger,
-    VTDataExtractor,
-    configurationUpgrader]
+INPUT_MODULES = [lbaf]
 
 INPUT_PAGES = [
     "../../docs/pages/index.rst",
     "../../docs/pages/configuration.rst",
     "../../docs/pages/usage.rst",
-    "../../docs/pages/before_starting.rst",
+    "../../docs/pages/getting_started.rst",
     "../../docs/pages/testing.rst",
     "../../docs/pages/utils.rst",
     "../../docs/pages/dependencies.rst",

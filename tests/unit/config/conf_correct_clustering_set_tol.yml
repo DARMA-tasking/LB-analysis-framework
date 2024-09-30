@@ -23,6 +23,7 @@ algorithm:
     fanout: 2
     order_strategy: arbitrary
     transfer_strategy: Clustering
+    max_subclusters: 10
     cluster_swap_rtol: 0.07
     criterion: Tempered
     max_objects_per_transfer: 32
@@ -31,13 +32,3 @@ algorithm:
 # Specify output
 output_dir: ../output
 output_file_stem: output_file
-visualization:
-  x_ranks: 2
-  y_ranks: 2
-  z_ranks: 1
-  object_jitter: 0.5
-  rank_qoi: load
-  object_qoi: load
-  force_continuous_object_qoi: true
-  output_visualization_dir: ../output
-  output_visualization_file_stem: output_file

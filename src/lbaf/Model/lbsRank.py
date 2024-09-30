@@ -1,6 +1,49 @@
+#
+#@HEADER
+###############################################################################
+#
+#                                  lbsRank.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 import copy
 import math
 from logging import Logger
+from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObject import Object
@@ -17,7 +60,7 @@ class Rank:
         so: set = None):
 
         # Assign logger to instance variable
-        self.__logger = logger
+        self.__logger = logger #pylint:disable=unused-private-member
 
         # Member variables passed by constructor
         self.__index = r_id
@@ -34,7 +77,10 @@ class Rank:
         self.__size = 0.0
 
         # Start with empty shared block information
-        self.__shared_blocks = {}
+        self.__shared_blocks = set()
+
+        # Start with empty metadata
+        self.__metadata = {}
 
     def copy(self, rank):
         """Specialized copy method."""
@@ -61,15 +107,23 @@ class Rank:
         """Return object size."""
         return self.__size
 
-    def set_size(self, size: float):
+    def set_size(self, size):
         """Set rank working memory, called size."""
         # Nonnegative size required for memory footprint of this rank
-        if not isinstance(size, float) or size < 0.0:
+        if not isinstance(size, (int, float)) or isinstance(size, bool) or size < 0.0:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
-        self.__size = size
+        self.__size = float(size)
 
-    def get_shared_block_ids(self) -> set:
+    def get_metadata(self) -> dict:
+        """Return original metadata."""
+        return self.__metadata
+
+    def set_metadata(self, metadata: dict):
+        """Set rank's metadata."""
+        self.__metadata = metadata
+
+    def get_shared_ids(self) -> set:
         """Return IDs of shared blocks."""
         return {b.get_id() for b in self.__shared_blocks}
 
@@ -124,14 +178,13 @@ class Rank:
 
     def get_homed_blocks_ratio(self) -> float:
         """Return fraction of memory blocks on rank also homed there."""
-        if len(self.__shared_blocks):
+        if len(self.__shared_blocks) > 0:
             return self.get_number_of_homed_blocks() / len(self.__shared_blocks)
-        else:
-            return math.nan
+        return math.nan
 
     def get_shared_memory(self):
         """Return total shared memory on rank."""
-        return float(sum([b.get_size() for b in self.__shared_blocks]))
+        return float(sum(b.get_size() for b in self.__shared_blocks))
 
     def get_objects(self) -> set:
         """Return all objects assigned to rank."""
@@ -141,8 +194,15 @@ class Rank:
         """Return number of objects assigned to rank."""
         return len(self.__sentinel_objects) + len(self.__migratable_objects)
 
-    def add_migratable_object(self, o: Object) -> None:
+    def add_migratable_object(self, o: Object, fallback_collection_id: Optional[int] = 7) -> None:
         """Add object to migratable objects."""
+        if o.get_collection_id() is None:
+            if fallback_collection_id is not None:
+                o.set_collection_id(fallback_collection_id)
+            if o.get_collection_id() is None:
+                raise RuntimeError(
+                    f"`collection_id` parameter is required for object with id={o.get_id()}"
+                    " because it is migratable")
         return self.__migratable_objects.add(o)
 
     def get_migratable_objects(self) -> set:
@@ -169,25 +229,29 @@ class Rank:
         """Return IDs of sentinel objects assigned to rank."""
         return [o.get_id() for o in self.__sentinel_objects]
 
-    def is_sentinel(self, o: Object) -> list:
-        """Return whether given object is sentinel of rank."""
-        return (o in self.__sentinel_objects)
+    def is_migratable(self, o: Object) -> bool:
+        """Return whether given object is migratable."""
+        return o in self.__migratable_objects
 
-    def remove_migratable_object(self, o: Object, r_dst: "Rank"):
-        """Remove migratable able object from self object sent to peer."""
+    def is_sentinel(self, o: Object) -> bool:
+        """Return whether given object is sentinel of rank."""
+        return o in self.__sentinel_objects
+
+    def remove_migratable_object(self, o: Object):
+        """Remove objects from migratable objects."""
         self.__migratable_objects.remove(o)
 
     def get_load(self) -> float:
         """Return total load on rank."""
-        return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
+        return sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
 
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
-        return sum([o.get_load() for o in self.__migratable_objects])
+        return sum(o.get_load() for o in self.__migratable_objects)
 
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
-        return sum([o.get_load() for o in self.__sentinel_objects])
+        return sum(o.get_load() for o in self.__sentinel_objects)
 
     def get_received_volume(self):
         """Return volume received by objects assigned to rank from other ranks."""
@@ -200,7 +264,7 @@ class Rank:
                 continue
 
             # Add total volume received from non-local objects
-            volume += sum([v for k, v in o.get_communicator().get_received().items() if k not in obj_set])
+            volume += sum(v for k, v in o.get_communicator().get_received().items() if k not in obj_set)
 
         # Return computed volume
         return volume
@@ -216,9 +280,9 @@ class Rank:
                 continue
 
             # Add total volume sent to non-local objects
-            volume += sum([
+            volume += sum(
                 v for k, v in o.get_communicator().get_sent().items()
-                if k not in obj_set])
+                if k not in obj_set)
 
         # Return computed volume
         return volume

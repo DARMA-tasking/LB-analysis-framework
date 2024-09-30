@@ -1,3 +1,45 @@
+#
+#@HEADER
+###############################################################################
+#
+#                               lbsStatistics.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 """lbsStatistics"""
 import itertools
 import math
@@ -60,7 +102,6 @@ def initialize():
 def error_out(distribution_name, parameters, logger: Logger):
     """Logs an error indicating not enough parameters for a distribution."""
     logger.error(f"not enough parameters in {parameters} for {distribution_name} distribution.")
-    return None
 
 
 def sampler(distribution_name, parameters, logger: Logger):
@@ -75,7 +116,7 @@ def sampler(distribution_name, parameters, logger: Logger):
         return lambda: rnd.uniform(*parameters), f"U[{parameters[0]};{parameters[1]}]"
 
     # Binomial B(n,p) distribution
-    elif distribution_name.lower() == "binomial":
+    if distribution_name.lower() == "binomial":
         # 2 parameters are needed
         if len(parameters) < 2:
             return error_out(distribution_name, parameters, logger=logger)
@@ -84,7 +125,7 @@ def sampler(distribution_name, parameters, logger: Logger):
         return lambda: random.binomial(*parameters), f"B[{parameters[0]};{parameters[1]}]"
 
     # Log-normal distribution with given mean and variance
-    elif distribution_name.lower() == "lognormal":
+    if distribution_name.lower() == "lognormal":
         # 2 parameters are needed
         if len(parameters) < 2:
             return error_out(distribution_name, parameters, logger=logger)
@@ -103,9 +144,8 @@ def sampler(distribution_name, parameters, logger: Logger):
         return lambda: rnd.lognormvariate(mu, sigma), f"LogN({mu:.6g};{sigma:.6g})"
 
     # Unsupported distribution type
-    else:
-        logger.error(f"{distribution_name} distribution is not supported.")
-        return None, None
+    logger.error(f"{distribution_name} distribution is not supported.")
+    return None, None
 
 
 def Hamming_distance(arrangement_1, arrangement_2):
@@ -134,8 +174,7 @@ def min_Hamming_distance(arrangement, arrangement_list):
     for a in arrangement_list:
         # Compute distance and update minimum as needed
         hd = Hamming_distance(arrangement, a)
-        if hd < hd_min:
-            hd_min = hd
+        hd_min = min(hd_min, hd)
 
     # Return minimum distance
     return hd_min
@@ -154,6 +193,8 @@ def inverse_transform_sample(cmf):
             # Return sample point
             return k
 
+    return None
+
 
 def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> float:
     """Return a volume of rank objects"""
@@ -170,7 +211,7 @@ def compute_volume(objects: tuple, rank_object_ids: list, direction: str) -> flo
 
 def compute_load(objects: tuple, rank_object_ids: list) -> float:
     """Return a load as a sum of all object loads."""
-    return sum([objects[i].get_load() for i in rank_object_ids])
+    return sum(objects[i].get_load() for i in rank_object_ids)
 
 
 def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
@@ -310,12 +351,10 @@ def compute_function_statistics(population, fct) -> Statistics:
         n += 1
 
         # Update minimum
-        if y < f_min:
-            f_min = y
+        f_min = min(f_min, y)
 
         # Update maximum
-        if y > f_max:
-            f_max = y
+        f_max = max(f_max, y)
 
         # Handle infinite values and break out early
         if y in (-math.inf, math.inf):

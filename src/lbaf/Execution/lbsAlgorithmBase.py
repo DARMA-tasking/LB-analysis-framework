@@ -1,7 +1,49 @@
+#
+#@HEADER
+###############################################################################
+#
+#                             lbsAlgorithmBase.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 import abc
 import os
+from typing import Set
 
-from ..import PROJECT_PATH
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsPhase import Phase
@@ -56,6 +98,9 @@ class AlgorithmBase:
         # Initially no phase is assigned for processing
         self._rebalanced_phase = None
 
+        # Save the initial communications data
+        self._initial_communications = {}
+
         # Map global statistical QOIs to their computation methods
         self.__statistics = {
             ("ranks", lambda x: x.get_load()): {
@@ -77,6 +122,10 @@ class AlgorithmBase:
         """Return phased assigned for processing by algoritm."""
         return self._rebalanced_phase
 
+    def get_initial_communications(self):
+        """Return the initial phase communications."""
+        return self._initial_communications
+
     @staticmethod
     def factory(
         algorithm_name:str,
@@ -90,13 +139,12 @@ class AlgorithmBase:
         # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
         from .lbsInformAndTransferAlgorithm import InformAndTransferAlgorithm
         from .lbsBruteForceAlgorithm import BruteForceAlgorithm
+        from .lbsPrescribedPermutationAlgorithm import PrescribedPermutationAlgorithm
         from .lbsPhaseStepperAlgorithm import PhaseStepperAlgorithm
         from .lbsCentralizedPrefixOptimizerAlgorithm import CentralizedPrefixOptimizerAlgorithm
         # pylint:enable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
 
         # Ensure that algorithm name is valid
-        algorithm = locals()[algorithm_name + "Algorithm"]
-        return algorithm(work_model, parameters, logger, rank_qoi, object_qoi)
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
@@ -147,22 +195,23 @@ class AlgorithmBase:
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
-    def __print_QOI(self,rank_or_obj):
-        """Print list of implemented QOI based on the '-verbosity' command line argument."""
+    def __print_QOI(self,rank_or_obj): # pylint:disable=invalid-name
+        """Print list of implemented QOI when invalid QOI is given."""
         # Initialize file paths
-        TARGET_DIR = os.path.join(PROJECT_PATH, "src", "lbaf", "Model")
-        RANK_SCRIPT_NAME = "lbsRank.py"
-        OBJECT_SCRIPT_NAME = "lbsObject.py"
+        current_path = os.path.abspath(__file__)
+        target_dir = os.path.join(
+            os.path.dirname(os.path.dirname(current_path)), "Model")
+        rank_script_name = "lbsRank.py"
+        object_script_name = "lbsObject.py"
 
         if rank_or_obj == "rank":
             # Create list of all Rank QOI (lbsRank.get_*)
             r_qoi_list = ["work"]
-            lbsRank_file = open(
-                os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r', encoding="utf-8")
-            lbsRank_lines = lbsRank_file.readlines()
-            for line in lbsRank_lines:
-                if line[8:12] == "get_":
-                    r_qoi_list.append(line[12:line.find("(")])
+            with open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line[8:12] == "get_":
+                        r_qoi_list.append(line[12:line.find("(")])
 
             # Print QOI based on verbosity level
             self._logger.error("List of all possible Rank QOI:")
@@ -172,11 +221,11 @@ class AlgorithmBase:
         if rank_or_obj == "obj":
             # Create list of all Object QOI (lbsObject.get_*)
             o_qoi_list = []
-            lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r', encoding="utf-8")
-            lbsObject_lines = lbsObject_file.readlines()
-            for line in lbsObject_lines:
-                if line[8:12] == "get_":
-                    o_qoi_list.append(line[12:line.find("(")])
+            with open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line[8:12] == "get_":
+                        o_qoi_list.append(line[12:line.find("(")])
 
             # Print QOI based on verbosity level
             self._logger.error("List of all possible Object QOI:")
@@ -208,22 +257,25 @@ class AlgorithmBase:
         """Factor out pre-execution checks and initalizations."""
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
-            [isinstance(p, Phase) for p in phases.values()]):
+            isinstance(p, Phase) for p in phases.values()):
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
+
+        # Set initial communications for given rank
+        self._initial_communications[p_id] = phases[p_id].get_communications()
 
         # Create a new phase to preserve phase to be rebalanced
         self._logger.info(f"Creating new phase {p_id} for rebalancing")
         self._rebalanced_phase = Phase(self._logger, p_id)
 
-        # Try to copy ranks from phase to be rebalanced to processd one
+        # Try to copy ranks from phase to be rebalanced to processed one
         try:
-            new_ranks = []
+            new_ranks: Set[Rank] = set()
             for r in phases[p_id].get_ranks():
                 # Minimally instantiate rank and copy
                 new_r = Rank(self._logger)
                 new_r.copy(r)
-                new_ranks.append(new_r)
+                new_ranks.add(new_r)
             self._rebalanced_phase.set_ranks(new_ranks)
         except Exception as err:
             self._logger.error(f"No phase with index {p_id} is available for processing")
@@ -247,5 +299,3 @@ class AlgorithmBase:
         :param: statistics: dictionary of  statistics
         :param: a_min_max: possibly empty list of optimal arrangements.
         """
-
-        pass

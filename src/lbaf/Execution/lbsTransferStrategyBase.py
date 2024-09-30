@@ -1,3 +1,45 @@
+#
+#@HEADER
+###############################################################################
+#
+#                          lbsTransferStrategyBase.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 import abc
 import math
 import random
@@ -36,7 +78,8 @@ class TransferStrategyBase:
         self._max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
         self._deterministic_transfer = parameters.get("deterministic_transfer", False)
         logger.info(
-            f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
+            f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, "
+            f"max. {self._max_objects_per_transfer} objects")
 
         # Null defaut value for average load
         self._average_load = 0.0
@@ -56,7 +99,7 @@ class TransferStrategyBase:
         self._n_transfers = 0
         self._n_rejects = 0
 
-    def _get_ranks_to_traverse(self, ranks: list, known_peers: list):
+    def _get_ranks_to_traverse(self, ranks: list, known_peers: dict) -> dict:
         """Prepare randomized dict of ranks to transfer targets."""
 
         # Initialize dictionary of traversable ranks to targets
@@ -79,7 +122,7 @@ class TransferStrategyBase:
         # Return randomized dict of rank_targets ranks
         return rank_targets if self._deterministic_transfer else {
             k: rank_targets[k]
-            for k in random.sample(rank_targets.keys(), len(rank_targets))}
+            for k in random.sample(list(rank_targets.keys()), len(rank_targets))}
 
     def _randomly_select_target(self, r_src, objects: list, targets: set, strict=False):
         """Pseudo-randomly select transfer destination using ECMF."""
@@ -98,15 +141,13 @@ class TransferStrategyBase:
 
             # Update criterion values
             c_values[r_dst] = c_dst
-            if c_dst < c_min:
-                c_min = c_dst
-            if c_dst > c_max:
-                c_max = c_dst
+            c_min = min(c_min, c_dst)
+            c_max = max(c_max, c_dst)
 
         # Initialize CMF depending on singleton or non-singleton support
         if c_min == c_max:
             # Sample uniformly if all criteria have same value
-            cmf = {k: 1.0 / len(c_values) for k in c_values.keys()}
+            cmf = {k: 1.0 / len(c_values) for k in c_values}
         else:
             # Otherwise, use relative weights
             c_range = c_max - c_min
@@ -155,10 +196,11 @@ class TransferStrategyBase:
             raise SystemExit(1) from error
 
     @abc.abstractmethod
-    def execute(self, phase, known_peers: dict, ave_load: float):
+    def execute(self, known_peers: dict, phase, ave_load: float, max_load: float):
         """Execute transfer strategy on Phase instance
-        :param phase: a Phase instance
         :param known_peers: a dictionary of sets of known rank peers
+        :param phase: a Phase instance
         :param ave_load: average load in current phase.
+        :param max_load: maximum load across current phase.
         """
         # Must be implemented by concrete subclass

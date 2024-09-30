@@ -1,9 +1,52 @@
+#
+#@HEADER
+###############################################################################
+#
+#                              lbsVTDataReader.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 import json
 import os
 import re
 from logging import Logger
-from multiprocessing import get_context
+from multiprocessing import get_context, Manager
 from multiprocessing.pool import Pool
+from typing import List, Tuple
 
 import brotli
 
@@ -31,7 +74,8 @@ class LoadReader:
         "CollectiveToCollectionBcast": 7,
     }
 
-    def __init__(self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
+    def __init__(
+        self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -47,11 +91,19 @@ class LoadReader:
         # Assign schema checker
         self.__check_schema = check_schema
 
+        # Save initial communications array from every rank
+        self.__communications_dict = {}
+
+        # Save metadata dict
+        manager = Manager()
+        self.__metadata = manager.dict()
+
         # imported JSON_data_files_validator module (lazy import)
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
+            # pylint:disable=import-outside-toplevel
             from ..imported.JSON_data_files_validator import \
                 SchemaValidator as \
-                sv  # pylint:disable=C0415:import-outside-toplevel
+                sv
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
         # determine the number of ranks
@@ -96,8 +148,7 @@ class LoadReader:
             match_result = pattern.search(path)
             if match_result:
                 rank_id = int(match_result.group(1))
-                if rank_id > highest_rank:
-                    highest_rank = rank_id
+                highest_rank = max(highest_rank, rank_id)
         return highest_rank + 1
 
     def _get_rank_file_name(self, rank_id: int):
@@ -129,23 +180,26 @@ class LoadReader:
                 raise SystemExit(1)
         self.__logger.debug(f"{file_name} has type {schema_type}")
 
+        # Save metadata
+        self.__metadata[rank_id] = metadata
+
         # Checking Schema from configuration
         if self.__check_schema:
             # Validate schema
-            if LoadReader.SCHEMA_VALIDATOR_CLASS(
+            if LoadReader.SCHEMA_VALIDATOR_CLASS(    # pylint:disable=E1102:not-callable
                 schema_type=schema_type).is_valid(
                 schema_to_validate=decompressed_dict):
                 self.__logger.info(f"Valid JSON schema in {file_name}")
             else:
                 self.__logger.error(f"Invalid JSON schema in {file_name}")
-                LoadReader.SCHEMA_VALIDATOR_CLASS(
+                LoadReader.SCHEMA_VALIDATOR_CLASS(   # pylint:disable=E1102:not-callable
                     schema_type=schema_type).validate(
                     schema_to_validate=decompressed_dict)
 
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def _populate_rank(self, phase_id: int, rank_id: int) -> tuple:
+    def _populate_rank(self, phase_id: int, rank_id: int) -> Tuple[Rank,dict]:
         """ Populate rank and its communicator in phase using the JSON content."""
 
         # Seek phase with given ID
@@ -156,10 +210,9 @@ class LoadReader:
                 self.__logger.debug(
                     f"Ignored phase {curr_phase_id} for rank {rank_id}")
                 continue
-            else:
-                # Desired phase was found
-                phase_id_found = True
-                break
+            # Desired phase was found
+            phase_id_found = True
+            break
 
         # Error out if desired phase was not found
         if not phase_id_found:
@@ -175,6 +228,10 @@ class LoadReader:
         rank_comm = {}
         communications = phase.get("communications") # pylint:disable=W0631:undefined-loop-variable
         if communications:
+            if phase_id in self.__communications_dict:
+                self.__communications_dict[phase_id][rank_id] = communications
+            else:
+                self.__communications_dict[phase_id] = {rank_id: communications}
             for num, comm in enumerate(communications):
                 # Retrieve communication attributes
                 c_type = comm.get("type")
@@ -187,28 +244,31 @@ class LoadReader:
                     # Check whether both are objects
                     if c_to.get("type") == "object" and c_from.get("type") == "object":
                         # Create receiver if it does not exist
-                        receiver_obj_id = c_to.get("id")
+                        receiver_obj_id = c_to.get("id", c_to.get("seq_id"))
                         rank_comm.setdefault(
                             receiver_obj_id, {"sent": [], "received": []})
 
                         # Create sender if it does not exist
-                        sender_obj_id = c_from.get("id")
+                        sender_obj_id = c_from.get("id", c_from.get("seq_id"))
                         rank_comm.setdefault(
                             sender_obj_id, {"sent": [], "received": []})
 
                         # Create communication edges
                         rank_comm[receiver_obj_id]["received"].append(
-                            {"from": c_from.get("id"),
+                            {"from": sender_obj_id,
                              "bytes": c_bytes})
                         rank_comm[sender_obj_id]["sent"].append(
-                            {"to": c_to.get("id"), "bytes": c_bytes})
+                            {"to": receiver_obj_id, "bytes": c_bytes})
                         self.__logger.debug(
                             f"Added communication {num} to phase {curr_phase_id}")
                         for k, v in comm.items():
                             self.__logger.debug(f"{k}: {v}")
+        else:
+            self.__communications_dict.setdefault(phase_id, {rank_id: {}})
 
         # Instantiante rank for current phase
         phase_rank = Rank(self.__logger, rank_id)
+        phase_rank.set_metadata(self.__metadata[rank_id])
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}
@@ -217,18 +277,24 @@ class LoadReader:
         for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
             # Retrieve required values
             task_entity = task.get("entity")
-            task_id = task_entity.get("id")
+            task_id = task_entity.get("id", None)
+            task_seq_id = task_entity.get("seq_id", None)
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
+            collection_id = task_entity.get("collection_id")
+            objgroup_id  = task_entity.get("objgroup_id")
+            index = task_entity.get("index")
 
             # Instantiate object with retrieved parameters
             o = Object(
-                task_id,
+                seq_id=task_seq_id,
+                packed_id=task_id,
                 r_id=rank_id,
                 load=task_load,
                 user_defined=task_user_defined,
-                subphases=subphases)
+                subphases=subphases,
+                collection_id=collection_id)
 
             # Update shared block information as needed
             if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
@@ -237,6 +303,14 @@ class LoadReader:
                     shared_id,
                     (task_user_defined.get("shared_bytes", 0.0), set([])))
                 rank_blocks[shared_id][1].add(o)
+
+            # Add dict of currently unused parameters
+            unused_params = {}
+            if index is not None:
+                unused_params["index"] = index
+            if objgroup_id is not None:
+                unused_params["objgroup_id"] = objgroup_id
+            o.set_unused_params(unused_params)
 
             # Add object to rank given its type
             if task_entity.get("migratable"):
@@ -266,11 +340,11 @@ class LoadReader:
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
 
-    def populate_phase(self, phase_id: int) -> list:
+    def populate_phase(self, phase_id: int) -> List[Rank]:
         """ Populate phase using the JSON content."""
 
         # Create storage for ranks
-        ranks = [None] * self.n_ranks
+        ranks: List[Rank] = [None] * self.n_ranks
         communications = {}
 
         # Iterate over all ranks
@@ -314,4 +388,4 @@ class LoadReader:
                             i=obj_id, logger=self.__logger, r=received, s=sent))
 
         # Return populated list of ranks
-        return ranks
+        return ranks, self.__communications_dict[phase_id]

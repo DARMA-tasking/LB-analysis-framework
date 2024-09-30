@@ -1,0 +1,160 @@
+{
+  "type": "LBDatafile",
+  "phases": [
+    {
+      "id": 0,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2621443,
+            "index": [
+              0,
+              1,
+              3
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 35.0,
+          "user_defined": {
+            "rank_working_bytes": 980000000.0,
+            "shared_bytes": 1600000000.0,
+            "shared_id": 4,
+            "task_footprint_bytes": 1024.0,
+            "task_serialized_bytes": 1024.0,
+            "task_working_bytes": 110000000.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786439,
+            "index": [
+              1,
+              2,
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 5.0,
+          "user_defined": {
+            "rank_working_bytes": 980000000.0,
+            "shared_bytes": 1600000000.0,
+            "shared_id": 9,
+            "task_footprint_bytes": 1024.0,
+            "task_serialized_bytes": 1024.0,
+            "task_working_bytes": 110000000.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 786443,
+            "index": [
+              2,
+              2,
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 2.5,
+          "user_defined": {
+            "rank_working_bytes": 980000000.0,
+            "shared_bytes": 1600000000.0,
+            "shared_id": 10,
+            "task_footprint_bytes": 1024.0,
+            "task_serialized_bytes": 1024.0,
+            "task_working_bytes": 110000000.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 2097167,
+            "index": [
+              3,
+              1,
+              2
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 15.0,
+          "user_defined": {
+            "rank_working_bytes": 980000000.0,
+            "shared_bytes": 1600000000.0,
+            "shared_id": 7,
+            "task_footprint_bytes": 1024.0,
+            "task_serialized_bytes": 1024.0,
+            "task_working_bytes": 110000000.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 524303,
+            "index": [
+              3,
+              1,
+              0
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 10.0,
+          "user_defined": {
+            "rank_working_bytes": 980000000.0,
+            "shared_bytes": 1600000000.0,
+            "shared_id": 7,
+            "task_footprint_bytes": 1024.0,
+            "task_serialized_bytes": 1024.0,
+            "task_working_bytes": 110000000.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 0,
+            "id": 1310735,
+            "index": [
+              3,
+              1,
+              1
+            ],
+            "migratable": true,
+            "type": "object"
+          },
+          "node": 0,
+          "resource": "cpu",
+          "time": 20.0,
+          "user_defined": {
+            "rank_working_bytes": 980000000.0,
+            "shared_bytes": 1600000000.0,
+            "shared_id": 7,
+            "task_footprint_bytes": 1024.0,
+            "task_serialized_bytes": 1024.0,
+            "task_working_bytes": 110000000.0
+          }
+        }
+      ]
+    }
+  ]
+}

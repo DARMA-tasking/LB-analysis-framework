@@ -1,3 +1,45 @@
+#
+#@HEADER
+###############################################################################
+#
+#                                lbsRuntime.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 from logging import Logger
 
 from ..Model.lbsWorkModelBase import WorkModelBase
@@ -31,7 +73,7 @@ class Runtime:
         # If no LBS phase was provided, do not do anything
         if not phases or not isinstance(phases, dict):
             self.__logger.error(
-                "Could not create a runtime without a dictionnary of phases")
+                "Could not create a runtime without a dictionary of phases")
             raise SystemExit(1)
         self.__phases = phases
 
@@ -89,7 +131,7 @@ class Runtime:
         return self.__statistics
 
     def execute(self, p_id: int, phase_increment=0):
-        """Execute runtime for single phase with given ID or all (-1)."""
+        """Execute runtime for single phase with given ID or multiple phases in selected range."""
         # Execute balancing algorithm
         self.__logger.info(
             f"Executing {type(self.__algorithm).__name__} for "
@@ -104,5 +146,10 @@ class Runtime:
         # Retrieve possibly null rebalanced phase and return it
         if (pp := self.__algorithm.get_rebalanced_phase()):
             pp.set_id((pp_id := pp.get_id() + phase_increment))
+
+            # Share communications from original phase with new phase
+            initial_communications = self.__algorithm.get_initial_communications()
+            pp.set_communications(initial_communications[p_id])
+
             self.__logger.info(f"Created rebalanced phase {pp_id}")
         return pp

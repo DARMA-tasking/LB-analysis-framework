@@ -33,14 +33,3 @@ algorithm:
 # Specify output
 output_dir: ../output
 output_file_stem: output_file
-visualization:
-  x_ranks: 4
-  y_ranks: 4
-  z_ranks: 1
-  object_jitter: 0.5
-  #rank_qoi: homed_blocks_ratio
-  rank_qoi: max_memory_usage
-  object_qoi: shared_block_id
-  save_meshes: false
-  output_visualization_dir: ../output
-  output_visualization_file_stem: output_file

@@ -1,3 +1,45 @@
+#
+#@HEADER
+###############################################################################
+#
+#                                 LBAF_app.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 """LBAF Application"""
 import math
 import os
@@ -5,6 +47,12 @@ import sys
 from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
+
+try:
+    import vttv
+    USING_VTTV = True
+except ModuleNotFoundError:
+    USING_VTTV = False
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -14,10 +62,10 @@ import lbaf.IO.lbsStatistics as lbstats
 from lbaf import PROJECT_PATH, __version__
 from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
-from lbaf.IO.lbsVisualizer import Visualizer
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
 from lbaf.Model.lbsPhase import Phase
+from lbaf.Model.lbsWorkModelBase import WorkModelBase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
 from lbaf.Utils.lbsJSONDataFilesValidatorLoader import \
     JSONDataFilesValidatorLoader
@@ -26,7 +74,7 @@ from lbaf.Utils.lbsPath import abspath
 # pylint:enable=C0413:wrong-import-position
 
 class InternalParameters:
-    """Represent the parameters used internally by a a LBAF Application"""
+    """Represent the parameters used internally by a LBAF Application"""
 
     __logger: Logger
 
@@ -113,6 +161,11 @@ class InternalParameters:
 
         # Parse visualizer parameters when available
         if (viz := config.get("visualization")) is not None:
+
+            # Ensure that vttv module was found
+            if not USING_VTTV:
+                raise ModuleNotFoundError("Visualization enabled but vt-tv module not found.")
+
             # Retrieve mandatory visualization parameters
             try:
                 self.grid_size = []
@@ -179,7 +232,8 @@ class LBAFApplication:
             prompt_default=False)
         parser.add_argument(
             "-c", "--configuration",
-            help="Path to the config file. If path is relative it must be resolvable from either the current working directory or the config directory",
+            help=("Path to the config file. If path is relative it must be resolvable from "
+                  "either the current working directory or the config directory"),
             default="conf.yaml")
         parser.add_argument(
             "-v", "--verbose",
@@ -293,12 +347,12 @@ class LBAFApplication:
         # Verify path correctness
         if not os.path.isfile(path):
             raise FileNotFoundError(
-                "Configuration file not found. If a relative path was provided the file may not exist in current working directory or in the `<project_path>/config` directory")
-        else:
-            self.__logger.info(f"Found configuration file at path {path}")
+                "Configuration file not found. If a relative path was provided the file may not exist "
+                "in current working directory or in the `<project_path>/config` directory")
+        self.__logger.info(f"Found configuration file at path {path}")
         return path
 
-    def __print_statistics(self, phase: Phase, phase_name: str):
+    def __print_statistics(self, phase: Phase, phase_name: str, work_model: WorkModelBase = None):
         """Print a set of rank and edge statistics"""
 
         # Print rank statistics
@@ -317,7 +371,7 @@ class LBAFApplication:
             lambda x: x.get_size(),
             f"{phase_name} rank working memory",
             self.__logger)
-        lbstats.print_function_statistics(
+        shared_memory_stats = lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             f"{phase_name} rank shared memory",
@@ -327,6 +381,17 @@ class LBAFApplication:
             lambda x: x.get_max_memory_usage(),
             f"{phase_name} maximum memory usage",
             self.__logger)
+        if shared_memory_stats.get_maximum():
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
+                lambda x: x.get_homed_blocks_ratio(),
+                f"{phase_name} homed_blocks_ratio",
+                self.__logger)
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
+                lambda x: x.get_number_of_uprooted_blocks(),
+                f"{phase_name} number_of_uprooted_blocks",
+                self.__logger)
 
         # Print edge statistics
         lbstats.print_function_statistics(
@@ -335,10 +400,19 @@ class LBAFApplication:
             f"{phase_name} sent volumes",
             self.__logger)
 
-        # Return rank load statistics
-        return l_stats
+        if work_model is not None:
+            w_stats = lbstats.print_function_statistics(
+                phase.get_ranks(),
+                work_model.compute,
+                f"{phase_name} rank work",
+                self.__logger)
+        else:
+            w_stats = None
 
-    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name # not snake case
+        # Return rank load and work statistics
+        return l_stats, w_stats
+
+    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
@@ -351,21 +425,19 @@ class LBAFApplication:
 
         # Create list of all Rank QOI (Rank.get_*)
         r_qoi_list = ["work"]
-        lbs_rank_file = open(
-            os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8")
-        lbs_rank_lines = lbs_rank_file.readlines()
-        for line in lbs_rank_lines:
-            if line[8:12] == "get_":
-                r_qoi_list.append(line[12:line.find("(")])
+        with open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8") as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[8:12] == "get_":
+                    r_qoi_list.append(line[12:line.find("(")])
 
         # Create list of all Object QOI (Object.get_*)
         o_qoi_list = []
-        lbs_object_file = open(
-            os.path.join(target_dir, object_script_name), 'r', encoding="utf-8")
-        lbs_object_lines = lbs_object_file.readlines()
-        for line in lbs_object_lines:
-            if line[8:12] == "get_":
-                o_qoi_list.append(line[12:line.find("(")])
+        with open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8") as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[8:12] == "get_":
+                    o_qoi_list.append(line[12:line.find("(")])
 
         # Print QOI based on verbosity level
         if verbosity > 0:
@@ -383,36 +455,44 @@ class LBAFApplication:
             for o_qoi in o_qoi_list:
                 self.__logger.info(f"\t\t{o_qoi}")
 
-    def run(self):
+    def run(self, cfg=None, cfg_dir=None):
         """Run the LBAF application."""
-        # Parse command line arguments
-        self.__parse_args()
+        # If no configuration was passed directly, look for the file(s)
+        if cfg is None:
+            # Parse command line arguments
+            self.__parse_args()
 
-        # Print list of implemented QOI (according to verbosity argument)
-        self.__print_QOI()
+            # Print list of implemented QOI (according to verbosity argument)
+            self.__print_QOI()
 
-        # Warn if default configuration is used because not set as argument
-        if self.__args.configuration is None:
-            self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
-                                  "working directory or in the project config directory !")
-            self.__args.configuration = "conf.yaml"
+            # Warn if default configuration is used because not set as argument
+            if self.__args.configuration is None:
+                self.__logger.warning("No configuration file given. Fallback to default `conf.yaml` file in "
+                                    "working directory or in the project config directory !")
+                self.__args.configuration = "conf.yaml"
 
-        # Find configuration files
-        config_file_list = []
-        # Global configuration (optional)
-        try:
-            config_file_list.append(self.__resolve_config_path("global.yaml"))
-        except FileNotFoundError:
-            pass
-        # Local/Specialized configuration (required)
-        try:
-            config_file_list.append(self.__resolve_config_path(self.__args.configuration))
-        except(FileNotFoundError) as err:
-            self.__logger.error(err)
-            raise SystemExit(-1) from err
+            # Find configuration files
+            config_file_list = []
 
-        # Apply configuration
-        cfg = self.__configure(*config_file_list)
+            # Global configuration (optional)
+            try:
+                config_file_list.append(self.__resolve_config_path("global.yaml"))
+            except FileNotFoundError:
+                pass
+
+            # Local/Specialized configuration (required)
+            try:
+                config_file_list.append(self.__resolve_config_path(self.__args.configuration))
+            except(FileNotFoundError) as err:
+                self.__logger.error(err)
+                raise SystemExit(-1) from err
+
+            # Apply configuration
+            cfg = self.__configure(*config_file_list)
+
+        else:
+            self.__parameters = InternalParameters(
+                config=cfg, base_dir=cfg_dir, logger=self.__logger)
 
         # Download of JSON data files validator required to continue
         loader = JSONDataFilesValidatorLoader()
@@ -493,7 +573,6 @@ class LBAFApplication:
             _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
                 objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
         else:
-            self.__logger.info("No brute force optimization performed")
             a_min_max = []
 
         # Instantiate runtime
@@ -506,11 +585,11 @@ class LBAFApplication:
             self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
-        # Execute runtime for specified phases, -1 for all phases
+        # Execute runtime for specified phases
         offline_LB_compatible = self.__parameters.json_params.get(  # pylint:disable=C0103:invalid-name;not lowercase
             "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
-            self.__parameters.algorithm.get("phase_id", -1),
+            self.__parameters.algorithm.get("phase_id", 0),
             offline_LB_compatible)
 
         # Instantiate phase to VT file writer when requested
@@ -552,38 +631,58 @@ class LBAFApplication:
                     "Grid size: {self.__parameters.grid_size} < {n_ranks}")
                 raise SystemExit(1)
 
-            # Look for prescribed QOI bounds
-            qoi_request = [
-                self.__parameters.rank_qoi,
-                self.__parameters.work_model.get("parameters", {}).get("upper_bounds", {}).get(self.__parameters.rank_qoi),
-                self.__parameters.object_qoi
-            ]
+            # Call vttv visualization
+            if USING_VTTV:
+                self.__logger.info("Calling vt-tv")
 
-            # Instantiate and execute visualizer
-            visualizer = Visualizer(
-                self.__logger,
-                qoi_request,
-                self.__parameters.continuous_object_qoi,
-                phases,
-                self.__parameters.grid_size,
-                self.__parameters.object_jitter,
-                self.__parameters.output_dir,
-                self.__parameters.output_file_stem,
-                runtime.get_distributions(),
-                runtime.get_statistics())
-            visualizer.generate(
-                self.__parameters.save_meshes,
-                not self.__parameters.rank_qoi is None)
+                # Serialize data to JSON-formatted string
+                rank_phases = {}
+                for p in phases.values():
+                    for r in p.get_ranks():
+                        rank_phases.setdefault(r.get_id(), {})
+                        rank_phases[r.get_id()][p.get_id()] = r
+
+                ranks_json_str = []
+                for i in range(len(rank_phases.items())):
+                    ranks_json_str.append(self.__json_writer._json_serializer((i, rank_phases[i])))
+
+                vttv_params = {
+                    "x_ranks": self.__parameters.grid_size[0],
+                    "y_ranks": self.__parameters.grid_size[1],
+                    "z_ranks": self.__parameters.grid_size[2],
+                    "object_jitter": self.__parameters.object_jitter,
+                    "rank_qoi": self.__parameters.rank_qoi,
+                    "object_qoi": self.__parameters.object_qoi,
+                    "save_meshes": self.__parameters.save_meshes,
+                    "force_continuous_object_qoi": self.__parameters.continuous_object_qoi,
+                    "output_visualization_dir": self.__parameters.output_dir,
+                    "output_visualization_file_stem": self.__parameters.output_file_stem
+                }
+
+                num_ranks = (
+                    self.__parameters.grid_size[0] *
+                    self.__parameters.grid_size[1] *
+                    self.__parameters.grid_size[2]
+                )
+
+                vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
-            l_stats = self.__print_statistics(rebalanced_phase, "rebalanced")
+            l_stats, w_stats = self.__print_statistics(rebalanced_phase, "rebalanced", runtime.get_work_model())
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
                     self.__parameters.output_dir,
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
+
+            with open(
+                "w_max.txt" if self.__parameters.output_dir is None
+                else os.path.join(
+                    self.__parameters.output_dir,
+                    "w_max.txt"), 'w', encoding="utf-8") as w_max_file:
+                w_max_file.write(f"{w_stats.get_maximum()}")
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")

@@ -1,3 +1,45 @@
+#
+#@HEADER
+###############################################################################
+#
+#                       lbsRecursiveTransferStrategy.py
+#               DARMA/LB-analysis-framework => LB Analysis Framework
+#
+# Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
+# (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S.
+# Government retains certain rights in this software.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from this
+#   software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Questions? Contact darma@sandia.gov
+#
+###############################################################################
+#@HEADER
+#
 import math
 import random
 from bisect import bisect
@@ -6,7 +48,6 @@ from logging import Logger
 from typing import Union
 
 from .lbsTransferStrategyBase import TransferStrategyBase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 
 
@@ -20,7 +61,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         :param parameters: a dictionary of parameters.
         """
         # Call superclass init
-        super(RecursiveTransferStrategy, self).__init__(criterion, parameters, logger)
+        super().__init__(criterion, parameters, logger)
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -28,13 +69,12 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             "element_id": self.element_id,
             "decreasing_loads": self.decreasing_loads,
             "increasing_loads": self.increasing_loads,
-            "increasing_connectivity": self.increasing_connectivity,
             "fewest_migrations": self.fewest_migrations,
             "small_objects": self.small_objects}
         o_s = parameters.get("order_strategy")
         if o_s not in self.__strategy_mapped:
             self._logger.error(f"{o_s} does not exist in known ordering strategies: "
-                                f"{[x for x in self.__strategy_mapped]}")
+                                f"{list(self.__strategy_mapped)}")
             raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
@@ -56,11 +96,11 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             # Transfer is not possible, recurse further
             return self.__recursive_extended_search(
                 pick_list, objects, c_fct, n_o, max_n_o)
-        else:
-            # Succeed when criterion is satisfied
-            return True
 
-    def execute(self, known_peers, phase: Phase, ave_load: float):
+        # Succeed when criterion is satisfied
+        return True
+
+    def execute(self, known_peers, phase: Phase, ave_load: float, _):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
@@ -155,41 +195,18 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
-    def increasing_connectivity(objects: set, src_id):
-        """Order objects by increasing local communication volume."""
-        # Initialize list with all objects without a communicator
-        no_comm = [
-            o for o in objects
-            if not isinstance(o.get_communicator(), ObjectCommunicator)]
-
-        # Order objects with a communicator
-        with_comm = {}
-        for o in objects:
-            # Skip objects without a communicator
-            comm = o.get_communicator()
-            if not isinstance(o.get_communicator(), ObjectCommunicator):
-                continue
-
-            # Update dict of objects with maximum local communication
-            with_comm[o] = max(
-                sum([v for k, v in comm.get_received().items()
-                     if k.get_rank_id() == src_id]),
-                sum([v for k, v in comm.get_sent().items()
-                     if k.get_rank_id() == src_id]))
-
-        # Return list of objects order by increased local connectivity
-        return no_comm + sorted(with_comm, key=with_comm.get)
-
-    @staticmethod
     def sorted_ascending(objects: Union[set, list]):
+        """Order objects by ascending object loads."""
         return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
     def sorted_descending(objects: Union[set, list]):
+        """Order objects by descending object loads."""
         return sorted(objects, key=lambda x: -x.get_load())
 
     def load_excess(self, objects: set):
-        rank_load = sum([obj.get_load() for obj in objects])
+        """Determine the amount of excess load in the set of objects."""
+        rank_load = sum(obj.get_load() for obj in objects)
         return rank_load - self._average_load
 
     def fewest_migrations(self, objects: set, _):
