@@ -10,7 +10,7 @@ jobs:
       docs-directory: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs
       docs-output: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs/output
       docs-generator: /home/runner/work/LB-analysis-framework/LB-analysis-framework/m.css/documentation
-      python-version: '3.8'
+      python-version: '3.11'
 
     steps:
       - uses: actions/checkout@v4

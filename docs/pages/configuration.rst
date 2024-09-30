@@ -1,5 +1,5 @@
-Configuration
-=============
+Configuration file
+==================
 
 Below a structure of YAML file explained as well as example `*.yml` configuration.
 
