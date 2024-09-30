@@ -131,19 +131,19 @@ class Object:
         if user_defined:
             # Object size is by definition its memory footprint
             if not isinstance((
-                size := user_defined.get("task_footprint_bytes", 0.0)), (int, float)) or isinstance(size, bool) or size < 0.0:
-                raise TypeError(
-                    f"size: incorrect type {type(size)} or value: {size}")
-            else:
-                self.__size = float(size)
+                size := user_defined.get("task_footprint_bytes", 0.0)),
+                (int, float)
+            ) or isinstance(size, bool) or size < 0.0:
+                raise TypeError(f"size: incorrect type {type(size)} or value: {size}")
+            self.__size = float(size)
 
             # Object overhead is by definition its additional working memory
             if not isinstance((
-                overhead := user_defined.get("task_working_bytes", 0.0)), (int, float)) or isinstance(overhead, bool) or overhead < 0.0:
-                raise TypeError(
-                    f"overhead: incorrect type {type(overhead)} or value: {overhead}")
-            else:
-                self.__overhead = float(overhead)
+                overhead := user_defined.get("task_working_bytes", 0.0)),
+                (int, float)
+            ) or isinstance(overhead, bool) or overhead < 0.0:
+                raise TypeError(f"overhead: incorrect type {type(overhead)} or value: {overhead}")
+            self.__overhead = float(overhead)
 
         # Sub-phases
         if isinstance(subphases, list) or subphases is None:
@@ -205,11 +205,11 @@ class Object:
 
     def get_received_volume(self) -> float:
         """Return volume of communications received by object."""
-        return sum([v for v in self.__communicator.get_received().values()]) if self.__communicator else 0
+        return sum(v for v in self.__communicator.get_received().values()) if self.__communicator else 0
 
     def get_sent_volume(self) -> float:
         """Return volume of communications sent by object."""
-        return sum([v for v in self.__communicator.get_sent().values()]) if self.__communicator else 0
+        return sum(v for v in self.__communicator.get_sent().values()) if self.__communicator else 0
 
     def get_max_volume(self) -> float:
         """Return the maximum bytes received or sent by object."""

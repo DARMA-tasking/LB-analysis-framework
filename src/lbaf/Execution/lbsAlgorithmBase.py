@@ -195,24 +195,23 @@ class AlgorithmBase:
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
-    def __print_QOI(self,rank_or_obj):
+    def __print_QOI(self,rank_or_obj): # pylint:disable=invalid-name
         """Print list of implemented QOI when invalid QOI is given."""
         # Initialize file paths
-        CURRENT_PATH = os.path.abspath(__file__)
-        TARGET_DIR = os.path.join(
-            os.path.dirname(os.path.dirname(CURRENT_PATH)), "Model")
-        RANK_SCRIPT_NAME = "lbsRank.py"
-        OBJECT_SCRIPT_NAME = "lbsObject.py"
+        current_path = os.path.abspath(__file__)
+        target_dir = os.path.join(
+            os.path.dirname(os.path.dirname(current_path)), "Model")
+        rank_script_name = "lbsRank.py"
+        object_script_name = "lbsObject.py"
 
         if rank_or_obj == "rank":
             # Create list of all Rank QOI (lbsRank.get_*)
             r_qoi_list = ["work"]
-            lbsRank_file = open(
-                os.path.join(TARGET_DIR, RANK_SCRIPT_NAME), 'r', encoding="utf-8")
-            lbsRank_lines = lbsRank_file.readlines()
-            for line in lbsRank_lines:
-                if line[8:12] == "get_":
-                    r_qoi_list.append(line[12:line.find("(")])
+            with open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line[8:12] == "get_":
+                        r_qoi_list.append(line[12:line.find("(")])
 
             # Print QOI based on verbosity level
             self._logger.error("List of all possible Rank QOI:")
@@ -222,11 +221,11 @@ class AlgorithmBase:
         if rank_or_obj == "obj":
             # Create list of all Object QOI (lbsObject.get_*)
             o_qoi_list = []
-            lbsObject_file = open(os.path.join(TARGET_DIR, OBJECT_SCRIPT_NAME), 'r', encoding="utf-8")
-            lbsObject_lines = lbsObject_file.readlines()
-            for line in lbsObject_lines:
-                if line[8:12] == "get_":
-                    o_qoi_list.append(line[12:line.find("(")])
+            with open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line[8:12] == "get_":
+                        o_qoi_list.append(line[12:line.find("(")])
 
             # Print QOI based on verbosity level
             self._logger.error("List of all possible Object QOI:")
@@ -258,7 +257,7 @@ class AlgorithmBase:
         """Factor out pre-execution checks and initalizations."""
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
-            [isinstance(p, Phase) for p in phases.values()]):
+            isinstance(p, Phase) for p in phases.values()):
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
@@ -300,5 +299,3 @@ class AlgorithmBase:
         :param: statistics: dictionary of  statistics
         :param: a_min_max: possibly empty list of optimal arrangements.
         """
-
-        pass

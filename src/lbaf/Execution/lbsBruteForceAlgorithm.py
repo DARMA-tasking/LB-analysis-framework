@@ -60,8 +60,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super(BruteForceAlgorithm, self).__init__(
-            work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)

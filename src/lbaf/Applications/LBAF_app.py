@@ -50,9 +50,9 @@ import yaml
 
 try:
     import vttv
-    using_vttv = True
+    USING_VTTV = True
 except ModuleNotFoundError:
-    using_vttv = False
+    USING_VTTV = False
 
 # pylint:disable=C0413:wrong-import-position
 # Use lbaf module from source if lbaf package is not installed
@@ -163,7 +163,7 @@ class InternalParameters:
         if (viz := config.get("visualization")) is not None:
 
             # Ensure that vttv module was found
-            if not using_vttv:
+            if not USING_VTTV:
                 raise ModuleNotFoundError("Visualization enabled but vt-tv module not found.")
 
             # Retrieve mandatory visualization parameters
@@ -232,7 +232,8 @@ class LBAFApplication:
             prompt_default=False)
         parser.add_argument(
             "-c", "--configuration",
-            help="Path to the config file. If path is relative it must be resolvable from either the current working directory or the config directory",
+            help=("Path to the config file. If path is relative it must be resolvable from "
+                  "either the current working directory or the config directory"),
             default="conf.yaml")
         parser.add_argument(
             "-v", "--verbose",
@@ -346,9 +347,9 @@ class LBAFApplication:
         # Verify path correctness
         if not os.path.isfile(path):
             raise FileNotFoundError(
-                "Configuration file not found. If a relative path was provided the file may not exist in current working directory or in the `<project_path>/config` directory")
-        else:
-            self.__logger.info(f"Found configuration file at path {path}")
+                "Configuration file not found. If a relative path was provided the file may not exist "
+                "in current working directory or in the `<project_path>/config` directory")
+        self.__logger.info(f"Found configuration file at path {path}")
         return path
 
     def __print_statistics(self, phase: Phase, phase_name: str, work_model: WorkModelBase = None):
@@ -411,7 +412,7 @@ class LBAFApplication:
         # Return rank load and work statistics
         return l_stats, w_stats
 
-    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name # not snake case
+    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
@@ -424,21 +425,19 @@ class LBAFApplication:
 
         # Create list of all Rank QOI (Rank.get_*)
         r_qoi_list = ["work"]
-        lbs_rank_file = open(
-            os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8")
-        lbs_rank_lines = lbs_rank_file.readlines()
-        for line in lbs_rank_lines:
-            if line[8:12] == "get_":
-                r_qoi_list.append(line[12:line.find("(")])
+        with open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8") as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[8:12] == "get_":
+                    r_qoi_list.append(line[12:line.find("(")])
 
         # Create list of all Object QOI (Object.get_*)
         o_qoi_list = []
-        lbs_object_file = open(
-            os.path.join(target_dir, object_script_name), 'r', encoding="utf-8")
-        lbs_object_lines = lbs_object_file.readlines()
-        for line in lbs_object_lines:
-            if line[8:12] == "get_":
-                o_qoi_list.append(line[12:line.find("(")])
+        with open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8") as f:
+            lines = f.readlines()
+            for line in lines:
+                if line[8:12] == "get_":
+                    o_qoi_list.append(line[12:line.find("(")])
 
         # Print QOI based on verbosity level
         if verbosity > 0:
@@ -633,19 +632,19 @@ class LBAFApplication:
                 raise SystemExit(1)
 
             # Call vttv visualization
-            if using_vttv:
+            if USING_VTTV:
                 self.__logger.info("Calling vt-tv")
 
                 # Serialize data to JSON-formatted string
-                self.__rank_phases = {}
+                rank_phases = {}
                 for p in phases.values():
                     for r in p.get_ranks():
-                        self.__rank_phases.setdefault(r.get_id(), {})
-                        self.__rank_phases[r.get_id()][p.get_id()] = r
+                        rank_phases.setdefault(r.get_id(), {})
+                        rank_phases[r.get_id()][p.get_id()] = r
 
                 ranks_json_str = []
-                for i in range(len(self.__rank_phases.items())):
-                    ranks_json_str.append(self.__json_writer._json_serializer((i, self.__rank_phases[i])))
+                for i in range(len(rank_phases.items())):
+                    ranks_json_str.append(self.__json_writer._json_serializer((i, rank_phases[i])))
 
                 vttv_params = {
                     "x_ranks": self.__parameters.grid_size[0],
@@ -659,7 +658,13 @@ class LBAFApplication:
                     "output_visualization_dir": self.__parameters.output_dir,
                     "output_visualization_file_stem": self.__parameters.output_file_stem
                 }
-                num_ranks = self.__parameters.grid_size[0] * self.__parameters.grid_size[1] * self.__parameters.grid_size[2]
+
+                num_ranks = (
+                    self.__parameters.grid_size[0] *
+                    self.__parameters.grid_size[1] *
+                    self.__parameters.grid_size[2]
+                )
+
                 vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
         # Report on rebalanced phase when available

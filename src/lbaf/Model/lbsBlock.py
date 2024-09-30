@@ -57,8 +57,7 @@ class Block:
         if not isinstance(b_id, int) or isinstance(b_id, bool):
             raise TypeError(
                 f"b_id: incorrect type {type(b_id)}")
-        else:
-            self.__index = b_id
+        self.__index = b_id
 
         # Rank to which block is initially assigned
         if not isinstance(h_id, int) or isinstance(h_id, bool):
@@ -79,7 +78,10 @@ class Block:
         self.__attached_object_ids = o_ids
 
     def __repr__(self):
-        return f"Block id: {self.__index}, home id: {self.__home_id}, size: {self.__size}, object ids: {self.__attached_object_ids}"
+        return (
+            f"Block id: {self.__index}, home id: {self.__home_id}, "
+            f"size: {self.__size}, object ids: {self.__attached_object_ids}"
+        )
 
     def get_id(self) -> int:
         """Return block ID."""

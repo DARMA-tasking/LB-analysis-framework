@@ -56,7 +56,7 @@ class LoadOnlyWorkModel(WorkModelBase):
         self.__logger = lgr
 
         # Call superclass init
-        super(LoadOnlyWorkModel, self).__init__()
+        super().__init__()
         self.__logger.info("Instantiated concrete work model")
 
     def compute(self, rank: Rank):

@@ -137,7 +137,7 @@ class TestConfig(unittest.TestCase):
         self.rank.add_migratable_object(temp_object)
         self.migratable_objects.add(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
-        self.rank.remove_migratable_object(temp_object, temp_rank)
+        self.rank.remove_migratable_object(temp_object)
         self.migratable_objects.remove(temp_object)
         self.assertEqual(self.rank.get_migratable_objects(), self.migratable_objects)
 

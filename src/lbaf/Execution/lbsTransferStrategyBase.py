@@ -78,7 +78,8 @@ class TransferStrategyBase:
         self._max_objects_per_transfer = parameters.get("max_objects_per_transfer", math.inf)
         self._deterministic_transfer = parameters.get("deterministic_transfer", False)
         logger.info(
-            f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, max. {self._max_objects_per_transfer} objects")
+            f"Created {'' if self._deterministic_transfer else 'non'}deterministic transfer strategy, "
+            f"max. {self._max_objects_per_transfer} objects")
 
         # Null defaut value for average load
         self._average_load = 0.0
@@ -140,15 +141,13 @@ class TransferStrategyBase:
 
             # Update criterion values
             c_values[r_dst] = c_dst
-            if c_dst < c_min:
-                c_min = c_dst
-            if c_dst > c_max:
-                c_max = c_dst
+            c_min = min(c_min, c_dst)
+            c_max = max(c_max, c_dst)
 
         # Initialize CMF depending on singleton or non-singleton support
         if c_min == c_max:
             # Sample uniformly if all criteria have same value
-            cmf = {k: 1.0 / len(c_values) for k in c_values.keys()}
+            cmf = {k: 1.0 / len(c_values) for k in c_values}
         else:
             # Otherwise, use relative weights
             c_range = c_max - c_min

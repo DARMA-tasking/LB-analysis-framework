@@ -48,7 +48,6 @@ from logging import Logger
 from typing import Union
 
 from .lbsTransferStrategyBase import TransferStrategyBase
-from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsPhase import Phase
 
 
@@ -62,7 +61,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         :param parameters: a dictionary of parameters.
         """
         # Call superclass init
-        super(RecursiveTransferStrategy, self).__init__(criterion, parameters, logger)
+        super().__init__(criterion, parameters, logger)
 
         # Select object order strategy
         self.__strategy_mapped = {
@@ -75,7 +74,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         o_s = parameters.get("order_strategy")
         if o_s not in self.__strategy_mapped:
             self._logger.error(f"{o_s} does not exist in known ordering strategies: "
-                                f"{[x for x in self.__strategy_mapped]}")
+                                f"{list(self.__strategy_mapped)}")
             raise SystemExit(1)
         self.__order_strategy = self.__strategy_mapped[o_s]
         self._logger.info(f"Selected {self.__order_strategy.__name__} object ordering strategy")
@@ -97,9 +96,9 @@ class RecursiveTransferStrategy(TransferStrategyBase):
             # Transfer is not possible, recurse further
             return self.__recursive_extended_search(
                 pick_list, objects, c_fct, n_o, max_n_o)
-        else:
-            # Succeed when criterion is satisfied
-            return True
+
+        # Succeed when criterion is satisfied
+        return True
 
     def execute(self, known_peers, phase: Phase, ave_load: float, _):
         """Perform object transfer stage."""
@@ -197,14 +196,17 @@ class RecursiveTransferStrategy(TransferStrategyBase):
 
     @staticmethod
     def sorted_ascending(objects: Union[set, list]):
+        """Order objects by ascending object loads."""
         return sorted(objects, key=lambda x: x.get_load())
 
     @staticmethod
     def sorted_descending(objects: Union[set, list]):
+        """Order objects by descending object loads."""
         return sorted(objects, key=lambda x: -x.get_load())
 
     def load_excess(self, objects: set):
-        rank_load = sum([obj.get_load() for obj in objects])
+        """Determine the amount of excess load in the set of objects."""
+        rank_load = sum(obj.get_load() for obj in objects)
         return rank_load - self._average_load
 
     def fewest_migrations(self, objects: set, _):

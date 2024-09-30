@@ -50,10 +50,21 @@ To call this script either call script with
 Script usage examples:
 
 - Generate dataset from specification file
-`lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1`
+
+```
+lbaf-vt-data-files-maker \
+    --spec-file=/home/john/data-maker/dataset1-spec.yaml \
+    --data-stem=/home/john/data-maker/dataset1
+```
 
 - Generate dataset from specification file and sample configuration file configured to use the generated data stem
-`lbaf-vt-data-files-maker --spec-file=/home/john/data-maker/dataset1-spec.yaml --data-stem=/home/john/data-maker/dataset1 --config-file=/home/john/data-maker/dataset1-config.yaml`
+
+```
+lbaf-vt-data-files-maker \
+    --spec-file=/home/john/data-maker/dataset1-spec.yaml \
+    --data-stem=/home/john/data-maker/dataset1 \
+    --config-file=/home/john/data-maker/dataset1-config.yaml
+```
 
 - Generate dataset from specification defined interactively in CLI
 `lbaf-vt-data-files-maker --interactive`
@@ -96,7 +107,7 @@ class YamlSpecificationDumper(yaml.Dumper):
     """Custom dumper to add indent before list items hyphens."""
 
     def increase_indent(self, flow=False, indentless=False):
-        return super(YamlSpecificationDumper, self).increase_indent(flow, False)
+        return super().increase_indent(flow, False)
 
 
 class Util:
@@ -108,6 +119,8 @@ class Util:
 
         if value_type is not None and not isinstance(value, value_type):
             return value_type(value)
+
+        return value
 
     @staticmethod
     def to_dict(items: Union[dict, list], element_type=None):
@@ -327,9 +340,9 @@ class JSONDataFilesMaker():
         })
 
         if use_explicit_keys:
-            spec["tasks"] = {comm_id: comm for comm_id, comm in enumerate(spec["tasks"])}
-            spec["communications"] = {task_id: task for task_id, task in enumerate(spec["communications"])}
-            spec["shared_blocks"] = {block_id: block for block_id, block in enumerate(spec["shared_blocks"])}
+            spec["tasks"] = dict(enumerate(spec["tasks"]))
+            spec["communications"] = dict(enumerate(spec["communications"]))
+            spec["shared_blocks"] = dict(enumerate(spec["shared_blocks"]))
 
         self.spec = spec
 
@@ -400,10 +413,11 @@ class JSONDataFilesMaker():
 
         if choice == "*Back":
             return "*Back"
+
         if choice != f"*New {object_type_name}":
             return int(choice)
-        else:
-            return "*New"
+
+        return "*New"
 
     def make_object(self, parent: Union[list, dict], object_type_name: str, default, update: Callable):
         """Create or update an object in a list (id is the index) or in a dict (id is the key) for interactive input
@@ -426,7 +440,8 @@ class JSONDataFilesMaker():
                 object_id = max(parent.keys(), default=-1) + 1
                 object_id = self.__prompt.prompt(
                     f"{object_type_name.capitalize()} id ?", required=True, value_type=int, default=object_id,
-                    validate=lambda t_id: f"{object_type_name.capitalize()} with id already exists. Please choose another id !"
+                    validate=lambda t_id: (
+                        f"{object_type_name.capitalize()} with id already exists. Please choose another id!")
                     if t_id in parent.keys()
                     else None)
             else:
@@ -618,7 +633,7 @@ class JSONDataFilesMaker():
         # List communications from/to the task
         t_communications: dict = {}
         for c_id, communication in Util.to_dict(self.spec["communications"]).items():
-            if communication["from"] == choice or communication["to"] == choice:
+            if choice in (communication["from"], communication["to"]):
                 t_communications[c_id] = communication
 
         # Find task shared block(s)
@@ -706,7 +721,8 @@ class JSONDataFilesMaker():
 
         messages = []
         if len(shared_block['tasks']) > 0:
-            messages.append(f"Tasks with ids {Util.set_to_csv(shared_block['tasks'], sep=', ')} are sharing that block.")
+            messages.append(
+                f"Tasks with ids {Util.set_to_csv(shared_block['tasks'], sep=', ')} are sharing that block.")
 
         if len(messages) > 0:
             self.__prompt.print_warning(str.join(f"{os.linesep}", messages))
@@ -742,7 +758,8 @@ class JSONDataFilesMaker():
                                             required=True, default=None)
         if element_type == "*Back":
             return
-        elif element_type == "Task":
+
+        if element_type == "Task":
             self.remove_task()
         elif element_type == "Rank":
             self.remove_rank()
@@ -758,7 +775,8 @@ class JSONDataFilesMaker():
             self.load_sample(use_explicit_keys=True)
             action = "Build"
         elif action == "Extra: print":
-            frmt = self.__prompt.prompt("Format ?", choices=["yaml", "json", "python (debug)"], required=True, default="yaml")
+            frmt = self.__prompt.prompt(
+                "Format ?", choices=["yaml", "json", "python (debug)"], required=True, default="yaml")
             self.print(frmt)
         elif action == "Extra: save":
             frmt = None
@@ -779,7 +797,8 @@ class JSONDataFilesMaker():
                 if frmt == "json":
                     o_file.write(json.dumps(normalized_spec, sort_keys=True, indent=2, separators=(',', ": ")))
                 elif frmt == "yaml":
-                    o_file.write(yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
+                    o_file.write(
+                        yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
 
     def run_action(self, action: str):
         """Run an action"""
@@ -861,13 +880,13 @@ class JSONDataFilesMaker():
 
             if action == "Exit":
                 break
-            else:
-                try:
-                    self.run_action(action)
-                # Catch any exception so that only the user can choose to exit the script (interactive) loop
-                except Exception as err:  # pylint:disable=W0718:broad-exception-caught
-                    self.__prompt.print_error(str(err.args[0]) if len(err.args) > 0
-                                              else f"An error of type {type(err).__name__} has occured")
+
+            try:
+                self.run_action(action)
+            # Catch any exception so that only the user can choose to exit the script (interactive) loop
+            except Exception as err:  # pylint:disable=W0718:broad-exception-caught
+                self.__prompt.print_error(str(err.args[0]) if len(err.args) > 0
+                                            else f"An error of type {type(err).__name__} has occured")
 
 
 if __name__ == "__main__":

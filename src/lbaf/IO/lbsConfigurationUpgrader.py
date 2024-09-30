@@ -82,9 +82,8 @@ class UpgradeAction(Enum):
 
 class ConfigurationDumper(yaml.Dumper):
     """Custom dumper to add indent before list items hyphens."""
-
     def increase_indent(self, flow=False, indentless=False):
-        return super(ConfigurationDumper, self).increase_indent(flow, False)
+        return super().increase_indent(flow, False)
 
 
 ConfigurationDumper.add_representer(bool, bool_representer)
@@ -101,7 +100,7 @@ class ConfigurationUpgrader:
         """Write a single node (key/value) in the given yaml file."""
         indent_str = " " * indent_size
         yaml_file.write(f"{k}:")
-        if isinstance(value, list) or isinstance(value, dict):
+        if isinstance(value, (dict, list)):
             yaml_file.write('\n')
             yaml_file.write(indent_str)
             yaml_node = yaml.dump(
@@ -181,13 +180,13 @@ class ConfigurationUpgrader:
             conf = yaml.safe_load(yaml_content)
             node = conf
             if action != UpgradeAction.FORMAT_ONLY:
-                for i, key in enumerate(key_path):
+                for i, k in enumerate(key_path):
                     is_leaf = i == len(key_path)-1
                     # Create the node if it does not exist
-                    if not key in node.keys():
+                    if not k in node.keys():
                         if action == UpgradeAction.ADD_KEY:
                             if is_leaf:
-                                node[key] = parsed_value
+                                node[k] = parsed_value
                             else:
                                 new_branch = {}
                                 new_node = new_branch
@@ -196,17 +195,17 @@ class ConfigurationUpgrader:
                                     is_leaf = j == len(new_key_path) - 1
                                     new_node[new_key] = parsed_value if is_leaf else {}
                                     new_node = new_node[new_key]
-                                node[key] = new_branch
+                                node[k] = new_branch
                     elif is_leaf:
                         if action == UpgradeAction.REMOVE_KEY:
-                            del node[key]
+                            del node[k]
                         elif action == UpgradeAction.ADD_KEY:
-                            node[key] = parsed_value
+                            node[k] = parsed_value
                     # Go to the next node in child tree
                     if is_leaf:
                         break
 
-                    node=node[key]
+                    node=node[k]
 
         with open(file_path, 'w', encoding="utf-8") as yaml_file:
             if file_comment is not None:
