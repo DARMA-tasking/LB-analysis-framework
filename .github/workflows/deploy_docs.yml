@@ -10,7 +10,7 @@ jobs:
       docs-directory: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs
       docs-output: /home/runner/work/LB-analysis-framework/LB-analysis-framework/docs/output
       docs-generator: /home/runner/work/LB-analysis-framework/LB-analysis-framework/m.css/documentation
-      python-version: '3.8'
+      python-version: '3.11'
 
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
       # This action moves the content of `generated_docs` to the `deploy-doc-site` branch
       # It only runs on pushes to main and develop
       - name: Deploy docs
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        # if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GH_PAT }}
