@@ -3,7 +3,7 @@ import unittest
 
 from src.lbaf.Applications.LBAF_app import LBAFApplication
 
-class TestPermutations(unittest.TestCase):
+class TestSyntheticBlocksLB(unittest.TestCase):
     """Class to run acceptance tests"""
 
     def setUp(self):
@@ -12,7 +12,7 @@ class TestPermutations(unittest.TestCase):
     def tearDown(self):
         return
 
-    def generate_configuration(self, alpha, beta, gamma, permutation):
+    def generate_configuration(self, alpha, beta, gamma):
         """Creates and returns the path to a YAML configuration file."""
         # Determine filepaths
         acceptance_dir = os.path.dirname(__file__)
@@ -22,10 +22,9 @@ class TestPermutations(unittest.TestCase):
         # Create YAML configuration
         config = {
             "from_data": {
-                "data_stem": f"{data_dir}/synthetic_lb_data/data",
-                "phase_ids": [0],
+                "data_stem": f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks",
+                "phase_ids": [0]
             },
-            "check_schema": False,
             "work_model": {
                 "name": "AffineCombination",
                 "parameters": {
@@ -34,11 +33,19 @@ class TestPermutations(unittest.TestCase):
                     "gamma": gamma
                 }
             },
+            "brute_force_optimization": False,
             "algorithm": {
-                "name": "PrescribedPermutation",
+                "name": "InformAndTransfer",
                 "phase_id": 0,
                 "parameters": {
-                    "permutation": permutation
+                    "n_iterations": 10,
+                    "n_rounds": 2,
+                    "fanout": 2,
+                    "order_strategy": "element_id",
+                    "transfer_strategy": "Recursive",
+                    "criterion": "Tempered",
+                    "max_objects_per_transfer": 8,
+                    "deterministic_transfer": True
                 }
             },
             "logging_level": "info",
@@ -50,7 +57,7 @@ class TestPermutations(unittest.TestCase):
         return config
 
     def run_test(self, config, test_case, expected_w_max):
-        """Compare LBAF's results to the expected W_max."""
+        """Compare LBAF's results to the expected imbalance."""
         # Determine current directory
         acceptance_dir = os.path.dirname(__file__)
 
@@ -67,38 +74,40 @@ class TestPermutations(unittest.TestCase):
         # Validate w_max value
         with open(w_max_filepath, 'r', encoding="utf-8") as w_max_file:
             w_max = float(w_max_file.read())
-            self.assertEqual(w_max, expected_w_max, f"@@@@@ [{test_case}] FOUND W_MAX: {w_max} @@@@@")
+            self.assertLessEqual(w_max, expected_w_max, f"@@@@@ [{test_case}] FOUND W_MAX: {w_max} @@@@@")
 
         # Clean up
         os.remove(w_max_filepath)
         os.remove(imbalance_filepath)
 
-    def test_ccm_permutation(self):
+    def test_synthetic_blocks_lb(self):
         # Initialize test cases
         test_cases = {
             "load_only": {
                 "alpha": 1.0,
                 "beta": 0.0,
                 "gamma": 0.0,
-                "permutation": dict(enumerate([0, 0, 1, 1, 0, 2, 1, 3, 3])),
-                "W_max": 2.0
+                "W_max": 2.5 # optimum is 2.0, but accept <= 2.5
             },
             "off_node_communication_only": {
                 "alpha": 0.0,
                 "beta": 1.0,
                 "gamma": 0.0,
-                "permutation": dict(enumerate([3, 2, 3, 3, 2, 3, 3, 3, 3])),
                 "W_max": 0.0
+            },
+            "load+off_node_communication": {
+                "alpha": 1.0,
+                "beta": 1.0,
+                "gamma": 0.0,
+                "W_max": 4.5 # optimum is 4.0, but accept <= 4.5
             }
         }
 
-        # Run each test case
         for test_case, test_params in test_cases.items():
             cfg = self.generate_configuration(
                 alpha=test_params["alpha"],
                 beta=test_params["beta"],
-                gamma=test_params["gamma"],
-                permutation=test_params["permutation"]
+                gamma=test_params["gamma"]
             )
             self.run_test(cfg, test_case, test_params["W_max"])
 
