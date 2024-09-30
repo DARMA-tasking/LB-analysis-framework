@@ -23,7 +23,7 @@ Installation
 LBAF can be installed in two ways:
 
 1. Install the LBAF Package *(recommended)*
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    Users can easily install the latest release of LBAF with:
 
@@ -39,7 +39,7 @@ LBAF can be installed in two ways:
       pip install -e LB-analysis-framework
 
 2. Install Dependencies
-   ^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
    If you do not wish to install LBAF as a package, simply clone the repo and install dependencies:
 
