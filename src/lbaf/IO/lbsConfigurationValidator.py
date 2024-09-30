@@ -95,7 +95,7 @@ class ConfigurationValidator:
                     "gamma": float,
                     Optional("upper_bounds"): And(
                         dict,
-                        lambda x: all([isinstance(y, float) for y in x.values()]))}},
+                        lambda x: all(isinstance(y, float) for y in x.values()))}},
             "algorithm": {
                 "name": And(
                     str,
@@ -141,7 +141,7 @@ class ConfigurationValidator:
         self.__from_data = Schema({
             "data_stem": str,
             "phase_ids": Or(
-                And(list, lambda x: all([isinstance(y, int) for y in x]),
+                And(list, lambda x: all(isinstance(y, int) for y in x),
                     error="Should be of type 'list' of 'int' types"),
                 Regex(r"^[0-9]+-[0-9]+$", error="Should be of type 'str' like '0-100'")),
             Optional("expected_ranks"): And(
@@ -257,14 +257,14 @@ class ConfigurationValidator:
             ]
         }
 
-        if not group:
-            keys_flat = []
-            for section in sections.items():
-                for key in section[1]:
-                    keys_flat.append(key)
-            return keys_flat
-        else:
+        if group:
             return sections
+
+        keys_flat = []
+        for section in sections.items():
+            for key in section[1]:
+                keys_flat.append(key)
+        return keys_flat
 
     def main(self):
         """Main routine for the config validation."""

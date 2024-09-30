@@ -60,7 +60,7 @@ class Rank:
         so: set = None):
 
         # Assign logger to instance variable
-        self.__logger = logger
+        self.__logger = logger #pylint:disable=unused-private-member
 
         # Member variables passed by constructor
         self.__index = r_id
@@ -178,14 +178,13 @@ class Rank:
 
     def get_homed_blocks_ratio(self) -> float:
         """Return fraction of memory blocks on rank also homed there."""
-        if len(self.__shared_blocks):
+        if len(self.__shared_blocks) > 0:
             return self.get_number_of_homed_blocks() / len(self.__shared_blocks)
-        else:
-            return math.nan
+        return math.nan
 
     def get_shared_memory(self):
         """Return total shared memory on rank."""
-        return float(sum([b.get_size() for b in self.__shared_blocks]))
+        return float(sum(b.get_size() for b in self.__shared_blocks))
 
     def get_objects(self) -> set:
         """Return all objects assigned to rank."""
@@ -230,29 +229,29 @@ class Rank:
         """Return IDs of sentinel objects assigned to rank."""
         return [o.get_id() for o in self.__sentinel_objects]
 
-    def is_migratable(self, o: Object) -> list:
+    def is_migratable(self, o: Object) -> bool:
         """Return whether given object is migratable."""
-        return (o in self.__migratable_objects)
+        return o in self.__migratable_objects
 
-    def is_sentinel(self, o: Object) -> list:
+    def is_sentinel(self, o: Object) -> bool:
         """Return whether given object is sentinel of rank."""
-        return (o in self.__sentinel_objects)
+        return o in self.__sentinel_objects
 
-    def remove_migratable_object(self, o: Object, r_dst: "Rank"):
-        """Remove migratable able object from self object sent to peer."""
+    def remove_migratable_object(self, o: Object):
+        """Remove objects from migratable objects."""
         self.__migratable_objects.remove(o)
 
     def get_load(self) -> float:
         """Return total load on rank."""
-        return sum([o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects)])
+        return sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
 
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
-        return sum([o.get_load() for o in self.__migratable_objects])
+        return sum(o.get_load() for o in self.__migratable_objects)
 
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
-        return sum([o.get_load() for o in self.__sentinel_objects])
+        return sum(o.get_load() for o in self.__sentinel_objects)
 
     def get_received_volume(self):
         """Return volume received by objects assigned to rank from other ranks."""
@@ -265,7 +264,7 @@ class Rank:
                 continue
 
             # Add total volume received from non-local objects
-            volume += sum([v for k, v in o.get_communicator().get_received().items() if k not in obj_set])
+            volume += sum(v for k, v in o.get_communicator().get_received().items() if k not in obj_set)
 
         # Return computed volume
         return volume
@@ -281,9 +280,9 @@ class Rank:
                 continue
 
             # Add total volume sent to non-local objects
-            volume += sum([
+            volume += sum(
                 v for k, v in o.get_communicator().get_sent().items()
-                if k not in obj_set])
+                if k not in obj_set)
 
         # Return computed volume
         return volume

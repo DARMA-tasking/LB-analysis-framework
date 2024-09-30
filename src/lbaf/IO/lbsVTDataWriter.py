@@ -266,7 +266,7 @@ class VTDataWriter:
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
-        r_id, r_phases = rank_phases_double
+        r_id = rank_phases_double[0]
 
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
@@ -289,7 +289,7 @@ class VTDataWriter:
 
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict) or not all(
-            [isinstance(p, Phase) for p in phases.values()]):
+            isinstance(p, Phase) for p in phases.values()):
             self.__logger.error(
                 "JSON writer must be passed a dictionary of phases")
             raise SystemExit(1)
