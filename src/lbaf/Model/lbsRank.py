@@ -48,6 +48,7 @@ from typing import Optional
 from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsQOIDecorator import qoi
+from .lbsNode import Node
 
 class Rank:
     """A class representing a rank to which objects are assigned."""
@@ -57,7 +58,8 @@ class Rank:
         logger: Logger,
         r_id: int = -1,
         mo: set = None,
-        so: set = None):
+        so: set = None,
+        node : Node = None):
 
         # Assign logger to instance variable
         self.__logger = logger #pylint:disable=unused-private-member
@@ -82,11 +84,20 @@ class Rank:
         # Start with empty metadata
         self.__metadata = {}
 
-    def copy(self, rank):
+        # Optionally, the rank is connected to a node
+        self.node = node
+        if node is not None:
+            node.add_rank(self)
+
+    def copy(self, rank, nodes=[], ranks_per_node=1):
         """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
         self.__size = rank.get_size()
+
+        if len(nodes) > 0 and ranks_per_node > 1:
+            self.node = nodes[int(self.__index / ranks_per_node)]
+            self.node.add_rank(self)
 
         # Shallow copy owned objects
         self.__shared_blocks = copy.copy(rank.__shared_blocks)

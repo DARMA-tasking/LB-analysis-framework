@@ -54,6 +54,7 @@ from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
+from ..Model.lbsNode import Node
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
@@ -75,7 +76,7 @@ class LoadReader:
     }
 
     def __init__(
-        self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
+        self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None, ranks_per_node=1):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -108,6 +109,8 @@ class LoadReader:
 
         # determine the number of ranks
         self.n_ranks = self._get_n_ranks()
+        self.ranks_per_node = ranks_per_node
+        self.__logger.info(f"Ranks per node: {ranks_per_node}")
         self.__logger.info(f"Number of ranks: {self.n_ranks}")
 
         # warn user if expected_ranks is set and is different from n_ranks
@@ -199,7 +202,7 @@ class LoadReader:
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
 
-    def _populate_rank(self, phase_id: int, rank_id: int) -> Tuple[Rank,dict]:
+    def _populate_rank(self, phase_id: int, rank_id: int, nodes : List[Node]) -> Tuple[Rank,dict]:
         """ Populate rank and its communicator in phase using the JSON content."""
 
         # Seek phase with given ID
@@ -267,7 +270,10 @@ class LoadReader:
             self.__communications_dict.setdefault(phase_id, {rank_id: {}})
 
         # Instantiante rank for current phase
-        phase_rank = Rank(self.__logger, rank_id)
+        node = None
+        if self.ranks_per_node > 1:
+            node = nodes[int(rank_id / self.ranks_per_node)]
+        phase_rank = Rank(self.__logger, rank_id, node=node)
         phase_rank.set_metadata(self.__metadata[rank_id])
 
         # Initialize storage for shared blocks information
@@ -346,10 +352,17 @@ class LoadReader:
         ranks: List[Rank] = [None] * self.n_ranks
         communications = {}
 
+        nodes : List[Node] = []
+        if self.ranks_per_node > 1:
+            n_nodes = int(self.n_ranks / self.ranks_per_node)
+            nodes = list(map(
+                lambda n_id: Node(self.__logger, n_id),
+                list(range(0, n_nodes))))
+
         # Iterate over all ranks
         for rank_id in range(self.n_ranks):
             # Read data for given phase and assign it to rank
-            ranks[rank_id], rank_comm = self._populate_rank(phase_id, rank_id)
+            ranks[rank_id], rank_comm = self._populate_rank(phase_id, rank_id, nodes)
 
             # Merge rank communication with existing ones
             for k, v in rank_comm.items():

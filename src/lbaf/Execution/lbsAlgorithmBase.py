@@ -47,6 +47,7 @@ from typing import Set
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
 from ..Model.lbsObject import Object
+from ..Model.lbsNode import Node
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.lbsLogging import Logger
@@ -177,14 +178,25 @@ class AlgorithmBase:
 
         # Try to copy ranks from phase to be rebalanced to processed one
         try:
+            ranks_per_node = 1
+            new_nodes: List[Node] = []
             new_ranks: Set[Rank] = set()
+
+            if len(phases[p_id].get_ranks()) > 0 and phases[p_id].get_ranks()[0].node is not None:
+                ranks_per_node = phases[p_id].get_ranks()[0].node.get_number_of_ranks()
+            if ranks_per_node > 1:
+                n_nodes = int(len(phases[p_id].get_ranks()) / ranks_per_node)
+                new_nodes = list(map(
+                    lambda n_id: Node(self._logger, n_id),
+                    list(range(0, n_nodes))))
             for r in phases[p_id].get_ranks():
                 # Minimally instantiate rank and copy
                 new_r = Rank(self._logger)
-                new_r.copy(r)
+                new_r.copy(r, new_nodes, ranks_per_node)
                 new_ranks.add(new_r)
-            self._rebalanced_phase.set_ranks(new_ranks)
+                self._rebalanced_phase.set_ranks(new_ranks)
         except Exception as err:
+            print(f"{err}")
             self._logger.error(f"No phase with index {p_id} is available for processing")
             raise SystemExit(1) from err
         self._logger.info(

@@ -89,6 +89,7 @@ class InternalParameters:
 
     # From data input options
     data_stem: Optional[str] = None
+    ranks_per_node : Optional[int] = 1
 
     # From samplers input options
     n_ranks: Optional[int] = None
@@ -135,10 +136,15 @@ class InternalParameters:
             if param_key in self.__allowed_config_keys:
                 self.__dict__[param_key] = param_val
 
+        # Assume 1 rank per node by default
+        self.ranks_per_node = 1
+
         # Parse data parameters if present
         from_data = config.get("from_data")
         if from_data is not None:
             self.data_stem = from_data.get("data_stem")
+            if from_data.get("ranks_per_node") is not None:
+                self.ranks_per_node = from_data.get("ranks_per_node")
             # # get data directory (because data_stem includes file prefix)
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
@@ -519,7 +525,8 @@ class LBAFApplication:
                 logger=self.__logger,
                 file_suffix=file_suffix if file_suffix is not None else "json",
                 check_schema=check_schema,
-                expected_ranks=self.__parameters.expected_ranks)
+                expected_ranks=self.__parameters.expected_ranks,
+                ranks_per_node=self.__parameters.ranks_per_node)
 
             # Retrieve n_ranks
             n_ranks = reader.n_ranks
