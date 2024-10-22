@@ -203,6 +203,7 @@ class ConfigurationValidator:
                          str,
                          lambda e: e in ALLOWED_TRANSFER_STRATEGIES,
                          error=f"{get_error_message(ALLOWED_TRANSFER_STRATEGIES)} must be chosen"),
+                         Optional("subclustering_disabled"): bool,
                          Optional("subclustering_threshold"): And(
                             float,
                             lambda x: x >= 0.0,
