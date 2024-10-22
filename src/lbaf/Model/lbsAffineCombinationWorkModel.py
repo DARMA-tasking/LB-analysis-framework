@@ -94,10 +94,15 @@ class AffineCombinationWorkModel(WorkModelBase):
         alpha * load + beta * max(sent, received) + gamma,
         under optional strict upper bounds.
         """
-        # Check whether strict bounds are satisfied
-        for k, v in self.__upper_bounds.items():
-            if getattr(rank, f"get_{k}")() > v:
-                return math.inf
+        if rank.node is None:
+            # Check whether strict bounds are satisfied
+            for k, v in self.__upper_bounds.items():
+                if getattr(rank, f"get_{k}")() > v:
+                    return math.inf
+        else:
+            for k, v in self.__upper_bounds.items():
+                if getattr(rank.node, f"get_{k}")() > v * rank.node.get_number_of_ranks():
+                    return math.inf
 
         # Return combination of load and volumes
         return self.affine_combination(
