@@ -123,6 +123,9 @@ class VTDataWriter:
             if o.get_collection_id() is not None:
                 task_data["entity"]["collection_id"] = o.get_collection_id()
 
+            if o.get_index() is not None:
+                task_data["entity"]["index"] = o.get_index()
+
             if unused_params:
                 task_data["entity"].update(unused_params)
 
