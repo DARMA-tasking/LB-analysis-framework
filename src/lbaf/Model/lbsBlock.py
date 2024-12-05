@@ -54,10 +54,10 @@ class Block:
             o_ids = set()
 
         # Block index
-        if not isinstance(b_id, int) or isinstance(b_id, bool):
-            raise TypeError(
-                f"b_id: incorrect type {type(b_id)}")
-        self.__index = b_id
+        # if not isinstance(b_id, int) or isinstance(b_id, bool):
+        #     raise TypeError(
+        #         f"b_id: incorrect type {type(b_id)}")
+        self.__index = int(b_id)
 
         # Rank to which block is initially assigned
         if not isinstance(h_id, int) or isinstance(h_id, bool):

@@ -226,17 +226,23 @@ class Object:
     @qoi
     def get_received_volume(self) -> float:
         """Return volume of communications received by object."""
-        return sum(v for v in self.__communicator.get_received().values()) if self.__communicator else 0
+        v : float = 0.0
+        v += sum(v for v in self.__communicator.get_received().values()) if self.__communicator else 0.0
+        return v
 
     @qoi
     def get_sent_volume(self) -> float:
         """Return volume of communications sent by object."""
-        return sum(v for v in self.__communicator.get_sent().values()) if self.__communicator else 0
+        v : float = 0.0
+        v += sum(v for v in self.__communicator.get_sent().values()) if self.__communicator else 0.0
+        return v
 
     @qoi
     def get_max_volume(self) -> float:
         """Return the maximum bytes received or sent by object."""
-        return self.__communicator.get_max_volume() if self.__communicator else 0
+        v : float = 0.0
+        v += self.__communicator.get_max_volume() if self.__communicator else 0.0
+        return v
 
     def set_rank_id(self, r_id: int) -> None:
         """Assign object to rank ID"""

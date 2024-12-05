@@ -262,18 +262,22 @@ class Rank:
     @qoi
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
-        return sum(o.get_load() for o in self.__migratable_objects)
+        val : float = 0.0
+        val += sum(o.get_load() for o in self.__migratable_objects)
+        return val
 
     @qoi
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
-        return sum(o.get_load() for o in self.__sentinel_objects)
+        val : float = 0.0
+        val += sum(o.get_load() for o in self.__sentinel_objects)
+        return val
 
     @qoi
-    def get_received_volume(self):
+    def get_received_volume(self) -> float:
         """Return volume received by objects assigned to rank from other ranks."""
         # Iterate over all objects assigned to rank
-        volume = 0
+        volume : float = 0.0
         obj_set = self.__migratable_objects.union(self.__sentinel_objects)
         for o in obj_set:
             # Skip objects without communication
@@ -287,10 +291,10 @@ class Rank:
         return volume
 
     @qoi
-    def get_sent_volume(self):
+    def get_sent_volume(self) -> float:
         """Return volume sent by objects assigned to rank to other ranks."""
         # Iterate over all objects assigned to rank
-        volume = 0
+        volume = 0.0
         obj_set = self.__migratable_objects.union(self.__sentinel_objects)
         for o in obj_set:
             # Skip objects without communication

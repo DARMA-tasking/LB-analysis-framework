@@ -44,6 +44,7 @@ import json
 import multiprocessing as mp
 import os
 import sys
+import math
 from logging import Logger
 from typing import Optional
 
@@ -134,6 +135,20 @@ class VTDataWriter:
             user_defined = o.get_user_defined()
             if user_defined:
                 task_data["user_defined"] = dict(sorted(user_defined.items()))
+            else:
+                task_data["user_defined"] = dict()
+
+            task_data["user_defined"]["object_memory"] = o.get_size()
+            task_data["user_defined"]["object_overhead_memory"] = o.get_overhead()
+            task_data["user_defined"]["rank_id"] = o.get_rank_id()
+            task_data["user_defined"]["sent_volume"] = o.get_sent_volume()
+            task_data["user_defined"]["received_volume"] = o.get_received_volume()
+            task_data["user_defined"]["max_volume"] = o.get_max_volume()
+
+            if o.get_shared_id() is not None:
+                task_data["user_defined"]["shared_id"] = o.get_shared_id()
+            else:
+                task_data["user_defined"]["shared_id"] = -1
 
             # Append data for current object
             tasks.append(task_data)
@@ -276,10 +291,25 @@ class VTDataWriter:
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             current_phase = self.__phases.get(p_id)
 
+            # Get rank info and QOIs
+            rank_info : Rank = [r for r in current_phase.get_ranks() if r.get_id() == r_id][0]
+            rank_qois = rank_info.get_QOIs()
+
             # Create data to be outputted for current phase
             phase_data = {
                 "id": p_id,
-                "tasks": self.__create_task_data(rank)}
+                "tasks": self.__create_task_data(rank),
+                "user_defined": {
+                    qoi_name: qoi_getter() for qoi_name, qoi_getter in rank_qois.items()
+                    if qoi_name != "homed_blocks_ratio" # omit for now because it might be nan
+                },
+            }
+
+            # JSON can not handle nan so make this ratio -1 when it's not valid
+            homed_ratio = -1
+            if not math.isnan(rank_info.get_homed_blocks_ratio()):
+                homed_ratio = rank_info.get_homed_blocks_ratio()
+            phase_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
             # Add communication data if present
             communications = self.__get_communications(current_phase, rank)
