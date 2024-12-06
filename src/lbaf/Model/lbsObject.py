@@ -58,6 +58,7 @@ class Object:
     :arg user_defined: user defined data dict, defaults to None
     :arg subphases: list of subphases, defaults to None
     :arg collection_id: collection id (required for migratable objects)
+    :arg index: the n-dimensional index for an object that belongs to a collection
     """
 
     def __init__(
@@ -70,7 +71,8 @@ class Object:
         comm: Optional[ObjectCommunicator]=None,
         user_defined: dict=None,
         subphases: list=None,
-        collection_id: Optional[int] = None):
+        collection_id: Optional[int] = None,
+        index: Optional[list] = None):
 
         # Check that id is provided as defined in LBDatafile schema
         if packed_id is None and seq_id is None:
@@ -151,6 +153,9 @@ class Object:
         else:
             raise TypeError(f"subphases: {subphases} is of type {type(subphases)} but must be <class 'list'>")
 
+        if index is not None:
+           self.__index = index
+
     def __repr__(self):
         return f"Object id: {self.get_id()}, load: {self.__load}"
 
@@ -173,6 +178,14 @@ class Object:
     def set_collection_id(self, collection_id: Optional[int]):
         """ Set object collection ID (required for migratable objects)."""
         self.__collection_id = collection_id
+
+    def get_index(self) -> Optional[list]:
+        """Return the object's index."""
+        return self.__index
+
+    def set_index(self, index: Optional[list]):
+        """Set an object's index."""
+        self.__index = index
 
     def set_load(self, load: float):
         """ Set object load."""
