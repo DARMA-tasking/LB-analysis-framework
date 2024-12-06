@@ -294,7 +294,8 @@ class LoadReader:
                 load=task_load,
                 user_defined=task_user_defined,
                 subphases=subphases,
-                collection_id=collection_id)
+                collection_id=collection_id,
+                index=index)
 
             # Update shared block information as needed
             if (shared_id := task_user_defined.get("shared_id", -1)) > -1:
@@ -306,8 +307,6 @@ class LoadReader:
 
             # Add dict of currently unused parameters
             unused_params = {}
-            if index is not None:
-                unused_params["index"] = index
             if objgroup_id is not None:
                 unused_params["objgroup_id"] = objgroup_id
             o.set_unused_params(unused_params)
