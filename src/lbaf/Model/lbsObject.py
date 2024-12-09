@@ -124,6 +124,7 @@ class Object:
 
         # collection_id is not used in LBAF but is required for migratable objects in vt
         self.__collection_id = collection_id
+        self.__index = index
 
         # Retrieve and set optionally defined fields
         if isinstance(user_defined, dict) or user_defined is None:
@@ -152,9 +153,6 @@ class Object:
             self.__subphases = subphases
         else:
             raise TypeError(f"subphases: {subphases} is of type {type(subphases)} but must be <class 'list'>")
-
-        if index is not None:
-           self.__index = index
 
     def __repr__(self):
         return f"Object id: {self.get_id()}, load: {self.__load}"
