@@ -198,13 +198,12 @@ class InternalParameters:
                 raise SystemExit(1) from e
 
             # Retrieve optional parameters
-            self.json_params[
-                "json_output_suffix"] = wrt_json.get("suffix", "json")
-            self.json_params[
-                "communications"] = wrt_json.get("communications", False)
-            self.json_params[
-                "offline_LB_compatible"] = wrt_json.get(
-                "offline_LB_compatible", False)
+            for k_out, k_wrt, v_def in [
+                    ("json_output_suffix", "suffix", "json"),
+                    ("communications", "communications", False),
+                    ("offline_LB_compatible", "offline_LB_compatible", False),
+                    ("lb_iterations", "lb_iterations", False)]:
+                self.json_params[k_out] = wrt_json.get(k_wrt, v_def)
 
     def check_parameters(self):
         """Checks after initialization."""
@@ -586,7 +585,7 @@ class LBAFApplication:
             self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
 
         # Execute runtime for specified phases
-        offline_LB_compatible = self.__parameters.json_params.get(  # pylint:disable=C0103:invalid-name;not lowercase
+        offline_LB_compatible = self.__parameters.json_params.get(
             "offline_LB_compatible", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", 0),
