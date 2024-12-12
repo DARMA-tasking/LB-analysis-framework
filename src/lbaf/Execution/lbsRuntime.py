@@ -130,9 +130,9 @@ class Runtime:
         """Return runtime statistics."""
         return self.__statistics
 
-    def execute(self, p_id: int, phase_increment=0):
+    def execute(self, p_id: int, phase_increment: int=0):
         """Execute runtime for single phase with given ID or multiple phases in selected range."""
-        # Execute balancing algorithm
+        # Execute load balancing algorithm
         self.__logger.info(
             f"Executing {type(self.__algorithm).__name__} for "
             + ("all phases" if p_id < 0 else f"phase {p_id}"))
@@ -145,11 +145,13 @@ class Runtime:
 
         # Retrieve possibly null rebalanced phase and return it
         if (pp := self.__algorithm.get_rebalanced_phase()):
+            # Increment rebalanced phase ID as requested
             pp.set_id((pp_id := pp.get_id() + phase_increment))
 
             # Share communications from original phase with new phase
             initial_communications = self.__algorithm.get_initial_communications()
             pp.set_communications(initial_communications[p_id])
-
             self.__logger.info(f"Created rebalanced phase {pp_id}")
+
+        # Return rebalanced phase
         return pp

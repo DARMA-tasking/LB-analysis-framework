@@ -128,7 +128,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Process the message
         self.__known_peers[r_rcv].update(m.get_support())
 
-    def __forward_message(self, i: int, r_snd: Rank, f:int):
+    def __forward_message(self, i: int, r_snd: Rank, f: int):
         """Forward information message to rank peers sampled from known ones."""
         # Make rank aware of itself
         if r_snd not in self.__known_peers:
