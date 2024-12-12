@@ -154,40 +154,8 @@ class AlgorithmBase:
             logger.error(f"Could not create an algorithm with name {algorithm_name}")
             raise SystemExit(1) from e
 
-    def _update_distributions_and_statistics(self, distributions: dict, statistics: dict):
-        """Compute and update run distributions and statistics."""
-        # Create or update distributions of object quantities of interest
-        for object_qoi_name in tuple({"load", self.__object_qoi}):
-            if not object_qoi_name:
-                continue
-            try:
-                distributions.setdefault(f"object {object_qoi_name}", []).append(
-                    {o.get_id(): getattr(o, f"get_{object_qoi_name}")()
-                    for o in self._rebalanced_phase.get_objects()})
-            except AttributeError as err:
-                self.__print_QOI("obj")
-                self._logger.error(f"Invalid object_qoi name '{object_qoi_name}'")
-                raise SystemExit(1) from err
-
-        # Create or update distributions of rank quantities of interest
-        for rank_qoi_name in tuple({"objects", "load", self.__rank_qoi}):
-            if not rank_qoi_name or rank_qoi_name == "work":
-                continue
-            try:
-                distributions.setdefault(f"rank {rank_qoi_name}", []).append(
-                    [getattr(p, f"get_{rank_qoi_name}")()
-                    for p in self._rebalanced_phase.get_ranks()])
-            except AttributeError as err:
-                self.__print_QOI("rank")
-                self._logger.error(f"Invalid rank_qoi name '{rank_qoi_name}'")
-                raise SystemExit(1) from err
-        distributions.setdefault("rank work", []).append(
-            [self._work_model.compute(p) for p in self._rebalanced_phase.get_ranks()])
-
-        # Create or update distributions of edge quantities of interest
-        distributions.setdefault("sent", []).append(dict(
-            self._rebalanced_phase.get_edge_maxima().items()))
-
+    def _update_statistics(self, statistics: dict):
+        """Compute and update run statistics."""
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
             for k, v in stat_names.items():
@@ -253,7 +221,7 @@ class AlgorithmBase:
                             logger.debug(
                                 f"object {k.get_id()} on rank {k.get_rank_id()}: {v}")
 
-    def _initialize(self, p_id, phases, distributions, statistics):
+    def _initialize(self, p_id, phases, statistics):
         """Factor out pre-execution checks and initalizations."""
         # Ensure that a list with at least one phase was provided
         if not isinstance(phases, dict) or not all(
@@ -286,16 +254,15 @@ class AlgorithmBase:
             f"across {self._rebalanced_phase.get_number_of_ranks()} ranks "
             f"into phase {self._rebalanced_phase.get_id()}")
 
-        # Initialize run distributions and statistics
-        self._update_distributions_and_statistics(distributions, statistics)
+        # Initialize run statistics
+        self._update_statistics(statistics)
 
     @abc.abstractmethod
-    def execute(self, p_id, phases, distributions, statistics, a_min_max):
+    def execute(self, p_id, phases, statistics, a_min_max):
         """Execute balancing algorithm on Phase instance.
 
         :param: p_id: index of phase to be rebalanced (all if equal to _)
         :param: phases: list of Phase instances
-        :param: distributions: dictionary of load-varying variables
         :param: statistics: dictionary of  statistics
         :param: a_min_max: possibly empty list of optimal arrangements.
         """

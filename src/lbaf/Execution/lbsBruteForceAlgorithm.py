@@ -67,10 +67,10 @@ class BruteForceAlgorithm(AlgorithmBase):
         self._logger.info(
             f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
 
-    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
+    def execute(self, p_id: int, phases: list, statistics: dict, _):
         """Execute brute force optimization algorithm on phase with index p_id."""
         # Perform pre-execution checks and initializations
-        self._initialize(p_id, phases, distributions, statistics)
+        self._initialize(p_id, phases, statistics)
         self._logger.info("Starting brute force optimization")
         initial_phase = phases[min(phases.keys())]
         phase_ranks = initial_phase.get_ranks()
@@ -113,8 +113,8 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Report on object transfers
         self._logger.info(f"{n_transfers} transfers occurred")
 
-        # Update run distributions and statistics
-        self._update_distributions_and_statistics(distributions, statistics)
+        # Update run statistics
+        self._update_statistics(statistics)
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

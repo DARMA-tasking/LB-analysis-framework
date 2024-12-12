@@ -60,7 +60,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         # Call superclass init
         super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
 
-    def execute(self, _, phases: list, distributions: dict, statistics: dict, __):
+    def execute(self, _, phases: list, statistics: dict, __):
         """Steps through all phases."""
 
         # Ensure that a list with at least one phase was provided
@@ -81,9 +81,8 @@ class PhaseStepperAlgorithm(AlgorithmBase):
                 f"phase {p_id} rank works",
                 self._logger)
 
-            # Update run distributions and statistics
-            self._update_distributions_and_statistics(
-                distributions, statistics)
+            # Update run statistics
+            self._update_statistics(statistics)
 
             # Report current mapping in debug mode
             self._report_final_mapping(self._logger)

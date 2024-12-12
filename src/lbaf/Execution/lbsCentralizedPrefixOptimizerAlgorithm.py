@@ -63,18 +63,18 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         self._phase = None
         self._max_shared_ids = None
 
-    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
+    def execute(self, p_id: int, phases: list, statistics: dict, _):
         """ Execute centralized prefix memory-constrained optimizer"""
 
         p_id = 0
 
         # Ensure that a list with at least one phase was provided
-        self._initialize(p_id, phases, distributions, statistics)
+        self._initialize(p_id, phases, statistics)
 
         self._phase = self._rebalanced_phase
 
-        # Initialize run distributions and statistics
-        self._update_distributions_and_statistics(distributions, statistics)
+        # Initialize run statistics
+        self._update_statistics(statistics)
 
         # Prepare input data for rank order enumerator
         self._logger.info("Starting optimizer")
@@ -192,8 +192,8 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
                     f"iteration {i + 1} rank work",
                     self._logger)
 
-                # Update run distributions and statistics
-                self._update_distributions_and_statistics(distributions, statistics)
+                # Update run statistics
+                self._update_statistics(statistics)
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

@@ -218,10 +218,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self._logger.info(
             f"Average number of peers known to ranks: {n_k} ({100 * n_k / n_r:.2f}% of {n_r})")
 
-    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
+    def execute(self, p_id: int, phases: list, statistics: dict, a_min_max):
         """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
-        self._initialize(p_id, phases, distributions, statistics)
+        self._initialize(p_id, phases, statistics)
         print_function_statistics(
             self._rebalanced_phase.get_ranks(),
             self._work_model.compute,
@@ -244,8 +244,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Start with information stage
             self.__execute_information_stage()
 
-            print(f"statistics: {statistics}")
-
             # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self.__known_peers, self._rebalanced_phase, statistics["average load"], statistics["maximum load"][-1])
@@ -267,8 +265,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 f"iteration {i + 1} rank work",
                 self._logger)
 
-            # Update run distributions and statistics
-            self._update_distributions_and_statistics(distributions, statistics)
+            # Update run statistics
+            self._update_statistics(statistics)
 
             # Compute current arrangement
             arrangement = tuple(sorted(

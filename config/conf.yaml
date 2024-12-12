@@ -9,8 +9,8 @@ check_schema: false
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 0.0
-    beta: 1.0
+    alpha: 1.0
+    beta: 0.0
     gamma: 0.0
 
 # Specify algorithm
