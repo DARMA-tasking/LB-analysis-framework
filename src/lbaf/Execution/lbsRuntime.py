@@ -128,10 +128,6 @@ class Runtime:
         """Return runtime work model."""
         return self.__work_model
 
-    def get_statistics(self):
-        """Return runtime statistics."""
-        return self.__statistics
-
     def execute(self, p_id: int, phase_increment: int=0):
         """Execute runtime for single phase with given ID or multiple phases in selected range."""
         # Execute load balancing algorithm

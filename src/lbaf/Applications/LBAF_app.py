@@ -411,7 +411,7 @@ class LBAFApplication:
         # Return rank load and work statistics
         return l_stats, w_stats
 
-    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name
+    def __print_qoi(self) -> int:
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
@@ -462,7 +462,7 @@ class LBAFApplication:
             self.__parse_args()
 
             # Print list of implemented QOI (according to verbosity argument)
-            self.__print_QOI()
+            self.__print_qoi()
 
             # Warn if default configuration is used because not set as argument
             if self.__args.configuration is None:

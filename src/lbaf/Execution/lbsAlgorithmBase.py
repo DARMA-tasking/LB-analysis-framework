@@ -163,43 +163,6 @@ class AlgorithmBase:
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
 
-    def __print_QOI(self,rank_or_obj): # pylint:disable=invalid-name
-        """Print list of implemented QOI when invalid QOI is given."""
-        # Initialize file paths
-        current_path = os.path.abspath(__file__)
-        target_dir = os.path.join(
-            os.path.dirname(os.path.dirname(current_path)), "Model")
-        rank_script_name = "lbsRank.py"
-        object_script_name = "lbsObject.py"
-
-        if rank_or_obj == "rank":
-            # Create list of all Rank QOI (lbsRank.get_*)
-            r_qoi_list = ["work"]
-            with open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8") as f:
-                lines = f.readlines()
-                for line in lines:
-                    if line[8:12] == "get_":
-                        r_qoi_list.append(line[12:line.find("(")])
-
-            # Print QOI based on verbosity level
-            self._logger.error("List of all possible Rank QOI:")
-            for r_qoi in r_qoi_list:
-                self._logger.error("\t" + r_qoi)
-
-        if rank_or_obj == "obj":
-            # Create list of all Object QOI (lbsObject.get_*)
-            o_qoi_list = []
-            with open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8") as f:
-                lines = f.readlines()
-                for line in lines:
-                    if line[8:12] == "get_":
-                        o_qoi_list.append(line[12:line.find("(")])
-
-            # Print QOI based on verbosity level
-            self._logger.error("List of all possible Object QOI:")
-            for o_qoi in o_qoi_list:
-                self._logger.error("\t" + o_qoi)
-
     def _report_final_mapping(self, logger):
         """Report final rank object mapping in debug mode."""
         for rank in self._rebalanced_phase.get_ranks():
