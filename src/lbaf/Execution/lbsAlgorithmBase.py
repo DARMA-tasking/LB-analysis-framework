@@ -133,7 +133,7 @@ class AlgorithmBase:
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
             for k, v in stat_names.items():
-                self._logger.info(f"Updating {k} statistics for {support}")
+                self._logger.debug(f"Updating {k} statistics for {support}")
                 stats = compute_function_statistics(
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
