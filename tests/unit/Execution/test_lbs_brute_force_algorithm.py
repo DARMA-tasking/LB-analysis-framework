@@ -69,9 +69,7 @@ class TestConfig(unittest.TestCase):
             "max_objects_per_transfer": 8,
             "deterministic_transfer": True
         },
-        lgr=self.logger,
-        rank_qoi=None,
-        object_qoi=None)
+        lgr=self.logger)
 
     self.brute_force = BruteForceAlgorithm(
         work_model=WorkModelBase(),
@@ -84,9 +82,7 @@ class TestConfig(unittest.TestCase):
             "max_objects_per_transfer": 8,
             "deterministic_transfer": True
         },
-        lgr=self.logger,
-        rank_qoi=None,
-        object_qoi=None)
+        lgr=self.logger)
 
   def test_lbs_brute_force_skip_transfer(self):
     assert self.brute_force_skip_transfer._BruteForceAlgorithm__skip_transfer is True
