@@ -11,18 +11,14 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
         self,
         work_model,
         parameters: dict,
-        lgr: Logger,
-        rank_qoi: str,
-        object_qoi: str):
+        lgr: Logger):
         """Class constructor.
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr)
 
         # Retrieve mandatory parameters
         self.__permutation = parameters.get("permutation")
@@ -31,10 +27,10 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
             self._logger.error(f"Incorrect prescribed permutation: {self.__permutation}")
             raise SystemExit(1)
 
-    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
+    def execute(self, p_id: int, phases: list, statistics: dict, a_min_max):
         """ Apply prescribed permutation to phase objects."""
         # Perform pre-execution checks and initializations
-        self._initialize(p_id, phases, distributions, statistics)
+        self._initialize(p_id, phases, statistics)
         objects = self._rebalanced_phase.get_objects()
         if (l_p := len(self.__permutation)) != len(objects):
             self._logger.error(
@@ -75,8 +71,8 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
             "post-permutation rank work",
             self._logger)
 
-        # Update run distributions and statistics
-        self._update_distributions_and_statistics(distributions, statistics)
+        # Update run statistics
+        self._update_statistics(statistics)
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

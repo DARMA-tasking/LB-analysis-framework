@@ -74,9 +74,7 @@ class TestConfig(unittest.TestCase):
                 "max_objects_per_transfer": 8,
                 "deterministic_transfer": True
             },
-            lgr=self.logger,
-            rank_qoi=None,
-            object_qoi=None)
+            lgr=self.logger)
 
     @patch.object(random, "sample")
     def test_lbs_inform_and_transfer_forward_message(self, random_mock):

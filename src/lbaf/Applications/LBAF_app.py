@@ -198,13 +198,12 @@ class InternalParameters:
                 raise SystemExit(1) from e
 
             # Retrieve optional parameters
-            self.json_params[
-                "json_output_suffix"] = wrt_json.get("suffix", "json")
-            self.json_params[
-                "communications"] = wrt_json.get("communications", False)
-            self.json_params[
-                "offline_LB_compatible"] = wrt_json.get(
-                "offline_LB_compatible", False)
+            for k_out, k_wrt, v_def in [
+                    ("json_output_suffix", "suffix", "json"),
+                    ("communications", "communications", False),
+                    ("offline_LB_compatible", "offline_LB_compatible", False),
+                    ("lb_iterations", "lb_iterations", False)]:
+                self.json_params[k_out] = wrt_json.get(k_wrt, v_def)
 
     def check_parameters(self):
         """Checks after initialization."""
@@ -412,7 +411,7 @@ class LBAFApplication:
         # Return rank load and work statistics
         return l_stats, w_stats
 
-    def __print_QOI(self) -> int:  # pylint:disable=C0103:invalid-name
+    def __print_qoi(self) -> int:
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
@@ -463,7 +462,7 @@ class LBAFApplication:
             self.__parse_args()
 
             # Print list of implemented QOI (according to verbosity argument)
-            self.__print_QOI()
+            self.__print_qoi()
 
             # Warn if default configuration is used because not set as argument
             if self.__args.configuration is None:
@@ -568,8 +567,7 @@ class LBAFApplication:
             objects = initial_phase.get_objects()
             alpha, beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
-                for k in ("alpha", "beta", "gamma")
-            ]
+                for k in ("alpha", "beta", "gamma")]
             _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
                 objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
         else:
@@ -581,16 +579,16 @@ class LBAFApplication:
             self.__parameters.work_model,
             self.__parameters.algorithm,
             a_min_max,
-            self.__logger,
-            self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
-            self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
+            self.__logger)
 
         # Execute runtime for specified phases
-        offline_LB_compatible = self.__parameters.json_params.get(  # pylint:disable=C0103:invalid-name;not lowercase
+        offline_LB_compatible = self.__parameters.json_params.get(
             "offline_LB_compatible", False)
+        lb_iterations = self.__parameters.json_params.get(
+            "lb_iterations", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", 0),
-            offline_LB_compatible)
+            1 if offline_LB_compatible else 0)
 
         # Instantiate phase to VT file writer when requested
         if self.__json_writer:
@@ -619,7 +617,8 @@ class LBAFApplication:
                     f"Writing all ({len(phases)}) phases for offline load-balancing")
                 self.__json_writer.write(phases)
             else:
-                self.__logger.info(f"Writing single phase {phase_id} to JSON files")
+                # Add new phase when load balancing when offline mode not selected
+                self.__logger.info(f"Creating rebalanced phase {phase_id}")
                 self.__json_writer.write(
                     {phase_id: rebalanced_phase})
 
