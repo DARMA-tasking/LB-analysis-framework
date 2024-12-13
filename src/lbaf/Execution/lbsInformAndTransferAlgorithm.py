@@ -59,18 +59,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self,
         work_model,
         parameters: dict,
-        lgr: Logger,
-        rank_qoi: str,
-        object_qoi: str):
+        lgr: Logger):
         """Class constructor.
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr)
 
         # Retrieve mandatory integer parameters
         self.__n_iterations = parameters.get("n_iterations")
@@ -128,7 +124,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Process the message
         self.__known_peers[r_rcv].update(m.get_support())
 
-    def __forward_message(self, i: int, r_snd: Rank, f:int):
+    def __forward_message(self, i: int, r_snd: Rank, f: int):
         """Forward information message to rank peers sampled from known ones."""
         # Make rank aware of itself
         if r_snd not in self.__known_peers:
@@ -218,10 +214,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self._logger.info(
             f"Average number of peers known to ranks: {n_k} ({100 * n_k / n_r:.2f}% of {n_r})")
 
-    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, a_min_max):
+    def execute(self, p_id: int, phases: list, statistics: dict, a_min_max):
         """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
-        self._initialize(p_id, phases, distributions, statistics)
+        self._initialize(p_id, phases, statistics)
         print_function_statistics(
             self._rebalanced_phase.get_ranks(),
             self._work_model.compute,
@@ -244,8 +240,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Start with information stage
             self.__execute_information_stage()
 
-            print(f"statistics: {statistics}")
-
             # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
                 self.__known_peers, self._rebalanced_phase, statistics["average load"], statistics["maximum load"][-1])
@@ -267,15 +261,15 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 f"iteration {i + 1} rank work",
                 self._logger)
 
-            # Update run distributions and statistics
-            self._update_distributions_and_statistics(distributions, statistics)
+            # Update run statistics
+            self._update_statistics(statistics)
 
             # Compute current arrangement
-            arrangement = tuple(sorted(
+            arrangement = dict(sorted(
                 {o.get_id(): p.get_id()
-                for p in self._rebalanced_phase.get_ranks()
-                for o in p.get_objects()}.values()))
-            self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
+                 for p in self._rebalanced_phase.get_ranks()
+                 for o in p.get_objects()}.items())).values()
+            self._logger.debug(f"Iteration {i + 1} arrangement: {tuple(arrangement)}")
 
             # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:

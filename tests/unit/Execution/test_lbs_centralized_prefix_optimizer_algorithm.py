@@ -66,16 +66,12 @@ class TestConfig(unittest.TestCase):
             parameters={},
             lgr=self.logger)
         parameters = {"do_second_stage": True}
-        qoi_name = "load"
 
         # Create CPOA instance
         self.cpoa = CentralizedPrefixOptimizerAlgorithm(
-                        work_model=work_model,
-                        parameters=parameters,
-                        lgr=self.logger,
-                        qoi_name=qoi_name,
-                        obj_qoi=qoi_name
-        )
+            work_model=work_model,
+            parameters=parameters,
+            lgr=self.logger)
 
         # Set up phase
         self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
@@ -92,9 +88,6 @@ class TestConfig(unittest.TestCase):
         # Create dict of phase(s)
         self.phases = {self.phase.get_id(): self.phase}
 
-        # Set up distributions
-        self.distributions = {}
-
         # Set up statistics
         l_stats = compute_function_statistics(
             self.phase.get_ranks(),
@@ -105,7 +98,6 @@ class TestConfig(unittest.TestCase):
         self.cpoa.execute(
             self.phase.get_id(),
             self.phases,
-            self.distributions,
             self.statistics,
             1
         )
