@@ -50,14 +50,13 @@ from ..IO.lbsStatistics import print_function_statistics
 class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
     """ A concrete class for the centralized prefix memory-constrained optimizer"""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, qoi_name: str, obj_qoi : str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger):
         """ Class constructor
             work_model: a WorkModelBase instance
-            parameters: a dictionary of parameters
-            qoi_name: a quantity of interest."""
+            parameters: a dictionary of parameters."""
 
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, qoi_name, obj_qoi)
+        super().__init__(work_model, parameters, lgr)
 
         self._do_second_stage = parameters.get("do_second_stage", False)
         self._phase = None
