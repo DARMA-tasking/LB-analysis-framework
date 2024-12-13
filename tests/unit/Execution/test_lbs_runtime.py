@@ -93,25 +93,26 @@ class TestConfig(unittest.TestCase):
         n_ranks = 4
         self.arrangements = compute_min_max_arrangements_work(objects, alpha, beta, gamma,
                                                               n_ranks, logger=self.logger)[2]
-        self.rank_qoi = None
-        self.object_qoi = None
         # Initialize the Runtime instances
-        self.runtime = Runtime(self.phases, self.work_model, self.algorithm, self.arrangements, self.logger, self.rank_qoi, self.object_qoi)
+        self.runtime = Runtime(
+            self.phases,
+            self.work_model,
+            self.algorithm,
+            self.arrangements,
+            self.logger)
 
     def test_lbs_runtime_get_work_model(self):
         self.assertEqual(self.runtime.get_work_model().__class__, AffineCombinationWorkModel)
 
     def test_lbs_runtime_no_phases(self):
         with self.assertRaises(SystemExit) as context:
-            runtime = Runtime(None, self.work_model, self.algorithm, self.arrangements, self.logger, self.rank_qoi, self.object_qoi)
+            runtime = Runtime(
+                None,
+                self.work_model,
+                self.algorithm,
+                self.arrangements,
+                self.logger)
         self.assertEqual(context.exception.code, 1)
-
-    def test_lbs_runtime_get_distributions(self):
-        assert isinstance(self.runtime.get_distributions(), dict)
-
-    def test_lbs_runtime_get_statistics(self):
-        # Testing lbsStats in a separate unit test; just make sure it returns a dict
-        assert isinstance(self.runtime.get_statistics(), dict)
 
     def test_lbs_runtime_execute(self):
         # Ensure execute method works as expected

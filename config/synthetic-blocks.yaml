@@ -14,6 +14,7 @@ work_model:
     gamma: 0.0
 
 # Specify algorithm
+brute_force_optimization: true
 algorithm:
   name: InformAndTransfer
   phase_id: 0
@@ -43,7 +44,7 @@ visualization:
   output_visualization_file_stem: output_file
 
 write_JSON:
-  compressed: False
+  compressed: false
   suffix: json
-  communications: True
-  offline_LB_compatible: True
+  communications: true
+  offline_LB_compatible: true

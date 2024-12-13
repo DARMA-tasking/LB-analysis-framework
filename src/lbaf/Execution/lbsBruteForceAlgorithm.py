@@ -51,26 +51,24 @@ from ..IO.lbsStatistics import compute_min_max_arrangements_work
 class BruteForceAlgorithm(AlgorithmBase):
     """A concrete class for the brute force optimization algorithm"""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger):
         """Class constructor.
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr)
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)
         self._logger.info(
             f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
 
-    def execute(self, p_id: int, phases: list, distributions: dict, statistics: dict, _):
+    def execute(self, p_id: int, phases: list, statistics: dict, _):
         """Execute brute force optimization algorithm on phase with index p_id."""
         # Perform pre-execution checks and initializations
-        self._initialize(p_id, phases, distributions, statistics)
+        self._initialize(p_id, phases, statistics)
         self._logger.info("Starting brute force optimization")
         initial_phase = phases[min(phases.keys())]
         phase_ranks = initial_phase.get_ranks()
@@ -113,8 +111,8 @@ class BruteForceAlgorithm(AlgorithmBase):
         # Report on object transfers
         self._logger.info(f"{n_transfers} transfers occurred")
 
-        # Update run distributions and statistics
-        self._update_distributions_and_statistics(distributions, statistics)
+        # Update run statistics
+        self._update_statistics(statistics)
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)

@@ -50,8 +50,13 @@ from ..IO.lbsStatistics import compute_function_statistics, min_Hamming_distance
 class Runtime:
     """A class to handle the execution of the LBS."""
 
-    def __init__(self, phases: dict, work_model: dict, algorithm: dict, arrangements: list, logger: Logger,
-                rank_qoi: str, object_qoi: str):
+    def __init__(
+            self,
+            phases: dict,
+            work_model: dict,
+            algorithm: dict,
+            arrangements: list,
+            logger: Logger):
         """Class constructor.
 
         :param phases: dictionary of Phase instances
@@ -59,8 +64,6 @@ class Runtime:
         :param algorithm: dictionary with algorithm name and parameters
         :param arrangements: arrangements that minimize maximum work
         :param logger: logger for output messages
-        :param rank_qoi: rank QOI name whose distributions are to be tracked
-        :param object_qoi: object QOI name whose distributions are to be tracked.
         """
         # Assign logger to instance variable
         self.__logger = logger
@@ -88,29 +91,25 @@ class Runtime:
             algorithm.get("name"),
             algorithm.get("parameters", {}),
             self.__work_model,
-            self.__logger,
-            rank_qoi,
-            object_qoi)
+            self.__logger)
         if not self.__algorithm:
             self.__logger.error(
                 f"Could not instantiate an algorithm of type {self.__algorithm}")
             raise SystemExit(1)
 
-        # Initialize run distributions and statistics
+        # Initialize run statistics
         phase_0 = self.__phases[min(self.__phases.keys())]
-        self.__distributions = {}
         l_stats = compute_function_statistics(
             phase_0.get_ranks(),
             lambda x: x.get_load())
         self.__statistics = {"average load": l_stats.get_average()}
 
         # Compute initial arrangement
-        arrangement = tuple(
-            v for _, v in sorted({
-                o.get_id(): p.get_id()
-                for p in phase_0.get_ranks()
-                for o in p.get_objects()}.items()))
-        self.__logger.debug(f"Phase 0 arrangement: {arrangement}")
+        arrangement = dict(sorted(
+            {o.get_id(): p.get_id()
+             for p in phase_0.get_ranks()
+             for o in p.get_objects()}.items())).values()
+        self.__logger.debug(f"Initial arrangement: {tuple(arrangement)}")
 
         # Report minimum Hamming distance when minimax optimum is available
         if self.__a_min_max:
@@ -122,34 +121,27 @@ class Runtime:
         """Return runtime work model."""
         return self.__work_model
 
-    def get_distributions(self):
-        """Return runtime distributions."""
-        return self.__distributions
-
-    def get_statistics(self):
-        """Return runtime statistics."""
-        return self.__statistics
-
-    def execute(self, p_id: int, phase_increment=0):
+    def execute(self, p_id: int, phase_increment: int=0):
         """Execute runtime for single phase with given ID or multiple phases in selected range."""
-        # Execute balancing algorithm
+        # Execute load balancing algorithm
         self.__logger.info(
             f"Executing {type(self.__algorithm).__name__} for "
             + ("all phases" if p_id < 0 else f"phase {p_id}"))
         self.__algorithm.execute(
             p_id,
             self.__phases,
-            self.__distributions,
             self.__statistics,
             self.__a_min_max)
 
         # Retrieve possibly null rebalanced phase and return it
-        if (pp := self.__algorithm.get_rebalanced_phase()):
-            pp.set_id((pp_id := pp.get_id() + phase_increment))
+        if (lbp := self.__algorithm.get_rebalanced_phase()):
+            # Increment rebalanced phase ID as requested
+            lbp.set_id((lbp_id := lbp.get_id() + phase_increment))
 
             # Share communications from original phase with new phase
             initial_communications = self.__algorithm.get_initial_communications()
-            pp.set_communications(initial_communications[p_id])
+            lbp.set_communications(initial_communications[p_id])
+            self.__logger.info(f"Created rebalanced phase {lbp_id}")
 
-            self.__logger.info(f"Created rebalanced phase {pp_id}")
-        return pp
+        # Return rebalanced phase
+        return lbp
