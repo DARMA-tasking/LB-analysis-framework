@@ -87,22 +87,12 @@ class AlgorithmBase:
         # Save the initial communications data
         self._initial_communications = {}
 
-        # Map global statistical QOIs to their computation methods
+        # Map rank statistics to their respective computation methods
         self.__statistics = {
             ("ranks", lambda x: x.get_load()): {
-                "minimum load": "minimum",
-                "maximum load": "maximum",
-                "load variance": "variance",
-                "load imbalance": "imbalance"},
-            ("largest_volumes", lambda x: x): {
-                "number of communication edges": "cardinality",
-                "maximum largest directed volume": "maximum",
-                "total largest directed volume": "sum"},
-            ("ranks", lambda x: self._work_model.compute(x)): { #pylint:disable=W0108
-                "minimum work": "minimum",
-                "maximum work": "maximum",
-                "total work": "sum",
-                "work variance": "variance"}}
+                "maximum load": "maximum"},
+            ("ranks", lambda x: self._work_model.compute(x)): {
+                "total work": "sum"}}
 
     def get_rebalanced_phase(self):
         """Return phased assigned for processing by algoritm."""
@@ -143,6 +133,7 @@ class AlgorithmBase:
         # Create or update statistics dictionary entries
         for (support, getter), stat_names in self.__statistics.items():
             for k, v in stat_names.items():
+                self._logger.info(f"Updating {k} statistics for {support}")
                 stats = compute_function_statistics(
                     getattr(self._rebalanced_phase, f"get_{support}")(), getter)
                 statistics.setdefault(k, []).append(getattr(stats, f"get_{v}")())
