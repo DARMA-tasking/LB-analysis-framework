@@ -56,9 +56,7 @@ class Runtime:
             work_model: dict,
             algorithm: dict,
             arrangements: list,
-            logger: Logger,
-            rank_qoi: str,
-            object_qoi: str):
+            logger: Logger):
         """Class constructor.
 
         :param phases: dictionary of Phase instances
@@ -66,8 +64,6 @@ class Runtime:
         :param algorithm: dictionary with algorithm name and parameters
         :param arrangements: arrangements that minimize maximum work
         :param logger: logger for output messages
-        :param rank_qoi: rank QOI name whose distributions are to be tracked
-        :param object_qoi: object QOI name whose distributions are to be tracked.
         """
         # Assign logger to instance variable
         self.__logger = logger
@@ -95,9 +91,7 @@ class Runtime:
             algorithm.get("name"),
             algorithm.get("parameters", {}),
             self.__work_model,
-            self.__logger,
-            rank_qoi,
-            object_qoi)
+            self.__logger)
         if not self.__algorithm:
             self.__logger.error(
                 f"Could not instantiate an algorithm of type {self.__algorithm}")

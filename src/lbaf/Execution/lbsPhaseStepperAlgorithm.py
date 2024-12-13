@@ -48,17 +48,15 @@ from ..IO.lbsStatistics import print_function_statistics
 class PhaseStepperAlgorithm(AlgorithmBase):
     """A concrete class for the phase stepper non-optimzing algorithm."""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger):
         """Class constructor
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
         :param lgr: logger
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track
         """
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr)
 
     def execute(self, _, phases: list, statistics: dict, __):
         """Steps through all phases."""

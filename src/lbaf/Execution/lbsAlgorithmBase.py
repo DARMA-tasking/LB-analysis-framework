@@ -58,13 +58,11 @@ class AlgorithmBase:
     _work_model: WorkModelBase
     _logger: Logger
 
-    def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger, rank_qoi: str, object_qoi: str):
+    def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger):
         """Class constructor.
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track.
         """
         # Assert that a logger instance was passed
         if not isinstance(logger, Logger):
@@ -82,18 +80,6 @@ class AlgorithmBase:
         if not isinstance(parameters, dict):
             self._logger.error("Could not create an algorithm without a dictionary of parameters")
             raise SystemExit(1)
-
-        # Assert that quantity of interest names are string
-        if rank_qoi and not isinstance(rank_qoi, str):
-            self._logger.error("Could not create an algorithm with non-string rank QOI name")
-            raise SystemExit(1)
-        self.__rank_qoi = rank_qoi
-        if object_qoi and not isinstance(object_qoi, str):
-            self._logger.error("Could not create an algorithm with non-string object QOI name")
-            raise SystemExit(1)
-        self.__object_qoi = object_qoi
-        self._logger.info(
-            f"Created base algorithm tracking rank {rank_qoi} and object {object_qoi}")
 
         # Initially no phase is assigned for processing
         self._rebalanced_phase = None
@@ -131,9 +117,7 @@ class AlgorithmBase:
         algorithm_name:str,
         parameters: dict,
         work_model: WorkModelBase,
-        logger: Logger,
-        rank_qoi: str,
-        object_qoi:str):
+        logger: Logger):
         """Instantiate the necessary concrete algorithm."""
         # Load up available algorithms
         # pylint:disable=W0641:possibly-unused-variable,C0415:import-outside-toplevel
@@ -148,7 +132,7 @@ class AlgorithmBase:
         try:
             # Instantiate and return object
             algorithm = locals()[algorithm_name + "Algorithm"]
-            return algorithm(work_model, parameters, logger, rank_qoi, object_qoi)
+            return algorithm(work_model, parameters, logger)
         except Exception as e:
             # Otherwise, error out
             logger.error(f"Could not create an algorithm with name {algorithm_name}")

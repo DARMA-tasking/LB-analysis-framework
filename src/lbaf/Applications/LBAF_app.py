@@ -579,9 +579,7 @@ class LBAFApplication:
             self.__parameters.work_model,
             self.__parameters.algorithm,
             a_min_max,
-            self.__logger,
-            self.__parameters.rank_qoi if self.__parameters.rank_qoi is not None else '',
-            self.__parameters.object_qoi if self.__parameters.object_qoi is not None else '')
+            self.__logger)
 
         # Execute runtime for specified phases
         offline_LB_compatible = self.__parameters.json_params.get(

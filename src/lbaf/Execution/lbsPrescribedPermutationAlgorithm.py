@@ -11,18 +11,14 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
         self,
         work_model,
         parameters: dict,
-        lgr: Logger,
-        rank_qoi: str,
-        object_qoi: str):
+        lgr: Logger):
         """Class constructor.
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr)
 
         # Retrieve mandatory parameters
         self.__permutation = parameters.get("permutation")

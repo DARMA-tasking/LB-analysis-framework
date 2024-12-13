@@ -51,16 +51,14 @@ from ..IO.lbsStatistics import compute_min_max_arrangements_work
 class BruteForceAlgorithm(AlgorithmBase):
     """A concrete class for the brute force optimization algorithm"""
 
-    def __init__(self, work_model, parameters: dict, lgr: Logger, rank_qoi: str, object_qoi: str):
+    def __init__(self, work_model, parameters: dict, lgr: Logger):
         """Class constructor.
 
         :param work_model: a WorkModelBase instance
         :param parameters: a dictionary of parameters
-        :param rank_qoi: rank QOI to track
-        :param object_qoi: object QOI to track.
         """
         # Call superclass init
-        super().__init__(work_model, parameters, lgr, rank_qoi, object_qoi)
+        super().__init__(work_model, parameters, lgr)
 
         # Assign optional parameters
         self.__skip_transfer = parameters.get("skip_transfer", False)
