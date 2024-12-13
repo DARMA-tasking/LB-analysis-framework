@@ -92,9 +92,6 @@ class TestConfig(unittest.TestCase):
         # Create dict of phase(s)
         self.phases = {self.phase.get_id(): self.phase}
 
-        # Set up distributions
-        self.distributions = {}
-
         # Set up statistics
         l_stats = compute_function_statistics(
             self.phase.get_ranks(),
@@ -105,7 +102,6 @@ class TestConfig(unittest.TestCase):
         self.cpoa.execute(
             self.phase.get_id(),
             self.phases,
-            self.distributions,
             self.statistics,
             1
         )
