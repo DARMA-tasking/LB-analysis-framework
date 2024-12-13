@@ -274,7 +274,7 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
         if logger is not None:
             logger.info(
                 f"Minimax work: {works_min_max:.4g} for {len(arrangements_min_max)} optimal arrangements"
-                " amongst {n_arrangements}")
+                f" amongst {n_arrangements}")
 
     # Return quantities of interest
     return n_arrangements, works_min_max, arrangements_min_max

@@ -111,12 +111,11 @@ class Runtime:
         self.__statistics = {"average load": l_stats.get_average()}
 
         # Compute initial arrangement
-        arrangement = tuple(
-            v for _, v in sorted({
-                o.get_id(): p.get_id()
-                for p in phase_0.get_ranks()
-                for o in p.get_objects()}.items()))
-        self.__logger.debug(f"Phase 0 arrangement: {arrangement}")
+        arrangement = dict(sorted(
+            {o.get_id(): p.get_id()
+             for p in phase_0.get_ranks()
+             for o in p.get_objects()}.items())).values()
+        self.__logger.debug(f"Initial arrangement: {tuple(arrangement)}")
 
         # Report minimum Hamming distance when minimax optimum is available
         if self.__a_min_max:

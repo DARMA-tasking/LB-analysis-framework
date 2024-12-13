@@ -269,11 +269,11 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._update_statistics(statistics)
 
             # Compute current arrangement
-            arrangement = tuple(sorted(
+            arrangement = dict(sorted(
                 {o.get_id(): p.get_id()
-                for p in self._rebalanced_phase.get_ranks()
-                for o in p.get_objects()}.values()))
-            self._logger.debug(f"Iteration {i + 1} arrangement: {arrangement}")
+                 for p in self._rebalanced_phase.get_ranks()
+                 for o in p.get_objects()}.items())).values()
+            self._logger.debug(f"Iteration {i + 1} arrangement: {tuple(arrangement)}")
 
             # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:
