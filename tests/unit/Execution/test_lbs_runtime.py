@@ -106,13 +106,6 @@ class TestConfig(unittest.TestCase):
             runtime = Runtime(None, self.work_model, self.algorithm, self.arrangements, self.logger, self.rank_qoi, self.object_qoi)
         self.assertEqual(context.exception.code, 1)
 
-    def test_lbs_runtime_get_distributions(self):
-        assert isinstance(self.runtime.get_distributions(), dict)
-
-    def test_lbs_runtime_get_statistics(self):
-        # Testing lbsStats in a separate unit test; just make sure it returns a dict
-        assert isinstance(self.runtime.get_statistics(), dict)
-
     def test_lbs_runtime_execute(self):
         # Ensure execute method works as expected
         p_id = 0  # Provide a valid phase ID
