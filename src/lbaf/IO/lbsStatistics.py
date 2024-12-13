@@ -280,10 +280,11 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
     return n_arrangements, works_min_max, arrangements_min_max
 
 
-def compute_pairwise_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
-                                            w_max: float, from_id: int, to_id: int, n_ranks: int,
-                                            max_objects: Optional[int] = None, logger: Optional[Logger] = None):
-    """Compute arrangements reachable by moving up to a maximum number of objects from one rank to another."""
+def compute_pairwise_reachable_arrangements(
+        objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
+        w_max: float, from_id: int, to_id: int, n_ranks: int,
+        max_objects: Optional[int] = None, logger: Optional[Logger] = None):
+    """Compute arrangements reachable by moving up to a given maximum number of objects."""
     # Sanity checks regarding rank IDs
     if from_id >= n_ranks:
         if logger is not None:
