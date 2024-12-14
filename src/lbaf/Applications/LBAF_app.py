@@ -422,9 +422,9 @@ class LBAFApplication:
             return name[4:] if name.startswith("get_") else name
 
         r = Rank(self.__logger)
-        rank_qois = r.get_QOIs()
+        rank_qois = r.get_qois()
         o = Object(seq_id=0)
-        object_qois = o.get_QOIs()
+        object_qois = o.get_qois()
 
         # Print QOI based on verbosity level
         if verbosity > 0:

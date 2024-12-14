@@ -321,7 +321,7 @@ class Rank:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
-    def get_QOIs(self) -> list:
+    def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
         """
         qoi_methods : dict = {

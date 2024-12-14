@@ -289,7 +289,7 @@ class Object:
         """Return all current unused parameters."""
         return self.__unused_params
 
-    def get_QOIs(self) -> list:
+    def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
         """
         qoi_methods : dict = {
