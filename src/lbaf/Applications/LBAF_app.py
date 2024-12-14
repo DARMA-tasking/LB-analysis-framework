@@ -77,7 +77,7 @@ from lbaf.Utils.lbsPath import abspath
 
 class InternalParameters:
     """Represent the parameters used internally by a LBAF Application"""
-
+    # Private logger
     __logger: Logger
 
     # General input options
@@ -138,7 +138,7 @@ class InternalParameters:
         from_data = config.get("from_data")
         if from_data is not None:
             self.data_stem = from_data.get("data_stem")
-            # # get data directory (because data_stem includes file prefix)
+            # Get data directory because data_stem includes file prefix
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
             data_dir = abspath(data_dir, relative_to=base_dir)
