@@ -48,9 +48,6 @@ from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
 
-from ..Model.lbsRank import Rank
-from ..Model.lbsObject import Object
-
 try:
     import vttv
     USING_VTTV = True
@@ -67,6 +64,8 @@ from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
+from lbaf.Model.lbsRank import Rank
+from lbaf.Model.lbsObject import Object
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Model.lbsWorkModelBase import WorkModelBase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
