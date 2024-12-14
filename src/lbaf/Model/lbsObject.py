@@ -44,6 +44,7 @@ from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
+from .lbsQOIDecorator import qoi
 
 class Object:
     """A class representing an object with load and communicator
@@ -157,18 +158,22 @@ class Object:
     def __repr__(self):
         return f"Object id: {self.get_id()}, load: {self.__load}"
 
+    @qoi
     def get_id(self) -> int:
         """Return object bit-packed ID if available. Else return the object seq ID"""
         return self.__packed_id if self.__packed_id is not None else self.__seq_id
 
+    @qoi
     def get_packed_id(self) -> Optional[int]:
         """Return object bit-packed ID (seq_id, home_id, migratable)."""
         return self.__packed_id
 
+    @qoi
     def get_seq_id(self) -> Optional[int]:
         """Return object seq ID."""
         return self.__seq_id
 
+    @qoi
     def get_collection_id(self) -> Optional[int]:
         """Return object collection ID (required for migratable objects)."""
         return self.__collection_id
@@ -177,6 +182,7 @@ class Object:
         """ Set object collection ID (required for migratable objects)."""
         self.__collection_id = collection_id
 
+    @qoi
     def get_index(self) -> Optional[list]:
         """Return the object's index."""
         return self.__index
@@ -189,14 +195,17 @@ class Object:
         """ Set object load."""
         self.__load = load
 
+    @qoi
     def get_load(self) -> float:
         """Return object load."""
         return self.__load
 
+    @qoi
     def get_size(self) -> float:
         """Return object size."""
         return self.__size
 
+    @qoi
     def get_overhead(self) -> float:
         """Return additional runtime memory of object."""
         return self.__overhead
@@ -214,14 +223,17 @@ class Object:
 
         return self.__communicator.get_received() if self.__communicator else {}
 
+    @qoi
     def get_received_volume(self) -> float:
         """Return volume of communications received by object."""
         return sum(v for v in self.__communicator.get_received().values()) if self.__communicator else 0
 
+    @qoi
     def get_sent_volume(self) -> float:
         """Return volume of communications sent by object."""
         return sum(v for v in self.__communicator.get_sent().values()) if self.__communicator else 0
 
+    @qoi
     def get_max_volume(self) -> float:
         """Return the maximum bytes received or sent by object."""
         return self.__communicator.get_max_volume() if self.__communicator else 0
@@ -230,6 +242,7 @@ class Object:
         """Assign object to rank ID"""
         self.__rank_id = r_id
 
+    @qoi
     def get_rank_id(self) -> int:
         """Return ID of rank to which object is currently assigned."""
         return self.__rank_id
@@ -244,6 +257,7 @@ class Object:
         """Return shared memory block assigned to object."""
         return self.__shared_block
 
+    @qoi
     def get_shared_id(self) -> Optional[int]:
         """Return ID of shared memory block assigned to object."""
         return self.__shared_block.get_id() if self.__shared_block is not None else None
@@ -274,3 +288,12 @@ class Object:
     def get_unused_params(self) -> dict:
         """Return all current unused parameters."""
         return self.__unused_params
+
+    def get_QOIs(self) -> list:
+        """Get all methods decorated with the QOI decorator.
+        """
+        qoi_methods : dict = {
+            name: getattr(self, name)
+            for name in dir(self)
+            if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
+        return qoi_methods
