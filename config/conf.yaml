@@ -22,7 +22,7 @@ algorithm:
     n_iterations: 8
     n_rounds: 2
     fanout: 2
-    order_strategy: arbitrary
+    order_strategy: element_id
     transfer_strategy: Recursive
     criterion: Tempered
     max_objects_per_transfer: 8
