@@ -42,7 +42,7 @@
 #
 import abc
 import os
-from typing import Set
+from typing import Set, List
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
@@ -62,7 +62,7 @@ class AlgorithmBase:
     _work_model: WorkModelBase=None
 
     # Iterative algorithms are allowed to store load balancing iterations
-    _lb_iterations: list[Phase]=[]
+    _lb_iterations: List[Phase]=[]
 
     def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger):
         """Class constructor.
