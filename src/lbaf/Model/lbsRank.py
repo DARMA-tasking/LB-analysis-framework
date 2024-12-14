@@ -47,7 +47,7 @@ from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObject import Object
-
+from .lbsQOIDecorator import qoi
 
 class Rank:
     """A class representing a rank to which objects are assigned."""
@@ -99,12 +99,14 @@ class Rank:
     def __repr__(self):
         return f"<Rank index: {self.__index}>"
 
+    @qoi
     def get_id(self) -> int:
         """Return rank ID."""
         return self.__index
 
+    @qoi
     def get_size(self) -> float:
-        """Return object size."""
+        """Return rank working memory."""
         return self.__size
 
     def set_size(self, size):
@@ -162,26 +164,31 @@ class Rank:
                 return block
         return None
 
+    @qoi
     def get_number_of_shared_blocks(self) -> float:
         """Return number of shared memory blocks on rank."""
         return len(self.__shared_blocks)
 
+    @qoi
     def get_number_of_homed_blocks(self) -> float:
         """Return number of memory blocks on rank also homed there."""
         return sum(
             b.get_home_id() == self.get_id()
             for b in self.__shared_blocks)
 
+    @qoi
     def get_number_of_uprooted_blocks(self) -> float:
         """Return number of uprooted memory blocks on rank."""
         return len(self.__shared_blocks) - self.get_number_of_homed_blocks()
 
+    @qoi
     def get_homed_blocks_ratio(self) -> float:
         """Return fraction of memory blocks on rank also homed there."""
         if len(self.__shared_blocks) > 0:
             return self.get_number_of_homed_blocks() / len(self.__shared_blocks)
         return math.nan
 
+    @qoi
     def get_shared_memory(self):
         """Return total shared memory on rank."""
         return float(sum(b.get_size() for b in self.__shared_blocks))
@@ -190,6 +197,7 @@ class Rank:
         """Return all objects assigned to rank."""
         return self.__migratable_objects.union(self.__sentinel_objects)
 
+    @qoi
     def get_number_of_objects(self) -> int:
         """Return number of objects assigned to rank."""
         return len(self.__sentinel_objects) + len(self.__migratable_objects)
@@ -241,18 +249,22 @@ class Rank:
         """Remove objects from migratable objects."""
         self.__migratable_objects.remove(o)
 
+    @qoi
     def get_load(self) -> float:
         """Return total load on rank."""
         return sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
 
+    @qoi
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
         return sum(o.get_load() for o in self.__migratable_objects)
 
+    @qoi
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
         return sum(o.get_load() for o in self.__sentinel_objects)
 
+    @qoi
     def get_received_volume(self):
         """Return volume received by objects assigned to rank from other ranks."""
         # Iterate over all objects assigned to rank
@@ -269,6 +281,7 @@ class Rank:
         # Return computed volume
         return volume
 
+    @qoi
     def get_sent_volume(self):
         """Return volume sent by objects assigned to rank to other ranks."""
         # Iterate over all objects assigned to rank
@@ -287,6 +300,7 @@ class Rank:
         # Return computed volume
         return volume
 
+    @qoi
     def get_max_object_level_memory(self) -> float:
         """Return maximum object-level memory on rank."""
         # Iterate over all objects assigned to rank
@@ -302,6 +316,16 @@ class Rank:
         # Return maximum object-level memory for this rank
         return total_size + max_overhead
 
+    @qoi
     def get_max_memory_usage(self) -> float:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
+
+    def get_QOIs(self) -> list:
+        """Get all methods decorated with the QOI decorator.
+        """
+        qoi_methods : dict = {
+            name: getattr(self, name)
+            for name in dir(self)
+            if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
+        return qoi_methods

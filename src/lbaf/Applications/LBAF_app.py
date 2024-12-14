@@ -48,6 +48,9 @@ from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
 
+from ..Model.lbsRank import Rank
+from ..Model.lbsObject import Object
+
 try:
     import vttv
     USING_VTTV = True
@@ -415,44 +418,29 @@ class LBAFApplication:
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
-        # Initialize file paths
-        current_script_path = os.path.abspath(__file__)
-        target_dir = os.path.join(
-            os.path.dirname(os.path.dirname(current_script_path)), "Model")
-        rank_script_name = "lbsRank.py"
-        object_script_name = "lbsObject.py"
+        def remove_get(name : str) -> str:
+            return name[4:] if name.startswith("get_") else name
 
-        # Create list of all Rank QOI (Rank.get_*)
-        r_qoi_list = ["work"]
-        with open(os.path.join(target_dir, rank_script_name), 'r', encoding="utf-8") as f:
-            lines = f.readlines()
-            for line in lines:
-                if line[8:12] == "get_":
-                    r_qoi_list.append(line[12:line.find("(")])
-
-        # Create list of all Object QOI (Object.get_*)
-        o_qoi_list = []
-        with open(os.path.join(target_dir, object_script_name), 'r', encoding="utf-8") as f:
-            lines = f.readlines()
-            for line in lines:
-                if line[8:12] == "get_":
-                    o_qoi_list.append(line[12:line.find("(")])
+        r = Rank(self.__logger)
+        rank_qois = r.get_QOIs()
+        o = Object(seq_id=0)
+        object_qois = o.get_QOIs()
 
         # Print QOI based on verbosity level
         if verbosity > 0:
             self.__logger.info("List of Implemented QOI:")
         if verbosity == 1:
             self.__logger.info("\tRank QOI:")
-            for r_qoi in r_qoi_list:
-                self.__logger.info(f"\t\t{r_qoi}")
+            for name, _ in rank_qois.items():
+                self.__logger.info("\t" + remove_get(name))
         elif verbosity > 1:
             self.__logger.info("\tRank QOI:")
-            for r_qoi in r_qoi_list:
-                self.__logger.info(f"\t\t{r_qoi}")
+            for name, _ in rank_qois.items():
+                self.__logger.info("\t" + remove_get(name))
             self.__logger.info("")
             self.__logger.info("\tObject QOI:")
-            for o_qoi in o_qoi_list:
-                self.__logger.info(f"\t\t{o_qoi}")
+            for name, _ in object_qois.items():
+                self.__logger.info("\t\t" + remove_get(name))
 
     def run(self, cfg=None, cfg_dir=None):
         """Run the LBAF application."""
