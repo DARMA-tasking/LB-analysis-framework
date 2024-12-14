@@ -64,7 +64,7 @@ class TestLBAFApplication(unittest.TestCase):
                 "compressed": False,
                 "suffix": "json",
                 "communications": True,
-                "offline_LB_compatible": False
+                "offline_lb_compatible": False
             }
         }
 

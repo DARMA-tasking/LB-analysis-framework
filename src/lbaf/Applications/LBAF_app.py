@@ -203,7 +203,7 @@ class InternalParameters:
             for k_out, k_wrt, v_def in [
                     ("json_output_suffix", "suffix", "json"),
                     ("communications", "communications", False),
-                    ("offline_LB_compatible", "offline_LB_compatible", False),
+                    ("offline_lb_compatible", "offline_lb_compatible", False),
                     ("lb_iterations", "lb_iterations", False)]:
                 self.json_params[k_out] = wrt_json.get(k_wrt, v_def)
 
@@ -569,17 +569,17 @@ class LBAFApplication:
             self.__logger)
 
         # Execute runtime for specified phases
-        offline_LB_compatible = self.__parameters.json_params.get(
-            "offline_LB_compatible", False)
+        offline_lb_compatible = self.__parameters.json_params.get(
+            "offline_lb_compatible", False)
         lb_iterations = self.__parameters.json_params.get(
             "lb_iterations", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", 0),
-            1 if offline_LB_compatible else 0)
+            1 if offline_lb_compatible else 0)
 
         # Instantiate phase to VT file writer when requested
         if self.__json_writer:
-            if offline_LB_compatible:
+            if offline_lb_compatible:
                 # Add rebalanced phase when present
                 if not rebalanced_phase:
                     self.__logger.warning(
