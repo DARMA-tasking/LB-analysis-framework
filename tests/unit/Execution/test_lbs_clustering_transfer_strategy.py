@@ -173,8 +173,8 @@ class TestConfig(unittest.TestCase):
         obj5.set_shared_block(block3)
 
         # Set up initial configuration
-        rank0 = Rank(r_id=r_id0, migratable_objects{obj0, obj1, obj2}, logger=self.logger)
-        rank1 = Rank(r_id=r_id1, migratable_objects{obj3, obj4, obj5}, logger=self.logger)
+        rank0 = Rank(r_id=r_id0, migratable_objects={obj0, obj1, obj2}, logger=self.logger)
+        rank1 = Rank(r_id=r_id1, migratable_objects={obj3, obj4, obj5}, logger=self.logger)
 
         # Assign ranks to memory blocks
         rank0.set_shared_blocks({block0, block1})
