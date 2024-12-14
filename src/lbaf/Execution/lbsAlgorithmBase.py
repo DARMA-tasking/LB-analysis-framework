@@ -53,11 +53,16 @@ from ..Utils.lbsLogging import Logger
 
 class AlgorithmBase:
     """An abstract base class of load/work balancing algorithms."""
-
     __metaclass__ = abc.ABCMeta
 
-    _work_model: WorkModelBase
+    # Protected logger
     _logger: Logger
+
+    # Concrete algorithms need a work model
+    _work_model: WorkModelBase=None
+
+    # Iterative algorithms are allowed to store load balancing iterations
+    _lb_iterations: list[Phase]=[]
 
     def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger):
         """Class constructor.
@@ -95,13 +100,17 @@ class AlgorithmBase:
             ("ranks", lambda x: self._work_model.compute(x)): {
                 "total work": "sum"}}
 
-    def get_rebalanced_phase(self):
-        """Return phased assigned for processing by algoritm."""
-        return self._rebalanced_phase
-
     def get_initial_communications(self):
         """Return the initial phase communications."""
         return self._initial_communications
+
+    def get_lb_iterations(self):
+        """Return possibly empty list of load balancing iterations."""
+        return self._lb_iterations
+
+    def get_rebalanced_phase(self):
+        """Return phased assigned for processing by algoritm."""
+        return self._rebalanced_phase
 
     @staticmethod
     def factory(
@@ -168,14 +177,14 @@ class AlgorithmBase:
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
-        # Set initial communications for given rank
+        # Set initial communications for given phase index
         self._initial_communications[p_id] = phases[p_id].get_communications()
 
         # Create a new phase to preserve phase to be rebalanced
         self._logger.info(f"Creating new phase {p_id} for rebalancing")
         self._rebalanced_phase = Phase(self._logger, p_id)
 
-        # Try to copy ranks from phase to be rebalanced to processed one
+        # Try to copy ranks from original phase to new one to be rebalanced
         try:
             new_ranks: Set[Rank] = set()
             for r in phases[p_id].get_ranks():

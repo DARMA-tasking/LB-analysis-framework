@@ -61,7 +61,8 @@ class Phase:
             self,
             lgr: Logger,
             p_id: int = 0,
-            reader: LoadReader = None):
+            reader: LoadReader = None,
+            p_sub_id: int = 0):
         """Class constructor
             logger: a Logger instance
             id: an integer indexing the phase ID
@@ -72,7 +73,9 @@ class Phase:
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
             raise SystemExit(1)
         self.__logger = lgr
-        self.__logger.info(f"Instantiating phase {p_id}")
+        self.__logger.info(
+            f"Instantiating phase with index {p_id}" + (
+                f" and sub-index {p_sub_id}" if p_sub_id else ''))
 
         # Index of this phase
         self.__phase_id = p_id
