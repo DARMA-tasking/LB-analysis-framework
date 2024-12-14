@@ -57,7 +57,7 @@ class Rank:
         logger: Logger,
         r_id: int = -1,
         migratable_objects: set = None,
-        shared_objects: set = None):
+        sentinel_objects: set = None):
 
         # Assign logger to instance variable
         self.__logger = logger #pylint:disable=unused-private-member
@@ -69,8 +69,8 @@ class Rank:
             for o in migratable_objects:
                 self.__migratable_objects.add(o)
         self.__sentinel_objects = set()
-        if shared_objects is not None:
-            for o in shared_objects:
+        if sentinel_objects is not None:
+            for o in sentinel_objects:
                 self.__sentinel_objects.add(o)
 
         # Initialize other instance variables
