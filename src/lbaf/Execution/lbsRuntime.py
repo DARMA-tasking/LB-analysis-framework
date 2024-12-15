@@ -121,7 +121,7 @@ class Runtime:
         """Return runtime work model."""
         return self.__work_model
 
-    def execute(self, p_id: int, phase_increment: int=0):
+    def execute(self, p_id: int, phase_increment: int=0, lb_iterations=False):
         """Execute runtime for single phase with given ID or multiple phases in selected range."""
         # Execute load balancing algorithm
         self.__logger.info(
@@ -143,5 +143,5 @@ class Runtime:
             lbp.set_communications(initial_communications[p_id])
             self.__logger.info(f"Created rebalanced phase {lbp_id}")
 
-        # Return rebalanced phase
-        return lbp
+        # Return rebalanced phase and possible iterations
+        return lbp, self.__algorithm.get_lb_iterations() if lb_iterations else []

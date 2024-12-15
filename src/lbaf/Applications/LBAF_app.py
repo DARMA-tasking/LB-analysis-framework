@@ -571,11 +571,10 @@ class LBAFApplication:
         # Execute runtime for specified phases
         offline_lb_compatible = self.__parameters.json_params.get(
             "offline_lb_compatible", False)
-        lb_iterations = self.__parameters.json_params.get(
-            "lb_iterations", False)
-        rebalanced_phase = runtime.execute(
+        rebalanced_phase, lb_iterations = runtime.execute(
             self.__parameters.algorithm.get("phase_id", 0),
-            1 if offline_lb_compatible else 0)
+            1 if offline_lb_compatible else 0,
+            self.__parameters.json_params.get("lb_iterations", False))
 
         # Instantiate phase to VT file writer when requested
         if self.__json_writer:
@@ -607,7 +606,7 @@ class LBAFApplication:
                 # Add new phase when load balancing when offline mode not selected
                 self.__logger.info(f"Creating rebalanced phase {phase_id}")
                 self.__json_writer.write(
-                    {phase_id: rebalanced_phase})
+                    {phase_id: (rebalanced_phase, lb_iterations)})
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:

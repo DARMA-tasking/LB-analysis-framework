@@ -78,7 +78,7 @@ class VTDataWriter:
 
         # Useful fields
         self.__rank_phases = None
-        self.__phases = None
+        self.__phase_tuples = None
 
         # Set up mp manager
         manager = mp.Manager()
@@ -168,34 +168,42 @@ class VTDataWriter:
                     o.get_id() is not None and o.get_id() == comm_dict["from"].get("id") or
                     o.get_seq_id() is not None and o.get_seq_id() == comm_dict["from"].get("seq_id")]
                 if len(sender_obj) == 1:
+                    # Retrieve communications with single sender
                     sender_obj = sender_obj[0]
-                    from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
+                    from_rank: Rank = [
+                        r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
                     comm_dict["from"]["home"] = sender_obj.get_rank_id()
                     comm_dict["from"]["migratable"] = from_rank.is_migratable(sender_obj)
                     for k, v in sender_obj.get_unused_params().items():
                         comm_dict["from"][k] = v
                     comm_dict["from"] = dict(sorted(comm_dict["from"].items()))
                 else:
-                    missing_ref = comm_dict['from'].get('id', comm_dict['from'].get('seq_id'))
-                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
+                    # Other cases are not supported
+                    missing_ref = comm_dict["from"].get("id", comm_dict["from"].get("seq_id"))
+                    self.__logger.error(
+                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if
                     o.get_id() is not None and o.get_id() == comm_dict["to"].get("id") or
                     o.get_seq_id() is not None and o.get_seq_id() == comm_dict["to"].get("seq_id")]
                 if len(receiver_obj) == 1:
+                    # Retrieve communications with single receiver
                     receiver_obj = receiver_obj[0]
                     comm_dict["to"]["home"] = receiver_obj.get_rank_id()
-                    to_rank = [r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
+                    to_rank: Rank = [
+                        r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
                     comm_dict["to"]["migratable"] = to_rank.is_migratable(receiver_obj)
                     for k, v in receiver_obj.get_unused_params().items():
                         comm_dict["to"][k] = v
                     comm_dict["to"] = dict(sorted(comm_dict["to"].items()))
                 else:
-                    missing_ref = comm_dict['to'].get('id', comm_dict['to'].get('seq_id'))
-                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
+                    # Other cases are not supported
+                    missing_ref = comm_dict["to"].get("id", comm_dict["to"].get("seq_id"))
+                    self.__logger.error(
+                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
 
                 if missing_ref is not None:
-                    # keep communication with invalid entity references for the moment.
+                    # Keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.
                     communications.append(comm_dict)
                 elif ("migratable" in comm_dict["from"].keys() and
@@ -212,6 +220,7 @@ class VTDataWriter:
                 if moved_dict["from"].get("id", moved_dict["from"].get("seq_id")) in rank_objects:
                     communications.append(moved_dict)
 
+        # Return created list of communications
         return communications
 
     def _json_serializer(self, rank_phases_double) -> str:
@@ -231,8 +240,7 @@ class VTDataWriter:
         else:
             metadata = {
                 "type": "LBDatafile",
-                "rank": r_id
-            }
+                "rank": r_id}
 
         # Initialize output dict
         output = {
@@ -241,25 +249,33 @@ class VTDataWriter:
 
         # Iterate over phases
         for p_id, rank in r_phases.items():
-            # Get current phase
-            current_phase = self.__phases.get(p_id)
+            # Get current phase tuple and phase
+            phase_tuple = self.__phase_tuples.get(p_id)
+            current_phase = phase_tuple[0]
 
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
-            phase_data= {"id": p_id,
-                         "tasks": sorted(
-                            self.__create_tasks(
-                                r_id, rank.get_migratable_objects(), migratable=True) +
-                            self.__create_tasks(
-                                r_id, rank.get_sentinel_objects(), migratable=False)
-                         , key=lambda x: x.get("entity").get("id", x.get("entity").get("seq_id")))
-            }
+            phase_data = {
+                "id": p_id,
+                "tasks": sorted(
+                    self.__create_tasks(
+                        r_id, rank.get_migratable_objects(), migratable=True) +
+                    self.__create_tasks(
+                        r_id, rank.get_sentinel_objects(), migratable=False),
+                    key=lambda x: x.get("entity").get(
+                        "id", x.get("entity").get("seq_id")))}
 
-            # Add communication data (if present)
+            # Add communication data if present
             communications = self.__get_communications(current_phase, rank)
             if communications:
                 phase_data["communications"] = communications
 
+            # Add load balancing iterations if present
+            lb_iterations = phase_tuple[1]
+            if lb_iterations:
+                phase_data["lb_iterations"] = []
+
+            # Append create phase
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
@@ -287,24 +303,23 @@ class VTDataWriter:
         # Return JSON file name
         return file_name
 
-    def write(self, phases: dict):
-        """ Write one JSON per rank for dictonary of phases."""
+    def write(self, phase_tuples: dict):
+        """ Write one JSON per rank for dictonary of phases with possibly empty iterations."""
 
         # Ensure that provided phase has correct type
-        if not isinstance(phases, dict) or not all(
-            isinstance(p, Phase) for p in phases.values()):
+        if not isinstance(phase_tuples, dict) or not all(
+            isinstance(t, tuple) for t in phase_tuples.values()):
             self.__logger.error(
-                "JSON writer must be passed a dictionary of phases")
+                "JSON writer must be passed a dictionary of tuples")
             raise SystemExit(1)
-
-        self.__phases = phases
-
+        self.__phase_tuples = phase_tuples
+        
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
-        for p in phases.values():
-            for r in p.get_ranks():
+        for (phase, lb_iterations) in self.__phase_tuples.values():
+            for r in phase.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
-                self.__rank_phases[r.get_id()][p.get_id()] = r
+                self.__rank_phases[r.get_id()][phase.get_id()] = r
 
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
