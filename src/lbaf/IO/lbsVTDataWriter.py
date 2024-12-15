@@ -317,7 +317,7 @@ class VTDataWriter:
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
         for (phase, lb_iterations) in self.__phase_tuples.values():
-            For r in phase.get_ranks():
+            for r in phase.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
                 self.__rank_phases[r.get_id()][phase.get_id()] = r
 
