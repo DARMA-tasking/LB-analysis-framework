@@ -274,6 +274,33 @@ class VTDataWriter:
             lb_iterations = phase_tuple[1]
             if lb_iterations:
                 phase_data["lb_iterations"] = []
+                # Iterate over load balancing iterations
+                for it in lb_iterations:
+                    # Create data dict for load balancing iteration
+                    it_id = it.get_sub_id()
+                    self.__logger.debug(f"Writing iteration {it_id} of phase {p_id} for rank {r_id}")
+                    iteration_data = {
+                        "id": it_id}
+
+                    # Retrieve same rank in load balancing iteration
+                    for it_r in it.get_ranks():
+                        if r_id != it_r.get_id():
+                            continue
+                        # Add task data for current rank in iteration
+                        iteration_data["tasks"] = sorted(
+                            self.__create_tasks(
+                                r_id, it_r.get_migratable_objects(), migratable=True) +
+                            self.__create_tasks(
+                                r_id, it_r.get_sentinel_objects(), migratable=False),
+                            key=lambda x: x.get("entity").get(
+                                "id", x.get("entity").get("seq_id")))
+
+                    # Add communication data if present
+                    if communications:
+                        iteration_data["communications"] = communications
+
+                    # Append load balancing iteration to phase data
+                    phase_data["lb_iterations"].append(iteration_data)
 
             # Append create phase
             output["phases"].append(phase_data)

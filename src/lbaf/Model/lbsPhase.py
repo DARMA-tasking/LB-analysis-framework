@@ -65,8 +65,9 @@ class Phase:
             p_sub_id: int = 0):
         """Class constructor
             logger: a Logger instance
-            id: an integer indexing the phase ID
-            reader: a JSON VT reader instance"""
+            p_id: an integer indexing the phase ID
+            reader: a JSON VT reader instance
+            p_sub_id: an optional integer to index e.g. LB iterations"""
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
             get_logger().error(
@@ -79,6 +80,9 @@ class Phase:
 
         # Index of this phase
         self.__phase_id = p_id
+
+        # Sub-index of this phase
+        self.__phase_sub_id = p_sub_id
 
         # Initialize empty list of ranks
         self.__ranks = []
@@ -102,6 +106,10 @@ class Phase:
     def get_id(self):
         """Retrieve index of this phase."""
         return self.__phase_id
+
+    def get_sub_id(self):
+        """Retrieve sub-index of this phase."""
+        return self.__phase_sub_id
 
     def get_number_of_ranks(self):
         """Retrieve number of ranks belonging to phase."""
@@ -490,6 +498,7 @@ class Phase:
                         f"It is already assigned to rank {objects[task_id].get_rank_id()}"
                     )
 
+                # Create and assign object to task
                 o = Object(
                     seq_id=task_id,
                     packed_id=None,
@@ -497,7 +506,6 @@ class Phase:
                     load=task_spec["time"],
                     user_defined=task_user_defined,
                     collection_id=task_spec.get("collection_id"))
-
                 objects[task_id] = o
 
                 # Set migratable
