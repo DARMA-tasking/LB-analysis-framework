@@ -133,7 +133,7 @@ class Rank:
         """Set rank shared memory blocks."""
         # A set is required for shared memory blocks
         if not isinstance(blocks, set):
-            self._logger.error(f"shared blocks: incorrect type {type(blocks)}")
+            self.__logger.error(f"shared blocks: incorrect type {type(blocks)}")
             raise SystemExit(1)
 
         # Assign shared blocks
@@ -143,7 +143,7 @@ class Rank:
         """Add rank shared memory block."""
         # A Block instance is required to add shared memory block
         if not isinstance(block, Block):
-            self._logger.error(f"block: incorrect type {type(block)}")
+            self.__logger.error(f"block: incorrect type {type(block)}")
             raise SystemExit(1)
 
         # Update instance variable without ownership check
@@ -154,7 +154,7 @@ class Rank:
         try:
             self.__shared_blocks.remove(block)
         except Exception as err:
-            self._logger.error(
+            self.__logger.error(
                 f"no shared block with ID {block.get_id()} to delete on rank {self.get_id()}")
             raise SystemExit(1) from err
 
@@ -210,7 +210,7 @@ class Rank:
             if fallback_collection_id is not None:
                 o.set_collection_id(fallback_collection_id)
             if o.get_collection_id() is None:
-                self._logger.error(
+                self.__logger.error(
                     f"`collection_id` parameter is required for object with id={o.get_id()}"
                     " because it is migratable")
                 raise SystemExit(1)
