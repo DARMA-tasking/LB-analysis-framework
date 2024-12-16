@@ -148,4 +148,4 @@ class Runtime:
                 self.__algorithm.get_lb_iterations() if lb_iterations else [])
 
         # Return rebalanced phase
-        return lbp 
+        return lbp
