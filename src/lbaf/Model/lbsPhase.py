@@ -137,7 +137,7 @@ class Phase:
 
     def copy_ranks(self, phase: Self):
         """Copy ranks from one phase to self."""
-        new_ranks: Set[Rank] = set()
+        new_ranks = set()
         for r in phase.get_ranks():
             # Minimally instantiate rank and copy
             new_r = Rank(self.__logger)
