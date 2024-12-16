@@ -62,7 +62,7 @@ class AlgorithmBase:
     _work_model: WorkModelBase=None
 
     # Iterative algorithms are allowed to store load balancing iterations
-    _lb_iterations: List[Phase]=[]
+    _lb_iterations: List[Phase]
 
     def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger):
         """Class constructor.
@@ -86,6 +86,9 @@ class AlgorithmBase:
         if not isinstance(parameters, dict):
             self._logger.error("Could not create an algorithm without a dictionary of parameters")
             raise SystemExit(1)
+
+        # By default algorithms are not assumed to be iterative
+        self._lb_iterations = []
 
         # Initially no phases are assigned for rebalancing
         self._initial_phase = None
