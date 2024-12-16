@@ -270,7 +270,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Retain load balancing iteration as a phase with sub-index
             lb_iteration = Phase(self._logger, p_id, None, i + 1)
             lb_iteration.copy_ranks(self._rebalanced_phase)
-            lb_iteration.set_communications(self._initial_communications)
+            lb_iteration.set_communications(self._initial_communications[p_id])
             self._initial_phase.get_lb_iterations().append(lb_iteration)
 
             # Report minimum Hamming distance when minimax optimum is available

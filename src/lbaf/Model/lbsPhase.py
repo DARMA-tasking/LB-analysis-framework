@@ -630,6 +630,7 @@ class Phase:
 
         # Assign communications dictionary
         self.set_communications(phase_communications)
+
         # Assign ranks (list) to this phase
         self.set_ranks(ranks.values())
 

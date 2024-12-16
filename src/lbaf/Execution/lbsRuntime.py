@@ -132,7 +132,7 @@ class Runtime:
             self.__phases,
             self.__statistics,
             self.__a_min_max)
-
+        
         # Retrieve possibly null rebalanced phase and return it
         if (lbp := self.__algorithm.get_rebalanced_phase()):
             # Retain lb iterations with initial phase when it is replaced

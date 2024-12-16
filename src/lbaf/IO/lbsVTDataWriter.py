@@ -135,9 +135,21 @@ class VTDataWriter:
             if user_defined:
                 task_data["user_defined"] = dict(sorted(user_defined.items()))
 
+            # Append data for current object
             tasks.append(task_data)
 
+        # Return created tasks on this rank
         return tasks
+
+    def __create_task_data(self, rank: Rank):
+        """Create task data."""
+        return sorted(
+            self.__create_tasks(
+                rank.get_id(), rank.get_migratable_objects(), migratable=True) +
+            self.__create_tasks(
+                rank.get_id(), rank.get_sentinel_objects(), migratable=False),
+            key=lambda x: x.get("entity").get(
+                "id", x.get("entity").get("seq_id")))
 
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
@@ -250,19 +262,13 @@ class VTDataWriter:
         # Iterate over phases
         for p_id, rank in r_phases.items():
             # Get current phase tuple and phase
+            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             current_phase = self.__phases.get(p_id)
 
             # Create data to be outputted for current phase
-            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             phase_data = {
                 "id": p_id,
-                "tasks": sorted(
-                    self.__create_tasks(
-                        r_id, rank.get_migratable_objects(), migratable=True) +
-                    self.__create_tasks(
-                        r_id, rank.get_sentinel_objects(), migratable=False),
-                    key=lambda x: x.get("entity").get(
-                        "id", x.get("entity").get("seq_id")))}
+                "tasks": self.__create_task_data(rank)}
 
             # Add communication data if present
             communications = self.__get_communications(current_phase, rank)
@@ -277,24 +283,20 @@ class VTDataWriter:
                 for it in lb_iterations:
                     # Create data dict for load balancing iteration
                     it_id = it.get_sub_id()
-                    self.__logger.debug(f"Writing iteration {it_id} of phase {p_id} for rank {r_id}")
-                    iteration_data = {
-                        "id": it_id}
+                    self.__logger.debug(
+                        f"Writing iteration {it_id} of phase {p_id} for rank {r_id}")
+                    iteration_data = {"id": it_id}
 
                     # Retrieve same rank in load balancing iteration
                     for it_r in it.get_ranks():
                         if r_id != it_r.get_id():
                             continue
+
                         # Add task data for current rank in iteration
-                        iteration_data["tasks"] = sorted(
-                            self.__create_tasks(
-                                r_id, it_r.get_migratable_objects(), migratable=True) +
-                            self.__create_tasks(
-                                r_id, it_r.get_sentinel_objects(), migratable=False),
-                            key=lambda x: x.get("entity").get(
-                                "id", x.get("entity").get("seq_id")))
+                        iteration_data["tasks"] = self.__create_task_data(it_r)
 
                     # Add communication data if present
+                    communication = self.__get_communications(it, rank)
                     if communications:
                         iteration_data["communications"] = communications
 
