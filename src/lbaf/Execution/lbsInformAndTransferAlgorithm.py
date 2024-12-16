@@ -276,7 +276,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 new_ranks.add(new_r)
             lb_iteration.set_ranks(new_ranks)
             lb_iteration.set_communications(self._initial_communications)
-            self._lb_iterations.append(lb_iteration)
+            self._initial_phase.get_lb_iterations().append(lb_iteration)
 
             # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:

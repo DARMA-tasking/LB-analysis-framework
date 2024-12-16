@@ -87,10 +87,11 @@ class AlgorithmBase:
             self._logger.error("Could not create an algorithm without a dictionary of parameters")
             raise SystemExit(1)
 
-        # Initially no phase is assigned for processing
+        # Initially no phases are assigned for rebalancing
+        self._initial_phase = None
         self._rebalanced_phase = None
 
-        # Save the initial communications data
+        # Keep track of phase communications
         self._initial_communications = {}
 
         # Map rank statistics to their respective computation methods
@@ -104,12 +105,12 @@ class AlgorithmBase:
         """Return the initial phase communications."""
         return self._initial_communications
 
-    def get_lb_iterations(self):
-        """Return possibly empty list of load balancing iterations."""
-        return self._lb_iterations
+    def get_initial_phase(self):
+        """Return initial phase."""
+        return self._initial_phase
 
     def get_rebalanced_phase(self):
-        """Return phased assigned for processing by algoritm."""
+        """Return rebalanced phased."""
         return self._rebalanced_phase
 
     @staticmethod
@@ -178,6 +179,7 @@ class AlgorithmBase:
             raise SystemExit(1)
 
         # Set initial communications for given phase index
+        self._initial_phase = phases[p_id]
         self._initial_communications[p_id] = phases[p_id].get_communications()
 
         # Create a new phase to preserve phase to be rebalanced

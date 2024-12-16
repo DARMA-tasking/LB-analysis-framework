@@ -135,6 +135,11 @@ class Runtime:
 
         # Retrieve possibly null rebalanced phase and return it
         if (lbp := self.__algorithm.get_rebalanced_phase()):
+            # Retain lb iterations with initial phase when it is replaced
+            if not phase_increment:
+                self.__algorithm.get_rebalanced_phase().set_lb_iterations(
+                self.__algorithm.get_initial_phase().get_lb_iterations())
+
             # Increment rebalanced phase ID as requested
             lbp.set_id((lbp_id := lbp.get_id() + phase_increment))
 
@@ -142,10 +147,6 @@ class Runtime:
             initial_communications = self.__algorithm.get_initial_communications()
             lbp.set_communications(initial_communications[p_id])
             self.__logger.info(f"Created rebalanced phase {lbp_id}")
-
-            # Attach iterations to new phase when requested
-            lbp.set_lb_iterations(
-                self.__algorithm.get_lb_iterations() if lb_iterations else [])
 
         # Return rebalanced phase
         return lbp
