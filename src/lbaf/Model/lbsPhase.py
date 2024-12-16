@@ -42,7 +42,8 @@
 #
 import random as rnd
 from logging import Logger
-from typing import Optional, Dict, Set
+from typing import Optional, List, Dict, Set
+from typing_extensions import Self
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
@@ -81,7 +82,10 @@ class Phase:
         # Index of this phase
         self.__phase_id = p_id
 
-        # Sub-index of this phase
+        # Iterative algorithms are allowed to store load balancing iterations
+        self.__lb_iterations = []
+
+        # Sub-index of this phase e.g. for load balancing iteration
         self.__phase_sub_id = p_sub_id
 
         # Initialize empty list of ranks
@@ -106,6 +110,14 @@ class Phase:
     def get_id(self):
         """Retrieve index of this phase."""
         return self.__phase_id
+
+    def set_lb_iterations(self, lb_iterations: List[Self]):
+        """Set possibly empty list of load balancing iterations."""
+        self.__lb_iterations = lb_iterations
+
+    def get_lb_iterations(self):
+        """Return list of load balancing iterations."""
+        return self.__lb_iterations
 
     def get_sub_id(self):
         """Retrieve sub-index of this phase."""
@@ -464,7 +476,7 @@ class Phase:
 
         # This method is inspired by the VTDataReader but with a DatasetSpecification input
 
-        # Auto-generate ids for Lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
+        # Auto-generate ids for lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
         # and communications
         if isinstance(spec["tasks"], list):
             spec["tasks"] = {

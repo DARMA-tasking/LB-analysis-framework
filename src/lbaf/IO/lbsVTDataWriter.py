@@ -78,7 +78,7 @@ class VTDataWriter:
 
         # Useful fields
         self.__rank_phases = None
-        self.__phase_tuples = None
+        self.__phases = None
 
         # Set up mp manager
         manager = mp.Manager()
@@ -250,8 +250,7 @@ class VTDataWriter:
         # Iterate over phases
         for p_id, rank in r_phases.items():
             # Get current phase tuple and phase
-            phase_tuple = self.__phase_tuples.get(p_id)
-            current_phase = phase_tuple[0]
+            current_phase = self.__phases.get(p_id)
 
             # Create data to be outputted for current phase
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
@@ -271,7 +270,7 @@ class VTDataWriter:
                 phase_data["communications"] = communications
 
             # Add load balancing iterations if present
-            lb_iterations = phase_tuple[1]
+            lb_iterations = current_phase.get_lb_iterations()
             if lb_iterations:
                 phase_data["lb_iterations"] = []
                 # Iterate over load balancing iterations
@@ -330,20 +329,20 @@ class VTDataWriter:
         # Return JSON file name
         return file_name
 
-    def write(self, phase_tuples: dict):
-        """ Write one JSON per rank for dictonary of phases with possibly empty iterations."""
+    def write(self, phases: dict):
+        """ Write one JSON per rank for dictonary of phases with possibly iterations."""
 
         # Ensure that provided phase has correct type
-        if not isinstance(phase_tuples, dict) or not all(
-            isinstance(t, tuple) for t in phase_tuples.values()):
+        if not isinstance(phases, dict):
             self.__logger.error(
-                "JSON writer must be passed a dictionary of tuples")
+                "JSON writer must be passed a dictionary")
             raise SystemExit(1)
-        self.__phase_tuples = phase_tuples
+        self.__phases = phases
 
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
-        for (phase, lb_iterations) in self.__phase_tuples.values():
+        for phase in self.__phases.values():
+            # Handle case where entry only cintains a phase
             for r in phase.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
                 self.__rank_phases[r.get_id()][phase.get_id()] = r

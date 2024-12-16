@@ -143,5 +143,9 @@ class Runtime:
             lbp.set_communications(initial_communications[p_id])
             self.__logger.info(f"Created rebalanced phase {lbp_id}")
 
-        # Return rebalanced phase and possible iterations
-        return lbp, self.__algorithm.get_lb_iterations() if lb_iterations else []
+            # Attach iterations to new phase when requested
+            lbp.set_lb_iterations(
+                self.__algorithm.get_lb_iterations() if lb_iterations else [])
+
+        # Return rebalanced phase
+        return lbp 
