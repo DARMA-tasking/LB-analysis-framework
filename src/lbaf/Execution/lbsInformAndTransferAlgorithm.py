@@ -269,13 +269,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Retain load balancing iteration as a phase with sub-index
             lb_iteration = Phase(self._logger, p_id, None, i + 1)
-            new_ranks: Set[Rank] = set()
-            for r in self._rebalanced_phase.get_ranks():
-                # Minimally instantiate rank and copy
-                new_r = Rank(self._logger)
-                new_r.copy(r)
-                new_ranks.add(new_r)
-            lb_iteration.set_ranks(new_ranks)
+            lb_iteration.copy_ranks(self._rebalanced_phase)
             lb_iteration.set_communications(self._initial_communications)
             self._initial_phase.get_lb_iterations().append(lb_iteration)
 

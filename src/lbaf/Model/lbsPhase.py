@@ -135,6 +135,16 @@ class Phase:
         """Retrieve ranks belonging to phase."""
         return self.__ranks
 
+    def copy_ranks(self, phase: Self):
+        """Copy ranks from one phase to self."""
+        new_ranks: Set[Rank] = set()
+        for r in phase.get_ranks():
+            # Minimally instantiate rank and copy
+            new_r = Rank(self.__logger)
+            new_r.copy(r)
+            new_ranks.add(new_r)
+        self.set_ranks(new_ranks)
+
     def get_rank_ids(self):
         """Retrieve IDs of ranks belonging to phase."""
         return [p.get_id() for p in self.__ranks]

@@ -181,26 +181,17 @@ class AlgorithmBase:
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
-        # Set initial communications for given phase index
-        self._initial_phase = phases[p_id]
-        self._initial_communications[p_id] = phases[p_id].get_communications()
-
-        # Create a new phase to preserve phase to be rebalanced
-        self._logger.info(f"Creating new phase {p_id} for rebalancing")
-        self._rebalanced_phase = Phase(self._logger, p_id)
-
-        # Try to copy ranks from original phase to new one to be rebalanced
+        # Try to retrieve and keep track of phase to be processed
         try:
-            new_ranks: Set[Rank] = set()
-            for r in phases[p_id].get_ranks():
-                # Minimally instantiate rank and copy
-                new_r = Rank(self._logger)
-                new_r.copy(r)
-                new_ranks.add(new_r)
-            self._rebalanced_phase.set_ranks(new_ranks)
+            self._initial_phase = phases[p_id]
         except Exception as err:
             self._logger.error(f"No phase with index {p_id} is available for processing")
             raise SystemExit(1) from err
+        self._initial_communications[p_id] = self._initial_phase.get_communications()
+
+        # Create storage for rebalanced phase
+        self._rebalanced_phase = Phase(self._logger, p_id)
+        self._rebalanced_phase.copy_ranks(self._initial_phase)
         self._logger.info(
             f"Processing phase {p_id} "
             f"with {self._rebalanced_phase.get_number_of_objects()} objects "
