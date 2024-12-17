@@ -296,7 +296,7 @@ class VTDataWriter:
                         iteration_data["tasks"] = self.__create_task_data(it_r)
 
                     # Add communication data if present
-                    communication = self.__get_communications(it, rank)
+                    communications = self.__get_communications(it, rank)
                     if communications:
                         iteration_data["communications"] = communications
 
