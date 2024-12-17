@@ -132,8 +132,8 @@ class ClusteringTransferStrategy(TransferStrategyBase):
 
         subclusters = {}
 
-        amount_over_average = src_load - ave_load;
-        amount_under_average = ave_load - try_load;
+        amount_over_average = src_load - ave_load
+        amount_under_average = ave_load - try_load
 
         # print(f"amount_over_average={amount_over_average}, amount_under_average={amount_under_average}")
 

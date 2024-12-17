@@ -42,7 +42,7 @@
 #
 import abc
 import os
-from typing import Set
+from typing import Set, List
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
