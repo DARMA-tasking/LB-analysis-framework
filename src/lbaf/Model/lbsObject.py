@@ -295,11 +295,15 @@ class Object:
         """Return all current unused parameters."""
         return self.__unused_params
 
+    def __get_qoi_name(self, qoi_ftn) -> str:
+        """Return the QOI name from the given QOI getter function"""
+        return qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
+
     def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
         """
         qoi_methods : dict = {
-            name: getattr(self, name)
+            self.__get_qoi_name(name): getattr(self, name)
             for name in dir(self)
             if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
         return qoi_methods

@@ -293,7 +293,7 @@ class VTDataWriter:
 
             # Get rank info and QOIs
             rank_info : Rank = [r for r in current_phase.get_ranks() if r.get_id() == r_id][0]
-            rank_qois = rank_info.get_QOIs()
+            rank_qois = rank_info.get_qois()
 
             # Create data to be outputted for current phase
             phase_data = {

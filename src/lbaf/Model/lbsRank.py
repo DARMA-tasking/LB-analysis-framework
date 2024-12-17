@@ -222,6 +222,10 @@ class Rank:
         """Return migratable objects assigned to rank."""
         return self.__migratable_objects
 
+    @qoi
+    def get_number_of_migratable_objects(self) -> int:
+        return len(self.__migratable_objects)
+
     def add_sentinel_object(self, o: Object) -> None:
         """Add object to sentinel objects."""
         return self.__sentinel_objects.add(o)
@@ -229,6 +233,10 @@ class Rank:
     def get_sentinel_objects(self) -> set:
         """Return sentinel objects assigned to rank."""
         return self.__sentinel_objects
+
+    @qoi
+    def get_number_of_sentinel_objects(self) -> int:
+        return len(self.__sentinel_objects)
 
     def get_object_ids(self) -> list:
         """Return IDs of all objects assigned to rank."""
@@ -330,11 +338,16 @@ class Rank:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
+    def __get_qoi_name(self, qoi_ftn) -> str:
+        """Return the QOI name from the given QOI getter function"""
+        qoi = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
+        return qoi.replace("number_of", "num")
+
     def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
         """
         qoi_methods : dict = {
-            name: getattr(self, name)
+            self.__get_qoi_name(name): getattr(self, name)
             for name in dir(self)
             if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
         return qoi_methods
