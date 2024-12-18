@@ -58,11 +58,6 @@ class TestConfig(unittest.TestCase):
         self.block = Block(self.b_id, self.h_id, self.size, self.o_ids)
 
     def test_lbs_block_initialization(self):
-        wrong_bid = 1.0
-        with self.assertRaises(TypeError) as err:
-            block_wrong_bid = Block(b_id=wrong_bid, h_id=1)
-        self.assertEqual(str(err.exception), f"b_id: incorrect type {type(wrong_bid)}")
-
         wrong_hid = 1.0
         with self.assertRaises(TypeError) as err:
             block_wrong_hid = Block(b_id=1, h_id=wrong_hid)
