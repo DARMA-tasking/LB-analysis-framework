@@ -56,8 +56,8 @@ class Rank:
         self,
         logger: Logger,
         r_id: int = -1,
-        mo: set = None,
-        so: set = None):
+        migratable_objects: set = None,
+        sentinel_objects: set = None):
 
         # Assign logger to instance variable
         self.__logger = logger #pylint:disable=unused-private-member
@@ -65,12 +65,12 @@ class Rank:
         # Member variables passed by constructor
         self.__index = r_id
         self.__migratable_objects = set()
-        if mo is not None:
-            for o in mo:
+        if migratable_objects is not None:
+            for o in migratable_objects:
                 self.__migratable_objects.add(o)
         self.__sentinel_objects = set()
-        if so is not None:
-            for o in so:
+        if sentinel_objects is not None:
+            for o in sentinel_objects:
                 self.__sentinel_objects.add(o)
 
         # Initialize other instance variables
@@ -133,8 +133,8 @@ class Rank:
         """Set rank shared memory blocks."""
         # A set is required for shared memory blocks
         if not isinstance(blocks, set):
-            raise TypeError(
-                f"shared blocks: incorrect type {type(blocks)}")
+            self.__logger.error(f"shared blocks: incorrect type {type(blocks)}")
+            raise SystemExit(1)
 
         # Assign shared blocks
         self.__shared_blocks = blocks
@@ -143,8 +143,8 @@ class Rank:
         """Add rank shared memory block."""
         # A Block instance is required to add shared memory block
         if not isinstance(block, Block):
-            raise TypeError(
-                f"block: incorrect type {type(block)}")
+            self.__logger.error(f"block: incorrect type {type(block)}")
+            raise SystemExit(1)
 
         # Update instance variable without ownership check
         self.__shared_blocks.add(block)
@@ -154,8 +154,9 @@ class Rank:
         try:
             self.__shared_blocks.remove(block)
         except Exception as err:
-            raise TypeError(
-                f"no shared block with ID {block.get_id()} to deleted from on rank {self.get_id()}") from err
+            self.__logger.error(
+                f"no shared block with ID {block.get_id()} to delete on rank {self.get_id()}")
+            raise SystemExit(1) from err
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
         """Return shared memory block with given ID when it exists."""
@@ -204,13 +205,17 @@ class Rank:
 
     def add_migratable_object(self, o: Object, fallback_collection_id: Optional[int] = 7) -> None:
         """Add object to migratable objects."""
+        # Perform sanity checks
         if o.get_collection_id() is None:
             if fallback_collection_id is not None:
                 o.set_collection_id(fallback_collection_id)
             if o.get_collection_id() is None:
-                raise RuntimeError(
+                self.__logger.error(
                     f"`collection_id` parameter is required for object with id={o.get_id()}"
                     " because it is migratable")
+                raise SystemExit(1)
+
+        # Add migratable object and return resulting set
         return self.__migratable_objects.add(o)
 
     def get_migratable_objects(self) -> set:
@@ -321,7 +326,7 @@ class Rank:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
-    def get_QOIs(self) -> list:
+    def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
         """
         qoi_methods : dict = {

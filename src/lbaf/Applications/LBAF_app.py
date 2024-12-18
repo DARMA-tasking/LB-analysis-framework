@@ -48,9 +48,6 @@ from typing import Any, Dict, Optional, cast
 import importlib
 import yaml
 
-from ..Model.lbsRank import Rank
-from ..Model.lbsObject import Object
-
 try:
     import vttv
     USING_VTTV = True
@@ -67,6 +64,8 @@ from lbaf.Execution.lbsRuntime import Runtime
 from lbaf.IO.lbsConfigurationValidator import ConfigurationValidator
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.IO.lbsVTDataWriter import VTDataWriter
+from lbaf.Model.lbsRank import Rank
+from lbaf.Model.lbsObject import Object
 from lbaf.Model.lbsPhase import Phase
 from lbaf.Model.lbsWorkModelBase import WorkModelBase
 from lbaf.Utils.lbsArgumentParser import PromptArgumentParser
@@ -78,7 +77,7 @@ from lbaf.Utils.lbsPath import abspath
 
 class InternalParameters:
     """Represent the parameters used internally by a LBAF Application"""
-
+    # Private logger
     __logger: Logger
 
     # General input options
@@ -139,7 +138,7 @@ class InternalParameters:
         from_data = config.get("from_data")
         if from_data is not None:
             self.data_stem = from_data.get("data_stem")
-            # # get data directory (because data_stem includes file prefix)
+            # Get data directory because data_stem includes file prefix
             data_dir = f"{os.sep}".join(self.data_stem.split(os.sep)[:-1])
             file_prefix = self.data_stem.split(os.sep)[-1]
             data_dir = abspath(data_dir, relative_to=base_dir)
@@ -204,7 +203,7 @@ class InternalParameters:
             for k_out, k_wrt, v_def in [
                     ("json_output_suffix", "suffix", "json"),
                     ("communications", "communications", False),
-                    ("offline_LB_compatible", "offline_LB_compatible", False),
+                    ("offline_lb_compatible", "offline_lb_compatible", False),
                     ("lb_iterations", "lb_iterations", False)]:
                 self.json_params[k_out] = wrt_json.get(k_wrt, v_def)
 
@@ -422,9 +421,9 @@ class LBAFApplication:
             return name[4:] if name.startswith("get_") else name
 
         r = Rank(self.__logger)
-        rank_qois = r.get_QOIs()
+        rank_qois = r.get_qois()
         o = Object(seq_id=0)
-        object_qois = o.get_QOIs()
+        object_qois = o.get_qois()
 
         # Print QOI based on verbosity level
         if verbosity > 0:
@@ -570,17 +569,16 @@ class LBAFApplication:
             self.__logger)
 
         # Execute runtime for specified phases
-        offline_LB_compatible = self.__parameters.json_params.get(
-            "offline_LB_compatible", False)
-        lb_iterations = self.__parameters.json_params.get(
-            "lb_iterations", False)
+        offline_lb_compatible = self.__parameters.json_params.get(
+            "offline_lb_compatible", False)
         rebalanced_phase = runtime.execute(
             self.__parameters.algorithm.get("phase_id", 0),
-            1 if offline_LB_compatible else 0)
+            1 if offline_lb_compatible else 0,
+            self.__parameters.json_params.get("lb_iterations", False))
 
         # Instantiate phase to VT file writer when requested
         if self.__json_writer:
-            if offline_LB_compatible:
+            if offline_lb_compatible:
                 # Add rebalanced phase when present
                 if not rebalanced_phase:
                     self.__logger.warning(
@@ -600,15 +598,14 @@ class LBAFApplication:
                     # Insert rebalanced phase into dictionary of phases
                     phases[p_id] = rebalanced_phase
 
-                # Write all phases
+                # Write all phasesOA
                 self.__logger.info(
                     f"Writing all ({len(phases)}) phases for offline load-balancing")
                 self.__json_writer.write(phases)
             else:
                 # Add new phase when load balancing when offline mode not selected
                 self.__logger.info(f"Creating rebalanced phase {phase_id}")
-                self.__json_writer.write(
-                    {phase_id: rebalanced_phase})
+                self.__json_writer.write({phase_id: rebalanced_phase})
 
         # Generate meshes and multimedia when requested
         if self.__parameters.grid_size:
@@ -618,7 +615,7 @@ class LBAFApplication:
                     "Grid size: {self.__parameters.grid_size} < {n_ranks}")
                 raise SystemExit(1)
 
-            # Call vttv visualization
+            # Call vt-tv visualization when requested
             if USING_VTTV:
                 self.__logger.info("Calling vt-tv")
 
@@ -628,11 +625,11 @@ class LBAFApplication:
                     for r in p.get_ranks():
                         rank_phases.setdefault(r.get_id(), {})
                         rank_phases[r.get_id()][p.get_id()] = r
-
                 ranks_json_str = []
                 for i in range(len(rank_phases.items())):
                     ranks_json_str.append(self.__json_writer._json_serializer((i, rank_phases[i])))
 
+                # Retrieve vt-tv parameters
                 vttv_params = {
                     "x_ranks": self.__parameters.grid_size[0],
                     "y_ranks": self.__parameters.grid_size[1],
@@ -643,20 +640,20 @@ class LBAFApplication:
                     "save_meshes": self.__parameters.save_meshes,
                     "force_continuous_object_qoi": self.__parameters.continuous_object_qoi,
                     "output_visualization_dir": self.__parameters.output_dir,
-                    "output_visualization_file_stem": self.__parameters.output_file_stem
-                }
+                    "output_visualization_file_stem": self.__parameters.output_file_stem}
 
+                # Retrieve grid topology
                 num_ranks = (
                     self.__parameters.grid_size[0] *
                     self.__parameters.grid_size[1] *
-                    self.__parameters.grid_size[2]
-                )
+                    self.__parameters.grid_size[2] )
 
                 vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
-            l_stats, w_stats = self.__print_statistics(rebalanced_phase, "rebalanced", runtime.get_work_model())
+            l_stats, w_stats = self.__print_statistics(
+                rebalanced_phase, "rebalanced", runtime.get_work_model())
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(

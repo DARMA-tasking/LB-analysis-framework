@@ -42,7 +42,7 @@
 #
 import abc
 import os
-from typing import Set
+from typing import Set, List
 
 from ..IO.lbsStatistics import compute_function_statistics
 from ..Model.lbsRank import Rank
@@ -53,11 +53,16 @@ from ..Utils.lbsLogging import Logger
 
 class AlgorithmBase:
     """An abstract base class of load/work balancing algorithms."""
-
     __metaclass__ = abc.ABCMeta
 
-    _work_model: WorkModelBase
+    # Protected logger
     _logger: Logger
+
+    # Concrete algorithms need a work model
+    _work_model: WorkModelBase=None
+
+    # Iterative algorithms are allowed to store load balancing iterations
+    _lb_iterations: List[Phase]
 
     def __init__(self, work_model: WorkModelBase, parameters: dict, logger: Logger):
         """Class constructor.
@@ -82,10 +87,14 @@ class AlgorithmBase:
             self._logger.error("Could not create an algorithm without a dictionary of parameters")
             raise SystemExit(1)
 
-        # Initially no phase is assigned for processing
+        # By default algorithms are not assumed to be iterative
+        self._lb_iterations = []
+
+        # Initially no phases are assigned for rebalancing
+        self._initial_phase = None
         self._rebalanced_phase = None
 
-        # Save the initial communications data
+        # Keep track of phase communications
         self._initial_communications = {}
 
         # Map rank statistics to their respective computation methods
@@ -95,13 +104,17 @@ class AlgorithmBase:
             ("ranks", lambda x: self._work_model.compute(x)): {
                 "total work": "sum"}}
 
-    def get_rebalanced_phase(self):
-        """Return phased assigned for processing by algoritm."""
-        return self._rebalanced_phase
-
     def get_initial_communications(self):
         """Return the initial phase communications."""
         return self._initial_communications
+
+    def get_initial_phase(self):
+        """Return initial phase."""
+        return self._initial_phase
+
+    def get_rebalanced_phase(self):
+        """Return rebalanced phased."""
+        return self._rebalanced_phase
 
     @staticmethod
     def factory(
@@ -168,25 +181,17 @@ class AlgorithmBase:
             self._logger.error("Algorithm execution requires a dictionary of phases")
             raise SystemExit(1)
 
-        # Set initial communications for given rank
-        self._initial_communications[p_id] = phases[p_id].get_communications()
-
-        # Create a new phase to preserve phase to be rebalanced
-        self._logger.info(f"Creating new phase {p_id} for rebalancing")
-        self._rebalanced_phase = Phase(self._logger, p_id)
-
-        # Try to copy ranks from phase to be rebalanced to processed one
+        # Try to retrieve and keep track of phase to be processed
         try:
-            new_ranks: Set[Rank] = set()
-            for r in phases[p_id].get_ranks():
-                # Minimally instantiate rank and copy
-                new_r = Rank(self._logger)
-                new_r.copy(r)
-                new_ranks.add(new_r)
-            self._rebalanced_phase.set_ranks(new_ranks)
+            self._initial_phase = phases[p_id]
         except Exception as err:
             self._logger.error(f"No phase with index {p_id} is available for processing")
             raise SystemExit(1) from err
+        self._initial_communications[p_id] = self._initial_phase.get_communications()
+
+        # Create storage for rebalanced phase
+        self._rebalanced_phase = Phase(self._logger, p_id)
+        self._rebalanced_phase.copy_ranks(self._initial_phase)
         self._logger.info(
             f"Processing phase {p_id} "
             f"with {self._rebalanced_phase.get_number_of_objects()} objects "
