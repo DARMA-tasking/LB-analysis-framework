@@ -615,7 +615,7 @@ class LBAFApplication:
                     "Grid size: {self.__parameters.grid_size} < {n_ranks}")
                 raise SystemExit(1)
 
-            # Call vttv visualization
+            # Call vt-tv visualization when requested
             if USING_VTTV:
                 self.__logger.info("Calling vt-tv")
 
@@ -625,11 +625,11 @@ class LBAFApplication:
                     for r in p.get_ranks():
                         rank_phases.setdefault(r.get_id(), {})
                         rank_phases[r.get_id()][p.get_id()] = r
-
                 ranks_json_str = []
                 for i in range(len(rank_phases.items())):
                     ranks_json_str.append(self.__json_writer._json_serializer((i, rank_phases[i])))
 
+                # Retrieve vt-tv parameters
                 vttv_params = {
                     "x_ranks": self.__parameters.grid_size[0],
                     "y_ranks": self.__parameters.grid_size[1],
@@ -640,14 +640,13 @@ class LBAFApplication:
                     "save_meshes": self.__parameters.save_meshes,
                     "force_continuous_object_qoi": self.__parameters.continuous_object_qoi,
                     "output_visualization_dir": self.__parameters.output_dir,
-                    "output_visualization_file_stem": self.__parameters.output_file_stem
-                }
+                    "output_visualization_file_stem": self.__parameters.output_file_stem}
 
+                # Retrieve grid topology
                 num_ranks = (
                     self.__parameters.grid_size[0] *
                     self.__parameters.grid_size[1] *
-                    self.__parameters.grid_size[2]
-                )
+                    self.__parameters.grid_size[2] )
 
                 vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
