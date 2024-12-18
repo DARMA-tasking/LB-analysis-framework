@@ -221,15 +221,19 @@ class VTDataWriter:
                     missing_ref = comm_entry["to"].get("id", comm_entry["to"].get("seq_id"))
                     self.__logger.error(
                         f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
-
+                
                 if missing_ref is not None:
                     # Keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.
+                    self.__logger.warning(
+                        f"Missing reference: ({missing_ref}) in communication {json.dumps(comm_entry)}")
                     communications.append(comm_entry)
                 elif ("migratable" in comm_entry["from"].keys() and
-                        not comm_entry["from"]["migratable"]): # object is sentinel
+                        not comm_entry["from"]["migratable"]):
+                    # Object is sentinel
                     communications.append(comm_entry)
-                elif comm_entry["from"].get("id", comm_entry["from"].get("seq_id")) in rank_objects:
+                elif comm_entry["from"].get(
+                        "id", comm_entry["from"].get("seq_id")) in rank_objects:
                     communications.append(comm_entry)
                 else:
                     self.__moved_comms.append(comm_entry)
@@ -302,13 +306,13 @@ class VTDataWriter:
                         # Add task data for current rank in iteration
                         iteration_data["tasks"] = self.__create_task_data(it_r)
 
-                    # Add communication data if present
-                    communications = self.__get_communications(it, rank)
-                    if communications:
-                        iteration_data["communications"] = communications
+                        # Add communication data if present
+                        communications = self.__get_communications(it, it_r)
+                        if communications:
+                            iteration_data["communications"] = communications
 
-                    # Append load balancing iteration to phase data
-                    phase_data["lb_iterations"].append(iteration_data)
+                        # Append load balancing iteration to phase data
+                        phase_data["lb_iterations"].append(iteration_data)
 
             # Append create phase
             output["phases"].append(phase_data)
