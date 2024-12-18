@@ -221,7 +221,7 @@ class VTDataWriter:
                     missing_ref = comm_entry["to"].get("id", comm_entry["to"].get("seq_id"))
                     self.__logger.error(
                         f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
-                
+
                 if missing_ref is not None:
                     # Keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.

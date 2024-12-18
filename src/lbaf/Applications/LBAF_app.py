@@ -652,7 +652,8 @@ class LBAFApplication:
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
-            l_stats, w_stats = self.__print_statistics(rebalanced_phase, "rebalanced", runtime.get_work_model())
+            l_stats, w_stats = self.__print_statistics(
+                rebalanced_phase, "rebalanced", runtime.get_work_model())
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
