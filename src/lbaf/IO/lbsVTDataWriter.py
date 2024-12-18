@@ -135,9 +135,31 @@ class VTDataWriter:
             if user_defined:
                 task_data["user_defined"] = dict(sorted(user_defined.items()))
 
+            # Append data for current object
             tasks.append(task_data)
 
+        # Return created tasks on this rank
         return tasks
+
+    def __create_task_data(self, rank: Rank):
+        """Create task data."""
+        return sorted(
+            self.__create_tasks(
+                rank.get_id(), rank.get_migratable_objects(), migratable=True) +
+            self.__create_tasks(
+                rank.get_id(), rank.get_sentinel_objects(), migratable=False),
+            key=lambda x: x.get("entity").get(
+                "id", x.get("entity").get("seq_id")))
+
+    def __find_object_rank(self, phase: Phase, object: Object):
+        """Determine which rank owns the object."""
+        for r in phase.get_ranks():
+            if object in r.get_objects():
+                return r
+
+        # If this point is reached the object could not be found
+        self.__logger.error(
+            f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
 
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
@@ -145,66 +167,76 @@ class VTDataWriter:
         # Get initial communications (if any) for current phase
         phase_communications_dict = phase.get_communications()
 
-        # Add empty entries for ranks with no initial communication
-        if rank.get_id() not in phase_communications_dict:
-            phase_communications_dict[rank.get_id()] = {}
-
         # Get original communications on current rank
-        initial_on_rank_communications = phase_communications_dict[rank.get_id()]
+        r_id = rank.get_id()
+        phase_communications_dict.setdefault(r_id, {})
+        initial_on_rank_communications = phase_communications_dict[r_id]
 
         # Get all objects on current rank
         rank_objects = rank.get_object_ids()
 
         # Initialize final communications
         communications = []
-
         # Ensure all objects are on the correct rank
         if initial_on_rank_communications:
-            for comm_dict in initial_on_rank_communications:
+            for comm_entry in initial_on_rank_communications:
                 missing_ref = None
-
                 # Copy object information to the communication node
                 sender_obj: Object = [o for o in phase.get_objects() if
-                    o.get_id() is not None and o.get_id() == comm_dict["from"].get("id") or
-                    o.get_seq_id() is not None and o.get_seq_id() == comm_dict["from"].get("seq_id")]
+                    o.get_id() is not None and o.get_id() == comm_entry["from"].get("id") or
+                    o.get_seq_id() is not None and o.get_seq_id() == comm_entry["from"].get("seq_id")]
                 if len(sender_obj) == 1:
+                    # Retrieve communications with single sender
                     sender_obj = sender_obj[0]
-                    from_rank: Rank = [r for r in phase.get_ranks() if r.get_id() == sender_obj.get_rank_id()][0]
-                    comm_dict["from"]["home"] = sender_obj.get_rank_id()
-                    comm_dict["from"]["migratable"] = from_rank.is_migratable(sender_obj)
+                    sender_rank_id = self.__find_object_rank(phase, sender_obj).get_id()
+                    from_rank: Rank = [
+                        r for r in phase.get_ranks() if r.get_id() == sender_rank_id][0]
+                    comm_entry["from"]["home"] = sender_rank_id
+                    comm_entry["from"]["migratable"] = from_rank.is_migratable(sender_obj)
                     for k, v in sender_obj.get_unused_params().items():
-                        comm_dict["from"][k] = v
-                    comm_dict["from"] = dict(sorted(comm_dict["from"].items()))
+                        comm_entry["from"][k] = v
+                    comm_entry["from"] = dict(sorted(comm_entry["from"].items()))
                 else:
-                    missing_ref = comm_dict['from'].get('id', comm_dict['from'].get('seq_id'))
-                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
+                    # Other cases are not supported
+                    missing_ref = comm_entry["from"].get("id", comm_entry["from"].get("seq_id"))
+                    self.__logger.error(
+                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if
-                    o.get_id() is not None and o.get_id() == comm_dict["to"].get("id") or
-                    o.get_seq_id() is not None and o.get_seq_id() == comm_dict["to"].get("seq_id")]
+                    o.get_id() is not None and o.get_id() == comm_entry["to"].get("id") or
+                    o.get_seq_id() is not None and o.get_seq_id() == comm_entry["to"].get("seq_id")]
                 if len(receiver_obj) == 1:
+                    # Retrieve communications with single receiver
                     receiver_obj = receiver_obj[0]
-                    comm_dict["to"]["home"] = receiver_obj.get_rank_id()
-                    to_rank = [r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
-                    comm_dict["to"]["migratable"] = to_rank.is_migratable(receiver_obj)
+                    receiver_rank_id = self.__find_object_rank(phase, receiver_obj).get_id()
+                    comm_entry["to"]["home"] = receiver_rank_id
+                    to_rank: Rank = [
+                        r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
+                    comm_entry["to"]["migratable"] = to_rank.is_migratable(receiver_obj)
                     for k, v in receiver_obj.get_unused_params().items():
-                        comm_dict["to"][k] = v
-                    comm_dict["to"] = dict(sorted(comm_dict["to"].items()))
+                        comm_entry["to"][k] = v
+                    comm_entry["to"] = dict(sorted(comm_entry["to"].items()))
                 else:
-                    missing_ref = comm_dict['to'].get('id', comm_dict['to'].get('seq_id'))
-                    self.__logger.error(f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_dict)}")
+                    # Other cases are not supported
+                    missing_ref = comm_entry["to"].get("id", comm_entry["to"].get("seq_id"))
+                    self.__logger.error(
+                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
 
                 if missing_ref is not None:
-                    # keep communication with invalid entity references for the moment.
+                    # Keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.
-                    communications.append(comm_dict)
-                elif ("migratable" in comm_dict["from"].keys() and
-                        not comm_dict["from"]["migratable"]): # object is sentinel
-                    communications.append(comm_dict)
-                elif comm_dict["from"].get("id", comm_dict["from"].get("seq_id")) in rank_objects:
-                    communications.append(comm_dict)
+                    self.__logger.warning(
+                        f"Missing reference: ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                    communications.append(comm_entry)
+                elif ("migratable" in comm_entry["from"].keys() and
+                        not comm_entry["from"]["migratable"]):
+                    # Object is sentinel
+                    communications.append(comm_entry)
+                elif comm_entry["from"].get(
+                        "id", comm_entry["from"].get("seq_id")) in rank_objects:
+                    communications.append(comm_entry)
                 else:
-                    self.__moved_comms.append(comm_dict)
+                    self.__moved_comms.append(comm_entry)
 
         # Loop through any moved objects to find the correct rank
         if self.__moved_comms:
@@ -212,6 +244,7 @@ class VTDataWriter:
                 if moved_dict["from"].get("id", moved_dict["from"].get("seq_id")) in rank_objects:
                     communications.append(moved_dict)
 
+        # Return created list of communications
         return communications
 
     def _json_serializer(self, rank_phases_double) -> str:
@@ -219,7 +252,6 @@ class VTDataWriter:
         # Unpack received double
         r_id, r_phases = rank_phases_double
         current_rank = None
-
         # Get current rank
         for p_id, rank in r_phases.items():
             if rank.get_id() == r_id:
@@ -231,8 +263,7 @@ class VTDataWriter:
         else:
             metadata = {
                 "type": "LBDatafile",
-                "rank": r_id
-            }
+                "rank": r_id}
 
         # Initialize output dict
         output = {
@@ -241,25 +272,49 @@ class VTDataWriter:
 
         # Iterate over phases
         for p_id, rank in r_phases.items():
-            # Get current phase
+            # Get current phase tuple and phase
+            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             current_phase = self.__phases.get(p_id)
 
             # Create data to be outputted for current phase
-            self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
-            phase_data= {"id": p_id,
-                         "tasks": sorted(
-                            self.__create_tasks(
-                                r_id, rank.get_migratable_objects(), migratable=True) +
-                            self.__create_tasks(
-                                r_id, rank.get_sentinel_objects(), migratable=False)
-                         , key=lambda x: x.get("entity").get("id", x.get("entity").get("seq_id")))
-            }
+            phase_data = {
+                "id": p_id,
+                "tasks": self.__create_task_data(rank)}
 
-            # Add communication data (if present)
+            # Add communication data if present
             communications = self.__get_communications(current_phase, rank)
             if communications:
                 phase_data["communications"] = communications
 
+            # Add load balancing iterations if present
+            lb_iterations = current_phase.get_lb_iterations()
+            if lb_iterations:
+                phase_data["lb_iterations"] = []
+                # Iterate over load balancing iterations
+                for it in lb_iterations:
+                    # Create data dict for load balancing iteration
+                    it_id = it.get_sub_id()
+                    self.__logger.debug(
+                        f"Writing iteration {it_id} of phase {p_id} for rank {r_id}")
+                    iteration_data = {"id": it_id}
+
+                    # Retrieve same rank in load balancing iteration
+                    for it_r in it.get_ranks():
+                        if r_id != it_r.get_id():
+                            continue
+
+                        # Add task data for current rank in iteration
+                        iteration_data["tasks"] = self.__create_task_data(it_r)
+
+                        # Add communication data if present
+                        communications = self.__get_communications(it, it_r)
+                        if communications:
+                            iteration_data["communications"] = communications
+
+                        # Append load balancing iteration to phase data
+                        phase_data["lb_iterations"].append(iteration_data)
+
+            # Append create phase
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
@@ -288,23 +343,22 @@ class VTDataWriter:
         return file_name
 
     def write(self, phases: dict):
-        """ Write one JSON per rank for dictonary of phases."""
+        """ Write one JSON per rank for dictonary of phases with possibly iterations."""
 
         # Ensure that provided phase has correct type
-        if not isinstance(phases, dict) or not all(
-            isinstance(p, Phase) for p in phases.values()):
+        if not isinstance(phases, dict):
             self.__logger.error(
-                "JSON writer must be passed a dictionary of phases")
+                "JSON writer must be passed a dictionary")
             raise SystemExit(1)
-
         self.__phases = phases
 
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
-        for p in phases.values():
-            for r in p.get_ranks():
+        for phase in self.__phases.values():
+            # Handle case where entry only cintains a phase
+            for r in phase.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
-                self.__rank_phases[r.get_id()][p.get_id()] = r
+                self.__rank_phases[r.get_id()][phase.get_id()] = r
 
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)

@@ -121,7 +121,7 @@ class Runtime:
         """Return runtime work model."""
         return self.__work_model
 
-    def execute(self, p_id: int, phase_increment: int=0):
+    def execute(self, p_id: int, phase_increment: int=0, lb_iterations=False):
         """Execute runtime for single phase with given ID or multiple phases in selected range."""
         # Execute load balancing algorithm
         self.__logger.info(
@@ -135,6 +135,11 @@ class Runtime:
 
         # Retrieve possibly null rebalanced phase and return it
         if (lbp := self.__algorithm.get_rebalanced_phase()):
+            # Retain lb iterations with initial phase when it is replaced
+            if not phase_increment:
+                self.__algorithm.get_rebalanced_phase().set_lb_iterations(
+                self.__algorithm.get_initial_phase().get_lb_iterations())
+
             # Increment rebalanced phase ID as requested
             lbp.set_id((lbp_id := lbp.get_id() + phase_increment))
 
