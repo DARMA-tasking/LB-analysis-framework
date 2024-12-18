@@ -628,7 +628,6 @@ class LBAFApplication:
 
                 ranks_json_str = []
                 for i in range(len(rank_phases.items())):
-                    print(i)
                     ranks_json_str.append(self.__json_writer._json_serializer((i, rank_phases[i])))
 
                 vttv_params = {

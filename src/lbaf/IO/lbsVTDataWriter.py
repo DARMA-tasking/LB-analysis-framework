@@ -160,7 +160,7 @@ class VTDataWriter:
         # If this point is reached the object could not be found
         self.__logger.error(
             f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
-        
+
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
 
