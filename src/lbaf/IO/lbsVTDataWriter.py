@@ -321,8 +321,6 @@ class VTDataWriter:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
         r_id = rank_phases_double[0]
-        if r_id:
-            return
 
         # Create file name for current rank
         file_name = f"{self.__file_stem}.{r_id}.{self.__extension}"
