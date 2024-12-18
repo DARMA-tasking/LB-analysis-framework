@@ -253,6 +253,19 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             else:
                 self._logger.info("No proposed object transfers")
 
+            tph = self._rebalanced_phase
+            print("AFTER EXECUTE IN REBALANCED PHASE:", tph.get_id(), tph)
+            for r in tph.get_ranks():
+                print(r.get_id(), [o  for o in r.get_objects()])
+            print([id(o) for o in tph.get_objects()])
+            print([o.get_rank_id() for o in tph.get_objects()])
+            tpi = p_id
+            tph = phases[p_id]
+            print("AFTER EXECUTE IN PHASE:", tpi, tph)
+            for r in tph.get_ranks():
+                print(r.get_id(), [o  for o in r.get_objects()])
+            print([id(o) for o in tph.get_objects()])
+            print([o.get_rank_id() for o in tph.get_objects()])
             # Report iteration statistics
             self._logger.info(
                 f"Iteration {i + 1} completed ({n_ignored} skipped ranks) in {time.time() - start_time:.3f} seconds")
@@ -296,3 +309,4 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Report final mapping in debug mode
         self._report_final_mapping(self._logger)
+

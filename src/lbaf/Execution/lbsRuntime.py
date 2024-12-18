@@ -124,6 +124,13 @@ class Runtime:
     def execute(self, p_id: int, phase_increment: int=0, lb_iterations=False):
         """Execute runtime for single phase with given ID or multiple phases in selected range."""
         # Execute load balancing algorithm
+        tpi = 0 
+        tph = self.__phases[tpi]
+        print("PHASE:", tpi, tph)
+        for r in tph.get_ranks():
+            print(r.get_id(), [o  for o in r.get_objects()])
+        print([o.get_id() for o in tph.get_objects()])
+        print([o.get_rank_id() for o in tph.get_objects()])
         self.__logger.info(
             f"Executing {type(self.__algorithm).__name__} for "
             + ("all phases" if p_id < 0 else f"phase {p_id}"))
@@ -132,6 +139,15 @@ class Runtime:
             self.__phases,
             self.__statistics,
             self.__a_min_max)
+
+        tpi = 0 
+        tph = self.__phases[tpi]
+        print("PHASE:", tpi, tph)
+        for r in tph.get_ranks():
+            print(r.get_id(), [o  for o in r.get_objects()])
+        print([o.get_id() for o in tph.get_objects()])
+        print([o.get_rank_id() for o in tph.get_objects()])
+        #1/0
 
         # Retrieve possibly null rebalanced phase and return it
         if (lbp := self.__algorithm.get_rebalanced_phase()):
