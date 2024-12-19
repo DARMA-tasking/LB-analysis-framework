@@ -102,8 +102,10 @@ class VTDataWriter:
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
         tasks = []
+        entity_qoi = ["id", "seq_id", "collection_id", "index"]
+        exclude_from_user_defined = ["packed_id", "load", "shared_id"]
+
         for o in objects:
-            unused_params = o.get_unused_params()
             task_data = {
                 "entity": {
                     "home": rank_id,
@@ -115,22 +117,9 @@ class VTDataWriter:
                 "time": o.get_load()
             }
 
-            if o.get_packed_id() is not None:
-                task_data["entity"]["id"] = o.get_packed_id()
-
-            if o.get_seq_id() is not None:
-                task_data["entity"]["seq_id"] = o.get_seq_id()
-
-            if o.get_collection_id() is not None:
-                task_data["entity"]["collection_id"] = o.get_collection_id()
-
-            if o.get_index() is not None:
-                task_data["entity"]["index"] = o.get_index()
-
+            unused_params = o.get_unused_params()
             if unused_params:
                 task_data["entity"].update(unused_params)
-
-            task_data["entity"] = dict(sorted(task_data["entity"].items()))
 
             user_defined = o.get_user_defined()
             if user_defined:
@@ -138,19 +127,21 @@ class VTDataWriter:
             else:
                 task_data["user_defined"] = dict()
 
-            task_data["user_defined"]["object_memory"] = o.get_size()
-            task_data["user_defined"]["object_overhead_memory"] = o.get_overhead()
-            task_data["user_defined"]["rank_id"] = o.get_rank_id()
-            task_data["user_defined"]["sent_volume"] = o.get_sent_volume()
-            task_data["user_defined"]["received_volume"] = o.get_received_volume()
-            task_data["user_defined"]["max_volume"] = o.get_max_volume()
+            object_qois = o.get_qois()
+
+            for qoi_name, qoi_getter in object_qois.items():
+                if qoi_name in entity_qoi and qoi_getter() is not None:
+                    task_data["entity"][qoi_name] = qoi_getter()
+                elif qoi_name not in (entity_qoi + exclude_from_user_defined):
+                    task_data["user_defined"][qoi_name] = qoi_getter()
 
             if o.get_shared_id() is not None:
                 task_data["user_defined"]["shared_id"] = o.get_shared_id()
             else:
                 task_data["user_defined"]["shared_id"] = -1
 
-            # Append data for current object
+            task_data["entity"] = dict(sorted(task_data["entity"].items()))
+
             tasks.append(task_data)
 
         # Return created tasks on this rank

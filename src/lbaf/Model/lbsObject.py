@@ -297,7 +297,12 @@ class Object:
 
     def __get_qoi_name(self, qoi_ftn) -> str:
         """Return the QOI name from the given QOI getter function"""
-        return qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
+        qoi = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
+        if qoi == "size":
+            qoi = "object_memory"
+        elif qoi == "overhead":
+            qoi = "overhead_memory"
+        return qoi
 
     def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
