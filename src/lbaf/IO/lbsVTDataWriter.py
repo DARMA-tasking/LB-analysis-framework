@@ -102,8 +102,6 @@ class VTDataWriter:
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
         tasks = []
-        entity_qoi = ["id", "seq_id", "collection_id", "index"]
-        exclude_from_user_defined = ["packed_id", "load", "shared_id"]
 
         for o in objects:
             task_data = {
@@ -117,31 +115,31 @@ class VTDataWriter:
                 "time": o.get_load()
             }
 
+            entity_properties = o.get_entity_properties()
+            for prop_name, prop_getter in entity_properties.items():
+                if prop_getter() is not None and prop_name != "packed_id":
+                    task_data["entity"][prop_name] = prop_getter()
+
             unused_params = o.get_unused_params()
             if unused_params:
                 task_data["entity"].update(unused_params)
+
+            task_data["entity"] = dict(sorted(task_data["entity"].items()))
 
             user_defined = o.get_user_defined()
             if user_defined:
                 task_data["user_defined"] = dict(sorted(user_defined.items()))
             else:
-                task_data["user_defined"] = dict()
+                task_data["user_defined"] = {}
 
             object_qois = o.get_qois()
-
             for qoi_name, qoi_getter in object_qois.items():
-                if qoi_name in entity_qoi and qoi_getter() is not None:
-                    task_data["entity"][qoi_name] = qoi_getter()
-                elif qoi_name not in (entity_qoi + exclude_from_user_defined):
+                if qoi_getter() is not None:
                     task_data["user_defined"][qoi_name] = qoi_getter()
+                else:
+                    task_data["user_defined"][qoi_name] = -1
 
-            if o.get_shared_id() is not None:
-                task_data["user_defined"]["shared_id"] = o.get_shared_id()
-            else:
-                task_data["user_defined"]["shared_id"] = -1
-
-            task_data["entity"] = dict(sorted(task_data["entity"].items()))
-
+            # Append data for current object
             tasks.append(task_data)
 
         # Return created tasks on this rank

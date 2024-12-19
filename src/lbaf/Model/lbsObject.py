@@ -44,7 +44,7 @@ from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
-from .lbsQOIDecorator import qoi
+from .lbsQOIDecorator import qoi, property
 
 class Object:
     """A class representing an object with load and communicator
@@ -158,22 +158,22 @@ class Object:
     def __repr__(self):
         return f"Object id: {self.get_id()}, load: {self.__load}"
 
-    @qoi
+    @property
     def get_id(self) -> int:
         """Return object bit-packed ID if available. Else return the object seq ID"""
         return self.__packed_id if self.__packed_id is not None else self.__seq_id
 
-    @qoi
+    @property
     def get_packed_id(self) -> Optional[int]:
         """Return object bit-packed ID (seq_id, home_id, migratable)."""
         return self.__packed_id
 
-    @qoi
+    @property
     def get_seq_id(self) -> Optional[int]:
         """Return object seq ID."""
         return self.__seq_id
 
-    @qoi
+    @property
     def get_collection_id(self) -> Optional[int]:
         """Return object collection ID (required for migratable objects)."""
         return self.__collection_id
@@ -182,7 +182,7 @@ class Object:
         """ Set object collection ID (required for migratable objects)."""
         self.__collection_id = collection_id
 
-    @qoi
+    @property
     def get_index(self) -> Optional[list]:
         """Return the object's index."""
         return self.__index
@@ -295,20 +295,29 @@ class Object:
         """Return all current unused parameters."""
         return self.__unused_params
 
-    def __get_qoi_name(self, qoi_ftn) -> str:
+    def __get_property_or_qoi_name(self, ftn_name) -> str:
         """Return the QOI name from the given QOI getter function"""
-        qoi = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
-        if qoi == "size":
-            qoi = "object_memory"
-        elif qoi == "overhead":
-            qoi = "overhead_memory"
-        return qoi
+        name = ftn_name[4:] if ftn_name.startswith("get_") else ftn_name
+        if name == "size":
+            name = "object_memory"
+        elif name == "overhead":
+            name = "overhead_memory"
+        return name
+
+    def get_entity_properties(self) -> list:
+        """Get all methods decorated with the 'property' decorator.
+        """
+        property_methods : dict = {
+            self.__get_property_or_qoi_name(name): getattr(self, name)
+            for name in dir(self)
+            if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_property") }
+        return property_methods
 
     def get_qois(self) -> list:
-        """Get all methods decorated with the QOI decorator.
+        """Get all methods decorated with 'qoi' decorator.
         """
         qoi_methods : dict = {
-            self.__get_qoi_name(name): getattr(self, name)
+            self.__get_property_or_qoi_name(name): getattr(self, name)
             for name in dir(self)
             if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
         return qoi_methods

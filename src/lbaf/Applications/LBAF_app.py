@@ -421,6 +421,7 @@ class LBAFApplication:
         rank_qois = r.get_qois()
         o = Object(seq_id=0)
         object_qois = o.get_qois()
+        object_qois.update(o.get_entity_properties())
 
         # Print QOI based on verbosity level
         if verbosity > 0:
@@ -428,11 +429,11 @@ class LBAFApplication:
         if verbosity == 1:
             self.__logger.info("\tRank QOI:")
             for name, _ in rank_qois.items():
-                self.__logger.info("\t" + name)
+                self.__logger.info("\t\t" + name)
         elif verbosity > 1:
             self.__logger.info("\tRank QOI:")
             for name, _ in rank_qois.items():
-                self.__logger.info("\t" + name)
+                self.__logger.info("\t\t" + name)
             self.__logger.info("")
             self.__logger.info("\tObject QOI:")
             for name, _ in object_qois.items():
