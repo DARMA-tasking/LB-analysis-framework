@@ -304,10 +304,11 @@ class Object:
             name = "overhead_memory"
         return name
 
-    def __get_qoi_type(self, qoi_type: str) -> list:
+    def __get_qois_of_type(self, qoi_type: str) -> list:
         """
-        Returns a dict of the specified qoi_type (either 'qoi' or
-        'entity_property'.)"""
+        Returns a dict of all qois with the specified qoi_type
+        (either 'qoi' or 'entity_property'.)
+        """
         attr = f"is_{qoi_type}"
         qoi_methods : dict = {
             self.__get_qoi_name(name): getattr(self, name)
@@ -318,7 +319,8 @@ class Object:
         return qoi_methods
 
     def get_qois(self, qoi_type=None):
-        """Get all methods with specified 'qoi_type' decorator.
+        """
+        Get all methods with specified 'qoi_type' decorator.
 
         Params:
             - qoi_type: None (default) returns all decorated functions.
@@ -326,7 +328,7 @@ class Object:
                         "qoi" returns all derived quantities of interest
         """
         if qoi_type is not None:
-            return self.__get_qoi_type(qoi_type)
-        qois = self.__get_qoi_type("qoi")
-        qois.update(self.__get_qoi_type("entity_property"))
+            return self.__get_qois_of_type(qoi_type)
+        qois = self.__get_qois_of_type("qoi")
+        qois.update(self.__get_qois_of_type("entity_property"))
         return qois
