@@ -421,7 +421,6 @@ class LBAFApplication:
         rank_qois = r.get_qois()
         o = Object(seq_id=0)
         object_qois = o.get_qois()
-        object_qois.update(o.get_entity_properties())
 
         # Print QOI based on verbosity level
         if verbosity > 0:

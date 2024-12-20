@@ -49,10 +49,10 @@ def qoi(func, *args, **kwargs):
     decorated_func.is_qoi = True
     return decorated_func
 
-def property(func, *args, **kwargs):
+def entity_property(func, *args, **kwargs):
     """Decorator function to wrap getters that will be used as entity properties"""
     def decorated_func(*args, **kwargs):
         return_value = func(*args, **kwargs)
         return return_value
-    decorated_func.is_property = True
+    decorated_func.is_entity_property = True
     return decorated_func

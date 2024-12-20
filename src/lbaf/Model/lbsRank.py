@@ -224,6 +224,7 @@ class Rank:
 
     @qoi
     def get_number_of_migratable_objects(self) -> int:
+        """Return the number of migratable objects assigned to rank."""
         return len(self.__migratable_objects)
 
     def add_sentinel_object(self, o: Object) -> None:
@@ -236,6 +237,7 @@ class Rank:
 
     @qoi
     def get_number_of_sentinel_objects(self) -> int:
+        """Return the number of sentinel objects assigned to rank."""
         return len(self.__sentinel_objects)
 
     def get_object_ids(self) -> list:
@@ -340,8 +342,8 @@ class Rank:
 
     def __get_qoi_name(self, qoi_ftn) -> str:
         """Return the QOI name from the given QOI getter function"""
-        qoi = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
-        return qoi.replace("number_of", "num")
+        qoi_name = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
+        return qoi_name.replace("number_of", "num")
 
     def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.

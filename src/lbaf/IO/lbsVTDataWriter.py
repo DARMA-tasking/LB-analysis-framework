@@ -115,7 +115,7 @@ class VTDataWriter:
                 "time": o.get_load()
             }
 
-            entity_properties = o.get_entity_properties()
+            entity_properties = o.get_qois("entity_property")
             for prop_name, prop_getter in entity_properties.items():
                 if prop_getter() is not None and prop_name != "packed_id":
                     task_data["entity"][prop_name] = prop_getter()
@@ -132,7 +132,7 @@ class VTDataWriter:
             else:
                 task_data["user_defined"] = {}
 
-            object_qois = o.get_qois()
+            object_qois = o.get_qois("qoi")
             for qoi_name, qoi_getter in object_qois.items():
                 if qoi_getter() is not None:
                     task_data["user_defined"][qoi_name] = qoi_getter()
@@ -155,15 +155,16 @@ class VTDataWriter:
             key=lambda x: x.get("entity").get(
                 "id", x.get("entity").get("seq_id")))
 
-    def __find_object_rank(self, phase: Phase, object: Object):
+    def __find_object_rank(self, phase: Phase, obj: Object):
         """Determine which rank owns the object."""
         for r in phase.get_ranks():
-            if object in r.get_objects():
+            if obj in r.get_objects():
                 return r
 
         # If this point is reached the object could not be found
         self.__logger.error(
             f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
+        raise SystemExit(1)
 
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
