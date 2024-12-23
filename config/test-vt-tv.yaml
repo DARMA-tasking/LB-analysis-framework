@@ -36,4 +36,4 @@ write_JSON:
   compressed: False
   suffix: json
   communications: True
-  offline_LB_compatible: True
+  offline_lb_compatible: True

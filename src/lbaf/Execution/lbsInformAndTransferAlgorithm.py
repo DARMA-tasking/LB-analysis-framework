@@ -49,6 +49,7 @@ from .lbsCriterionBase import CriterionBase
 from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
+from ..Model.lbsPhase import Phase
 from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
 
 
@@ -242,7 +243,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Execute transfer stage
             n_ignored, n_transfers, n_rejects = self.__transfer_strategy.execute(
-                self.__known_peers, self._rebalanced_phase, statistics["average load"], statistics["maximum load"][-1])
+                self.__known_peers, self._rebalanced_phase, statistics[
+                    "average load"], statistics["maximum load"][-1])
             if (n_proposed := n_transfers + n_rejects):
                 self._logger.info(
                     f"Transferred {n_transfers} objects amongst {n_proposed} proposed "
@@ -264,15 +266,22 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             # Update run statistics
             self._update_statistics(statistics)
 
-            # Compute current arrangement
-            arrangement = dict(sorted(
-                {o.get_id(): p.get_id()
-                 for p in self._rebalanced_phase.get_ranks()
-                 for o in p.get_objects()}.items())).values()
-            self._logger.debug(f"Iteration {i + 1} arrangement: {tuple(arrangement)}")
+            # Retain load balancing iteration as a phase with sub-index
+            lb_iteration = Phase(self._logger, p_id, None, i + 1)
+            lb_iteration.copy_ranks(self._rebalanced_phase)
+            lb_iteration.set_communications(self._initial_communications[p_id])
+            self._initial_phase.get_lb_iterations().append(lb_iteration)
 
             # Report minimum Hamming distance when minimax optimum is available
             if a_min_max:
+                # Compute current arrangement
+                arrangement = dict(sorted(
+                    {o.get_id(): p.get_id()
+                     for p in self._rebalanced_phase.get_ranks()
+                     for o in p.get_objects()}.items())).values()
+                self._logger.debug(f"Iteration {i + 1} arrangement: {tuple(arrangement)}")
+
+                # Compute minimum distance from arrangement to optimum
                 hd_min = min_Hamming_distance(arrangement, a_min_max)
                 self._logger.info(
                     f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")

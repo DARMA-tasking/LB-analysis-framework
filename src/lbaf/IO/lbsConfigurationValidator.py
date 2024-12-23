@@ -136,7 +136,7 @@ class ConfigurationValidator:
                 "compressed": bool,
                 Optional("suffix"): str,
                 Optional("communications"): bool,
-                Optional("offline_LB_compatible"): bool,
+                Optional("offline_lb_compatible"): bool,
                 Optional("lb_iterations"): bool},
         })
         self.__from_data = Schema({

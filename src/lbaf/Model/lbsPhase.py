@@ -42,7 +42,8 @@
 #
 import random as rnd
 from logging import Logger
-from typing import Optional, Dict, Set
+from typing import Optional, List, Dict, Set
+from typing_extensions import Self
 
 from ..IO.lbsStatistics import print_function_statistics, print_subset_statistics, sampler
 from ..IO.lbsVTDataReader import LoadReader
@@ -61,21 +62,31 @@ class Phase:
             self,
             lgr: Logger,
             p_id: int = 0,
-            reader: LoadReader = None):
+            reader: LoadReader = None,
+            p_sub_id: int = 0):
         """Class constructor
             logger: a Logger instance
-            id: an integer indexing the phase ID
-            reader: a JSON VT reader instance"""
+            p_id: an integer indexing the phase ID
+            reader: a JSON VT reader instance
+            p_sub_id: an optional integer to index e.g. LB iterations"""
         # Assert that a logger instance was passed
         if not isinstance(lgr, Logger):
             get_logger().error(
                 f"Incorrect type {type(lgr)} passed instead of Logger instance")
             raise SystemExit(1)
         self.__logger = lgr
-        self.__logger.info(f"Instantiating phase {p_id}")
+        self.__logger.info(
+            f"Instantiating phase with index {p_id}" + (
+                f" and sub-index {p_sub_id}" if p_sub_id else ''))
 
         # Index of this phase
         self.__phase_id = p_id
+
+        # Iterative algorithms are allowed to store load balancing iterations
+        self.__lb_iterations = []
+
+        # Sub-index of this phase e.g. for load balancing iteration
+        self.__phase_sub_id = p_sub_id
 
         # Initialize empty list of ranks
         self.__ranks = []
@@ -100,6 +111,18 @@ class Phase:
         """Retrieve index of this phase."""
         return self.__phase_id
 
+    def set_lb_iterations(self, lb_iterations: List[Self]):
+        """Set possibly empty list of load balancing iterations."""
+        self.__lb_iterations = lb_iterations
+
+    def get_lb_iterations(self):
+        """Return list of load balancing iterations."""
+        return self.__lb_iterations
+
+    def get_sub_id(self):
+        """Retrieve sub-index of this phase."""
+        return self.__phase_sub_id
+
     def get_number_of_ranks(self):
         """Retrieve number of ranks belonging to phase."""
         return len(self.__ranks)
@@ -111,6 +134,16 @@ class Phase:
     def get_ranks(self):
         """Retrieve ranks belonging to phase."""
         return self.__ranks
+
+    def copy_ranks(self, phase: Self):
+        """Copy ranks from one phase to self."""
+        new_ranks = set()
+        for r in phase.get_ranks():
+            # Minimally instantiate rank and copy
+            new_r = Rank(self.__logger)
+            new_r.copy(r)
+            new_ranks.add(new_r)
+        self.set_ranks(new_ranks)
 
     def get_rank_ids(self):
         """Retrieve IDs of ranks belonging to phase."""
@@ -453,7 +486,7 @@ class Phase:
 
         # This method is inspired by the VTDataReader but with a DatasetSpecification input
 
-        # Auto-generate ids for Lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
+        # Auto-generate ids for lists by converting to dictionaries to set indices as keys for tasks, shared blocks,
         # and communications
         if isinstance(spec["tasks"], list):
             spec["tasks"] = {
@@ -487,6 +520,7 @@ class Phase:
                         f"It is already assigned to rank {objects[task_id].get_rank_id()}"
                     )
 
+                # Create and assign object to task
                 o = Object(
                     seq_id=task_id,
                     packed_id=None,
@@ -494,7 +528,6 @@ class Phase:
                     load=task_spec["time"],
                     user_defined=task_user_defined,
                     collection_id=task_spec.get("collection_id"))
-
                 objects[task_id] = o
 
                 # Set migratable
@@ -597,6 +630,7 @@ class Phase:
 
         # Assign communications dictionary
         self.set_communications(phase_communications)
+
         # Assign ranks (list) to this phase
         self.set_ranks(ranks.values())
 
