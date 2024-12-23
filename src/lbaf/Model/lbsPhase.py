@@ -665,8 +665,6 @@ class Phase:
 
             # Perform sanity check
             if b_id not in r_src.get_shared_ids():
-                print(b_id)
-                print(r_src.get_shared_ids())
                 self.__logger.error(
                     f"block {b_id} not present in {r_src.get_shared_ids()}")
                 raise SystemExit(1)
