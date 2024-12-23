@@ -89,8 +89,8 @@ class Rank:
         self.__size = rank.get_size()
 
         # Shallow copy owned objects
-        self.__shared_blocks = copy.copy(rank.__shared_blocks)
-        self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
+        self.__shared_blocks = copy.deepcopy(rank.__shared_blocks)
+        self.__sentinel_objects = copy.deepcopy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
     def __lt__(self, other):
@@ -152,11 +152,16 @@ class Rank:
     def delete_shared_block(self, block: Block):
         """Try to delete shared memory block."""
         try:
-            self.__shared_blocks.remove(block)
-        except Exception as err:
+            del_block = next(
+                b for b in self.__shared_blocks
+                if b.get_id() == block.get_id())
+        except StopIteration:
             self.__logger.error(
                 f"no shared block with ID {block.get_id()} to delete on rank {self.get_id()}")
-            raise SystemExit(1) from err
+            raise SystemExit(1)
+
+        # Delete found block
+        self.__shared_blocks.remove(del_block)
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
         """Return shared memory block with given ID when it exists."""
