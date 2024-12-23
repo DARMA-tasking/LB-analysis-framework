@@ -417,9 +417,6 @@ class LBAFApplication:
         """Print list of implemented QOI based on the '-verbosity' command line argument."""
         verbosity = int(self.__args.verbose)
 
-        def remove_get(name : str) -> str:
-            return name[4:] if name.startswith("get_") else name
-
         r = Rank(self.__logger)
         rank_qois = r.get_qois()
         o = Object(seq_id=0)
@@ -431,15 +428,15 @@ class LBAFApplication:
         if verbosity == 1:
             self.__logger.info("\tRank QOI:")
             for name, _ in rank_qois.items():
-                self.__logger.info("\t" + remove_get(name))
+                self.__logger.info("\t\t" + name)
         elif verbosity > 1:
             self.__logger.info("\tRank QOI:")
             for name, _ in rank_qois.items():
-                self.__logger.info("\t" + remove_get(name))
+                self.__logger.info("\t\t" + name)
             self.__logger.info("")
             self.__logger.info("\tObject QOI:")
             for name, _ in object_qois.items():
-                self.__logger.info("\t\t" + remove_get(name))
+                self.__logger.info("\t\t" + name)
 
     def run(self, cfg=None, cfg_dir=None):
         """Run the LBAF application."""

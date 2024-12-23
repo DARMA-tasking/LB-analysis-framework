@@ -44,6 +44,7 @@ import json
 import multiprocessing as mp
 import os
 import sys
+import math
 from logging import Logger
 from typing import Optional
 
@@ -101,8 +102,8 @@ class VTDataWriter:
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
         tasks = []
+
         for o in objects:
-            unused_params = o.get_unused_params()
             task_data = {
                 "entity": {
                     "home": rank_id,
@@ -114,18 +115,12 @@ class VTDataWriter:
                 "time": o.get_load()
             }
 
-            if o.get_packed_id() is not None:
-                task_data["entity"]["id"] = o.get_packed_id()
+            entity_properties = o.get_qois("entity_property")
+            for prop_name, prop_getter in entity_properties.items():
+                if prop_getter() is not None and prop_name != "packed_id":
+                    task_data["entity"][prop_name] = prop_getter()
 
-            if o.get_seq_id() is not None:
-                task_data["entity"]["seq_id"] = o.get_seq_id()
-
-            if o.get_collection_id() is not None:
-                task_data["entity"]["collection_id"] = o.get_collection_id()
-
-            if o.get_index() is not None:
-                task_data["entity"]["index"] = o.get_index()
-
+            unused_params = o.get_unused_params()
             if unused_params:
                 task_data["entity"].update(unused_params)
 
@@ -134,6 +129,15 @@ class VTDataWriter:
             user_defined = o.get_user_defined()
             if user_defined:
                 task_data["user_defined"] = dict(sorted(user_defined.items()))
+            else:
+                task_data["user_defined"] = {}
+
+            object_qois = o.get_qois("qoi")
+            for qoi_name, qoi_getter in object_qois.items():
+                if qoi_getter() is not None:
+                    task_data["user_defined"][qoi_name] = qoi_getter()
+                else:
+                    task_data["user_defined"][qoi_name] = -1
 
             # Append data for current object
             tasks.append(task_data)
@@ -151,15 +155,16 @@ class VTDataWriter:
             key=lambda x: x.get("entity").get(
                 "id", x.get("entity").get("seq_id")))
 
-    def __find_object_rank(self, phase: Phase, object: Object):
+    def __find_object_rank(self, phase: Phase, obj: Object):
         """Determine which rank owns the object."""
         for r in phase.get_ranks():
-            if object in r.get_objects():
+            if obj in r.get_objects():
                 return r
 
         # If this point is reached the object could not be found
         self.__logger.error(
             f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
+        raise SystemExit(1)
 
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
@@ -278,10 +283,25 @@ class VTDataWriter:
             self.__logger.debug(f"Writing phase {p_id} for rank {r_id}")
             current_phase = self.__phases.get(p_id)
 
+            # Get rank info and QOIs
+            rank_info : Rank = [r for r in current_phase.get_ranks() if r.get_id() == r_id][0]
+            rank_qois = rank_info.get_qois()
+
             # Create data to be outputted for current phase
             phase_data = {
                 "id": p_id,
-                "tasks": self.__create_task_data(rank)}
+                "tasks": self.__create_task_data(rank),
+                "user_defined": {
+                    qoi_name: qoi_getter() for qoi_name, qoi_getter in rank_qois.items()
+                    if qoi_name != "homed_blocks_ratio" # omit for now because it might be nan
+                },
+            }
+
+            # JSON can not handle nan so make this ratio -1 when it's not valid
+            homed_ratio = -1
+            if not math.isnan(rank_info.get_homed_blocks_ratio()):
+                homed_ratio = rank_info.get_homed_blocks_ratio()
+            phase_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
             # Add communication data if present
             communications = self.__get_communications(current_phase, rank)
