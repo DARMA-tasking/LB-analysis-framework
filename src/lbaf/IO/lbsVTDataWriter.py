@@ -188,7 +188,8 @@ class VTDataWriter:
                 if len(sender_obj) == 1:
                     # Retrieve communications with single sender
                     sender_obj = sender_obj[0]
-                    sender_rank_id = self.__find_object_rank(phase, sender_obj).get_id()
+                    sender_rank_id = sender_obj.get_rank_id()
+                    #sender_rank_id = self.__find_object_rank(phase, sender_obj).get_id()
                     from_rank: Rank = [
                         r for r in phase.get_ranks() if r.get_id() == sender_rank_id][0]
                     comm_entry["from"]["home"] = sender_rank_id
@@ -208,7 +209,8 @@ class VTDataWriter:
                 if len(receiver_obj) == 1:
                     # Retrieve communications with single receiver
                     receiver_obj = receiver_obj[0]
-                    receiver_rank_id = self.__find_object_rank(phase, receiver_obj).get_id()
+                    receiver_rank_id = receiver_obj.get_rank_id()
+                    #receiver_rank_id = self.__find_object_rank(phase, receiver_obj).get_id()
                     comm_entry["to"]["home"] = receiver_rank_id
                     to_rank: Rank = [
                         r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
