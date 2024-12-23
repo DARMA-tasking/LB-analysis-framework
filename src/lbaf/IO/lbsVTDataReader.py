@@ -226,7 +226,7 @@ class LoadReader:
 
         # Add communications to the object
         rank_comm = {}
-        if (communications := phase.get("communications")):
+        if (communications := phase.get("communications")): # pylint:disable=W0631:undefined-loop-variable
             if phase_id in self.__communications_dict:
                 self.__communications_dict[phase_id][rank_id] = communications
             else:

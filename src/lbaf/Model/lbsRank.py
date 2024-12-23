@@ -227,6 +227,11 @@ class Rank:
         """Return migratable objects assigned to rank."""
         return self.__migratable_objects
 
+    @qoi
+    def get_number_of_migratable_objects(self) -> int:
+        """Return the number of migratable objects assigned to rank."""
+        return len(self.__migratable_objects)
+
     def add_sentinel_object(self, o: Object) -> None:
         """Add object to sentinel objects."""
         return self.__sentinel_objects.add(o)
@@ -234,6 +239,11 @@ class Rank:
     def get_sentinel_objects(self) -> set:
         """Return sentinel objects assigned to rank."""
         return self.__sentinel_objects
+
+    @qoi
+    def get_number_of_sentinel_objects(self) -> int:
+        """Return the number of sentinel objects assigned to rank."""
+        return len(self.__sentinel_objects)
 
     def get_object_ids(self) -> list:
         """Return IDs of all objects assigned to rank."""
@@ -267,18 +277,22 @@ class Rank:
     @qoi
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
-        return sum(o.get_load() for o in self.__migratable_objects)
+        val : float = 0.0
+        val += sum(o.get_load() for o in self.__migratable_objects)
+        return val
 
     @qoi
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
-        return sum(o.get_load() for o in self.__sentinel_objects)
+        val : float = 0.0
+        val += sum(o.get_load() for o in self.__sentinel_objects)
+        return val
 
     @qoi
-    def get_received_volume(self):
+    def get_received_volume(self) -> float:
         """Return volume received by objects assigned to rank from other ranks."""
         # Iterate over all objects assigned to rank
-        volume = 0
+        volume : float = 0.0
         obj_set = self.__migratable_objects.union(self.__sentinel_objects)
         for o in obj_set:
             # Skip objects without communication
@@ -292,10 +306,10 @@ class Rank:
         return volume
 
     @qoi
-    def get_sent_volume(self):
+    def get_sent_volume(self) -> float:
         """Return volume sent by objects assigned to rank to other ranks."""
         # Iterate over all objects assigned to rank
-        volume = 0
+        volume = 0.0
         obj_set = self.__migratable_objects.union(self.__sentinel_objects)
         for o in obj_set:
             # Skip objects without communication
@@ -331,11 +345,16 @@ class Rank:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
+    def __get_qoi_name(self, qoi_ftn) -> str:
+        """Return the QOI name from the given QOI getter function"""
+        qoi_name = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
+        return qoi_name.replace("number_of", "num")
+
     def get_qois(self) -> list:
         """Get all methods decorated with the QOI decorator.
         """
         qoi_methods : dict = {
-            name: getattr(self, name)
+            self.__get_qoi_name(name): getattr(self, name)
             for name in dir(self)
             if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
         return qoi_methods
