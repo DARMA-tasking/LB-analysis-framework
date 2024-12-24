@@ -298,7 +298,7 @@ class VTDataWriter:
             }
 
             # JSON can not handle nan so make this ratio -1 when it's not valid
-            homed_ratio = -1
+            homed_ratio = -1.0
             if not math.isnan(rank_info.get_homed_blocks_ratio()):
                 homed_ratio = rank_info.get_homed_blocks_ratio()
             phase_data["user_defined"]["num_homed_ratio"] = homed_ratio
@@ -325,8 +325,21 @@ class VTDataWriter:
                         if r_id != it_r.get_id():
                             continue
 
+                        rank_qois = it_r.get_qois()
+
                         # Add task data for current rank in iteration
                         iteration_data["tasks"] = self.__create_task_data(it_r)
+
+                        iteration_data["user_defined"] = {
+                            qoi_name: qoi_getter() for qoi_name, qoi_getter in rank_qois.items()
+                            if qoi_name != "homed_blocks_ratio" # omit for now because it might be nan
+                        }
+
+                        # JSON can not handle nan so make this ratio -1 when it's not valid
+                        homed_ratio = -1.0
+                        if not math.isnan(it_r.get_homed_blocks_ratio()):
+                            homed_ratio = it_r.get_homed_blocks_ratio()
+                            iteration_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
                         # Add communication data if present
                         communications = self.__get_communications(it, it_r)
