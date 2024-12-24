@@ -293,11 +293,12 @@ class VTDataWriter:
                 "tasks": self.__create_task_data(rank),
                 "user_defined": {
                     qoi_name: qoi_getter() for qoi_name, qoi_getter in rank_qois.items()
-                    if qoi_name != "homed_blocks_ratio" # omit for now because it might be nan
+                    # Omitting this QOI ecause it might be NaN not supported by JSON
+                    if qoi_name != "homed_blocks_ratio"
                 },
             }
 
-            # JSON can not handle nan so make this ratio -1 when it's not valid
+            # JSON can not handle NaN so make this ratio -1 when not valid
             homed_ratio = -1.0
             if not math.isnan(rank_info.get_homed_blocks_ratio()):
                 homed_ratio = rank_info.get_homed_blocks_ratio()
