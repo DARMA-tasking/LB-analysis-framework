@@ -340,7 +340,7 @@ class VTDataWriter:
                         homed_ratio = -1.0
                         if not math.isnan(it_r.get_homed_blocks_ratio()):
                             homed_ratio = it_r.get_homed_blocks_ratio()
-                            iteration_data["user_defined"]["num_homed_ratio"] = homed_ratio
+                        iteration_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
                         # Add communication data if present
                         communications = self.__get_communications(it, it_r)
