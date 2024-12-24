@@ -272,7 +272,9 @@ class Rank:
     @qoi
     def get_load(self) -> float:
         """Return total load on rank."""
-        return sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
+        val : float = 0.0
+        val += sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
+        return val
 
     @qoi
     def get_migratable_load(self) -> float:
