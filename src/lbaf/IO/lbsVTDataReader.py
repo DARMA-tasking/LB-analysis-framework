@@ -134,9 +134,9 @@ class LoadReader:
 
     def _get_n_ranks(self):
         """Determine the number of ranks automatically.
-
-        This use the first applicable method in the following methods:
-        List all data file names matching {file_prefix}.{rank_id}.{file_suffix} pattern and return max(rank_id) + 1.
+        This uses the first applicable method in the following methods:
+        List all data file names matching {file_prefix}.{rank_id}.{file_suffix}
+        pattern and return max(rank_id) + 1.
         """
 
         # or default detect data files with pattern
@@ -224,9 +224,9 @@ class LoadReader:
         self.__logger.debug(
             f"Loading phase {curr_phase_id} for rank {rank_id}")
 
-        # Add communications to the object
+        # Add communications when available
         rank_comm = {}
-        if (communications := phase.get("communications")): # pylint:disable=W0631:undefined-loop-variable
+        if (communications := phase.get("communications")):
             if phase_id in self.__communications_dict:
                 self.__communications_dict[phase_id][rank_id] = communications
             else:
@@ -263,6 +263,7 @@ class LoadReader:
                         for k, v in comm.items():
                             self.__logger.debug(f"{k}: {v}")
         else:
+            # No communications for this phase
             self.__communications_dict.setdefault(phase_id, {rank_id: {}})
 
         # Instantiante rank for current phase
@@ -273,11 +274,11 @@ class LoadReader:
         rank_blocks, task_user_defined = {}, {}
 
         # Iterate over tasks
-        for task in phase.get("tasks", []): # pylint:disable=W0631:undefined-loop-variable
+        for task in phase.get("tasks", []):
             # Retrieve required values
             task_entity = task.get("entity")
-            task_id = task_entity.get("id", None)
-            task_seq_id = task_entity.get("seq_id", None)
+            task_id = task_entity.get("id")
+            task_seq_id = task_entity.get("seq_id")
             task_load = task.get("time")
             task_user_defined = task.get("user_defined", {})
             subphases = task.get("subphases")
