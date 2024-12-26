@@ -198,7 +198,7 @@ class LoadReader:
 
         # Return rank ID and data dictionary
         return rank_id, decompressed_dict
-    
+
     def _populate_rank(self, phase_id: int, rank_id: int) -> Tuple[Rank,dict]:
         """ Populate rank and its communicator in phase using the JSON content."""
 
