@@ -84,9 +84,9 @@ class Rank:
         # Start with empty metadata
         self.__metadata = {}
 
-        # Optionally, the rank is connected to a node      
-        self.node = node                                   
-        if node is not None:                               
+        # Optionally, the rank is connected to a node
+        self.node = node
+        if node is not None:
             node.add_rank(self)
 
     def copy(self, rank):
