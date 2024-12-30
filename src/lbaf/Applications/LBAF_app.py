@@ -88,6 +88,7 @@ class InternalParameters:
 
     # From data input options
     data_stem: Optional[str] = None
+    ranks_per_node : Optional[int] = 1
 
     # From samplers input options
     n_ranks: Optional[int] = None
@@ -150,6 +151,8 @@ class InternalParameters:
             else:
                 self.phase_ids = from_data.get("phase_ids")
             self.expected_ranks = from_data.get("expected_ranks")
+            if (rpn := from_data.get("ranks_per_node")) is not None:
+                self.ranks_per_node = int(rpn)
 
         # Parse sampling parameters if present
         from_samplers = config.get("from_samplers")

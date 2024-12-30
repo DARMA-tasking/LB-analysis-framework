@@ -48,19 +48,21 @@ from typing import Optional
 from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsQOIDecorator import qoi
+from .lbsNode import Node
 
 class Rank:
     """A class representing a rank to which objects are assigned."""
 
     def __init__(
-        self,
-        logger: Logger,
-        r_id: int = -1,
-        migratable_objects: set = None,
-        sentinel_objects: set = None):
+            self,
+            logger: Logger,
+            r_id: int = -1,
+            migratable_objects: set = None,
+            sentinel_objects: set = None,
+            node: Node = None):
 
         # Assign logger to instance variable
-        self.__logger = logger #pylint:disable=unused-private-member
+        self.__logger = logger
 
         # Member variables passed by constructor
         self.__index = r_id
@@ -81,6 +83,11 @@ class Rank:
 
         # Start with empty metadata
         self.__metadata = {}
+
+        # Optionally, the rank is connected to a node      
+        self.node = node                                   
+        if node is not None:                               
+            node.add_rank(self)
 
     def copy(self, rank):
         """Specialized copy method."""
