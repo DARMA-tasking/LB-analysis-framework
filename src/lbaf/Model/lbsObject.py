@@ -44,7 +44,7 @@ from typing import Optional
 
 from .lbsBlock import Block
 from .lbsObjectCommunicator import ObjectCommunicator
-from .lbsQOIDecorator import qoi, entity_property
+from .lbsQOIDecorator import qoi
 
 class Object:
     """A class representing an object with load and communicator
@@ -77,7 +77,7 @@ class Object:
 
         # Check that id is provided as defined in LBDatafile schema
         if packed_id is None and seq_id is None:
-            raise ValueError("Either `packed_id` (bit-encoded ID) or `id` (seq ID) must be provided.")
+            raise ValueError('Either `packed_id` (bit-encoded ID) or `id` (seq ID) must be provided.')
 
         # Object ID
         if seq_id is not None and (
@@ -158,22 +158,22 @@ class Object:
     def __repr__(self):
         return f"Object id: {self.get_id()}, load: {self.__load}"
 
-    @entity_property
+    @qoi
     def get_id(self) -> int:
         """Return object bit-packed ID if available. Else return the object seq ID"""
         return self.__packed_id if self.__packed_id is not None else self.__seq_id
 
-    @entity_property
+    @qoi
     def get_packed_id(self) -> Optional[int]:
         """Return object bit-packed ID (seq_id, home_id, migratable)."""
         return self.__packed_id
 
-    @entity_property
+    @qoi
     def get_seq_id(self) -> Optional[int]:
         """Return object seq ID."""
         return self.__seq_id
 
-    @entity_property
+    @qoi
     def get_collection_id(self) -> Optional[int]:
         """Return object collection ID (required for migratable objects)."""
         return self.__collection_id
@@ -182,7 +182,7 @@ class Object:
         """ Set object collection ID (required for migratable objects)."""
         self.__collection_id = collection_id
 
-    @entity_property
+    @qoi
     def get_index(self) -> Optional[list]:
         """Return the object's index."""
         return self.__index
@@ -226,23 +226,17 @@ class Object:
     @qoi
     def get_received_volume(self) -> float:
         """Return volume of communications received by object."""
-        v : float = 0.0
-        v += sum(v for v in self.__communicator.get_received().values()) if self.__communicator else 0.0
-        return v
+        return sum(v for v in self.__communicator.get_received().values()) if self.__communicator else 0
 
     @qoi
     def get_sent_volume(self) -> float:
         """Return volume of communications sent by object."""
-        v : float = 0.0
-        v += sum(v for v in self.__communicator.get_sent().values()) if self.__communicator else 0.0
-        return v
+        return sum(v for v in self.__communicator.get_sent().values()) if self.__communicator else 0
 
     @qoi
     def get_max_volume(self) -> float:
         """Return the maximum bytes received or sent by object."""
-        v : float = 0.0
-        v += self.__communicator.get_max_volume() if self.__communicator else 0.0
-        return v
+        return self.__communicator.get_max_volume() if self.__communicator else 0
 
     def set_rank_id(self, r_id: int) -> None:
         """Assign object to rank ID"""
@@ -295,40 +289,11 @@ class Object:
         """Return all current unused parameters."""
         return self.__unused_params
 
-    def __get_qoi_name(self, ftn_name) -> str:
-        """Return the QOI name from the given QOI getter function"""
-        name = ftn_name[4:] if ftn_name.startswith("get_") else ftn_name
-        if name == "size":
-            name = "object_memory"
-        elif name == "overhead":
-            name = "overhead_memory"
-        return name
-
-    def __get_qois_of_type(self, qoi_type: str) -> list:
+    def get_QOIs(self) -> list:
+        """Get all methods decorated with the QOI decorator.
         """
-        Returns a dict of all qois with the specified qoi_type
-        (either 'qoi' or 'entity_property'.)
-        """
-        attr = f"is_{qoi_type}"
         qoi_methods : dict = {
-            self.__get_qoi_name(name): getattr(self, name)
+            name: getattr(self, name)
             for name in dir(self)
-            if callable(getattr(self, name)) and \
-                not name.startswith("__") and \
-                hasattr(getattr(self, name), attr) }
+            if callable(getattr(self, name)) and not name.startswith("__") and hasattr(getattr(self, name), "is_qoi") }
         return qoi_methods
-
-    def get_qois(self, qoi_type=None):
-        """
-        Get all methods with specified 'qoi_type' decorator.
-
-        Params:
-            - qoi_type: None (default) returns all decorated functions.
-                        "entity_property" returns all entity properties
-                        "qoi" returns all derived quantities of interest
-        """
-        if qoi_type is not None:
-            return self.__get_qois_of_type(qoi_type)
-        qois = self.__get_qois_of_type("qoi")
-        qois.update(self.__get_qois_of_type("entity_property"))
-        return qois

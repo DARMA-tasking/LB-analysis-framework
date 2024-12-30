@@ -26,7 +26,7 @@ write_JSON:
   compressed: true
   suffix: json
   communications: true
-  offline_lb_compatible: true
+  offline_LB_compatible: true
 visualization:
   x_ranks: 2
   y_ranks: 1

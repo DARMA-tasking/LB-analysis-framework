@@ -76,7 +76,7 @@ class TestConfig(unittest.TestCase):
         # Set up phase
         self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
         self.migratable_objects = {Object(seq_id=0, load=1.0), Object(seq_id=1, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=3, load=0.5)}
-        self.rank = Rank(r_id=0, logger=self.logger, migratable_objects=self.migratable_objects, sentinel_objects=self.sentinel_objects)
+        self.rank = Rank(r_id=0, logger=self.logger, mo=self.migratable_objects, so=self.sentinel_objects)
         self.phase = Phase(lgr=self.logger, p_id=0)
         self.phase.set_ranks([self.rank])
 

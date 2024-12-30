@@ -83,7 +83,7 @@ class TestConfig(unittest.TestCase):
           self.block.attach_object_id(o.get_id())
 
         # Define the rank and declare known peers
-        self.rank = Rank(r_id=0, migratable_objects=self.migratable_objects, sentinel_objects=self.sentinel_objects, logger=self.logger)
+        self.rank = Rank(r_id=0, mo=self.migratable_objects, so=self.sentinel_objects, logger=self.logger)
         self.rank.set_shared_blocks(self.block_set)
         self.known_peers = {}
 
