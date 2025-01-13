@@ -670,13 +670,13 @@ class LBAFApplication:
                 w_max_file.write(f"{w_stats.get_maximum()}")
 
         for r in initial_phase.get_ranks():
-            if node:=r.get_node() is not None:
+            if node := r.get_node() is not None:
                 print(r, id(r), node.get_max_memory_usage(initial_phase))
 
         if rebalanced_phase:
             print()
             for r in rebalanced_phase.get_ranks():
-                if node:=r.get_node() is not None:
+                if node := r.get_node() is not None:
                     print(r, id(r), node.get_max_memory_usage(rebalanced_phase))
 
         # If this point is reached everything went fine
