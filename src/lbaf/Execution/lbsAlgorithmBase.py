@@ -200,8 +200,8 @@ class AlgorithmBase:
         ranks_per_node = 1
         new_nodes: List[Node] = []
         phase_ranks = self._initial_phase.get_ranks()
-        if (nr := len(phase_ranks)) > 0 and phase_ranks[0].node is not None:
-            ranks_per_node = phase_ranks[0].node.get_number_of_ranks()
+        if (nr := len(phase_ranks)) > 0 and phase_ranks[0].get_node() is not None:
+            ranks_per_node = phase_ranks[0].get_node().get_number_of_ranks()
             if ranks_per_node > 1:
                 n_nodes = int(nr / ranks_per_node)
                 new_nodes = list(map(

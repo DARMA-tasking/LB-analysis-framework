@@ -45,6 +45,7 @@ import copy
 import math
 import functools
 import operator
+import importlib
 from logging import Logger
 from typing import Optional
 
@@ -61,15 +62,23 @@ class Node:
 
         # Member variables passed by constructor
         self.__index = n_id
-        self.__ranks = set()
+        self.__rank_ids = set()
 
-    def get_max_memory_usage(self):
+    def get_id(self) -> int:
+        """Return node ID."""
+        return self.__index
+
+    def get_rank_ids(self):
+        return self.__rank_ids
+
+    def get_max_memory_usage(self, phase):
         """Combine all memory usages for each rank to get the node memory usage."""
-        return functools.reduce(
-            operator.add, map(lambda r: r.get_max_memory_usage(), list(self.__ranks)))
+        module = importlib.import_module("lbaf.Model.lbsPhase")
+        return 0.0 + sum(
+            r.get_max_memory_usage() for r in phase.get_node_ranks(self.__index))
 
-    def add_rank(self, rank):
-        self.__ranks.add(rank)
+    def add_rank_id(self, r_id: int):
+        self.__rank_ids.add(r_id)
 
     def get_number_of_ranks(self) -> int:
-        return len(self.__ranks)
+        return len(self.__rank_ids)

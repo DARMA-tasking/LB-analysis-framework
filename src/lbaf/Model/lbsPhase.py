@@ -135,6 +135,10 @@ class Phase:
         """Retrieve ranks belonging to phase."""
         return self.__ranks
 
+    def get_node_ranks(self, node_id: int):
+        """Retrieve ranks attached to a node in phase."""
+        return [r for r in self.__ranks if r.get_node_id() == node_id]
+
     def copy_ranks(self, phase: Self):
         """Copy ranks from one phase to self."""
         new_ranks: Set[Rank] = set()

@@ -518,7 +518,8 @@ class LBAFApplication:
                 logger=self.__logger,
                 file_suffix=file_suffix if file_suffix is not None else "json",
                 check_schema=check_schema,
-                expected_ranks=self.__parameters.expected_ranks)
+                expected_ranks=self.__parameters.expected_ranks,
+                ranks_per_node=self.__parameters.ranks_per_node)
 
             # Retrieve n_ranks
             n_ranks = reader.n_ranks
@@ -667,6 +668,12 @@ class LBAFApplication:
                     self.__parameters.output_dir,
                     "w_max.txt"), 'w', encoding="utf-8") as w_max_file:
                 w_max_file.write(f"{w_stats.get_maximum()}")
+
+        for r in initial_phase.get_ranks():
+            print(r, id(r), r.get_node().get_max_memory_usage(initial_phase))
+        print()
+        for r in rebalanced_phase.get_ranks():
+            print(r, id(r), r.get_node().get_max_memory_usage(rebalanced_phase))
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")

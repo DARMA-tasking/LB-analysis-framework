@@ -45,10 +45,10 @@ import math
 from logging import Logger
 from typing import Optional
 
-from .lbsBlock import Block
 from .lbsObject import Object
-from .lbsQOIDecorator import qoi
 from .lbsNode import Node
+from .lbsBlock import Block
+from .lbsQOIDecorator import qoi
 
 class Rank:
     """A class representing a rank to which objects are assigned."""
@@ -85,26 +85,35 @@ class Rank:
         self.__metadata = {}
 
         # Optionally, the rank is connected to a node
-        self.node = node
-        if node is not None:
-            node.add_rank(self)
+        self.__node = node
 
     def copy(self, rank):
         """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
         self.__size = rank.get_size()
+        self.__node = rank.__node
 
-        # Shallow copy owned objects
-        self.__shared_blocks = copy.deepcopy(rank.__shared_blocks)
-        self.__sentinel_objects = copy.deepcopy(rank.__sentinel_objects)
+        # Shallow copy objects
+        self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
+
+        # Deep copy shared blocks and ranks objects
+        self.__shared_blocks = copy.deepcopy(rank.__shared_blocks)
 
     def __lt__(self, other):
         return self.get_load() < other.get_load()
 
     def __repr__(self):
-        return f"<Rank index: {self.__index}>"
+        return f"<Rank index: {self.__index}, node: {self.__node.get_id()}>"
+
+    def get_node(self) ->int:
+        """Return node to which self is attached, possibly none."""
+        return self.__node
+
+    def get_node_id(self) ->int:
+        """Return ID of node to which self is attached, possibly none."""
+        return self.__node.get_id()
 
     @qoi
     def get_id(self) -> int:

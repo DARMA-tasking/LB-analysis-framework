@@ -1,6 +1,7 @@
 # Specify input
 from_data:
   data_stem: ../data/synthetic-blocks/synthetic-dataset-blocks
+  ranks_per_node: 2
   phase_ids:
   - 0
 check_schema: false
@@ -37,7 +38,7 @@ visualization:
   z_ranks: 1
   object_jitter: 0.5
   rank_qoi: load
-  object_qoi: load
+  object_qoi: shared_id
   save_meshes: true
   force_continuous_object_qoi: true
   output_visualization_dir: ../output
