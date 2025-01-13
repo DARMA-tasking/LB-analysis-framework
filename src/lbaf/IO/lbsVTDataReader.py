@@ -82,7 +82,7 @@ class LoadReader:
             file_suffix: str="json",
             check_schema: bool=True,
             expected_ranks=None,
-            ranks_per_node: int=1): 
+            ranks_per_node: int=1):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
