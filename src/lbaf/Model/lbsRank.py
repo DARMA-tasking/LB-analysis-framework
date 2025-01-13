@@ -105,7 +105,7 @@ class Rank:
         return self.get_load() < other.get_load()
 
     def __repr__(self):
-        return f"<Rank index: {self.__index}, node: {self.__node.get_id()}>"
+        return f"<Rank index: {self.__index}, node: {self.__node.get_id() if self.__node is not None else 'None'}>"
 
     def get_node(self) ->int:
         """Return node to which self is attached, possibly none."""
@@ -113,7 +113,7 @@ class Rank:
 
     def get_node_id(self) ->int:
         """Return ID of node to which self is attached, possibly none."""
-        return self.__node.get_id()
+        return self.__node.get_id() if self.__node is not None else None
 
     @qoi
     def get_id(self) -> int:

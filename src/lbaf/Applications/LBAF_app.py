@@ -670,10 +670,14 @@ class LBAFApplication:
                 w_max_file.write(f"{w_stats.get_maximum()}")
 
         for r in initial_phase.get_ranks():
-            print(r, id(r), r.get_node().get_max_memory_usage(initial_phase))
-        print()
-        for r in rebalanced_phase.get_ranks():
-            print(r, id(r), r.get_node().get_max_memory_usage(rebalanced_phase))
+            if r.get_node() is not None:
+                print(r, id(r), r.get_node().get_max_memory_usage(initial_phase))
+
+        if rebalanced_phase:
+            print()
+            for r in rebalanced_phase.get_ranks():
+                if r.get_node() is not None:
+                    print(r, id(r), r.get_node().get_max_memory_usage(rebalanced_phase))
 
         # If this point is reached everything went fine
         self.__logger.info("Process completed without errors")
