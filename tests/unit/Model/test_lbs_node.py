@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                                  lbsNode.py
+#                               test_lbs_node.py
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
 # Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
@@ -40,45 +40,56 @@
 ###############################################################################
 #@HEADER
 #
+import logging
+import unittest
 
-import copy
-import math
-import functools
-import operator
-import importlib
-from logging import Logger
-from typing import Set
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsRank import Rank
+from src.lbaf.Model.lbsPhase import Phase
+from src.lbaf.Model.lbsNode import Node
 
-class Node:
-    """A class representing a node to which a set of ranks are assigned."""
 
-    def __init__(
-        self,
-        logger: Logger,
-        n_id: int = -1):
+class TestConfig(unittest.TestCase):
+    def setUp(self):
+        self.logger = logging.getLogger()
+        self.node_id = 0
+        self.rank_ids = set(i for i in range(10))
+        self.node = Node(logger=self.logger, n_id=self.node_id)
 
-        # Assign logger to instance variable
-        self.__logger = logger #pylint:disable=unused-private-member
+    def test_lbs_node_get_id(self):
+        self.assertEqual(self.node.get_id(), self.node_id)
 
-        # Member variables passed by constructor
-        self.__index = n_id
-        self.__rank_ids = set()
+    def test_lbs_node_rank_ids(self):
+        for rank_id in self.rank_ids:
+            self.node.add_rank_id(rank_id)
+        self.assertEqual(self.node.get_number_of_ranks(), len(self.rank_ids))
+        self.assertEqual(self.node.get_rank_ids(), self.rank_ids)
 
-    def get_id(self) -> int:
-        """Return node ID."""
-        return self.__index
+    def test_lbs_node_max_memory_usage(self):
+        phase = Phase(lgr=self.logger, p_id=0)
+        phase_ranks = set()
+        all_migratable_objs = set()
 
-    def get_rank_ids(self) -> Set[int]:
-        return self.__rank_ids
+        obj_size = 1.0
+        num_objs = len(self.rank_ids)
 
-    def get_max_memory_usage(self, phase) -> float:
-        """Combine all memory usages for each rank to get the node memory usage."""
-        module = importlib.import_module("lbaf.Model.lbsPhase")
-        return 0.0 + sum(
-            r.get_max_memory_usage() for r in phase.get_node_ranks(self.__index))
+        for rank_id in self.rank_ids:
+            obj = Object(
+                seq_id=rank_id,
+                r_id=rank_id,
+                size=obj_size,
+            )
+            rank = Rank(
+                logger=self.logger,
+                r_id=rank_id,
+                migratable_objects={obj},
+                node=self.node
+            )
+            all_migratable_objs.add(obj)
+            phase_ranks.add(rank)
 
-    def add_rank_id(self, r_id: int):
-        self.__rank_ids.add(r_id)
-
-    def get_number_of_ranks(self) -> int:
-        return len(self.__rank_ids)
+        phase.set_ranks(phase_ranks)
+        self.assertEqual(
+            self.node.get_max_memory_usage(phase),
+            obj_size * num_objs
+        )
