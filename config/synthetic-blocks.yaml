@@ -32,6 +32,11 @@ algorithm:
 # Specify output
 output_dir: ../output
 output_file_stem: synthetic-dataset-blocks
+write_JSON:
+  compressed: false
+  suffix: json
+  communications: true
+  offline_lb_compatible: true
 visualization:
   x_ranks: 2
   y_ranks: 2
@@ -43,10 +48,4 @@ visualization:
   force_continuous_object_qoi: true
   output_visualization_dir: ../output
   output_visualization_file_stem: output_file
-
-write_JSON:
-  compressed: false
-  suffix: json
-  communications: true
-  offline_lb_compatible: true
   lb_iterations: true
