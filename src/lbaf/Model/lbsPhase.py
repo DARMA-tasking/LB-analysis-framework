@@ -132,8 +132,16 @@ class Phase:
         self.__ranks = ranks
 
     def get_ranks(self):
-        """Retrieve ranks belonging to phase."""
+        """Retrieve all ranks belonging to phase."""
         return self.__ranks
+
+    def get_nodes(self):
+        """Retrieve all nodes belonging to phase."""
+        nodes: Set[Node] = set()
+        for r in self.__ranks:
+            if (n := r.get_node()) is not None:
+                nodes.add(n)
+        return nodes
 
     def get_node_ranks(self, node_id: int):
         """Retrieve ranks attached to a node in phase."""
