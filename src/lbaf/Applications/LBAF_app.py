@@ -375,7 +375,7 @@ class LBAFApplication:
             lambda x: x.get_size(),
             f"{phase_name} rank working memory",
             self.__logger)
-        shared_memory_stats = lbstats.print_function_statistics(
+        r_shared_mem_stats = lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             f"{phase_name} rank shared memory",
@@ -383,25 +383,25 @@ class LBAFApplication:
         lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_max_memory_usage(),
-            f"{phase_name} maximum memory usage",
+            f"{phase_name} rank maximum memory usage",
             self.__logger)
-        if shared_memory_stats.get_maximum():
+        if r_shared_mem_stats.get_maximum():
             lbstats.print_function_statistics(
                 phase.get_ranks(),
                 lambda x: x.get_homed_blocks_ratio(),
-                f"{phase_name} homed_blocks_ratio",
+                f"{phase_name} homed blocks ratio",
                 self.__logger)
             lbstats.print_function_statistics(
                 phase.get_ranks(),
                 lambda x: x.get_number_of_uprooted_blocks(),
-                f"{phase_name} number_of_uprooted_blocks",
+                f"{phase_name} number of uprooted blocks",
                 self.__logger)
 
         # Print edge statistics
         lbstats.print_function_statistics(
             phase.get_edge_maxima().values(),
             lambda x: x,
-            f"{phase_name} sent volumes",
+            f"{phase_name} inter-rank sent volumes",
             self.__logger)
 
         if work_model is not None:
@@ -649,12 +649,15 @@ class LBAFApplication:
                     self.__parameters.grid_size[1] *
                     self.__parameters.grid_size[2] )
 
+                # Execute vt-tv
                 vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
             l_stats, w_stats = self.__print_statistics(
                 rebalanced_phase, "rebalanced", runtime.get_work_model())
+
+            # Save fonal load imbalance to file
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
@@ -662,6 +665,7 @@ class LBAFApplication:
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
+            # Save fonal maximum work to file
             with open(
                 "w_max.txt" if self.__parameters.output_dir is None
                 else os.path.join(
@@ -671,7 +675,6 @@ class LBAFApplication:
 
         for r in initial_phase.get_ranks():
             if (node := r.get_node()) is not None:
-                print(node)
                 print(r, id(r), node.get_max_memory_usage(initial_phase))
 
         if rebalanced_phase:
