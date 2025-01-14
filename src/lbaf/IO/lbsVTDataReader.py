@@ -284,13 +284,17 @@ class LoadReader:
             # No communications for this phase
             self.__communications_dict.setdefault(phase_id, {rank_id: {}})
 
-        # Instantiate rank for current phase
+
+        # Create phase rank
+        phase_rank = Rank(self.__logger, rank_id)
+        phase_rank.set_metadata(self.__metadata[rank_id])
+
+        # Create node when required
         rank_node = None
         if self.ranks_per_node > 1:
             rank_node = self.__nodes[rank_id // self.ranks_per_node]
-            rank_node.add_rank_id(rank_id)
-        phase_rank = Rank(self.__logger, rank_id, node=rank_node)
-        phase_rank.set_metadata(self.__metadata[rank_id])
+            rank_node.add_rank(phase_rank)
+            phase_rank.set_node(rank_node)
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}
@@ -356,7 +360,6 @@ class LoadReader:
             # Assign block to objects attached to it
             for o in objects:
                 o.set_shared_block(block)
-        phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned rank and communicators per phase
         return phase_rank, rank_comm

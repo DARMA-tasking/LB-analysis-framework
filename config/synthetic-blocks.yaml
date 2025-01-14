@@ -13,6 +13,8 @@ work_model:
     alpha: 1.0
     beta: 0.0
     gamma: 0.0
+    upper_bounds:
+      max_memory_usage: 45.0
 
 # Specify algorithm
 brute_force_optimization: true
@@ -37,6 +39,7 @@ write_JSON:
   suffix: json
   communications: true
   offline_lb_compatible: true
+  lb_iterations: true
 visualization:
   x_ranks: 2
   y_ranks: 2
@@ -48,4 +51,3 @@ visualization:
   force_continuous_object_qoi: true
   output_visualization_dir: ../output
   output_visualization_file_stem: output_file
-  lb_iterations: true

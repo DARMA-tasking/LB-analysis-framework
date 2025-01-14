@@ -73,8 +73,8 @@ class Block:
 
     def __repr__(self):
         return (
-            f"Block id: {self.__index}, home id: {self.__home_id}, "
-            f"size: {self.__size}, object ids: {self.__attached_object_ids}"
+            f"<Block id: {self.__index}, home id: {self.__home_id}, "
+            f"size: {self.__size}, object ids: {self.__attached_object_ids}>"
         )
 
     def get_id(self) -> int:

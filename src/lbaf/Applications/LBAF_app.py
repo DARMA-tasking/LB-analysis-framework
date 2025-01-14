@@ -294,7 +294,7 @@ class LBAFApplication:
         :returns: The configuration as a dictionary
         """
 
-        # merge configurations
+        # Merge configurations
         config = self.__merge_configurations(*config_path)
 
         # Change logger (with parameters from the configuration)
@@ -325,6 +325,7 @@ class LBAFApplication:
             self.__parameters.output_file_stem,
             self.__parameters.json_params) if self.__parameters.json_params else None
 
+        # Return configuration
         return config
 
     def __resolve_config_path(self, config_path) -> str:
@@ -385,7 +386,7 @@ class LBAFApplication:
             self.__logger)
         lbstats.print_function_statistics(
             phase.get_nodes(),
-            lambda x: x.get_max_memory_usage(phase),
+            lambda x: x.get_max_memory_usage(),
             f"{phase_name} node maximum memory usage",
             self.__logger)
         if r_shared_mem_stats.get_maximum():
@@ -565,6 +566,9 @@ class LBAFApplication:
             a_min_max = []
 
         # Instantiate runtime
+        if self.__parameters.ranks_per_node > 1 and (
+                wmp := self.__parameters.work_model.get("parameters")):
+            wmp["node_bounds"] = True
         runtime = Runtime(
             phases,
             self.__parameters.work_model,

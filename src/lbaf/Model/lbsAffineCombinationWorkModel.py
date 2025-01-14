@@ -45,6 +45,7 @@ from logging import Logger
 
 from .lbsWorkModelBase import WorkModelBase
 from .lbsRank import Rank
+from .lbsNode import Node
 
 
 class AffineCombinationWorkModel(WorkModelBase):
@@ -63,14 +64,16 @@ class AffineCombinationWorkModel(WorkModelBase):
         self.__beta = parameters.get("beta", 0.0)
         self.__gamma = parameters.get("gamma", 0.0)
         self.__upper_bounds = parameters.get("upper_bounds", {})
+        self.__node_bounds = parameters.get("node_bounds", False)
 
         # Call superclass init
         super().__init__(parameters)
         self.__logger.info(
-            f"Instantiated work model with alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
+            "Instantiated work model with: "
+            f"alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
         for k, v in self.__upper_bounds.items():
             self.__logger.info(
-                f"Upper bound for rank {k}: {v}")
+                f"Upper bound for {'node' if self.__node_bounds else 'rank'} {k}: {v}")
 
     def get_alpha(self):
         """Get the alpha parameter."""
@@ -96,7 +99,9 @@ class AffineCombinationWorkModel(WorkModelBase):
         """
         # Check whether strict bounds are satisfied
         for k, v in self.__upper_bounds.items():
-            if getattr(rank, f"get_{k}")() > v:
+            if getattr(
+                    rank.get_node() if self.__node_bounds else rank,
+                    f"get_{k}")() > v:
                 return math.inf
 
         # Return combination of load and volumes

@@ -41,13 +41,10 @@
 #@HEADER
 #
 
-import copy
-import math
-import functools
-import operator
-import importlib
 from logging import Logger
 from typing import Set
+
+from .lbsRank import Rank
 
 class Node:
     """A class representing a node to which a set of ranks are assigned."""
@@ -62,23 +59,26 @@ class Node:
 
         # Member variables passed by constructor
         self.__index = n_id
-        self.__rank_ids = set()
+        self.__ranks: Set[Rank] = set()
+
+    def __repr__(self):
+        """Custom print."""
+        return f"<Node id: {self.__index}, {len(self.__ranks)} ranks>"
 
     def get_id(self) -> int:
         """Return node ID."""
         return self.__index
 
-    def get_rank_ids(self) -> Set[int]:
-        return self.__rank_ids
+    def get_ranks(self) -> Set[int]:
+        return self.__ranks
 
-    def get_max_memory_usage(self, phase) -> float:
-        """Combine all memory usages for each rank to get the node memory usage."""
-        module = importlib.import_module("lbaf.Model.lbsPhase")
-        return 0.0 + sum(
-            r.get_max_memory_usage() for r in phase.get_node_ranks(self.__index))
-
-    def add_rank_id(self, r_id: int):
-        self.__rank_ids.add(r_id)
+    def add_rank(self, rank):
+        self.__ranks.add(rank)
 
     def get_number_of_ranks(self) -> int:
-        return len(self.__rank_ids)
+        return len(self.__ranks)
+
+    def get_max_memory_usage(self) -> float:
+        """Sum all memory usages for each rank to get the node memory usage."""
+        return 0.0 + sum(
+            r.get_max_memory_usage() for r in self.__ranks)

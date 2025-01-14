@@ -104,7 +104,7 @@ class Object:
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = float(size)
 
-        # Rank to which object is currently assigned if defined
+        # ID of rank to which object is currently assigned if defined
         if not(r_id is None or isinstance(r_id, int)) or isinstance(r_id, bool):
             raise TypeError(
                 f"r_id: incorrect type {type(r_id)}")
@@ -156,7 +156,7 @@ class Object:
             raise TypeError(f"subphases: {subphases} is of type {type(subphases)} but must be <class 'list'>")
 
     def __repr__(self):
-        return f"Object id: {self.get_id()}, load: {self.__load}"
+        return f"<Object id: {self.get_id()}, load: {self.__load}>"
 
     @entity_property
     def get_id(self) -> int:
