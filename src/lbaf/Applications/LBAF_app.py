@@ -336,10 +336,8 @@ class LBAFApplication:
         """
         # Search config file in the current working directory if relative
         path = config_path
-        path_list = []
-        path_list.append(path)
-        if (
-            path is not None and
+        path_list = [path]
+        if (path is not None and
             not os.path.isfile(path) and
             not os.path.isabs(config_path) and PROJECT_PATH is not None
         ):
