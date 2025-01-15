@@ -80,7 +80,7 @@ class TestConfig(unittest.TestCase):
                 migratable_objects={obj})
             self.ranks.add(rank)
             rank.set_node(self.node)
-            
+
             all_migratable_objs.add(obj)
             phase_ranks.add(rank)
 
