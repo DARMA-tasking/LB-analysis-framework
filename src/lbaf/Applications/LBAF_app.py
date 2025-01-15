@@ -88,7 +88,7 @@ class InternalParameters:
 
     # From data input options
     data_stem: Optional[str] = None
-    ranks_per_node : Optional[int] = 1
+    ranks_per_node: Optional[int] = 1
 
     # From samplers input options
     n_ranks: Optional[int] = None
@@ -664,7 +664,7 @@ class LBAFApplication:
             l_stats, w_stats = self.__print_statistics(
                 rebalanced_phase, "rebalanced", runtime.get_work_model())
 
-            # Save fonal load imbalance to file
+            # Save final load imbalance to file
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
@@ -672,7 +672,7 @@ class LBAFApplication:
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
-            # Save fonal maximum work to file
+            # Save final maximum work to file
             with open(
                 "w_max.txt" if self.__parameters.output_dir is None
                 else os.path.join(
