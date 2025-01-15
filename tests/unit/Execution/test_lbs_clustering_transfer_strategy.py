@@ -84,7 +84,6 @@ class TestConfig(unittest.TestCase):
 
         # Define the rank and declare known peers
         self.rank = Rank(r_id=0, migratable_objects=self.migratable_objects, sentinel_objects=self.sentinel_objects, logger=self.logger)
-        self.rank.set_shared_blocks(self.block_set)
         self.known_peers = {}
 
        # Instantiate the phase
@@ -175,10 +174,6 @@ class TestConfig(unittest.TestCase):
         # Set up initial configuration
         rank0 = Rank(r_id=r_id0, migratable_objects={obj0, obj1, obj2}, logger=self.logger)
         rank1 = Rank(r_id=r_id1, migratable_objects={obj3, obj4, obj5}, logger=self.logger)
-
-        # Assign ranks to memory blocks
-        rank0.set_shared_blocks({block0, block1})
-        rank1.set_shared_blocks({block2, block3})
 
         # Create known_peers set
         rank_list = [rank0, rank1]
