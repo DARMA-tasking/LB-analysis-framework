@@ -136,11 +136,11 @@ class Rank:
 
     def get_shared_blocks(self) -> set:
         """Return shared blocks."""
-        return {r.get_shared_block() for r in self.get_objects()} - {None}
+        return {o.get_shared_block() for o in self.get_objects()} - {None}
 
     def get_shared_ids(self) -> set:
         """Return IDs of shared blocks."""
-        return {r.get_shared_block().get_id() for r in self.get_objects()}
+        return {b.get_id() for b in self.get_shared_blocks()}
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
         """Return shared memory block with given ID when it exists."""

@@ -72,7 +72,7 @@ class TestConfig(unittest.TestCase):
     def test_lbs_block_repr(self):
         self.assertEqual(
             repr(self.block),
-            f"Block id: {self.block.get_id()}, home id: {self.h_id}, size: {self.size}, object ids: {self.o_ids}"
+            f"<Block id: {self.block.get_id()}, home id: {self.h_id}, size: {self.size}, object ids: {self.o_ids}>"
         )
 
     def test_lbs_block_detach_object_id(self):

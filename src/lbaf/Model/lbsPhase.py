@@ -130,6 +130,7 @@ class Phase:
 
     def set_ranks(self, ranks: Set[Rank]):
         """ Set list of ranks for this phase."""
+        self.__ranks = ranks
 
     def get_ranks(self):
         """Retrieve all ranks belonging to phase."""

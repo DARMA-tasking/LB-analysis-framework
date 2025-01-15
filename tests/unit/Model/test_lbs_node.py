@@ -54,17 +54,14 @@ class TestConfig(unittest.TestCase):
         self.logger = logging.getLogger()
         self.node_id = 0
         self.ranks = set()
-        self.rank_ids = set(i for i in range(10))
+        n_ranks = 10
+        self.rank_ids = set(i for i in range(n_ranks))
         self.node = Node(logger=self.logger, n_id=self.node_id)
 
     def test_lbs_node_get_id(self):
         self.assertEqual(self.node.get_id(), self.node_id)
 
     def test_lbs_node_max_memory_usage(self):
-        phase = Phase(lgr=self.logger, p_id=0)
-        phase_ranks = set()
-        all_migratable_objs = set()
-
         obj_size = 1.0
         num_objs = len(self.rank_ids)
 
@@ -81,11 +78,17 @@ class TestConfig(unittest.TestCase):
             self.ranks.add(rank)
             rank.set_node(self.node)
 
-            all_migratable_objs.add(obj)
-            phase_ranks.add(rank)
+            self.node.add_rank(rank)
 
-        phase.set_ranks(phase_ranks)
         self.assertEqual(
-            self.node.get_max_memory_usage(phase),
+            self.node.get_number_of_ranks(),
+            len(self.ranks)
+        )
+        self.assertEqual(
+            self.node.get_max_memory_usage(),
             obj_size * num_objs
+        )
+        self.assertEqual(
+            self.node.get_ranks(),
+            self.ranks
         )

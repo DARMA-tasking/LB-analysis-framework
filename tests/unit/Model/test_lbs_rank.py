@@ -64,7 +64,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.rank._Rank__sentinel_objects, self.sentinel_objects)
 
     def test_lbs_rank_repr(self):
-        self.assertEqual(self.rank.__repr__(), "<Rank index: 0, node: None>")
+        self.assertEqual(self.rank.__repr__(), "<Rank id: 0, node: None>")
 
     def test_lbs_rank_get_id(self):
         self.assertEqual(self.rank.get_id(), 0)
