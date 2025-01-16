@@ -350,12 +350,11 @@ class LoadReader:
         # Set rank-level memory quantities of interest
         phase_rank.set_size(
             task_user_defined.get("rank_working_bytes", 0.0))
-        shared_blocks = set()
         for b_id, (b_size, objects) in rank_blocks.items():
-            # Create and add new block
-            shared_blocks.add(block := Block(
+            # Create new block
+            block = Block(
                 b_id, h_id=rank_id, size=b_size,
-                o_ids={o.get_id() for o in objects}))
+                o_ids={o.get_id() for o in objects})
 
             # Assign block to objects attached to it
             for o in objects:

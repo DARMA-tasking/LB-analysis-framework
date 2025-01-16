@@ -158,7 +158,6 @@ class Phase:
 
         # Copy all ranks of phase
         new_ranks: Set[Rank] = set()
-        self.__ranks = new_ranks
         for r in phase.get_ranks():
             # Minimally instantiate rank and copy
             new_r = Rank(self.__logger)
@@ -170,6 +169,9 @@ class Phase:
                 new_r_node = new_nodes[r_node.get_id()]
                 new_r.set_node(new_r_node)
                 new_r_node.add_rank(new_r)
+
+        # Update ranks
+        self.__ranks = new_ranks
 
     def get_rank_ids(self):
         """Retrieve IDs of ranks belonging to phase."""

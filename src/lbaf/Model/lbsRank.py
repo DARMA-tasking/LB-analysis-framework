@@ -96,15 +96,15 @@ class Rank:
         self.__index = rank.get_id()
         self.__size = rank.get_size()
 
-        # Deep copy objects and blocks
-        self.__sentinel_objects = copy.deepcopy(rank.__sentinel_objects)
-        self.__migratable_objects = copy.deepcopy(rank.__migratable_objects)
+        # Shallow copy objects
+        self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
+        self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
     def set_node(self, node):
         """Set node to which self is attached, possibly none."""
         self.__node = node
 
-    def get_node(self) ->int:
+    def get_node(self) -> int:
         """Return node to which self is attached, possibly none."""
         return self.__node
 

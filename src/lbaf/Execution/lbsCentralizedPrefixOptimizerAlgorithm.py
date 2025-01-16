@@ -228,7 +228,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
 
             selected_load = o.get_load()
 
-            # If our situation is not made worse and fits under memory constraints, do the transer
+            # If our situation is not made worse and fits under memory constraints, do the transfer
             if (sid in min_rank.get_shared_ids() or \
                 len(min_rank.get_shared_ids()) < self._max_shared_ids) and \
                 min_rank.get_load() + selected_load < max_rank.get_load():

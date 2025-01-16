@@ -23,14 +23,18 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         config = {
             "from_data": {
                 "data_stem": f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks",
-                "phase_ids": [0]
+                "phase_ids": [0],
+                "ranks_per_node": 2
             },
             "work_model": {
                 "name": "AffineCombination",
                 "parameters": {
                     "alpha": alpha,
                     "beta": beta,
-                    "gamma": gamma
+                    "gamma": gamma,
+                    "upper_bounds": {
+                        "max_memory_usage": 54.0
+                    }
                 }
             },
             "brute_force_optimization": False,
