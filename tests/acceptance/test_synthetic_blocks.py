@@ -20,6 +20,8 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         data_dir = os.path.join(os.path.dirname(test_dir), "data")
 
         # Create YAML configuration
+        # For load-only (beta == 0), use Configuration 1 from this comment:
+        # https://github.com/DARMA-tasking/LB-analysis-framework/pull/581#issuecomment-2594752734
         config = {
             "from_data": {
                 "data_stem": f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks",
@@ -33,7 +35,7 @@ class TestSyntheticBlocksLB(unittest.TestCase):
                     "beta": beta,
                     "gamma": gamma,
                     "upper_bounds": {
-                        "max_memory_usage": 54.0
+                        "max_memory_usage": 36.0 if beta == 0.0 else 54.0
                     }
                 }
             },
