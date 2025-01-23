@@ -47,80 +47,80 @@ from the last phase and last sub-iteration of input JSON files.
 """
 
 import os
-import sys
 import json
 import yaml
 import argparse
-import re
 
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.lbsLogging import get_logger, Logger
 
-def process_files(directory, file_stem, file_suffix, logger: Logger):
-    reader = LoadReader(
-        file_prefix = directory + file_stem,
-        logger = logger,
-        file_suffix = file_suffix
-    )
+class JSONTaskLister:
+    def __process_files(self):
+        reader = LoadReader(
+            file_prefix = self.__directory + self.__file_stem,
+            logger = self.__logger,
+            file_suffix = self.__file_suffix
+        )
 
-    tasks = {}
-    n_ranks = reader.n_ranks
+        tasks = {}
+        n_ranks = reader.n_ranks
 
-    try:
-        for rank in range(n_ranks):
-            _, data = reader._load_vt_file(rank)
-            phases = data.get("phases", [])
-            if not phases:
-                logger.warning("No phases found for rank %s", str(rank))
-                continue
+        try:
+            for rank in range(n_ranks):
+                _, data = reader._load_vt_file(rank)
+                phases = data.get("phases", [])
+                if not phases:
+                    self.__logger.warning("No phases found for rank %s", str(rank))
+                    continue
 
-            last_phase = phases[-1]
+                last_phase = phases[-1]
 
-            if "lb_iterations" in last_phase:
-                lb_iterations = last_phase["lb_iterations"]
-                if lb_iterations:
-                    last_lb_iteration = lb_iterations[-1]
-                    iteration_tasks = [task["entity"].get("seq_id", task["entity"].get("id")) for task in last_lb_iteration.get("tasks", [])]
-                    tasks[rank] = iteration_tasks
+                if "lb_iterations" in last_phase:
+                    lb_iterations = last_phase["lb_iterations"]
+                    if lb_iterations:
+                        last_lb_iteration = lb_iterations[-1]
+                        iteration_tasks = [task["entity"].get("seq_id", task["entity"].get("id")) for task in last_lb_iteration.get("tasks", [])]
+                        tasks[rank] = iteration_tasks
+                    else:
+                        self.__logger.warning("No lb_iterations found in the last phase of rank %s", str(rank))
                 else:
-                    logger.warning("No lb_iterations found in the last phase of rank %s", str(rank))
-            else:
-                phase_tasks = [task["entity"].get("seq_id", task["entity"].get("id")) for task in last_phase.get("tasks", [])]
-                tasks[rank] = phase_tasks
-    except (json.JSONDecodeError, KeyError, ValueError, IndexError) as e:
-        logger.error("Error processing rank %s: %s", str(rank), e)
-        sys.exit(1)
+                    phase_tasks = [task["entity"].get("seq_id", task["entity"].get("id")) for task in last_phase.get("tasks", [])]
+                    tasks[rank] = phase_tasks
+        except (json.JSONDecodeError, KeyError, ValueError, IndexError) as e:
+            self.__logger.error("Error processing rank %s: %s", str(rank), e)
+            return
 
-    return tasks
+        return tasks
 
-def main():
-    parser = argparse.ArgumentParser(description="Extract tasks from JSON files.")
-    parser.add_argument("directory", type=str, help="Directory containing JSON files.")
-    parser.add_argument("--file-stem", type=str, default="data", help="File stem for JSON files (default: 'data').")
-    parser.add_argument("--file-suffix", type=str, default="json", help="File suffix for JSON files (default: 'json').")
-    parser.add_argument("--output", type=str, default="tasks.yml", help="Output YAML file (default: 'tasks.yml').")
+    def run(self):
+        parser = argparse.ArgumentParser(description="Extract tasks from JSON files.")
+        parser.add_argument("directory", type=str, help="Directory containing JSON files.")
+        parser.add_argument("--file-stem", type=str, default="data", help="File stem for JSON files (default: 'data').")
+        parser.add_argument("--file-suffix", type=str, default="json", help="File suffix for JSON files (default: 'json').")
+        parser.add_argument("--output", type=str, default="tasks.yml", help="Output YAML file (default: 'tasks.yml').")
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    directory = args.directory
-    file_stem = args.file_stem
-    file_suffix = args.file_suffix
-    output_file = args.output
+        self.__directory = args.directory
+        self.__file_stem = args.file_stem
+        self.__file_suffix = args.file_suffix
+        self.__output_file = args.output
 
-    logger = get_logger()
+        self.__logger = get_logger()
 
-    if not os.path.isdir(directory):
-        logger.error("Directory not found: %s", directory)
-        return
+        if not os.path.isdir(self.__directory):
+            self.__logger.error("Directory not found: %s", self.__directory)
+            return
 
-    tasks = process_files(directory, file_stem, file_suffix, logger)
+        tasks = self.__process_files()
 
-    try:
-        with open(output_file, 'w') as file:
-            yaml.safe_dump(tasks, file)
-        logger.info("Tasks successfully written to %s", output_file)
-    except IOError as e:
-        logger.error("Error writing to %s: %s", output_file, e)
+        try:
+            with open(self.__output_file, 'w') as file:
+                yaml.safe_dump(tasks, file)
+            self.__logger.info("Tasks successfully written to %s", self.__output_file)
+        except IOError as e:
+            self.__logger.error("Error writing to %s: %s", self.__output_file, e)
+            return
 
 if __name__ == "__main__":
-    main()
+    JSONTaskLister().run()
