@@ -70,7 +70,7 @@ class JSONTaskLister:
                 _, data = reader._load_vt_file(rank)
                 phases = data.get("phases", [])
                 if not phases:
-                    self.__logger.warning("No phases found for rank %s", str(rank))
+                    self.__logger.warning(f"No phases found for rank {rank}")
                     continue
 
                 last_phase = phases[-1]
@@ -82,12 +82,12 @@ class JSONTaskLister:
                         iteration_tasks = [task["entity"].get("seq_id", task["entity"].get("id")) for task in last_lb_iteration.get("tasks", [])]
                         tasks[rank] = iteration_tasks
                     else:
-                        self.__logger.warning("No lb_iterations found in the last phase of rank %s", str(rank))
+                        self.__logger.warning(f"No lb_iterations found in the last phase of rank {rank}")
                 else:
                     phase_tasks = [task["entity"].get("seq_id", task["entity"].get("id")) for task in last_phase.get("tasks", [])]
                     tasks[rank] = phase_tasks
         except (json.JSONDecodeError, KeyError, ValueError, IndexError) as e:
-            self.__logger.error("Error processing rank %s: %s", str(rank), e)
+            self.__logger.error(f"Error processing rank {rank}: {e}")
             return
 
         return tasks
@@ -109,7 +109,7 @@ class JSONTaskLister:
         self.__logger = get_logger()
 
         if not os.path.isdir(self.__directory):
-            self.__logger.error("Directory not found: %s", self.__directory)
+            self.__logger.error(f"Directory not found: {self.__directory}")
             return
 
         tasks = self.__process_files()
@@ -117,9 +117,9 @@ class JSONTaskLister:
         try:
             with open(self.__output_file, 'w') as file:
                 yaml.safe_dump(tasks, file)
-            self.__logger.info("Tasks successfully written to %s", self.__output_file)
+            self.__logger.info(f"Tasks successfully written to {self.__output_file}")
         except IOError as e:
-            self.__logger.error("Error writing to %s: %s", self.__output_file, e)
+            self.__logger.error(f"Error writing to {self.__output_file}: {e}")
             return
 
 if __name__ == "__main__":
