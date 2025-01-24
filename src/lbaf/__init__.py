@@ -63,6 +63,7 @@ from lbaf.Utils.lbsJSONDataFilesValidatorLoader import JSONDataFilesValidatorLoa
 from lbaf.Utils.lbsCsv2JsonDataConverter import Csv2JsonConverter
 from lbaf.Utils.lbsDataStatFilesUpdater import DataStatFilesUpdater
 from lbaf.Utils.lbsJSONDataFilesMaker import JSONDataFilesMaker
+from lbaf.Utils.lbsJSONTaskLister import JSONTaskLister
 # pylint:enable=C0413:wrong-import-position
 
 # lbaf functions to expose as lbaf package console commands (see setup.cfg)
@@ -91,6 +92,10 @@ def vt_data_files_validator():
 def vt_data_files_maker() -> int:
     """Run a JSONDataFilesMaker instance."""
     return JSONDataFilesMaker().run()
+
+def vt_data_files_task_lister() -> int:
+    """Run a JSONTaskLister instance."""
+    return JSONTaskLister().run()
 
 def csv_2_json_converter() -> int:
     """Run a Csv2JsonConverter instance."""
