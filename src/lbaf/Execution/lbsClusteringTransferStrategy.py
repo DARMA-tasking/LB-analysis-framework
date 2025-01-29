@@ -71,6 +71,11 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info(
             f"Enter subclustering immediately after cluster swapping: {self.__separate_subclustering}")
 
+        # Decide whether clusters can be broken down
+        self.__preserve_subclusters = parameters.get("preserve_subclusters", False)
+        self._logger.info(
+            f"Allow clusters to be split into subclusters: {self.__separate_subclustering}")
+
         # Initialize percentage of maximum load required for subclustering
         self.__subclustering_threshold = parameters.get("subclustering_threshold", 0.0)
         self._logger.info(
@@ -280,14 +285,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     continue
 
             # Perform feasible subcluster swaps from given rank to possible targets
-            self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
+            if not self.__preserve_subclusters:
+                self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
 
             # Report on new load and exit from rank
             self._logger.debug(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
 
         # Perform subclustering when it was not previously done
-        if self.__separate_subclustering:
+        if not self.__preserve_subclusters and self.__separate_subclustering:
             # In non-deterministic case skip subclustering when swaps passed
             if self.__n_swaps and not self._deterministic_transfer:
                 self.__n_sub_skipped += len(rank_targets)
