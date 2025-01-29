@@ -23,7 +23,8 @@ algorithm:
     n_rounds: 2
     fanout: 2
     order_strategy: arbitrary
-    transfer_strategy: Recursive
+    transfer_strategy: Clustering
+    max_subclusters: 4
     criterion: Tempered
     max_objects_per_transfer: 8
     deterministic_transfer: true
