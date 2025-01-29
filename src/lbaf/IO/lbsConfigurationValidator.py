@@ -213,8 +213,8 @@ class ConfigurationValidator:
                             error="Should be of type 'float' and > 0.0"),
                          Optional("max_subclusters"): And(
                             int,
-                            lambda x: x > 0.0,
-                            error="Should be of type 'int' and > 0"),
+                            lambda x: x >= 0,
+                            error="Should be of type 'int' and >= 0"),
                          Optional("separate_subclustering"): bool,
                      "criterion": And(
                          str,
