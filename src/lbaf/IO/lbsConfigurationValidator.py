@@ -214,7 +214,7 @@ class ConfigurationValidator:
                          Optional("max_subclusters"): And(
                             int,
                             lambda x: x > 0.0,
-                            error="Should be of type 'boolint' and > 0"),
+                            error="Should be of type 'int' and > 0"),
                          Optional("preserve_subclusters"): bool,
                          Optional("separate_subclustering"): bool,
                      "criterion": And(
