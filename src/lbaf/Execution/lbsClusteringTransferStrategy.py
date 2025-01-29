@@ -280,14 +280,15 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     continue
 
             # Perform feasible subcluster swaps from given rank to possible targets
-            self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
+            if self.__max_subclusters > 0:
+                self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
 
             # Report on new load and exit from rank
             self._logger.debug(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
 
         # Perform subclustering when it was not previously done
-        if self.__separate_subclustering:
+        if self.__max_subclusters > 0 and self.__separate_subclustering:
             # In non-deterministic case skip subclustering when swaps passed
             if self.__n_swaps and not self._deterministic_transfer:
                 self.__n_sub_skipped += len(rank_targets)
