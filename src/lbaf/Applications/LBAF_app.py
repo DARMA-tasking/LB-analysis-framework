@@ -88,6 +88,7 @@ class InternalParameters:
 
     # From data input options
     data_stem: Optional[str] = None
+    ranks_per_node: Optional[int] = 1
 
     # From samplers input options
     n_ranks: Optional[int] = None
@@ -150,6 +151,8 @@ class InternalParameters:
             else:
                 self.phase_ids = from_data.get("phase_ids")
             self.expected_ranks = from_data.get("expected_ranks")
+            if (rpn := from_data.get("ranks_per_node")) is not None:
+                self.ranks_per_node = int(rpn)
 
         # Parse sampling parameters if present
         from_samplers = config.get("from_samplers")
@@ -291,7 +294,7 @@ class LBAFApplication:
         :returns: The configuration as a dictionary
         """
 
-        # merge configurations
+        # Merge configurations
         config = self.__merge_configurations(*config_path)
 
         # Change logger (with parameters from the configuration)
@@ -322,6 +325,7 @@ class LBAFApplication:
             self.__parameters.output_file_stem,
             self.__parameters.json_params) if self.__parameters.json_params else None
 
+        # Return configuration
         return config
 
     def __resolve_config_path(self, config_path) -> str:
@@ -333,10 +337,8 @@ class LBAFApplication:
         """
         # Search config file in the current working directory if relative
         path = config_path
-        path_list = []
-        path_list.append(path)
-        if (
-            path is not None and
+        path_list = [path]
+        if (path is not None and
             not os.path.isfile(path) and
             not os.path.isabs(config_path) and PROJECT_PATH is not None
         ):
@@ -372,7 +374,7 @@ class LBAFApplication:
             lambda x: x.get_size(),
             f"{phase_name} rank working memory",
             self.__logger)
-        shared_memory_stats = lbstats.print_function_statistics(
+        r_shared_mem_stats = lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_shared_memory(),
             f"{phase_name} rank shared memory",
@@ -380,25 +382,30 @@ class LBAFApplication:
         lbstats.print_function_statistics(
             phase.get_ranks(),
             lambda x: x.get_max_memory_usage(),
-            f"{phase_name} maximum memory usage",
+            f"{phase_name} rank maximum memory usage",
             self.__logger)
-        if shared_memory_stats.get_maximum():
+        lbstats.print_function_statistics(
+            phase.get_nodes(),
+            lambda x: x.get_max_memory_usage(),
+            f"{phase_name} node maximum memory usage",
+            self.__logger)
+        if r_shared_mem_stats.get_maximum():
             lbstats.print_function_statistics(
                 phase.get_ranks(),
                 lambda x: x.get_homed_blocks_ratio(),
-                f"{phase_name} homed_blocks_ratio",
+                f"{phase_name} homed blocks ratio",
                 self.__logger)
             lbstats.print_function_statistics(
                 phase.get_ranks(),
                 lambda x: x.get_number_of_uprooted_blocks(),
-                f"{phase_name} number_of_uprooted_blocks",
+                f"{phase_name} number of uprooted blocks",
                 self.__logger)
 
         # Print edge statistics
         lbstats.print_function_statistics(
             phase.get_edge_maxima().values(),
             lambda x: x,
-            f"{phase_name} sent volumes",
+            f"{phase_name} inter-rank sent volumes",
             self.__logger)
 
         if work_model is not None:
@@ -515,7 +522,8 @@ class LBAFApplication:
                 logger=self.__logger,
                 file_suffix=file_suffix if file_suffix is not None else "json",
                 check_schema=check_schema,
-                expected_ranks=self.__parameters.expected_ranks)
+                expected_ranks=self.__parameters.expected_ranks,
+                ranks_per_node=self.__parameters.ranks_per_node)
 
             # Retrieve n_ranks
             n_ranks = reader.n_ranks
@@ -558,6 +566,9 @@ class LBAFApplication:
             a_min_max = []
 
         # Instantiate runtime
+        if self.__parameters.ranks_per_node > 1 and (
+                wmp := self.__parameters.work_model.get("parameters")):
+            wmp["node_bounds"] = True
         runtime = Runtime(
             phases,
             self.__parameters.work_model,
@@ -645,12 +656,15 @@ class LBAFApplication:
                     self.__parameters.grid_size[1] *
                     self.__parameters.grid_size[2] )
 
+                # Execute vt-tv
                 vttv.tvFromJson(ranks_json_str, str(vttv_params), num_ranks)
 
         # Report on rebalanced phase when available
         if rebalanced_phase:
             l_stats, w_stats = self.__print_statistics(
                 rebalanced_phase, "rebalanced", runtime.get_work_model())
+
+            # Save final load imbalance to file
             with open(
                 "imbalance.txt" if self.__parameters.output_dir is None
                 else os.path.join(
@@ -658,6 +672,7 @@ class LBAFApplication:
                     "imbalance.txt"), 'w', encoding="utf-8") as imbalance_file:
                 imbalance_file.write(f"{l_stats.get_imbalance()}")
 
+            # Save final maximum work to file
             with open(
                 "w_max.txt" if self.__parameters.output_dir is None
                 else os.path.join(

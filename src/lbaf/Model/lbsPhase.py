@@ -53,6 +53,7 @@ from .lbsBlock import Block
 from .lbsObject import Object
 from .lbsObjectCommunicator import ObjectCommunicator
 from .lbsRank import Rank
+from .lbsNode import Node
 
 
 class Phase:
@@ -132,18 +133,42 @@ class Phase:
         self.__ranks = ranks
 
     def get_ranks(self):
-        """Retrieve ranks belonging to phase."""
+        """Retrieve all ranks belonging to phase."""
         return self.__ranks
+
+    def get_nodes(self):
+        """Retrieve all nodes belonging to phase."""
+        nodes: Set[Node] = set()
+        for r in self.__ranks:
+            if (n := r.get_node()) is not None:
+                nodes.add(n)
+        return nodes
+
+    def get_node_ranks(self, node_id: int):
+        """Retrieve ranks attached to a node in phase."""
+        return [r for r in self.__ranks if r.get_node_id() == node_id]
 
     def copy_ranks(self, phase: Self):
         """Copy ranks from one phase to self."""
-        new_ranks = set()
+
+        # Minimally copy all nodes of phase when they exist
+        new_nodes: Dict[Node] = {
+            n.get_id(): Node(self.__logger, n.get_id())
+            for n in phase.get_nodes()}
+
+        # Copy all ranks of phase
+        self.__ranks: Set[Rank] = set()
         for r in phase.get_ranks():
             # Minimally instantiate rank and copy
             new_r = Rank(self.__logger)
             new_r.copy(r)
-            new_ranks.add(new_r)
-        self.set_ranks(new_ranks)
+            self.__ranks.add(new_r)
+
+            # Copy node when rank is attached to one
+            if (r_node := r.get_node()) is not None:
+                new_r_node = new_nodes[r_node.get_id()]
+                new_r.set_node(new_r_node)
+                new_r_node.add_rank(new_r)
 
     def get_rank_ids(self):
         """Retrieve IDs of ranks belonging to phase."""
@@ -545,8 +570,12 @@ class Phase:
                 # Find shared block and create if not already created in memory
                 b: Block = None
                 if not shared_id in shared_blocks:
-                    b = Block(b_id=shared_id, h_id=shared_block_spec["home_rank"], size=shared_block_spec["size"],
-                              o_ids=shared_block_spec["tasks"])
+                    b = Block(
+                        b_id=shared_id,
+                        h_id=shared_block_spec["home_rank"],
+                        size=shared_block_spec["size"],
+                        o_ids=shared_block_spec["tasks"])
+
                     # Index the shared block for next loops checks
                     shared_blocks[shared_id] = b
                 else:
@@ -662,16 +691,6 @@ class Phase:
             b_id = block.get_id()
             self.__logger.debug(
                 f"Removing object {o_id} attachment to block {b_id} on rank {r_src.get_id()}")
-
-            # Perform sanity check
-            if b_id not in r_src.get_shared_ids():
-                self.__logger.error(
-                    f"block {b_id} not present in {r_src.get_shared_ids()}")
-                raise SystemExit(1)
-
-            if not block.detach_object_id(o_id):
-                # Delete shared block if no tied object left on rank
-                r_src.delete_shared_block(block)
 
             # Replicate or update block on destination rank
             if not (b_dst := r_dst.get_shared_block_with_id(b_id)):

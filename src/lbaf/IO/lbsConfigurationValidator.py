@@ -148,6 +148,10 @@ class ConfigurationValidator:
             Optional("expected_ranks"): And(
                 int,
                 lambda x: x > 0,
+                error="Should be of type 'int' and > 0"),
+            Optional("ranks_per_node"): And(
+                int,
+                lambda x: x > 0,
                 error="Should be of type 'int' and > 0")
         })
         self.__from_samplers = Schema({

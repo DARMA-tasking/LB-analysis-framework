@@ -44,6 +44,7 @@ import abc
 from typing import List
 
 from ..IO.lbsStatistics import compute_function_statistics
+from ..Model.lbsNode import Node
 from ..Model.lbsPhase import Phase
 from ..Model.lbsWorkModelBase import WorkModelBase
 from ..Utils.lbsLogging import Logger

@@ -54,6 +54,7 @@ from ..Model.lbsBlock import Block
 from ..Model.lbsObject import Object
 from ..Model.lbsObjectCommunicator import ObjectCommunicator
 from ..Model.lbsRank import Rank
+from ..Model.lbsNode import Node
 
 class LoadReader:
     """A class to read VT Object Map files. These json files could be compressed with Brotli.
@@ -75,7 +76,13 @@ class LoadReader:
     }
 
     def __init__(
-        self, file_prefix: str, logger: Logger, file_suffix: str = "json", check_schema=True, expected_ranks=None):
+            self,
+            file_prefix: str,
+            logger: Logger,
+            file_suffix: str="json",
+            check_schema: bool=True,
+            expected_ranks=None,
+            ranks_per_node: int=1):
         # The base directory and file name for the log files
         self.__file_prefix = file_prefix
 
@@ -98,7 +105,7 @@ class LoadReader:
         manager = Manager()
         self.__metadata = manager.dict()
 
-        # imported JSON_data_files_validator module (lazy import)
+        # Lazy import of JSON_data_files_validator module
         if LoadReader.SCHEMA_VALIDATOR_CLASS is None:
             # pylint:disable=import-outside-toplevel
             from ..imported.JSON_data_files_validator import \
@@ -106,19 +113,28 @@ class LoadReader:
                 sv
             LoadReader.SCHEMA_VALIDATOR_CLASS = sv
 
-        # determine the number of ranks
+        # Determine the number of ranks
         self.n_ranks = self._get_n_ranks()
         self.__logger.info(f"Number of ranks: {self.n_ranks}")
 
-        # warn user if expected_ranks is set and is different from n_ranks
+        # Intialize nodes
+        self.__nodes = []
+        self.ranks_per_node = ranks_per_node
+        self.__logger.info(f"Ranks per node: {ranks_per_node}")
+        if self.ranks_per_node > 1:
+            n_nodes = int(self.n_ranks // self.ranks_per_node)
+            self.__nodes = [
+                Node(self.__logger, i) for i in range(0, n_nodes)]
+
+        # Warn user if expected_ranks is set and is different from n_ranks
         if self.expected_ranks is not None and self.expected_ranks != self.n_ranks:
             self.__logger.warn(f"Unexpected number of ranks ({self.expected_ranks} was expected)")
 
-        # init vt data
+        # Initialize vt data
         self.__vt_data = {}
 
+        # Load vt data concurrently with one file per rank
         if self.n_ranks > 0:
-            # Load vt data concurrently from rank 1 to n_ranks
             with Pool(context=get_context("fork")) as pool:
                 results = pool.imap_unordered(
                     self._load_vt_file, range(0, self.n_ranks))
@@ -133,22 +149,24 @@ class LoadReader:
             raise SystemExit(1)
 
     def _get_n_ranks(self):
-        """Determine the number of ranks automatically.
-        This uses the first applicable method in the following methods:
-        List all data file names matching {file_prefix}.{rank_id}.{file_suffix}
-        pattern and return max(rank_id) + 1.
-        """
+        """Determine the number of ranks automatically."""
 
-        # or default detect data files with pattern
+        # Assemble data directory name
         data_dir = f"{os.sep}".join(self.__file_prefix.split(os.sep)[:-1])
-        pattern = re.compile(rf"^{self.__file_prefix}.(\d+).{self.__file_suffix}$")
+
+        # Default highest rank ID to zero
         highest_rank = 0
+
+        # Look for pattern matching {file_prefix}.{rank_id}.{file_suffix}
+        pattern = re.compile(rf"^{self.__file_prefix}.(\d+).{self.__file_suffix}$")
         for name in os.listdir(data_dir):
             path = os.path.join(data_dir, name)
             match_result = pattern.search(path)
             if match_result:
                 rank_id = int(match_result.group(1))
                 highest_rank = max(highest_rank, rank_id)
+
+        # Return number of ranks
         return highest_rank + 1
 
     def _get_rank_file_name(self, rank_id: int):
@@ -266,9 +284,17 @@ class LoadReader:
             # No communications for this phase
             self.__communications_dict.setdefault(phase_id, {rank_id: {}})
 
-        # Instantiante rank for current phase
+
+        # Create phase rank
         phase_rank = Rank(self.__logger, rank_id)
         phase_rank.set_metadata(self.__metadata[rank_id])
+
+        # Create node when required
+        rank_node = None
+        if self.ranks_per_node > 1:
+            rank_node = self.__nodes[rank_id // self.ranks_per_node]
+            rank_node.add_rank(phase_rank)
+            phase_rank.set_node(rank_node)
 
         # Initialize storage for shared blocks information
         rank_blocks, task_user_defined = {}, {}
@@ -324,17 +350,15 @@ class LoadReader:
         # Set rank-level memory quantities of interest
         phase_rank.set_size(
             task_user_defined.get("rank_working_bytes", 0.0))
-        shared_blocks = set()
         for b_id, (b_size, objects) in rank_blocks.items():
-            # Create and add new block
-            shared_blocks.add(block := Block(
+            # Create new block
+            block = Block(
                 b_id, h_id=rank_id, size=b_size,
-                o_ids={o.get_id() for o in objects}))
+                o_ids={o.get_id() for o in objects})
 
             # Assign block to objects attached to it
             for o in objects:
                 o.set_shared_block(block)
-        phase_rank.set_shared_blocks(shared_blocks)
 
         # Returned rank and communicators per phase
         return phase_rank, rank_comm
@@ -344,12 +368,15 @@ class LoadReader:
 
         # Create storage for ranks
         ranks: List[Rank] = [None] * self.n_ranks
+
+        # Create storage for communications
         communications = {}
 
         # Iterate over all ranks
         for rank_id in range(self.n_ranks):
             # Read data for given phase and assign it to rank
-            ranks[rank_id], rank_comm = self._populate_rank(phase_id, rank_id)
+            ranks[rank_id], rank_comm = self._populate_rank(
+                phase_id, rank_id)
 
             # Merge rank communication with existing ones
             for k, v in rank_comm.items():

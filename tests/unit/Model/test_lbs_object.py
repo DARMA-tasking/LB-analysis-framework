@@ -86,9 +86,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(self.simple_obj_003._Object__communicator, self.oc)
 
     def test_object_repr(self):
-        self.assertEqual(str(self.simple_obj_001), "Object id: 1, load: 2.5")
-        self.assertEqual(str(self.simple_obj_002), "Object id: 2, load: 4.5")
-        self.assertEqual(str(self.simple_obj_003), "Object id: 3, load: 3.0")
+        self.assertEqual(str(self.simple_obj_001), "<Object id: 1, load: 2.5>")
+        self.assertEqual(str(self.simple_obj_002), "<Object id: 2, load: 4.5>")
+        self.assertEqual(str(self.simple_obj_003), "<Object id: 3, load: 3.0>")
 
     def test_object_get_id(self):
         self.assertEqual(self.simple_obj_001.get_id(), 1)

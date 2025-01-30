@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                                 lbsBlock.py
+#                                  lbsNode.py
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
 # Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
@@ -40,64 +40,45 @@
 ###############################################################################
 #@HEADER
 #
-class Block:
-    """A class representing a memory block with footprint and home."""
+
+from logging import Logger
+from typing import Set
+
+from .lbsRank import Rank
+
+class Node:
+    """A class representing a node to which a set of ranks are assigned."""
 
     def __init__(
-            self,
-            b_id: int,
-            h_id: int,
-            size: float = 0.0,
-            o_ids: set = None):
+        self,
+        logger: Logger,
+        n_id: int = -1):
 
-        if o_ids is None:
-            o_ids = set()
+        # Assign logger to instance variable
+        self.__logger = logger #pylint:disable=unused-private-member
 
-        # Block index
-        self.__index = int(b_id)
-
-        # Rank to which block is initially assigned
-        self.__home_id = int(h_id)
-
-        # Nonnegative size required to for memory footprint of this block
-        if not isinstance(size, float) or size < 0.0:
-            raise TypeError(
-                f"size: incorrect type {type(size)} or value: {size}")
-        self.__size = size
-
-        # Possibly empty set of objects initially attached to block
-        if not isinstance(o_ids, set):
-            raise TypeError(
-                f"o_ids: incorrect type {type(o_ids)}")
-        self.__attached_object_ids = o_ids
+        # Member variables passed by constructor
+        self.__index = n_id
+        self.__ranks: Set[Rank] = set()
 
     def __repr__(self):
-        return (
-            f"<Block id: {self.__index}, home id: {self.__home_id}, "
-            f"size: {self.__size}, object ids: {self.__attached_object_ids}>"
-        )
+        """Custom print."""
+        return f"<Node id: {self.__index}, {len(self.__ranks)} ranks>"
 
     def get_id(self) -> int:
-        """Return block ID."""
+        """Return node ID."""
         return self.__index
 
-    def get_home_id(self) -> int:
-        """Return block home ID."""
-        return self.__home_id
+    def get_ranks(self) -> Set[int]:
+        return self.__ranks
 
-    def get_size(self) -> float:
-        """Return block size."""
-        return self.__size
+    def add_rank(self, rank):
+        self.__ranks.add(rank)
 
-    def detach_object_id(self, o_id: int) -> int:
-        """Try to detach object ID from block and return length."""
-        try:
-            self.__attached_object_ids.remove(o_id)
-        except Exception as err:
-            raise TypeError(
-                f"object id {o_id} is not attached to block {self.get_id()}") from err
-        return len(self.__attached_object_ids)
+    def get_number_of_ranks(self) -> int:
+        return len(self.__ranks)
 
-    def attach_object_id(self, o_id: int):
-        """Attach object ID to block."""
-        self.__attached_object_ids.add(o_id)
+    def get_max_memory_usage(self) -> float:
+        """Sum all memory usages for each rank to get the node memory usage."""
+        return 0.0 + sum(
+            r.get_max_memory_usage() for r in self.__ranks)
