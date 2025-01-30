@@ -84,7 +84,6 @@ class TestConfig(unittest.TestCase):
 
         # Define the rank and declare known peers
         self.rank = Rank(r_id=0, migratable_objects=self.migratable_objects, sentinel_objects=self.sentinel_objects, logger=self.logger)
-        self.rank.set_shared_blocks(self.block_set)
         self.known_peers = {}
 
         # Instantiate the phase
