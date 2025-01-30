@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                                 lbsBlock.py
+#                               test_lbs_node.py
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
 # Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
@@ -40,64 +40,55 @@
 ###############################################################################
 #@HEADER
 #
-class Block:
-    """A class representing a memory block with footprint and home."""
+import logging
+import unittest
 
-    def __init__(
-            self,
-            b_id: int,
-            h_id: int,
-            size: float = 0.0,
-            o_ids: set = None):
+from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsRank import Rank
+from src.lbaf.Model.lbsPhase import Phase
+from src.lbaf.Model.lbsNode import Node
 
-        if o_ids is None:
-            o_ids = set()
 
-        # Block index
-        self.__index = int(b_id)
+class TestConfig(unittest.TestCase):
+    def setUp(self):
+        self.logger = logging.getLogger()
+        self.node_id = 0
+        self.ranks = set()
+        n_ranks = 10
+        self.rank_ids = set(i for i in range(n_ranks))
+        self.node = Node(logger=self.logger, n_id=self.node_id)
 
-        # Rank to which block is initially assigned
-        self.__home_id = int(h_id)
+    def test_lbs_node_get_id(self):
+        self.assertEqual(self.node.get_id(), self.node_id)
 
-        # Nonnegative size required to for memory footprint of this block
-        if not isinstance(size, float) or size < 0.0:
-            raise TypeError(
-                f"size: incorrect type {type(size)} or value: {size}")
-        self.__size = size
+    def test_lbs_node_max_memory_usage(self):
+        obj_size = 1.0
+        num_objs = len(self.rank_ids)
 
-        # Possibly empty set of objects initially attached to block
-        if not isinstance(o_ids, set):
-            raise TypeError(
-                f"o_ids: incorrect type {type(o_ids)}")
-        self.__attached_object_ids = o_ids
+        for rank_id in self.rank_ids:
+            obj = Object(
+                seq_id=rank_id,
+                r_id=rank_id,
+                size=obj_size,
+            )
+            rank = Rank(
+                logger=self.logger,
+                r_id=rank_id,
+                migratable_objects={obj})
+            self.ranks.add(rank)
+            rank.set_node(self.node)
 
-    def __repr__(self):
-        return (
-            f"<Block id: {self.__index}, home id: {self.__home_id}, "
-            f"size: {self.__size}, object ids: {self.__attached_object_ids}>"
+            self.node.add_rank(rank)
+
+        self.assertEqual(
+            self.node.get_number_of_ranks(),
+            len(self.ranks)
         )
-
-    def get_id(self) -> int:
-        """Return block ID."""
-        return self.__index
-
-    def get_home_id(self) -> int:
-        """Return block home ID."""
-        return self.__home_id
-
-    def get_size(self) -> float:
-        """Return block size."""
-        return self.__size
-
-    def detach_object_id(self, o_id: int) -> int:
-        """Try to detach object ID from block and return length."""
-        try:
-            self.__attached_object_ids.remove(o_id)
-        except Exception as err:
-            raise TypeError(
-                f"object id {o_id} is not attached to block {self.get_id()}") from err
-        return len(self.__attached_object_ids)
-
-    def attach_object_id(self, o_id: int):
-        """Attach object ID to block."""
-        self.__attached_object_ids.add(o_id)
+        self.assertEqual(
+            self.node.get_max_memory_usage(),
+            obj_size * num_objs
+        )
+        self.assertEqual(
+            self.node.get_ranks(),
+            self.ranks
+        )

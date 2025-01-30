@@ -45,22 +45,22 @@ import math
 from logging import Logger
 from typing import Optional
 
-from .lbsBlock import Block
 from .lbsObject import Object
+from .lbsBlock import Block
 from .lbsQOIDecorator import qoi
 
 class Rank:
     """A class representing a rank to which objects are assigned."""
 
     def __init__(
-        self,
-        logger: Logger,
-        r_id: int = -1,
-        migratable_objects: set = None,
-        sentinel_objects: set = None):
+            self,
+            logger: Logger,
+            r_id: int = -1,
+            migratable_objects: set = None,
+            sentinel_objects: set = None):
 
         # Assign logger to instance variable
-        self.__logger = logger #pylint:disable=unused-private-member
+        self.__logger = logger
 
         # Member variables passed by constructor
         self.__index = r_id
@@ -76,11 +76,19 @@ class Rank:
         # Initialize other instance variables
         self.__size = 0.0
 
-        # Start with empty shared block information
-        self.__shared_blocks = set()
-
         # Start with empty metadata
         self.__metadata = {}
+
+        # By default the rank is note connected to a node
+        self.__node = None
+
+    def __repr__(self):
+        """Custom print."""
+        return f"<Rank id: {self.__index}, node: {self.__node.get_id() if self.__node is not None else 'None'}>"
+
+    def __lt__(self, other):
+        """Custom order."""
+        return self.get_load() < other.get_load()
 
     def copy(self, rank):
         """Specialized copy method."""
@@ -88,16 +96,17 @@ class Rank:
         self.__index = rank.get_id()
         self.__size = rank.get_size()
 
-        # Shallow copy owned objects
-        self.__shared_blocks = copy.deepcopy(rank.__shared_blocks)
-        self.__sentinel_objects = copy.deepcopy(rank.__sentinel_objects)
+        # Shallow copy objects
+        self.__sentinel_objects = copy.copy(rank.__sentinel_objects)
         self.__migratable_objects = copy.copy(rank.__migratable_objects)
 
-    def __lt__(self, other):
-        return self.get_load() < other.get_load()
+    def set_node(self, node):
+        """Set node to which self is attached, possibly none."""
+        self.__node = node
 
-    def __repr__(self):
-        return f"<Rank index: {self.__index}>"
+    def get_node(self) -> int:
+        """Return node to which self is attached, possibly none."""
+        return self.__node
 
     @qoi
     def get_id(self) -> int:
@@ -125,47 +134,17 @@ class Rank:
         """Set rank's metadata."""
         self.__metadata = metadata
 
+    def get_shared_blocks(self) -> set:
+        """Return shared blocks."""
+        return {o.get_shared_block() for o in self.get_objects()} - {None}
+
     def get_shared_ids(self) -> set:
         """Return IDs of shared blocks."""
-        return {b.get_id() for b in self.__shared_blocks}
-
-    def set_shared_blocks(self, blocks: set):
-        """Set rank shared memory blocks."""
-        # A set is required for shared memory blocks
-        if not isinstance(blocks, set):
-            self.__logger.error(f"shared blocks: incorrect type {type(blocks)}")
-            raise SystemExit(1)
-
-        # Assign shared blocks
-        self.__shared_blocks = blocks
-
-    def add_shared_block(self, block: Block):
-        """Add rank shared memory block."""
-        # A Block instance is required to add shared memory block
-        if not isinstance(block, Block):
-            self.__logger.error(f"block: incorrect type {type(block)}")
-            raise SystemExit(1)
-
-        # Update instance variable without ownership check
-        self.__shared_blocks.add(block)
-
-    def delete_shared_block(self, block: Block):
-        """Try to delete shared memory block."""
-        try:
-            del_block = next(
-                b for b in self.__shared_blocks
-                if b.get_id() == block.get_id())
-        except StopIteration:
-            self.__logger.error(
-                f"no shared block with ID {block.get_id()} to delete on rank {self.get_id()}")
-            raise SystemExit(1)
-
-        # Delete found block
-        self.__shared_blocks.remove(del_block)
+        return {b.get_id() for b in self.get_shared_blocks()}
 
     def get_shared_block_with_id(self, b_id: int) -> Block:
         """Return shared memory block with given ID when it exists."""
-        for block in self.__shared_blocks:
+        for block in self.get_shared_blocks():
             if block.get_id() == b_id:
                 return block
         return None
@@ -173,31 +152,31 @@ class Rank:
     @qoi
     def get_number_of_shared_blocks(self) -> float:
         """Return number of shared memory blocks on rank."""
-        return len(self.__shared_blocks)
+        return len(self.get_shared_blocks())
 
     @qoi
     def get_number_of_homed_blocks(self) -> float:
         """Return number of memory blocks on rank also homed there."""
         return sum(
             b.get_home_id() == self.get_id()
-            for b in self.__shared_blocks)
+            for b in self.get_shared_blocks())
 
     @qoi
     def get_number_of_uprooted_blocks(self) -> float:
         """Return number of uprooted memory blocks on rank."""
-        return len(self.__shared_blocks) - self.get_number_of_homed_blocks()
+        return len(self.get_shared_blocks()) - self.get_number_of_homed_blocks()
 
     @qoi
     def get_homed_blocks_ratio(self) -> float:
         """Return fraction of memory blocks on rank also homed there."""
-        if len(self.__shared_blocks) > 0:
-            return self.get_number_of_homed_blocks() / len(self.__shared_blocks)
+        if (l := len(self.get_shared_blocks())) > 0:
+            return self.get_number_of_homed_blocks() / l
         return math.nan
 
     @qoi
     def get_shared_memory(self):
         """Return total shared memory on rank."""
-        return float(sum(b.get_size() for b in self.__shared_blocks))
+        return float(sum(b.get_size() for b in self.get_shared_blocks()))
 
     def get_objects(self) -> set:
         """Return all objects assigned to rank."""
