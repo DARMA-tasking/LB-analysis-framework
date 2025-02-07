@@ -49,7 +49,10 @@ import os
 import json
 import yaml
 import argparse
-
+import sys
+import importlib
+if importlib.util.find_spec("lbaf") is None:
+    sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
 from lbaf.IO.lbsVTDataReader import LoadReader
 from lbaf.Utils.lbsLogging import get_logger, Logger
 from typing import Optional
