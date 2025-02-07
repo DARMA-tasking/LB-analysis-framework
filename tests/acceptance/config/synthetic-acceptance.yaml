@@ -19,12 +19,12 @@ algorithm:
   phase_id: 0
   parameters:
     n_iterations: 8
-    n_rounds: 2
+    n_rounds: 3
     fanout: 2
     order_strategy: element_id
     transfer_strategy: Recursive
     criterion: Tempered
-    max_objects_per_transfer: 1
+    max_objects_per_transfer: 2
     deterministic_transfer: true
 
 # Specify output
