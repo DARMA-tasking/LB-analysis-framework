@@ -28,6 +28,6 @@ algorithm:
     deterministic_transfer: true
 
 # Specify output
-logging_level: info
+logging_level: debug
 output_dir: ../output
 output_file_stem: output_file
