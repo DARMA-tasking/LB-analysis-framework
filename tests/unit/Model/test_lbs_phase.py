@@ -61,7 +61,7 @@ class TestConfig(unittest.TestCase):
         self.phase = Phase(self.logger, 0, reader=self.reader)
 
     def test_lbs_phase_initialization(self):
-        self.assertEqual(self.phase._Phase__ranks, [])
+        self.assertEqual(self.phase._Phase__ranks, set())
         self.assertEqual(self.phase._Phase__phase_id, 0)
         self.assertEqual(self.phase._Phase__edges, None)
 
