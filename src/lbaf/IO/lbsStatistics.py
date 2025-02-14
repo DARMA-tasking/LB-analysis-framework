@@ -427,8 +427,9 @@ def print_function_statistics(values, function, var_name, logger: Logger):
         logger)
 
     # Print more detailed information if requested
-    for i, v in enumerate(values):
-        logger.debug(f"\t{i}: {function(v)}")
+    for v in values:
+        id = f"{v.get_id()}: " if hasattr(v, "get_id") and callable(getattr(v, "get_id")) else ""
+        logger.debug(f"\t{id}{function(v)}")
 
     # Return descriptive statistics instance
     return stats
