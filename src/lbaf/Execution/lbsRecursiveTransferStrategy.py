@@ -107,8 +107,10 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         max_obj_transfers = 0
 
         # Map rank to targets and ordered migratable objects
-        ranks = phase.get_ranks()
-        rank_targets = self._get_ranks_to_traverse(ranks, known_peers)
+        phase_ranks = phase.get_ranks()
+        if self._deterministic_transfer:
+            phase_ranks = sorted(phase_ranks, key=lambda r: r.get_id())
+        rank_targets = self._get_ranks_to_traverse(phase_ranks, known_peers)
 
         # Iterate over traversable ranks
         for r_src, targets in rank_targets.items():
@@ -172,7 +174,7 @@ class RecursiveTransferStrategy(TransferStrategyBase):
         # Return transfer phase counts
         self._logger.info(
             f"Maximum number of objects transferred at once: {max_obj_transfers}")
-        return len(ranks) - len(rank_targets), self._n_transfers, self._n_rejects
+        return len(phase_ranks) - len(rank_targets), self._n_transfers, self._n_rejects
 
     @staticmethod
     def arbitrary(objects: set, _):

@@ -254,7 +254,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
-        rank_targets = self._get_ranks_to_traverse(phase.get_ranks(), known_peers)
+        phase_ranks = phase.get_ranks()
+        if self._deterministic_transfer:
+            phase_ranks = sorted(phase_ranks, key=lambda r: r.get_id())
+        rank_targets = self._get_ranks_to_traverse(phase_ranks, known_peers)
 
         # Iterate over ranks
         for r_src, targets in rank_targets.items():

@@ -44,6 +44,7 @@ import abc
 import math
 import random
 from logging import Logger
+from typing import Union, Set, List
 
 from ..IO.lbsStatistics import inverse_transform_sample
 from ..Execution.lbsCriterionBase import CriterionBase
@@ -99,7 +100,7 @@ class TransferStrategyBase:
         self._n_transfers = 0
         self._n_rejects = 0
 
-    def _get_ranks_to_traverse(self, ranks: list, known_peers: dict) -> dict:
+    def _get_ranks_to_traverse(self, ranks: Union[List, Set], known_peers: dict) -> dict:
         """Prepare randomized dict of ranks to transfer targets."""
 
         # Initialize dictionary of traversable ranks to targets
