@@ -160,8 +160,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
             # Broadcast message to random sample of ranks excluding self
             other_ranks = [r for r in phase_ranks if r!= r_snd] if self._deterministic_transfer else phase_ranks.difference({r_snd})
-            for r_rcv in random.sample(
-                other_ranks, min(self.__fanout, n_r - 1)):
+            for r_rcv in random.sample(other_ranks, min(self.__fanout, n_r - 1)):
                 messages.setdefault(r_rcv, []).append(msg)
 
         # Sanity check prior to forwarding iterations
