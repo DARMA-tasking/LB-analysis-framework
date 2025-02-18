@@ -78,6 +78,8 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         # Prepare input data for rank order enumerator
         self._logger.info("Starting optimizer")
         phase_ranks = self._phase.get_ranks()
+        if self._deterministic_transfer:
+            phase_ranks = sorted(phase_ranks, key=lambda r: r.get_id())
 
         # Initialize max shared ID
         max_shared_ids = 0

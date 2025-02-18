@@ -24,10 +24,10 @@ algorithm:
     order_strategy: element_id
     transfer_strategy: Recursive
     criterion: Tempered
-    max_objects_per_transfer: 2
+    max_objects_per_transfer: 1
     deterministic_transfer: true
 
 # Specify output
-logging_level: info
+logging_level: debug
 output_dir: ../output
 output_file_stem: output_file

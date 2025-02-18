@@ -144,12 +144,14 @@ class InformAndTransferAlgorithm(AlgorithmBase):
     def __execute_information_stage(self):
         """Execute information stage."""
         # Build set of all ranks in the phase
-        rank_set = set(self._rebalanced_phase.get_ranks())
+        phase_ranks = self._rebalanced_phase.get_ranks()
+        if self._deterministic_transfer:
+            phase_ranks = sorted(phase_ranks, key=lambda r: r.get_id())
 
         # Initialize information messages and known peers
         messages, self.__known_peers = {}, {}
-        n_r = len(rank_set)
-        for r_snd in rank_set:
+        n_r = len(phase_ranks)
+        for r_snd in phase_ranks:
             # Make rank aware of itself
             self.__known_peers[r_snd] = {r_snd}
 
@@ -157,8 +159,8 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             msg = Message(0, {r_snd})
 
             # Broadcast message to random sample of ranks excluding self
-            for r_rcv in random.sample(
-                list(rank_set.difference({r_snd})), min(self.__fanout, n_r - 1)):
+            other_ranks = [r for r in phase_ranks if r!= r_snd] if self._deterministic_transfer else phase_ranks.difference({r_snd})
+            for r_rcv in random.sample(other_ranks, min(self.__fanout, n_r - 1)):
                 messages.setdefault(r_rcv, []).append(msg)
 
         # Sanity check prior to forwarding iterations
@@ -176,7 +178,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
 
         # Perform sanity check on first round of information aggregation
         n_k = 0
-        for r in rank_set:
+        for r in phase_ranks:
             # Retrieve and tally peers known to rank
             k_p = self.__known_peers.get(r, {})
             n_k += len(k_p)
@@ -193,7 +195,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             messages.clear()
 
             # Iterate over all ranks
-            for r_snd in rank_set:
+            for r_snd in phase_ranks:
                 # Collect message when destination list is not empty
                 dst, msg = self.__forward_message(
                     i, r_snd, self.__fanout)
@@ -206,7 +208,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                     self.__process_message(r_rcv, m)
 
             # Report on known peers when requested
-            for rank in rank_set:
+            for rank in phase_ranks:
                 self._logger.debug(
                     f"Peers known to rank {rank.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
