@@ -54,6 +54,13 @@ class TaskSpecification(TypedDict):
     # The optional collection id
     collection_id: NotRequired[int]
 
+    # Additional parameters
+    seq_id: int
+    migratable: bool
+    home: int
+    node: int
+    user_defined: dict
+
 
 class SharedBlockSpecification(TypedDict):
     # The shared block size
@@ -62,6 +69,8 @@ class SharedBlockSpecification(TypedDict):
     home: int
     # The set of tasks accessing this shared block
     tasks: Set[int]
+    # the shared block ID
+    shared_id: int
 
 CommunicationSpecification = TypedDict('CommunicationSpecification', {
     'size': float,
@@ -72,6 +81,8 @@ CommunicationSpecification = TypedDict('CommunicationSpecification', {
 class RankSpecification(TypedDict):
     # The task ids
     tasks: Set[int]
+    id: int
+    user_defined: dict
 
 class PhaseSpecification(TypedDict):
     """Dictionary representing a phase specification"""
@@ -96,6 +107,9 @@ class PhaseSpecification(TypedDict):
 
     # Rank distributions
     ranks: Dict[int,RankSpecification] # where index = rank id
+
+    # Phase id
+    id: int
 
 class PhaseSpecificationNormalizer:
     """
