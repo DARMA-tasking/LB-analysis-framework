@@ -57,7 +57,7 @@ lbaf-vt-data-files-maker \
     --data-stem=/home/john/data-maker/dataset1
 ```
 
-- Generate dataset from specification file and sample configuration file configured to use the generated data stem
+- Generate dataset from specification file and Python configuration file configured to use the generated data stem
 
 ```
 lbaf-vt-data-files-maker \
@@ -69,8 +69,7 @@ lbaf-vt-data-files-maker \
 - Generate dataset from specification defined interactively in CLI
 `lbaf-vt-data-files-maker --interactive`
 
-Sample specification: a sample specification can be loaded in the interactive mode and be printed as an example in
-either YAML or JSON format.
+Python specification: a Python file can be loaded in the interactive mode and be printed as an example in either YAML or JSON format.
 Other examples can be found as unit tests configuration files in the the tests/unit/config/phases directory
 
 """
@@ -193,7 +192,7 @@ class JSONDataFilesMaker():
             allow_abbrev=False,
             description=(
                 "Utility to generate a data set supporting shared blocks by using a specification file.\n" +
-                "Note: a sample specification can be loaded in the interactive mode and be printed\n" +
+                "Note: a Python specification can be loaded in the interactive mode and be printed\n" +
                 "as an example in either YAML or JSON format."),
             prompt_default=False,
             formatter_class=RawTextHelpFormatter
@@ -282,8 +281,8 @@ class JSONDataFilesMaker():
 
         self.__args.data_stem = data_stem
 
-    def load_sample(self, use_explicit_keys: bool = False):
-        """Create a new sample specification as represented by diagram specified in issue #506
+    def load_specification(self, use_explicit_keys: bool = False):
+        """Create a new Python specification as represented by diagram specified in issue #506
         This method implementation indicates also how to create a specification from Python code
         """
 
@@ -771,8 +770,8 @@ class JSONDataFilesMaker():
     def run_extra_action(self, action: str):
         """Run an extra action"""
 
-        if action == "Extra: load sample":
-            self.load_sample(use_explicit_keys=True)
+        if action == "Extra: load Python specification":
+            self.load_specification(use_explicit_keys=True)
             action = "Build"
         elif action == "Extra: print":
             frmt = self.__prompt.prompt(
@@ -856,7 +855,7 @@ class JSONDataFilesMaker():
         self.__args.interactive = True
 
         # Loop on interactive mode available actions
-        action: str = "Make Task"  # default action is a sample
+        action: str = "Make Task"  # default action is a Python specticication
         while action != "Build JSON file":
             action = self.__prompt.prompt(
                 "Choose an action ?",
@@ -869,7 +868,7 @@ class JSONDataFilesMaker():
                     "Build",
                     "Extra: load file",
                     "Extra: run",
-                    "Extra: load sample",
+                    "Extra: load Python specification",
                     "Extra: print",
                     "Extra: save",
                     "Exit"
