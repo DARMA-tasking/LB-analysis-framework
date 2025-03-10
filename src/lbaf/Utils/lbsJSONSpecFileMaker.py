@@ -72,7 +72,7 @@ class JSONSpecFileMaker:
         for t in self.tasks.keys():
             assert t in self.assignments, \
                    f"Task {t} has not been assigned. Call " \
-                   f"assignTask({t}, <rank_id>, <phase_id>)"
+                   f"assignTask({t}, <rank_id>)"
 
 
 
@@ -137,27 +137,17 @@ class JSONSpecFileMaker:
         rank = RankSpecification({
             "id": id
         })
-
+        self.ranks[id] = rank
         # Optionally add tasks to the rank
-        t_set : Set[TaskSpecification] = set()
         if tasks is not None:
             for t in tasks:
-                if isinstance(t, int):
-                    t_set.add(t)
-                elif isinstance(t, dict):
-                    t_set.add(t["seq_id"])
-                else:
-                    raise RuntimeError(
-                        f"Tasks must be either ints (seq_ids) or TaskSpecifications."
-                    )
-        rank["tasks"] = t_set
+                self.assignTask(t, id)
 
         # Optionally add user_defined info to the rank
         if user_defined is not None:
-            rank["user_defined"] = user_defined
+            self.ranks[id]["user_defined"] = user_defined
 
-        self.ranks[id] = rank
-        return rank
+        return self.ranks[id]
 
     def assignTask(self,
             task: Union[int, TaskSpecification],
@@ -176,6 +166,8 @@ class JSONSpecFileMaker:
         t["home"] = rank_id
         if t["node"] == -1:
             t["node"] = rank_id
+        if "tasks" not in r:
+            r["tasks"] = set()
         r["tasks"].add(task_id)
 
         # If the task belongs to a shared_block,
