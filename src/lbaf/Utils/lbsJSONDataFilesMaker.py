@@ -69,9 +69,6 @@ lbaf-vt-data-files-maker \
 - Generate dataset from specification defined interactively in CLI
 `lbaf-vt-data-files-maker --interactive`
 
-Python specification: a Python file can be loaded in the interactive mode and be printed as an example in either YAML or JSON format.
-Other examples can be found as unit tests configuration files in the the tests/unit/config/phases directory
-
 """
 from argparse import RawTextHelpFormatter
 from datetime import datetime
@@ -281,70 +278,6 @@ class JSONDataFilesMaker():
 
         self.__args.data_stem = data_stem
 
-    def load_specification(self, use_explicit_keys: bool = False):
-        """Create a new Python specification as represented by diagram specified in issue #506
-        This method implementation indicates also how to create a specification from Python code
-        """
-
-        spec = PhaseSpecification({
-            "tasks": [
-                TaskSpecification({
-                    "collection_id": 0,
-                    "time": 2.0
-                }),
-                TaskSpecification({
-                    "collection_id": 0,
-                    "time": 3.5
-                }),
-                TaskSpecification({
-                    "collection_id": 0,
-                    "time": 5.0
-                })
-            ],
-            "communications": [
-                CommunicationSpecification({
-                    "size": 10000.0,  # c1 (size)
-                    "from": 0,  # from t1
-                    "to": 2  # to t3
-                }),
-                CommunicationSpecification({
-                    "size": 15000.0,  # c2 (size)
-                    "from": 1,  # from t2
-                    "to": 2  # to t3
-                }),
-                CommunicationSpecification({
-                    "size": 20000.0,  # c3 (size)
-                    "from": 2,  # from t3
-                    "to": 1  # to t2
-                })
-            ],
-            "shared_blocks": [
-                # S1
-                SharedBlockSpecification({
-                    "size": 10000.0,
-                    "home_rank": 0,
-                    "tasks": {0, 1}
-                }),
-                # S2
-                SharedBlockSpecification({
-                    "size": 15000.0,
-                    "home_rank": 1,
-                    "tasks": {2}
-                })
-            ],
-            "ranks": {
-                0: RankSpecification({"tasks": {0, 1}}),
-                1: RankSpecification({"tasks": {2}})
-            }
-        })
-
-        if use_explicit_keys:
-            spec["tasks"] = dict(enumerate(spec["tasks"]))
-            spec["communications"] = dict(enumerate(spec["communications"]))
-            spec["shared_blocks"] = dict(enumerate(spec["shared_blocks"]))
-
-        self.spec = spec
-
     def load_spec_from_file(self, file_path) -> Optional[PhaseSpecificationNormalizer]:
         """Load a specification from a file (Yaml or Json)
 
@@ -356,7 +289,7 @@ class JSONDataFilesMaker():
             raise FileNotFoundError("File not found")
 
         spec = PhaseSpecification()
-        with open(file_path, "r", encoding="utf-8") as file_stream:
+        with open(file_path, 'r', encoding="utf-8") as file_stream:
             if file_path.endswith(".json"):
                 spec_dict = json.load(file_stream)
                 # in json keys are strings (int not supported by the JSON format) so apply casts as needed
@@ -770,10 +703,7 @@ class JSONDataFilesMaker():
     def run_extra_action(self, action: str):
         """Run an extra action"""
 
-        if action == "Extra: load Python specification":
-            self.load_specification(use_explicit_keys=True)
-            action = "Build"
-        elif action == "Extra: print":
+        if action == "Extra: print":
             frmt = self.__prompt.prompt(
                 "Format ?", choices=["yaml", "json", "python (debug)"], required=True, default="yaml")
             self.print(frmt)
@@ -794,10 +724,19 @@ class JSONDataFilesMaker():
             with open(path, "wt", encoding="utf-8") as o_file:
                 normalized_spec = PhaseSpecificationNormalizer().normalize(self.spec)
                 if frmt == "json":
-                    o_file.write(json.dumps(normalized_spec, sort_keys=True, indent=2, separators=(',', ": ")))
+                    o_file.write(
+                        json.dumps(
+                            normalized_spec,
+                            sort_keys=True,
+                            indent=2,
+                            separators=(',', ": ")))
                 elif frmt == "yaml":
                     o_file.write(
-                        yaml.dump(normalized_spec, indent=2, Dumper=YamlSpecificationDumper, default_flow_style=None))
+                        yaml.dump(
+                            normalized_spec,
+                            indent=2,
+                            Dumper=YamlSpecificationDumper,
+                            default_flow_style=None))
 
     def run_action(self, action: str):
         """Run an action"""
@@ -868,7 +807,6 @@ class JSONDataFilesMaker():
                     "Build",
                     "Extra: load file",
                     "Extra: run",
-                    "Extra: load Python specification",
                     "Extra: print",
                     "Extra: save",
                     "Exit"
