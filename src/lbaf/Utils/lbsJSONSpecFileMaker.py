@@ -4,7 +4,8 @@ from typing import Set, List, Union
 
 from lbaf.Execution.lbsPhaseSpecification import (
     PhaseSpecification, SharedBlockSpecification,
-    RankSpecification, TaskSpecification
+    RankSpecification, TaskSpecification,
+    PhaseSpecificationNormalizer
 )
 
 class JSONSpecFileMaker:
@@ -16,11 +17,9 @@ class JSONSpecFileMaker:
         self.tasks = {}
         self.ranks = {}
         self.comms = {}
-        self.phases = {}
         self.shared_blocks = {}
 
-        self.assignments = {} # { task_id: (rank_id, phase_id) }
-                              # { phase_id: (task_id, rank_id) }
+        self.assignments = {} # { task_id: rank_id }
 
         self.current_ids = {
             "seq": 0,
@@ -69,52 +68,51 @@ class JSONSpecFileMaker:
         assert test_id in self.id_sets[id_type], \
                f"Task {test_id} has not been created yet. Use createTask() method."
 
-    def assertTaskHasNotBeenAssignedThisPhase_(self, task_id: int, phase_id: int):
-        if phase_id in self.assignments:
-            phase_assignments = self.assignments[phase_id]
-            for t, r in phase_assignments:
-                assert task_id != t, f"Task {t} is already assigned to rank {r} on phase {phase_id}."
-
-    # def assertAllTasksHaveBeenAssigned_(self):
-    #     for t in self.tasks.keys():
-
-    #         assert t in self.assignments, \
-    #                f"Task {t} has not been assigned. Call " \
-    #                f"assignTask({t}, <rank_id>, <phase_id>)"
+    def assertAllTasksHaveBeenAssigned_(self):
+        for t in self.tasks.keys():
+            assert t in self.assignments, \
+                   f"Task {t} has not been assigned. Call " \
+                   f"assignTask({t}, <rank_id>, <phase_id>)"
 
 
 
     ###########################################################################
     ## Public Functions for creating JSON fields
 
-    def createTask(self, time: float, seq_id: int = -1, collection_id: int = None, migratable: bool = True, home = -1, node = -1, user_defined: dict = None) -> TaskSpecification:
+    def createTask(self,
+            time: float,
+            seq_id: int = -1,
+            collection_id: int = 7,
+            migratable: bool = True,
+            home = -1,
+            node = -1,
+            user_defined: dict = None) -> TaskSpecification:
         seq_id = self.checkID_(seq_id, "seq")
-
         task = TaskSpecification({
             "time": time,
             "seq_id": seq_id,
             "collection_id": collection_id,
             "migratable": migratable,
             "home": home,
-            "node": node,
-            "user_defined": user_defined
+            "node": home if node == -1 else node,
         })
-
+        if user_defined is not None:
+            task["user_defined"] = user_defined
         self.tasks[seq_id] = task
-
         return task
 
-    def createSharedBlock(
-            self, bytes: float,
+    def createSharedBlock(self,
+            bytes: float,
             tasks: Union[List[int], List[TaskSpecification]],
-            rank_id: int = 0, # this is hard-coded to make the code run
+            rank_id: int = -1,
             id: int = -1):
         shared_id = self.checkID_(id, "shared")
         shared_block = SharedBlockSpecification({
             "size": bytes,
             "shared_id": shared_id,
-            "home": rank_id
         })
+        if rank_id >= 0:
+            shared_block["home_rank"] = rank_id
         # Option to assign tasks to shared block
         task_specs = {}
         if tasks is not None:
@@ -130,59 +128,12 @@ class JSONSpecFileMaker:
         self.shared_blocks[shared_id] = shared_block
         return shared_block
 
-    def createPhase(
-            self, id: int = -1,
-            rank: Union[int, RankSpecification] = None,
-            tasks: Union[List[int], List[TaskSpecification]] = None,
-            shared_blocks: Union[List[int], List[SharedBlockSpecification]] = None
-        ) -> PhaseSpecification:
-        id = self.checkID_(id, "phase")
-        phase = PhaseSpecification({
-            "id": id
-        })
-
-        # Option to assign phase to rank
-        if rank is not None:
-            if isinstance(rank, int):
-                phase["ranks"] = {rank, self.ranks[rank]}
-
-        # Option to assign tasks to phase
-        task_specs = {}
-        if tasks is not None:
-            for t in tasks:
-                if isinstance(t, int):
-                    task_specs[t] = self.tasks[t]
-                elif isinstance(t, dict):
-                    task_specs[t["seq_id"]] = t
-                else:
-                    raise RuntimeError(
-                        f"tasks must be a list of ints (IDs) or TaskSpecifications")
-        phase["tasks"] = task_specs
-
-        # Option to assign shared_blocks to phase
-        if shared_blocks is not None:
-            sb_specs = {}
-            for sb in shared_blocks:
-                if isinstance(sb, int):
-                    sb_specs[sb] = self.shared_blocks[sb]
-                elif isinstance(sb, dict):
-                    sb_specs[sb["shared_id"]] = sb
-                else:
-                    raise RuntimeError(
-                        f"shared_blocks must be a list of ints (shared_ids) "
-                        f"or SharedBlockSpecifications"
-                    )
-
-        self.phases[id] = phase
-        return id
-
-    def createRank(
-            self, id: int = -1,
+    def createRank(self,
+            id: int = -1,
             tasks: Union[List[int], List[TaskSpecification]] = None,
             user_defined: dict = None
         ) -> RankSpecification:
         id = self.checkID_(id, "rank")
-
         rank = RankSpecification({
             "id": id
         })
@@ -210,7 +161,6 @@ class JSONSpecFileMaker:
 
     def assignTask(self,
             task: Union[int, TaskSpecification],
-            phase: Union[int, PhaseSpecification],
             rank: Union[int, RankSpecification]
         ) -> None:
         task_id = task if isinstance(task, int) else task["seq_id"]
@@ -219,23 +169,23 @@ class JSONSpecFileMaker:
         rank_id = rank if isinstance(rank, int) else rank["id"]
         r = rank if isinstance(rank, dict) else self.ranks[rank_id]
 
-        phase_id = phase if isinstance(phase, int) else phase["id"]
-        p = phase if isinstance(phase, dict) else self.phases[phase_id]
-
         self.assertIDExists_(task_id, "seq")
-        self.assertIDExists_(phase_id, "phase")
         self.assertIDExists_(rank_id, "rank")
 
-        self.assertTaskHasNotBeenAssignedThisPhase_(task_id, phase_id)
-
         # Make assignments
-        print(r)
         t["home"] = rank_id
+        if t["node"] == -1:
+            t["node"] = rank_id
         r["tasks"].add(task_id)
-        p["tasks"][task_id] = t
+
+        # If the task belongs to a shared_block,
+        # update the block's home rank as well
+        for sb in self.shared_blocks.values():
+            if "home_rank" not in sb and task_id in sb.get("tasks", []):
+                sb["home_rank"] = rank_id
 
         # Keep track of assignment
-        self.assignments[phase_id] = (task_id, rank_id)
+        self.assignments[task_id] = rank_id
 
 
     ###########################################################################
@@ -243,9 +193,6 @@ class JSONSpecFileMaker:
 
     def getRank(self, id: int) -> RankSpecification:
         return self.ranks[id]
-
-    def getPhase(self, id: int) -> PhaseSpecification:
-        return self.phases[id]
 
     def getTask(self, seq_id: int) -> TaskSpecification:
         return self.tasks[seq_id]
@@ -256,27 +203,21 @@ class JSONSpecFileMaker:
     ###########################################################################
     ## Writer
 
-    def write(self, spec_path: str = None):
-        # self.assertAllTasksHaveBeenAssigned_()
-        spec = {
-            "tasks": [task for task in self.tasks.values()],
-            "communications": [comm for comm in self.comms.values()],
-            "ranks": {rank["id"]: rank["tasks"] for rank in self.ranks.values()},
-            "shared_blocks": [
-                {
-                    "size": sb["size"],
-                    "tasks": sb["tasks"],
-                    "home_rank": sb["home"]
-                } for sb in self.shared_blocks.values()
-            ]
-        }
+    def write(self, path: str = None):
+        self.assertAllTasksHaveBeenAssigned_()
+        phase = PhaseSpecification({
+            "tasks": self.tasks,
+            "shared_blocks": self.shared_blocks,
+            "communications": self.comms,
+            "ranks": self.ranks,
+            "id": self.checkID_(0, "phase")
+        })
 
-        # Create the output dir if it doesn't exist
-        if spec_path is None:
-            spec_path = os.path.join(os.getcwd(), "spec.yaml")
-        if not os.path.isdir(os.path.dirname(spec_path)):
-            os.makedirs(os.path.dirname(spec_path))
+        norm = PhaseSpecificationNormalizer()
+        spec = norm.normalize(phase)
 
         # Write out the spec
-        with open(spec_path, 'w') as output_file:
+        path = os.path.join(os.getcwd(), "spec.yaml") if path is None else path
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w') as output_file:
             yaml.dump(spec, output_file, default_flow_style=False)

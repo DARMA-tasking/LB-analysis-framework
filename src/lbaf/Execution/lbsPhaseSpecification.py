@@ -66,7 +66,7 @@ class SharedBlockSpecification(TypedDict):
     # The shared block size
     size: float
     # The ID of the unique rank to which a shared block ultimately belong
-    home: int
+    home_rank: int
     # The set of tasks accessing this shared block
     tasks: Set[int]
     # the shared block ID
