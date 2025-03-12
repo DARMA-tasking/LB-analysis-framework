@@ -51,15 +51,18 @@ else:
 class TaskSpecification(TypedDict):
     # The task time
     time: float
-    # The optional collection id
-    collection_id: NotRequired[int]
-
-    # Additional parameters
+    # The task's sequential ID
     seq_id: int
+    # Whether the task is migratable or not
     migratable: bool
+    # The task's home rank
     home: int
+    # The task's current node
     node: int
-    user_defined: dict
+    # The collection id
+    collection_id: NotRequired[int]
+    # User-defined parameters
+    user_defined: NotRequired[dict]
 
 
 class SharedBlockSpecification(TypedDict):
@@ -182,7 +185,12 @@ class PhaseSpecificationNormalizer:
                 data.get("tasks", []),
                 lambda t: TaskSpecification(dict_merge(
                     { "time": t.get("time", 0.0) },
-                    { "collection_id": t.get("collection_id", None)} if "collection_id" in t else {}
+                    { "seq_id": t.get("seq_id", None)} if "seq_id" in t else {},
+                    { "migratable": t.get("migratable", True)} if "migratable" in t else {},
+                    { "home": t.get("home", 0)} if "home" in t else {},
+                    { "node": t.get("node", 0)} if "node" in t else {},
+                    { "collection_id": t.get("collection_id", None)} if "collection_id" in t else {},
+                    { "user_defined": t.get("user_defined", {})} if "user_defined" in t else {}
                 ))
             ),
             "shared_blocks": self.__normalize_member(
@@ -190,7 +198,8 @@ class PhaseSpecificationNormalizer:
                 lambda b: SharedBlockSpecification({
                     "size": b.get("size", 0.0),
                     "tasks": set(b.get("tasks", {})),
-                    "home_rank": b.get("home_rank")
+                    "home_rank": b.get("home_rank"),
+                    "shared_id": b.get("shared_id")
                 })
             ),
             "communications": self.__normalize_member(
@@ -200,7 +209,9 @@ class PhaseSpecificationNormalizer:
             "ranks": self.__normalize_member(
                 data.get("ranks", []),
                 lambda r: RankSpecification({
-                    "tasks": set(r.get("tasks", []))
+                    "tasks": set(r.get("tasks", [])),
+                    "id": set(r.get("id", None)),
+                    "user_defined": set(r.get("user_defined", {}) if "user_defined" in r else {})
                 })
             )
         })
