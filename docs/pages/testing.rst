@@ -68,7 +68,6 @@ Acceptance Test Configuration
   work_model:
     name: AffineCombination
     parameters:
-      alpha: 1.
       beta: 0.
       gamma: 0.
 
