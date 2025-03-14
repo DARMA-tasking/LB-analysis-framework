@@ -122,7 +122,6 @@ Stepper Test Configuration
   work_model:
     name: AffineCombination
     parameters:
-      alpha: 1.
       beta: 1.0e-8
       gamma: 0.
 
