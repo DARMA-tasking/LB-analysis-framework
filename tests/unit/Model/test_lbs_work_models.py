@@ -70,19 +70,15 @@ class TestConfig(unittest.TestCase):
                          self.rank_load)
 
     def test_lbs_affine_combination_work_model(self):
-        alpha = 1.0
         beta = 1.0
         gamma = 1.0
         upper_bounds_dict = {}
         upper_bounds_dict["max_memory_usage"] = 8.0e+9
-        affine_params = {"alpha": alpha,
-                         "beta": beta,
+        affine_params = {"beta": beta,
                          "gamma": gamma,
                          "upper_bounds": upper_bounds_dict}
 
         affine_combination_work_model = WorkModelBase.factory("AffineCombination", parameters=affine_params, lgr=self.logger)
-        self.assertEqual(affine_combination_work_model.get_alpha(),
-                         alpha)
         self.assertEqual(affine_combination_work_model.get_beta(),
                          beta)
         self.assertEqual(affine_combination_work_model.get_gamma(),

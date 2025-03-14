@@ -12,7 +12,7 @@ class TestSyntheticBlocksLB(unittest.TestCase):
     def tearDown(self):
         return
 
-    def generate_configuration(self, alpha, beta, gamma):
+    def generate_configuration(self, beta, gamma):
         """Creates and returns the path to a YAML configuration file."""
         # Determine filepaths
         acceptance_dir = os.path.dirname(__file__)
@@ -31,7 +31,6 @@ class TestSyntheticBlocksLB(unittest.TestCase):
             "work_model": {
                 "name": "AffineCombination",
                 "parameters": {
-                    "alpha": alpha,
                     "beta": beta,
                     "gamma": gamma,
                     "upper_bounds": {
@@ -90,19 +89,16 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         # Initialize test cases
         test_cases = {
             "load_only": {
-                "alpha": 1.0,
                 "beta": 0.0,
                 "gamma": 0.0,
                 "W_max": 2.5 # optimum is 2.0, but accept <= 2.5
             },
             "off_node_communication_only": {
-                "alpha": 0.0,
                 "beta": 1.0,
                 "gamma": 0.0,
                 "W_max": 0.0
             },
             "load+off_node_communication": {
-                "alpha": 1.0,
                 "beta": 1.0,
                 "gamma": 0.0,
                 "W_max": 4.5 # optimum is 4.0, but accept <= 4.5
@@ -111,7 +107,6 @@ class TestSyntheticBlocksLB(unittest.TestCase):
 
         for test_case, test_params in test_cases.items():
             cfg = self.generate_configuration(
-                alpha=test_params["alpha"],
                 beta=test_params["beta"],
                 gamma=test_params["gamma"]
             )

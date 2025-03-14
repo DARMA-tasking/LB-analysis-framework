@@ -12,7 +12,7 @@ class TestPermutations(unittest.TestCase):
     def tearDown(self):
         return
 
-    def generate_configuration(self, alpha, beta, gamma, permutation):
+    def generate_configuration(self, beta, gamma, permutation):
         """Creates and returns the path to a YAML configuration file."""
         # Determine filepaths
         acceptance_dir = os.path.dirname(__file__)
@@ -29,7 +29,6 @@ class TestPermutations(unittest.TestCase):
             "work_model": {
                 "name": "AffineCombination",
                 "parameters": {
-                    "alpha": alpha,
                     "beta": beta,
                     "gamma": gamma
                 }
@@ -77,14 +76,12 @@ class TestPermutations(unittest.TestCase):
         # Initialize test cases
         test_cases = {
             "load_only": {
-                "alpha": 1.0,
                 "beta": 0.0,
                 "gamma": 0.0,
                 "permutation": dict(enumerate([0, 0, 1, 1, 0, 2, 1, 3, 3])),
                 "W_max": 2.0
             },
             "off_node_communication_only": {
-                "alpha": 0.0,
                 "beta": 1.0,
                 "gamma": 0.0,
                 "permutation": dict(enumerate([3, 2, 3, 3, 2, 3, 3, 3, 3])),
@@ -95,7 +92,6 @@ class TestPermutations(unittest.TestCase):
         # Run each test case
         for test_case, test_params in test_cases.items():
             cfg = self.generate_configuration(
-                alpha=test_params["alpha"],
                 beta=test_params["beta"],
                 gamma=test_params["gamma"],
                 permutation=test_params["permutation"]
