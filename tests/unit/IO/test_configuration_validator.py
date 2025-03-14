@@ -145,7 +145,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(SchemaError) as err:
             ConfigurationValidator(config_to_validate=configuration, logger=get_logger()).main()
         self.assertEqual(err.exception.args[0], "Key 'work_model' error:\nKey 'parameters' error:\n"
-                                                "Missing key: 'alpha'")
+                                                "Missing key: 'beta'")
 
     def test_config_validator_wrong_work_model_parameters_type(self):
         with open(os.path.join(self.config_dir, "conf_wrong_work_model_parameters_type.yml"), "rt", encoding="utf-8") as config_file:

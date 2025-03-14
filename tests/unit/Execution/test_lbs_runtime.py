@@ -87,11 +87,10 @@ class TestConfig(unittest.TestCase):
             }
         }
         objects = phase.get_objects()
-        alpha = 0.0
         beta = 1.0
         gamma = 0.0
         n_ranks = 4
-        self.arrangements = compute_min_max_arrangements_work(objects, alpha, beta, gamma,
+        self.arrangements = compute_min_max_arrangements_work(objects, 0.0, beta, gamma,
                                                               n_ranks, logger=self.logger)[2]
         # Initialize the Runtime instances
         self.runtime = Runtime(
