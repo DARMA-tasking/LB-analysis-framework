@@ -97,6 +97,7 @@ class Rank:
         """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
+        self.__alpha = rank.get_alpha()
         self.__size = rank.get_size()
 
         # Shallow copy objects
