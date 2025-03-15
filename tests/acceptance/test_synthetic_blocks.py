@@ -12,19 +12,24 @@ class TestSyntheticBlocksLB(unittest.TestCase):
     def tearDown(self):
         return
 
-    def generate_configuration(self, beta, gamma):
+    def generate_configuration(self, beta: float, gamma: float, alpha0: bool):
         """Creates and returns the path to a YAML configuration file."""
-        # Determine filepaths
+        # Determine file paths
         acceptance_dir = os.path.dirname(__file__)
         test_dir = os.path.dirname(acceptance_dir)
         data_dir = os.path.join(os.path.dirname(test_dir), "data")
 
+        # Determine data stem
+        data_stem = f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks"
+        if alpha0:
+            data_stem += "-alpha0"
+            
         # Create YAML configuration
         # For load-only (beta == 0), use Configuration 1 from this comment:
         # https://github.com/DARMA-tasking/LB-analysis-framework/pull/581#issuecomment-2594752734
         config = {
             "from_data": {
-                "data_stem": f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks",
+                "data_stem": data_stem,
                 "phase_ids": [0],
                 "ranks_per_node": 2
             },
@@ -108,8 +113,8 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         for test_case, test_params in test_cases.items():
             cfg = self.generate_configuration(
                 beta=test_params["beta"],
-                gamma=test_params["gamma"]
-            )
+                gamma=test_params["gamma"],
+                alpha0=(test_case == "off_node_communication_only"))
             self.run_test(cfg, test_case, test_params["W_max"])
 
 
