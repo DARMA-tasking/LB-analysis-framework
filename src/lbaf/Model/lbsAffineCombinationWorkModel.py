@@ -84,7 +84,6 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def affine_combination(self, a, l, v1, v2):
         """Compute affine combination of load and maximum volume."""
-        print(a, l, v1, v2, "-->", a * l + self.__beta * max(v1, v2) + self.__gamma)
         return a * l + self.__beta * max(v1, v2) + self.__gamma
 
     def compute(self, rank: Rank):
