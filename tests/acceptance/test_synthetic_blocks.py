@@ -23,7 +23,7 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         data_stem = f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks"
         if alpha0:
             data_stem += "-alpha0"
-            
+
         # Create YAML configuration
         # For load-only (beta == 0), use Configuration 1 from this comment:
         # https://github.com/DARMA-tasking/LB-analysis-framework/pull/581#issuecomment-2594752734
