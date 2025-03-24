@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "type": "LBDatafile",
+    "rank": 3,
+    "rank_alpha": 0.0
+  },
+  "phases": [
+    {
+      "id": 0,
+      "tasks": []
+    }
+  ]
+}

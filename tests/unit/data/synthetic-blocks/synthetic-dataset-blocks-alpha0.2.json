@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "type": "LBDatafile",
+    "rank": 2,
+    "rank_alpha": 0.0
+  },
+  "phases": [
+    {
+      "id": 0,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 2,
+            "migratable": true,
+            "seq_id": 8,
+            "type": "object"
+          },
+          "node": 2,
+          "resource": "cpu",
+          "time": 1.5,
+          "user_defined": {
+            "home_rank": 2,
+            "shared_id": 4,
+            "shared_bytes": 9.0
+          }
+        }
+      ],
+      "communications": [
+        {
+          "bytes": 1.5,
+          "from": {
+            "collection_id": 7,
+            "home": 2,
+            "migratable": true,
+            "seq_id": 8,
+            "type": "object"
+          },
+          "messages": 1,
+          "type": "SendRecv",
+          "to": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 6,
+            "type": "object"
+          }
+        }
+      ]
+    }
+  ]
+}

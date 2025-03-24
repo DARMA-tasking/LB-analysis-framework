@@ -1,0 +1,140 @@
+{
+  "metadata": {
+    "type": "LBDatafile",
+    "rank": 1
+  },
+  "phases": [
+    {
+      "id": 0,
+      "tasks": [
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 4,
+            "type": "object"
+          },
+          "node": 1,
+          "resource": "cpu",
+          "time": 0.5,
+          "user_defined": {
+            "home_rank": 1,
+            "shared_id": 2,
+            "shared_bytes": 9.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 5,
+            "type": "object"
+          },
+          "node": 1,
+          "resource": "cpu",
+          "time": 2.0,
+          "user_defined": {
+            "home_rank": 1,
+            "shared_id": 2,
+            "shared_bytes": 9.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 6,
+            "type": "object"
+          },
+          "node": 1,
+          "resource": "cpu",
+          "time": 1.0,
+          "user_defined": {
+            "home_rank": 1,
+            "shared_id": 3,
+            "shared_bytes": 9.0
+          }
+        },
+        {
+          "entity": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 7,
+            "type": "object"
+          },
+          "node": 1,
+          "resource": "cpu",
+          "time": 0.5,
+          "user_defined": {
+            "home_rank": 1,
+            "shared_id": 3,
+            "shared_bytes": 9.0
+          }
+        }
+      ],
+      "communications": [
+        {
+          "bytes": 2.0,
+          "from": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 4,
+            "type": "object"
+          },
+          "messages": 1,
+          "type": "SendRecv",
+          "to": {
+            "collection_id": 7,
+            "home": 0,
+            "migratable": true,
+            "seq_id": 1,
+            "type": "object"
+          }
+        },
+        {
+          "bytes": 2.0,
+          "from": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 5,
+            "type": "object"
+          },
+          "messages": 1,
+          "type": "SendRecv",
+          "to": {
+            "collection_id": 7,
+            "home": 2,
+            "migratable": true,
+            "seq_id": 8,
+            "type": "object"
+          }
+        },
+        {
+          "bytes": 1.0,
+          "from": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 7,
+            "type": "object"
+          },
+          "messages": 1,
+          "type": "SendRecv",
+          "to": {
+            "collection_id": 7,
+            "home": 1,
+            "migratable": true,
+            "seq_id": 6,
+            "type": "object"
+          }
+        }
+      ]
+    }
+  ]
+}
