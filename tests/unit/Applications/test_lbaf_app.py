@@ -72,7 +72,7 @@ class TestLBAFApplication(unittest.TestCase):
         """Sample local configuration subset"""
         return {
             "from_data": {
-                "data_stem": "../data/synthetic_lb_data/data",
+                "data_stem": "../synthetic-blocks/synthetic-dataset-blocks",
                 "phase_ids": [0]
             },
             "check_schema": False,
