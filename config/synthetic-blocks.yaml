@@ -4,7 +4,7 @@ from_data:
   ranks_per_node: 2
   phase_ids:
   - 0
-check_schema: false
+check_schema: true
 
 # Specify work model
 work_model:
