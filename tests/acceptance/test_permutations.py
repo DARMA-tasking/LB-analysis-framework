@@ -101,7 +101,6 @@ class TestPermutations(unittest.TestCase):
                 gamma=test_params["gamma"],
                 permutation=test_params["permutation"],
                 alpha0=(test_case == "off_node_communication_only"))
-            )
             self.run_test(cfg, test_case, test_params["W_max"])
 
 
