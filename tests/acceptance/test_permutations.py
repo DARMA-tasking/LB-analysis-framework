@@ -22,7 +22,7 @@ class TestPermutations(unittest.TestCase):
         # Create YAML configuration
         config = {
             "from_data": {
-                "data_stem": f"{data_dir}/synthetic_lb_data/data",
+                "data_stem": f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks",
                 "phase_ids": [0],
             },
             "check_schema": False,

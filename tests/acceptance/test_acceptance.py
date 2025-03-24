@@ -4,8 +4,8 @@ import subprocess
 import unittest
 
 
-class TestAcceptance(unittest.TestCase):
-    """Class to run acceptance tests"""
+class TestSyntheticBlocks(unittest.TestCase):
+    """Class to run synthetic block acceptance tests"""
 
     def setUp(self):
         return
@@ -13,10 +13,10 @@ class TestAcceptance(unittest.TestCase):
     def tearDown(self):
         return
 
-    def test_synthetic_acceptance(self):
+    def test_synthetic_blocks(self):
         """Runs acceptance tests"""
         # run LBAF
-        config_file = os.path.join(os.path.dirname(__file__), "config", "synthetic-acceptance.yaml")
+        config_file = os.path.join(os.path.dirname(__file__), "config", "synthetic-blocks.yaml")
         subprocess.run(["python", "src/lbaf", "-c", config_file], check=True)
 
         imbalance_file = os.path.join(os.path.dirname(__file__), "output", "imbalance.txt")

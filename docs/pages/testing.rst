@@ -54,14 +54,14 @@ Acceptance tests
 
 `Acceptance Tests` are checking for correctness of business logic - based on input data test is checking for expected output
 
-Acceptance Test Configuration
+Synthetic Blocks Test Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
   # Specify input
   from_data:
-    data_stem: "../data/synthetic_lb_data/data"
+    data_stem: "../synthetic-blocks/synthetic-dataset-blocks"
     phase_ids:
       - 0
   # Specify work model
