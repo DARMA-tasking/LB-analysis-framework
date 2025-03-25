@@ -73,6 +73,9 @@ class Rank:
             for o in sentinel_objects:
                 self.__sentinel_objects.add(o)
 
+        # Initialize alpha to nominal value
+        self.__alpha = 1.0
+
         # Initialize other instance variables
         self.__size = 0.0
 
@@ -94,6 +97,7 @@ class Rank:
         """Specialized copy method."""
         # Copy all flat member variables
         self.__index = rank.get_id()
+        self.__alpha = rank.get_alpha()
         self.__size = rank.get_size()
 
         # Shallow copy objects
@@ -247,6 +251,19 @@ class Rank:
     def remove_migratable_object(self, o: Object):
         """Remove objects from migratable objects."""
         self.__migratable_objects.remove(o)
+
+    def set_alpha(self, alpha):
+        """Set alpha coefficient of rank."""
+        # Nonnegative value required for alpha coefficient of this rank
+        if not isinstance(alpha, (int, float)) or alpha < 0.0:
+            raise TypeError(
+                f"alpha: incorrect type {type(alpha)} or value: {alpha}")
+        self.__alpha = float(alpha)
+
+    @qoi
+    def get_alpha(self) -> float:
+        """Return alpha coefficient of rank."""
+        return self.__alpha
 
     @qoi
     def get_load(self) -> float:

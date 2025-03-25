@@ -60,7 +60,6 @@ class AffineCombinationWorkModel(WorkModelBase):
         self.__logger = lgr
 
         # Use default values if parameters not provided
-        self.__alpha = parameters.get("alpha", 1.0)
         self.__beta = parameters.get("beta", 0.0)
         self.__gamma = parameters.get("gamma", 0.0)
         self.__upper_bounds = parameters.get("upper_bounds", {})
@@ -70,14 +69,10 @@ class AffineCombinationWorkModel(WorkModelBase):
         super().__init__(parameters)
         self.__logger.info(
             "Instantiated work model with: "
-            f"alpha={self.__alpha}, beta={self.__beta}, gamma={self.__gamma}")
+            f"beta={self.__beta}, gamma={self.__gamma}")
         for k, v in self.__upper_bounds.items():
             self.__logger.info(
                 f"Upper bound for {'node' if self.__node_bounds else 'rank'} {k}: {v}")
-
-    def get_alpha(self):
-        """Get the alpha parameter."""
-        return self.__alpha
 
     def get_beta(self):
         """Get the beta parameter."""
@@ -87,9 +82,9 @@ class AffineCombinationWorkModel(WorkModelBase):
         """Get the gamma parameter."""
         return self.__gamma
 
-    def affine_combination(self, l, v1, v2):
+    def affine_combination(self, a, l, v1, v2):
         """Compute affine combination of load and maximum volume."""
-        return self.__alpha * l + self.__beta * max(v1, v2) + self.__gamma
+        return a * l + self.__beta * max(v1, v2) + self.__gamma
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication.
@@ -106,6 +101,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Return combination of load and volumes
         return self.affine_combination(
+            rank.get_alpha(),
             rank.get_load(),
             rank.get_received_volume(),
             rank.get_sent_volume())

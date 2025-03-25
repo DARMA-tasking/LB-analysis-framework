@@ -1,6 +1,6 @@
 # Specify input
 from_data:
-  data_stem: ../data/synthetic_lb_data/data
+  data_stem: ../data/synthetic-blocks/synthetic-dataset-blocks
   phase_ids:
   - 0
 from_samplers:
@@ -23,7 +23,6 @@ from_samplers:
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 1.0
     beta: 0.0
     gamma: 0.0
 

@@ -227,8 +227,8 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
         # Compute per-rank loads
         works[rank] = alpha * compute_load(objects, rank_objects)
 
-        # Compute communication volumes
-        if beta != 0.0: # do not calculate max if beta = 0 for better performance
+        # Do not calculate communications if beta = 0 for better performance
+        if beta > 0.0:
             works[rank] += beta * max(compute_volume(objects, rank_objects, "received"),
                                     compute_volume(objects, rank_objects, "sent"))
 

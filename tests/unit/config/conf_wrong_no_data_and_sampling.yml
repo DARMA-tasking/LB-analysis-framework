@@ -4,7 +4,6 @@
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 1.0
     beta: 0.0
     gamma: 0.0
 
