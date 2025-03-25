@@ -90,7 +90,6 @@ class ConfigurationValidator:
                     lambda c: c in ALLOWED_WORK_MODELS,
                     error=f"{get_error_message(ALLOWED_WORK_MODELS)} must be chosen"),
                 "parameters": {
-                    "alpha": float,
                     "beta": float,
                     "gamma": float,
                     Optional("upper_bounds"): And(

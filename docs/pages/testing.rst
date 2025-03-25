@@ -54,21 +54,20 @@ Acceptance tests
 
 `Acceptance Tests` are checking for correctness of business logic - based on input data test is checking for expected output
 
-Acceptance Test Configuration
+Synthetic Blocks Test Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
   # Specify input
   from_data:
-    data_stem: "../data/synthetic_lb_data/data"
+    data_stem: "../synthetic-blocks/synthetic-dataset-blocks"
     phase_ids:
       - 0
   # Specify work model
   work_model:
     name: AffineCombination
     parameters:
-      alpha: 1.
       beta: 0.
       gamma: 0.
 
@@ -123,7 +122,6 @@ Stepper Test Configuration
   work_model:
     name: AffineCombination
     parameters:
-      alpha: 1.
       beta: 1.0e-8
       gamma: 0.
 

@@ -4,13 +4,12 @@ from_data:
   ranks_per_node: 2
   phase_ids:
   - 0
-check_schema: false
+check_schema: true
 
 # Specify work model
 work_model:
   name: AffineCombination
   parameters:
-    alpha: 1.0
     beta: 0.0
     gamma: 0.0
     upper_bounds:

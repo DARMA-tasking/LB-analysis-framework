@@ -557,11 +557,11 @@ class LBAFApplication:
                 and self.__parameters.algorithm["name"] != "BruteForce"):
             self.__logger.info("Starting brute force optimization")
             objects = initial_phase.get_objects()
-            alpha, beta, gamma = [
+            beta, gamma = [
                 self.__parameters.work_model.get("parameters", {}).get(k)
-                for k in ("alpha", "beta", "gamma")]
+                for k in ("beta", "gamma")]
             _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
-                objects, alpha, beta, gamma, n_ranks, logger=self.__logger)
+                objects, 1.0, beta, gamma, n_ranks, logger=self.__logger)
         else:
             a_min_max = []
 

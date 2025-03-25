@@ -12,24 +12,28 @@ class TestPermutations(unittest.TestCase):
     def tearDown(self):
         return
 
-    def generate_configuration(self, alpha, beta, gamma, permutation):
+    def generate_configuration(self, beta, gamma, permutation, alpha0: bool):
         """Creates and returns the path to a YAML configuration file."""
-        # Determine filepaths
+        # Determine file paths
         acceptance_dir = os.path.dirname(__file__)
         test_dir = os.path.dirname(acceptance_dir)
         data_dir = os.path.join(os.path.dirname(test_dir), "data")
 
+        # Determine data stem
+        data_stem = f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks"
+        if alpha0:
+            data_stem += "-alpha0"
+
         # Create YAML configuration
         config = {
             "from_data": {
-                "data_stem": f"{data_dir}/synthetic_lb_data/data",
-                "phase_ids": [0],
+                "data_stem": data_stem,
+                "phase_ids": [0]
             },
             "check_schema": False,
             "work_model": {
                 "name": "AffineCombination",
                 "parameters": {
-                    "alpha": alpha,
                     "beta": beta,
                     "gamma": gamma
                 }
@@ -77,14 +81,12 @@ class TestPermutations(unittest.TestCase):
         # Initialize test cases
         test_cases = {
             "load_only": {
-                "alpha": 1.0,
                 "beta": 0.0,
                 "gamma": 0.0,
                 "permutation": dict(enumerate([0, 0, 1, 1, 0, 2, 1, 3, 3])),
                 "W_max": 2.0
             },
             "off_node_communication_only": {
-                "alpha": 0.0,
                 "beta": 1.0,
                 "gamma": 0.0,
                 "permutation": dict(enumerate([3, 2, 3, 3, 2, 3, 3, 3, 3])),
@@ -95,11 +97,10 @@ class TestPermutations(unittest.TestCase):
         # Run each test case
         for test_case, test_params in test_cases.items():
             cfg = self.generate_configuration(
-                alpha=test_params["alpha"],
                 beta=test_params["beta"],
                 gamma=test_params["gamma"],
-                permutation=test_params["permutation"]
-            )
+                permutation=test_params["permutation"],
+                alpha0=(test_case == "off_node_communication_only"))
             self.run_test(cfg, test_case, test_params["W_max"])
 
 
