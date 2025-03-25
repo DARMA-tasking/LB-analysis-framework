@@ -60,7 +60,7 @@ class TestConfig(unittest.TestCase):
         self.test_dir = os.path.dirname(os.path.dirname(__file__))
         self.data_dir = os.path.join(self.test_dir, "data")
         self.logger = logging.getLogger()
-        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data_compressed", "data")
+        self.file_prefix = os.path.join(self.data_dir, "synthetic-blocks", "synthetic-dataset-blocks")
         self.reader = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix="json")
         self.phase = Phase(self.logger, 0, reader=self.reader)
 
@@ -87,11 +87,10 @@ class TestConfig(unittest.TestCase):
             }
         }
         objects = phase.get_objects()
-        alpha = 0.0
         beta = 1.0
         gamma = 0.0
         n_ranks = 4
-        self.arrangements = compute_min_max_arrangements_work(objects, alpha, beta, gamma,
+        self.arrangements = compute_min_max_arrangements_work(objects, 0.0, beta, gamma,
                                                               n_ranks, logger=self.logger)[2]
         # Initialize the Runtime instances
         self.runtime = Runtime(

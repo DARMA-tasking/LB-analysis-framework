@@ -1,4 +1,5 @@
 # config: synthetic data set with blocks
+# this is meant to be the same case as CCM-MILP"s
 tasks:
   - { collection_id: 7, time: 1.0 }
   - { collection_id: 7, time: 0.5 }
@@ -27,4 +28,19 @@ ranks:
     tasks: [8]
   3:
     tasks: []
-shared_blocks: []
+shared_blocks:
+  - size: 9.0
+    tasks: [0, 1]
+    home_rank: 0
+  - size: 9.0
+    tasks: [2, 3]
+    home_rank: 0
+  - size: 9.0
+    tasks: [4, 5]
+    home_rank: 1
+  - size: 9.0
+    tasks: [6, 7]
+    home_rank: 1
+  - size: 9.0
+    tasks: [8]
+    home_rank: 2

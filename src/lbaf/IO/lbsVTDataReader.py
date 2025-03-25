@@ -289,6 +289,11 @@ class LoadReader:
         phase_rank = Rank(self.__logger, rank_id)
         phase_rank.set_metadata(self.__metadata[rank_id])
 
+        # Set rank-local alpha value when provided
+        if (md := self.__metadata.get(rank_id)):
+            if (alpha := md.get("rank_alpha")) is not None:
+                phase_rank.set_alpha(alpha)
+
         # Create node when required
         rank_node = None
         if self.ranks_per_node > 1:

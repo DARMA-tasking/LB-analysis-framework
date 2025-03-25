@@ -58,7 +58,7 @@ class TestConfig(unittest.TestCase):
         self.test_dir = os.path.dirname(os.path.dirname(__file__))
         self.config_dir = os.path.join(self.test_dir, "config")
         self.data_dir = os.path.join(self.test_dir, "data")
-        self.file_prefix = os.path.join(self.data_dir, "synthetic_lb_data", "data")
+        self.file_prefix = os.path.join(self.data_dir, "synthetic-blocks", "synthetic-dataset-blocks")
         self.file_suffix = "json"
         self.logger = logging.getLogger()
         self.lr = LoadReader(file_prefix=self.file_prefix, logger=self.logger, file_suffix=self.file_suffix)
