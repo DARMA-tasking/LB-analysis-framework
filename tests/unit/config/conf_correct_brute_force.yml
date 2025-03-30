@@ -12,7 +12,6 @@ work_model:
     gamma: 0.0
 
 # Specify algorithm
-brute_force_optimization: true
 algorithm:
   name: BruteForce
   phase_id: 0
