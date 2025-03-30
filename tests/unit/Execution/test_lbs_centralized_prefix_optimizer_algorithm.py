@@ -98,15 +98,11 @@ class TestConfig(unittest.TestCase):
         self.cpoa.execute(
             self.phase.get_id(),
             self.phases,
-            self.statistics,
-            1
-        )
+            self.statistics)
         new_phase = self.cpoa.get_rebalanced_phase()
         self.assertEqual(
             new_phase.get_id(),
-            self.phase.get_id()
-        )
-
+            self.phase.get_id())
 
 if __name__ == "__main__":
     unittest.main()

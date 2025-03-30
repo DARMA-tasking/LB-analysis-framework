@@ -16,7 +16,6 @@ work_model:
       max_memory_usage: 45.0
 
 # Specify algorithm
-brute_force_optimization: true
 algorithm:
   name: InformAndTransfer
   phase_id: 0

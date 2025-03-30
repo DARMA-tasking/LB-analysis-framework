@@ -200,11 +200,10 @@ class AlgorithmBase:
         self._update_statistics(statistics)
 
     @abc.abstractmethod
-    def execute(self, p_id, phases, statistics, a_min_max):
+    def execute(self, p_id, phases, statistics):
         """Execute balancing algorithm on Phase instance.
 
         :param: p_id: index of phase to be rebalanced (all if equal to _)
         :param: phases: list of Phase instances
         :param: statistics: dictionary of  statistics
-        :param: a_min_max: possibly empty list of optimal arrangements.
         """

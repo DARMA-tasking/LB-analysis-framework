@@ -58,7 +58,7 @@ class PhaseStepperAlgorithm(AlgorithmBase):
         # Call superclass init
         super().__init__(work_model, parameters, lgr)
 
-    def execute(self, _, phases: list, statistics: dict, __):
+    def execute(self, _, phases: list, statistics: dict):
         """Steps through all phases."""
 
         # Ensure that a list with at least one phase was provided

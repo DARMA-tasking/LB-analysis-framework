@@ -62,7 +62,7 @@ class CentralizedPrefixOptimizerAlgorithm(AlgorithmBase):
         self._phase = None
         self._max_shared_ids = None
 
-    def execute(self, p_id: int, phases: list, statistics: dict, _):
+    def execute(self, p_id: int, phases: list, statistics: dict):
         """ Execute centralized prefix memory-constrained optimizer"""
 
         p_id = 0
