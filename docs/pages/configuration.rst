@@ -78,7 +78,6 @@ Example configuration
         gamma: 0.
 
     # Specify balancing algorithm
-    #brute_force_optimization: True
     algorithm:
     #  name: BruteForce
       name: InformAndTransfer

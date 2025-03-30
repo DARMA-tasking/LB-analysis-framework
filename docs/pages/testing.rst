@@ -72,7 +72,6 @@ Synthetic Blocks Test Configuration
       gamma: 0.
 
   # Specify balancing algorithm
-  brute_force_optimization: True
   algorithm:
     name: InformAndTransfer
     parameters:
