@@ -97,7 +97,6 @@ class TestConfig(unittest.TestCase):
             self.phases,
             self.work_model,
             self.algorithm,
-            self.arrangements,
             self.logger)
 
     def test_lbs_runtime_get_work_model(self):
