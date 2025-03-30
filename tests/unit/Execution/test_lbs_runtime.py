@@ -90,8 +90,7 @@ class TestConfig(unittest.TestCase):
         beta = 1.0
         gamma = 0.0
         n_ranks = 4
-        self.arrangements = compute_min_max_arrangements_work(objects, 0.0, beta, gamma,
-                                                              n_ranks, logger=self.logger)[2]
+
         # Initialize the Runtime instances
         self.runtime = Runtime(
             self.phases,
@@ -108,7 +107,6 @@ class TestConfig(unittest.TestCase):
                 None,
                 self.work_model,
                 self.algorithm,
-                self.arrangements,
                 self.logger)
         self.assertEqual(context.exception.code, 1)
 
