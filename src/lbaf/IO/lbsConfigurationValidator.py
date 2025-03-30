@@ -252,7 +252,7 @@ class ConfigurationValidator:
         sections = {
             "input": ["from_data", "from_samplers", "check_schema"],
             "work model": ["work_model"],
-            "algorithm": ["brute_force_optimization", "algorithm"],
+            "algorithm": ["algorithm"],
             "output": [
                 "logging_level", "log_to_file", "overwrite_validator", "terminal_background",
                 "generate_multimedia", "output_dir", "output_file_stem",
