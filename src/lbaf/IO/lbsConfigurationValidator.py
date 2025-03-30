@@ -103,7 +103,6 @@ class ConfigurationValidator:
                 Optional("phase_id"): int,
                 Optional("parameters"): dict},
            "output_file_stem": str,
-            Optional("brute_force_optimization"): bool,
             Optional("overwrite_validator"): bool,
             Optional("check_schema"): bool,
             Optional("log_to_file"): str,

@@ -215,7 +215,7 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         self._logger.info(
             f"Average number of peers known to ranks: {n_k} ({100 * n_k / n_r:.2f}% of {n_r})")
 
-    def execute(self, p_id: int, phases: list, statistics: dict, a_min_max):
+    def execute(self, p_id: int, phases: list, statistics: dict):
         """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, statistics)
@@ -271,21 +271,6 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             lb_iteration.copy_ranks(self._rebalanced_phase)
             lb_iteration.set_communications(self._initial_communications[p_id])
             self._initial_phase.get_lb_iterations().append(lb_iteration)
-
-            # Report minimum Hamming distance when minimax optimum is available
-            if a_min_max:
-                # Compute current arrangement
-                arrangement = dict(sorted(
-                    {o.get_id(): p.get_id()
-                     for p in self._rebalanced_phase.get_ranks()
-                     for o in p.get_objects()}.items())).values()
-                self._logger.debug(f"Iteration {i + 1} arrangement: {tuple(arrangement)}")
-
-                # Compute minimum distance from arrangement to optimum
-                hd_min = min_Hamming_distance(arrangement, a_min_max)
-                self._logger.info(
-                    f"Iteration {i + 1} minimum Hamming distance to optimal arrangements: {hd_min}")
-                statistics["minimum Hamming distance to optimum"].append(hd_min)
 
             # Check if the current imbalance is within the target_imbalance range
             if stats.statistics["imbalance"] <= self.__target_imbalance:

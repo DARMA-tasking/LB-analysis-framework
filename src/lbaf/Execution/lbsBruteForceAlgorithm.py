@@ -65,7 +65,7 @@ class BruteForceAlgorithm(AlgorithmBase):
         self._logger.info(
             f"Instantiated {'with' if self.__skip_transfer else 'without'} transfer stage skipping")
 
-    def execute(self, p_id: int, phases: list, statistics: dict, _):
+    def execute(self, p_id: int, phases: list, statistics: dict):
         """Execute brute force optimization algorithm on phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, statistics)
@@ -80,8 +80,9 @@ class BruteForceAlgorithm(AlgorithmBase):
             self._work_model.get_alpha() if affine_combination else 1.0,
             self._work_model.get_beta() if affine_combination else 0.0,
             self._work_model.get_gamma() if affine_combination else 0.0]
-        _n_a, _w_min_max, a_min_max = compute_min_max_arrangements_work(objects, alpha, beta, gamma, n_ranks,
-                                                                        logger=self._logger)
+        _n_a, _w_min_max, a_min_max = compute_min_max_arrangements_work(
+            objects, alpha, beta, gamma, n_ranks,
+            logger=self._logger)
 
         # Skip object transfers when requested
         if self.__skip_transfer:

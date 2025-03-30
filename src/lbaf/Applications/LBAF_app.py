@@ -552,19 +552,6 @@ class LBAFApplication:
         initial_phase = phases[min(phases.keys())]
         self.__print_statistics(initial_phase, "initial")
 
-        # Perform brute force optimization when needed
-        if ("brute_force_optimization" in self.__parameters.__dict__
-                and self.__parameters.algorithm["name"] != "BruteForce"):
-            self.__logger.info("Starting brute force optimization")
-            objects = initial_phase.get_objects()
-            beta, gamma = [
-                self.__parameters.work_model.get("parameters", {}).get(k)
-                for k in ("beta", "gamma")]
-            _n_a, _w_min_max, a_min_max = lbstats.compute_min_max_arrangements_work(
-                objects, 1.0, beta, gamma, n_ranks, logger=self.__logger)
-        else:
-            a_min_max = []
-
         # Instantiate runtime
         if self.__parameters.ranks_per_node > 1 and (
                 wmp := self.__parameters.work_model.get("parameters")):
@@ -573,7 +560,6 @@ class LBAFApplication:
             phases,
             self.__parameters.work_model,
             self.__parameters.algorithm,
-            a_min_max,
             self.__logger)
 
         # Execute runtime for specified phases

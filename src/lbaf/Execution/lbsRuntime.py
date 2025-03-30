@@ -55,23 +55,16 @@ class Runtime:
             phases: dict,
             work_model: dict,
             algorithm: dict,
-            arrangements: list,
             logger: Logger):
         """Class constructor.
 
         :param phases: dictionary of Phase instances
         :param work_model: dictionary with work model name and optional parameters
         :param algorithm: dictionary with algorithm name and parameters
-        :param arrangements: arrangements that minimize maximum work
         :param logger: logger for output messages
         """
         # Assign logger to instance variable
         self.__logger = logger
-
-        # Keep track of possibly empty list of arrangements with minimax work
-        self.__logger.info(
-            f"Instantiating runtime with {len(arrangements)} optimal arrangements for Hamming distance")
-        self.__a_min_max = arrangements
 
         # If no LBS phase was provided, do not do anything
         if not phases or not isinstance(phases, dict):
@@ -104,19 +97,6 @@ class Runtime:
             lambda x: x.get_load())
         self.__statistics = {"average load": l_stats.get_average()}
 
-        # Compute initial arrangement
-        arrangement = dict(sorted(
-            {o.get_id(): p.get_id()
-             for p in phase_0.get_ranks()
-             for o in p.get_objects()}.items())).values()
-        self.__logger.debug(f"Initial arrangement: {tuple(arrangement)}")
-
-        # Report minimum Hamming distance when minimax optimum is available
-        if self.__a_min_max:
-            hd_min = min_Hamming_distance(arrangement, self.__a_min_max)
-            self.__statistics["minimum Hamming distance to optimum"] = [hd_min]
-            self.__logger.info(f"Phase 0 minimum Hamming distance to optimal arrangements: {hd_min}")
-
     def get_work_model(self):
         """Return runtime work model."""
         return self.__work_model
@@ -130,8 +110,7 @@ class Runtime:
         self.__algorithm.execute(
             p_id,
             self.__phases,
-            self.__statistics,
-            self.__a_min_max)
+            self.__statistics)
 
         # Retrieve possibly null rebalanced phase and return it
         if (lbp := self.__algorithm.get_rebalanced_phase()):
