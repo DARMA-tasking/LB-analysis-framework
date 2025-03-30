@@ -41,7 +41,6 @@ class TestSyntheticBlocksLB(unittest.TestCase):
                     }
                 }
             },
-            "brute_force_optimization": False,
             "algorithm": {
                 "name": "InformAndTransfer",
                 "phase_id": 0,

@@ -27,7 +27,7 @@ class PrescribedPermutationAlgorithm(AlgorithmBase):
             self._logger.error(f"Incorrect prescribed permutation: {self.__permutation}")
             raise SystemExit(1)
 
-    def execute(self, p_id: int, phases: list, statistics: dict, a_min_max):
+    def execute(self, p_id: int, phases: list, statistics: dict):
         """ Apply prescribed permutation to phase objects."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, statistics)
