@@ -173,25 +173,21 @@ class PhaseSpecificationNormalizer:
         - `data.ranks.tasks`
         - `data.ranks.communications`
 
-        This method should be called after json or yaml deserialization.
+        This method should be called after JSON or YAML deserialization.
         This is the reverse implementation of the normalize method.
         """
-        def dict_merge(a, b):
-            a.update(b)
-            return a
-
         return PhaseSpecification({
             "tasks": self.__normalize_member(
                 data.get("tasks", []),
-                lambda t: TaskSpecification(dict_merge(
-                    { "time": t.get("time", 0.0) },
-                    { "seq_id": t.get("seq_id", None)} if "seq_id" in t else {},
-                    { "migratable": t.get("migratable", True)} if "migratable" in t else {},
-                    { "home": t.get("home", 0)} if "home" in t else {},
-                    { "node": t.get("node", 0)} if "node" in t else {},
-                    { "collection_id": t.get("collection_id", None)} if "collection_id" in t else {},
-                    { "user_defined": t.get("user_defined", {})} if "user_defined" in t else {}
-                ))
+                lambda t: TaskSpecification({
+                    "time": t.get("time", 0.0),
+                    "seq_id": t.get("seq_id", None),
+                    "migratable": t.get("migratable", True),
+                    "home": t.get("home") if "home" in t else {},
+                    "node": t.get("node") if "node" in t else {},
+                    "collection_id": t.get("collection_id") if "collection_id" in t else {},
+                    "user_defined": t.get("user_defined") if "user_defined" in t else {}
+                })
             ),
             "shared_blocks": self.__normalize_member(
                 data.get("shared_blocks", []),
@@ -210,7 +206,7 @@ class PhaseSpecificationNormalizer:
                 data.get("ranks", []),
                 lambda r: RankSpecification({
                     "tasks": set(r.get("tasks", [])),
-                    "id": set(r.get("id", None)),
+                    "id": set(r.get("id", [])),
                     "user_defined": set(r.get("user_defined", {}) if "user_defined" in r else {})
                 })
             )
