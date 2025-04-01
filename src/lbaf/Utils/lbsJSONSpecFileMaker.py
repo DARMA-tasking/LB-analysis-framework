@@ -53,13 +53,13 @@ class JSONSpecFileMaker:
         self.current_ids[key] += 1
         return next_id
 
-    def checkID_(self, id: int, key: str) -> int:
-        if id < 0:
-            id = self.generateNextID_(key)
+    def checkID_(self, try_id: int, key: str) -> int:
+        if try_id < 0:
+            try_id = self.generateNextID_(key)
         elif id in self.id_sets[key]:
             return self.checkID_(-1, key)
-        self.id_sets[key].add(id)
-        return id
+        self.id_sets[key].add(try_id)
+        return try_id
 
     ###########################################################################
     ## Private functions for assertions
@@ -69,7 +69,7 @@ class JSONSpecFileMaker:
                f"Task {test_id} has not been created yet. Use createTask() method."
 
     def assertAllTasksHaveBeenAssigned_(self):
-        for t in self.tasks.keys():
+        for t in self.tasks:
             assert t in self.assignments, \
                    f"Task {t} has not been assigned. Call " \
                    f"assignTask({t}, <rank_id>)"
@@ -153,10 +153,19 @@ class JSONSpecFileMaker:
             task: Union[int, TaskSpecification],
             rank: Union[int, RankSpecification]
         ) -> None:
+        """
+        Both the `task` and `rank` can be passed as either of the following:
+            - the ID (int)
+            - the Task/Rank Specification (dict)
+        """
+        # Determine the task ID (trivial if the task is given as the integer ID)
         task_id = task if isinstance(task, int) else task["seq_id"]
+        # Determine the task spec (trivial if the task is given as the spec)
         t = task if isinstance(task, dict) else self.tasks[task_id]
 
+        # Determine the rank ID (trivial if the rank is given as the integer ID)
         rank_id = rank if isinstance(rank, int) else rank["id"]
+        # Determine the rank spec (trivial if the rank is given as the spec)
         r = rank if isinstance(rank, dict) else self.ranks[rank_id]
 
         self.assertIDExists_(task_id, "seq")
