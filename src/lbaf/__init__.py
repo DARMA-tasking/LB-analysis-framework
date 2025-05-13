@@ -47,7 +47,7 @@ import sys
 import importlib.util
 
 
-__version__ = "1.5.0"
+__version__ = "1.6.0"
 """lbaf module version"""
 
 PROJECT_PATH = f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3])
