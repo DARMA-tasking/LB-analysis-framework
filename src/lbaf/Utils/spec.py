@@ -1,3 +1,16 @@
+import os
+import sys
+import importlib
+
+# Use lbaf module from source if lbaf package is not installed
+if importlib.util.find_spec("lbaf") is None:
+    sys.path.insert(0, f"{os.sep}".join(os.path.abspath(__file__).split(os.sep)[:-3]))
+
+from lbaf.Execution.lbsPhaseSpecification import (
+    PhaseSpecification, CommunicationSpecification, SharedBlockSpecification, RankSpecification,
+    TaskSpecification, PhaseSpecificationNormalizer
+)
+
 spec = PhaseSpecification({
     "tasks": [
         TaskSpecification({
