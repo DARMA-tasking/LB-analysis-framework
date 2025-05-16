@@ -20,12 +20,12 @@ algorithm:
   name: InformAndTransfer
   phase_id: 0
   parameters:
-    n_iterations: 8
-    n_rounds: 4
-    fanout: 4
+    n_iterations: 4
+    n_rounds: 1
+    fanout: 2
     order_strategy: arbitrary
     transfer_strategy: Clustering
-    max_subclusters: 10
+    max_subclusters: 0
     cluster_swap_rtol: 0.05
     criterion: Tempered
     max_objects_per_transfer: 500

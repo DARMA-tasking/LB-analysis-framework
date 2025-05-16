@@ -201,7 +201,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         self._n_rejects += len(o_src) + len(o_try)
 
         # Return number of swaps performed from rank
-        n_rank_swaps = 0
+        return n_rank_swaps
 
     def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: set, ave_load: float, max_load: float) -> None:
         """Perform feasible subcluster transfers from given rank to possible targets."""
@@ -291,7 +291,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         if self.__max_subclusters > 0 and self.__separate_subclustering:
             # In non-deterministic case skip subclustering when swaps passed
             if self.__n_swaps and not self._deterministic_transfer:
-                self.__n_sub_skipped += len(rank_targets)
+                self.__n_sub_skipped = len(rank_targets)
             else:
                 # Iterate over ranks
                 for r_src, targets in rank_targets.items():
