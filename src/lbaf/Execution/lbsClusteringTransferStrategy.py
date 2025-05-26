@@ -76,10 +76,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info(
             f"Percentage of maximum load required for subclustering: {self.__subclustering_threshold}")
 
-        # Initialize fraction of local imbalance that must be resolved by subcluster
+        # Initialize fraction of local imbalance to be resolved by subcluster
         self.__subclustering_minimum_improvement = parameters.get("subclustering_minimum_improvement", 0.0)
         self._logger.info(
-            "Fraction of local imbalance that must be resolved by subcluster: "
+            "Local imbalance fraction to be resolved by subcluster: "
             f"{self.__subclustering_minimum_improvement}")
 
         # Initialize cluster swap relative threshold
