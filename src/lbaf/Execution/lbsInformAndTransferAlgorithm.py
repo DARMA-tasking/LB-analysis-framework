@@ -50,7 +50,7 @@ from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import min_Hamming_distance, compute_function_statistics
+from ..IO.lbsStatistics import compute_function_statistics
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
