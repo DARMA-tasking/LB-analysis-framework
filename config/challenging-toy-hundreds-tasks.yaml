@@ -21,8 +21,8 @@ algorithm:
   phase_id: 0
   parameters:
     n_iterations: 4
-    n_rounds: 1
-    fanout: 2
+    n_rounds: 3
+    fanout: 4
     order_strategy: arbitrary
     transfer_strategy: Clustering
     max_subclusters: 0

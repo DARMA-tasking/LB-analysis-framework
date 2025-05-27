@@ -82,6 +82,9 @@ class Rank:
         # Start with empty metadata
         self.__metadata = {}
 
+        # Initialize knowledge ratio to complete ignorance
+        self.__kappa = 0.0
+
         # By default the rank is note connected to a node
         self.__node = None
 
@@ -129,6 +132,19 @@ class Rank:
             raise TypeError(
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = float(size)
+
+    @qoi
+    def get_kappa(self) -> float:
+        """Return rank knowledge ratio."""
+        return self.__kappa
+
+    def set_kappa(self, kappa):
+        """Set rank knowledge ratio, which is algorithm-specific."""
+        # Value in [0;1] is required
+        if not isinstance(kappa, float) or kappa < 0.0 or kappa > 1.0:
+            raise TypeError(
+                f"kappa: incorrect type {type(kappa)} or value: {kappa}")
+        self.__kappa = kappa
 
     def get_metadata(self) -> dict:
         """Return original metadata."""
