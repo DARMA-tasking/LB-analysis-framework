@@ -12,6 +12,7 @@ work_model:
   parameters:
     beta: 0.0
     gamma: 0.0
+    delta: 0.0
     upper_bounds:
       max_memory_usage: 45.0
 
