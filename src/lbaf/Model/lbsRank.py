@@ -359,6 +359,14 @@ class Rank:
         """Return maximum memory usage on rank."""
         return self.__size + self.get_shared_memory() + self.get_max_object_level_memory()
 
+    @qoi
+    def get_homing(self) -> float:
+        """Return homing cost on rank."""
+        val : float = 0.0
+
+        # To be implemented
+        return val
+
     def __get_qoi_name(self, qoi_ftn) -> str:
         """Return the QOI name from the given QOI getter function"""
         qoi_name = qoi_ftn[4:] if qoi_ftn.startswith("get_") else qoi_ftn
