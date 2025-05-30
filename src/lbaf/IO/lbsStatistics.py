@@ -214,7 +214,7 @@ def compute_load(objects: tuple, rank_object_ids: list) -> float:
     return sum(objects[i].get_load() for i in rank_object_ids)
 
 
-def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float) -> dict:
+def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float, delta: float) -> dict:
     """Return a dictionary with works of rank objects."""
     # Build object rank map from arrangement
     ranks = {}
@@ -229,8 +229,14 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
 
         # Do not calculate communications if beta = 0 for better performance
         if beta > 0.0:
-            works[rank] += beta * max(compute_volume(objects, rank_objects, "received"),
-                                    compute_volume(objects, rank_objects, "sent"))
+            works[rank] += beta * max(
+                compute_volume(objects, rank_objects, "received"),
+                compute_volume(objects, rank_objects, "sent"))
+
+        # Homing cost not calculated yet
+        if delta > 0.0:
+            logger.error("Delta homing cost not calculated yet")
+            raise SystemExit(1)
 
         # Add constant
         works[rank] += gamma
@@ -281,7 +287,8 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
 
 
 def compute_pairwise_reachable_arrangements(
-        objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
+        objects: tuple, arrangement: tuple,
+        alpha: float, beta: float, gamma: float, delta: float,
         w_max: float, from_id: int, to_id: int, n_ranks: int,
         max_objects: Optional[int] = None, logger: Optional[Logger] = None):
     """Compute arrangements reachable by moving up to a given maximum number of objects."""
@@ -312,8 +319,10 @@ def compute_pairwise_reachable_arrangements(
         for c in itertools.combinations(matches, n):
             # Change all corresponding entries
             n_possible += 1
-            new_arrangement = tuple(to_id if i in c else r for i, r in enumerate(arrangement))
-            works = compute_arrangement_works(objects, new_arrangement, alpha, beta, gamma)
+            new_arrangement = tuple(
+                to_id if i in c else r for i, r in enumerate(arrangement))
+            works = compute_arrangement_works(
+                objects, new_arrangement, alpha, beta, gamma, delta)
 
             # Check whether new arrangements is reachable
             w_max_new = max(works.values())
@@ -441,8 +450,10 @@ def print_subset_statistics(subset_name, subset_size, set_name, set_size, logger
     ss = f"{100. * subset_size / set_size:.3g}" if set_size else ''
     logger.info(f"{subset_name}: {subset_size:.6g} amongst {set_size:.6g} {set_name} ({ss}%)")
 
-def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float,
-                                       w_max: float, n_ranks: int, logger: Logger, max_objects: int = None):
+def compute_all_reachable_arrangements(
+        objects: tuple, arrangement: tuple,
+        alpha: float, beta: float, gamma: float, delta: float,
+        w_max: float, n_ranks: int, logger: Logger, max_objects: int = None):
     """Compute all arrangements reachable by moving up to a maximum number of objects."""
 
     logger.warning("Old function. Used by the removed Rank Object Enumerator script")
@@ -456,8 +467,10 @@ def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha
         for to_id in range(n_ranks):
             if from_id == to_id:
                 continue
-            reachable.update(compute_pairwise_reachable_arrangements(objects, arrangement, alpha, beta, gamma, w_max,
-                                                                     from_id, to_id, n_ranks, max_objects, logger))
+            reachable.update(compute_pairwise_reachable_arrangements(
+                objects, arrangement,
+                alpha, beta, gamma, delta,
+                w_max,from_id, to_id, n_ranks, max_objects, logger))
     logger.info(
         f"Found {len(reachable)} reachable arrangements, with maximum work: {max(reachable.values())}:")
     for k, v in reachable.items():
@@ -467,9 +480,11 @@ def compute_all_reachable_arrangements(objects: tuple, arrangement: tuple, alpha
     return reachable
 
 
-def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, arrangement: tuple, alpha: float,
-                                    beta: float, gamma: float, w_max: float, w_min_max: float, n_ranks: int,
-                                    logger: Logger, max_objects: Optional[int] = None):
+def recursively_compute_transitions(
+        stack: list, visited: dict, objects: tuple, arrangement: tuple,
+        alpha: float, beta: float, gamma: float, delta: float,
+        w_max: float, w_min_max: float, n_ranks: int,
+        logger: Logger, max_objects: Optional[int] = None):
     """Recursively compute all possible transitions to reachable arrangements from initial one."""
 
     logger.warning("Old function. Used by the removed Rank Object Enumerator script")
@@ -494,7 +509,7 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
     reachable = compute_all_reachable_arrangements(
         objects,
         arrangement,
-        alpha, beta, gamma,
+        alpha, beta, gamma, delta,
         w_max,
         n_ranks,
         max_objects)
@@ -512,7 +527,7 @@ def recursively_compute_transitions(stack: list, visited: dict, objects: tuple, 
             visited,
             objects,
             k,
-            alpha, beta, gamma,
+            alpha, beta, gamma, delta,
             w_max, w_min_max,
             n_ranks,
             max_objects)

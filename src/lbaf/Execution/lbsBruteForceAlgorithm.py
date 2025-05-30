@@ -76,12 +76,13 @@ class BruteForceAlgorithm(AlgorithmBase):
         n_ranks = len(phase_ranks)
         affine_combination = isinstance(
             self._work_model, AffineCombinationWorkModel)
-        alpha, beta, gamma = [
+        alpha, beta, gamma, delta = [
             self._work_model.get_alpha() if affine_combination else 1.0,
             self._work_model.get_beta() if affine_combination else 0.0,
-            self._work_model.get_gamma() if affine_combination else 0.0]
+            self._work_model.get_gamma() if affine_combination else 0.0,
+            self._work_model.get_delta() if affine_combination else 0.0]
         _n_a, _w_min_max, a_min_max = compute_min_max_arrangements_work(
-            objects, alpha, beta, gamma, n_ranks,
+            objects, alpha, beta, gamma, gamma, n_ranks,
             logger=self._logger)
 
         # Skip object transfers when requested
