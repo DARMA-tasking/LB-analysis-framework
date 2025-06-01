@@ -12,7 +12,7 @@ work_model:
   parameters:
     beta: 0.0
     gamma: 0.0
-    delta: 0.0
+    delta: 0.1
     upper_bounds:
       max_memory_usage: 45.0
 
@@ -45,7 +45,7 @@ visualization:
   y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
-  rank_qoi: load
+  rank_qoi: homing
   object_qoi: shared_id
   save_meshes: true
   force_continuous_object_qoi: true

@@ -214,7 +214,9 @@ def compute_load(objects: tuple, rank_object_ids: list) -> float:
     return sum(objects[i].get_load() for i in rank_object_ids)
 
 
-def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, beta: float, gamma: float, delta: float) -> dict:
+def compute_arrangement_works(
+        objects: tuple, arrangement: tuple,
+        alpha: float, beta: float, gamma: float, delta: float) -> dict:
     """Return a dictionary with works of rank objects."""
     # Build object rank map from arrangement
     ranks = {}
@@ -245,7 +247,10 @@ def compute_arrangement_works(objects: tuple, arrangement: tuple, alpha: float, 
     return works
 
 
-def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float, gamma: float, n_ranks: int,
+def compute_min_max_arrangements_work(
+        objects: tuple,
+        alpha: float, beta: float, gamma: float, delta: float,
+        n_ranks: int,
     sanity_checks=True, logger: Optional[Logger] = None):
     """Compute all possible arrangements with repetition and minimax work."""
     # Initialize quantities of interest
@@ -254,7 +259,8 @@ def compute_min_max_arrangements_work(objects: tuple, alpha: float, beta: float,
     arrangements_min_max = []
     for arrangement in itertools.product(range(n_ranks), repeat=len(objects)):
         # Compute per-rank works for current arrangement
-        works = compute_arrangement_works(objects, arrangement, alpha, beta, gamma)
+        works = compute_arrangement_works(
+            objects, arrangement, alpha, beta, gamma, delta)
 
         # Update minmax when relevant
         work_max = max(works.values())
