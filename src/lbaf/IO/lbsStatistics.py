@@ -216,7 +216,8 @@ def compute_load(objects: tuple, rank_object_ids: list) -> float:
 
 def compute_arrangement_works(
         objects: tuple, arrangement: tuple,
-        alpha: float, beta: float, gamma: float, delta: float) -> dict:
+        alpha: float, beta: float, gamma: float, delta: float,
+        logger: Optional[Logger] = None) -> dict:
     """Return a dictionary with works of rank objects."""
     # Build object rank map from arrangement
     ranks = {}
@@ -236,7 +237,7 @@ def compute_arrangement_works(
                 compute_volume(objects, rank_objects, "sent"))
 
         # Homing cost not calculated yet
-        if delta > 0.0:
+        if delta > 0.0 and logger is not None:
             logger.error("Delta homing cost not calculated yet")
             raise SystemExit(1)
 
@@ -251,7 +252,7 @@ def compute_min_max_arrangements_work(
         objects: tuple,
         alpha: float, beta: float, gamma: float, delta: float,
         n_ranks: int,
-    sanity_checks=True, logger: Optional[Logger] = None):
+        sanity_checks=True, logger: Optional[Logger] = None):
     """Compute all possible arrangements with repetition and minimax work."""
     # Initialize quantities of interest
     n_arrangements = 0
