@@ -82,7 +82,7 @@ class BruteForceAlgorithm(AlgorithmBase):
             self._work_model.get_gamma() if affine_combination else 0.0,
             self._work_model.get_delta() if affine_combination else 0.0]
         _n_a, _w_min_max, a_min_max = compute_min_max_arrangements_work(
-            objects, alpha, beta, gamma, gamma, n_ranks,
+            objects, alpha, beta, gamma, delta, n_ranks,
             logger=self._logger)
 
         # Skip object transfers when requested
