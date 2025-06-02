@@ -92,8 +92,8 @@ class TransferStrategyBase:
         """Initialize transfer stage consistently across strategies."""
 
         # Keep track of average load
+        self._logger.info(f"Executing transfer phase with average load: {ave_load}")
         self._average_load = ave_load
-        self._logger.info(f"Executing transfer phase with average load: {self._average_load}")
 
         # Initialize numbers of transfers and rejects
         self._n_transfers = 0
