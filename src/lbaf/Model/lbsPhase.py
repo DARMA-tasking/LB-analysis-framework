@@ -457,7 +457,8 @@ class Phase:
             raise SystemExit(1)
 
         # Compute and report communication volume statistics
-        print_function_statistics(v_sent, lambda x: x, "communication volumes", self.__logger)
+        print_function_statistics(
+            v_sent, lambda x: x, "communication volumes", self.__logger)
 
         # Create given number of ranks
         self.__ranks = [Rank(self.__logger, r_id) for r_id in range(n_ranks)]

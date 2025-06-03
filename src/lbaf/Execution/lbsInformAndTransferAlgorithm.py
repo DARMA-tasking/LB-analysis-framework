@@ -233,12 +233,10 @@ class InformAndTransferAlgorithm(AlgorithmBase):
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._rebalanced_phase)
 
-        # Retrieve total work from computed statistics
-        total_work = statistics["total work"][-1]
-
         # Perform requested number of load-balancing iterations
+        s_name = "maximum work"
         for i in range(self.__n_iterations):
-            self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
+            self._logger.info(f"Starting iteration {i + 1} with {s_name} of {statistics[s_name][-1]:.6g}")
 
             # Time the duration of each iteration
             start_time = time.time()

@@ -392,6 +392,11 @@ class LBAFApplication:
         if r_shared_mem_stats.get_maximum():
             lbstats.print_function_statistics(
                 phase.get_ranks(),
+                lambda x: x.get_homing(),
+                f"{phase_name} homing cost",
+                self.__logger)
+            lbstats.print_function_statistics(
+                phase.get_ranks(),
                 lambda x: x.get_homed_blocks_ratio(),
                 f"{phase_name} homed blocks ratio",
                 self.__logger)
