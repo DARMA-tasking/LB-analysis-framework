@@ -182,6 +182,14 @@ class Rank:
             for b in self.get_shared_blocks())
 
     @qoi
+    def get_homing(self) -> float:
+        """Return homing cost on rank."""
+        val : float = 0.0
+        return val + sum(
+            b.get_size() for b in self.get_shared_blocks()
+            if self.get_id() != b.get_home_id())
+
+    @qoi
     def get_number_of_uprooted_blocks(self) -> float:
         """Return number of uprooted memory blocks on rank."""
         return len(self.get_shared_blocks()) - self.get_number_of_homed_blocks()
@@ -285,22 +293,21 @@ class Rank:
     def get_load(self) -> float:
         """Return total load on rank."""
         val : float = 0.0
-        val += sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
-        return val
+        return val + sum(
+            o.get_load()
+            for o in self.__migratable_objects.union(self.__sentinel_objects))
 
     @qoi
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
         val : float = 0.0
-        val += sum(o.get_load() for o in self.__migratable_objects)
-        return val
+        return val + sum(o.get_load() for o in self.__migratable_objects)
 
     @qoi
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
         val : float = 0.0
-        val += sum(o.get_load() for o in self.__sentinel_objects)
-        return val
+        return val + sum(o.get_load() for o in self.__sentinel_objects)
 
     @qoi
     def get_received_volume(self) -> float:
@@ -314,7 +321,9 @@ class Rank:
                 continue
 
             # Add total volume received from non-local objects
-            volume += sum(v for k, v in o.get_communicator().get_received().items() if k not in obj_set)
+            volume += sum(
+                v for k, v in o.get_communicator().get_received().items()
+                if k not in obj_set)
 
         # Return computed volume
         return volume

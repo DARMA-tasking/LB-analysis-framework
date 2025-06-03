@@ -54,7 +54,7 @@ class AffineCombinationWorkModel(WorkModelBase):
     def __init__(self, parameters, lgr: Logger):
         """Class constructor:
 
-        parameters: dictionary with alpha, beta, and gamma values.
+        parameters: dictionary with alpha, beta, gamma and delta values.
         """
         # Assign logger to instance variable
         self.__logger = lgr
@@ -62,6 +62,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         # Use default values if parameters not provided
         self.__beta = parameters.get("beta", 0.0)
         self.__gamma = parameters.get("gamma", 0.0)
+        self.__delta = parameters.get("delta", 0.0)
         self.__upper_bounds = parameters.get("upper_bounds", {})
         self.__node_bounds = parameters.get("node_bounds", False)
 
@@ -69,7 +70,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         super().__init__(parameters)
         self.__logger.info(
             "Instantiated work model with: "
-            f"beta={self.__beta}, gamma={self.__gamma}")
+            f"beta={self.__beta}, gamma={self.__gamma}, delta={self.__delta}")
         for k, v in self.__upper_bounds.items():
             self.__logger.info(
                 f"Upper bound for {'node' if self.__node_bounds else 'rank'} {k}: {v}")
@@ -82,14 +83,18 @@ class AffineCombinationWorkModel(WorkModelBase):
         """Get the gamma parameter."""
         return self.__gamma
 
-    def affine_combination(self, a, l, v1, v2):
-        """Compute affine combination of load and maximum volume."""
-        return a * l + self.__beta * max(v1, v2) + self.__gamma
+    def get_delta(self):
+        """Get the delta parameter."""
+        return self.__delta
+
+    def affine_combination(self, a, l, v1, v2, h):
+        """Compute affine combination of load, maximum volume, and homing cost."""
+        return a * l + self.__beta * max(v1, v2) + self.__gamma + self.__delta * h
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication.
 
-        alpha * load + beta * max(sent, received) + gamma,
+        alpha * load + beta * max(sent, received) + gamma + delta * homing,
         under optional strict upper bounds.
         """
         # Check whether strict bounds are satisfied
@@ -104,4 +109,5 @@ class AffineCombinationWorkModel(WorkModelBase):
             rank.get_alpha(),
             rank.get_load(),
             rank.get_received_volume(),
-            rank.get_sent_volume())
+            rank.get_sent_volume(),
+            rank.get_homing())

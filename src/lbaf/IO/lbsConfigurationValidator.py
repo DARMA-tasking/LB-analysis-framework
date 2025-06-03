@@ -92,6 +92,7 @@ class ConfigurationValidator:
                 "parameters": {
                     "beta": float,
                     "gamma": float,
+                    Optional("delta"): float,
                     Optional("upper_bounds"): And(
                         dict,
                         lambda x: all(isinstance(y, float) for y in x.values()))}},

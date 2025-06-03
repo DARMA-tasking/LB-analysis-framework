@@ -100,6 +100,8 @@ class AlgorithmBase:
             ("ranks", lambda x: x.get_load()): {
                 "maximum load": "maximum"},
             ("ranks", lambda x: self._work_model.compute(x)): {
+                "maximum work": "maximum"},
+            ("ranks", lambda x: self._work_model.compute(x)): {
                 "total work": "sum"}}
 
     def get_initial_communications(self):
