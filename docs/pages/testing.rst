@@ -70,6 +70,7 @@ Synthetic Blocks Test Configuration
     parameters:
       beta: 0.
       gamma: 0.
+      delta: 0.
 
   # Specify balancing algorithm
   algorithm:

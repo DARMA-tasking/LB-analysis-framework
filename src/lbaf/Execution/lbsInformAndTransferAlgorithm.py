@@ -50,7 +50,7 @@ from .lbsTransferStrategyBase import TransferStrategyBase
 from ..Model.lbsRank import Rank
 from ..Model.lbsMessage import Message
 from ..Model.lbsPhase import Phase
-from ..IO.lbsStatistics import min_Hamming_distance, print_function_statistics
+from ..IO.lbsStatistics import compute_function_statistics
 
 
 class InformAndTransferAlgorithm(AlgorithmBase):
@@ -210,30 +210,33 @@ class InformAndTransferAlgorithm(AlgorithmBase):
                 self._logger.debug(
                     f"Peers known to rank {rank.get_id()}: {[r_k.get_id() for r_k in k_p]}")
 
-        # Report on final known information ratio
-        n_k = sum(len(k_p) for k_p in self.__known_peers.values() if k_p) / n_r
+        # Compute and report on final known information ratio
+        if n_r > 1:
+            # Knowledge ratios can be computed
+            sum_kappa = 0.0
+            known_fac = 1.0 / (n_r - 1.0)
+            for rank, peers in self.__known_peers.items():
+                kappa = known_fac * (len(peers) - 1)
+                rank.set_kappa(kappa)
+                sum_kappa += kappa
+        else:
+            self._logger.warning(
+                f"Cannot compute knowledge ratio with only {n_r} ranks")
         self._logger.info(
-            f"Average number of peers known to ranks: {n_k} ({100 * n_k / n_r:.2f}% of {n_r})")
+            f"Average rank knowledge ratio: {sum_kappa / n_r:.4g}")
 
     def execute(self, p_id: int, phases: list, statistics: dict):
         """ Execute 2-phase information+transfer algorithm on Phase with index p_id."""
         # Perform pre-execution checks and initializations
         self._initialize(p_id, phases, statistics)
-        print_function_statistics(
-            self._rebalanced_phase.get_ranks(),
-            self._work_model.compute,
-            "initial rank work",
-            self._logger)
 
         # Set phase to be used by transfer criterion
         self.__transfer_criterion.set_phase(self._rebalanced_phase)
 
-        # Retrieve total work from computed statistics
-        total_work = statistics["total work"][-1]
-
         # Perform requested number of load-balancing iterations
+        s_name = "maximum work"
         for i in range(self.__n_iterations):
-            self._logger.info(f"Starting iteration {i + 1} with total work of {total_work}")
+            self._logger.info(f"Starting iteration {i + 1} with {s_name} of {statistics[s_name][-1]:.6g}")
 
             # Time the duration of each iteration
             start_time = time.time()
@@ -256,12 +259,15 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._logger.info(
                 f"Iteration {i + 1} completed ({n_ignored} skipped ranks) in {time.time() - start_time:.3f} seconds")
 
-            # Compute and report iteration work statistics
-            stats = print_function_statistics(
+            # Compute and report iteration load imbalance and maximum work
+            load_imb = compute_function_statistics(
                 self._rebalanced_phase.get_ranks(),
-                self._work_model.compute,
-                f"iteration {i + 1} rank work",
-                self._logger)
+                lambda x: x.get_load()).get_imbalance()
+            self._logger.info(f"\trank load imbalance: {load_imb:.6g}")
+            max_work = compute_function_statistics(
+                self._rebalanced_phase.get_ranks(),
+                self._work_model.compute).get_maximum()
+            self._logger.info(f"\tmaximum rank work: {max_work:.6g}")
 
             # Update run statistics
             self._update_statistics(statistics)
@@ -273,9 +279,9 @@ class InformAndTransferAlgorithm(AlgorithmBase):
             self._initial_phase.get_lb_iterations().append(lb_iteration)
 
             # Check if the current imbalance is within the target_imbalance range
-            if stats.statistics["imbalance"] <= self.__target_imbalance:
+            if load_imb <= self.__target_imbalance:
                 self._logger.info(
-                    f"Reached target imbalance of {self.__target_imbalance} after {i + 1} iterations.")
+                    f"Reached target load imbalance of {self.__target_imbalance:.6g} after {i + 1} iterations.")
                 break
 
         # Report final mapping in debug mode

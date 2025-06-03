@@ -82,6 +82,9 @@ class Rank:
         # Start with empty metadata
         self.__metadata = {}
 
+        # Initialize knowledge ratio to complete ignorance
+        self.__kappa = 0.0
+
         # By default the rank is note connected to a node
         self.__node = None
 
@@ -130,6 +133,19 @@ class Rank:
                 f"size: incorrect type {type(size)} or value: {size}")
         self.__size = float(size)
 
+    @qoi
+    def get_kappa(self) -> float:
+        """Return rank knowledge ratio."""
+        return self.__kappa
+
+    def set_kappa(self, kappa):
+        """Set rank knowledge ratio, which is algorithm-specific."""
+        # Value in [0;1] is required
+        if not isinstance(kappa, float) or kappa < 0.0 or kappa > 1.0:
+            raise TypeError(
+                f"kappa: incorrect type {type(kappa)} or value: {kappa}")
+        self.__kappa = kappa
+
     def get_metadata(self) -> dict:
         """Return original metadata."""
         return self.__metadata
@@ -164,6 +180,14 @@ class Rank:
         return sum(
             b.get_home_id() == self.get_id()
             for b in self.get_shared_blocks())
+
+    @qoi
+    def get_homing(self) -> float:
+        """Return homing cost on rank."""
+        val : float = 0.0
+        return val + sum(
+            b.get_size() for b in self.get_shared_blocks()
+            if self.get_id() != b.get_home_id())
 
     @qoi
     def get_number_of_uprooted_blocks(self) -> float:
@@ -269,22 +293,21 @@ class Rank:
     def get_load(self) -> float:
         """Return total load on rank."""
         val : float = 0.0
-        val += sum(o.get_load() for o in self.__migratable_objects.union(self.__sentinel_objects))
-        return val
+        return val + sum(
+            o.get_load()
+            for o in self.__migratable_objects.union(self.__sentinel_objects))
 
     @qoi
     def get_migratable_load(self) -> float:
         """Return migratable load on rank."""
         val : float = 0.0
-        val += sum(o.get_load() for o in self.__migratable_objects)
-        return val
+        return val + sum(o.get_load() for o in self.__migratable_objects)
 
     @qoi
     def get_sentinel_load(self) -> float:
         """Return sentinel load on rank."""
         val : float = 0.0
-        val += sum(o.get_load() for o in self.__sentinel_objects)
-        return val
+        return val + sum(o.get_load() for o in self.__sentinel_objects)
 
     @qoi
     def get_received_volume(self) -> float:
@@ -298,7 +321,9 @@ class Rank:
                 continue
 
             # Add total volume received from non-local objects
-            volume += sum(v for k, v in o.get_communicator().get_received().items() if k not in obj_set)
+            volume += sum(
+                v for k, v in o.get_communicator().get_received().items()
+                if k not in obj_set)
 
         # Return computed volume
         return volume

@@ -51,17 +51,29 @@ else:
 class TaskSpecification(TypedDict):
     # The task time
     time: float
-    # The optional collection id
+    # The task's sequential ID
+    seq_id: int
+    # Whether the task is migratable or not
+    migratable: bool
+    # The task's home rank
+    home: int
+    # The task's current node
+    node: int
+    # The collection id
     collection_id: NotRequired[int]
+    # User-defined parameters
+    user_defined: NotRequired[dict]
 
 
 class SharedBlockSpecification(TypedDict):
     # The shared block size
     size: float
     # The ID of the unique rank to which a shared block ultimately belong
-    home: int
+    home_rank: int
     # The set of tasks accessing this shared block
     tasks: Set[int]
+    # the shared block ID
+    shared_id: int
 
 CommunicationSpecification = TypedDict('CommunicationSpecification', {
     'size': float,
@@ -72,6 +84,8 @@ CommunicationSpecification = TypedDict('CommunicationSpecification', {
 class RankSpecification(TypedDict):
     # The task ids
     tasks: Set[int]
+    id: int
+    user_defined: dict
 
 class PhaseSpecification(TypedDict):
     """Dictionary representing a phase specification"""
@@ -96,6 +110,9 @@ class PhaseSpecification(TypedDict):
 
     # Rank distributions
     ranks: Dict[int,RankSpecification] # where index = rank id
+
+    # Phase id
+    id: int
 
 class PhaseSpecificationNormalizer:
     """
@@ -156,27 +173,29 @@ class PhaseSpecificationNormalizer:
         - `data.ranks.tasks`
         - `data.ranks.communications`
 
-        This method should be called after json or yaml deserialization.
+        This method should be called after JSON or YAML deserialization.
         This is the reverse implementation of the normalize method.
         """
-        def dict_merge(a, b):
-            a.update(b)
-            return a
-
         return PhaseSpecification({
             "tasks": self.__normalize_member(
                 data.get("tasks", []),
-                lambda t: TaskSpecification(dict_merge(
-                    { "time": t.get("time", 0.0) },
-                    { "collection_id": t.get("collection_id", None)} if "collection_id" in t else {}
-                ))
+                lambda t: TaskSpecification({
+                    "time": t.get("time", 0.0),
+                    "seq_id": t.get("seq_id", None),
+                    "migratable": t.get("migratable", True),
+                    "home": t.get("home") if "home" in t else {},
+                    "node": t.get("node") if "node" in t else {},
+                    "collection_id": t.get("collection_id") if "collection_id" in t else {},
+                    "user_defined": t.get("user_defined") if "user_defined" in t else {}
+                })
             ),
             "shared_blocks": self.__normalize_member(
                 data.get("shared_blocks", []),
                 lambda b: SharedBlockSpecification({
                     "size": b.get("size", 0.0),
                     "tasks": set(b.get("tasks", {})),
-                    "home_rank": b.get("home_rank")
+                    "home_rank": b.get("home_rank"),
+                    "shared_id": b.get("shared_id")
                 })
             ),
             "communications": self.__normalize_member(
@@ -186,7 +205,9 @@ class PhaseSpecificationNormalizer:
             "ranks": self.__normalize_member(
                 data.get("ranks", []),
                 lambda r: RankSpecification({
-                    "tasks": set(r.get("tasks", []))
+                    "tasks": set(r.get("tasks", [])),
+                    "id": set(r.get("id", [])),
+                    "user_defined": set(r.get("user_defined", {}) if "user_defined" in r else {})
                 })
             )
         })

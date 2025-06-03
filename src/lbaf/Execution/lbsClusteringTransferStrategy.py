@@ -76,10 +76,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         self._logger.info(
             f"Percentage of maximum load required for subclustering: {self.__subclustering_threshold}")
 
-        # Initialize fraction of local imbalance that must be resolved by subcluster
+        # Initialize fraction of local imbalance to be resolved by subcluster
         self.__subclustering_minimum_improvement = parameters.get("subclustering_minimum_improvement", 0.0)
         self._logger.info(
-            "Fraction of local imbalance that must be resolved by subcluster: "
+            "Local imbalance fraction to be resolved by subcluster: "
             f"{self.__subclustering_minimum_improvement}")
 
         # Initialize cluster swap relative threshold
@@ -201,7 +201,7 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                         self._n_rejects += len(o_src) + len(o_try)
 
         # Return number of swaps performed from rank
-        n_rank_swaps = 0
+        return n_rank_swaps
 
     def __transfer_subclusters(self, phase: Phase, r_src: Rank, targets: set, ave_load: float, max_load: float) -> None:
         """Perform feasible subcluster transfers from given rank to possible targets."""
@@ -257,15 +257,12 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         rank_targets = self._get_ranks_to_traverse(phase.get_ranks(), known_peers)
 
         # Iterate over ranks
+        n_ranks = len(phase.get_ranks())
         for r_src, targets in rank_targets.items():
             # Cluster migratable objects on source rank
             clusters_src = self.__build_rank_clusters(r_src, True)
             self._logger.debug(
                 f"Constructed {len(clusters_src)} migratable clusters on source rank {r_src.get_id()}")
-
-            # Skip subclustering for this rank when it must be done later
-            if self.__separate_subclustering:
-                continue
 
             # Perform feasible cluster swaps from given rank to possible targets
             if (n_rank_swaps := self.__swap_clusters(phase, r_src, clusters_src, targets)):
@@ -280,30 +277,36 @@ class ClusteringTransferStrategy(TransferStrategyBase):
                     continue
 
             # Perform feasible subcluster swaps from given rank to possible targets
-            if self.__max_subclusters > 0:
-                self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
+            if not self.__separate_subclustering:
+                if self.__max_subclusters > 0:
+                    self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
+                else:
+                    self.__n_sub_skipped += 1
 
             # Report on new load and exit from rank
             self._logger.debug(
                 f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
 
         # Perform subclustering when it was not previously done
-        if self.__max_subclusters > 0 and self.__separate_subclustering:
-            # In non-deterministic case skip subclustering when swaps passed
-            if self.__n_swaps and not self._deterministic_transfer:
-                self.__n_sub_skipped += len(rank_targets)
-            else:
-                # Iterate over ranks
-                for r_src, targets in rank_targets.items():
-                    # Perform feasible subcluster swaps from given rank to possible targets
-                    self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
+        if self.__separate_subclustering:
+            if self.__max_subclusters > 0:
+                # In non-deterministic case skip subclustering when swaps passed
+                if self.__n_swaps and not self._deterministic_transfer:
+                    self.__n_sub_skipped = n_ranks
+                else:
+                    # Iterate over ranks
+                    for r_src, targets in rank_targets.items():
+                        # Perform feasible subcluster swaps from given rank to possible targets
+                        self.__transfer_subclusters(phase, r_src, targets, ave_load, max_load)
 
-                    # Report on new load and exit from rank
-                    self._logger.debug(
-                        f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
+                        # Report on new load and exit from rank
+                        self._logger.debug(
+                            f"Rank {r_src.get_id()} load: {r_src.get_load()} after {self._n_transfers} object transfers")
+            else:
+                # Subclustering is skipped altogether for all ranks
+                self.__n_sub_skipped = n_ranks
 
         # Report on global transfer statistics
-        n_ranks = len(phase.get_ranks())
         self._logger.info(
             f"Swapped {self.__n_swaps} cluster pairs amongst {self.__n_swap_tries} tries "
             f"({100 * self.__n_swaps / self.__n_swap_tries:.2f}%)")
