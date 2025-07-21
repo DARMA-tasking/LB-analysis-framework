@@ -110,7 +110,7 @@ class AffineCombinationWorkModel(WorkModelBase):
             rank.get_received_volume(),
             rank.get_sent_volume(),
             rank.get_homing())
-    
+
     def update_load(self, rank: Rank, o_snd: list, o_rcv: list):
         """Update total load if objects are to be sent and received."""
         return rank.get_load() + sum(
