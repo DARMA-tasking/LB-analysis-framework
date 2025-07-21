@@ -111,7 +111,7 @@ class AffineCombinationWorkModel(WorkModelBase):
             rank.get_sent_volume(),
             rank.get_homing())
 
-    def update_load(self, rank: Rank, o_snd: list, o_rcv: list):
+    def __update_load(self, rank: Rank, o_snd: list, o_rcv: list):
         """Update total load if objects are to be sent and received."""
         return rank.get_load() + sum(
             o.get_load() for o in o_rcv) - sum(
@@ -122,7 +122,7 @@ class AffineCombinationWorkModel(WorkModelBase):
         # Return combination of load and volumes
         return self.affine_combination(
             rank.get_alpha(),
-            rank.update_load(),
+            self.__update_load(rank, o_snd, o_rcv),
             rank.get_received_volume(),
             rank.get_sent_volume(),
             rank.get_homing())

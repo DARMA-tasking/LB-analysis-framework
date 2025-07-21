@@ -67,6 +67,9 @@ class TemperedWithUpdatesCriterion(CriterionBase):
             self._work_model.compute(r_dst))
 
         # Compute update formulae
+        w_max_up = max(
+            self._work_model.update(r_src, o_src, o_dst),
+            self._work_model.update(r_dst, o_dst, o_src))
 
         # Move objects into proposed new arrangement
         self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
@@ -80,4 +83,7 @@ class TemperedWithUpdatesCriterion(CriterionBase):
         self._phase.transfer_objects(r_dst, o_src, r_src, o_dst)
 
         # Return criterion value
+        if w_max_new != w_max_up:
+            self._logger.error(f"Discrepancy in post update works: {w_max_new} <> {m_max_up}")
+
         return w_max_0 - w_max_new
