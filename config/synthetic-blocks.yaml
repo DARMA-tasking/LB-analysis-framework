@@ -27,7 +27,7 @@ algorithm:
     order_strategy: arbitrary
     transfer_strategy: Clustering
     max_subclusters: 4
-    criterion: Tempered
+    criterion: TemperedWithUpdates
     max_objects_per_transfer: 8
     deterministic_transfer: true
 
