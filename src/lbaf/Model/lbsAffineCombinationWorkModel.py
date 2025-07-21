@@ -93,7 +93,6 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication.
-
         alpha * load + beta * max(sent, received) + gamma + delta * homing,
         under optional strict upper bounds.
         """
@@ -108,6 +107,22 @@ class AffineCombinationWorkModel(WorkModelBase):
         return self.affine_combination(
             rank.get_alpha(),
             rank.get_load(),
+            rank.get_received_volume(),
+            rank.get_sent_volume(),
+            rank.get_homing())
+    
+    def update_load(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update total load if objects are to be sent and received."""
+        return rank.get_load() + sum(
+            o.get_load() for o in o_rcv) - sum(
+                o.get_load() for o in o_snd)
+
+    def update(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update work if objects are to be sent and received."""
+        # Return combination of load and volumes
+        return self.affine_combination(
+            rank.get_alpha(),
+            rank.update_load(),
             rank.get_received_volume(),
             rank.get_sent_volume(),
             rank.get_homing())

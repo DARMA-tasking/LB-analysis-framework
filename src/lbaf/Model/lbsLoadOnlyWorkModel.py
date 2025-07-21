@@ -60,6 +60,11 @@ class LoadOnlyWorkModel(WorkModelBase):
         self.__logger.info("Instantiated concrete work model")
 
     def compute(self, rank: Rank):
-        """A work model summing all object loads on given rank."""
-        # Return total load on this rank
+        """This work model only considers total object load."""
         return rank.get_load()
+
+    def update(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update total load if objects are to be sent and received."""
+        return rank.get_load() + sum(
+            o.get_load() for o in o_rcv) - sum(
+                o.get_load() for o in o_snd)

@@ -79,5 +79,10 @@ class WorkModelBase:
 
     @abc.abstractmethod
     def compute(self, rank):
-        """Return value of work for given rank."""
+        """Return value of work on given rank."""
+        # Must be implemented by concrete subclass
+
+    @abc.abstractmethod
+    def update(self, rank, o_snd, o_rcv):
+        """Compute updated work on given rank if sending and receiving objects."""
         # Must be implemented by concrete subclass

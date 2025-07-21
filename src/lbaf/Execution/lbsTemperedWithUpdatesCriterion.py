@@ -66,6 +66,8 @@ class TemperedWithUpdatesCriterion(CriterionBase):
             self._work_model.compute(r_src),
             self._work_model.compute(r_dst))
 
+        # Compute update formulae
+
         # Move objects into proposed new arrangement
         self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
 
