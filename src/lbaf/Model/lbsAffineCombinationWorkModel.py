@@ -144,7 +144,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
             # Remove object from rank
             r_obj.discard(o)
-            
+
         # Iterate over all received objects
         for o in o_rcv:
             # Skip non-communicating objects
@@ -163,7 +163,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
             # Add object to rank
             r_obj.add(o)
-            
+
         # Return updated received volume
         return volume
 
@@ -194,7 +194,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
             # Remove object from rank
             r_obj.discard(o)
-            
+
         # Iterate over all received objects
         for o in o_rcv:
             # Skip non-communicating objects
@@ -213,7 +213,7 @@ class AffineCombinationWorkModel(WorkModelBase):
 
             # Add object to rank
             r_obj.add(o)
-            
+
         # Return updated sent volume
         return volume
 
