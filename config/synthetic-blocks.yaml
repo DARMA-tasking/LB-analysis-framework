@@ -10,9 +10,9 @@ check_schema: true
 work_model:
   name: AffineCombination
   parameters:
-    beta: 1000.0
+    beta: 1.0
     gamma: 0.0
-    delta: 0.0
+    delta: 1.0
     upper_bounds:
       max_memory_usage: 45.0
 
