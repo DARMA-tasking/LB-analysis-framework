@@ -84,9 +84,7 @@ class TemperedWithUpdatesCriterion(CriterionBase):
 
         # Sanity check
         if w_max_new != w_max_up:
-            self._logger.error(f"Discrepancy in post update works: {w_max_new} <> {w_max_up}")
-            print(w1, w3)
-            print(w2, w4)
+            self._logger.error(f"Updated work: max({w1},{w2}) <> computed: max({w3},{w4})")
             raise SystemExit(1)
 
         # Return criterion value
