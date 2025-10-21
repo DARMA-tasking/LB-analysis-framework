@@ -45,6 +45,9 @@ import multiprocessing as mp
 import os
 import sys
 import math
+import time
+import functools
+
 from logging import Logger
 from typing import Optional
 
@@ -54,6 +57,16 @@ from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
 from ..Model.lbsObject import Object
 
+def timer(method):
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        start = time.time()
+        res = method(self, *args, **kwargs)
+        end = time.time()
+        dur = end - start
+        self._VTDataWriter__logger.info(f"{method.__name__}: {dur:.4f} s")
+        return res
+    return wrapper
 
 class VTDataWriter:
     """A class to write load directives for VT as JSON files
@@ -94,11 +107,13 @@ class VTDataWriter:
         try:
             self.__extension = parameters["json_output_suffix"]
             self.__compress = parameters["compressed"]
+            self.__add_communications = parameters["communications"]
         except Exception as e:
             self.__logger.error(
                 f"Missing JSON writer configuration parameter(s): {e}")
             raise SystemExit(1) from e
 
+    @timer
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
         tasks = []
@@ -145,6 +160,7 @@ class VTDataWriter:
         # Return created tasks on this rank
         return tasks
 
+    @timer
     def __create_task_data(self, rank: Rank):
         """Create task data."""
         return sorted(
@@ -155,6 +171,7 @@ class VTDataWriter:
             key=lambda x: x.get("entity").get(
                 "id", x.get("entity").get("seq_id")))
 
+    @timer
     def __find_object_rank(self, phase: Phase, obj: Object):
         """Determine which rank owns the object."""
         for r in phase.get_ranks():
@@ -166,6 +183,7 @@ class VTDataWriter:
             f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
         raise SystemExit(1)
 
+    @timer
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
 
@@ -254,6 +272,7 @@ class VTDataWriter:
         # Return created list of communications
         return communications
 
+    @timer
     def _json_serializer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
@@ -305,9 +324,10 @@ class VTDataWriter:
             phase_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
             # Add communication data if present
-            communications = self.__get_communications(current_phase, rank)
-            if communications:
-                phase_data["communications"] = communications
+            if self.__add_communications:
+                communications = self.__get_communications(current_phase, rank)
+                if communications:
+                    phase_data["communications"] = communications
 
             # Add load balancing iterations if present
             lb_iterations = current_phase.get_lb_iterations()
@@ -343,9 +363,10 @@ class VTDataWriter:
                         iteration_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
                         # Add communication data if present
-                        communications = self.__get_communications(it, it_r)
-                        if communications:
-                            iteration_data["communications"] = communications
+                        if self.__add_communications:
+                            communications = self.__get_communications(it, it_r)
+                            if communications:
+                                iteration_data["communications"] = communications
 
                         # Append load balancing iteration to phase data
                         phase_data["lb_iterations"].append(iteration_data)
@@ -357,6 +378,7 @@ class VTDataWriter:
         serial_json = json.dumps(output, separators=(',', ':'))
         return serial_json
 
+    @timer
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
@@ -378,6 +400,7 @@ class VTDataWriter:
         # Return JSON file name
         return file_name
 
+    @timer
     def write(self, phases: dict):
         """ Write one JSON per rank for dictonary of phases with possibly iterations."""
 
