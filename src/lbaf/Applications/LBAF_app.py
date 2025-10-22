@@ -597,7 +597,7 @@ class LBAFApplication:
                     # Insert rebalanced phase into dictionary of phases
                     phases[p_id] = rebalanced_phase
 
-                # Write all phasesOA
+                # Write all phases
                 self.__logger.info(
                     f"Writing all ({len(phases)}) phases for offline load-balancing")
                 self.__json_writer.write(phases)

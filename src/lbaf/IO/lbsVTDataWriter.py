@@ -187,6 +187,9 @@ class VTDataWriter:
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
 
+        if not self.__add_communications:
+            return None
+
         # Get initial communications (if any) for current phase
         phase_communications_dict = phase.get_communications()
 
@@ -324,10 +327,9 @@ class VTDataWriter:
             phase_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
             # Add communication data if present
-            if self.__add_communications:
-                communications = self.__get_communications(current_phase, rank)
-                if communications:
-                    phase_data["communications"] = communications
+            communications = self.__get_communications(current_phase, rank)
+            if communications:
+                phase_data["communications"] = communications
 
             # Add load balancing iterations if present
             lb_iterations = current_phase.get_lb_iterations()
@@ -363,10 +365,9 @@ class VTDataWriter:
                         iteration_data["user_defined"]["num_homed_ratio"] = homed_ratio
 
                         # Add communication data if present
-                        if self.__add_communications:
-                            communications = self.__get_communications(it, it_r)
-                            if communications:
-                                iteration_data["communications"] = communications
+                        communications = self.__get_communications(it, it_r)
+                        if communications:
+                            iteration_data["communications"] = communications
 
                         # Append load balancing iteration to phase data
                         phase_data["lb_iterations"].append(iteration_data)
@@ -404,6 +405,10 @@ class VTDataWriter:
     def write(self, phases: dict):
         """ Write one JSON per rank for dictonary of phases with possibly iterations."""
 
+        ## REGION A
+
+        # start = time.time()
+
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict):
             self.__logger.error(
@@ -411,10 +416,18 @@ class VTDataWriter:
             raise SystemExit(1)
         self.__phases = phases
 
+        # end = time.time()
+        # dur = end - start
+        # print(f"Region A: {dur} s")
+
+        ## REGION B
+
+        # start = time.time()
+
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
         for phase in self.__phases.values():
-            # Handle case where entry only cintains a phase
+            # Handle case where entry only contains a phase
             for r in phase.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
                 self.__rank_phases[r.get_id()][phase.get_id()] = r
@@ -422,9 +435,27 @@ class VTDataWriter:
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
 
+        # end = time.time()
+        # dur = end - start
+        # print(f"Region B: {dur} s")
+
+        ## REGION C
+
+        # start = time.time()
+
         # Write individual rank files using data parallelism
-        with mp.pool.Pool(context=mp.get_context("fork")) as pool:
-            results = pool.imap_unordered(
-                self._json_writer, self.__rank_phases.items())
-            for file_name in results:
-                self.__logger.info(f"Wrote {file_name}")
+        # with mp.pool.Pool(context=mp.get_context("spawn")) as pool:
+        #     self.__logger.info(f"{pool._processes} threads for {len(self.__rank_phases)} ranks.")
+        #     results = pool.imap_unordered(
+        #         self._json_writer, self.__rank_phases.items())
+        #     for file_name in results:
+        #         self.__logger.info(f"Wrote {file_name}")
+
+        # Try in serial
+        for rank_phases_double in self.__rank_phases.items():
+            file_name = self._json_writer(rank_phases_double)
+            self.__logger.info(f"Wrote {file_name}")
+
+        # end = time.time()
+        # dur = end - start
+        # print(f"Region C: {dur} s")
