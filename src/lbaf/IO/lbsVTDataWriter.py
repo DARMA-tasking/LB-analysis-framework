@@ -96,7 +96,7 @@ class VTDataWriter:
         try:
             self.__extension = parameters["json_output_suffix"]
             self.__compress = parameters["compressed"]
-            self.__add_communications = parameters["communications"]
+            self.__add_communications = parameters.get("communications", True)
         except Exception as e:
             self.__logger.error(
                 f"Missing JSON writer configuration parameter(s): {e}")
