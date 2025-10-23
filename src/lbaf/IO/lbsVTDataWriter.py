@@ -45,8 +45,6 @@ import multiprocessing as mp
 import os
 import sys
 import math
-import time
-import functools
 
 from logging import Logger
 from typing import Optional
@@ -57,16 +55,7 @@ from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
 from ..Model.lbsObject import Object
 
-def timer(method):
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        start = time.time()
-        res = method(self, *args, **kwargs)
-        end = time.time()
-        dur = end - start
-        self._VTDataWriter__logger.info(f"{method.__name__}: {dur:.4f} s")
-        return res
-    return wrapper
+from ..Utils.lbsTimerDecorator import timer
 
 class VTDataWriter:
     """A class to write load directives for VT as JSON files
@@ -404,25 +393,12 @@ class VTDataWriter:
     @timer
     def write(self, phases: dict):
         """ Write one JSON per rank for dictonary of phases with possibly iterations."""
-
-        ## REGION A
-
-        # start = time.time()
-
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict):
             self.__logger.error(
                 "JSON writer must be passed a dictionary")
             raise SystemExit(1)
         self.__phases = phases
-
-        # end = time.time()
-        # dur = end - start
-        # print(f"Region A: {dur} s")
-
-        ## REGION B
-
-        # start = time.time()
 
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
@@ -435,27 +411,7 @@ class VTDataWriter:
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
 
-        # end = time.time()
-        # dur = end - start
-        # print(f"Region B: {dur} s")
-
-        ## REGION C
-
-        # start = time.time()
-
-        # Write individual rank files using data parallelism
-        # with mp.pool.Pool(context=mp.get_context("spawn")) as pool:
-        #     self.__logger.info(f"{pool._processes} threads for {len(self.__rank_phases)} ranks.")
-        #     results = pool.imap_unordered(
-        #         self._json_writer, self.__rank_phases.items())
-        #     for file_name in results:
-        #         self.__logger.info(f"Wrote {file_name}")
-
-        # Try in serial
+        # Write individual rank files
         for rank_phases_double in self.__rank_phases.items():
             file_name = self._json_writer(rank_phases_double)
             self.__logger.info(f"Wrote {file_name}")
-
-        # end = time.time()
-        # dur = end - start
-        # print(f"Region C: {dur} s")
