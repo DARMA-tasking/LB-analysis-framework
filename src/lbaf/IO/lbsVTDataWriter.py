@@ -161,18 +161,6 @@ class VTDataWriter:
                 "id", x.get("entity").get("seq_id")))
 
     @timer
-    def __find_object_rank(self, phase: Phase, obj: Object):
-        """Determine which rank owns the object."""
-        for r in phase.get_ranks():
-            if obj in r.get_objects():
-                return r
-
-        # If this point is reached the object could not be found
-        self.__logger.error(
-            f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
-        raise SystemExit(1)
-
-    @timer
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
 
@@ -204,7 +192,6 @@ class VTDataWriter:
                     # Retrieve communications with single sender
                     sender_obj = sender_obj[0]
                     sender_rank_id = sender_obj.get_rank_id()
-                    #sender_rank_id = self.__find_object_rank(phase, sender_obj).get_id()
                     from_rank: Rank = [
                         r for r in phase.get_ranks() if r.get_id() == sender_rank_id][0]
                     comm_entry["from"]["home"] = sender_rank_id
@@ -225,7 +212,6 @@ class VTDataWriter:
                     # Retrieve communications with single receiver
                     receiver_obj = receiver_obj[0]
                     receiver_rank_id = receiver_obj.get_rank_id()
-                    #receiver_rank_id = self.__find_object_rank(phase, receiver_obj).get_id()
                     comm_entry["to"]["home"] = receiver_rank_id
                     to_rank: Rank = [
                         r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
