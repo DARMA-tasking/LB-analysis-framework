@@ -5,7 +5,8 @@ from typing import Set, List, Union
 from lbaf.Execution.lbsPhaseSpecification import (
     PhaseSpecification, SharedBlockSpecification,
     RankSpecification, TaskSpecification,
-    PhaseSpecificationNormalizer
+    PhaseSpecificationNormalizer,
+    CommunicationSpecification
 )
 
 class JSONSpecFileMaker:
@@ -26,6 +27,7 @@ class JSONSpecFileMaker:
             "shared": 0,
             "rank": 0,
             "phase": 0,
+            "comm": 0,
         }
 
         self.id_sets = {
@@ -33,6 +35,7 @@ class JSONSpecFileMaker:
             "shared": set(),
             "rank": set(),
             "phase": set(),
+            "comm": set(),
         }
 
 
@@ -128,6 +131,15 @@ class JSONSpecFileMaker:
         self.shared_blocks[shared_id] = shared_block
         return shared_block
 
+    def createComm(self, to_obj : int, from_obj : int, size : float) -> CommunicationSpecification:
+        new_comm = CommunicationSpecification({
+            'size': size,
+            'from': from_obj,
+            'to': to_obj
+        })
+        comm_id = self.checkID_(-1, "comm")
+        self.comms[comm_id] = new_comm
+
     def createRank(self,
             id: int = -1,
             tasks: Union[List[int], List[TaskSpecification]] = None,
@@ -222,3 +234,16 @@ class JSONSpecFileMaker:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as output_file:
             yaml.dump(spec, output_file, default_flow_style=False)
+
+    def makeSpecification(self, phase_id):
+        self.assertAllTasksHaveBeenAssigned_()
+        phase = PhaseSpecification({
+            "tasks": self.tasks,
+            "shared_blocks": self.shared_blocks,
+            "communications": self.comms,
+            "ranks": self.ranks,
+            "id": phase_id
+        })
+        norm = PhaseSpecificationNormalizer()
+        spec = norm.normalize(phase)
+        return spec
