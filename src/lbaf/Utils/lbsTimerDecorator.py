@@ -14,7 +14,7 @@ def timer(method):
 
         # Get a logger instance (stacklevel=2 uses the logger from the function being decorated)
         logger = logging.getLogger(self.__class__.__module__)
-        logger.debug(f"{method.__name__}: {dur:.4f} s", stacklevel=2)
+        logger.info(f"{method.__name__}: {dur:.4f} s", stacklevel=2)
 
         return res
     return wrapper

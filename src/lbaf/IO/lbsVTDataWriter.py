@@ -377,6 +377,43 @@ class VTDataWriter:
         return file_name
 
     @timer
+    def __write_with_concurrency(self):
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+        with ProcessPoolExecutor() as executor:
+            futures = {executor.submit(self._json_writer, item): item for item in self.__rank_phases.items()}
+            for future in as_completed(futures):
+                try:
+                    file_name = future.result()
+                    self.__logger.info(f"Wrote {file_name}")
+                except Exception as e:
+                    self.__logger.error(f"Error processing {futures[future]}: {e}")
+
+    @timer
+    def __write_with_standard_mp(self):
+        with mp.pool.Pool(context=mp.get_context("fork")) as pool:
+            results = pool.imap_unordered(
+                self._json_writer, self.__rank_phases.items())
+            for file_name in results:
+                self.__logger.info(f"Wrote {file_name}")
+
+    @timer
+    def __write_with_thread_concurrency(self):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor() as executor:
+            futures = {executor.submit(self._json_writer, item): item for item in self.__rank_phases.items()}
+            for future in as_completed(futures):
+                try:
+                    file_name = future.result()
+                    self.__logger.info(f"Wrote {file_name}")
+                except Exception as e:
+                    self.__logger.error(f"Error processing {futures[future]}: {e}")
+
+    @timer
+    def __write_in_serial(self):
+        for rank_phases_double in self.__rank_phases.items():
+            file_name = self._json_writer(rank_phases_double)
+            self.__logger.info(f"Wrote {file_name}")
+    @timer
     def write(self, phases: dict):
         """ Write one JSON per rank for dictonary of phases with possibly iterations."""
         # Ensure that provided phase has correct type
@@ -397,7 +434,24 @@ class VTDataWriter:
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
 
+        ######################################################################################
         # Write individual rank files
-        for rank_phases_double in self.__rank_phases.items():
-            file_name = self._json_writer(rank_phases_double)
-            self.__logger.info(f"Wrote {file_name}")
+        # try:
+        #     self.__write_with_standard_mp()
+        # except:
+        #     print("There was an error running the standard MP function.")
+
+        # try:
+        #     self.__write_with_concurrency()
+        # except:
+        #     print("There was an error with self.__write_with_concurrency")
+
+        try:
+            self.__write_with_thread_concurrency()
+        except:
+            print("There was an error with self.__write_with_thread_concurrency")
+
+        try:
+            self.__write_in_serial()
+        except:
+            print("There was an error with self.__write_in_serial")
