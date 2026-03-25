@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                           lbsTemperedCriterion.py
+#                           lbsTemperedWithUpdatesCriterion.py
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
 # Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
@@ -47,8 +47,8 @@ from .lbsCriterionBase import CriterionBase
 from ..Model.lbsRank import Rank
 
 
-class TemperedCriterion(CriterionBase):
-    """A concrete class for the Grapevine criterion modified in line 6."""
+class TemperedWithUpdatesCriterion(CriterionBase):
+    """A concrete class for the Grapevine criterion with update formulae."""
 
     def __init__(self, work_model, lgr: Logger):
         """Class constructor."""
@@ -57,7 +57,7 @@ class TemperedCriterion(CriterionBase):
         self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
     def compute(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list]=None) -> float:
-        """Tempered work criterion based on L1 norm of works."""
+        """Tempered work criterion based on L1 norm of works using update formulae."""
         if o_dst is None:
             o_dst = []
 
@@ -66,16 +66,26 @@ class TemperedCriterion(CriterionBase):
             self._work_model.compute(r_src),
             self._work_model.compute(r_dst))
 
+        # Compute update formulae
+        w_max_up = max(
+            w1 := self._work_model.update(r_src, o_src, o_dst), # type: float
+            w2 := self._work_model.update(r_dst, o_dst, o_src)) # type: float
+
         # Move objects into proposed new arrangement
         self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
 
         # Compute maximum work of proposed new arrangement
         w_max_new = max(
-            self._work_model.compute(r_src),
-            self._work_model.compute(r_dst))
+            w3 := self._work_model.compute(r_src), # type: float
+            w4 := self._work_model.compute(r_dst)) # type: float
 
         # Move objects back into original arrangement
         self._phase.transfer_objects(r_dst, o_src, r_src, o_dst)
+
+        # Sanity check
+        if w_max_new != w_max_up:
+            self._logger.error(f"Updated work: max({w1},{w2}) <> computed: max({w3},{w4})")
+            raise SystemExit(1)
 
         # Return criterion value
         return w_max_0 - w_max_new
