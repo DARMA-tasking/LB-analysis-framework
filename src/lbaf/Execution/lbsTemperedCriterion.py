@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                           lbsTemperedWithUpdatesCriterion.py
+#                           lbsTemperedCriterion.py
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
 # Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
@@ -47,7 +47,7 @@ from .lbsCriterionBase import CriterionBase
 from ..Model.lbsRank import Rank
 
 
-class TemperedWithUpdatesCriterion(CriterionBase):
+class TemperedCriterion(CriterionBase):
     """A concrete class for the Grapevine criterion with update formulae."""
 
     def __init__(self, work_model, lgr: Logger):

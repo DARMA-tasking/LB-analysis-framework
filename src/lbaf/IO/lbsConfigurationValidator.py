@@ -67,7 +67,7 @@ ALLOWED_ALGORITHMS = (
     "CentralizedPrefixOptimizer",
     "PrescribedPermutation",
     "PhaseStepper")
-ALLOWED_CRITERIA = ("Tempered", "TemperedWithUpdates", "StrictLocalizing")
+ALLOWED_CRITERIA = ("Tempered", "StrictLocalizing")
 ALLOWED_LOGGING_LEVELS = ("info", "debug", "warning", "error")
 ALLOWED_LOAD_VOLUME_SAMPLER = ("uniform", "lognormal")
 
