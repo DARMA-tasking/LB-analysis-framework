@@ -67,25 +67,9 @@ class TemperedCriterion(CriterionBase):
             self._work_model.compute(r_dst))
 
         # Compute update formulae
-        w_max_up = max(
-            w1 := self._work_model.update(r_src, o_src, o_dst), # type: float
-            w2 := self._work_model.update(r_dst, o_dst, o_src)) # type: float
-
-        # Move objects into proposed new arrangement
-        self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
-
-        # Compute maximum work of proposed new arrangement
         w_max_new = max(
-            w3 := self._work_model.compute(r_src), # type: float
-            w4 := self._work_model.compute(r_dst)) # type: float
-
-        # Move objects back into original arrangement
-        self._phase.transfer_objects(r_dst, o_src, r_src, o_dst)
-
-        # Sanity check
-        if w_max_new != w_max_up:
-            self._logger.error(f"Updated work: max({w1},{w2}) <> computed: max({w3},{w4})")
-            raise SystemExit(1)
+            self._work_model.update(r_src, o_src, o_dst),
+            self._work_model.update(r_dst, o_dst, o_src))
 
         # Return criterion value
         return w_max_0 - w_max_new
