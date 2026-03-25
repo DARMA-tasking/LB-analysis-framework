@@ -26,7 +26,7 @@ _Please refer to our [documentation](https://darma-tasking.github.io/lbaf_docs/i
 
 ## Getting Started
 
-LBAF currently supports Python 3.8 - 3.11. You can download Python [here](https://www.python.org/downloads/).
+LBAF currently supports Python 3.9 - 3.11. You can download Python [here](https://www.python.org/downloads/).
 
 ### Optional: Create a virtual environment *(recommended in development)*
 
@@ -37,7 +37,7 @@ source venv/bin/activate
 ```
 
 > [!NOTE]
-> You can create separate virtual environments for different development branches. For example, a Python 3.8 environment for branch 125 could be named `venv38-branch-125`. Within this environment, you can install `lbaf` as an editable package (see below).
+> You can create separate virtual environments for different development branches. For example, a Python 3.9 environment for branch 125 could be named `venv38-branch-125`. Within this environment, you can install `lbaf` as an editable package (see below).
 
 ## Installation
 
