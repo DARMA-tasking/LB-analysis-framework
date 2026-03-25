@@ -12,9 +12,9 @@ work_model:
   parameters:
     beta: 0.0
     gamma: 0.0
-    delta: 0.1
+    delta: 0.0
     upper_bounds:
-      max_memory_usage: 45.0
+      max_memory_usage: 10.0
 
 # Specify algorithm
 algorithm:
@@ -27,7 +27,7 @@ algorithm:
     order_strategy: arbitrary
     transfer_strategy: Clustering
     max_subclusters: 4
-    criterion: Tempered
+    criterion: TemperedWithUpdates
     max_objects_per_transfer: 8
     deterministic_transfer: true
 
@@ -45,7 +45,7 @@ visualization:
   y_ranks: 2
   z_ranks: 1
   object_jitter: 0.5
-  rank_qoi: homing
+  rank_qoi: max_memory_usage
   object_qoi: shared_id
   save_meshes: true
   force_continuous_object_qoi: true

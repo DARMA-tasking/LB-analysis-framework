@@ -93,7 +93,6 @@ class AffineCombinationWorkModel(WorkModelBase):
 
     def compute(self, rank: Rank):
         """A work model with affine combination of load and communication.
-
         alpha * load + beta * max(sent, received) + gamma + delta * homing,
         under optional strict upper bounds.
         """
@@ -111,3 +110,173 @@ class AffineCombinationWorkModel(WorkModelBase):
             rank.get_received_volume(),
             rank.get_sent_volume(),
             rank.get_homing())
+
+    def __update_load(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update total load if objects are to be sent and received."""
+        return rank.get_load() - sum(
+            o.get_load() for o in o_snd) + sum(
+                o.get_load() for o in o_rcv)
+
+    def __update_received(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update received volume if objects are to be sent and received."""
+        # Keep track of rank id and objects
+        r_id = rank.get_id()
+        r_obj = rank.get_objects().copy()
+
+        # Retrieve current received volume
+        volume = rank.get_received_volume()
+
+        # Iterate over all sent objects
+        for o in o_snd:
+            # Skip non-communicating objects
+            if not (c := o.get_communicator()):
+                continue
+
+            # Subtract communications received by object from other ranks
+            for k, v in c.get_received().items():
+                if k not in r_obj:
+                    volume -= v
+
+            # Add communications sent from object to current rank
+            for k, v in c.get_sent().items():
+                if k in r_obj:
+                    volume += v
+
+            # Remove object from rank
+            r_obj.discard(o)
+
+        # Iterate over all received objects
+        for o in o_rcv:
+            # Skip non-communicating objects
+            if not (c := o.get_communicator()):
+                continue
+
+            # Add communications received by object from other ranks
+            for k, v in c.get_received().items():
+                if k not in r_obj:
+                    volume += v
+
+            # Subtract communications sent from object to current rank
+            for k, v in c.get_sent().items():
+                if k in r_obj:
+                    volume -= v
+
+            # Add object to rank
+            r_obj.add(o)
+
+        # Return updated received volume
+        return volume
+
+    def __update_sent(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update sent volume if objects are to be sent and received."""
+        # Keep track of rank id and objects
+        r_id = rank.get_id()
+        r_obj = rank.get_objects().copy()
+
+        # Retrieve current sent volume
+        volume = rank.get_sent_volume()
+
+        # Iterate over all sent objects
+        for o in o_snd:
+            # Skip non-communicating objects
+            if not (c := o.get_communicator()):
+                continue
+
+            # Subtract communications sent from object to other ranks
+            for k, v in c.get_sent().items():
+                if k not in r_obj:
+                    volume -= v
+
+            # Add communications received by object from current rank
+            for k, v in c.get_received().items():
+                if k in r_obj:
+                    volume += v
+
+            # Remove object from rank
+            r_obj.discard(o)
+
+        # Iterate over all received objects
+        for o in o_rcv:
+            # Skip non-communicating objects
+            if not (c := o.get_communicator()):
+                continue
+
+            # Add communications sent from object to other ranks
+            for k, v in c.get_sent().items():
+                if k not in r_obj:
+                    volume += v
+
+            # Subtract communications received by object from current rank
+            for k, v in c.get_received().items():
+                if k in r_obj:
+                    volume -= v
+
+            # Add object to rank
+            r_obj.add(o)
+
+        # Return updated sent volume
+        return volume
+
+    def __update_homing(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update homing costs if objects are to be sent and received."""
+        # Keep track of rank id and objects
+        r_id = rank.get_id()
+        r_obj = rank.get_objects().copy()
+
+        # Retrieve current homing cost
+        homing = rank.get_homing()
+
+        # Iterate over all sent objects
+        for o in o_snd:
+            # Remove object from rank
+            r_obj.discard(o)
+
+            # Skip locally homed blocks
+            b = o.get_shared_block()
+            if b.get_home_id() == r_id:
+                continue
+
+            # Determine set of removed non-homed blocks
+            S = set({b})
+            for o_oth in r_obj:
+                if o_oth.get_shared_block() == b:
+                    S = set()
+                    break
+
+            # Update homing cost
+            for b in S:
+                homing -= b.get_size()
+
+        # Iterate over all received objects
+        for o in o_rcv:
+            # Skip locally homed blocks
+            b = o.get_shared_block()
+            if b.get_home_id() == r_id:
+                continue
+
+            # Determine set of added non-homed blocks
+            S = set({b})
+            for o_oth in r_obj:
+                if o_oth.get_shared_block() == b:
+                    S = set()
+                    break
+
+            # Update homing cost
+            for b in S:
+                homing += b.get_size()
+
+            # Addd object to rank
+            r_obj.add(o)
+
+        # Return updated homing cost
+        return homing
+
+    def update(self, rank: Rank, o_snd: list, o_rcv: list):
+        """Update work if objects are to be sent and received."""
+        # Return combination of load and volumes
+        return self.affine_combination(
+            rank.get_alpha(),
+            self.__update_load(rank, o_snd, o_rcv),
+            self.__update_received(rank, o_snd, o_rcv),
+            self.__update_sent(rank, o_snd, o_rcv),
+            self.__update_homing(rank, o_snd, o_rcv))

@@ -2,7 +2,7 @@
 #@HEADER
 ###############################################################################
 #
-#                           lbsLoadOnlyWorkModel.py
+#                           lbsTemperedWithUpdatesCriterion.py
 #               DARMA/LB-analysis-framework => LB Analysis Framework
 #
 # Copyright 2019-2024 National Technology & Engineering Solutions of Sandia, LLC
@@ -41,30 +41,51 @@
 #@HEADER
 #
 from logging import Logger
+from typing import Optional
 
-from .lbsWorkModelBase import WorkModelBase
-from .lbsRank import Rank
+from .lbsCriterionBase import CriterionBase
+from ..Model.lbsRank import Rank
 
 
-class LoadOnlyWorkModel(WorkModelBase):
-    """A concrete class for a load-only work model."""
+class TemperedWithUpdatesCriterion(CriterionBase):
+    """A concrete class for the Grapevine criterion with update formulae."""
 
-    def __init__(self, _, lgr: Logger):
-        """Class constructor:
-            _: no parameters dictionary needed for this work model."""
-        # Assign logger to instance variable
-        self.__logger = lgr
-
+    def __init__(self, work_model, lgr: Logger):
+        """Class constructor."""
         # Call superclass init
-        super().__init__()
-        self.__logger.info("Instantiated concrete work model")
+        super().__init__(work_model, lgr)
+        self._logger.info(f"Instantiated {type(self).__name__} concrete criterion")
 
-    def compute(self, rank: Rank):
-        """This work model only considers total object load."""
-        return rank.get_load()
+    def compute(self, r_src: Rank, o_src: list, r_dst: Rank, o_dst: Optional[list]=None) -> float:
+        """Tempered work criterion based on L1 norm of works using update formulae."""
+        if o_dst is None:
+            o_dst = []
 
-    def update(self, rank: Rank, o_snd: list, o_rcv: list):
-        """Update total load if objects are to be sent and received."""
-        return rank.get_load() + sum(
-            o.get_load() for o in o_rcv) - sum(
-                o.get_load() for o in o_snd)
+        # Compute maximum work of original arrangement
+        w_max_0 = max(
+            self._work_model.compute(r_src),
+            self._work_model.compute(r_dst))
+
+        # Compute update formulae
+        w_max_up = max(
+            w1 := self._work_model.update(r_src, o_src, o_dst),
+            w2 := self._work_model.update(r_dst, o_dst, o_src))
+
+        # Move objects into proposed new arrangement
+        self._phase.transfer_objects(r_src, o_src, r_dst, o_dst)
+
+        # Compute maximum work of proposed new arrangement
+        w_max_new = max(
+            w3 := self._work_model.compute(r_src),
+            w4 := self._work_model.compute(r_dst))
+
+        # Move objects back into original arrangement
+        self._phase.transfer_objects(r_dst, o_src, r_src, o_dst)
+
+        # Sanity check
+        if w_max_new != w_max_up:
+            self._logger.error(f"Updated work: max({w1},{w2}) <> computed: max({w3},{w4})")
+            raise SystemExit(1)
+
+        # Return criterion value
+        return w_max_0 - w_max_new
