@@ -231,9 +231,9 @@ class AffineCombinationWorkModel(WorkModelBase):
             # Remove object from rank
             r_obj.discard(o)
 
-            # Skip locally homed blocks
+            # Retrieve shared block and skip if none or not locally homed
             b = o.get_shared_block()
-            if b.get_home_id() == r_id:
+            if b is None or b.get_home_id() == r_id:
                 continue
 
             # Determine set of removed non-homed blocks
@@ -249,9 +249,9 @@ class AffineCombinationWorkModel(WorkModelBase):
 
         # Iterate over all received objects
         for o in o_rcv:
-            # Skip locally homed blocks
+            # Retrieve shared block and skip if none or not locally homed
             b = o.get_shared_block()
-            if b.get_home_id() == r_id:
+            if b is None or b.get_home_id() == r_id:
                 continue
 
             # Determine set of added non-homed blocks
