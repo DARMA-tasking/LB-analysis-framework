@@ -48,7 +48,7 @@ from ..Model.lbsRank import Rank
 
 
 class TemperedCriterion(CriterionBase):
-    """A concrete class for the Grapevine criterion with update formulae."""
+    """A concrete class for the Tempered criterion with update formulae."""
 
     def __init__(self, work_model, lgr: Logger):
         """Class constructor."""
