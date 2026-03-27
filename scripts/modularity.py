@@ -23,7 +23,7 @@ def check_null_cases(A, d)->bool:
 
     # Default non-null case
     return False
-    
+
 def newman_girvan(A, d, verb=False)->float:
     # Zero modularity by default for all degenerate cases
     if check_null_cases(A, d):
@@ -122,12 +122,12 @@ rank_modularities(
 # All objects on same rank
 n = 9
 A = np.zeros((n, n))
-A[0, 5] = 2.0 
+A[0, 5] = 2.0
 A[1, 4] = 1.0
 A[3, 2] = 1.0
-A[3, 8] = 0.5 
+A[3, 8] = 0.5
 A[4, 1] = 2.0
-A[5, 8] = 2.0 
+A[5, 8] = 2.0
 A[7, 6] = 1.0
 A[8, 6] = 1.5
 
@@ -153,10 +153,10 @@ rank_modularities(
 n_0 = 7
 A_0 = np.zeros((n_0, n_0))
 A_0[3, 2] = 1.0
-A_0[0, 3] = 2.0 
+A_0[0, 3] = 2.0
 A_0[2, 1] = 1.0
-A_0[2, 6] = 0.5 
-A_0[3, 6] = 2.0 
+A_0[2, 6] = 0.5
+A_0[3, 6] = 2.0
 A_0[5, 4] = 1.0
 A_0[6, 4] = 1.5
 n_1 = 2
