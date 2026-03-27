@@ -51,13 +51,13 @@ else:
 class TaskSpecification(TypedDict):
     # The task time
     time: float
-    # The task's sequential ID
+    # The task sequential ID
     seq_id: int
     # Whether the task is migratable or not
     migratable: bool
-    # The task's home rank
+    # The task home rank
     home: int
-    # The task's current node
+    # The task current node
     node: int
     # The collection id
     collection_id: NotRequired[int]
@@ -75,10 +75,10 @@ class SharedBlockSpecification(TypedDict):
     # the shared block ID
     shared_id: int
 
-CommunicationSpecification = TypedDict('CommunicationSpecification', {
-    'size': float,
-    'from': int,
-    'to': int
+CommunicationSpecification = TypedDict("CommunicationSpecification", {
+    "size": float,
+    "from": int,
+    "to": int
 })
 
 class RankSpecification(TypedDict):

@@ -48,7 +48,7 @@ from ..Model.lbsRank import Rank
 
 
 class TemperedCriterion(CriterionBase):
-    """A concrete class for the Grapevine criterion with update formulae."""
+    """A concrete class for the Tempered criterion with update formulae."""
 
     def __init__(self, work_model, lgr: Logger):
         """Class constructor."""
@@ -70,6 +70,9 @@ class TemperedCriterion(CriterionBase):
         w_max_new = max(
             self._work_model.update(r_src, o_src, o_dst),
             self._work_model.update(r_dst, o_dst, o_src))
+
+        # Report computed values in debug mode
+        self._logger.debug(f"Arrangement work; original: {w_max_0}; updated: {w_max_new}")
 
         # Return criterion value
         return w_max_0 - w_max_new
