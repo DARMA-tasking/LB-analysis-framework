@@ -71,5 +71,8 @@ class TemperedCriterion(CriterionBase):
             self._work_model.update(r_src, o_src, o_dst),
             self._work_model.update(r_dst, o_dst, o_src))
 
+        # Report computed values in debug mode
+        self._logger.debug(f"Arrangement work; original: {w_max_0}; updated: {w_max_new}")
+
         # Return criterion value
         return w_max_0 - w_max_new
