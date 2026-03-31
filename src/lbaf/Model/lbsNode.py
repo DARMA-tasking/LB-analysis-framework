@@ -81,7 +81,7 @@ class Node:
     def get_objects(self) -> set:
         """Return set of all objects across all ranks in node."""
         return set().union(*(r.get_objects() for r in self.get_ranks()))
-    
+
     def get_shared_blocks(self) -> set:
         """Return set of all shared blocks across all ranks in node."""
         return set().union(*(r.get_shared_blocks() for r in self.get_ranks()))
