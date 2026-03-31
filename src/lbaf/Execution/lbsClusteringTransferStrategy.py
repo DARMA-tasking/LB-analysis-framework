@@ -182,6 +182,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             for k_src, o_src in clusters_src.items():
                 # Iterate over target clusters
                 for k_try, o_try in clusters_try.items():
+                    # Skip trivial case
+                    if not o_src and not o_try:
+                        continue
+
                     # Decide whether swap is beneficial
                     c_try = self._criterion.compute(r_src, o_src, r_try, o_try)
                     self.__n_swap_tries += 1

@@ -78,6 +78,14 @@ class Node:
     def get_number_of_ranks(self) -> int:
         return len(self.__ranks)
 
+    def get_objects(self) -> set:
+        """Return set of all objects across all ranks in node."""
+        return set().union(*(r.get_objects() for r in self.get_ranks()))
+    
+    def get_shared_blocks(self) -> set:
+        """Return set of all shared blocks across all ranks in node."""
+        return set().union(*(r.get_shared_blocks() for r in self.get_ranks()))
+
     def get_max_memory_usage(self) -> float:
         """Sum all memory usages for each rank to get the node memory usage."""
         return 0.0 + sum(

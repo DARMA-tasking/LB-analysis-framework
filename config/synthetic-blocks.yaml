@@ -14,7 +14,7 @@ work_model:
     gamma: 0.0
     delta: 0.0
     upper_bounds:
-      max_memory_usage: 27.0
+      max_memory_usage: 36.0
 
 # Specify algorithm
 algorithm:

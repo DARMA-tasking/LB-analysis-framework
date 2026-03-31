@@ -68,8 +68,8 @@ class TemperedCriterion(CriterionBase):
 
         # Compute update formulae
         w_max_new = max(
-            self._work_model.update(r_src, o_src, o_dst),
-            self._work_model.update(r_dst, o_dst, o_src))
+            self._work_model.update(r_src, r_dst, o_src, o_dst),
+            self._work_model.update(r_dst, r_src, o_dst, o_src))
 
         # Report computed values in debug mode
         self._logger.debug(f"Arrangement work; original: {w_max_0}; updated: {w_max_new}")

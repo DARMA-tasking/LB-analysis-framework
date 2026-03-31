@@ -83,6 +83,6 @@ class WorkModelBase:
         # Must be implemented by concrete subclass
 
     @abc.abstractmethod
-    def update(self, rank, o_snd, o_rcv):
-        """Compute updated work on given rank if sending and receiving objects."""
+    def update(self, r_snd, r_rcv, o_snd, o_rcv):
+        """Compute updated work on sender rank if sending and receiving objects."""
         # Must be implemented by concrete subclass
