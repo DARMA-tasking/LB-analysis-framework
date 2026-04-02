@@ -95,6 +95,9 @@ class AlgorithmBase:
         # Keep track of phase communications
         self._initial_communications = {}
 
+        # Assign optional parameters
+        self._deterministic_transfer = parameters.get("deterministic_transfer", False)
+
         # Map rank statistics to their respective computation methods
         self.__statistics = {
             ("ranks", lambda x: x.get_load()): {

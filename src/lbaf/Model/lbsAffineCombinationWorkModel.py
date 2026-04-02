@@ -111,6 +111,39 @@ class AffineCombinationWorkModel(WorkModelBase):
             rank.get_sent_volume(),
             rank.get_homing())
 
+    def __update_bounds(self, r_snd: Rank, r_rcv: Rank, o_snd: list, o_rcv: list):
+        """Update verification of bounds if objects are to be sent and received."""
+        # Distinguish between upper bound QOIs
+        for k, v in self.__upper_bounds.items():
+            if k == "max_memory_usage":
+                # Initialize post-transfer set of objects
+                o_new = set()
+
+                # Node-level upper bound
+                if self.__node_bounds:
+                    n_snd = r_snd.get_node()
+                    o_new = n_snd.get_objects()
+                    # Updated objects only if transfer is not node-local
+                    if n_snd != r_rcv.get_node():
+                        o_new = (o_new.difference(o_snd)).union(o_rcv)
+
+                # Rank-level upper bound
+                else:
+                    o_new = (r_snd.get_objects().difference(o_snd)).union(o_rcv)
+
+                # Compute new set of blocks and check upper bound
+                b_new = set(o.get_shared_block() for o in o_new if o.get_shared_block())
+                return b_new and (sum(b.get_size() for b in b_new) > v)
+
+            else:
+                # Ignore unsupported upper bound types
+                self.__logger.warning(
+                    f"Upper bound update formula not supported for {k}, ignoring it.")
+                return False
+
+        # Bounds are satisfied by default
+        return False
+
     def __update_load(self, rank: Rank, o_snd: list, o_rcv: list):
         """Update total load if objects are to be sent and received."""
         return rank.get_load() - sum(
@@ -271,12 +304,16 @@ class AffineCombinationWorkModel(WorkModelBase):
         # Return updated homing cost
         return homing
 
-    def update(self, rank: Rank, o_snd: list, o_rcv: list):
+    def update(self, r_snd: Rank, r_rcv: Rank, o_snd: list, o_rcv: list):
         """Update work if objects are to be sent and received."""
+        # Check whether strict bounds are satisfied
+        if self.__update_bounds(r_snd, r_rcv, o_snd, o_rcv):
+                return math.inf
+
         # Return combination of load and volumes
         return self.affine_combination(
-            rank.get_alpha(),
-            self.__update_load(rank, o_snd, o_rcv),
-            self.__update_received(rank, o_snd, o_rcv),
-            self.__update_sent(rank, o_snd, o_rcv),
-            self.__update_homing(rank, o_snd, o_rcv))
+            r_snd.get_alpha(),
+            self.__update_load(r_snd, o_snd, o_rcv),
+            self.__update_received(r_snd, o_snd, o_rcv),
+            self.__update_sent(r_snd, o_snd, o_rcv),
+            self.__update_homing(r_snd, o_snd, o_rcv))

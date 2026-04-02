@@ -35,6 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install tox-gh-actions
+          pip list
 
       - name: Register Github Actions Problem matchers (pylint)
         run: |

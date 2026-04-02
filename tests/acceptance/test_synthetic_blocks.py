@@ -1,6 +1,7 @@
 import os
 import unittest
 
+from src.lbaf import PROJECT_PATH
 from src.lbaf.Applications.LBAF_app import LBAFApplication
 
 class TestSyntheticBlocksLB(unittest.TestCase):
@@ -16,8 +17,7 @@ class TestSyntheticBlocksLB(unittest.TestCase):
         """Creates and returns the path to a YAML configuration file."""
         # Determine file paths
         acceptance_dir = os.path.dirname(__file__)
-        test_dir = os.path.dirname(acceptance_dir)
-        data_dir = os.path.join(os.path.dirname(test_dir), "data")
+        data_dir = os.path.join(PROJECT_PATH, "data")
 
         # Determine data stem
         data_stem = f"{data_dir}/synthetic-blocks/synthetic-dataset-blocks"

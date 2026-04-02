@@ -89,8 +89,8 @@ class Phase:
         # Sub-index of this phase e.g. for load balancing iteration
         self.__phase_sub_id = p_sub_id
 
-        # Initialize empty list of ranks
-        self.__ranks = []
+        # Initialize empty set of ranks
+        self.__ranks: Set[Rank] = set()
 
         # Initialize phase communication dict
         self.__communications = {}

@@ -41,23 +41,33 @@
 #@HEADER
 #
 import os
+import math
 import logging
 import unittest
 
 from src.lbaf import PROJECT_PATH
 from src.lbaf.Model.lbsRank import Rank
 from src.lbaf.Model.lbsObject import Object
+from src.lbaf.Model.lbsPhase import Phase
 from src.lbaf.Model.lbsWorkModelBase import WorkModelBase
+from src.lbaf.IO.lbsVTDataReader import LoadReader
 
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
-        self.data_dir = os.path.join(PROJECT_PATH, "tests", "data")
+        self.data_dir = os.path.join(PROJECT_PATH, "data")
         self.logger = logging.getLogger()
         self.migratable_objects = {Object(seq_id=0, load=1.0), Object(seq_id=1, load=0.5), Object(seq_id=2, load=0.5), Object(seq_id=3, load=0.5)}
         self.sentinel_objects = {Object(seq_id=15, load=4.5), Object(seq_id=18, load=2.5)}
         self.rank = Rank(r_id=0, migratable_objects=self.migratable_objects, sentinel_objects=self.sentinel_objects, logger=self.logger)
         self.rank_load = self.rank.get_load()
+
+        file_prefix = os.path.join(self.data_dir, "synthetic-blocks", "synthetic-dataset-blocks")
+        reader = LoadReader(file_prefix=file_prefix, logger=self.logger, file_suffix="json", ranks_per_node=2)
+        phase = Phase(self.logger, 0, reader=reader)
+        phase.populate_from_log(0)
+        self.phase_ranks = {r.get_id(): r for r in phase.get_ranks()}
+        self.phase_objects = {o.get_id(): o for o in phase.get_objects()}
 
     def test_lbs_work_model_base_factory(self):
         with self.assertRaises(NameError) as err:
@@ -85,6 +95,52 @@ class TestConfig(unittest.TestCase):
                          gamma)
         self.assertEqual(affine_combination_work_model.compute(self.rank),
                         self.rank_load + max(self.rank.get_received_volume(), self.rank.get_sent_volume()) + 1.0)
+
+    def test_affine_update_blocks_obvious_transfer_with_rank_level_bound(self):
+        rank_src = self.phase_ranks[3]
+        rank_dst = self.phase_ranks[1]
+        object_to_receive = self.phase_objects[5]
+
+        constrained = WorkModelBase.factory(
+            "AffineCombination",
+            parameters={"upper_bounds": {"max_memory_usage": 8.0}},
+            lgr=self.logger)
+        relaxed = WorkModelBase.factory(
+            "AffineCombination",
+            parameters={"upper_bounds": {"max_memory_usage": 9.0}},
+            lgr=self.logger)
+
+        self.assertEqual(
+            constrained.update(rank_src, rank_dst, [], [object_to_receive]),
+            math.inf)
+        self.assertNotEqual(
+            relaxed.update(rank_src, rank_dst, [], [object_to_receive]),
+            math.inf)
+
+    def test_affine_update_blocks_obvious_transfer_with_node_level_bound(self):
+        rank_src = self.phase_ranks[3]
+        rank_dst = self.phase_ranks[1]
+        object_to_receive = self.phase_objects[5]
+
+        constrained = WorkModelBase.factory(
+            "AffineCombination",
+            parameters={
+                "upper_bounds": {"max_memory_usage": 17.0},
+                "node_bounds": True},
+            lgr=self.logger)
+        relaxed = WorkModelBase.factory(
+            "AffineCombination",
+            parameters={
+                "upper_bounds": {"max_memory_usage": 18.0},
+                "node_bounds": True},
+            lgr=self.logger)
+
+        self.assertEqual(
+            constrained.update(rank_src, rank_dst, [], [object_to_receive]),
+            math.inf)
+        self.assertNotEqual(
+            relaxed.update(rank_src, rank_dst, [], [object_to_receive]),
+            math.inf)
 
 if __name__ == "__main__":
     unittest.main()

@@ -182,6 +182,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
             for k_src, o_src in clusters_src.items():
                 # Iterate over target clusters
                 for k_try, o_try in clusters_try.items():
+                    # Skip trivial case
+                    if not o_src and not o_try:
+                        continue
+
                     # Decide whether swap is beneficial
                     c_try = self._criterion.compute(r_src, o_src, r_try, o_try)
                     self.__n_swap_tries += 1
@@ -254,7 +258,10 @@ class ClusteringTransferStrategy(TransferStrategyBase):
         """Perform object transfer stage."""
         # Initialize transfer stage
         self._initialize_transfer_stage(ave_load)
-        rank_targets = self._get_ranks_to_traverse(phase.get_ranks(), known_peers)
+        phase_ranks = phase.get_ranks()
+        if self._deterministic_transfer:
+            phase_ranks = sorted(phase_ranks, key=lambda r: r.get_id())
+        rank_targets = self._get_ranks_to_traverse(phase_ranks, known_peers)
 
         # Iterate over ranks
         n_ranks = len(phase.get_ranks())
