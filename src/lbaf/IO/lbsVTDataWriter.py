@@ -40,20 +40,22 @@
 ###############################################################################
 #@HEADER
 #
-import json
 import multiprocessing as mp
 import os
 import sys
 import math
+
 from logging import Logger
 from typing import Optional
 
 import brotli
+import orjson
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
 from ..Model.lbsObject import Object
 
+from ..Utils.lbsTimerDecorator import timer
 
 class VTDataWriter:
     """A class to write load directives for VT as JSON files
@@ -94,11 +96,17 @@ class VTDataWriter:
         try:
             self.__extension = parameters["json_output_suffix"]
             self.__compress = parameters["compressed"]
+            self.__add_communications = parameters.get("communications", True)
         except Exception as e:
             self.__logger.error(
                 f"Missing JSON writer configuration parameter(s): {e}")
             raise SystemExit(1) from e
 
+    def __json_to_string(self, payload: dict) -> str:
+        """Serialize a payload to a compact JSON string for logging."""
+        return orjson.dumps(payload).decode("utf-8")
+
+    @timer
     def __create_tasks(self, rank_id, objects, migratable):
         """Create per-object entries to be outputted to JSON."""
         tasks = []
@@ -145,6 +153,7 @@ class VTDataWriter:
         # Return created tasks on this rank
         return tasks
 
+    @timer
     def __create_task_data(self, rank: Rank):
         """Create task data."""
         return sorted(
@@ -155,19 +164,12 @@ class VTDataWriter:
             key=lambda x: x.get("entity").get(
                 "id", x.get("entity").get("seq_id")))
 
-    def __find_object_rank(self, phase: Phase, obj: Object):
-        """Determine which rank owns the object."""
-        for r in phase.get_ranks():
-            if obj in r.get_objects():
-                return r
-
-        # If this point is reached the object could not be found
-        self.__logger.error(
-            f"Object id {object} cannot be located in any rank of phase {phase.get_id()}")
-        raise SystemExit(1)
-
+    @timer
     def __get_communications(self, phase: Phase, rank: Rank):
         """Create communication entries to be outputted to JSON."""
+
+        if not self.__add_communications:
+            return None
 
         # Get initial communications (if any) for current phase
         phase_communications_dict = phase.get_communications()
@@ -194,7 +196,6 @@ class VTDataWriter:
                     # Retrieve communications with single sender
                     sender_obj = sender_obj[0]
                     sender_rank_id = sender_obj.get_rank_id()
-                    #sender_rank_id = self.__find_object_rank(phase, sender_obj).get_id()
                     from_rank: Rank = [
                         r for r in phase.get_ranks() if r.get_id() == sender_rank_id][0]
                     comm_entry["from"]["home"] = sender_rank_id
@@ -206,7 +207,7 @@ class VTDataWriter:
                     # Other cases are not supported
                     missing_ref = comm_entry["from"].get("id", comm_entry["from"].get("seq_id"))
                     self.__logger.error(
-                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                        f"Invalid object id ({missing_ref}) in communication {self.__json_to_string(comm_entry)}")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if
                     o.get_id() is not None and o.get_id() == comm_entry["to"].get("id") or
@@ -215,7 +216,6 @@ class VTDataWriter:
                     # Retrieve communications with single receiver
                     receiver_obj = receiver_obj[0]
                     receiver_rank_id = receiver_obj.get_rank_id()
-                    #receiver_rank_id = self.__find_object_rank(phase, receiver_obj).get_id()
                     comm_entry["to"]["home"] = receiver_rank_id
                     to_rank: Rank = [
                         r for r in phase.get_ranks() if receiver_obj in r.get_objects()][0]
@@ -227,13 +227,13 @@ class VTDataWriter:
                     # Other cases are not supported
                     missing_ref = comm_entry["to"].get("id", comm_entry["to"].get("seq_id"))
                     self.__logger.error(
-                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                        f"Invalid object id ({missing_ref}) in communication {self.__json_to_string(comm_entry)}")
 
                 if missing_ref is not None:
                     # Keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.
                     self.__logger.warning(
-                        f"Missing reference: ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                        f"Missing reference: ({missing_ref}) in communication {self.__json_to_string(comm_entry)}")
                     communications.append(comm_entry)
                 elif ("migratable" in comm_entry["from"].keys() and
                         not comm_entry["from"]["migratable"]):
@@ -254,7 +254,8 @@ class VTDataWriter:
         # Return created list of communications
         return communications
 
-    def _json_serializer(self, rank_phases_double) -> str:
+    @timer
+    def _json_serializer(self, rank_phases_double) -> bytes:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
         r_id, r_phases = rank_phases_double
@@ -354,9 +355,10 @@ class VTDataWriter:
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
-        serial_json = json.dumps(output, separators=(',', ':'))
+        serial_json = orjson.dumps(output)
         return serial_json
 
+    @timer
     def _json_writer(self, rank_phases_double) -> str:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
@@ -371,16 +373,53 @@ class VTDataWriter:
 
         if self.__compress:
             serial_json = brotli.compress(
-                string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
-        with open(file_name, "wb" if self.__compress else 'w') as json_file:
+                string=serial_json, mode=brotli.MODE_TEXT)
+        with open(file_name, "wb") as json_file:
             json_file.write(serial_json)
 
         # Return JSON file name
         return file_name
 
+    @timer
+    def __write_with_concurrency(self):
+        from concurrent.futures import ProcessPoolExecutor, as_completed
+        with ProcessPoolExecutor() as executor:
+            futures = {executor.submit(self._json_writer, item): item for item in self.__rank_phases.items()}
+            for future in as_completed(futures):
+                try:
+                    file_name = future.result()
+                    self.__logger.info(f"Wrote {file_name}")
+                except Exception as e:
+                    self.__logger.error(f"Error processing {futures[future]}: {e}")
+
+    @timer
+    def __write_with_standard_mp(self):
+        with mp.pool.Pool(context=mp.get_context("fork")) as pool:
+            results = pool.imap_unordered(
+                self._json_writer, self.__rank_phases.items())
+            for file_name in results:
+                self.__logger.info(f"Wrote {file_name}")
+
+    @timer
+    def __write_with_thread_concurrency(self):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor() as executor:
+            futures = {executor.submit(self._json_writer, item): item for item in self.__rank_phases.items()}
+            for future in as_completed(futures):
+                try:
+                    file_name = future.result()
+                    self.__logger.info(f"Wrote {file_name}")
+                except Exception as e:
+                    self.__logger.error(f"Error processing {futures[future]}: {e}")
+
+    @timer
+    def __write_in_serial(self):
+        for rank_phases_double in self.__rank_phases.items():
+            file_name = self._json_writer(rank_phases_double)
+            self.__logger.info(f"Wrote {file_name}")
+    @timer
     def write(self, phases: dict):
         """ Write one JSON per rank for dictonary of phases with possibly iterations."""
-
         # Ensure that provided phase has correct type
         if not isinstance(phases, dict):
             self.__logger.error(
@@ -391,7 +430,7 @@ class VTDataWriter:
         # Assemble mapping from ranks to their phases
         self.__rank_phases = {}
         for phase in self.__phases.values():
-            # Handle case where entry only cintains a phase
+            # Handle case where entry only contains a phase
             for r in phase.get_ranks():
                 self.__rank_phases.setdefault(r.get_id(), {})
                 self.__rank_phases[r.get_id()][phase.get_id()] = r
@@ -399,9 +438,21 @@ class VTDataWriter:
         # Prevent recursion overruns
         sys.setrecursionlimit(25000)
 
-        # Write individual rank files using data parallelism
-        with mp.pool.Pool(context=mp.get_context("fork")) as pool:
-            results = pool.imap_unordered(
-                self._json_writer, self.__rank_phases.items())
-            for file_name in results:
-                self.__logger.info(f"Wrote {file_name}")
+        ######################################################################################
+        # Write individual rank files
+        # try:
+        #     self.__write_with_standard_mp()
+        # except:
+        #     print("There was an error running the standard MP function.")
+
+        # try:
+        #     self.__write_with_concurrency()
+        # except:
+        #     print("There was an error with self.__write_with_concurrency")
+
+        try:
+            self.__write_with_thread_concurrency()
+        except Exception as e:
+            self.__logger.error(
+                f"There was an error with self.__write_with_thread_concurrency: {e}")
+            self.__write_in_serial()
