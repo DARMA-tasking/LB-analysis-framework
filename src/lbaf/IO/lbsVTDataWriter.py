@@ -40,7 +40,6 @@
 ###############################################################################
 #@HEADER
 #
-import json
 import multiprocessing as mp
 import os
 import sys
@@ -50,6 +49,7 @@ from logging import Logger
 from typing import Optional
 
 import brotli
+import orjson
 
 from ..Model.lbsPhase import Phase
 from ..Model.lbsRank import Rank
@@ -101,6 +101,10 @@ class VTDataWriter:
             self.__logger.error(
                 f"Missing JSON writer configuration parameter(s): {e}")
             raise SystemExit(1) from e
+
+    def __json_to_string(self, payload: dict) -> str:
+        """Serialize a payload to a compact JSON string for logging."""
+        return orjson.dumps(payload).decode("utf-8")
 
     @timer
     def __create_tasks(self, rank_id, objects, migratable):
@@ -203,7 +207,7 @@ class VTDataWriter:
                     # Other cases are not supported
                     missing_ref = comm_entry["from"].get("id", comm_entry["from"].get("seq_id"))
                     self.__logger.error(
-                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                        f"Invalid object id ({missing_ref}) in communication {self.__json_to_string(comm_entry)}")
 
                 receiver_obj: Object = [o for o in phase.get_objects() if
                     o.get_id() is not None and o.get_id() == comm_entry["to"].get("id") or
@@ -223,13 +227,13 @@ class VTDataWriter:
                     # Other cases are not supported
                     missing_ref = comm_entry["to"].get("id", comm_entry["to"].get("seq_id"))
                     self.__logger.error(
-                        f"Invalid object id ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                        f"Invalid object id ({missing_ref}) in communication {self.__json_to_string(comm_entry)}")
 
                 if missing_ref is not None:
                     # Keep communication with invalid entity references for the moment.
                     # We might remove these communications in the future in the reader work to fix invalid input.
                     self.__logger.warning(
-                        f"Missing reference: ({missing_ref}) in communication {json.dumps(comm_entry)}")
+                        f"Missing reference: ({missing_ref}) in communication {self.__json_to_string(comm_entry)}")
                     communications.append(comm_entry)
                 elif ("migratable" in comm_entry["from"].keys() and
                         not comm_entry["from"]["migratable"]):
@@ -251,7 +255,7 @@ class VTDataWriter:
         return communications
 
     @timer
-    def _json_serializer(self, rank_phases_double) -> str:
+    def _json_serializer(self, rank_phases_double) -> bytes:
         """Write one JSON per rank for list of phase instances."""
         # Unpack received double
         r_id, r_phases = rank_phases_double
@@ -351,7 +355,7 @@ class VTDataWriter:
             output["phases"].append(phase_data)
 
         # Serialize and possibly compress JSON payload
-        serial_json = json.dumps(output, separators=(',', ':'))
+        serial_json = orjson.dumps(output)
         return serial_json
 
     @timer
@@ -369,8 +373,8 @@ class VTDataWriter:
 
         if self.__compress:
             serial_json = brotli.compress(
-                string=serial_json.encode("utf-8"), mode=brotli.MODE_TEXT)
-        with open(file_name, "wb" if self.__compress else 'w') as json_file:
+                string=serial_json, mode=brotli.MODE_TEXT)
+        with open(file_name, "wb") as json_file:
             json_file.write(serial_json)
 
         # Return JSON file name
@@ -448,10 +452,7 @@ class VTDataWriter:
 
         try:
             self.__write_with_thread_concurrency()
-        except:
-            print("There was an error with self.__write_with_thread_concurrency")
-
-        try:
+        except Exception as e:
+            self.__logger.error(
+                f"There was an error with self.__write_with_thread_concurrency: {e}")
             self.__write_in_serial()
-        except:
-            print("There was an error with self.__write_in_serial")
